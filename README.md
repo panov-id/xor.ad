@@ -9,7 +9,7 @@ A place for talking to the people around you, right now, and then letting it go.
 ## The faces
 
 - **sosed.place** — Russian-speaking audience, Soviet-flavored visual identity.
-- **neighbro.place** — English-speaking audience, British-leaning tone and visuals.
+- **neighbro.place** — English-speaking audience, European-leaning tone and visuals.
 - **xor.ad** — the platform underneath both. One backend, one database, one shared pool of users and feed — sosed.place and neighbro.place are different skins over the same data, not isolated audiences. Moderation policy can still differ per face where needed (see Moderation below). New faces for new audiences plug into the same gateway.
 
 ## The alpha experience
@@ -34,20 +34,23 @@ Sensitive data lives on the device, in the browser's secure storage — not on t
 
 ## Moderation
 
-Every message is checked by Google's Perspective API before it's allowed into the feed — messages that fail the check simply aren't published. On top of that, everyone starts with a quota of 5 posts; if other users report or block you, that quota drops.
+Every message — in the feed or in a private chat — is checked by Google's Perspective API before it's allowed to go out; messages that fail the check simply aren't published or sent. On top of that, everyone starts with a quota of 5 posts; if other users report or block you, that quota drops.
 
-The AI also reads for tone beyond toxicity: it flags messages with sexual subtext and messages that are LGBT-related.
+The AI also reads for tone beyond toxicity: it flags messages with sexual subtext and messages that are LGBT-related, and it rejects harassment, drug-related content, and sex-work solicitation outright. The general bar: content should stay within the norms of a calm, peaceful society.
 
+- **Harassment, drugs, sex services.** Rejected outright — these messages are never published or sent, in the feed or in chat.
 - **Sexual subtext.** Flagged messages are completely invisible by default. To see them, you opt in: accept a dedicated consent agreement and provide an email address (stored as given, not verified) — only then do such messages appear in your feed.
 - **LGBT-related content.** On neighbro.place, flagged messages are shown in the feed like any other message by default. Blocking one hides it from your own feed only, not globally. Liking one keeps it visible to you regardless — both are personal, not shared, signals. On sosed.place, such messages are filtered out of the feed entirely.
 
 ## Architecture (alpha)
 
 - **Frontend:** React, browser-based web app — no native app for the alpha.
-- **Backend:** Go service behind xor.ad — the single gateway every frontend talks to; it routes requests into the shared backend.
-- **Realtime:** Supabase Realtime for likes, chat delivery, and feed updates.
+- **Backend:** Supabase end to end — Postgres, Auth, Realtime, and Storage, with business logic (quotas, age filter, moderation orchestration) living in Supabase Edge Functions. No separate backend service to run or deploy.
+- **Gateway:** xor.ad is the shared custom domain every frontend talks to — the single public entry point in front of the Supabase project.
+- **Language detection:** a local language-detection library runs inside the Edge Functions — no external API call, no per-message cost.
+- **Content moderation:** Google's Perspective API for toxicity, plus a low-cost LLM call per message for tone classification (sexual subtext, LGBT-related topic) — see Moderation above.
 - **Local development:** everything runs in Docker — each service in its own container.
-- **Deployment:** Bunny CDN, using Bunny's managed container and database offerings.
+- **Deployment:** frontend served via Bunny CDN; backend runs on Supabase's managed infrastructure.
 - **Configuration:** every tunable — message character limit, starting post quota, message lifetime, default radius, and so on — is driven by environment variables, so behavior can be adjusted per deployment without touching code.
 
 ## Related repositories
@@ -59,4 +62,4 @@ The frontend repos for the two faces live next to this one and are symlinked in 
 
 ## Beyond the alpha
 
-The core idea stays ephemeral — this isn't meant to become another permanent-profile social network. What grows from here: more faces for more regions and languages, richer in-chat experience, and native apps once the web alpha proves the concept works.
+The core idea stays ephemeral — this isn't meant to become another permanent-profile social network. What grows from here: more faces for more regions and languages, richer in-chat experience, native apps once the web alpha proves the concept works, and an internal balance. The balance would be funded by real money (PayPal, on both faces) as well as internal mechanics like bonuses and referrals, and spendable on boosting — paying to promote your own message so it stands out in the feed. Details still open.

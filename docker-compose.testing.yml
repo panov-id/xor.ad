@@ -1,0 +1,14 @@
+# Visual/responsive testing layer: takes screenshots of the landing pages
+# at mobile/tablet/desktop widths, in both dark and light color schemes,
+# using Playwright inside Docker — nothing installed on the host.
+#
+# Run: scripts/run-visual-tests.sh
+# Output: testing/screenshots/<site>-<viewport>-<scheme>.png
+
+services:
+  visual-tests:
+    build: ./testing
+    volumes:
+      - ./sosed.place/landing:/sites/sosed:ro
+      - ./neighbro.place/landing:/sites/neighbro:ro
+      - ./testing/screenshots:/app/screenshots

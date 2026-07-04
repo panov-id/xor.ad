@@ -27,7 +27,7 @@ A place for talking to the people around you, right now, and then letting it go.
 
 ## Design
 
-Black and white, high contrast, on purpose. Users can dial the contrast up or down themselves, and switch between light and dark themes. No decoration for decoration's sake.
+Black and white, high contrast, on purpose. Users can dial the contrast up or down themselves, and switch between light and dark themes. No decoration for decoration's sake — leaning into a neo-brutalist direction (hard borders, sharp corners, un-blurred shadows), with one accent color per face over the monochrome base: red for sosed.place, warm gold/bronze for neighbro.place. See [`docs/design-system_EN.md`](./docs/design-system_EN.md) for the reasoning and sources.
 
 ## Privacy
 

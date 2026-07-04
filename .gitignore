@@ -2,3 +2,5 @@
 # Vendored by scripts/setup-supabase.sh — reproducible, not committed
 # (contains .env with demo secrets and local Postgres data files).
 /supabase/
+# Generated visual-test output, not source
+/testing/screenshots/*.png

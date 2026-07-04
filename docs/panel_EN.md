@@ -10,6 +10,7 @@ An internal interface for the team: visibility into and control over reports, ba
 - Ban a user (by UID).
 - View and manually adjust a user's posting quota.
 - View support tickets (see the "Support" step in the README) — tickets from Supabase with an email/webhook notification.
+- Manage the sticker catalog (beyond the alpha, see README): upload images via Storage/imgproxy, edit the fixed catalog users can buy from with their in-app balance.
 
 ## Logic
 

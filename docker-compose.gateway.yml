@@ -1,0 +1,30 @@
+# Local-dev xor.ad gateway: plain nginx (no TLS/certbot — that's what
+# supabase/docker-compose.nginx.yml is for, and it needs a real public
+# domain). Run alongside the vendored Supabase stack:
+#
+#   docker compose \
+#     -f supabase/docker-compose.yml \
+#     -f docker-compose.gateway.yml \
+#     --env-file supabase/.env \
+#     up -d
+#
+# Test locally without editing /etc/hosts:
+#   curl -H "Host: sosed.place" http://localhost:8080/
+#   curl -H "Host: neighbro.place" http://localhost:8080/
+
+services:
+  nginx:
+    container_name: xor-ad-gateway
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      # Paths are relative to supabase/ (Compose's project directory here —
+      # the directory of the first -f file), not to this file's location.
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../sosed.place/landing:/var/www/sosed.place:ro
+      - ../neighbro.place/landing:/var/www/neighbro.place:ro
+    depends_on:
+      kong:
+        condition: service_healthy

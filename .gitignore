@@ -1,1 +1,4 @@
 .idea/
+# Vendored by scripts/setup-supabase.sh — reproducible, not committed
+# (contains .env with demo secrets and local Postgres data files).
+/supabase/

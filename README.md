@@ -16,13 +16,14 @@ A place for talking to the people around you, right now, and then letting it go.
 
 1. **Open the app.** A name animation plays alongside a small live infographic — real numbers off the platform (people online nearby, messages in the last hour, that kind of pulse-check).
 2. **Location.** The app can detect your position; you can also set it yourself. A map lets you drag a slider to pick the radius you care about.
-3. **Register.** You can pick a free-form display name — optional, no real-name requirement — and enter your birth year, then hit enter. No email, no password. Behind the scenes the server generates an encrypted random UID tied to your birth year and a few unique-enough browser/device parameters, so it can still recognize you even if you wipe every cache. Your birth year also drives an age filter on the feed: a slider lets you widen or narrow the age range of neighbors you see. If you're 18 or older, the slider moves smoothly across any range, but people under 18 are never shown to you, no matter how you set it. If you're under 18, the slider is available too, but its maximum stays narrow — never wide enough to bring adults into view.
+3. **Register.** You can pick a free-form display name — optional, no real-name requirement — and enter your birth year, then hit enter. No email, no password. Behind the scenes the server generates an encrypted random UID tied to your birth year, your name, and a few unique-enough browser fingerprint parameters — so it can still recognize you even if you wipe every cache. The registration is scoped to that specific browser: it's not a cross-device account, so a different browser or a private window is a fresh identity, and there's no recovery or sync between them. Your birth year also drives an age filter on the feed: a slider lets you widen or narrow the age range of neighbors you see. If you're 18 or older, the slider moves smoothly across any range, but people under 18 are never shown to you, no matter how you set it. If you're under 18, the slider is available too, but its maximum stays narrow — never wide enough to bring adults into view.
 4. **The feed.** Short messages from people nearby, newest at the bottom like a chat, not a stacked timeline. The AI detects each message's language; by default about 95% of what you see is in your own language and 5% is in other languages spoken in your region — both shares configurable via environment variable. Styled to feel alive and a little playful — closer to Pure than to a corporate wall of posts.
-5. **Post something.** Tap "add," write up to 128 characters, optionally add your city/country and how many of you there are, hit send. Everyone starts with a quota of 5 posts; if people report you, that quota drops.
+5. **Post something.** Tap "add," write up to 128 characters, optionally add your city/country and how many of you there are, hit send. Sending a post runs through Cloudflare Turnstile (a mostly invisible, low-friction captcha) and an IP rate limit via Bunny Shield, on top of the content check described in Moderation. Everyone starts with a quota of 5 posts; if people report you, that quota drops.
 6. **It disappears.** Messages live for 4 hours 20 minutes by default, then they're gone. The lifetime is configurable, not hardcoded.
 7. **Likes → chat.** Like something in the feed. If someone likes one of yours back, you're offered a private chat with them.
 8. **Chat.** Short back-and-forth messages. The history of that conversation exists only between the two of you — nowhere else.
-9. **Optional: share a social link.** You can attach any freeform handle or link (Telegram, Instagram, whatever) from your account and choose to share it — as a way to keep the connection alive past the chat, and as a light trust signal ("this is a real person"). Nothing is validated or restricted to a fixed platform list, and sharing it is a per-instance choice you make each time, not a default-on setting. Tapping a shared link shows a warning first — you're about to leave sosed.place / neighbro.place for an external site — before it opens.
+9. **Support.** A support button is always reachable from the app. A message sent through it lands in a Supabase table, and a notification (email/webhook) fires so the team knows a new ticket came in — there's no automated handling beyond that.
+10. **Optional: share a social link.** You can attach any freeform handle or link (Telegram, Instagram, whatever) from your account and choose to share it — as a way to keep the connection alive past the chat, and as a light trust signal ("this is a real person"). Nothing is validated or restricted to a fixed platform list, and sharing it is a per-instance choice you make each time, not a default-on setting. Tapping a shared link shows a warning first — you're about to leave sosed.place / neighbro.place for an external site — before it opens.
 
 ## Design
 
@@ -30,7 +31,7 @@ Black and white, high contrast, on purpose. Users can dial the contrast up or do
 
 ## Privacy
 
-Sensitive data lives on the device, in the browser's secure storage — not on the server. What reaches the backend is kept to a minimum: enough to route messages and enforce limits, nothing more. Chat history exists only for the two people in that conversation. The device-fingerprint-backed UID exists for one reason: to stop someone from dodging a report-based quota drop by simply clearing their cache — it's an abuse guard, not a tracking feature.
+Sensitive data lives on the device, not on the server. Concretely: chat history is stored in the browser's IndexedDB, encrypted client-side with the Web Crypto API before it's written — there's no magic "secure" browser storage, so the app does its own encryption rather than relying on one. What reaches the backend is kept to a minimum: enough to route messages and enforce limits, nothing more. Chat history exists only for the two people in that conversation. The browser-fingerprint-backed UID exists for one reason: to stop someone from dodging a report-based quota drop by simply clearing their cache — it's an abuse guard, not a tracking feature, and it only ever recognizes the same browser, not the same person across browsers or devices.
 
 ## Moderation
 
@@ -49,6 +50,8 @@ The AI also reads for tone beyond toxicity: it flags messages with sexual subtex
 - **Gateway:** xor.ad is the shared custom domain every frontend talks to — the single public entry point in front of the Supabase project.
 - **Language detection:** a local language-detection library runs inside the Edge Functions — no external API call, no per-message cost.
 - **Content moderation:** Google's Perspective API for toxicity, plus a low-cost LLM call per message for tone classification (sexual subtext, LGBT-related topic) — see Moderation above.
+- **Anti-abuse on posting:** Cloudflare Turnstile as the captcha layer, and Bunny Shield for IP-based rate limiting — both scoped to the feed post action, not chat.
+- **Client-side storage:** chat history is kept in the browser's IndexedDB, encrypted with the Web Crypto API before being written.
 - **Local development:** everything runs in Docker — each service in its own container.
 - **Deployment:** frontend served via Bunny CDN; backend runs on Supabase's managed infrastructure.
 - **Configuration:** every tunable — message character limit, starting post quota, message lifetime, default radius, and so on — is driven by environment variables, so behavior can be adjusted per deployment without touching code.
@@ -60,6 +63,14 @@ The frontend repos for the two faces live next to this one and are symlinked in 
 - [`sosed.place`](./sosed.place)
 - [`neighbro.place`](./neighbro.place)
 
+## Legal
+
+Terms of Service, a Privacy Policy, and Community Guidelines exist for each face — kept short and simple rather than exhaustive legal boilerplate. They live in each frontend repo and are reachable from the app; content mirrors the rules already described in this README (Moderation, Privacy) rather than inventing separate rules.
+
+## Admin panel
+
+A separate admin/moderation panel gives the team visibility into reports, bans, and quotas across both faces — it's the operational surface for the shared backend behind xor.ad. See [`docs/panel_EN.md`](./docs/panel_EN.md) for details.
+
 ## Beyond the alpha
 
-The core idea stays ephemeral — this isn't meant to become another permanent-profile social network. What grows from here: more faces for more regions and languages, richer in-chat experience, native apps once the web alpha proves the concept works, and an internal balance. The balance would be funded by real money (PayPal, on both faces) as well as internal mechanics like bonuses and referrals, and spendable on boosting — paying to promote your own message so it stands out in the feed. Details still open.
+The core idea stays ephemeral — this isn't meant to become another permanent-profile social network. What grows from here: more faces for more regions and languages, richer in-chat experience, native apps once the web alpha proves the concept works, and an internal balance. The balance would be funded by real money (PayPal, on both faces) as well as internal mechanics like bonuses and referrals — inviting someone rewards both the inviter and the invitee once the invitee joins through that link — and spendable on boosting — paying to promote your own message so it stands out in the feed. Details still open.

@@ -1,0 +1,12 @@
+# Local dev server for the admin panel (Refine + Vite), hot-reloading.
+# Run: docker compose -f docker-compose.panel.yml up
+# Then open http://localhost:5173
+services:
+  panel-dev:
+    image: node:22-bookworm
+    working_dir: /app
+    volumes:
+      - ./panel:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"

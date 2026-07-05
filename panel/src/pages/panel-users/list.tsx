@@ -1,0 +1,107 @@
+import { useList, useGetIdentity, useInvalidate } from "@refinedev/core";
+import { useState } from "react";
+import { supabaseClient } from "../../providers/supabase-client";
+
+type PanelUserRow = {
+  id: string;
+  email: string;
+  role: "admin" | "moderator";
+  created_at: string;
+};
+
+type Identity = { role: "admin" | "moderator" | null };
+
+export const PanelUsersList = () => {
+  const { data: identity } = useGetIdentity<Identity>();
+  const invalidate = useInvalidate();
+  const { data, isLoading } = useList<PanelUserRow>({
+    resource: "panel_users",
+    sorters: [{ field: "created_at", order: "desc" }],
+  });
+
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"admin" | "moderator">("moderator");
+  const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const isAdmin = identity?.role === "admin";
+
+  const onInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setStatus(null);
+
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+
+    const { data: result, error } = await supabaseClient.functions.invoke("invite-panel-user", {
+      body: { email, role },
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+    });
+
+    setSubmitting(false);
+
+    if (error || result?.error) {
+      setStatus({ kind: "err", text: result?.error ?? error?.message ?? "Invite failed" });
+      return;
+    }
+
+    setStatus({ kind: "ok", text: `Invited ${email}` });
+    setEmail("");
+    invalidate({ resource: "panel_users", invalidationType: "list" });
+  };
+
+  return (
+    <div className="panel-card">
+      <h1>Panel users</h1>
+
+      {isAdmin && (
+        <form onSubmit={onInvite} className="auth-form panel-invite-form">
+          <input
+            type="email"
+            placeholder="email to invite"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <select value={role} onChange={(e) => setRole(e.target.value as "admin" | "moderator")}>
+            <option value="moderator">moderator</option>
+            <option value="admin">admin</option>
+          </select>
+          <button type="submit" disabled={submitting}>
+            Invite
+          </button>
+        </form>
+      )}
+      {status && <p className={status.kind === "ok" ? "status-ok" : "status-err"}>{status.text}</p>}
+      {!isAdmin && <p className="auth-note">Only admins can invite new panel users.</p>}
+
+      {isLoading ? (
+        <p>Loading…</p>
+      ) : (
+        <table className="panel-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Added</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.data.map((row) => (
+              <tr key={row.id}>
+                <td>{row.email}</td>
+                <td>
+                  <span className={`badge ${row.role === "admin" ? "badge-admin" : "badge-moderator"}`}>
+                    {row.role}
+                  </span>
+                </td>
+                <td>{new Date(row.created_at).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};

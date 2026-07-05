@@ -1,0 +1,13 @@
+# Serves Edge Functions from the tracked ./functions directory instead of
+# the gitignored, reproducible-only ./supabase vendor tree — our function
+# source needs to survive a re-vendor.
+services:
+  functions:
+    volumes:
+      - ../functions:/home/deno/functions:z
+      - deno-cache:/root/.cache/deno
+    environment:
+      SITE_URL: http://localhost:5173
+
+volumes:
+  deno-cache:

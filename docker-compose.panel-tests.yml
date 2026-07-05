@@ -1,0 +1,19 @@
+# Panel E2E / responsive test runner (Playwright in Docker).
+#
+# Uses host networking so localhost:5173 (panel dev server) and
+# localhost:8000 (Supabase/Kong) resolve exactly as on the host, and so
+# the magic-link redirect_to=http://localhost:5173 works unchanged.
+#
+# Requires the panel dev server and the Supabase stack to be up first.
+# Run: scripts/run-panel-tests.sh
+services:
+  panel-tests:
+    build: ./panel/tests
+    network_mode: host
+    volumes:
+      - ./panel/tests/e2e:/tests/e2e
+      - ./panel/tests/helpers:/tests/helpers
+      - ./panel/tests/global-setup.ts:/tests/global-setup.ts
+      - ./panel/tests/playwright.config.ts:/tests/playwright.config.ts
+      - ./testing/screenshots:/tests/screenshots
+      - ./panel/tests/report:/tests/report

@@ -15,7 +15,8 @@ const siteBadge = (source: string) => {
 };
 
 export const WaitlistList = () => {
-  const { data, isLoading } = useList<WaitlistRow>({
+  // Refine v5 hook shape: { result: { data, total }, query: { isLoading } }.
+  const { result, query } = useList<WaitlistRow>({
     resource: "waitlist",
     sorters: [{ field: "created_at", order: "desc" }],
     pagination: { pageSize: 100 },
@@ -24,7 +25,7 @@ export const WaitlistList = () => {
   return (
     <div className="panel-card">
       <h1>Waitlist</h1>
-      {isLoading ? (
+      {query.isLoading ? (
         <p>Loading…</p>
       ) : (
         <table className="panel-table">
@@ -36,7 +37,7 @@ export const WaitlistList = () => {
             </tr>
           </thead>
           <tbody>
-            {data?.data.map((row) => (
+            {result?.data.map((row) => (
               <tr key={row.id}>
                 <td>{row.email}</td>
                 <td>{siteBadge(row.source)}</td>

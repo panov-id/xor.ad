@@ -1,4 +1,4 @@
-import { useList, useGetIdentity, useInvalidate } from "@refinedev/core";
+import { useList, useGetIdentity } from "@refinedev/core";
 import { useState } from "react";
 import { supabaseClient } from "../../providers/supabase-client";
 
@@ -12,9 +12,13 @@ type PanelUserRow = {
 type Identity = { role: "admin" | "moderator" | null };
 
 export const PanelUsersList = () => {
-  const { data: identity } = useGetIdentity<Identity>();
-  const invalidate = useInvalidate();
-  const { data, isLoading } = useList<PanelUserRow>({
+  const identityHook = useGetIdentity<Identity>();
+  // Refine v5 hook shape: { result, query }. useGetIdentity exposes the
+  // identity on `result` (falling back to `data` for safety across versions).
+  const identity: Identity | undefined =
+    (identityHook as { result?: Identity }).result ??
+    (identityHook as { data?: Identity }).data;
+  const { result, query } = useList<PanelUserRow>({
     resource: "panel_users",
     sorters: [{ field: "created_at", order: "desc" }],
   });
@@ -22,6 +26,8 @@ export const PanelUsersList = () => {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "moderator">("moderator");
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const isAdmin = identity?.role === "admin";
@@ -30,25 +36,34 @@ export const PanelUsersList = () => {
     e.preventDefault();
     setSubmitting(true);
     setStatus(null);
+    setInviteLink(null);
+    setCopied(false);
 
     const { data: sessionData } = await supabaseClient.auth.getSession();
     const accessToken = sessionData.session?.access_token;
 
-    const { data: result, error } = await supabaseClient.functions.invoke("invite-panel-user", {
+    const { data: fnResult, error } = await supabaseClient.functions.invoke("invite-panel-user", {
       body: { email, role },
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     });
 
     setSubmitting(false);
 
-    if (error || result?.error) {
-      setStatus({ kind: "err", text: result?.error ?? error?.message ?? "Invite failed" });
+    if (error || fnResult?.error) {
+      setStatus({ kind: "err", text: fnResult?.error ?? error?.message ?? "Invite failed" });
       return;
     }
 
-    setStatus({ kind: "ok", text: `Invited ${email}` });
+    setStatus({ kind: "ok", text: `Invited ${email} — copy the link below and send it to them.` });
+    setInviteLink(fnResult?.link ?? null);
     setEmail("");
-    invalidate({ resource: "panel_users", invalidationType: "list" });
+    query.refetch();
+  };
+
+  const copyLink = async () => {
+    if (!inviteLink) return;
+    await navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
   };
 
   return (
@@ -74,9 +89,17 @@ export const PanelUsersList = () => {
         </form>
       )}
       {status && <p className={status.kind === "ok" ? "status-ok" : "status-err"}>{status.text}</p>}
+      {inviteLink && (
+        <div className="invite-link">
+          <code>{inviteLink}</code>
+          <button type="button" onClick={copyLink}>
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+      )}
       {!isAdmin && <p className="auth-note">Only admins can invite new panel users.</p>}
 
-      {isLoading ? (
+      {query.isLoading ? (
         <p>Loading…</p>
       ) : (
         <table className="panel-table">
@@ -88,7 +111,7 @@ export const PanelUsersList = () => {
             </tr>
           </thead>
           <tbody>
-            {data?.data.map((row) => (
+            {result?.data.map((row) => (
               <tr key={row.id}>
                 <td>{row.email}</td>
                 <td>

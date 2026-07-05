@@ -54,6 +54,9 @@ h1 .dot {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  /* Let the content shrink below its children's intrinsic width instead of
+     forcing the whole page to scroll horizontally (classic flexbox fix). */
+  min-width: 0;
   padding: 24px;
 }
 
@@ -118,6 +121,8 @@ h1 .dot {
   border: var(--border-w) solid var(--fg);
   box-shadow: 6px 6px 0 var(--fg);
   padding: 24px;
+  /* Wide tables scroll inside the card, not the page body. */
+  overflow-x: auto;
 }
 
 table.panel-table {
@@ -214,4 +219,30 @@ table.panel-table {
 }
 .status-err {
   color: #ff6b6b;
+}
+.invite-link {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin: 12px 0 16px;
+  max-width: 640px;
+}
+.invite-link code {
+  flex: 1;
+  border: 2px solid var(--muted);
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.invite-link button {
+  border: 2px solid var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+  font-family: "Unbounded", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  padding: 0 14px;
+  cursor: pointer;
 }

@@ -2,7 +2,13 @@
   "name": "xor-ad-visual-tests",
   "private": true,
   "type": "module",
+  "scripts": {
+    "screenshots": "node screenshot.mjs",
+    "test": "playwright test"
+  },
   "dependencies": {
+    "@playwright/test": "1.49.0",
+    "@supabase/supabase-js": "2.47.10",
     "playwright": "1.49.0"
   }
 }

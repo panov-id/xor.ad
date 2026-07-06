@@ -1,0 +1,17 @@
+# Landing E2E test runner (Playwright in Docker).
+#
+# Drives the real waitlist form through the xor.ad gateway and verifies the
+# email reaches the shared Supabase backend. Host networking so the gateway
+# (localhost:8080) and Supabase (localhost:8000) resolve as on the host;
+# Chromium's host-resolver-rules map the face hostnames to the gateway.
+#
+# Requires the gateway + Supabase stack to be up. Run: scripts/run-landing-tests.sh
+services:
+  landing-tests:
+    build: ./testing
+    network_mode: host
+    command: npm test
+    volumes:
+      - ./testing/e2e:/app/e2e
+      - ./testing/helpers:/app/helpers
+      - ./testing/playwright.config.ts:/app/playwright.config.ts

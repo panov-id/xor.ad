@@ -4,3 +4,7 @@
 /supabase/
 # Generated visual-test output, not source
 /testing/screenshots/*.png
+# Test runtime artifacts (created inside the Docker runners)
+/testing/node_modules/
+/testing/results/
+/testing/report/

@@ -6,13 +6,13 @@
 
 ## Три окружения (dev / UAT / prod)
 
-Полная изоляция: у каждого окружения свой Supabase-проект и свои Bunny-зоны/поддомены.
+Фронтенды по окружениям — свои Bunny-зоны и домены. **Supabase пока один общий** на все окружения (URL/ключ одинаковы; разделим на 3 проекта позже). `xor` — это гейт/API (сам Supabase), не CDN-таргет.
 
-| Окружение | Ветка/триггер | Домены | Supabase |
-|-----------|---------------|--------|----------|
-| **dev** | push в `dev` | `dev.sosed.place`, `dev.neighbro.place`, `dev.panel.xor.ad` | проект `xor-ad-dev` |
-| **UAT** | push/мерж в `main` → авто-тег → деплой | `uat.sosed.place`, `uat.neighbro.place`, `uat.panel.xor.ad` | проект `xor-ad-uat` |
-| **prod** | ручной запуск workflow с выбором тега | `sosed.place`, `neighbro.place`, `panel.xor.ad` | проект `xor-ad-prod` |
+| Окружение | Ветка/триггер | sosed | neighbro | xor (гейт) | panel |
+|-----------|---------------|-------|----------|-----|-------|
+| **dev** | push в `dev` | dev.sosed.panov.id | dev.neighbro.panov.id | dev.xor.panov.id | dev.xor-panel.panov.id |
+| **UAT** | push/мерж в `main` → авто-тег | uat.sosed.panov.id | uat.neighbro.panov.id | uat.xor.panov.id | uat.xor-panel.panov.id |
+| **prod** | ручной запуск с выбором тега | sosed.place | neighbro.place | xor.panov.id | xor-panel.panov.id |
 
 ### Флоу продвижения
 
@@ -42,16 +42,16 @@ deploy/set-github-secrets.sh   # создаёт Environments и заливает
 
 `deploy/github-secrets.json` в gitignore. Токену нужны права Environments (write) + Secrets (write) на каждый репо. Пустые значения пропускаются — можно заполнять постепенно.
 
-### Визард для прод-лендингов
+### Визард (по окружениям)
 
-Одной командой поднять прод обеих витрин (Bunny-зоны + домены, миграции Supabase, GitHub prod-секреты) — интерактивно:
+Одной интерактивной командой поднять окружение: Bunny-зоны+домены для обеих витрин и панели, миграции Supabase, GitHub-секреты этого окружения.
 
 ```bash
 deploy/wizard.sh
-# спросит: Bunny API key, Supabase Management token, prod project ref, GitHub token
+# спросит: окружение (dev/uat/prod), Bunny API key, Supabase token, project ref, GitHub token
 ```
 
-Идемпотентно (существующее находит, не дублирует). В конце печатает DNS-записи и следующий шаг (мерж → тег → Deploy prod). SSL для доменов включить в панели Bunny вручную.
+Идемпотентно. В конце печатает DNS-записи. SSL для доменов включить в панели Bunny вручную. Начать можно с `dev`.
 
 Ниже — ручной деплой теми же скриптами (для локального прогона/отладки одного окружения).
 

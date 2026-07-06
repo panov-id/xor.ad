@@ -1,13 +1,15 @@
 """
-Interactive prod wizard for the landings (sosed.place + neighbro.place).
+Interactive deploy wizard. Pick an environment (dev/uat/prod); for that env it:
+  1. creates (or finds) Bunny Storage+Pull Zones with custom hostnames for the
+     two landings and the panel,
+  2. applies the Supabase migrations (once),
+  3. sets each repo's GitHub Environment secrets.
 
-For each landing it:
-  1. creates (or finds) a Bunny Storage Zone + Pull Zone with the custom hostname,
-  2. sets the repo's `production` GitHub Environment secrets,
-and once, up front, it fetches the prod Supabase anon key and applies the DB
-migrations (so the waitlist table exists). Idempotent — safe to re-run.
+One Supabase project is shared across all environments for now, so the
+Supabase URL/anon/ref are the same everywhere; only domains/zones differ.
+"xor" (the gateway/API) is Supabase itself, not a CDN target. Idempotent.
 
-Run via deploy/wizard.sh (Docker). Adapted from noisen-app/infrastructure/setup.
+Run via deploy/wizard.sh. Adapted from noisen-app/infrastructure/setup.
 """
 import base64
 import glob
@@ -17,15 +19,30 @@ import sys
 import requests
 from nacl import encoding, public
 
-LANDINGS = [
-    {"repo": "panov-id/sosed.place", "domain": "sosed.place", "zone": "sosed-prod"},
-    {"repo": "panov-id/neighbro.place", "domain": "neighbro.place", "zone": "neighbro-prod"},
-]
-
-
-def ask(label, secret=False):
-    val = input(f"{label}: ").strip()
-    return val
+# env → (bunny github-environment, zone suffix, per-target hostname)
+ENVS = {
+    "dev": {
+        "gh_env": "dev",
+        "suffix": "-dev",
+        "sosed": "dev.sosed.panov.id",
+        "neighbro": "dev.neighbro.panov.id",
+        "panel": "dev.xor-panel.panov.id",
+    },
+    "uat": {
+        "gh_env": "uat",
+        "suffix": "-uat",
+        "sosed": "uat.sosed.panov.id",
+        "neighbro": "uat.neighbro.panov.id",
+        "panel": "uat.xor-panel.panov.id",
+    },
+    "prod": {
+        "gh_env": "production",
+        "suffix": "-prod",
+        "sosed": "sosed.place",
+        "neighbro": "neighbro.place",
+        "panel": "xor-panel.panov.id",
+    },
+}
 
 
 def bunny_headers(key):
@@ -45,20 +62,20 @@ def encrypt(pub_b64, value):
     return base64.b64encode(public.SealedBox(pk).encrypt(value.encode())).decode()
 
 
-def ensure_storage_zone(bh, name, region="DE"):
+def ensure_storage_zone(bh, name):
     zones = requests.get("https://api.bunny.net/storagezone", headers=bh).json()
     z = next((x for x in zones if x["Name"] == name), None)
     if not z:
         r = requests.post(
             "https://api.bunny.net/storagezone",
             headers=bh,
-            json={"Name": name, "Region": region, "ZoneTier": 0},
+            json={"Name": name, "Region": "DE", "ZoneTier": 0},
         )
         r.raise_for_status()
         z = r.json()
-        print(f"   ✓ storage zone {name} created (id={z['Id']})")
+        print(f"   ✓ storage zone {name} created")
     else:
-        print(f"   · storage zone {name} exists (id={z['Id']})")
+        print(f"   · storage zone {name} exists")
     password = z.get("Password") or requests.get(
         f"https://api.bunny.net/storagezone/{z['Id']}", headers=bh
     ).json().get("Password", "")
@@ -84,102 +101,121 @@ def ensure_pull_zone(bh, name, storage_zone, domain):
         )
         r.raise_for_status()
         p = r.json()
-        print(f"   ✓ pull zone {name} created (id={p['Id']})")
+        print(f"   ✓ pull zone {name} created")
     else:
-        print(f"   · pull zone {name} exists (id={p['Id']})")
-    hostnames = [h["Value"] for h in p.get("Hostnames", [])]
-    if domain not in hostnames:
+        print(f"   · pull zone {name} exists")
+    if domain not in [h["Value"] for h in p.get("Hostnames", [])]:
         r = requests.post(
             f"https://api.bunny.net/pullzone/{p['Id']}/addHostname",
             headers=bh,
             json={"Hostname": domain},
         )
-        if r.status_code in (200, 201, 204):
-            print(f"   ✓ hostname {domain} added (enable free SSL in the Bunny panel)")
-        else:
-            print(f"   ! hostname {domain} → {r.status_code} {r.text}")
+        note = "added (enable SSL in the panel)" if r.status_code in (200, 201, 204) else f"{r.status_code}"
+        print(f"   ✓ hostname {domain} {note}")
     return str(p["Id"])
 
 
-def set_prod_secret(gh, repo, name, value, key):
-    r = requests.put(
-        f"https://api.github.com/repos/{repo}/environments/production/secrets/{name}",
-        headers=gh,
-        json={"encrypted_value": encrypt(key["key"], value), "key_id": key["key_id"]},
+def set_env_secrets(gh, repo, gh_env, secrets):
+    requests.put(
+        f"https://api.github.com/repos/{repo}/environments/{gh_env}", headers=gh, json={}
     )
-    mark = "✓" if r.status_code in (201, 204) else f"✗ {r.status_code}"
-    print(f"   {mark} secret {name}")
+    key = requests.get(
+        f"https://api.github.com/repos/{repo}/environments/{gh_env}/secrets/public-key",
+        headers=gh,
+    ).json()
+    for name, value in secrets.items():
+        r = requests.put(
+            f"https://api.github.com/repos/{repo}/environments/{gh_env}/secrets/{name}",
+            headers=gh,
+            json={"encrypted_value": encrypt(key["key"], value), "key_id": key["key_id"]},
+        )
+        mark = "✓" if r.status_code in (201, 204) else f"✗ {r.status_code}"
+        print(f"   {mark} {name}")
 
 
-def fetch_supabase(access_token, project_ref):
-    h = {"Authorization": f"Bearer {access_token}"}
+def fetch_supabase(token, ref):
     keys = requests.get(
-        f"https://api.supabase.com/v1/projects/{project_ref}/api-keys", headers=h
+        f"https://api.supabase.com/v1/projects/{ref}/api-keys",
+        headers={"Authorization": f"Bearer {token}"},
     ).json()
     anon = next((k["api_key"] for k in keys if k["name"] == "anon"), "")
-    return f"https://{project_ref}.supabase.co", anon
+    return f"https://{ref}.supabase.co", anon
 
 
-def apply_migrations(access_token, project_ref):
-    h = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+def apply_migrations(token, ref):
+    h = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     for f in sorted(glob.glob("/repo/db/migrations/*.sql")):
-        sql = open(f).read()
         r = requests.post(
-            f"https://api.supabase.com/v1/projects/{project_ref}/database/query",
+            f"https://api.supabase.com/v1/projects/{ref}/database/query",
             headers=h,
-            json={"query": sql},
+            json={"query": open(f).read()},
         )
-        mark = "✓" if r.ok else f"✗ {r.status_code} {r.text[:100]}"
+        mark = "✓" if r.ok else f"✗ {r.status_code} {r.text[:80]}"
         print(f"   {mark} {os.path.basename(f)}")
 
 
 def main():
-    print("── xor.ad prod landing wizard ──\n")
-    bunny_key = ask("Bunny Account API key")
-    supabase_token = ask("Supabase Management API token")
-    project_ref = ask("Supabase prod project ref (e.g. xor-ad-prod)")
-    github_token = ask("GitHub token (Environments+Secrets write)")
+    print("── xor.ad deploy wizard ──\n")
+    env = ""
+    while env not in ENVS:
+        env = input("Environment (dev/uat/prod): ").strip().lower()
+    cfg = ENVS[env]
+    gh_env = cfg["gh_env"]
+
+    bunny_key = input("Bunny Account API key: ").strip()
+    supabase_token = input("Supabase Management API token: ").strip()
+    ref = input("Supabase project ref (shared): ").strip()
+    github_token = input("GitHub token (Environments+Secrets write): ").strip()
 
     bh = bunny_headers(bunny_key)
     gh = gh_headers(github_token)
 
-    print("\n── Supabase")
-    supabase_url, anon_key = fetch_supabase(supabase_token, project_ref)
-    print(f"   · URL {supabase_url}")
-    print(f"   · anon {anon_key[:24]}…" if anon_key else "   ! could not fetch anon key")
-    print("   applying migrations…")
-    apply_migrations(supabase_token, project_ref)
+    print("\n── Supabase (shared)")
+    url, anon = fetch_supabase(supabase_token, ref)
+    print(f"   · {url}  anon {anon[:20]}…")
+    apply_migrations(supabase_token, ref)
 
-    for l in LANDINGS:
-        print(f"\n── {l['domain']} ({l['repo']})")
-        zone, password = ensure_storage_zone(bh, l["zone"])
-        pull_id = ensure_pull_zone(bh, l["zone"], zone, l["domain"])
+    # Landings
+    for face, repo in [("sosed", "panov-id/sosed.place"), ("neighbro", "panov-id/neighbro.place")]:
+        domain = cfg[face]
+        zone_name = f"{face}{cfg['suffix']}"
+        print(f"\n── {domain} ({repo}) [{gh_env}]")
+        zone, pw = ensure_storage_zone(bh, zone_name)
+        pull_id = ensure_pull_zone(bh, zone_name, zone, domain)
+        set_env_secrets(gh, repo, gh_env, {
+            "BUNNY_STORAGE_ZONE": zone["Name"],
+            "BUNNY_STORAGE_API_KEY": pw,
+            "BUNNY_PULL_ZONE_ID": pull_id,
+            "BUNNY_API_KEY": bunny_key,
+            "SUPABASE_URL": url,
+            "SUPABASE_ANON_KEY": anon,
+        })
 
-        requests.put(
-            f"https://api.github.com/repos/{l['repo']}/environments/production",
-            headers=gh,
-            json={},
-        )
-        key = requests.get(
-            f"https://api.github.com/repos/{l['repo']}/environments/production/secrets/public-key",
-            headers=gh,
-        ).json()
-        for name, value in [
-            ("BUNNY_STORAGE_ZONE", zone["Name"]),
-            ("BUNNY_STORAGE_API_KEY", password),
-            ("BUNNY_PULL_ZONE_ID", pull_id),
-            ("BUNNY_API_KEY", bunny_key),
-            ("SUPABASE_URL", supabase_url),
-            ("SUPABASE_ANON_KEY", anon_key),
-        ]:
-            set_prod_secret(gh, l["repo"], name, value, key)
+    # Panel (xor.ad repo)
+    panel_domain = cfg["panel"]
+    zone_name = f"panel{cfg['suffix']}"
+    print(f"\n── {panel_domain} (panov-id/xor.ad) [{gh_env}]")
+    zone, pw = ensure_storage_zone(bh, zone_name)
+    pull_id = ensure_pull_zone(bh, zone_name, zone, panel_domain)
+    set_env_secrets(gh, "panov-id/xor.ad", gh_env, {
+        "VITE_SUPABASE_URL": url,
+        "VITE_SUPABASE_ANON_KEY": anon,
+        "BUNNY_PANEL_STORAGE_ZONE": zone["Name"],
+        "BUNNY_PANEL_STORAGE_API_KEY": pw,
+        "BUNNY_PANEL_PULL_ZONE_ID": pull_id,
+        "BUNNY_API_KEY": bunny_key,
+        "SUPABASE_ACCESS_TOKEN": supabase_token,
+        "SUPABASE_PROJECT_REF": ref,
+        "PANEL_URL": f"https://{panel_domain}",
+    })
 
-    print("\n════════ Done ════════")
-    print("Next:")
-    for l in LANDINGS:
-        print(f"  · DNS: CNAME {l['domain']} → {l['zone']}.b-cdn.net")
-        print(f"  · Bunny panel → pull zone {l['zone']} → SSL → enable free cert for {l['domain']}")
-    print("  · Merge dev→main (creates a tag, deploys UAT), then Actions → Deploy prod → the tag.")
+    print(f"\n════════ {env} done ════════")
+    print("DNS (CNAME → <zone>.b-cdn.net), then enable SSL per hostname in the Bunny panel:")
+    for face in ("sosed", "neighbro"):
+        print(f"  · {cfg[face]} → {face}{cfg['suffix']}.b-cdn.net")
+    print(f"  · {panel_domain} → panel{cfg['suffix']}.b-cdn.net")
+    print("  · xor (gateway/API) → the Supabase project domain")
+    print(f"\nDeploy: push to `dev` (dev) / merge to main (uat) / run Deploy prod with a tag.")
 
 
 if __name__ == "__main__":

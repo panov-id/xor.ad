@@ -6,13 +6,13 @@ The pattern is adapted from `noisen-app/infrastructure`.
 
 ## Three environments (dev / UAT / prod)
 
-Full isolation: each environment has its own Supabase project and its own Bunny zones/subdomains.
+Frontends get their own Bunny zones and domains per environment. **One shared Supabase** for now (same URL/key everywhere; split into 3 projects later). `xor` is the gateway/API (Supabase itself), not a CDN target.
 
-| Environment | Branch/trigger | Domains | Supabase |
-|-------------|----------------|---------|----------|
-| **dev** | push to `dev` | `dev.sosed.place`, `dev.neighbro.place`, `dev.panel.xor.ad` | project `xor-ad-dev` |
-| **UAT** | push/merge to `main` → auto-tag → deploy | `uat.sosed.place`, `uat.neighbro.place`, `uat.panel.xor.ad` | project `xor-ad-uat` |
-| **prod** | manual workflow run with a chosen tag | `sosed.place`, `neighbro.place`, `panel.xor.ad` | project `xor-ad-prod` |
+| Environment | Branch/trigger | sosed | neighbro | xor (gateway) | panel |
+|-------------|----------------|-------|----------|-----|-------|
+| **dev** | push to `dev` | dev.sosed.panov.id | dev.neighbro.panov.id | dev.xor.panov.id | dev.xor-panel.panov.id |
+| **UAT** | push/merge to `main` → auto-tag | uat.sosed.panov.id | uat.neighbro.panov.id | uat.xor.panov.id | uat.xor-panel.panov.id |
+| **prod** | manual run with a chosen tag | sosed.place | neighbro.place | xor.panov.id | xor-panel.panov.id |
 
 ### Promotion flow
 
@@ -42,16 +42,16 @@ deploy/set-github-secrets.sh   # creates the Environments and uploads secrets vi
 
 `deploy/github-secrets.json` is gitignored. The token needs Environments (write) + Secrets (write) on each repo. Empty values are skipped, so you can fill it in incrementally.
 
-### Prod landing wizard
+### Wizard (per environment)
 
-Bring up prod for both faces in one command (Bunny zones + hostnames, Supabase migrations, GitHub prod secrets) interactively:
+One interactive command brings up an environment: Bunny zones+hostnames for both landings and the panel, Supabase migrations, and that environment's GitHub secrets.
 
 ```bash
 deploy/wizard.sh
-# prompts for: Bunny API key, Supabase Management token, prod project ref, GitHub token
+# prompts for: environment (dev/uat/prod), Bunny API key, Supabase token, project ref, GitHub token
 ```
 
-Idempotent (finds existing resources, no duplicates). Prints the DNS records and the next step (merge → tag → Deploy prod) at the end. Enable SSL for the hostnames in the Bunny panel manually.
+Idempotent. Prints the DNS records at the end. Enable SSL for the hostnames in the Bunny panel manually. Start with `dev`.
 
 Below is the manual deploy via the same scripts (for running/debugging a single environment locally).
 

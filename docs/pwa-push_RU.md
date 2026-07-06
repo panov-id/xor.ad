@@ -21,19 +21,29 @@
 ## Web Push (дописываем сами, в noisen нет)
 
 ### Ключи
-- VAPID пара (public/private). Публичный ключ — во фронт (в `config.js`), приватный — секрет Edge Function.
+- VAPID **пара на каждую витрину** (sosed и neighbro — разные ключи, можно отозвать независимо). Публичный ключ витрины — во фронт (в `config.js`), приватный — секрет Edge Function (`VAPID_PRIVATE_SOSED` / `VAPID_PRIVATE_NEIGHBRO`).
 
 ### Флоу подписки (на сабмит вейтлиста)
 1. Форма как сейчас пишет email в `waitlist`.
 2. После успеха: `Notification.requestPermission()`.
-3. Если granted: `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <VAPID public> })`.
-4. Подписку (endpoint + keys) сохранить в таблицу `push_subscriptions` (через тот же `api.*` прокси, anon insert по RLS).
+3. Если granted: `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <VAPID public витрины> })`.
+4. Подписку сохранить в `push_subscriptions` (через `api.*` прокси, anon insert по RLS). **Анонимно** — без email. Дедуп по уникальному `endpoint`. Сохраняем `lang` = `navigator.language` (2 буквы) для выбора языка пуша.
 
 ### Отправка
 - Edge Function `send-push`:
-  - **immediate** — сразу после подписки шлёт «ты в списке» на этот один endpoint;
-  - **broadcast** — рассылка по всем подпискам витрины (на запуске), запускается кнопкой из админ-панели.
-  - Использует библиотеку web-push с VAPID-приватным ключом; протухшие подписки (410/404) удаляет.
+  - **immediate** — сразу после подписки шлёт «ты в списке» на этот endpoint, на языке подписки;
+  - **broadcast** — рассылка по подпискам, запускается из админ-панели.
+  - Использует web-push с VAPID-приватным ключом **соответствующей витрины**; протухшие подписки (410/404) удаляет.
+
+### Броадкаст (админ-панель)
+- Админ выбирает **готовое сообщение по ключу** (напр. `launch`) — система шлёт каждому на **его языке** автоматически (по полю `lang`, фолбэк EN).
+- **Фильтр витрины**: sosed / neighbro / обе.
+- Перед отправкой — подтверждение с числом получателей; после — счётчик успешно отправленных / отвалившихся.
+
+### Языки пушей (15)
+Тексты пушей (2 короткие строки на сообщение) заложить сразу на 15 языках; язык берётся из `lang` подписки, фолбэк — EN. Набор (Европа + СНГ + крупные мировые):
+`en, ru, es, fr, de, it, pt, pl, uk, nl, tr, el, ar, zh, ja`.
+UI лендинга остаётся на 6 языках — расширяется отдельно.
 
 ### Обработка в service worker
 - `self.addEventListener('push', ...)` → `showNotification(title, { body, icon, data:{url} })`.
@@ -44,12 +54,14 @@
 ```
 push_subscriptions:
   id uuid pk
-  endpoint text unique
-  p256dh text, auth text        -- ключи подписки
-  source text                    -- sosed.place / neighbro.place
+  endpoint text unique           -- дедуп по нему
+  p256dh text, auth text         -- ключи подписки
+  source text                    -- sosed.place / neighbro.place (для VAPID + фильтра)
+  lang text                      -- navigator.language (2 буквы), для языка пуша
   created_at timestamptz
   RLS: anon insert only (как waitlist); чтение/рассылка — service_role в Edge Function
 ```
+Email в таблице **нет** — подписка анонимна.
 
 ## Ограничения (важно)
 
@@ -57,9 +69,14 @@ push_subscriptions:
 - **Разрешение** запрашиваем только после явного действия (сабмит вейтлиста), не на загрузке.
 - **Realtime тут не участвует** — пуши это отдельная механика (сокеты Supabase — для ленты приложения позже).
 
-## Открытые вопросы
+## Решено
 
-- Тексты пушей (immediate/broadcast) на 6 языках (переиспользовать i18n лендинга).
-- Хранить ли связь подписки с email (для дедупликации), или подписка анонимна.
-- Кнопка броадкаста в админ-панели: подтверждение + счётчик отправленных.
-- VAPID-ключи: одна пара на витрину или общая.
+- VAPID — пара на витрину.
+- Подписка анонимна (дедуп по `endpoint`), храним `lang`.
+- 15 языков пушей, авто по `lang`, фолбэк EN.
+- Броадкаст: готовое сообщение по ключу → локализация на язык подписки; фильтр витрины; подтверждение + счётчик.
+
+## Остаётся уточнить при реализации
+
+- Тексты 2 сообщений (`waitlist_confirmed`, `launch`) на 15 языках — написать при кодинге.
+- Подсказка «добавьте на домашний экран» для iOS — формулировка/вид.

@@ -21,19 +21,29 @@ The "soon" screen, initially, is the current landing content (pitch + waitlist f
 ## Web Push (we add this ourselves; noisen has none)
 
 ### Keys
-- A VAPID key pair (public/private). Public key ships to the frontend (in `config.js`); private key is an Edge Function secret.
+- A VAPID pair **per face** (sosed and neighbro use different keys, revocable independently). The face's public key ships to the frontend (in `config.js`); the private key is an Edge Function secret (`VAPID_PRIVATE_SOSED` / `VAPID_PRIVATE_NEIGHBRO`).
 
 ### Subscribe flow (on waitlist submit)
 1. The form writes the email to `waitlist` as it does now.
 2. On success: `Notification.requestPermission()`.
-3. If granted: `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <VAPID public> })`.
-4. Store the subscription (endpoint + keys) in a `push_subscriptions` table (via the same `api.*` proxy, anon insert by RLS).
+3. If granted: `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <face VAPID public> })`.
+4. Store the subscription in `push_subscriptions` (via the `api.*` proxy, anon insert by RLS). **Anonymous** — no email. Dedupe by the unique `endpoint`. Store `lang` = `navigator.language` (2 letters) to pick the push language.
 
 ### Sending
 - Edge Function `send-push`:
-  - **immediate** — right after subscribing, sends "you're on the list" to that one endpoint;
-  - **broadcast** — to all of a face's subscriptions (at launch), triggered from an admin-panel button.
-  - Uses the web-push library with the VAPID private key; prunes dead subscriptions (410/404).
+  - **immediate** — right after subscribing, sends "you're on the list" to that endpoint, in the subscription's language;
+  - **broadcast** — to subscriptions, triggered from the admin panel.
+  - Uses web-push with the **matching face's** VAPID private key; prunes dead subscriptions (410/404).
+
+### Broadcast (admin panel)
+- The admin picks a **predefined message by key** (e.g. `launch`) — the system sends each recipient in **their language** automatically (from `lang`, fallback EN).
+- **Face filter**: sosed / neighbro / both.
+- Before sending, a confirmation with the recipient count; afterwards, a sent/failed counter.
+
+### Push languages (15)
+Ship the push copy (2 short strings per message) in 15 languages up front; the language comes from the subscription's `lang`, fallback EN. Set (Europe + CIS + big global):
+`en, ru, es, fr, de, it, pt, pl, uk, nl, tr, el, ar, zh, ja`.
+The landing UI stays at 6 languages — expanded separately.
 
 ### Service worker handling
 - `self.addEventListener('push', ...)` → `showNotification(title, { body, icon, data:{url} })`.
@@ -44,12 +54,14 @@ The "soon" screen, initially, is the current landing content (pitch + waitlist f
 ```
 push_subscriptions:
   id uuid pk
-  endpoint text unique
-  p256dh text, auth text        -- subscription keys
-  source text                    -- sosed.place / neighbro.place
+  endpoint text unique           -- dedupe key
+  p256dh text, auth text         -- subscription keys
+  source text                    -- sosed.place / neighbro.place (for VAPID + filter)
+  lang text                      -- navigator.language (2 letters), for push language
   created_at timestamptz
   RLS: anon insert only (like waitlist); read/broadcast via service_role in the Edge Function
 ```
+No email in the table — the subscription is anonymous.
 
 ## Limitations (important)
 
@@ -57,9 +69,14 @@ push_subscriptions:
 - **Permission** is requested only after an explicit action (waitlist submit), never on load.
 - **Realtime is not involved here** — push is a separate mechanic (Supabase sockets are for the app feed later).
 
-## Open questions
+## Decided
 
-- Push copy (immediate/broadcast) in 6 languages (reuse the landing i18n).
-- Whether to link a subscription to the email (dedupe), or keep it anonymous.
-- Admin-panel broadcast button: confirmation + sent count.
-- VAPID keys: one pair per face or shared.
+- VAPID — a pair per face.
+- Subscription is anonymous (dedupe by `endpoint`), store `lang`.
+- 15 push languages, auto by `lang`, fallback EN.
+- Broadcast: predefined message by key → localized to the subscription's language; face filter; confirmation + counter.
+
+## To pin down at implementation
+
+- The 2 message texts (`waitlist_confirmed`, `launch`) in 15 languages — write during coding.
+- The iOS "add to home screen" hint — copy/appearance.

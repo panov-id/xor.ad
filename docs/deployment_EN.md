@@ -14,7 +14,7 @@ The pattern is adapted from `noisen-app/infrastructure`.
 | **UAT** | push/merge to `main` → auto-tag | uat.sosed.panov.id / uat.neighbro.panov.id | api.uat.sosed.panov.id / api.uat.neighbro.panov.id | uat.xor.panov.id |
 | **prod** | manual run with a chosen tag | sosed.place / neighbro.place | api.sosed.place / api.neighbro.place | xor.panov.id |
 
-> The `api.*` proxy zones: in the Bunny panel, disable caching and set **Origin Host Header = `<ref>.supabase.co`** (or Supabase won't route). The panel talks to Supabase directly (it has auth/functions). Realtime (websockets) does not go through the proxy.
+> The `api.*` proxy zones: in the Bunny panel, disable caching, set **Origin Host Header = `<ref>.supabase.co`** (or Supabase won't route), and enable **WebSockets** (Pull Zone → General → WebSockets) so Supabase Realtime (`/realtime/v1/websocket`) works through the proxy. The panel talks to Supabase directly (it has auth/functions).
 
 ### Promotion flow
 

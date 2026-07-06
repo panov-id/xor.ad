@@ -14,7 +14,7 @@
 | **UAT** | push/мерж в `main` → авто-тег | uat.sosed.panov.id / uat.neighbro.panov.id | api.uat.sosed.panov.id / api.uat.neighbro.panov.id | uat.xor.panov.id |
 | **prod** | ручной запуск с выбором тега | sosed.place / neighbro.place | api.sosed.place / api.neighbro.place | xor.panov.id |
 
-> Прокси-зоны `api.*`: в панели Bunny выключить кеш и поставить **Origin Host Header = `<ref>.supabase.co`** (иначе Supabase не сроутит). Панель бьёт в Supabase напрямую (у неё auth/функции). Realtime (вебсокеты) через прокси не гоняем.
+> Прокси-зоны `api.*`: в панели Bunny выключить кеш, поставить **Origin Host Header = `<ref>.supabase.co`** (иначе Supabase не сроутит) и включить **WebSockets** (Pull Zone → General → WebSockets) — тогда realtime Supabase (`/realtime/v1/websocket`) идёт через прокси. Панель бьёт в Supabase напрямую (у неё auth/функции).
 
 ### Флоу продвижения
 

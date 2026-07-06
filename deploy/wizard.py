@@ -262,8 +262,8 @@ def main():
         print(f"  · {cfg[face]}      → {face}{cfg['suffix']}.b-cdn.net   (landing)")
         print(f"  · {cfg[f'api_{face}']}  → {face}-api{cfg['suffix']}.b-cdn.net   (api proxy)")
     print(f"  · {panel_domain} → panel{cfg['suffix']}.b-cdn.net   (panel)")
-    print("\nFor each api.* proxy zone in the Bunny panel: disable caching and set")
-    print(f"Origin Host Header = {ref}.supabase.co  (so Supabase routes correctly).")
+    print("\nFor each api.* proxy zone in the Bunny panel: disable caching, set")
+    print(f"Origin Host Header = {ref}.supabase.co, and enable WebSockets (for realtime).")
     print("Deploy: push to `dev` (dev) / merge to main (uat) / run Deploy prod with a tag.")
 
 

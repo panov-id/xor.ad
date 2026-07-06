@@ -8,3 +8,5 @@
 /testing/node_modules/
 /testing/results/
 /testing/report/
+# Deploy secrets — real tokens/keys, never committed
+/deploy/.env.deploy

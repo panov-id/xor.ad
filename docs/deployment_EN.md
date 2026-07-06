@@ -1,0 +1,76 @@
+# Deployment (runbook)
+
+Production architecture: **frontends** (2 landings + panel build) on **Bunny CDN** (one Storage+Pull Zone per domain), **backend** on **Supabase Cloud** (Postgres/Auth/Realtime/Storage/Edge Functions). There's no nginx gateway in prod — frontends talk to Supabase Cloud directly (CORS), so the Supabase URL/key are parametrized per environment.
+
+The pattern is adapted from `noisen-app/infrastructure`.
+
+## Prerequisites (you do these — I can't create accounts/keys)
+
+1. **Bunny.net:** account, Account API Key (Account → API Key). Three Storage Zones + Pull Zones for `sosed.place`, `neighbro.place`, `panel.xor.ad`. Attach a custom hostname to each Pull Zone and enable TLS (Bunny issues Let's Encrypt).
+2. **Supabase:** a Management API token (Account → Access Tokens). The project can be created by the script below or ahead of time in the dashboard.
+3. **DNS:** records for `sosed.place`, `neighbro.place`, `panel.xor.ad` → CNAME to the matching Pull Zones.
+4. **SMTP for panel login:** magic-link sign-in needs SMTP in Supabase Auth (e.g. Resend). Without it nobody can log in — as a stopgap, generate a sign-in link via the Admin API (see `scripts/bootstrap-admin.sh` locally, same idea for cloud).
+
+## Configuration
+
+```bash
+cp deploy/.env.deploy.example deploy/.env.deploy
+# fill in: SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, BUNNY_API_KEY,
+# and three BUNNY_<TARGET>_STORAGE_ZONE / _STORAGE_KEY / _PULL_ZONE_ID,
+# plus PANEL_URL / SOSED_URL / NEIGHBRO_URL.
+```
+
+`deploy/.env.deploy` is gitignored (real secrets).
+
+## Backend: Supabase Cloud
+
+```bash
+deploy/setup-supabase-cloud.sh       # create/find project, write URL+keys into .env.deploy
+deploy/apply-migrations-cloud.sh     # db/migrations/*.sql via the Management API
+deploy/deploy-functions-cloud.sh     # invite-panel-user Edge Function + SITE_URL secret
+deploy/bootstrap-admin-cloud.sh ev.panov@gmail.com   # first panel admin
+```
+
+Then in the Supabase Dashboard → Authentication:
+- **Site URL** = `PANEL_URL` (e.g. `https://panel.xor.ad`).
+- **Redirect URLs** — add `PANEL_URL`.
+- **SMTP** — connect a provider (Resend), otherwise magic links aren't sent.
+
+## Frontend: panel (Vite build)
+
+```bash
+cp panel/.env.production.example panel/.env.production
+# fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (from deploy/.env.deploy)
+```
+
+## Deploy to Bunny
+
+```bash
+deploy/deploy-all.sh          # build panel + push all three targets
+# or one at a time:
+deploy/build-panel.sh
+deploy/deploy-cdn.sh sosed
+deploy/deploy-cdn.sh neighbro
+deploy/deploy-cdn.sh panel
+```
+
+For the landings, `config.js` is generated at deploy time to point at Supabase Cloud (the committed `config.js` stays local same-origin). The panel is built with the prod URL from `.env.production`.
+
+## SPA fallback for the panel (important)
+
+The panel is an SPA with client-side routing (react-router). In the panel's Bunny Pull Zone, enable **Error Pages → 404 → `/index.html` with status 200** (or an Origin/Edge Rule), otherwise a direct hit on `/waitlist` returns 404.
+
+## Post-deploy smoke test
+
+1. Open `https://sosed.place` and `https://neighbro.place`, submit an email to the waitlist → success, and the row appears in Supabase (`waitlist`).
+2. Open `https://panel.xor.ad` → sign in as admin (magic link once SMTP is set up), see the waitlist and panel users.
+
+## Rollback
+
+Bunny keeps only the last uploaded set. Rollback = deploy a previous commit: `git checkout <prev> && deploy/deploy-cdn.sh <target>`. The backend is forward-only migrations; rolling back needs a reverse migration.
+
+## Open questions
+
+- SMTP provider not chosen (Resend deferred).
+- No GitHub Actions yet — deploy runs locally via the scripts.
+- Bunny Shield (rate limit) and Cloudflare Turnstile (captcha) are for the post-publishing flow, not part of this deploy.

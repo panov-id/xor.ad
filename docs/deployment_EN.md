@@ -6,13 +6,15 @@ The pattern is adapted from `noisen-app/infrastructure`.
 
 ## Three environments (dev / UAT / prod)
 
-Frontends get their own Bunny zones and domains per environment. **One shared Supabase** for now (same URL/key everywhere; split into 3 projects later). `xor` is the gateway/API (Supabase itself), not a CDN target.
+**One shared Supabase** for now (split into 3 projects later). Each landing talks to its own `api.*` (a Bunny Pull Zone proxying to Supabase); the panel talks to Supabase directly. Separated on the surface, one database underneath.
 
-| Environment | Branch/trigger | sosed | neighbro | xor (gateway) | panel |
-|-------------|----------------|-------|----------|-----|-------|
-| **dev** | push to `dev` | dev.sosed.panov.id | dev.neighbro.panov.id | dev.xor.panov.id | dev.xor-panel.panov.id |
-| **UAT** | push/merge to `main` → auto-tag | uat.sosed.panov.id | uat.neighbro.panov.id | uat.xor.panov.id | uat.xor-panel.panov.id |
-| **prod** | manual run with a chosen tag | sosed.place | neighbro.place | xor.panov.id | xor-panel.panov.id |
+| Environment | Branch/trigger | landing | api (proxy → Supabase) | panel |
+|-------------|----------------|---------|------------------------|-------|
+| **dev** | push to `dev` | dev.sosed.panov.id / dev.neighbro.panov.id | api.dev.sosed.panov.id / api.dev.neighbro.panov.id | dev.xor.panov.id |
+| **UAT** | push/merge to `main` → auto-tag | uat.sosed.panov.id / uat.neighbro.panov.id | api.uat.sosed.panov.id / api.uat.neighbro.panov.id | uat.xor.panov.id |
+| **prod** | manual run with a chosen tag | sosed.place / neighbro.place | api.sosed.place / api.neighbro.place | xor.panov.id |
+
+> The `api.*` proxy zones: in the Bunny panel, disable caching and set **Origin Host Header = `<ref>.supabase.co`** (or Supabase won't route). The panel talks to Supabase directly (it has auth/functions). Realtime (websockets) does not go through the proxy.
 
 ### Promotion flow
 

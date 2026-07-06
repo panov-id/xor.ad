@@ -6,13 +6,15 @@
 
 ## Три окружения (dev / UAT / prod)
 
-Фронтенды по окружениям — свои Bunny-зоны и домены. **Supabase пока один общий** на все окружения (URL/ключ одинаковы; разделим на 3 проекта позже). `xor` — это гейт/API (сам Supabase), не CDN-таргет.
+**Supabase пока один общий** на все окружения (разделим на 3 проекта позже). Каждый лендинг ходит в свой `api.*` (Bunny Pull Zone → прокси на Supabase), панель — напрямую в Supabase. Снаружи всё разделено, под капотом одна база.
 
-| Окружение | Ветка/триггер | sosed | neighbro | xor (гейт) | panel |
-|-----------|---------------|-------|----------|-----|-------|
-| **dev** | push в `dev` | dev.sosed.panov.id | dev.neighbro.panov.id | dev.xor.panov.id | dev.xor-panel.panov.id |
-| **UAT** | push/мерж в `main` → авто-тег | uat.sosed.panov.id | uat.neighbro.panov.id | uat.xor.panov.id | uat.xor-panel.panov.id |
-| **prod** | ручной запуск с выбором тега | sosed.place | neighbro.place | xor.panov.id | xor-panel.panov.id |
+| Окружение | Ветка/триггер | лендинг | api (прокси→Supabase) | панель |
+|-----------|---------------|---------|------------------------|--------|
+| **dev** | push в `dev` | dev.sosed.panov.id / dev.neighbro.panov.id | api.dev.sosed.panov.id / api.dev.neighbro.panov.id | dev.xor.panov.id |
+| **UAT** | push/мерж в `main` → авто-тег | uat.sosed.panov.id / uat.neighbro.panov.id | api.uat.sosed.panov.id / api.uat.neighbro.panov.id | uat.xor.panov.id |
+| **prod** | ручной запуск с выбором тега | sosed.place / neighbro.place | api.sosed.place / api.neighbro.place | xor.panov.id |
+
+> Прокси-зоны `api.*`: в панели Bunny выключить кеш и поставить **Origin Host Header = `<ref>.supabase.co`** (иначе Supabase не сроутит). Панель бьёт в Supabase напрямую (у неё auth/функции). Realtime (вебсокеты) через прокси не гоняем.
 
 ### Флоу продвижения
 

@@ -20,27 +20,36 @@ import requests
 from nacl import encoding, public
 
 # env → (bunny github-environment, zone suffix, per-target hostname)
+# Per env: static frontend hostnames + the landings' api.* proxy hostnames.
+# Landings talk to their api.* (Bunny Pull Zone → shared Supabase); the panel
+# talks to Supabase directly (auth/functions, kept simple).
 ENVS = {
     "dev": {
         "gh_env": "dev",
         "suffix": "-dev",
         "sosed": "dev.sosed.panov.id",
         "neighbro": "dev.neighbro.panov.id",
-        "panel": "dev.xor-panel.panov.id",
+        "panel": "dev.xor.panov.id",
+        "api_sosed": "api.dev.sosed.panov.id",
+        "api_neighbro": "api.dev.neighbro.panov.id",
     },
     "uat": {
         "gh_env": "uat",
         "suffix": "-uat",
         "sosed": "uat.sosed.panov.id",
         "neighbro": "uat.neighbro.panov.id",
-        "panel": "uat.xor-panel.panov.id",
+        "panel": "uat.xor.panov.id",
+        "api_sosed": "api.uat.sosed.panov.id",
+        "api_neighbro": "api.uat.neighbro.panov.id",
     },
     "prod": {
         "gh_env": "production",
         "suffix": "-prod",
         "sosed": "sosed.place",
         "neighbro": "neighbro.place",
-        "panel": "xor-panel.panov.id",
+        "panel": "xor.panov.id",
+        "api_sosed": "api.sosed.place",
+        "api_neighbro": "api.neighbro.place",
     },
 }
 
@@ -115,6 +124,42 @@ def ensure_pull_zone(bh, name, storage_zone, domain):
     return str(p["Id"])
 
 
+def ensure_proxy_pull_zone(bh, name, origin_url, domain):
+    """Pull zone that reverse-proxies an origin (Supabase) — no storage zone,
+    caching off. NOTE: set 'Origin Host Header' = the Supabase host and keep
+    caching disabled in the Bunny panel; verify on live Bunny."""
+    zones = requests.get("https://api.bunny.net/pullzone?page=1&perPage=1000", headers=bh).json()
+    items = zones if isinstance(zones, list) else zones.get("Items", [])
+    p = next((x for x in items if x["Name"] == name), None)
+    if not p:
+        r = requests.post(
+            "https://api.bunny.net/pullzone",
+            headers=bh,
+            json={
+                "Name": name,
+                "OriginUrl": origin_url,
+                "EnableGeoZoneEU": True,
+                "EnableGeoZoneUS": True,
+                "DisableCookies": False,
+                "CacheControlMaxAgeOverride": 0,
+            },
+        )
+        r.raise_for_status()
+        p = r.json()
+        print(f"   ✓ proxy zone {name} → {origin_url} created")
+    else:
+        print(f"   · proxy zone {name} exists")
+    if domain not in [h["Value"] for h in p.get("Hostnames", [])]:
+        r = requests.post(
+            f"https://api.bunny.net/pullzone/{p['Id']}/addHostname",
+            headers=bh,
+            json={"Hostname": domain},
+        )
+        note = "added (enable SSL + set origin host header)" if r.status_code in (200, 201, 204) else f"{r.status_code}"
+        print(f"   ✓ hostname {domain} {note}")
+    return str(p["Id"])
+
+
 def set_env_secrets(gh, repo, gh_env, secrets):
     requests.put(
         f"https://api.github.com/repos/{repo}/environments/{gh_env}", headers=gh, json={}
@@ -175,19 +220,21 @@ def main():
     print(f"   · {url}  anon {anon[:20]}…")
     apply_migrations(supabase_token, ref)
 
-    # Landings
+    # Landings: static zone for the site + an api.* proxy zone → Supabase.
     for face, repo in [("sosed", "panov-id/sosed.place"), ("neighbro", "panov-id/neighbro.place")]:
         domain = cfg[face]
+        api_domain = cfg[f"api_{face}"]
         zone_name = f"{face}{cfg['suffix']}"
         print(f"\n── {domain} ({repo}) [{gh_env}]")
         zone, pw = ensure_storage_zone(bh, zone_name)
         pull_id = ensure_pull_zone(bh, zone_name, zone, domain)
+        ensure_proxy_pull_zone(bh, f"{face}-api{cfg['suffix']}", url, api_domain)
         set_env_secrets(gh, repo, gh_env, {
             "BUNNY_STORAGE_ZONE": zone["Name"],
             "BUNNY_STORAGE_API_KEY": pw,
             "BUNNY_PULL_ZONE_ID": pull_id,
             "BUNNY_API_KEY": bunny_key,
-            "SUPABASE_URL": url,
+            "SUPABASE_URL": f"https://{api_domain}",
             "SUPABASE_ANON_KEY": anon,
         })
 
@@ -212,10 +259,12 @@ def main():
     print(f"\n════════ {env} done ════════")
     print("DNS (CNAME → <zone>.b-cdn.net), then enable SSL per hostname in the Bunny panel:")
     for face in ("sosed", "neighbro"):
-        print(f"  · {cfg[face]} → {face}{cfg['suffix']}.b-cdn.net")
-    print(f"  · {panel_domain} → panel{cfg['suffix']}.b-cdn.net")
-    print("  · xor (gateway/API) → the Supabase project domain")
-    print(f"\nDeploy: push to `dev` (dev) / merge to main (uat) / run Deploy prod with a tag.")
+        print(f"  · {cfg[face]}      → {face}{cfg['suffix']}.b-cdn.net   (landing)")
+        print(f"  · {cfg[f'api_{face}']}  → {face}-api{cfg['suffix']}.b-cdn.net   (api proxy)")
+    print(f"  · {panel_domain} → panel{cfg['suffix']}.b-cdn.net   (panel)")
+    print("\nFor each api.* proxy zone in the Bunny panel: disable caching and set")
+    print(f"Origin Host Header = {ref}.supabase.co  (so Supabase routes correctly).")
+    print("Deploy: push to `dev` (dev) / merge to main (uat) / run Deploy prod with a tag.")
 
 
 if __name__ == "__main__":

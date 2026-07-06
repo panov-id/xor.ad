@@ -18,10 +18,14 @@ for (const face of faces) {
         await form.locator('input[type="email"]').fill(email);
         await form.locator("button").click();
 
-        // Success status appears (guards against the placeholder-URL bug:
-        // a broken backend URL would show the error status instead).
-        const status = page.locator('[data-status-for="waitlist-form-1"]');
-        await expect(status).toHaveClass(/ok/, { timeout: 15000 });
+        // Success shows either the ok status (sosed) or the "you're on the
+        // list" panel (neighbro redesign) — guards against the placeholder-URL
+        // bug, which would show the error status instead.
+        await expect(
+          page.locator(
+            '[data-status-for="waitlist-form-1"].ok, [data-after-for="waitlist-form-1"].show',
+          ),
+        ).toBeVisible({ timeout: 15000 });
 
         // And the row actually reached the shared backend, with the right source.
         const row = await findWaitlistRow(email);

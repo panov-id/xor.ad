@@ -32,6 +32,16 @@ In each repo, create three Environments and put per-environment secrets in them:
 - **Landings (sosed/neighbro):** `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY`, `BUNNY_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
 - **xor.ad (panel+backend):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `BUNNY_PANEL_STORAGE_ZONE`, `BUNNY_PANEL_STORAGE_API_KEY`, `BUNNY_PANEL_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `PANEL_URL`.
 
+Setting all of this by hand across 3 repos × 3 environments is tedious — there's a helper:
+
+```bash
+cp deploy/github-secrets.example.json deploy/github-secrets.json
+# fill in github_token and the values for every repo/env
+deploy/set-github-secrets.sh   # creates the Environments and uploads secrets via the GitHub API
+```
+
+`deploy/github-secrets.json` is gitignored. The token needs Environments (write) + Secrets (write) on each repo. Empty values are skipped, so you can fill it in incrementally.
+
 Below is the manual deploy via the same scripts (for running/debugging a single environment locally).
 
 ## Prerequisites (you do these — I can't create accounts/keys)

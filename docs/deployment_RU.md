@@ -32,6 +32,16 @@
 - **Лендинги (sosed/neighbro):** `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY`, `BUNNY_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
 - **xor.ad (панель+бэкенд):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `BUNNY_PANEL_STORAGE_ZONE`, `BUNNY_PANEL_STORAGE_API_KEY`, `BUNNY_PANEL_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `PANEL_URL`.
 
+Проставить всё это руками по 3 репо × 3 окружения долго — есть помощник:
+
+```bash
+cp deploy/github-secrets.example.json deploy/github-secrets.json
+# заполнить github_token и значения по всем repo/env
+deploy/set-github-secrets.sh   # создаёт Environments и заливает секреты через GitHub API
+```
+
+`deploy/github-secrets.json` в gitignore. Токену нужны права Environments (write) + Secrets (write) на каждый репо. Пустые значения пропускаются — можно заполнять постепенно.
+
 Ниже — ручной деплой теми же скриптами (для локального прогона/отладки одного окружения).
 
 ## Предварительно (делаешь ты — я не могу создать аккаунты/ключи)

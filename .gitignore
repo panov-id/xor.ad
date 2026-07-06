@@ -10,3 +10,4 @@
 /testing/report/
 # Deploy secrets — real tokens/keys, never committed
 /deploy/.env.deploy
+/deploy/github-secrets.json

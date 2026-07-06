@@ -10,6 +10,8 @@ create table if not exists public.waitlist (
 alter table public.waitlist enable row level security;
 
 -- The landing pages submit with the anon key — insert-only, no read/update/delete.
+-- drop-then-create keeps the migration idempotent (re-runnable in CI).
+drop policy if exists "waitlist_insert_anon" on public.waitlist;
 create policy "waitlist_insert_anon" on public.waitlist
   for insert
   to anon

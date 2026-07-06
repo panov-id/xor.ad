@@ -18,7 +18,11 @@ as $$
   select role from public.panel_users where id = auth.uid();
 $$;
 
+-- drop-then-create on every policy keeps this migration idempotent so CI can
+-- re-apply it on each deploy without "policy already exists" errors.
+
 -- Any panel user (admin or moderator) can see the panel user list.
+drop policy if exists "panel_users_select" on public.panel_users;
 create policy "panel_users_select" on public.panel_users
   for select
   to authenticated
@@ -27,12 +31,14 @@ create policy "panel_users_select" on public.panel_users
 -- Only admins can add rows directly (in practice, rows are created by the
 -- invite-panel-user Edge Function using the service role key, after it
 -- verifies the caller is an admin — see supabase/volumes/functions).
+drop policy if exists "panel_users_insert_admin_only" on public.panel_users;
 create policy "panel_users_insert_admin_only" on public.panel_users
   for insert
   to authenticated
   with check (public.current_panel_role() = 'admin');
 
 -- Panel users can read the waitlist.
+drop policy if exists "waitlist_select_panel" on public.waitlist;
 create policy "waitlist_select_panel" on public.waitlist
   for select
   to authenticated

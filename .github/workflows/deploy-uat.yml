@@ -1,0 +1,33 @@
+name: Deploy UAT
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: tag
+        name: Create release tag
+        run: |
+          TAG="v$(date +%Y.%m.%d)-${GITHUB_SHA::7}"
+          git tag "$TAG"
+          git push origin "$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Created release $TAG"
+
+  call:
+    needs: release
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: uat
+      ref: ${{ needs.release.outputs.tag }}
+    secrets: inherit

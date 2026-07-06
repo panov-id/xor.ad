@@ -4,6 +4,36 @@ Production architecture: **frontends** (2 landings + panel build) on **Bunny CDN
 
 The pattern is adapted from `noisen-app/infrastructure`.
 
+## Three environments (dev / UAT / prod)
+
+Full isolation: each environment has its own Supabase project and its own Bunny zones/subdomains.
+
+| Environment | Branch/trigger | Domains | Supabase |
+|-------------|----------------|---------|----------|
+| **dev** | push to `dev` | `dev.sosed.place`, `dev.neighbro.place`, `dev.panel.xor.ad` | project `xor-ad-dev` |
+| **UAT** | push/merge to `main` → auto-tag → deploy | `uat.sosed.place`, `uat.neighbro.place`, `uat.panel.xor.ad` | project `xor-ad-uat` |
+| **prod** | manual workflow run with a chosen tag | `sosed.place`, `neighbro.place`, `panel.xor.ad` | project `xor-ad-prod` |
+
+### Promotion flow
+
+1. Work on `dev` → every push deploys to **dev** (`Deploy dev`).
+2. Merge `dev` → `main` → the `Deploy UAT` workflow cuts an **auto tag** `vYYYY.MM.DD-<sha>`, pushes it, and deploys that tag to **UAT**.
+3. Verify UAT. If good, manually run `Deploy prod` (Actions → Run workflow) and **specify the release tag** → deploy to **prod**.
+
+### CI/CD (GitHub Actions, one workflow set per repo)
+
+- **sosed.place / neighbro.place** — deploy their landing: `deploy-dev.yml`, `deploy-uat.yml` (auto-tag on `main`), `deploy-prod.yml` (dispatch with a tag). No build — static.
+- **xor.ad** — reusable `_deploy.yml` (panel build + migrations + edge functions), called from `deploy-dev/uat/prod.yml`.
+
+### Secrets (GitHub Environments: `dev`, `uat`, `production`)
+
+In each repo, create three Environments and put per-environment secrets in them:
+
+- **Landings (sosed/neighbro):** `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY`, `BUNNY_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
+- **xor.ad (panel+backend):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `BUNNY_PANEL_STORAGE_ZONE`, `BUNNY_PANEL_STORAGE_API_KEY`, `BUNNY_PANEL_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `PANEL_URL`.
+
+Below is the manual deploy via the same scripts (for running/debugging a single environment locally).
+
 ## Prerequisites (you do these — I can't create accounts/keys)
 
 1. **Bunny.net:** account, Account API Key (Account → API Key). Three Storage Zones + Pull Zones for `sosed.place`, `neighbro.place`, `panel.xor.ad`. Attach a custom hostname to each Pull Zone and enable TLS (Bunny issues Let's Encrypt).
@@ -71,6 +101,6 @@ Bunny keeps only the last uploaded set. Rollback = deploy a previous commit: `gi
 
 ## Open questions
 
-- SMTP provider not chosen (Resend deferred).
-- No GitHub Actions yet — deploy runs locally via the scripts.
+- SMTP provider not chosen (Resend deferred) — without it, panel login only works via an Admin-API link.
+- The infrastructure (3 Supabase projects, 9 Bunny zones, subdomains, DNS/TLS, GitHub Environments + secrets) has to be provisioned by hand — the scripts and workflows are ready, but you create the resources.
 - Bunny Shield (rate limit) and Cloudflare Turnstile (captcha) are for the post-publishing flow, not part of this deploy.

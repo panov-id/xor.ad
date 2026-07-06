@@ -4,6 +4,36 @@
 
 Паттерн адаптирован из `noisen-app/infrastructure`.
 
+## Три окружения (dev / UAT / prod)
+
+Полная изоляция: у каждого окружения свой Supabase-проект и свои Bunny-зоны/поддомены.
+
+| Окружение | Ветка/триггер | Домены | Supabase |
+|-----------|---------------|--------|----------|
+| **dev** | push в `dev` | `dev.sosed.place`, `dev.neighbro.place`, `dev.panel.xor.ad` | проект `xor-ad-dev` |
+| **UAT** | push/мерж в `main` → авто-тег → деплой | `uat.sosed.place`, `uat.neighbro.place`, `uat.panel.xor.ad` | проект `xor-ad-uat` |
+| **prod** | ручной запуск workflow с выбором тега | `sosed.place`, `neighbro.place`, `panel.xor.ad` | проект `xor-ad-prod` |
+
+### Флоу продвижения
+
+1. Работаешь в `dev` → каждый push деплоит на **dev** (`Deploy dev`).
+2. Мержишь `dev` → `main` → workflow `Deploy UAT` ставит **авто-тег** `vГГГГ.ММ.ДД-<sha>`, пушит его и деплоит этот тег на **UAT**.
+3. Проверяешь UAT. Если ок — запускаешь вручную `Deploy prod` (Actions → Run workflow) и **указываешь тег** релиза → деплой на **prod**.
+
+### CI/CD (GitHub Actions, по workflow в каждом репо)
+
+- **sosed.place / neighbro.place** — деплоят свой лендинг: `deploy-dev.yml`, `deploy-uat.yml` (авто-тег на `main`), `deploy-prod.yml` (dispatch с тегом). Сборки нет — статика.
+- **xor.ad** — reusable `_deploy.yml` (сборка панели + миграции + Edge Functions), вызывается из `deploy-dev/uat/prod.yml`.
+
+### Секреты (GitHub Environments: `dev`, `uat`, `production`)
+
+В каждом репо создать три Environment и положить в них секреты (свои значения на окружение):
+
+- **Лендинги (sosed/neighbro):** `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY`, `BUNNY_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
+- **xor.ad (панель+бэкенд):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `BUNNY_PANEL_STORAGE_ZONE`, `BUNNY_PANEL_STORAGE_API_KEY`, `BUNNY_PANEL_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `PANEL_URL`.
+
+Ниже — ручной деплой теми же скриптами (для локального прогона/отладки одного окружения).
+
 ## Предварительно (делаешь ты — я не могу создать аккаунты/ключи)
 
 1. **Bunny.net:** аккаунт, Account API Key (Account → API Key). Три Storage Zone + Pull Zone: под `sosed.place`, `neighbro.place`, `panel.xor.ad`. Для каждой Pull Zone привязать кастомный домен и включить TLS (Bunny выдаёт Let's Encrypt).
@@ -71,6 +101,6 @@ Bunny хранит только последний загруженный наб
 
 ## Открытые вопросы
 
-- SMTP-провайдер не выбран (Resend отложен).
-- GitHub Actions пока нет — деплой запускается локально скриптами.
+- SMTP-провайдер не выбран (Resend отложен) — без него вход в панель только через Admin-API-ссылку.
+- Инфраструктуру (3 Supabase-проекта, 9 Bunny-зон, поддомены, DNS/TLS, GitHub Environments + секреты) нужно поднять руками — скрипты и workflow готовы, но ресурсы создаёшь ты.
 - Bunny Shield (рейтлимит) и Cloudflare Turnstile (капча) — для флоу публикации постов, не входят в этот деплой.

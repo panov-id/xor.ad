@@ -1,0 +1,60 @@
+name: _deploy (reusable)
+
+# Shared deploy steps for one environment: build+push the panel, apply DB
+# migrations, deploy edge functions. Called by deploy-dev/uat/prod.
+# Environment-scoped secrets are resolved via the job's `environment:`.
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      ref:
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build panel
+        working-directory: panel
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy panel to CDN
+        env:
+          BUNNY_STORAGE_ZONE: ${{ secrets.BUNNY_PANEL_STORAGE_ZONE }}
+          BUNNY_STORAGE_API_KEY: ${{ secrets.BUNNY_PANEL_STORAGE_API_KEY }}
+          BUNNY_PULL_ZONE_ID: ${{ secrets.BUNNY_PANEL_PULL_ZONE_ID }}
+          BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
+        run: bash deploy/deploy-panel-ci.sh
+
+      - name: Apply DB migrations
+        env:
+          CI: "true"
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: bash deploy/apply-migrations-cloud.sh
+
+      - name: Deploy edge functions
+        env:
+          CI: "true"
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          PANEL_URL: ${{ secrets.PANEL_URL }}
+        run: bash deploy/deploy-functions-cloud.sh

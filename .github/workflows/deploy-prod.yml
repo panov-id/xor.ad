@@ -1,0 +1,16 @@
+name: Deploy prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Release tag to deploy (e.g. v2026.07.06-abc1234)"
+        required: true
+
+jobs:
+  call:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: production
+      ref: ${{ inputs.ref }}
+    secrets: inherit

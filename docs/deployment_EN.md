@@ -42,6 +42,17 @@ deploy/set-github-secrets.sh   # creates the Environments and uploads secrets vi
 
 `deploy/github-secrets.json` is gitignored. The token needs Environments (write) + Secrets (write) on each repo. Empty values are skipped, so you can fill it in incrementally.
 
+### Prod landing wizard
+
+Bring up prod for both faces in one command (Bunny zones + hostnames, Supabase migrations, GitHub prod secrets) interactively:
+
+```bash
+deploy/wizard.sh
+# prompts for: Bunny API key, Supabase Management token, prod project ref, GitHub token
+```
+
+Idempotent (finds existing resources, no duplicates). Prints the DNS records and the next step (merge → tag → Deploy prod) at the end. Enable SSL for the hostnames in the Bunny panel manually.
+
 Below is the manual deploy via the same scripts (for running/debugging a single environment locally).
 
 ## Prerequisites (you do these — I can't create accounts/keys)

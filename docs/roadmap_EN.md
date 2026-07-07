@@ -20,7 +20,9 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
 - [x] **Feature copy**: "Why it feels different" section (by area / join-skip / why you matched / rule-free games), localized in 6 languages. Say/Match/Fade story kept.
 - [x] **HTML `legal.html`** (Terms/Privacy tabs, EN/RU, markdown rendering, brutalist style, inherits theme) + localized footer links.
-- [~] Verify: `overflow=0` (✓ desktop/mobile), i18n of new strings, waitlist/PWA, run tests.
+- [x] Checks: `overflow=0` (desktop/mobile), i18n of new strings, **E2E 6/6 passed** (waitlist sosed+neighbro).
+- [x] Splash loader on the landing (like the prototype): main-color circle, house logo, `NEIGHBRO` / `by PSYTICAN`.
+- [x] Align the mockups section (balanced centered composition: wide frame left, phone right).
 
 ## 2. Legal / compliance
 - [x] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (GDPR-style; served copies in `landing/legal/`).

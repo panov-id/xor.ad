@@ -16,7 +16,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] Landing theme system: color tokenization, `[data-mode="light"]`, `[data-theme]`, `nb-accent`/`nb-mode` persistence, theme-color.
 - [x] Feed preview to the new mechanics: **people + plus, no distance**.
 - [x] **by PSYTICAN** credit in the footer.
-- [ ] Embed **live app mockups** in device frames (wide + mobile), using the landing fonts.
+- [x] Embed **live app mockups** in device frames (phone + wide frame), using the landing fonts; recolor with the theme.
 - [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
 - [~] Full **feature-copy** revision (feed updated; the rest ahead).
 - [ ] **Terms** and **Privacy** links in the footer (needs HTML document pages).

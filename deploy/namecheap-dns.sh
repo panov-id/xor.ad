@@ -9,8 +9,12 @@ DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="$DEPLOY_DIR/.env.deploy"
 [ -f "$ENV_FILE" ] || { echo "Missing $ENV_FILE (copy from .env.deploy.example and fill Namecheap keys)"; exit 1; }
 
+# Source in the shell (strips inline comments) and pass only the needed vars via -e.
+set -a; . "$ENV_FILE"; set +a
+
 docker run --rm \
-  --env-file "$ENV_FILE" \
+  -e NAMECHEAP_API_USER -e NAMECHEAP_API_KEY -e NAMECHEAP_USERNAME \
+  -e NAMECHEAP_CLIENT_IP -e NAMECHEAP_SANDBOX \
   -v "$DEPLOY_DIR/namecheap-dns.py:/app/namecheap-dns.py:ro" \
   -w /app python:3.12-alpine \
   sh -c "pip install -q requests && python3 namecheap-dns.py $*"

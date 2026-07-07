@@ -26,6 +26,9 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 
 ## 2. Legal / compliance
 - [x] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (GDPR-style; served copies in `landing/legal/`).
+- [x] **Removed the ARC number** from all documents, the prototype, and memory.
+- [x] **Conduct rules**: ban harassment/bullying/shaming/anti-social behavior; ban selling goods/services — promotion only via the paid ad block. In **Terms §8** and **Community Guidelines**; **Rules** tab in legal.html + footer link (6 languages).
+- [x] Reconciled `legal/` duplicates: kept `terms_/privacy_/community-guidelines_`; deleted old `terms-of-service_/privacy-policy_`.
 - [ ] Set up `support@neighbro.place` mailbox.
 - [ ] Legal review of the Terms (13+ together with offline meetings is sensitive).
 - [ ] Screen/page to view accepted documents (already in the app profile).

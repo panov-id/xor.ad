@@ -11,13 +11,16 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] Deploy infra (3 envs dev/UAT/prod), local Supabase+nginx, tests (E2E/visual).
 
 ## 1. Update the neighbro landing (next)
-- [ ] Decide: where the **light/dark** button lives on the landing (next to language) — the landing has no profile popup.
-- [ ] Decide: logo = **accent** cycle (11 or fewer?) on the landing.
-- [ ] Embed **live app mockups** in device frames (wide + mobile), using the landing's real fonts (Unbounded/Golos/JetBrains).
-- [ ] Redraw the landing in the prototype's **brutalist canon** (concrete, hard borders/shadows, mono labels).
-- [ ] Update **feature copy** to the new mechanics: plus/minus swipe, liked phrases, ephemerality, "by area, not meters", profile + age filter, rule-free games.
-- [ ] **by PSYTICAN** credit in the footer + links to **Terms** and **Privacy**.
-- [ ] Verify: `overflow=0` from 320px, i18n on all new strings, waitlist/PWA intact, tests green.
+- [x] Decide: **light/dark** button — next to the language switcher.
+- [x] Decide: logo = **accent** cycle, a subset of 5 (gold/crimson/teal/azure/violet).
+- [x] Landing theme system: color tokenization, `[data-mode="light"]`, `[data-theme]`, `nb-accent`/`nb-mode` persistence, theme-color.
+- [x] Feed preview to the new mechanics: **people + plus, no distance**.
+- [x] **by PSYTICAN** credit in the footer.
+- [ ] Embed **live app mockups** in device frames (wide + mobile), using the landing fonts.
+- [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
+- [~] Full **feature-copy** revision (feed updated; the rest ahead).
+- [ ] **Terms** and **Privacy** links in the footer (needs HTML document pages).
+- [~] Verify: `overflow=0` (✓ desktop/mobile), i18n of new strings, waitlist/PWA, run tests.
 
 ## 2. Legal / compliance
 - [ ] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (Terms already reference it; required under GDPR).

@@ -36,6 +36,35 @@ for (const face of faces) {
       }
     });
 
+    test("positive: re-submitting an existing email still shows success (409 handled)", async ({ page }) => {
+      const email = uniqueEmail(`${face.name.split(".")[0]}-dup`);
+      const success =
+        '[data-status-for="waitlist-form-1"].ok, [data-after-for="waitlist-form-1"].show';
+      try {
+        // First submit stores the row.
+        await page.goto(face.url);
+        let form = page.locator("form.waitlist-form").first();
+        await form.locator('input[type="email"]').fill(email);
+        await form.locator("button").click();
+        await expect(page.locator(success)).toBeVisible({ timeout: 15000 });
+
+        // Second submit of the same email hits a 409 (unique violation) — it
+        // must read as success, never the error status.
+        await page.reload();
+        form = page.locator("form.waitlist-form").first();
+        await form.locator('input[type="email"]').fill(email);
+        await form.locator("button").click();
+        await expect(page.locator(success)).toBeVisible({ timeout: 15000 });
+        await expect(page.locator('[data-status-for="waitlist-form-1"].err')).toHaveCount(0);
+
+        // The unique(email) constraint dedupes: exactly one row survives two
+        // submits (findWaitlistRow uses maybeSingle, which throws on >1).
+        expect(await findWaitlistRow(email), "one deduped row should exist").toBeTruthy();
+      } finally {
+        await deleteWaitlistRow(email);
+      }
+    });
+
     test("negative: a backend failure shows the error status, not success", async ({ page }) => {
       await page.goto(face.url);
       // Force the insert to fail at the network layer.

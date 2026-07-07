@@ -13,7 +13,8 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 ## 1. Update the neighbro landing (next)
 - [x] Decide: **light/dark** button — next to the language switcher.
 - [x] Decide: logo = **accent** cycle, a subset of 5 (gold/crimson/teal/azure/violet).
-- [x] Landing theme system: color tokenization, `[data-mode="light"]`, `[data-theme]`, `nb-accent`/`nb-mode` persistence, theme-color.
+- [x] Landing theme system: color tokenization, `[data-mode="light"]`, `[data-theme]`, theme-color.
+- [x] Auto-detection (before paint, no splash flash): **language** from the browser; **light/dark** from `prefers-color-scheme`; **random accent each session** (different from last) — until the user picks a color/language/mode themselves (then their choice sticks).
 - [x] Feed preview to the new mechanics: **people + plus, no distance**.
 - [x] **by PSYTICAN** credit in the footer.
 - [x] Embed **live app mockups** in device frames (phone + wide frame), using the landing fonts; recolor with the theme.

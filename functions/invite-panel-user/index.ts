@@ -11,14 +11,33 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL = Deno.env.get("SITE_URL") ?? "http://localhost:5173";
 
+// Callable from the panel running on a different origin (dev server vs Kong),
+// so answer CORS preflight and echo the headers on every response.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const json = (body: unknown, status: number) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+    return json({ error: "Method not allowed" }, 405);
   }
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: "Missing Authorization header" }), { status: 401 });
+    return json({ error: "Missing Authorization header" }, 401);
   }
   const callerJwt = authHeader.replace("Bearer ", "");
 
@@ -26,7 +45,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: callerUser, error: callerError } = await adminClient.auth.getUser(callerJwt);
   if (callerError || !callerUser?.user) {
-    return new Response(JSON.stringify({ error: "Invalid session" }), { status: 401 });
+    return json({ error: "Invalid session" }, 401);
   }
 
   const { data: callerRow, error: callerRowError } = await adminClient
@@ -36,12 +55,28 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (callerRowError || callerRow?.role !== "admin") {
-    return new Response(JSON.stringify({ error: "Only admins can invite panel users" }), { status: 403 });
+    return json({ error: "Only admins can invite panel users" }, 403);
   }
 
-  const { email, role } = await req.json();
-  if (!email || !["admin", "moderator"].includes(role)) {
-    return new Response(JSON.stringify({ error: "email and a valid role are required" }), { status: 400 });
+  const body = await req.json().catch(() => null);
+  const rawEmail = typeof body?.email === "string" ? body.email : "";
+  const role = body?.role;
+  const email = rawEmail.trim().toLowerCase();
+
+  if (!EMAIL_RE.test(email) || !["admin", "moderator"].includes(role)) {
+    return json({ error: "A valid email and role (admin or moderator) are required" }, 400);
+  }
+
+  // Re-invite guard: an already-registered panel user is an expected
+  // conflict, not a server fault. generateLink is idempotent for existing
+  // users, so catch this before touching auth.
+  const { data: existing } = await adminClient
+    .from("panel_users")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+  if (existing) {
+    return json({ error: `${email} is already invited` }, 409);
   }
 
   const { data: invited, error: inviteError } = await adminClient.auth.admin.generateLink({
@@ -51,7 +86,11 @@ Deno.serve(async (req: Request) => {
   });
 
   if (inviteError || !invited?.user || !invited?.properties?.action_link) {
-    return new Response(JSON.stringify({ error: inviteError?.message ?? "Invite failed" }), { status: 500 });
+    const message = inviteError?.message ?? "Invite failed";
+    if (/already|registered|exists/i.test(message)) {
+      return json({ error: `${email} is already invited` }, 409);
+    }
+    return json({ error: message }, 500);
   }
 
   const { error: insertError } = await adminClient
@@ -59,11 +98,17 @@ Deno.serve(async (req: Request) => {
     .insert({ id: invited.user.id, email, role });
 
   if (insertError) {
-    return new Response(JSON.stringify({ error: insertError.message }), { status: 500 });
+    const code = (insertError as { code?: string }).code;
+    // Lost a race with the guard above (already a panel user): a conflict,
+    // and the existing user must NOT be rolled back.
+    if (code === "23505" || /duplicate|unique/i.test(insertError.message)) {
+      return json({ error: `${email} is already invited` }, 409);
+    }
+    // The auth user was just created by generateLink; roll it back so a
+    // failed insert does not leave an orphaned user with no panel_users row.
+    await adminClient.auth.admin.deleteUser(invited.user.id).catch(() => {});
+    return json({ error: insertError.message }, 500);
   }
 
-  return new Response(
-    JSON.stringify({ success: true, link: invited.properties.action_link }),
-    { status: 200, headers: { "Content-Type": "application/json" } },
-  );
+  return json({ success: true, link: invited.properties.action_link }, 200);
 });

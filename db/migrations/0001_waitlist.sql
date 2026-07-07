@@ -16,3 +16,11 @@ create policy "waitlist_insert_anon" on public.waitlist
   for insert
   to anon
   with check (true);
+
+-- Defense in depth: RLS already denies anything without a matching policy,
+-- but Supabase grants ALL on public tables to anon/authenticated by default
+-- (INSERT/SELECT/UPDATE/DELETE/TRUNCATE…). Narrow privileges to exactly what
+-- the policies above rely on: anon inserts, panel users (authenticated) read.
+revoke all on public.waitlist from anon, authenticated;
+grant insert on public.waitlist to anon;
+grant select on public.waitlist to authenticated;

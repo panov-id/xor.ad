@@ -18,17 +18,18 @@ load_env
 
 FN="invite-panel-user"
 
-TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
-mkdir -p "$TMP/supabase/functions/$FN"
-cp "$ROOT_DIR/functions/$FN/index.ts" "$TMP/supabase/functions/$FN/index.ts"
-
+# Assemble the supabase/ layout INSIDE the container (no host temp dir → no
+# root-owned cleanup problems) and deploy via the Management API (--use-api),
+# which needs no Docker bundling.
 docker run --rm \
   -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" \
-  -v "$TMP:/work" -w /work \
+  -v "$ROOT_DIR/functions/$FN/index.ts:/src/index.ts:ro" \
+  -w /root \
   node:22-bookworm bash -lc "
     set -e
-    npx --yes supabase@latest functions deploy $FN --project-ref $SUPABASE_PROJECT_REF --no-verify-jwt
+    mkdir -p supabase/functions/$FN
+    cp /src/index.ts supabase/functions/$FN/index.ts
+    npx --yes supabase@latest functions deploy $FN --project-ref $SUPABASE_PROJECT_REF --use-api --no-verify-jwt
     npx --yes supabase@latest secrets set SITE_URL=$PANEL_URL --project-ref $SUPABASE_PROJECT_REF
   "
 

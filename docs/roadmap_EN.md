@@ -19,11 +19,11 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] Embed **live app mockups** in device frames (phone + wide frame), using the landing fonts; recolor with the theme.
 - [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
 - [x] **Feature copy**: "Why it feels different" section (by area / join-skip / why you matched / rule-free games), localized in 6 languages. Say/Match/Fade story kept.
-- [ ] **Terms** and **Privacy** links in the footer (needs HTML document pages).
+- [x] **HTML `legal.html`** (Terms/Privacy tabs, EN/RU, markdown rendering, brutalist style, inherits theme) + localized footer links.
 - [~] Verify: `overflow=0` (✓ desktop/mobile), i18n of new strings, waitlist/PWA, run tests.
 
 ## 2. Legal / compliance
-- [ ] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (Terms already reference it; required under GDPR).
+- [x] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (GDPR-style; served copies in `landing/legal/`).
 - [ ] Set up `support@neighbro.place` mailbox.
 - [ ] Legal review of the Terms (13+ together with offline meetings is sensitive).
 - [ ] Screen/page to view accepted documents (already in the app profile).

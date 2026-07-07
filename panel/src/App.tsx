@@ -20,11 +20,8 @@ import { WaitlistList } from "./pages/waitlist/list";
 import { PanelUsersList } from "./pages/panel-users/list";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <RefineKbarProvider>
-        <DevtoolsProvider>
-          <Refine
+  const refine = (
+    <Refine
             dataProvider={dataProvider}
             liveProvider={liveProvider(supabaseClient)}
             authProvider={authProvider}
@@ -75,7 +72,20 @@ function App() {
             <UnsavedChangesNotifier />
             <DocumentTitleHandler />
           </Refine>
-        </DevtoolsProvider>
+  );
+
+  return (
+    <BrowserRouter>
+      <RefineKbarProvider>
+        {/* Devtools only in development — never wrap the production bundle. */}
+        {import.meta.env.DEV ? (
+          <DevtoolsProvider>
+            {refine}
+            <DevtoolsPanel />
+          </DevtoolsProvider>
+        ) : (
+          refine
+        )}
       </RefineKbarProvider>
     </BrowserRouter>
   );

@@ -12,12 +12,9 @@ type PanelUserRow = {
 type Identity = { role: "admin" | "moderator" | null };
 
 export const PanelUsersList = () => {
-  const identityHook = useGetIdentity<Identity>();
-  // Refine v5 hook shape: { result, query }. useGetIdentity exposes the
-  // identity on `result` (falling back to `data` for safety across versions).
-  const identity: Identity | undefined =
-    (identityHook as { result?: Identity }).result ??
-    (identityHook as { data?: Identity }).data;
+  // useGetIdentity returns a TanStack UseQueryResult, so the identity is on
+  // `data` (unlike useList below, which is Refine's own { result, query }).
+  const { data: identity } = useGetIdentity<Identity>();
   const { result, query } = useList<PanelUserRow>({
     resource: "panel_users",
     sorters: [{ field: "created_at", order: "desc" }],
@@ -62,8 +59,14 @@ export const PanelUsersList = () => {
 
   const copyLink = async () => {
     if (!inviteLink) return;
-    await navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+    } catch {
+      // Clipboard unavailable (insecure origin / denied permission). The link
+      // stays visible in the <code> block for manual copy.
+      setStatus({ kind: "err", text: "Couldn't copy — select the link and copy it manually." });
+    }
   };
 
   return (

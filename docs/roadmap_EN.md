@@ -18,7 +18,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] **by PSYTICAN** credit in the footer.
 - [x] Embed **live app mockups** in device frames (phone + wide frame), using the landing fonts; recolor with the theme.
 - [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
-- [~] Full **feature-copy** revision (feed updated; the rest ahead).
+- [x] **Feature copy**: "Why it feels different" section (by area / join-skip / why you matched / rule-free games), localized in 6 languages. Say/Match/Fade story kept.
 - [ ] **Terms** and **Privacy** links in the footer (needs HTML document pages).
 - [~] Verify: `overflow=0` (✓ desktop/mobile), i18n of new strings, waitlist/PWA, run tests.
 

@@ -55,7 +55,16 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [ ] Realtime (websockets via the api proxy) for chat and games.
 - [ ] Web Push (VAPID per face, anonymous subscriptions).
 - [ ] PayPal payments → internal balance (stickers/ads).
-- [ ] Roll updates through dev → UAT → prod.
+- [x] **dev + UAT deployed** (neighbro landing + panel; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny zones + api proxy with Origin Host Header/WebSockets/cache=0; panov.id DNS; GitHub secrets). prod later. sosed provisioned only, not deployed.
+
+## Next session (deploy follow-ups)
+- [ ] **Panel:** SMTP in Supabase Auth (magic-link) + bootstrap admin `deploy/bootstrap-admin-cloud.sh` for dev/uat (sign-in doesn't work without SMTP yet).
+- [ ] Delete the test waitlist row `deploy-check-1783441254@example.com` (or add `SUPABASE_SERVICE_ROLE_KEY` to `.env.deploy` and I'll clean it).
+- [ ] Verify uat api proxy (insert) and realtime over WebSocket (as on dev).
+- [ ] Decide on **sosed**: deploy the face or hold.
+- [ ] **prod** (once uat is accepted): `run-wizard.sh prod` + prod DNS — real domains `neighbro.place`/`sosed.place`/`xor.panov.id` (DNS at their registrar, not only panov.id) + Bunny SSL/proxy.
+- [ ] Settle the branch flow (day-branches vs `dev`/`main`) — everything is on `day4` now, deploys come from `dev`/`main`.
+- [ ] Continue product: app screens (Say/match/Set location/games), tables/RLS, Web Push, PayPal (sections 3–6).
 
 ## Open questions
 - Accent set on the landing (all 11 or a subset).

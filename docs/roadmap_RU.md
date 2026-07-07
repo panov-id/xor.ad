@@ -55,7 +55,16 @@
 - [ ] Realtime (вебсокеты через api-прокси) для чата и игр.
 - [ ] Web Push (VAPID на витрину, анонимные подписки).
 - [ ] Платежи PayPal → внутренний баланс (стикеры/реклама).
-- [ ] Прокатить обновления по dev → UAT → prod.
+- [x] **dev + UAT задеплоены** (лендинг neighbro + панель; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny зоны + api-прокси с Origin Host Header/WebSockets/кэш=0; DNS panov.id; GitHub-секреты). prod — позже. sosed — только провижн, файлы не деплоили.
+
+## Следующая сессия (deploy follow-ups)
+- [ ] **Панель:** SMTP в Supabase Auth (magic-link) + бутстрап админа `deploy/bootstrap-admin-cloud.sh` для dev/uat (сейчас вход не работает без SMTP).
+- [ ] Удалить тестовую строку вейтлиста `deploy-check-1783441254@example.com` (или добавить `SUPABASE_SERVICE_ROLE_KEY` в `.env.deploy` — снесу сам).
+- [ ] Проверить uat api-прокси (insert) и realtime по WebSocket (как на dev).
+- [ ] Решить по **sosed**: деплоить витрину или пока нет.
+- [ ] **prod** (когда uat принят): `run-wizard.sh prod` + DNS prod — это уже реальные домены `neighbro.place`/`sosed.place`/`xor.panov.id` (DNS у их регистратора, не только panov.id) + Bunny SSL/прокси.
+- [ ] Определиться с флоу веток (day-ветки vs `dev`/`main`) — сейчас всё на `day4`, а деплой идёт из `dev`/`main`.
+- [ ] Дальше по продукту: экраны приложения (Say/мэтч/Set location/игры), таблицы/RLS, Web Push, PayPal (разделы 3–6).
 
 ## Открытые вопросы
 - Набор акцентов на лендинге (все 11 или подмножество).

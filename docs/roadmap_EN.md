@@ -58,7 +58,8 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] **dev + UAT deployed** (neighbro landing + panel; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny zones + api proxy with Origin Host Header/WebSockets/cache=0; panov.id DNS; GitHub secrets). prod later. sosed provisioned only, not deployed.
 
 ## Next session (deploy follow-ups)
-- [ ] **Panel:** SMTP in Supabase Auth (magic-link) + bootstrap admin `deploy/bootstrap-admin-cloud.sh` for dev/uat (sign-in doesn't work without SMTP yet).
+- [x] **Panel sign-in:** admin bootstrapped, allow-list/site_url set, sign-in via magic-link (`generate_link`) works.
+- [ ] **Email/SMTP (come back):** Resend, domain `panov.id` — DKIM verified, MX added on `send.panov.id` (forwards intact), awaiting propagation/verification. Once `status=verified`: set **Custom SMTP in Supabase Auth** (Management API `/config/auth`: `smtp.resend.com`, user `resend`, pass = sending key, sender `no-reply@panov.id`) and send a test email. Details in memory `email-smtp.md`.
 - [ ] Delete the test waitlist row `deploy-check-1783441254@example.com` (or add `SUPABASE_SERVICE_ROLE_KEY` to `.env.deploy` and I'll clean it).
 - [ ] Verify uat api proxy (insert) and realtime over WebSocket (as on dev).
 - [ ] Decide on **sosed**: deploy the face or hold.

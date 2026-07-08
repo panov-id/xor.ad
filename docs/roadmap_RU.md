@@ -58,7 +58,8 @@
 - [x] **dev + UAT задеплоены** (лендинг neighbro + панель; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny зоны + api-прокси с Origin Host Header/WebSockets/кэш=0; DNS panov.id; GitHub-секреты). prod — позже. sosed — только провижн, файлы не деплоили.
 
 ## Следующая сессия (deploy follow-ups)
-- [ ] **Панель:** SMTP в Supabase Auth (magic-link) + бутстрап админа `deploy/bootstrap-admin-cloud.sh` для dev/uat (сейчас вход не работает без SMTP).
+- [x] **Панель — вход:** админ забутстраплен, allow-list/site_url настроены, вход по magic-ссылке (`generate_link`) работает.
+- [ ] **Почта/SMTP (вернуться):** Resend, домен `panov.id` — DKIM verified, MX добавлен на `send.panov.id` (форварды целы), ждём пропагацию/верификацию. Когда `status=verified`: прописать **Custom SMTP в Supabase Auth** (Management API `/config/auth`: `smtp.resend.com`, user `resend`, pass = sending-ключ, отправитель `no-reply@panov.id`) и послать тестовое письмо. Детали — память `email-smtp.md`.
 - [ ] Удалить тестовую строку вейтлиста `deploy-check-1783441254@example.com` (или добавить `SUPABASE_SERVICE_ROLE_KEY` в `.env.deploy` — снесу сам).
 - [ ] Проверить uat api-прокси (insert) и realtime по WebSocket (как на dev).
 - [ ] Решить по **sosed**: деплоить витрину или пока нет.

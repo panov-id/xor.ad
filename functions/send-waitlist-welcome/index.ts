@@ -38,11 +38,11 @@ Deno.serve(async (req: Request) => {
     if (!WELCOME_SECRET || secret !== WELCOME_SECRET) return json({ error: "Forbidden" }, 403);
 
     const email = String(body?.email ?? "").trim().toLowerCase();
-    const lang = body?.lang;
     if (!EMAIL_RE.test(email)) return json({ error: "Valid email required" }, 400);
     if (!RESEND_API_KEY) return json({ error: "RESEND_API_KEY not set" }, 500);
 
-    const { subject, html, text } = welcomeEmail(lang);
+    // Match the visitor's language and colour theme from the landing.
+    const { subject, html, text } = welcomeEmail(body?.lang, body?.accent, body?.mode);
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },

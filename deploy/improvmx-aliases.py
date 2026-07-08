@@ -5,9 +5,12 @@ Auth is HTTP Basic with user "api" and the API key as the password.
 Env: IMPROVMX_API_KEY.
 
 Usage (in a container):
-  python3 improvmx-aliases.py <domain> <forward-address> <alias> [<alias> ...] [--drop-catchall]
+  python3 improvmx-aliases.py <domain> [<default-forward>] <alias-or-pair> [...] [--drop-catchall]
 
-Adds the domain (idempotent), creates each <alias>@<domain> -> <forward-address>,
+Each alias token is either a bare name (forwarded to <default-forward>) or a
+"name=forward" pair with its own destination. The optional <default-forward> is
+the first token after <domain> that looks like an address (has "@", no "=").
+Adds the domain (idempotent), creates each <alias>@<domain> -> <forward>,
 optionally deletes the auto-created catch-all "*" alias, then lists the result.
 """
 import os
@@ -21,10 +24,26 @@ BASE = "https://api.improvmx.com/v3"
 def main() -> None:
     flags = [a for a in sys.argv[1:] if a.startswith("--")]
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    if len(args) < 3:
-        sys.exit("Usage: improvmx-aliases.py <domain> <forward> <alias> [<alias>...] [--drop-catchall]")
+    if len(args) < 2:
+        sys.exit("Usage: improvmx-aliases.py <domain> [<default-forward>] <alias-or-pair>... [--drop-catchall]")
 
-    domain, forward, aliases = args[0], args[1], args[2:]
+    domain, rest = args[0], args[1:]
+    default_forward = None
+    if rest and "@" in rest[0] and "=" not in rest[0]:
+        default_forward, rest = rest[0], rest[1:]
+
+    pairs: list[tuple[str, str]] = []
+    for token in rest:
+        if "=" in token:
+            name, forward = token.split("=", 1)
+        elif default_forward:
+            name, forward = token, default_forward
+        else:
+            sys.exit(f"alias '{token}' has no forward and no <default-forward> was given")
+        pairs.append((name, forward))
+    if not pairs:
+        sys.exit("no aliases given")
+
     key = os.environ.get("IMPROVMX_API_KEY")
     if not key:
         sys.exit("Missing IMPROVMX_API_KEY")
@@ -33,12 +52,12 @@ def main() -> None:
     r = requests.post(f"{BASE}/domains/", auth=auth, json={"domain": domain})
     print(f"domain {domain}: {'ok' if r.ok else r.text}")
 
-    for alias in aliases:
+    for name, forward in pairs:
         r = requests.post(
             f"{BASE}/domains/{domain}/aliases/", auth=auth,
-            json={"alias": alias, "forward": forward},
+            json={"alias": name, "forward": forward},
         )
-        print(f"  alias {alias}@{domain} -> {forward}: {'ok' if r.ok else r.text}")
+        print(f"  alias {name}@{domain} -> {forward}: {'ok' if r.ok else r.text}")
 
     if "--drop-catchall" in flags:
         r = requests.delete(f"{BASE}/domains/{domain}/aliases/*", auth=auth)

@@ -1,0 +1,7 @@
+[
+  { "type": "MX",  "name": "@",    "address": "mx1.improvmx.com.",                     "mxpref": 10 },
+  { "type": "MX",  "name": "@",    "address": "mx2.improvmx.com.",                     "mxpref": 20 },
+  { "type": "TXT", "name": "@",    "address": "v=spf1 include:spf.improvmx.com ~all" },
+  { "type": "MX",  "name": "send", "address": "feedback-smtp.us-east-1.amazonses.com.", "mxpref": 10 },
+  { "type": "TXT", "name": "send", "address": "v=spf1 include:amazonses.com ~all" }
+]

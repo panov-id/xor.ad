@@ -27,6 +27,21 @@ const json = (body: unknown, status: number) =>
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Log an unexpected server-side fault into client_errors (shared with the
+// frontend logger) so backend errors are visible too. Never throws.
+// deno-lint-ignore no-explicit-any
+async function logServerError(client: any, kind: string, err: unknown, extra: Record<string, unknown> = {}) {
+  try {
+    await client.from("client_errors").insert({
+      kind,
+      message: (err as { message?: string })?.message ?? String(err),
+      stack: (err as { stack?: string })?.stack ? String((err as { stack?: string }).stack).slice(0, 2000) : null,
+      source: "edge:invite-panel-user",
+      extra,
+    });
+  } catch (_) { /* the logger must never throw */ }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -43,6 +58,7 @@ Deno.serve(async (req: Request) => {
 
   const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+  try {
   const { data: callerUser, error: callerError } = await adminClient.auth.getUser(callerJwt);
   if (callerError || !callerUser?.user) {
     return json({ error: "Invalid session" }, 401);
@@ -111,4 +127,8 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ success: true, link: invited.properties.action_link }, 200);
+  } catch (err) {
+    await logServerError(adminClient, "server:invite-panel-user", err, { url: req.url });
+    return json({ error: "Internal error" }, 500);
+  }
 });

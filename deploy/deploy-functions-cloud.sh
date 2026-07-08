@@ -21,8 +21,11 @@ FN="invite-panel-user"
 # Assemble the supabase/ layout INSIDE the container (no host temp dir → no
 # root-owned cleanup problems) and deploy via the Management API (--use-api),
 # which needs no Docker bundling.
+# DO_NOT_TRACK disables the CLI's PostHog telemetry, whose shutdown can time out
+# and return a non-zero exit even after the deploy + secrets succeed.
 docker run --rm \
   -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" \
+  -e DO_NOT_TRACK=1 \
   -v "$ROOT_DIR/functions/$FN/index.ts:/src/index.ts:ro" \
   -w /root \
   node:22-bookworm bash -lc "

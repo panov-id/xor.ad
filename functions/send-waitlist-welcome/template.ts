@@ -2,7 +2,7 @@
 // and their chosen colour theme (accent + light/dark), matching the landing.
 // Table-based, inline styles, no external assets (email-client safe).
 
-type Lang = "en" | "ru" | "fr" | "de" | "es" | "el";
+type Lang = "en" | "ru" | "fr" | "de" | "es" | "el" | "uk" | "be" | "kk" | "ka";
 
 const T: Record<Lang, {
   subject: string; preheader: string; hi: string; title: string;
@@ -80,6 +80,54 @@ const T: Record<Lang, {
     sign: "— η ομάδα του Neighbro",
     why: "Λαμβάνεις αυτό επειδή μπήκες στη λίστα αναμονής του Neighbro.",
   },
+  uk: {
+    subject: "Ти у списку — Neighbro",
+    preheader: "Хороші сусіди. Живі моменти. Напишемо, щойно відкриється твій район.",
+    hi: "Ласкаво просимо", title: "Ти у списку.",
+    body: [
+      "Neighbro — мистецтво бути поруч: скажи щось людям навколо просто зараз, збігнись, поговори — і відпусти. Без профілю. Без стрічки. Без шуму.",
+      "Ти серед перших. Коли відкриється твій район — увійдеш одним із перших.",
+    ],
+    next: "Напишемо на пошту, щойно все запрацює.",
+    sign: "— команда Neighbro",
+    why: "Ти отримав цей лист, бо записався до списку очікування Neighbro.",
+  },
+  be: {
+    subject: "Ты ў спісе — Neighbro",
+    preheader: "Добрыя суседзі. Жывыя моманты. Напішам, як толькі адкрыецца твой раён.",
+    hi: "Сардэчна запрашаем", title: "Ты ў спісе.",
+    body: [
+      "Neighbro — мастацтва быць побач: скажы нешта людзям вакол проста зараз, супадзі, пагавары — і адпусці. Без профілю. Без стужкі. Без шуму.",
+      "Ты сярод першых. Калі адкрыецца твой раён — увойдзеш адным з першых.",
+    ],
+    next: "Напішам на пошту, як толькі ўсё запрацуе.",
+    sign: "— каманда Neighbro",
+    why: "Ты атрымаў гэты ліст, бо запісаўся ў спіс чакання Neighbro.",
+  },
+  kk: {
+    subject: "Сен тізімдесің — Neighbro",
+    preheader: "Жақсы көршілер. Нағыз сәттер. Ауданың ашылған сәтте хабарлаймыз.",
+    hi: "Қош келдің", title: "Сен тізімдесің.",
+    body: [
+      "Neighbro — жақын болу өнері: дәл қазір айналаңдағы адамдарға бірдеңе айт, сәйкес кел, сөйлес — содан кейін жібер. Профильсіз. Таспасыз. Шусыз.",
+      "Сен алғашқылардың бірісің. Ауданың ашылғанда, алғашқылардың бірі болып кіресің.",
+    ],
+    next: "Іске қосылған сәтте поштаңа жазамыз.",
+    sign: "— Neighbro командасы",
+    why: "Бұл хатты Neighbro күту тізіміне жазылғаның үшін алдың.",
+  },
+  ka: {
+    subject: "სიაში ხარ — Neighbro",
+    preheader: "კარგი მეზობლები. ნამდვილი მომენტები. შეგატყობინებთ, როგორც კი შენი უბანი გაიხსნება.",
+    hi: "კეთილი იყოს შენი მობრძანება", title: "სიაში ხარ.",
+    body: [
+      "Neighbro არის ახლოს ყოფნის ხელოვნება — უთხარი რაღაც შენ გარშემო მყოფ ხალხს ახლავე, დაემთხვიე, ისაუბრე და გააქრე. პროფილის გარეშე. ფიდის გარეშე. ხმაურის გარეშე.",
+      "შენ პირველთა შორის ხარ. როცა შენი უბანი გაიხსნება, პირველთა შორის შეხვალ.",
+    ],
+    next: "მოგწერთ, როგორც კი ამოქმედდება.",
+    sign: "— Neighbro-ს გუნდი",
+    why: "ამ წერილს იღებ, რადგან Neighbro-ს მოლოდინის სიას შეუერთდი.",
+  },
 };
 
 // Accents mirror the landing's curated subset (accent + ink-on-accent).
@@ -100,7 +148,7 @@ const MONO = "'SF Mono',ui-monospace,Menlo,Consolas,monospace";
 export function welcomeEmail(
   langRaw?: string, accentRaw?: string, modeRaw?: string,
 ): { subject: string; html: string; text: string } {
-  const lang: Lang = (["en", "ru", "fr", "de", "es", "el"].includes(langRaw ?? "") ? langRaw : "en") as Lang;
+  const lang: Lang = (["en", "ru", "fr", "de", "es", "el", "uk", "be", "kk", "ka"].includes(langRaw ?? "") ? langRaw : "en") as Lang;
   const t = T[lang];
   const a = ACCENTS[accentRaw ?? ""] ?? ACCENTS[""];
   const c = modeRaw === "light" ? LIGHT : DARK;

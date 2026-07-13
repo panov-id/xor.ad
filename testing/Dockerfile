@@ -6,5 +6,7 @@ COPY package.json .
 RUN npm install
 
 COPY screenshot.mjs .
+COPY brand-splash.mjs .
+COPY dev-splash.mjs .
 
 CMD ["node", "screenshot.mjs"]

@@ -52,11 +52,15 @@ Runs in Docker (nothing on the host). Copy `wizard/inventory.example.toml` →
 ```bash
 cd wizard
 ./run.sh status                 # show the pool
-./run.sh up --node dev          # provision? -> configure -> register in Bunny DNS
-./run.sh deploy                 # roll the latest node image to all nodes
+./run.sh up --node dev          # provision? -> dns -> configure (full bring-up)
+./run.sh deploy                 # rolling: re-sync + rebuild each node, verify /health
+./run.sh pool --node dev        # CUTOVER: add nodes to the geo-steered api.<face>
 ```
-Modes per node (in the inventory): `provision` (create the VPS via provider API)
-or `configure` (an existing box you bought — IP+SSH).
+Commands: `status` · `provision` · `configure` · `dns` · `pool` · `deploy` · `up`.
+Modes per node (inventory): `provision` (create the VPS via provider API) or
+`configure` (an existing box you bought — IP+SSH). Secrets come from the wizard
+env: `BUNNY_API_KEY`, `BUNNY_STORAGE_*`, `RESEND_API_KEY`,
+`HETZNER_TOKEN`/`VULTR_API_KEY`/`DIGITALOCEAN_TOKEN`, `SSH_PUBLIC_KEY`.
 
 ## Balancer & cutover
 
@@ -74,5 +78,8 @@ threat model (untrusted community nodes → E2E, ciphertext-only relays) is in
 
 ## Status
 
-Step-1 scaffold: the node is functional; the wizard's provider/SSH/DNS actions
-are structured stubs to fill in next.
+Node functional (typechecks, `/health` serves 200). Wizard implements
+`provision` (Hetzner/Vultr/DO), `configure` (SSH bootstrap), `dns` + `pool`
+(Bunny), `deploy` (rolling), `up` (provision → dns → configure). Remaining:
+port the localized welcome templates into `node/src/lib/resend.ts`, and a real
+run against live boxes/tokens. The live landing is untouched until cutover.

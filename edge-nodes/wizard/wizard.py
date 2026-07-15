@@ -150,11 +150,34 @@ def provision(node: dict) -> None:
     print(f"  · {node['id']}: ready at {ip}")
 
 
+def _sync_and_up(client, node: dict, inv: dict, sudo: bool, user: str) -> None:
+    """Upload node/ + compose/, render env, (re)build & start, verify /health.
+    Shared by configure (first bring-up) and deploy (rolling update)."""
+    env_cfg = inv.get("env", {}).get(node.get("env", ""), {})
+    node_env = render_node_env(node, env_cfg)
+    print(f"      sync node + compose -> {REMOTE_ROOT}")
+    sh(client, f"mkdir -p {REMOTE_ROOT}", sudo=sudo)
+    if sudo:
+        sh(client, f"chown -R {user} {REMOTE_ROOT}", sudo=True)
+    sftp = client.open_sftp()
+    try:
+        _sftp_put_tree(sftp, NODE_DIR, f"{REMOTE_ROOT}/node")
+        _sftp_mkdirs(sftp, f"{REMOTE_ROOT}/compose")
+        sftp.put(str(COMPOSE_DIR / "docker-compose.yml"), f"{REMOTE_ROOT}/compose/docker-compose.yml")
+        sftp.put(str(COMPOSE_DIR / "Caddyfile"), f"{REMOTE_ROOT}/compose/Caddyfile")
+        _write_remote(sftp, f"{REMOTE_ROOT}/compose/node.env", node_env)
+        _write_remote(sftp, f"{REMOTE_ROOT}/compose/.env", f"NODE_HOSTNAME={node['hostname']}\n")
+    finally:
+        sftp.close()
+    print("      docker compose up -d --build")
+    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --build", sudo=sudo)
+    print("      verify /health")
+    _verify_health(client, node["hostname"], sudo)
+
+
 def configure(node: dict, inv: dict) -> None:
     """SSH in and bring the node up (harden -> docker -> deploy -> verify)."""
     print(f"  · {node['id']}: configure {node.get('ssh_host', '<no ssh_host>')}")
-    env_cfg = inv.get("env", {}).get(node.get("env", ""), {})
-    node_env = render_node_env(node, env_cfg)
     client, user = ssh_connect(node)
     sudo = user != "root"
     try:
@@ -169,24 +192,7 @@ def configure(node: dict, inv: dict) -> None:
         sh(client, "command -v docker >/dev/null || curl -fsSL https://get.docker.com | sh", sudo=sudo)
         sh(client, "systemctl enable --now docker", sudo=sudo)
 
-        print(f"      upload node + compose -> {REMOTE_ROOT}")
-        sh(client, f"mkdir -p {REMOTE_ROOT}", sudo=sudo)
-        if sudo:
-            sh(client, f"chown -R {user} {REMOTE_ROOT}", sudo=True)
-        sftp = client.open_sftp()
-        _sftp_put_tree(sftp, NODE_DIR, f"{REMOTE_ROOT}/node")
-        _sftp_mkdirs(sftp, f"{REMOTE_ROOT}/compose")
-        sftp.put(str(COMPOSE_DIR / "docker-compose.yml"), f"{REMOTE_ROOT}/compose/docker-compose.yml")
-        sftp.put(str(COMPOSE_DIR / "Caddyfile"), f"{REMOTE_ROOT}/compose/Caddyfile")
-        _write_remote(sftp, f"{REMOTE_ROOT}/compose/node.env", node_env)
-        _write_remote(sftp, f"{REMOTE_ROOT}/compose/.env", f"NODE_HOSTNAME={node['hostname']}\n")
-        sftp.close()
-
-        print("      docker compose up -d --build")
-        sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --build", sudo=sudo)
-
-        print("      verify /health")
-        _verify_health(client, node["hostname"], sudo)
+        _sync_and_up(client, node, inv, sudo, user)
         print(f"  · {node['id']}: configured ✓")
     finally:
         client.close()
@@ -221,9 +227,18 @@ def pool(node: dict, inv: dict) -> None:
     print(f"  · {node['id']}: pool {pool_host} += {ip} geo=({node.get('lat')},{node.get('lon')}) ({action})")
 
 
-def deploy(node: dict) -> None:
-    """Roll the latest node image to an already-configured node. TODO."""
-    print(f"  · {node['id']}: [todo] upload latest, docker compose up -d --build, healthcheck")
+def deploy(node: dict, inv: dict) -> None:
+    """Roll the latest node to an already-configured node (re-sync + rebuild +
+    verify). Rolling: run_each does nodes one at a time and each verifies /health
+    before the next, so the pool never fully drops. Skips harden/docker install."""
+    print(f"  · {node['id']}: deploy {node.get('ssh_host', '<no ssh_host>')}")
+    client, user = ssh_connect(node)  # requires ssh_host (a configured node)
+    sudo = user != "root"
+    try:
+        _sync_and_up(client, node, inv, sudo, user)
+        print(f"  · {node['id']}: deployed ✓")
+    finally:
+        client.close()
 
 
 def status(inv: dict) -> None:
@@ -269,7 +284,7 @@ def main() -> None:
     elif args.cmd == "pool":
         run_each(inv, args.node, lambda n: pool(n, inv))
     elif args.cmd == "deploy":
-        run_each(inv, args.node, deploy)
+        run_each(inv, args.node, lambda n: deploy(n, inv))
     elif args.cmd == "up":
         # dns before configure so Let's Encrypt can validate the node hostname.
         for n in nodes(inv, args.node):

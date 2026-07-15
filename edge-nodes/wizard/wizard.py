@@ -193,9 +193,32 @@ def configure(node: dict, inv: dict) -> None:
 
 
 def dns(node: dict, inv: dict) -> None:
-    """Register the node in Bunny geo-steering for its env's pool hostname. TODO."""
-    pool = inv.get("env", {}).get(node.get("env", ""), {}).get("pool_hostname", "<pool>")
-    print(f"  · {node['id']}: [todo] add to Bunny geo-steering {pool} (A -> node IP, health /health)")
+    """Register the node's OWN hostname (A -> node IP). Needed before configure so
+    Let's Encrypt can validate. Does NOT touch the live api.* pool (see `pool`)."""
+    import bunny  # lazy
+    ip = node.get("ssh_host")
+    if not ip:
+        raise RuntimeError(f"{node['id']}: no ip yet (run provision first, or set ssh_host)")
+    zone = bunny.find_zone(node["hostname"])
+    name = bunny.subdomain(node["hostname"], zone["Domain"])
+    action = bunny.set_a(zone, name, ip)
+    print(f"  · {node['id']}: dns {node['hostname']} -> {ip} ({action})")
+
+
+def pool(node: dict, inv: dict) -> None:
+    """CUTOVER: add this node to the geo-steered api.* pool for its env. Only run
+    when you intend to move live traffic onto the pool."""
+    import bunny  # lazy
+    ip = node.get("ssh_host")
+    if not ip:
+        raise RuntimeError(f"{node['id']}: no ip (run provision first, or set ssh_host)")
+    pool_host = inv.get("env", {}).get(node.get("env", ""), {}).get("pool_hostname")
+    if not pool_host:
+        raise RuntimeError(f"{node['id']}: env has no pool_hostname")
+    zone = bunny.find_zone(pool_host)
+    name = bunny.subdomain(pool_host, zone["Domain"])
+    action = bunny.pool_add(zone, name, ip, node.get("lat"), node.get("lon"))
+    print(f"  · {node['id']}: pool {pool_host} += {ip} geo=({node.get('lat')},{node.get('lon')}) ({action})")
 
 
 def deploy(node: dict) -> None:
@@ -229,7 +252,7 @@ def main() -> None:
     p.add_argument("--inventory", type=Path, default=INVENTORY)
     p.add_argument("--node", help="limit to a node id or an env name")
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name in ("status", "provision", "configure", "dns", "deploy", "up"):
+    for name in ("status", "provision", "configure", "dns", "pool", "deploy", "up"):
         sub.add_parser(name)
 
     args = p.parse_args()
@@ -243,14 +266,20 @@ def main() -> None:
         run_each(inv, args.node, lambda n: configure(n, inv))
     elif args.cmd == "dns":
         run_each(inv, args.node, lambda n: dns(n, inv))
+    elif args.cmd == "pool":
+        run_each(inv, args.node, lambda n: pool(n, inv))
     elif args.cmd == "deploy":
         run_each(inv, args.node, deploy)
     elif args.cmd == "up":
+        # dns before configure so Let's Encrypt can validate the node hostname.
         for n in nodes(inv, args.node):
             print(f"[{n['id']}] up")
-            provision(n)
-            configure(n, inv)
-            dns(n, inv)
+            try:
+                provision(n)
+                dns(n, inv)
+                configure(n, inv)
+            except Exception as e:
+                print(f"  · {n['id']}: ERROR {e}")
 
 
 if __name__ == "__main__":

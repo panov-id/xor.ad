@@ -23,6 +23,8 @@ hostname = "n1.sosed.panov.id"
 role = "relay"            # core | relay
 mode = "provision"        # provision (create via API) | configure (existing box)
 server_type = "cx22"
+lat = 50.47               # optional: geolocation for the geo-steered pool (cutover)
+lon = 12.37
 
 [[node]]
 id = "n2"

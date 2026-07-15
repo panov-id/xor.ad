@@ -137,12 +137,17 @@ def _verify_health(client, hostname: str, sudo: bool) -> None:
 # --- actions ----------------------------------------------------------------
 
 def provision(node: dict) -> None:
-    """Create the VPS via the provider API and set node['ssh_host']. TODO."""
+    """Create the VPS via the provider API and set node['ssh_host'] in memory."""
     if node.get("mode") != "provision":
         print(f"  · {node['id']}: manual box (mode=configure) — skip provision")
         return
-    print(f"  · {node['id']}: [todo] provision {node['provider']}/{node['region']} "
-          f"({node.get('server_type', 'default')}) via API")
+    from providers import provision_server  # lazy — keeps status/dns import-free
+    print(f"  · {node['id']}: provision {node['provider']}/{node.get('location', '?')} "
+          f"({node.get('server_type') or node.get('plan') or 'default'})")
+    ip = provision_server(node)
+    node["ssh_host"] = ip  # so a chained configure() in `up` can reach it
+    node.setdefault("ssh_user", "root")
+    print(f"  · {node['id']}: ready at {ip}")
 
 
 def configure(node: dict, inv: dict) -> None:

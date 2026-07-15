@@ -6,16 +6,22 @@ allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id"
 # Bunny geo-steered pool hostname the landings will eventually call (at cutover).
 pool_hostname = "api.dev.sosed.panov.id"
 
+# provision-mode nodes need provider API fields:
+#   location   provider region code (hetzner: fsn1/nbg1/hel1/ash; vultr: ewr;
+#              digitalocean: fra1) — NOT the human `region` label below
+#   server_type (hetzner) | plan (vultr/do) | os_id (vultr) | image (do)
+# Secrets (wizard env / secrets.env): HETZNER_TOKEN | VULTR_API_KEY |
+#   DIGITALOCEAN_TOKEN, plus SSH_PUBLIC_KEY (attached so configure can SSH in).
+
 [[node]]
 id = "n1"
 env = "dev"
 provider = "hetzner"      # hetzner | vultr | digitalocean = API-provisionable
-region = "eu-central"
+region = "eu-central"     # human label (for status)
+location = "fsn1"         # provider region code
 hostname = "n1.sosed.panov.id"
 role = "relay"            # core | relay
-# mode = "provision": wizard creates the VPS via the provider API
-# mode = "configure": wizard configures an existing VPS you already bought
-mode = "provision"
+mode = "provision"        # provision (create via API) | configure (existing box)
 server_type = "cx22"
 
 [[node]]
@@ -23,9 +29,12 @@ id = "n2"
 env = "dev"
 provider = "vultr"
 region = "us-east"
+location = "ewr"
 hostname = "n2.sosed.panov.id"
 role = "relay"
 mode = "provision"
+plan = "vc2-1c-1gb"
+os_id = 2284              # Vultr Ubuntu os_id (verify current value)
 
 [[node]]
 id = "n3"

@@ -8,6 +8,9 @@ cd "$ROOT_DIR"
 
 mkdir -p testing/screenshots panel/tests/report
 
+# Run the container as the host user so screenshots/report aren't written as root.
+export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
+
 docker compose -f docker-compose.panel-tests.yml build panel-tests
 docker compose -f docker-compose.panel-tests.yml run --rm panel-tests
 

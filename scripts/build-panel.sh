@@ -7,6 +7,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 docker run --rm \
+  --user "$(id -u):$(id -g)" \
   -v "$root/panel":/panel \
   -w /panel \
   node:20-alpine \

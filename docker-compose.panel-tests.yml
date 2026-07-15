@@ -10,6 +10,9 @@ services:
   panel-tests:
     build: ./panel/tests
     network_mode: host
+    # Write screenshots/report as the host user, not root, so git doesn't choke
+    # on root-owned output files. HOST_UID/HOST_GID are exported by the runner.
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
       - ./panel/tests/e2e:/tests/e2e
       - ./panel/tests/helpers:/tests/helpers

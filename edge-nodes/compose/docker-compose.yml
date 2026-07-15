@@ -1,0 +1,31 @@
+# Runs on each VPS. The wizard drops this file + node.env on the box and brings
+# it up. Caddy terminates TLS (auto Let's Encrypt on NODE_HOSTNAME) and reverse
+# proxies to the Deno node. Identical everywhere; only node.env differs.
+services:
+  node:
+    build:
+      context: ../node
+    restart: unless-stopped
+    env_file: [node.env]
+    expose: ["8080"]
+    healthcheck:
+      test: ["CMD", "deno", "eval", "await fetch('http://localhost:8080/health').then(r=>r.ok?Deno.exit(0):Deno.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [node]
+    ports: ["80:80", "443:443"]
+    environment:
+      NODE_HOSTNAME: ${NODE_HOSTNAME:?set NODE_HOSTNAME}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

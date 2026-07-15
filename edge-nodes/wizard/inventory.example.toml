@@ -1,0 +1,39 @@
+# Pool inventory. Copy to inventory.toml (gitignored) and fill in.
+# The wizard reads this to provision / configure / deploy / register each node.
+
+[env.dev]
+allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id"]
+# Bunny geo-steered pool hostname the landings will eventually call (at cutover).
+pool_hostname = "api.dev.sosed.panov.id"
+
+[[node]]
+id = "n1"
+env = "dev"
+provider = "hetzner"      # hetzner | vultr | digitalocean = API-provisionable
+region = "eu-central"
+hostname = "n1.sosed.panov.id"
+role = "relay"            # core | relay
+# mode = "provision": wizard creates the VPS via the provider API
+# mode = "configure": wizard configures an existing VPS you already bought
+mode = "provision"
+server_type = "cx22"
+
+[[node]]
+id = "n2"
+env = "dev"
+provider = "vultr"
+region = "us-east"
+hostname = "n2.sosed.panov.id"
+role = "relay"
+mode = "provision"
+
+[[node]]
+id = "n3"
+env = "dev"
+provider = "netcup"       # no API here → manual box
+region = "eu-west"
+hostname = "n3.sosed.panov.id"
+role = "relay"
+mode = "configure"
+ssh_host = "203.0.113.10" # set for configure-mode boxes
+ssh_user = "root"

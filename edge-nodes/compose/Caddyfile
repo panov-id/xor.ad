@@ -1,0 +1,7 @@
+# Auto HTTPS (Let's Encrypt) on this node's public hostname, proxying to the
+# Deno node. Bunny geo-steering points the pool hostname at the nearest node's
+# public IP; the client connects directly to the node, so the node owns its TLS.
+{$NODE_HOSTNAME} {
+	encode zstd gzip
+	reverse_proxy node:8080
+}

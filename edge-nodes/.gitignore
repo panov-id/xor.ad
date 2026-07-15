@@ -1,0 +1,5 @@
+# Secrets + rendered state — never commit.
+wizard/inventory.toml
+wizard/secrets.env
+**/node.env
+.env

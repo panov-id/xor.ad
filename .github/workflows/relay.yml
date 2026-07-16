@@ -71,7 +71,7 @@ jobs:
       - name: sign (cosign, keyless)
         run: cosign sign --yes ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
       - name: vulnerability scan (report)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.30.0
         with:
           image-ref: ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
           severity: HIGH,CRITICAL

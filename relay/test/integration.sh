@@ -11,7 +11,7 @@ MAILPIT=http://localhost:8025
 cleanup() { docker compose down -v >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-rm -rf data && mkdir -p data   # fresh storage so the test email isn't a stale dedup
+rm -rf data && mkdir -p data && chmod 777 data   # fresh + writable by the container's non-root user (uid may differ from the host, e.g. CI)
 docker compose up -d --build >/tmp/relay-int.log 2>&1 || { echo "up failed"; tail -20 /tmp/relay-int.log; exit 1; }
 
 echo "· wait for node"

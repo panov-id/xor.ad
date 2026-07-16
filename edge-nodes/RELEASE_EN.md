@@ -40,7 +40,10 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
   Each env's inventory pins the tag it runs.
 - **Post-deploy smoke per env.** After a deploy: hit the deployed `/health`, then
   a synthetic `POST /waitlist` to a test address (dev/local land it in Mailpit).
-- **Prod gate.** Promotion to prod requires a manual approve.
+- **Prod gate.** The wizard refuses to deploy a public (prod) box without
+  `--confirm-prod`. (A GitHub Environment *approval* would need a self-hosted
+  runner on the whitelisted admin host, since boxes are IP-locked and GitHub
+  runners can't reach them.)
 - **Rollback = redeploy the previous `:vX.Y.Z`** on the affected env (one command).
 - **Release notes** on each GitHub Release.
 
@@ -54,6 +57,8 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
 
 ## Implementation status
 
-Regimen agreed 2026-07-16. Pending build-out: CI tag-builds (`:sha` on dev push,
-`:vX.Y.Z` on tag), wizard `--tag`/release pinning (currently `:latest`), GitHub
-Environments with a prod approval rule, and the post-deploy smoke script.
+Regimen agreed 2026-07-16. **Done:** CI tag-builds (`:<sha>` + `:<branch>` on
+push, `:vX.Y.Z` on a `v*` tag; no `:latest`); per-env `image_tag` pinning in the
+inventory (`render` uses `<repo>:<tag>`); prod deploy guard (`--confirm-prod`);
+post-deploy smoke (`test/smoke.sh`). **Open:** true GitHub-Environment approval
+would need a self-hosted runner on the admin host (boxes are IP-whitelisted).

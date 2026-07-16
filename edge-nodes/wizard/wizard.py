@@ -35,6 +35,7 @@ NODE_DIR = ROOT / "node"
 CADDY_DIR = ROOT / "caddy"
 INVENTORY = HERE / "inventory.toml"
 REMOTE_ROOT = "/opt/edge-node"
+CONFIRM_PROD = False  # set from --confirm-prod; gates deploys to public (prod) boxes
 
 
 # --- inventory --------------------------------------------------------------
@@ -56,6 +57,15 @@ def dns_zone(inv: dict) -> str:
 
 def host_for(inv: dict, box: dict, env: str) -> str:
     return f"{box['id']}-{env}.{dns_zone(inv)}"
+
+
+def box_public(inv: dict, box: dict) -> bool:
+    return any(inv["env"][e].get("access") == "public" for e in box["envs"])
+
+
+def _guard_prod(inv: dict, box: dict) -> None:
+    if box_public(inv, box) and not CONFIRM_PROD:
+        raise RuntimeError(f"{box['id']} hosts a PUBLIC (prod) env — pass --confirm-prod to deploy")
 
 
 def env_file(inv: dict, box: dict, env: str) -> str:
@@ -94,11 +104,13 @@ def aux_hosts(inv: dict, box: dict) -> list[str]:
 
 def render_compose(inv: dict, box: dict) -> str:
     pool = inv.get("pool", {})
-    node_image = pool.get("node_image", "ghcr.io/panov-id/edge-node:latest")
-    caddy_image = pool.get("caddy_image", "ghcr.io/panov-id/edge-caddy:latest")
+    node_repo = pool.get("node_repo", "ghcr.io/panov-id/edge-node")
+    caddy_repo = pool.get("caddy_repo", "ghcr.io/panov-id/edge-caddy")
+    caddy_tag = pool.get("caddy_tag", "dev")
+    caddy_image = f"{caddy_repo}:{caddy_tag}"
     nodes = "".join(
         f"""  node-{env}:
-    image: {node_image}
+    image: {node_repo}:{inv["env"][env].get("image_tag", "dev")}
     restart: unless-stopped
     env_file: [{env}.env]
     expose: ["8080"]
@@ -311,6 +323,7 @@ def dns(box: dict, inv: dict) -> None:
 
 
 def configure(box: dict, inv: dict) -> None:
+    _guard_prod(inv, box)
     print(f"  · {box['id']}: configure {box.get('ssh_host', '<no ssh_host>')}  envs={box['envs']}")
     client, user = ssh_connect(box)
     sudo = user != "root"
@@ -332,6 +345,7 @@ def configure(box: dict, inv: dict) -> None:
 
 
 def deploy(box: dict, inv: dict) -> None:
+    _guard_prod(inv, box)
     print(f"  · {box['id']}: deploy {box.get('ssh_host', '<no ssh_host>')}")
     client, user = ssh_connect(box)
     sudo = user != "root"
@@ -386,11 +400,15 @@ def main() -> None:
     p = argparse.ArgumentParser(prog="wizard", description="edge-nodes pool wizard")
     p.add_argument("--inventory", type=Path, default=INVENTORY)
     p.add_argument("--node", "--box", dest="box", help="limit to a box id")
+    p.add_argument("--confirm-prod", action="store_true",
+                   help="required to deploy a box that hosts a public (prod) env")
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("status", "provision", "configure", "dns", "pool", "deploy", "up"):
         sub.add_parser(name)
 
     args = p.parse_args()
+    global CONFIRM_PROD
+    CONFIRM_PROD = args.confirm_prod
     inv = load_inventory(args.inventory)
 
     if args.cmd == "status":

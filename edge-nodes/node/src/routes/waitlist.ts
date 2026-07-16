@@ -14,6 +14,7 @@ interface Body {
   early_access?: unknown;
   lang?: unknown;
   mode?: unknown;
+  accent?: unknown;
 }
 
 export async function waitlist(req: Request): Promise<Response> {
@@ -46,6 +47,11 @@ export async function waitlist(req: Request): Promise<Response> {
   if (await exists(key)) return json({ ok: true, duplicate: true });
 
   await put(key, record);
-  sendWelcome(email, lang).catch((e) => console.error("[waitlist] welcome failed", e));
+  sendWelcome(email, {
+    lang,
+    accent: typeof body.accent === "string" ? body.accent : "",
+    mode: record.mode ?? undefined,
+    source: record.source,
+  }).catch((e) => console.error("[waitlist] welcome failed", e));
   return json({ ok: true });
 }

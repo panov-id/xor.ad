@@ -26,10 +26,11 @@ export const config = {
     key: env("BUNNY_STORAGE_KEY"),
   },
 
-  // Resend — welcome email on signup.
+  // Resend — welcome email on signup. From is derived per face (sosed|neighbro)
+  // in welcome.ts; WELCOME_FROM is an optional global override.
   resend: {
     key: env("RESEND_API_KEY"),
-    from: env("WELCOME_FROM", "sosed <hey@sosed.place>"),
+    fromOverride: env("WELCOME_FROM"),
   },
 } as const;
 

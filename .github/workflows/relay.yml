@@ -71,8 +71,9 @@ jobs:
       - name: sign (cosign, keyless)
         run: cosign sign --yes ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
       - name: vulnerability scan (report)
-        uses: aquasecurity/trivy-action@v0.30.0
-        with:
-          image-ref: ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
-          severity: HIGH,CRITICAL
-          exit-code: "0" # report only; don't block on base-image CVEs
+        # Run Trivy's official image directly — avoids the trivy-action composite
+        # whose setup-trivy pin is fragile. Report only; don't block on base CVEs.
+        run: |
+          docker run --rm -v "$HOME/.docker":/root/.docker:ro aquasec/trivy:0.72.0 \
+            image --scanners vuln --severity HIGH,CRITICAL --exit-code 0 --no-progress \
+            ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}

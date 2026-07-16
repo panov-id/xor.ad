@@ -2,7 +2,11 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { isEmail } from "../src/lib/http.ts";
 import { sha256hex } from "../src/lib/hash.ts";
-import { welcomeEmail } from "../src/lib/welcome.ts";
+import { resolveBrand, welcomeEmail } from "../src/lib/welcome.ts";
+import { brandByKey } from "../src/config.ts";
+
+const sosed = brandByKey("sosed")!;
+const neighbro = brandByKey("neighbro")!;
 
 Deno.test("isEmail accepts/rejects", () => {
   assert(isEmail("me@example.com"));
@@ -21,26 +25,34 @@ Deno.test("sha256hex is stable and 64 hex chars (dedup key)", async () => {
   assert(h !== await sha256hex("other@example.com"));
 });
 
-Deno.test("welcome: localized + face-branded", () => {
-  const ru = welcomeEmail("ru", { face: "sosed" });
+Deno.test("resolveBrand maps source/host to a brand, defaults to primary", () => {
+  assertEquals(resolveBrand("neighbro-landing").key, "neighbro");
+  assertEquals(resolveBrand("https://api.neighbro.place").key, "neighbro");
+  assertEquals(resolveBrand("sosed.place-landing").key, "sosed");
+  assertEquals(resolveBrand("something-unknown").key, "sosed"); // primary fallback
+  assertEquals(resolveBrand(null).key, "sosed");
+});
+
+Deno.test("welcome: localized + per-brand identity", () => {
+  const ru = welcomeEmail("ru", { brand: sosed });
   assert(ru.subject.includes("сосед"));
   assert(!ru.subject.includes("Neighbro"));
   assert(ru.from.includes("sosed.place"));
 
-  const en = welcomeEmail("en", { face: "neighbro" });
+  const en = welcomeEmail("en", { brand: neighbro });
   assert(en.subject.includes("Neighbro"));
   assert(en.from.includes("neighbro.place"));
   assert(en.html.includes("PSYTICAN"));
+  assert(en.html.includes("NEIGHBRO")); // header wordmark
 });
 
 Deno.test("welcome: all 16 languages have their own subject", () => {
   const langs = ["en","ru","fr","de","es","el","uk","be","kk","ka","hy","az","uz","ky","tg","ro"];
-  const subjects = new Set(langs.map((l) => welcomeEmail(l, { face: "sosed" }).subject));
-  // en shares "сосед" brand but wording differs per language → all distinct
+  const subjects = new Set(langs.map((l) => welcomeEmail(l, { brand: sosed }).subject));
   assertEquals(subjects.size, langs.length);
 });
 
 Deno.test("welcome: unknown language falls back to en copy", () => {
-  const unknown = welcomeEmail("zz", { face: "sosed" });
-  assertEquals(unknown.subject, welcomeEmail("en", { face: "sosed" }).subject);
+  const unknown = welcomeEmail("zz", { brand: sosed });
+  assertEquals(unknown.subject, welcomeEmail("en", { brand: sosed }).subject);
 });

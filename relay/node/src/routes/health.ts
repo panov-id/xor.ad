@@ -12,6 +12,7 @@ export function health(): Response {
     storage: storageEnabled(),
     storage_transport: config.storage.transport,
     mail: config.mail.transport,
+    brands: config.brands.map((b) => b.key),
     ts: new Date().toISOString(),
   });
 }

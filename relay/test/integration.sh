@@ -11,8 +11,8 @@ MAILPIT=http://localhost:8025
 cleanup() { docker compose down -v >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-mkdir -p data
-docker compose up -d --build >/tmp/edge-int.log 2>&1 || { echo "up failed"; tail -20 /tmp/edge-int.log; exit 1; }
+rm -rf data && mkdir -p data   # fresh storage so the test email isn't a stale dedup
+docker compose up -d --build >/tmp/relay-int.log 2>&1 || { echo "up failed"; tail -20 /tmp/relay-int.log; exit 1; }
 
 echo "· wait for node"
 for _ in $(seq 1 30); do curl -fsS "$NODE/health" >/dev/null 2>&1 && break; sleep 2; done
@@ -22,13 +22,17 @@ echo "· POST /waitlist"
 curl -sS -X POST "$NODE/waitlist" -H 'content-type: application/json' \
   -d '{"email":"it@example.com","source":"sosed.place-landing","lang":"ru","mode":"dark"}' \
   | grep -q '"ok":true' || { echo "FAIL: waitlist"; exit 1; }
-sleep 2
 
-echo "· assert stored object"
+echo "· assert stored object"  # put() is awaited before the 200, so the file is there
 ls data/waitlist/local/*.json >/dev/null 2>&1 || { echo "FAIL: no storage object"; exit 1; }
 
-echo "· assert Mailpit caught the welcome"
-total=$(curl -sS "$MAILPIT/api/v1/messages" | python3 -c "import sys,json;print(json.load(sys.stdin).get('total',0))")
+echo "· assert Mailpit caught the welcome"  # SMTP is async — poll
+total=0
+for _ in $(seq 1 10); do
+  total=$(curl -sS "$MAILPIT/api/v1/messages" | python3 -c "import sys,json;print(json.load(sys.stdin).get('total',0))" 2>/dev/null || echo 0)
+  [ "${total:-0}" -ge 1 ] && break
+  sleep 1
+done
 [ "${total:-0}" -ge 1 ] || { echo "FAIL: Mailpit empty"; exit 1; }
 
 echo "· assert dedup on repeat"

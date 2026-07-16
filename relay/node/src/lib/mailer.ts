@@ -1,14 +1,11 @@
-// Welcome email dispatch. Builds the localized, face-aware email (welcome.ts)
-// then sends it via the configured transport: resend (real) or smtp (Mailpit on
-// dev/local). Best-effort — a mail failure never fails the signup.
+// Welcome email dispatch. Resolves the brand (from an explicit key or the signup
+// source), builds the localized email (welcome.ts), then sends it via the
+// configured transport: resend (real) or smtp (Mailpit on dev/local). Best-effort
+// — a mail failure never fails the signup.
 
-import { config } from "../config.ts";
-import { welcomeEmail } from "./welcome.ts";
+import { brandByKey, config } from "../config.ts";
+import { resolveBrand, welcomeEmail } from "./welcome.ts";
 import { sendSmtp } from "./smtp.ts";
-
-function faceFrom(source: string | null): "sosed" | "neighbro" {
-  return (source ?? "").toLowerCase().includes("neighbro") ? "neighbro" : "sosed";
-}
 
 async function viaResend(from: string, to: string, subject: string, html: string, text: string) {
   if (!config.resend.key) return;
@@ -22,13 +19,14 @@ async function viaResend(from: string, to: string, subject: string, html: string
 
 export async function sendWelcome(
   to: string,
-  opts: { lang?: string; accent?: string; mode?: string; source?: string | null },
+  opts: { lang?: string; accent?: string; mode?: string; source?: string | null; brand?: string },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
+  const brand = (opts.brand && brandByKey(opts.brand)) || resolveBrand(opts.source ?? null);
   const { subject, from, html, text } = welcomeEmail(opts.lang, {
     accent: opts.accent,
     mode: opts.mode,
-    face: faceFrom(opts.source ?? null),
+    brand,
   });
   try {
     if (config.mail.transport === "smtp") {

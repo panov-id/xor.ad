@@ -104,6 +104,8 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         vals.update({"MAIL_TRANSPORT": "smtp", "MAIL_SMTP_HOST": "mailpit", "MAIL_SMTP_PORT": "1025"})
     else:
         vals["MAIL_TRANSPORT"] = "resend"
+    if os.environ.get("BRANDS"):  # extra/override brands (e.g. an Asia brand); default = sosed+neighbro
+        vals["BRANDS"] = os.environ["BRANDS"]
     return "".join(f"{k}={v}\n" for k, v in vals.items())
 
 

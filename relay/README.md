@@ -51,6 +51,12 @@ fs storage) — `cd local && docker compose up`; see `local/README.md`.
 Stateless: the only durable state is in **Bunny Storage** (`waitlist/<env>/<hash>.json`).
 Identical image everywhere; only the per-env `.env` differs.
 
+**Multi-brand.** One node serves every face. Brands (name / domain / sender + how
+to recognize them) come from a registry — default **sosed + neighbro**; add more
+(e.g. an Asia brand) via the `BRANDS` env (JSON array), no code change. The node
+resolves the brand from the signup `source` (or an explicit `brand`) and sends the
+localized welcome from that brand's address.
+
 ## Wizard
 
 Runs in Docker (nothing on the host). Copy `wizard/inventory.example.toml` →

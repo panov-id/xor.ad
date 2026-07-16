@@ -1,20 +1,24 @@
 // Branded "you're on the waitlist" email — ported from the Supabase Edge
 // Function send-waitlist-welcome. Brutalist, in the visitor's language + chosen
 // colour theme (accent + light/dark). Table-based, inline styles, no external
-// assets (email-client safe). One node serves both faces, so the brand name +
-// domain are parameterized per face (sosed | neighbro).
+// assets (email-client safe). One node serves all faces; the brand name + domain
+// + sender come from the brand registry (config.brands) — extensible to N brands.
 //
 // All 16 landing languages are covered; any unknown code falls back to en.
+
+import { config, type Brand } from "../config.ts";
 
 type Lang =
   | "en" | "ru" | "fr" | "de" | "es" | "el" | "uk" | "be" | "kk" | "ka"
   | "hy" | "az" | "uz" | "ky" | "tg" | "ro";
-type Face = "sosed" | "neighbro";
 
-const BRANDS: Record<Face, { name: string; NAME: string; domain: string; from: string }> = {
-  sosed: { name: "сосед", NAME: "СОСЕД", domain: "sosed.place", from: "сосед <hey@sosed.place>" },
-  neighbro: { name: "Neighbro", NAME: "NEIGHBRO", domain: "neighbro.place", from: "Neighbro <hello@neighbro.place>" },
-};
+// Pick the brand from a hint (the signup source, or a Host) against each brand's
+// `match` list; falls back to the first (primary) brand.
+export function resolveBrand(hint: string | null): Brand {
+  const h = (hint ?? "").toLowerCase();
+  return config.brands.find((b) => b.match.some((m) => h.includes(m.toLowerCase())))
+    ?? config.brands[0];
+}
 
 const T: Record<Lang, {
   subject: string; preheader: string; hi: string; title: string;
@@ -234,10 +238,10 @@ const LANGS: Lang[] = [
 
 export function welcomeEmail(
   langRaw: string | undefined,
-  opts: { accent?: string; mode?: string; face: Face },
+  opts: { accent?: string; mode?: string; brand: Brand },
 ): { subject: string; from: string; html: string; text: string } {
   const lang: Lang = (LANGS.includes((langRaw ?? "") as Lang) ? langRaw : "en") as Lang;
-  const B = BRANDS[opts.face];
+  const B = opts.brand;
   const rep = (s: string) => s.replaceAll("Neighbro.place", B.domain).replaceAll("Neighbro", B.name);
   const raw = T[lang];
   const t = {
@@ -258,7 +262,7 @@ export function welcomeEmail(
  <tr><td align="center" style="padding:32px 16px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.panel};border:1px solid ${c.border};">
    <tr><td style="padding:26px 30px;border-bottom:1px solid ${c.border};">
-     <span style="font-family:${SANS};font-weight:800;font-size:18px;letter-spacing:1px;color:${c.fg};">${B.NAME}</span>
+     <span style="font-family:${SANS};font-weight:800;font-size:18px;letter-spacing:1px;color:${c.fg};">${B.upper}</span>
      <span style="font-family:${MONO};font-size:11px;letter-spacing:2px;color:${c.muted};"> &nbsp;·&nbsp; BY <span style="color:${ACCENT};">PSYTICAN</span></span>
    </td></tr>
    <tr><td style="padding:34px 30px 8px;">

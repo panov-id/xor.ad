@@ -6,6 +6,8 @@
 import { brandByKey, config } from "../config.ts";
 import { resolveBrand, welcomeEmail } from "./welcome.ts";
 import { sendSmtp } from "./smtp.ts";
+import { inc } from "./metrics.ts";
+import { log } from "./log.ts";
 
 async function viaResend(from: string, to: string, subject: string, html: string, text: string) {
   if (!config.resend.key) return;
@@ -34,7 +36,9 @@ export async function sendWelcome(
     } else {
       await viaResend(config.resend.fromOverride || from, to, subject, html, text);
     }
+    inc("relay_mail_total", { transport: config.mail.transport, result: "sent" });
   } catch (e) {
-    console.error("[mail]", e);
+    inc("relay_mail_total", { transport: config.mail.transport, result: "failed" });
+    log("error", "welcome mail failed", { error: String(e) });
   }
 }

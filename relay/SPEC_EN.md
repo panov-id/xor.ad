@@ -60,9 +60,15 @@ Stateless Deno service. Identical image everywhere; only the per-env `.env` diff
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | liveness/readiness (reports env, storage/mail transport, brands) |
+| `GET /metrics` | Prometheus counters (requests/waitlist/mail) |
 | `POST /waitlist` | validate → dedup+store → per-brand welcome email |
 | `POST /client-error` | fire-and-forget client error sink |
 | `GET /chat` | placeholder `501` (future chat relay) |
+
+- **Observability**: structured **JSON logs** (level/msg/fields, node, env, request
+  id) and a `x-request-id` on every response; **`GET /metrics`** exposes Prometheus
+  counters (`relay_requests_total`, `relay_waitlist_total`, `relay_mail_total`).
+  Centralized shipping (Grafana/Loki/Prometheus) is roadmap — see `HARDENING`.
 
 - **Storage transport** (`STORAGE_TRANSPORT`): `bunny` (Bunny Storage, one object
   `waitlist/<env>/<sha256(email)>.json`) or `fs` (a mounted dir — local stand).
@@ -96,6 +102,9 @@ Stateless Deno service. Identical image everywhere; only the per-env `.env` diff
 
 - Built in CI → **ghcr.io/panov-id/relay-node**, **relay-caddy**. Boxes
   `docker compose pull` (no on-box build → spares 1 GB free VMs + the xcaddy build).
+- **Multi-arch:** `linux/amd64` + `linux/arm64` (boxes are ARM + x86).
+- **Supply chain:** SBOM + SLSA provenance, **cosign** keyless signature, **Trivy**
+  scan (see `HARDENING`); deps pinned via `deno.lock`.
 - Tags: `:<sha>` + `:<branch>` on push, `:vX.Y.Z` on a `v*` tag. **No `:latest`**.
 - Per-env **`image_tag`** in the inventory pins what each env runs.
 - **Private packages:** the wizard logs the box into ghcr (`GHCR_TOKEN`,
@@ -173,3 +182,5 @@ in `./data`.
 
 Geo-pool health monitor (prod), scoped Bunny key vs account-wide on boxes, prod
 `/waitlist` rate-limit, optional self-hosted-runner + GitHub-Environment button.
+The full prioritized enterprise roadmap (centralized observability, secret
+hygiene, GDPR/PII, IaC, progressive delivery, DR, tracing) lives in `HARDENING`.

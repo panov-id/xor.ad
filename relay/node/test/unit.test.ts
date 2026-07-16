@@ -4,6 +4,7 @@ import { isEmail } from "../src/lib/http.ts";
 import { sha256hex } from "../src/lib/hash.ts";
 import { resolveBrand, welcomeEmail } from "../src/lib/welcome.ts";
 import { brandByKey } from "../src/config.ts";
+import { inc, render } from "../src/lib/metrics.ts";
 
 const sosed = brandByKey("sosed")!;
 const neighbro = brandByKey("neighbro")!;
@@ -55,4 +56,14 @@ Deno.test("welcome: all 16 languages have their own subject", () => {
 Deno.test("welcome: unknown language falls back to en copy", () => {
   const unknown = welcomeEmail("zz", { brand: sosed });
   assertEquals(unknown.subject, welcomeEmail("en", { brand: sosed }).subject);
+});
+
+Deno.test("metrics render Prometheus counters with labels", () => {
+  inc("relay_ut_total", { result: "ok" });
+  inc("relay_ut_total", { result: "ok" });
+  inc("relay_ut_total", { result: "fail" });
+  const out = render();
+  assert(out.includes("# TYPE relay_ut_total counter"));
+  assert(out.includes('relay_ut_total{result="ok"} 2'));
+  assert(out.includes('relay_ut_total{result="fail"} 1'));
 });

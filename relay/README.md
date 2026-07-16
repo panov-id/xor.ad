@@ -46,6 +46,7 @@ fs storage) — `cd local && docker compose up`; see `local/README.md`.
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | liveness/readiness |
+| `GET /metrics` | Prometheus counters (requests/waitlist/mail) |
 | `POST /waitlist` | validate → dedup+store in Bunny Storage → welcome via Resend |
 | `POST /client-error` | fire-and-forget client error sink |
 | `GET /chat` | placeholder → `501` until the chat lands |

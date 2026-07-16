@@ -34,11 +34,15 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write # cosign keyless signing
     strategy:
       matrix:
         image: [node, caddy]
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3 # arm64 emulation for the multi-arch build
+      - uses: docker/setup-buildx-action@v3
+      - uses: sigstore/cosign-installer@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -53,10 +57,22 @@ jobs:
             type=sha
             type=ref,event=branch
             type=semver,pattern=v{{version}}
-      - name: build + push
+      - name: build + push (multi-arch)
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: relay/${{ matrix.image }}
+          platforms: linux/amd64,linux/arm64 # boxes are ARM (Hetzner CAX, Oracle A1) + x86 (GCP)
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          sbom: true # SBOM attestation
+          provenance: mode=max # SLSA provenance
+      - name: sign (cosign, keyless)
+        run: cosign sign --yes ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
+      - name: vulnerability scan (report)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
+          severity: HIGH,CRITICAL
+          exit-code: "0" # report only; don't block on base-image CVEs

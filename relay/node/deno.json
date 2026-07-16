@@ -8,5 +8,5 @@
     "lint": "deno lint"
   },
   "fmt": { "lineWidth": 100, "semiColons": true },
-  "lock": false
+  "lock": true
 }

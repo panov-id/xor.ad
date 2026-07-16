@@ -8,6 +8,8 @@ import { sha256hex } from "../lib/hash.ts";
 import { exists, put, storageEnabled } from "../lib/storage.ts";
 import { sendWelcome } from "../lib/mailer.ts";
 import { resolveBrand } from "../lib/welcome.ts";
+import { inc } from "../lib/metrics.ts";
+import { log } from "../lib/log.ts";
 
 interface Body {
   email?: unknown;
@@ -21,7 +23,10 @@ interface Body {
 
 export async function waitlist(req: Request): Promise<Response> {
   const body = await readJson<Body>(req);
-  if (!body || !isEmail(body.email)) return json({ error: "invalid email" }, 422);
+  if (!body || !isEmail(body.email)) {
+    inc("relay_waitlist_total", { result: "invalid" });
+    return json({ error: "invalid email" }, 422);
+  }
 
   const email = body.email.trim().toLowerCase();
   const lang = typeof body.lang === "string" ? body.lang.slice(0, 8) : "en";
@@ -42,16 +47,21 @@ export async function waitlist(req: Request): Promise<Response> {
 
   if (!storageEnabled()) {
     // Don't lose the lead silently — make it loud in logs and still 200 the user.
-    console.error("[waitlist] storage disabled, dropping:", email);
+    log("error", "waitlist storage disabled, dropping lead", { email });
+    inc("relay_waitlist_total", { result: "dropped" });
     return json({ ok: true, stored: false });
   }
 
   const key = `waitlist/${config.envName}/${await sha256hex(email)}.json`;
 
   // Dedup: first signup wins; a repeat is a no-op (and no second welcome email).
-  if (await exists(key)) return json({ ok: true, duplicate: true });
+  if (await exists(key)) {
+    inc("relay_waitlist_total", { result: "duplicate" });
+    return json({ ok: true, duplicate: true });
+  }
 
   await put(key, record);
+  inc("relay_waitlist_total", { result: "ok" });
   sendWelcome(email, {
     lang,
     accent: typeof body.accent === "string" ? body.accent : "",

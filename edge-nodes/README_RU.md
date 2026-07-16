@@ -70,6 +70,18 @@ cd wizard
 `RESEND_API_KEY`, `WELCOME_FROM?`,
 `HETZNER_TOKEN`/`VULTR_API_KEY`/`DIGITALOCEAN_TOKEN`, `SSH_PUBLIC_KEY`.
 
+## Сборка, тесты, CI
+
+Образы node + Caddy собираются в CI (`.github/workflows/edge-nodes.yml`) и
+пушатся в `ghcr.io/panov-id/edge-node` / `edge-caddy`; боксы `docker compose pull`
+их (без сборки на боксе — бережём 1 ГБ free-VM). Локально —
+`scripts/build-push.sh` (нужен `GITHUB_TOKEN`; пакеты сделать публичными один раз).
+
+Тесты: `cd node && deno test` (юниты — email/дедуп/welcome по 16 языкам) и
+`bash test/integration.sh` (поднимает локальный стенд и проверяет
+waitlist → fs-storage + перехват в Mailpit + дедуп). CI гоняет оба на каждое
+изменение `edge-nodes/**`.
+
 ## Безопасность
 
 - **Файрвол default-deny.** `configure` открывает только 22 (из `ssh_whitelist` +

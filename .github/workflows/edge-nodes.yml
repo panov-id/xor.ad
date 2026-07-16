@@ -1,0 +1,53 @@
+name: edge-nodes
+
+# Test the node, then build + push the node/caddy images to ghcr so the pool
+# boxes can pull them. Scoped to edge-nodes/ changes.
+on:
+  push:
+    paths: ["edge-nodes/**", ".github/workflows/edge-nodes.yml"]
+  pull_request:
+    paths: ["edge-nodes/**", ".github/workflows/edge-nodes.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: unit tests
+        working-directory: edge-nodes/node
+        run: deno test
+      - name: type check
+        working-directory: edge-nodes/node
+        run: deno check src/main.ts
+      - name: integration (local stand)
+        run: bash edge-nodes/test/integration.sh
+
+  build-push:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: node image
+        uses: docker/build-push-action@v6
+        with:
+          context: edge-nodes/node
+          push: true
+          tags: ghcr.io/panov-id/edge-node:latest
+      - name: caddy image
+        uses: docker/build-push-action@v6
+        with:
+          context: edge-nodes/caddy
+          push: true
+          tags: ghcr.io/panov-id/edge-caddy:latest

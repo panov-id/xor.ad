@@ -10,6 +10,8 @@
 
 [pool]
 dns_zone = "pool.panov.id"          # Bunny DNS zone that holds the node records
+node_image = "ghcr.io/panov-id/edge-node:latest"    # boxes pull (built in CI)
+caddy_image = "ghcr.io/panov-id/edge-caddy:latest"
 # Admin IPs allowed to SSH (port 22) to EVERY box (on top of per-env 443 rules).
 # The wizard also auto-allows the IP it connects from, so you can't lock yourself out.
 ssh_whitelist = ["203.0.113.5"]     # <-- your admin IP(s)

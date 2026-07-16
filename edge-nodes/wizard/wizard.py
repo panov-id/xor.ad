@@ -93,9 +93,12 @@ def aux_hosts(inv: dict, box: dict) -> list[str]:
 
 
 def render_compose(inv: dict, box: dict) -> str:
+    pool = inv.get("pool", {})
+    node_image = pool.get("node_image", "ghcr.io/panov-id/edge-node:latest")
+    caddy_image = pool.get("caddy_image", "ghcr.io/panov-id/edge-caddy:latest")
     nodes = "".join(
         f"""  node-{env}:
-    build: {{ context: ../node }}
+    image: {node_image}
     restart: unless-stopped
     env_file: [{env}.env]
     expose: ["8080"]
@@ -110,7 +113,7 @@ def render_compose(inv: dict, box: dict) -> str:
                      + (["mailpit"] if uses_mailpit(inv, box) else []) + ["dozzle"])
     return f"""services:
 {nodes}{extra}  caddy:
-    build: {{ context: ../caddy }}
+    image: {caddy_image}
     restart: unless-stopped
     depends_on: [{deps}]
     ports: ["443:443"]
@@ -263,8 +266,8 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         sh(client, f"chown -R {user} {REMOTE_ROOT}", sudo=True)
     sftp = client.open_sftp()
     try:
-        _sftp_put_tree(sftp, NODE_DIR, f"{REMOTE_ROOT}/node")
-        _sftp_put_tree(sftp, CADDY_DIR, f"{REMOTE_ROOT}/caddy")
+        # Images are pulled from the registry, so only the generated compose bits
+        # go on the box — no source trees.
         _sftp_mkdirs(sftp, f"{REMOTE_ROOT}/compose")
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/docker-compose.yml", render_compose(inv, box))
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/Caddyfile", render_caddyfile(inv, box))
@@ -274,8 +277,8 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
     finally:
         sftp.close()
-    print("      docker compose up -d --build")
-    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --build", sudo=sudo)
+    print("      docker compose pull + up -d")
+    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull && docker compose up -d", sudo=sudo)
     for env in box["envs"]:
         _verify_health(client, host_for(inv, box, env), sudo)
 

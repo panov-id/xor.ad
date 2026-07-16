@@ -70,6 +70,18 @@ or `configure` (a box you made by hand — Oracle/GCP free VMs: paste `ssh_host`
 Secrets (wizard env): `BUNNY_API_KEY`, `BUNNY_STORAGE_ZONE/KEY`, `RESEND_API_KEY`,
 `WELCOME_FROM?`, `HETZNER_TOKEN`/`VULTR_API_KEY`/`DIGITALOCEAN_TOKEN`, `SSH_PUBLIC_KEY`.
 
+## Build, test, CI
+
+Node + Caddy images build in CI (`.github/workflows/edge-nodes.yml`) and push to
+`ghcr.io/panov-id/edge-node` / `edge-caddy`; boxes `docker compose pull` them (no
+on-box build — keeps 1 GB free VMs happy). Build locally with
+`scripts/build-push.sh` (needs a `GITHUB_TOKEN`; make the packages public once).
+
+Tests: `cd node && deno test` (unit — email/dedup/welcome across 16 langs) and
+`bash test/integration.sh` (spins the local stand and asserts
+waitlist → fs storage + Mailpit catch + dedup). CI runs both on every
+`edge-nodes/**` change.
+
 ## Security
 
 - **Firewall default-deny.** `configure` opens only 22 (from `ssh_whitelist` + the

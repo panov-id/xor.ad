@@ -8,6 +8,8 @@ a stubbed WS-relay slot keeps the node chat-ready.
 
 > Prep layer — the live landing stays on its current backend until cutover.
 
+Full architecture spec: **`SPEC_EN.md`** · release regimen: **`RELEASE_EN.md`**.
+
 ## Layout
 
 ```

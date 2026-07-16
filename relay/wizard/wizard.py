@@ -308,6 +308,15 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
     finally:
         sftp.close()
+    # If the ghcr packages are private, log in on the box so `pull` can fetch them
+    # (GHCR_TOKEN needs read:packages). If the packages are public, skip this.
+    ghcr_token = os.environ.get("GHCR_TOKEN")
+    if ghcr_token:
+        user = os.environ.get("GHCR_USER", "panov-id")
+        print("      ghcr login (private images)")
+        sh(client, f"echo {shlex.quote(ghcr_token)} | docker login ghcr.io -u {shlex.quote(user)} "
+                   "--password-stdin", sudo=sudo)
+
     print("      docker compose pull + up -d")
     sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull && docker compose up -d", sudo=sudo)
     for env in box["envs"]:

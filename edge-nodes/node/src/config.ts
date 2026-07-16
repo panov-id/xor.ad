@@ -1,45 +1,45 @@
-// Node configuration — everything comes from the environment so the image is
-// identical on every VPS; only env/secrets differ per node and per environment.
+// Node configuration — everything from the environment so the image is identical
+// on every VPS and locally; only env differs per node/env/stack.
 
 function env(name: string, fallback = ""): string {
   return Deno.env.get(name) ?? fallback;
 }
 
 export const config = {
-  // Identity — set per node by the wizard (used in health + stored records).
-  envName: env("NODE_ENV_NAME", "dev"), // dev | uat | prod
+  envName: env("NODE_ENV_NAME", "dev"), // dev | uat | prod | local
   nodeId: env("NODE_ID", "n0"),
   region: env("NODE_REGION", "unknown"),
-
   port: Number(env("PORT", "8080")),
 
-  // Origins allowed to call the API (the landing faces).
   allowedOrigins: env("ALLOWED_ORIGINS")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean),
+    .split(",").map((s) => s.trim()).filter(Boolean),
 
-  // Bunny Storage — the v1 store for waitlist + client errors (object per item).
-  bunny: {
+  // Store: bunny (prod/dev on the pool) or fs (local — objects on a mounted dir).
+  storage: {
+    transport: env("STORAGE_TRANSPORT", "bunny"), // bunny | fs
+    dir: env("STORAGE_DIR", "/data"),
     host: env("BUNNY_STORAGE_HOST", "storage.bunnycdn.com"),
     zone: env("BUNNY_STORAGE_ZONE"),
     key: env("BUNNY_STORAGE_KEY"),
   },
 
-  // Resend — welcome email on signup. From is derived per face (sosed|neighbro)
-  // in welcome.ts; WELCOME_FROM is an optional global override.
+  // Mail: resend (real send) or smtp (Mailpit on dev/local) or none.
+  mail: {
+    transport: env("MAIL_TRANSPORT", "resend"), // resend | smtp | none
+    smtp: { host: env("MAIL_SMTP_HOST", "mailpit"), port: Number(env("MAIL_SMTP_PORT", "1025")) },
+  },
   resend: {
     key: env("RESEND_API_KEY"),
-    fromOverride: env("WELCOME_FROM"),
+    fromOverride: env("WELCOME_FROM"), // optional global sender override
   },
 } as const;
 
 export function assertConfig(): void {
-  const missing: string[] = [];
-  if (!config.bunny.zone) missing.push("BUNNY_STORAGE_ZONE");
-  if (!config.bunny.key) missing.push("BUNNY_STORAGE_KEY");
-  if (missing.length) {
-    console.warn(`[config] missing (waitlist storage disabled): ${missing.join(", ")}`);
+  if (config.storage.transport === "bunny" && !(config.storage.zone && config.storage.key)) {
+    console.warn("[config] bunny storage not configured (waitlist storage disabled)");
   }
-  if (!config.resend.key) console.warn("[config] RESEND_API_KEY missing (welcome email disabled)");
+  if (config.mail.transport === "resend" && !config.resend.key) {
+    console.warn("[config] RESEND_API_KEY missing (welcome email disabled)");
+  }
+  console.log(`[config] storage=${config.storage.transport} mail=${config.mail.transport}`);
 }

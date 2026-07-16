@@ -6,7 +6,7 @@ import { config } from "../config.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { exists, put, storageEnabled } from "../lib/storage.ts";
-import { sendWelcome } from "../lib/resend.ts";
+import { sendWelcome } from "../lib/mailer.ts";
 
 interface Body {
   email?: unknown;

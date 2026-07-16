@@ -10,7 +10,8 @@ export function health(): Response {
     region: config.region,
     env: config.envName,
     storage: storageEnabled(),
-    email: Boolean(config.resend.key),
+    storage_transport: config.storage.transport,
+    mail: config.mail.transport,
     ts: new Date().toISOString(),
   });
 }

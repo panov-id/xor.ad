@@ -13,5 +13,6 @@ RUN deno cache src/main.ts
 USER deno
 
 EXPOSE 8080
-# Least-privilege permissions: network + env only.
-CMD ["run", "--allow-net", "--allow-env", "src/main.ts"]
+# Least-privilege: network + env, and read/write only the fs-storage dir (used by
+# the local stand; harmless with the bunny transport).
+CMD ["run", "--allow-net", "--allow-env", "--allow-read=/data", "--allow-write=/data", "src/main.ts"]

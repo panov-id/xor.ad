@@ -6,7 +6,7 @@ function env(name: string, fallback = ""): string {
 }
 
 export const config = {
-  envName: env("NODE_ENV_NAME", "dev"), // dev | uat | prod | local
+  envName: env("NODE_ENV_NAME", "dev"), // dev | staging | prod | local
   nodeId: env("NODE_ID", "n0"),
   region: env("NODE_REGION", "unknown"),
   port: Number(env("PORT", "8080")),

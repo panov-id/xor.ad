@@ -16,7 +16,7 @@ import urllib.request
 def is_published_release(repo: str, tag: str) -> bool:
     """True iff `tag` is a published (non-draft) Release of `repo` (owner/name)."""
     token = os.environ.get("GITHUB_TOKEN", "")
-    headers = {"Accept": "application/vnd.github+json", "User-Agent": "edge-nodes-wizard"}
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "relay-wizard"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(

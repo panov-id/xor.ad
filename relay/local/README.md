@@ -3,7 +3,7 @@
 Whole node backend on your laptop, self-contained — no Bunny, no Resend.
 
 ```bash
-cd edge-nodes/local
+cd relay/local
 docker compose up --build
 ```
 

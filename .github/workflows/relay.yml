@@ -1,4 +1,4 @@
-name: edge-nodes
+name: relay
 
 # Test the node, then build + push the node/caddy images to ghcr with immutable
 # tags: branch sha (dev iteration) and semver on a vX.Y.Z tag (release). No :latest.
@@ -6,9 +6,9 @@ on:
   push:
     branches: ["**"]
     tags: ["v*"]
-    paths: ["edge-nodes/**", ".github/workflows/edge-nodes.yml"]
+    paths: ["relay/**", ".github/workflows/relay.yml"]
   pull_request:
-    paths: ["edge-nodes/**", ".github/workflows/edge-nodes.yml"]
+    paths: ["relay/**", ".github/workflows/relay.yml"]
 
 jobs:
   test:
@@ -19,13 +19,13 @@ jobs:
         with:
           deno-version: v2.x
       - name: unit tests
-        working-directory: edge-nodes/node
+        working-directory: relay/node
         run: deno test
       - name: type check
-        working-directory: edge-nodes/node
+        working-directory: relay/node
         run: deno check src/main.ts
       - name: integration (local stand)
-        run: bash edge-nodes/test/integration.sh
+        run: bash relay/test/integration.sh
 
   build-push:
     needs: test
@@ -56,7 +56,7 @@ jobs:
       - name: build + push
         uses: docker/build-push-action@v6
         with:
-          context: edge-nodes/${{ matrix.image }}
+          context: relay/${{ matrix.image }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

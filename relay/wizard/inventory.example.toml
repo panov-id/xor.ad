@@ -1,6 +1,6 @@
 # Pool inventory. Copy to inventory.toml (gitignored) and fill in.
 #
-# Model: BOXES host one or more env STACKS (multi-stand). dev+uat share the same
+# Model: BOXES host one or more env STACKS (multi-stand). dev+staging share the same
 # boxes; prod uses its own boxes (same schema, access="public"). Each (box, env)
 # gets a hostname "<box>-<env>.<dns_zone>" and its own node container; one shared
 # Caddy per box terminates TLS (DNS-01 via Bunny) and routes by hostname.
@@ -9,7 +9,7 @@
 # BUNNY_STORAGE_ZONE/KEY, RESEND_API_KEY, SSH_PUBLIC_KEY.
 
 [pool]
-dns_zone = "pool.panov.id"          # Bunny DNS zone that holds the node records
+dns_zone = "relay.panov.id"          # Bunny DNS zone that holds the node records
 node_repo = "ghcr.io/panov-id/relay-node"    # boxes pull; tag pinned per env below
 caddy_repo = "ghcr.io/panov-id/relay-caddy"
 caddy_tag = "dev"                           # caddy rarely changes; a branch/version tag
@@ -27,13 +27,13 @@ mail = "mailpit"                    # dev: catch welcome emails in Mailpit
 whitelist_ips = ["203.0.113.5"]     # who may reach dev on 443 (testers/you)
 allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id"]
 
-[env.uat]
+[env.staging]
 access = "private"
 tls = "dns01"
 image_tag = "dev"        # promote: set to the release vX.Y.Z
-mail = "resend"                     # uat sends for real (closer to prod)
+mail = "resend"                     # staging sends for real (closer to prod)
 whitelist_ips = ["203.0.113.5"]
-allowed_origins = ["https://uat.sosed.panov.id", "https://uat.neighbro.panov.id"]
+allowed_origins = ["https://staging.sosed.panov.id", "https://staging.neighbro.panov.id"]
 
 # prod lives on its OWN boxes (add [[box]] with envs=["prod"]); public-facing.
 [env.prod]
@@ -43,10 +43,10 @@ image_tag = "dev"        # promote: set to the release vX.Y.Z
 mail = "resend"
 whitelist_ips = []
 allowed_origins = ["https://sosed.place", "https://neighbro.place"]
-pool_hostname = "api.pool.panov.id" # geo-steered record (cutover target, prod only)
+pool_hostname = "api.relay.panov.id" # geo-steered record (cutover target, prod only)
 
 # --- boxes (physical servers) ----------------------------------------------
-# dev+uat share these three; provision-mode via provider API, configure-mode for
+# dev+staging share these three; provision-mode via provider API, configure-mode for
 # manually-created free VMs (Oracle/GCP): paste their public IP into ssh_host.
 
 [[box]]
@@ -56,7 +56,7 @@ region = "eu-falkenstein"
 location = "fsn1"
 mode = "provision"
 server_type = "cax11"
-envs = ["dev", "uat"]
+envs = ["dev", "staging"]
 lat = 50.48
 lon = 12.34
 
@@ -67,7 +67,7 @@ region = "eu-frankfurt"
 mode = "configure"
 ssh_host = ""
 ssh_user = "ubuntu"
-envs = ["dev", "uat"]
+envs = ["dev", "staging"]
 lat = 50.11
 lon = 8.68
 
@@ -78,6 +78,6 @@ region = "us-central1"
 mode = "configure"
 ssh_host = ""
 ssh_user = "ubuntu"
-envs = ["dev", "uat"]
+envs = ["dev", "staging"]
 lat = 41.26
 lon = -95.86

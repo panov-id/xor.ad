@@ -1,7 +1,7 @@
-# edge-nodes
+# relay
 
 Децентрализованный пул одинаковых Deno-нод на нескольких VPS-провайдерах/регионах.
-**dev + uat крутятся мульти-стендом на общих боксах и ПРИВАТНЫ** (доступ только с
+**dev + staging крутятся мульти-стендом на общих боксах и ПРИВАТНЫ** (доступ только с
 whitelist-IP); **prod** — на своих боксах, публичный (гео-стиринг через Bunny DNS).
 v1 обслуживает бэкенд лендинга (waitlist, client-error, welcome-письмо); заглушка
 WS-relay держит ноду готовой под чат.
@@ -11,7 +11,7 @@ WS-relay держит ноду готовой под чат.
 ## Структура
 
 ```
-edge-nodes/
+relay/
   node/          одинаковый Deno-образ ноды (роуты: health · waitlist · client-error; слот чата)
   caddy/         образ Caddy с модулем Bunny DNS (TLS через ACME DNS-01)
   wizard/        Python-визард (Docker-launchpad) — генерирует для каждого бокса
@@ -23,16 +23,16 @@ edge-nodes/
 | Env | Где | Доступ | TLS | SSH |
 |-----|-----|--------|-----|-----|
 | **dev** | общие боксы (мульти-стенд) | приватно — 443+22 только с `whitelist_ips` | DNS-01 | только ключ, без root, вайтлист |
-| **uat** | те же боксы (свой стек) | приватно — вайтлист | DNS-01 | так же |
+| **staging** | те же боксы (свой стек) | приватно — вайтлист | DNS-01 | так же |
 | **prod** | свои боксы | публично 443 + гео-стиринг `api.pool` | DNS-01 | так же |
 
 Каждый бокс крутит по одному контейнеру-ноде на env + общий Caddy, роутящий по
-hostname `<box>-<env>.<dns_zone>` (напр. `n1-dev.pool.panov.id`). Приватные env
+hostname `<box>-<env>.<dns_zone>` (напр. `n1-dev.relay.panov.id`). Приватные env
 берут ACME **DNS-01 через Bunny** — публичный порт 80 не нужен, файрвол закрыт.
 
 **Логи и почта (на бокс, за вайтлистом):** **Dozzle** на `logs-<box>.<zone>`
 (живые логи контейнеров в браузере); **Mailpit** на `mail-<box>.<zone>` для env
-с `mail = "mailpit"` (ловит welcome-письма вместо отправки — dev так; uat/prod
+с `mail = "mailpit"` (ловит welcome-письма вместо отправки — dev так; staging/prod
 шлют через Resend).
 
 Локально — `local/` самодостаточный стенд (node + Mailpit + Dozzle, fs storage):
@@ -72,7 +72,7 @@ cd wizard
 
 ## Сборка, тесты, CI
 
-Образы node + Caddy собираются в CI (`.github/workflows/edge-nodes.yml`) и
+Образы node + Caddy собираются в CI (`.github/workflows/relay.yml`) и
 пушатся в `ghcr.io/panov-id/edge-node` / `edge-caddy`; боксы `docker compose pull`
 их (без сборки на боксе — бережём 1 ГБ free-VM). Локально —
 `scripts/build-push.sh` (нужен `GITHUB_TOKEN`; пакеты сделать публичными один раз).
@@ -80,7 +80,7 @@ cd wizard
 Тесты: `cd node && deno test` (юниты — email/дедуп/welcome по 16 языкам) и
 `bash test/integration.sh` (поднимает локальный стенд и проверяет
 waitlist → fs-storage + перехват в Mailpit + дедуп). CI гоняет оба на каждое
-изменение `edge-nodes/**`.
+изменение `relay/**`.
 
 ## Безопасность
 
@@ -99,5 +99,5 @@ waitlist → fs-storage + перехват в Mailpit + дедуп). CI гоня
 модель: `provision` (Hetzner/Vultr/DO), `dns` (per-env записи Bunny), `configure`
 (хардненинг ssh + вайтлист-файрвол + генерация compose/Caddyfile + DNS-01 TLS +
 все env-стеки), `deploy` (rolling), `pool` (prod cutover), `up`. Осталось:
-реальный прогон на живых боксах/токенах; потом uat/prod. Живой лендинг не тронут
+реальный прогон на живых боксах/токенах; потом staging/prod. Живой лендинг не тронут
 до cutover.

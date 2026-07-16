@@ -2,7 +2,7 @@
 """
 Edge-nodes wizard — brings up and manages the decentralized VPS pool.
 
-Model: BOXES host one or more env STACKS (multi-stand). dev+uat share the same
+Model: BOXES host one or more env STACKS (multi-stand). dev+staging share the same
 boxes (private, IP-whitelisted); prod uses its own boxes (public). Per box: one
 node container per env + a shared Caddy (TLS via DNS-01/Bunny, routes by
 hostname "<box>-<env>.<dns_zone>").
@@ -35,7 +35,7 @@ ROOT = HERE.parent
 NODE_DIR = ROOT / "node"
 CADDY_DIR = ROOT / "caddy"
 INVENTORY = HERE / "inventory.toml"
-REMOTE_ROOT = "/opt/edge-node"
+REMOTE_ROOT = "/opt/relay"
 CONFIRM_PROD = False  # set from --confirm-prod; gates deploys to public (prod) boxes
 
 
@@ -414,7 +414,7 @@ def run_each(inv: dict, only: str | None, fn) -> None:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="wizard", description="edge-nodes pool wizard")
+    p = argparse.ArgumentParser(prog="wizard", description="relay pool wizard")
     p.add_argument("--inventory", type=Path, default=INVENTORY)
     p.add_argument("--node", "--box", dest="box", help="limit to a box id")
     p.add_argument("--confirm-prod", action="store_true",

@@ -1,7 +1,7 @@
-# edge-nodes
+# relay
 
 A decentralized pool of identical Deno nodes across several VPS providers/regions.
-**dev + uat run multi-stand on shared boxes and are PRIVATE** (reachable only from
+**dev + staging run multi-stand on shared boxes and are PRIVATE** (reachable only from
 whitelisted IPs); **prod** runs on its own boxes and is public (geo-steered via
 Bunny DNS). v1 serves the landing backend (waitlist, client-error, welcome email);
 a stubbed WS-relay slot keeps the node chat-ready.
@@ -11,7 +11,7 @@ a stubbed WS-relay slot keeps the node chat-ready.
 ## Layout
 
 ```
-edge-nodes/
+relay/
   node/          identical Deno node image (routes: health · waitlist · client-error; chat slot)
   caddy/         Caddy image with the Bunny DNS module (TLS via ACME DNS-01)
   wizard/        Python pool wizard (Docker launchpad) — generates each box's
@@ -23,18 +23,18 @@ edge-nodes/
 | Env | Where | Access | TLS | SSH |
 |-----|-------|--------|-----|-----|
 | **dev** | shared boxes (multi-stand) | private — 443+22 from `whitelist_ips` only | DNS-01 | key-only, no root, whitelist |
-| **uat** | same boxes (own stack) | private — whitelist | DNS-01 | same |
+| **staging** | same boxes (own stack) | private — whitelist | DNS-01 | same |
 | **prod** | its own boxes | public 443 + geo-steered `api.pool` | DNS-01 | same |
 
 Each box runs one node container per env plus a shared Caddy that routes by
-hostname `<box>-<env>.<dns_zone>` (e.g. `n1-dev.pool.panov.id`). Private envs use
+hostname `<box>-<env>.<dns_zone>` (e.g. `n1-dev.relay.panov.id`). Private envs use
 ACME **DNS-01 via Bunny**, so no public port 80 is needed and the firewall can
 stay locked down.
 
 **Logs & mail (per box, behind the whitelist):** **Dozzle** at
 `logs-<box>.<zone>` (live container logs in the browser); **Mailpit** at
 `mail-<box>.<zone>` for envs with `mail = "mailpit"` (catches welcome emails
-instead of sending — dev uses this, uat/prod send via Resend).
+instead of sending — dev uses this, staging/prod send via Resend).
 
 For local dev, `local/` is a self-contained stand (node + Mailpit + Dozzle,
 fs storage) — `cd local && docker compose up`; see `local/README.md`.
@@ -72,7 +72,7 @@ Secrets (wizard env): `BUNNY_API_KEY`, `BUNNY_STORAGE_ZONE/KEY`, `RESEND_API_KEY
 
 ## Build, test, CI
 
-Node + Caddy images build in CI (`.github/workflows/edge-nodes.yml`) and push to
+Node + Caddy images build in CI (`.github/workflows/relay.yml`) and push to
 `ghcr.io/panov-id/edge-node` / `edge-caddy`; boxes `docker compose pull` them (no
 on-box build — keeps 1 GB free VMs happy). Build locally with
 `scripts/build-push.sh` (needs a `GITHUB_TOKEN`; make the packages public once).
@@ -80,7 +80,7 @@ on-box build — keeps 1 GB free VMs happy). Build locally with
 Tests: `cd node && deno test` (unit — email/dedup/welcome across 16 langs) and
 `bash test/integration.sh` (spins the local stand and asserts
 waitlist → fs storage + Mailpit catch + dedup). CI runs both on every
-`edge-nodes/**` change.
+`relay/**` change.
 
 ## Security
 
@@ -99,5 +99,5 @@ Node functional (typechecks, `/health` 200). Wizard implements the multi-stand
 private model: `provision` (Hetzner/Vultr/DO), `dns` (per-env Bunny records),
 `configure` (ssh hardening + whitelist firewall + generated compose/Caddyfile +
 DNS-01 TLS + all env stacks), `deploy` (rolling), `pool` (prod cutover), `up`.
-Remaining: a real run against live boxes/tokens; then uat/prod. Live landing
+Remaining: a real run against live boxes/tokens; then staging/prod. Live landing
 untouched until cutover.

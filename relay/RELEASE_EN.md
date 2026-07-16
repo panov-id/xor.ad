@@ -1,6 +1,6 @@
-# edge-nodes — release & promotion flow
+# relay — release & promotion flow
 
-**Principle: build the release once, promote the exact same image dev → uat →
+**Principle: build the release once, promote the exact same image dev → staging →
 prod.** What was tested is what ships — byte for byte. No rebuild per environment.
 
 ## Flow
@@ -15,7 +15,7 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
                        CI builds release image :vX.Y.Z (once) ──▶ ghcr
                                      │
                                      ▼  deploy the SAME :vX.Y.Z
-                                   uat env
+                                   staging env
                                      │  smoke + manual click-through
                                      ▼  manual approval (prod gate)
                                    prod env   ← same :vX.Y.Z, no rebuild
@@ -29,8 +29,8 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
 5. **Merge `dev` → `main`** when happy.
 6. **Cut the release** — push a **manual semver tag `vX.Y.Z`** (or a GitHub
    Release). CI builds `edge-node:vX.Y.Z` / `edge-caddy:vX.Y.Z` **once** → ghcr.
-7. **Deploy `:vX.Y.Z` to uat.**
-8. **Verify uat** — post-deploy smoke + manual click-through.
+7. **Deploy `:vX.Y.Z` to staging.**
+8. **Verify staging** — post-deploy smoke + manual click-through.
 9. **Promote the same `:vX.Y.Z` to prod** — the wizard requires `--confirm-prod`
    and that `vX.Y.Z` is a **published GitHub Release** (publishing it = the
    approval). No rebuild.
@@ -53,7 +53,7 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
 | Env | Artifact | Trigger | Gate |
 |-----|----------|---------|------|
 | dev | `:<sha>` (dev branch) | push to `dev` | auto |
-| uat | `:vX.Y.Z` (release) | deploy the tag | after dev green |
+| staging | `:vX.Y.Z` (release) | deploy the tag | after dev green |
 | prod | **same** `:vX.Y.Z` | promote the tag | manual approve |
 
 ## Implementation status

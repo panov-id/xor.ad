@@ -4,7 +4,7 @@ name) one server, attaches an SSH key, waits for a public IP, and returns it.
 
 Secrets/config from the wizard environment:
   SSH_PUBLIC_KEY   the public key to attach (so configure() can SSH in afterwards)
-  SSH_KEY_NAME     name to register the key under (default "edge-nodes")
+  SSH_KEY_NAME     name to register the key under (default "relay")
   HETZNER_TOKEN | VULTR_API_KEY | DIGITALOCEAN_TOKEN
 Per-node provider fields (inventory): location (provider region code),
   server_type/plan/size, image/os_id.
@@ -43,7 +43,7 @@ def _pubkey() -> str:
 
 
 def _key_name() -> str:
-    return os.environ.get("SSH_KEY_NAME", "edge-nodes")
+    return os.environ.get("SSH_KEY_NAME", "relay")
 
 
 def _location(node: dict) -> str:

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shlex
 import sys
 import tomllib
@@ -64,8 +65,24 @@ def box_public(inv: dict, box: dict) -> bool:
 
 
 def _guard_prod(inv: dict, box: dict) -> None:
-    if box_public(inv, box) and not CONFIRM_PROD:
+    """A public (prod) box needs --confirm-prod AND each public env must run a
+    PUBLISHED GitHub Release (vX.Y.Z). Publishing the release is the approval."""
+    if not box_public(inv, box):
+        return
+    if not CONFIRM_PROD:
         raise RuntimeError(f"{box['id']} hosts a PUBLIC (prod) env — pass --confirm-prod to deploy")
+    import github
+    repo = inv.get("pool", {}).get("release_repo", "panov-id/xor.ad")
+    for env in box["envs"]:
+        if inv["env"][env].get("access") != "public":
+            continue
+        tag = inv["env"][env].get("image_tag", "")
+        if not re.match(r"^v\d+\.\d+\.\d+", tag):
+            raise RuntimeError(f"{box['id']}/{env}: image_tag '{tag}' is not a release version "
+                               f"(vX.Y.Z) — bump it to the release before deploying prod")
+        if not github.is_published_release(repo, tag):
+            raise RuntimeError(f"{box['id']}/{env}: {tag} is not a published GitHub Release of "
+                               f"{repo} — publish the release first (that's the approval)")
 
 
 def env_file(inv: dict, box: dict, env: str) -> str:

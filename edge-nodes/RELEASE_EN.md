@@ -31,8 +31,9 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
    Release). CI builds `edge-node:vX.Y.Z` / `edge-caddy:vX.Y.Z` **once** → ghcr.
 7. **Deploy `:vX.Y.Z` to uat.**
 8. **Verify uat** — post-deploy smoke + manual click-through.
-9. **Promote the same `:vX.Y.Z` to prod** — behind a **manual approval**
-   (GitHub Environment protection). No rebuild.
+9. **Promote the same `:vX.Y.Z` to prod** — the wizard requires `--confirm-prod`
+   and that `vX.Y.Z` is a **published GitHub Release** (publishing it = the
+   approval). No rebuild.
 
 ## Rules
 
@@ -40,10 +41,10 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
   Each env's inventory pins the tag it runs.
 - **Post-deploy smoke per env.** After a deploy: hit the deployed `/health`, then
   a synthetic `POST /waitlist` to a test address (dev/local land it in Mailpit).
-- **Prod gate.** The wizard refuses to deploy a public (prod) box without
-  `--confirm-prod`. (A GitHub Environment *approval* would need a self-hosted
-  runner on the whitelisted admin host, since boxes are IP-locked and GitHub
-  runners can't reach them.)
+- **Prod gate = published release.** A prod deploy needs `--confirm-prod` AND the
+  env's `image_tag` must be a **published GitHub Release** `vX.Y.Z` (the wizard
+  verifies via the API). Publishing the release IS the approval — no infra, no
+  runner; an untested/unreleased build simply can't reach prod.
 - **Rollback = redeploy the previous `:vX.Y.Z`** on the affected env (one command).
 - **Release notes** on each GitHub Release.
 
@@ -60,5 +61,6 @@ local ──test── dev branch ──CI──▶ dev env (sha image, auto)
 Regimen agreed 2026-07-16. **Done:** CI tag-builds (`:<sha>` + `:<branch>` on
 push, `:vX.Y.Z` on a `v*` tag; no `:latest`); per-env `image_tag` pinning in the
 inventory (`render` uses `<repo>:<tag>`); prod deploy guard (`--confirm-prod`);
-post-deploy smoke (`test/smoke.sh`). **Open:** true GitHub-Environment approval
-would need a self-hosted runner on the admin host (boxes are IP-whitelisted).
+post-deploy smoke (`test/smoke.sh`); prod gate = `--confirm-prod` + a published
+GitHub Release check (`github.py`). A self-hosted-runner + GitHub-Environment
+button remains a possible future add-on, not needed for the gate.

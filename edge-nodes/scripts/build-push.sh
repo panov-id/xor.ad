@@ -13,9 +13,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u "${GHCR_USER:-panov-id}" --password-stdin
 
 for name in node caddy; do
-  img="$REG/edge-$name:$TAG"
+  img="$REG/relay-$name:$TAG"
   echo "=== build+push $img ==="
   docker build -t "$img" "$ROOT/$name"
   docker push "$img"
 done
-echo "done. Ensure the ghcr packages edge-node/edge-caddy are PUBLIC."
+echo "done. Ensure the ghcr packages relay-node/relay-caddy are PUBLIC."

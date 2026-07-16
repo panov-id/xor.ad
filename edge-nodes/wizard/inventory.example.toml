@@ -10,8 +10,8 @@
 
 [pool]
 dns_zone = "pool.panov.id"          # Bunny DNS zone that holds the node records
-node_repo = "ghcr.io/panov-id/edge-node"    # boxes pull; tag pinned per env below
-caddy_repo = "ghcr.io/panov-id/edge-caddy"
+node_repo = "ghcr.io/panov-id/relay-node"    # boxes pull; tag pinned per env below
+caddy_repo = "ghcr.io/panov-id/relay-caddy"
 caddy_tag = "dev"                           # caddy rarely changes; a branch/version tag
 release_repo = "panov-id/xor.ad"            # prod only deploys a PUBLISHED release of this repo
 # Admin IPs allowed to SSH (port 22) to EVERY box (on top of per-env 443 rules).

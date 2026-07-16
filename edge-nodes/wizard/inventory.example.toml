@@ -1,50 +1,76 @@
 # Pool inventory. Copy to inventory.toml (gitignored) and fill in.
-# The wizard reads this to provision / configure / deploy / register each node.
+#
+# Model: BOXES host one or more env STACKS (multi-stand). dev+uat share the same
+# boxes; prod uses its own boxes (same schema, access="public"). Each (box, env)
+# gets a hostname "<box>-<env>.<dns_zone>" and its own node container; one shared
+# Caddy per box terminates TLS (DNS-01 via Bunny) and routes by hostname.
+#
+# Secrets in secrets.env (SECRETS_ENV): HETZNER_TOKEN, BUNNY_API_KEY,
+# BUNNY_STORAGE_ZONE/KEY, RESEND_API_KEY, SSH_PUBLIC_KEY.
 
+[pool]
+dns_zone = "pool.panov.id"          # Bunny DNS zone that holds the node records
+# Admin IPs allowed to SSH (port 22) to EVERY box (on top of per-env 443 rules).
+# The wizard also auto-allows the IP it connects from, so you can't lock yourself out.
+ssh_whitelist = ["203.0.113.5"]     # <-- your admin IP(s)
+
+# --- environments -----------------------------------------------------------
 [env.dev]
+access = "private"                  # private = reachable only from whitelist_ips
+tls = "dns01"                       # DNS-01 via Bunny (no public port 80 needed)
+mail = "mailpit"                    # dev: catch welcome emails in Mailpit
+whitelist_ips = ["203.0.113.5"]     # who may reach dev on 443 (testers/you)
 allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id"]
-# Bunny geo-steered pool hostname the landings will eventually call (at cutover).
-pool_hostname = "api.dev.sosed.panov.id"
 
-# provision-mode nodes need provider API fields:
-#   location   provider region code (hetzner: fsn1/nbg1/hel1/ash; vultr: ewr;
-#              digitalocean: fra1) — NOT the human `region` label below
-#   server_type (hetzner) | plan (vultr/do) | os_id (vultr) | image (do)
-# Secrets (wizard env / secrets.env): HETZNER_TOKEN | VULTR_API_KEY |
-#   DIGITALOCEAN_TOKEN, plus SSH_PUBLIC_KEY (attached so configure can SSH in).
+[env.uat]
+access = "private"
+tls = "dns01"
+mail = "resend"                     # uat sends for real (closer to prod)
+whitelist_ips = ["203.0.113.5"]
+allowed_origins = ["https://uat.sosed.panov.id", "https://uat.neighbro.panov.id"]
 
-[[node]]
+# prod lives on its OWN boxes (add [[box]] with envs=["prod"]); public-facing.
+[env.prod]
+access = "public"                   # 443 open to the world (real landing traffic)
+tls = "dns01"
+mail = "resend"
+whitelist_ips = []
+allowed_origins = ["https://sosed.place", "https://neighbro.place"]
+pool_hostname = "api.pool.panov.id" # geo-steered record (cutover target, prod only)
+
+# --- boxes (physical servers) ----------------------------------------------
+# dev+uat share these three; provision-mode via provider API, configure-mode for
+# manually-created free VMs (Oracle/GCP): paste their public IP into ssh_host.
+
+[[box]]
 id = "n1"
-env = "dev"
-provider = "hetzner"      # hetzner | vultr | digitalocean = API-provisionable
-region = "eu-central"     # human label (for status)
-location = "fsn1"         # provider region code
-hostname = "n1.sosed.panov.id"
-role = "relay"            # core | relay
-mode = "provision"        # provision (create via API) | configure (existing box)
-server_type = "cx22"
-lat = 50.47               # optional: geolocation for the geo-steered pool (cutover)
-lon = 12.37
-
-[[node]]
-id = "n2"
-env = "dev"
-provider = "vultr"
-region = "us-east"
-location = "ewr"
-hostname = "n2.sosed.panov.id"
-role = "relay"
+provider = "hetzner"
+region = "eu-falkenstein"
+location = "fsn1"
 mode = "provision"
-plan = "vc2-1c-1gb"
-os_id = 2284              # Vultr Ubuntu os_id (verify current value)
+server_type = "cax11"
+envs = ["dev", "uat"]
+lat = 50.48
+lon = 12.34
 
-[[node]]
-id = "n3"
-env = "dev"
-provider = "netcup"       # no API here → manual box
-region = "eu-west"
-hostname = "n3.sosed.panov.id"
-role = "relay"
+[[box]]
+id = "n2"
+provider = "oracle"
+region = "eu-frankfurt"
 mode = "configure"
-ssh_host = "203.0.113.10" # set for configure-mode boxes
-ssh_user = "root"
+ssh_host = ""
+ssh_user = "ubuntu"
+envs = ["dev", "uat"]
+lat = 50.11
+lon = 8.68
+
+[[box]]
+id = "n3"
+provider = "gcp"
+region = "us-central1"
+mode = "configure"
+ssh_host = ""
+ssh_user = "ubuntu"
+envs = ["dev", "uat"]
+lat = 41.26
+lon = -95.86

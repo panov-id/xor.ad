@@ -1,85 +1,91 @@
 # edge-nodes
 
-Децентрализованный пул одинаковых Deno-нод на нескольких VPS-провайдерах/регионах,
-перед пулом — Bunny DNS geo-steering. v1 обслуживает **бэкенд лендинга** (waitlist,
-сток клиентских ошибок, welcome-письмо); структура **готова под чат** (заглушка
-WS-relay) для будущего децентрализованного чата.
+Децентрализованный пул одинаковых Deno-нод на нескольких VPS-провайдерах/регионах.
+**dev + uat крутятся мульти-стендом на общих боксах и ПРИВАТНЫ** (доступ только с
+whitelist-IP); **prod** — на своих боксах, публичный (гео-стиринг через Bunny DNS).
+v1 обслуживает бэкенд лендинга (waitlist, client-error, welcome-письмо); заглушка
+WS-relay держит ноду готовой под чат.
 
-> Подготовительный слой. Боевой лендинг живёт на текущем бэкенде, пока пул не
-> готов и не проверен — переезд (cutover) отдельный осознанный шаг.
+> Подготовительный слой — живой лендинг на текущем бэкенде до cutover.
 
 ## Структура
 
 ```
 edge-nodes/
-  node/          одинаковый Deno-образ (нода)
-    src/main.ts          HTTP-сервер + роутер
-    src/routes/          health · waitlist · client-error
-    src/lib/             storage (Bunny) · resend · cors · http · hash
-    src/chat/relay.ts    слот WS-relay под чат (заглушка, отдаёт 501)
-    Dockerfile
-  compose/       что крутится на VPS: нода + Caddy (авто-TLS)
-    docker-compose.yml · Caddyfile · node.env.example
-  wizard/        Python-визард пула (запуск в Docker-launchpad)
-    wizard.py · inventory.example.toml · Dockerfile · run.sh
+  node/          одинаковый Deno-образ ноды (роуты: health · waitlist · client-error; слот чата)
+  caddy/         образ Caddy с модулем Bunny DNS (TLS через ACME DNS-01)
+  wizard/        Python-визард (Docker-launchpad) — генерирует для каждого бокса
+                 docker-compose.yml + Caddyfile + per-env .env из инвентаря
 ```
 
-## Нода — что делает (v1)
+## Окружения и доступ
+
+| Env | Где | Доступ | TLS | SSH |
+|-----|-----|--------|-----|-----|
+| **dev** | общие боксы (мульти-стенд) | приватно — 443+22 только с `whitelist_ips` | DNS-01 | только ключ, без root, вайтлист |
+| **uat** | те же боксы (свой стек) | приватно — вайтлист | DNS-01 | так же |
+| **prod** | свои боксы | публично 443 + гео-стиринг `api.pool` | DNS-01 | так же |
+
+Каждый бокс крутит по одному контейнеру-ноде на env + общий Caddy, роутящий по
+hostname `<box>-<env>.<dns_zone>` (напр. `n1-dev.pool.panov.id`). Приватные env
+берут ACME **DNS-01 через Bunny** — публичный порт 80 не нужен, файрвол закрыт.
+
+**Логи и почта (на бокс, за вайтлистом):** **Dozzle** на `logs-<box>.<zone>`
+(живые логи контейнеров в браузере); **Mailpit** на `mail-<box>.<zone>` для env
+с `mail = "mailpit"` (ловит welcome-письма вместо отправки — dev так; uat/prod
+шлют через Resend).
+
+Локально — `local/` самодостаточный стенд (node + Mailpit + Dozzle, fs storage):
+`cd local && docker compose up`; см. `local/README.md`.
+
+## Нода — v1 эндпоинты
 
 | Эндпоинт | Назначение |
 |---|---|
-| `GET /health` | liveness/readiness для балансера |
+| `GET /health` | liveness/readiness |
 | `POST /waitlist` | валидация → дедуп+запись в Bunny Storage → welcome через Resend |
-| `POST /client-error` | fire-and-forget сток клиентских ошибок (Bunny Storage) |
+| `POST /client-error` | fire-and-forget сток ошибок |
 | `GET /chat` | заглушка → `501`, пока не приедет чат |
 
-Stateless: единственное долговременное состояние — в **Bunny Storage** (объект на
-запись, ключ = hash(email) → идемпотентный дедуп). Образ одинаковый везде,
-различается только `node.env`.
-
-### Запуск ноды локально
-```bash
-cd node
-BUNNY_STORAGE_ZONE=... BUNNY_STORAGE_KEY=... RESEND_API_KEY=... \
-  deno task dev
-# GET http://localhost:8080/health
-```
+Stateless: единственное состояние — в **Bunny Storage** (`waitlist/<env>/<hash>.json`).
+Образ одинаковый везде, различается только per-env `.env`.
 
 ## Визард
 
-Запускается в Docker (на хосте ничего не ставим). Скопируй
-`wizard/inventory.example.toml` → `inventory.toml` и заполни.
+Запуск в Docker. Скопируй `wizard/inventory.example.toml` → `inventory.toml`;
+секреты — в `secrets.env` (`export SECRETS_ENV=…`).
+
 ```bash
 cd wizard
-./run.sh status                 # показать пул
-./run.sh up --node dev          # provision? -> dns -> configure (полный bring-up)
-./run.sh deploy                 # rolling: пере-заливка + пересборка каждого узла, проверка /health
-./run.sh pool --node dev        # CUTOVER: добавить узлы в гео-стиринг api.<face>
+./run.sh status                 # боксы + их env-стеки
+./run.sh up --node n1           # provision? → dns → configure (все env-стеки бокса)
+./run.sh deploy                 # rolling: пере-заливка + пересборка, проверка /health
+./run.sh pool                   # CUTOVER (только prod): в гео-стиринг api.pool
 ```
 Команды: `status` · `provision` · `configure` · `dns` · `pool` · `deploy` · `up`.
-Режим ноды (в инвентаре): `provision` (создать VPS через API) или `configure`
-(уже купленный бокс — IP+SSH). Секреты — из окружения визарда: `BUNNY_API_KEY`,
-`BUNNY_STORAGE_*`, `RESEND_API_KEY`,
+Режим бокса (в инвентаре): `provision` (создать VM через API — Hetzner/Vultr/DO)
+или `configure` (бокс сделан руками — Oracle/GCP free VM: впиши `ssh_host`).
+
+Секреты (окружение визарда): `BUNNY_API_KEY`, `BUNNY_STORAGE_ZONE/KEY`,
+`RESEND_API_KEY`, `WELCOME_FROM?`,
 `HETZNER_TOKEN`/`VULTR_API_KEY`/`DIGITALOCEAN_TOKEN`, `SSH_PUBLIC_KEY`.
 
-## Балансер и переезд
+## Безопасность
 
-Bunny DNS geo-steer'ит hostname пула (`api.<face>`) на ближайший живой узел. На
-подготовке ноды на своих hostname'ах (`n1.…`, `n2.…`), а живой `api.*` остаётся
-на текущем бэкенде. **Cutover** = направить `api.sosed.place` /
-`api.neighbro.place` на пул и переключить конфиг лендинга.
-
-## Безопасность (база)
-
-Firewall на узле (22/80/443), только SSH-ключи, fail2ban, автообновления;
-секреты только через env (никогда в образе); TLS Caddy на каждом узле. Модель
-угроз чата (недоверенные community-ноды → E2E, релеи только шифра) — в
-`../docs/chat-decentralized-ideas_RU.md`.
+- **Файрвол default-deny.** `configure` открывает только 22 (из `ssh_whitelist` +
+  IP, с которого подключился) и 443 (из `whitelist_ips` каждого приватного env;
+  публичные env открывают 443 в мир). Остальное закрыто. Порт 80 не открывается.
+- **SSH захардненен:** `PasswordAuthentication no`, `PermitRootLogin no`, только
+  ключ — используй ключ с passphrase.
+- **TLS:** DNS-01 через Bunny — cert выпускается при закрытых портах.
+- Модель угроз чата (недоверенные community-релеи → E2E) — см.
+  `../docs/chat-decentralized-ideas_RU.md`.
 
 ## Статус
 
-Нода рабочая (типы ок, `/health` отдаёт 200). Визард реализует `provision`
-(Hetzner/Vultr/DO), `configure` (SSH-бутстрап), `dns` + `pool` (Bunny), `deploy`
-(rolling), `up` (provision → dns → configure). Осталось: портировать
-локализованные welcome-шаблоны в `node/src/lib/resend.ts` и реальный прогон на
-живых боксах/токенах. Живой лендинг не трогаем до cutover.
+Нода рабочая (типы ок, `/health` 200). Визард реализует приватную мульти-стенд
+модель: `provision` (Hetzner/Vultr/DO), `dns` (per-env записи Bunny), `configure`
+(хардненинг ssh + вайтлист-файрвол + генерация compose/Caddyfile + DNS-01 TLS +
+все env-стеки), `deploy` (rolling), `pool` (prod cutover), `up`. Осталось:
+реальный прогон на живых боксах/токенах; потом uat/prod. Живой лендинг не тронут
+до cutover.

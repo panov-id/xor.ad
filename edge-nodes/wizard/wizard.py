@@ -2,19 +2,23 @@
 """
 Edge-nodes wizard — brings up and manages the decentralized VPS pool.
 
-Runs inside the launchpad Docker image (see run.sh) — nothing installed on the
-host. Reads inventory.toml, then per node:
-  provision  create the VPS via the provider API (mode = "provision")   [stub]
-  configure  harden + install Docker + deploy the node stack over SSH   [done]
-  dns        register the node in Bunny geo-steering                     [stub]
-  deploy     roll the latest node image to already-configured nodes      [stub]
-  status     show the pool
-  up         full flow for one/all nodes: provision? -> configure -> dns
+Model: BOXES host one or more env STACKS (multi-stand). dev+uat share the same
+boxes (private, IP-whitelisted); prod uses its own boxes (public). Per box: one
+node container per env + a shared Caddy (TLS via DNS-01/Bunny, routes by
+hostname "<box>-<env>.<dns_zone>").
 
-Secrets come from the wizard's environment (run.sh passes secrets.env):
-  BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY, BUNNY_STORAGE_HOST?, RESEND_API_KEY,
-  WELCOME_FROM?  (provider tokens land here later for provision).
-Idempotent by design.
+Runs in the launchpad Docker image (run.sh) — nothing on the host. Commands:
+  status                 show the pool
+  provision  [--node id] create the box VM via the provider API (mode=provision)
+  dns        [--node id] A records "<box>-<env>" -> box IP for each env
+  configure  [--node id] harden ssh + whitelist firewall + deploy all env stacks
+  deploy     [--node id] re-sync + rebuild the stacks (rolling)
+  pool       [--node id] CUTOVER: add public-env nodes to the geo-steered record
+  up         [--node id] provision -> dns -> configure
+
+Secrets from the wizard env (run.sh passes secrets.env): BUNNY_STORAGE_ZONE/KEY,
+BUNNY_STORAGE_HOST?, RESEND_API_KEY, WELCOME_FROM?, BUNNY_API_KEY (dns),
+provider tokens, SSH_PUBLIC_KEY. Idempotent.
 """
 from __future__ import annotations
 
@@ -28,7 +32,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 NODE_DIR = ROOT / "node"
-COMPOSE_DIR = ROOT / "compose"
+CADDY_DIR = ROOT / "caddy"
 INVENTORY = HERE / "inventory.toml"
 REMOTE_ROOT = "/opt/edge-node"
 
@@ -42,40 +46,111 @@ def load_inventory(path: Path) -> dict:
         return tomllib.load(fh)
 
 
-def nodes(inv: dict, only: str | None) -> list[dict]:
-    return [n for n in inv.get("node", []) if only in (None, n["id"], n.get("env"))]
+def boxes(inv: dict, only: str | None) -> list[dict]:
+    return [b for b in inv.get("box", []) if only in (None, b["id"])]
 
 
-def render_node_env(node: dict, env_cfg: dict) -> str:
-    """Build the per-node env from inventory + secrets (from os.environ)."""
-    missing = [k for k in ("BUNNY_STORAGE_ZONE", "BUNNY_STORAGE_KEY") if not os.environ.get(k)]
-    if missing:
-        print(f"      [warn] secrets missing (storage disabled on node): {', '.join(missing)}")
-    values = {
-        "NODE_ENV_NAME": node.get("env", "dev"),
-        "NODE_ID": node["id"],
-        "NODE_REGION": node.get("region", "unknown"),
-        "NODE_ROLE": node.get("role", "relay"),
+def dns_zone(inv: dict) -> str:
+    return inv.get("pool", {}).get("dns_zone", "pool.panov.id")
+
+
+def host_for(inv: dict, box: dict, env: str) -> str:
+    return f"{box['id']}-{env}.{dns_zone(inv)}"
+
+
+def env_file(inv: dict, box: dict, env: str) -> str:
+    e = inv["env"][env]
+    vals = {
+        "NODE_ENV_NAME": env,
+        "NODE_ID": f"{box['id']}-{env}",
+        "NODE_REGION": box.get("region", "unknown"),
+        "NODE_ROLE": "relay",
         "PORT": "8080",
-        "ALLOWED_ORIGINS": ",".join(env_cfg.get("allowed_origins", [])),
+        "ALLOWED_ORIGINS": ",".join(e.get("allowed_origins", [])),
         "BUNNY_STORAGE_HOST": os.environ.get("BUNNY_STORAGE_HOST", "storage.bunnycdn.com"),
         "BUNNY_STORAGE_ZONE": os.environ.get("BUNNY_STORAGE_ZONE", ""),
         "BUNNY_STORAGE_KEY": os.environ.get("BUNNY_STORAGE_KEY", ""),
         "RESEND_API_KEY": os.environ.get("RESEND_API_KEY", ""),
-        "WELCOME_FROM": os.environ.get("WELCOME_FROM", "sosed <hey@sosed.place>"),
-        "NODE_HOSTNAME": node["hostname"],
+        "WELCOME_FROM": os.environ.get("WELCOME_FROM", ""),
     }
-    return "".join(f"{k}={v}\n" for k, v in values.items())
+    if e.get("mail") == "mailpit":
+        vals.update({"MAIL_TRANSPORT": "smtp", "MAIL_SMTP_HOST": "mailpit", "MAIL_SMTP_PORT": "1025"})
+    else:
+        vals["MAIL_TRANSPORT"] = "resend"
+    return "".join(f"{k}={v}\n" for k, v in vals.items())
+
+
+def uses_mailpit(inv: dict, box: dict) -> bool:
+    return any(inv["env"][e].get("mail") == "mailpit" for e in box["envs"])
+
+
+def aux_hosts(inv: dict, box: dict) -> list[str]:
+    # logs viewer (Dozzle) always; mail catcher (Mailpit) if any env uses it.
+    hosts = [f"logs-{box['id']}.{dns_zone(inv)}"]
+    if uses_mailpit(inv, box):
+        hosts.append(f"mail-{box['id']}.{dns_zone(inv)}")
+    return hosts
+
+
+def render_compose(inv: dict, box: dict) -> str:
+    nodes = "".join(
+        f"""  node-{env}:
+    build: {{ context: ../node }}
+    restart: unless-stopped
+    env_file: [{env}.env]
+    expose: ["8080"]
+""" for env in box["envs"])
+    extra = ""
+    if uses_mailpit(inv, box):
+        extra += ('  mailpit:\n    image: axllent/mailpit:latest\n'
+                  '    restart: unless-stopped\n    expose: ["1025", "8025"]\n')
+    extra += ('  dozzle:\n    image: amir20/dozzle:latest\n    restart: unless-stopped\n'
+              '    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]\n    expose: ["8080"]\n')
+    deps = ", ".join([f"node-{e}" for e in box["envs"]]
+                     + (["mailpit"] if uses_mailpit(inv, box) else []) + ["dozzle"])
+    return f"""services:
+{nodes}{extra}  caddy:
+    build: {{ context: ../caddy }}
+    restart: unless-stopped
+    depends_on: [{deps}]
+    ports: ["443:443"]
+    env_file: [caddy.env]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  caddy_data:
+  caddy_config:
+"""
+
+
+def render_caddyfile(inv: dict, box: dict) -> str:
+    out = "{\n\tauto_https disable_redirects\n}\n\n"
+    for env in box["envs"]:
+        host = host_for(inv, box, env)
+        out += (f"{host} {{\n"
+                f"\ttls {{ dns bunny {{env.BUNNY_API_KEY}} }}\n"
+                f"\tencode zstd gzip\n"
+                f"\treverse_proxy node-{env}:8080\n"
+                f"}}\n\n")
+    for host in aux_hosts(inv, box):
+        target = "dozzle:8080" if host.startswith("logs-") else "mailpit:8025"
+        out += (f"{host} {{\n"
+                f"\ttls {{ dns bunny {{env.BUNNY_API_KEY}} }}\n"
+                f"\treverse_proxy {target}\n"
+                f"}}\n\n")
+    return out
 
 
 # --- ssh helpers ------------------------------------------------------------
 
-def ssh_connect(node: dict):
-    host = node.get("ssh_host")
+def ssh_connect(box: dict):
+    host = box.get("ssh_host")
     if not host:
-        raise RuntimeError(f"{node['id']}: no ssh_host (provision first, or set it in inventory)")
+        raise RuntimeError(f"{box['id']}: no ssh_host (provision first, or set it in inventory)")
     import paramiko  # lazy — status/dns work without it
-    user = node.get("ssh_user", "root")
+    user = box.get("ssh_user", "root")
     client = paramiko.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -95,6 +170,11 @@ def sh(client, cmd: str, sudo: bool = False, check: bool = True) -> int:
     if code != 0 and check:
         raise RuntimeError(f"remote command failed ({code}): {cmd[:70]}")
     return code
+
+
+def sh_out(client, cmd: str) -> str:
+    _stdin, stdout, _stderr = client.exec_command("bash -lc " + shlex.quote(cmd))
+    return stdout.read().decode(errors="replace").strip()
 
 
 def _sftp_mkdirs(sftp, remote: str) -> None:
@@ -125,147 +205,184 @@ def _write_remote(sftp, path: str, content: str) -> None:
         fh.write(content)
 
 
-def _verify_health(client, hostname: str, sudo: bool) -> None:
+def _verify_health(client, host: str, sudo: bool) -> None:
     for _ in range(6):
-        if sh(client, f"curl -fsS -m 5 https://{hostname}/health", sudo=sudo, check=False) == 0:
-            print("      /health ok ✓")
+        if sh(client, f"curl -fsS -m 5 https://{host}/health", sudo=sudo, check=False) == 0:
+            print(f"      {host}/health ok ✓")
             return
         sh(client, "sleep 5", check=False)
-    print("      [warn] /health not green yet (Let's Encrypt cert may still be issuing) — recheck later")
+    print(f"      [warn] {host}/health not green yet (DNS-01 cert may still be issuing)")
 
 
-# --- actions ----------------------------------------------------------------
+# --- box operations ---------------------------------------------------------
 
-def provision(node: dict) -> None:
-    """Create the VPS via the provider API and set node['ssh_host'] in memory."""
-    if node.get("mode") != "provision":
-        print(f"  · {node['id']}: manual box (mode=configure) — skip provision")
-        return
-    from providers import provision_server  # lazy — keeps status/dns import-free
-    print(f"  · {node['id']}: provision {node['provider']}/{node.get('location', '?')} "
-          f"({node.get('server_type') or node.get('plan') or 'default'})")
-    ip = provision_server(node)
-    node["ssh_host"] = ip  # so a chained configure() in `up` can reach it
-    node.setdefault("ssh_user", "root")
-    print(f"  · {node['id']}: ready at {ip}")
+def harden_ssh(client, sudo: bool) -> None:
+    conf = ("PasswordAuthentication no\nPermitRootLogin no\nPubkeyAuthentication yes\n"
+            "KbdInteractiveAuthentication no\n")
+    sftp = client.open_sftp()
+    try:
+        sh(client, "mkdir -p /etc/ssh/sshd_config.d", sudo=sudo)
+        if sudo:
+            # write via a temp file we own, then move with sudo
+            _write_remote(sftp, "/tmp/60-edge.conf", conf)
+            sh(client, "mv /tmp/60-edge.conf /etc/ssh/sshd_config.d/60-edge.conf", sudo=True)
+        else:
+            _write_remote(sftp, "/etc/ssh/sshd_config.d/60-edge.conf", conf)
+    finally:
+        sftp.close()
+    sh(client, "systemctl reload ssh 2>/dev/null || systemctl reload sshd", sudo=sudo, check=False)
 
 
-def _sync_and_up(client, node: dict, inv: dict, sudo: bool, user: str) -> None:
-    """Upload node/ + compose/, render env, (re)build & start, verify /health.
-    Shared by configure (first bring-up) and deploy (rolling update)."""
-    env_cfg = inv.get("env", {}).get(node.get("env", ""), {})
-    node_env = render_node_env(node, env_cfg)
-    print(f"      sync node + compose -> {REMOTE_ROOT}")
+def firewall(client, inv: dict, box: dict, sudo: bool) -> None:
+    ssh_wl = list(inv.get("pool", {}).get("ssh_whitelist", []))
+    # never lock ourselves out: allow 22 from the IP we're connected from
+    src = sh_out(client, "echo $SSH_CONNECTION | awk '{print $1}'")
+    if src and src not in ssh_wl:
+        ssh_wl.append(src)
+    public = any(inv["env"][e].get("access") == "public" for e in box["envs"])
+    allow443 = sorted({ip for e in box["envs"] if inv["env"][e].get("access") != "public"
+                       for ip in inv["env"][e].get("whitelist_ips", [])})
+
+    cmds = ["ufw --force reset", "ufw default deny incoming", "ufw default allow outgoing"]
+    for ip in ssh_wl:
+        cmds.append(f"ufw allow from {ip} to any port 22 proto tcp")
+    if public:
+        cmds.append("ufw allow 443/tcp")
+    else:
+        for ip in allow443:
+            cmds.append(f"ufw allow from {ip} to any port 443 proto tcp")
+    cmds.append("ufw --force enable")
+    sh(client, " && ".join(cmds), sudo=sudo)
+    print(f"      firewall: ssh<-{ssh_wl}  443<-{'ANY' if public else allow443}")
+
+
+def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
+    print(f"      sync stacks -> {REMOTE_ROOT}")
     sh(client, f"mkdir -p {REMOTE_ROOT}", sudo=sudo)
     if sudo:
         sh(client, f"chown -R {user} {REMOTE_ROOT}", sudo=True)
     sftp = client.open_sftp()
     try:
         _sftp_put_tree(sftp, NODE_DIR, f"{REMOTE_ROOT}/node")
+        _sftp_put_tree(sftp, CADDY_DIR, f"{REMOTE_ROOT}/caddy")
         _sftp_mkdirs(sftp, f"{REMOTE_ROOT}/compose")
-        sftp.put(str(COMPOSE_DIR / "docker-compose.yml"), f"{REMOTE_ROOT}/compose/docker-compose.yml")
-        sftp.put(str(COMPOSE_DIR / "Caddyfile"), f"{REMOTE_ROOT}/compose/Caddyfile")
-        _write_remote(sftp, f"{REMOTE_ROOT}/compose/node.env", node_env)
-        _write_remote(sftp, f"{REMOTE_ROOT}/compose/.env", f"NODE_HOSTNAME={node['hostname']}\n")
+        _write_remote(sftp, f"{REMOTE_ROOT}/compose/docker-compose.yml", render_compose(inv, box))
+        _write_remote(sftp, f"{REMOTE_ROOT}/compose/Caddyfile", render_caddyfile(inv, box))
+        _write_remote(sftp, f"{REMOTE_ROOT}/compose/caddy.env",
+                      f"BUNNY_API_KEY={os.environ.get('BUNNY_API_KEY', '')}\n")
+        for env in box["envs"]:
+            _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
     finally:
         sftp.close()
     print("      docker compose up -d --build")
     sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --build", sudo=sudo)
-    print("      verify /health")
-    _verify_health(client, node["hostname"], sudo)
+    for env in box["envs"]:
+        _verify_health(client, host_for(inv, box, env), sudo)
 
 
-def configure(node: dict, inv: dict) -> None:
-    """SSH in and bring the node up (harden -> docker -> deploy -> verify)."""
-    print(f"  · {node['id']}: configure {node.get('ssh_host', '<no ssh_host>')}")
-    client, user = ssh_connect(node)
+def provision(box: dict, inv: dict) -> None:
+    if box.get("mode") != "provision":
+        print(f"  · {box['id']}: manual box (mode=configure) — skip provision")
+        return
+    from providers import provision_server
+    print(f"  · {box['id']}: provision {box['provider']}/{box.get('location', '?')} "
+          f"({box.get('server_type') or box.get('plan') or 'default'})")
+    srv = {**box, "hostname": f"{box['id']}.{dns_zone(inv)}"}
+    ip = provision_server(srv)
+    box["ssh_host"] = ip
+    box.setdefault("ssh_user", "root")
+    print(f"  · {box['id']}: ready at {ip}")
+
+
+def dns(box: dict, inv: dict) -> None:
+    import bunny
+    ip = box.get("ssh_host")
+    if not ip:
+        raise RuntimeError(f"{box['id']}: no ip yet (run provision first, or set ssh_host)")
+    zone = bunny.find_zone(f"x.{dns_zone(inv)}")
+    hosts = [host_for(inv, box, e) for e in box["envs"]] + aux_hosts(inv, box)
+    for host in hosts:
+        name = bunny.subdomain(host, zone["Domain"])
+        action = bunny.set_a(zone, name, ip)
+        print(f"  · {box['id']}: dns {host} -> {ip} ({action})")
+
+
+def configure(box: dict, inv: dict) -> None:
+    print(f"  · {box['id']}: configure {box.get('ssh_host', '<no ssh_host>')}  envs={box['envs']}")
+    client, user = ssh_connect(box)
     sudo = user != "root"
     try:
-        print("      harden: apt + ufw + fail2ban + unattended-upgrades")
+        print("      harden ssh (key-only, no root)")
+        harden_ssh(client, sudo)
+        print("      firewall (default-deny + whitelist)")
+        firewall(client, inv, box, sudo)
+        print("      docker: install (if missing) + enable")
         sh(client, "export DEBIAN_FRONTEND=noninteractive; apt-get update -y && "
                    "apt-get install -y ca-certificates curl ufw fail2ban unattended-upgrades", sudo=sudo)
-        sh(client, "ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable", sudo=sudo)
-        sh(client, "systemctl enable --now fail2ban", sudo=sudo, check=False)
-        sh(client, "systemctl enable --now unattended-upgrades", sudo=sudo, check=False)
-
-        print("      docker: install (if missing) + enable")
+        sh(client, "systemctl enable --now fail2ban unattended-upgrades", sudo=sudo, check=False)
         sh(client, "command -v docker >/dev/null || curl -fsSL https://get.docker.com | sh", sudo=sudo)
         sh(client, "systemctl enable --now docker", sudo=sudo)
-
-        _sync_and_up(client, node, inv, sudo, user)
-        print(f"  · {node['id']}: configured ✓")
+        _sync_and_up(client, inv, box, sudo, user)
+        print(f"  · {box['id']}: configured ✓")
     finally:
         client.close()
 
 
-def dns(node: dict, inv: dict) -> None:
-    """Register the node's OWN hostname (A -> node IP). Needed before configure so
-    Let's Encrypt can validate. Does NOT touch the live api.* pool (see `pool`)."""
-    import bunny  # lazy
-    ip = node.get("ssh_host")
-    if not ip:
-        raise RuntimeError(f"{node['id']}: no ip yet (run provision first, or set ssh_host)")
-    zone = bunny.find_zone(node["hostname"])
-    name = bunny.subdomain(node["hostname"], zone["Domain"])
-    action = bunny.set_a(zone, name, ip)
-    print(f"  · {node['id']}: dns {node['hostname']} -> {ip} ({action})")
-
-
-def pool(node: dict, inv: dict) -> None:
-    """CUTOVER: add this node to the geo-steered api.* pool for its env. Only run
-    when you intend to move live traffic onto the pool."""
-    import bunny  # lazy
-    ip = node.get("ssh_host")
-    if not ip:
-        raise RuntimeError(f"{node['id']}: no ip (run provision first, or set ssh_host)")
-    pool_host = inv.get("env", {}).get(node.get("env", ""), {}).get("pool_hostname")
-    if not pool_host:
-        raise RuntimeError(f"{node['id']}: env has no pool_hostname")
-    zone = bunny.find_zone(pool_host)
-    name = bunny.subdomain(pool_host, zone["Domain"])
-    action = bunny.pool_add(zone, name, ip, node.get("lat"), node.get("lon"))
-    print(f"  · {node['id']}: pool {pool_host} += {ip} geo=({node.get('lat')},{node.get('lon')}) ({action})")
-
-
-def deploy(node: dict, inv: dict) -> None:
-    """Roll the latest node to an already-configured node (re-sync + rebuild +
-    verify). Rolling: run_each does nodes one at a time and each verifies /health
-    before the next, so the pool never fully drops. Skips harden/docker install."""
-    print(f"  · {node['id']}: deploy {node.get('ssh_host', '<no ssh_host>')}")
-    client, user = ssh_connect(node)  # requires ssh_host (a configured node)
+def deploy(box: dict, inv: dict) -> None:
+    print(f"  · {box['id']}: deploy {box.get('ssh_host', '<no ssh_host>')}")
+    client, user = ssh_connect(box)
     sudo = user != "root"
     try:
-        _sync_and_up(client, node, inv, sudo, user)
-        print(f"  · {node['id']}: deployed ✓")
+        _sync_and_up(client, inv, box, sudo, user)
+        print(f"  · {box['id']}: deployed ✓")
     finally:
         client.close()
+
+
+def pool(box: dict, inv: dict) -> None:
+    import bunny
+    ip = box.get("ssh_host")
+    if not ip:
+        raise RuntimeError(f"{box['id']}: no ip (run provision first, or set ssh_host)")
+    public_envs = [e for e in box["envs"] if inv["env"][e].get("access") == "public"]
+    if not public_envs:
+        print(f"  · {box['id']}: no public env on this box — skip pool (cutover is prod-only)")
+        return
+    for env in public_envs:
+        ph = inv["env"][env].get("pool_hostname")
+        if not ph:
+            continue
+        zone = bunny.find_zone(ph)
+        name = bunny.subdomain(ph, zone["Domain"])
+        action = bunny.pool_add(zone, name, ip, box.get("lat"), box.get("lon"))
+        print(f"  · {box['id']}: pool {ph} += {ip} ({action})")
 
 
 def status(inv: dict) -> None:
-    ns = inv.get("node", [])
-    print(f"pool: {len(ns)} node(s)")
-    for n in ns:
-        print(f"  {n['id']:4} {n.get('env',''):4} {n['provider']:12} {n['region']:12} "
-              f"{n.get('mode','?'):9} {n.get('role','relay'):6} {n['hostname']}")
+    bs = inv.get("box", [])
+    print(f"pool: {len(bs)} box(es), dns_zone={dns_zone(inv)}")
+    for b in bs:
+        print(f"  {b['id']:4} {b['provider']:10} {b.get('region',''):14} "
+              f"{b.get('mode','?'):9} envs={','.join(b.get('envs', []))}")
 
 
 # --- cli --------------------------------------------------------------------
 
 def run_each(inv: dict, only: str | None, fn) -> None:
-    ns = nodes(inv, only)
-    if not ns:
-        print("no matching nodes")
-    for n in ns:
+    bs = boxes(inv, only)
+    if not bs:
+        print("no matching boxes")
+    for b in bs:
         try:
-            fn(n)
-        except Exception as e:  # one node's failure must not abort the pool run
-            print(f"  · {n['id']}: ERROR {e}")
+            fn(b)
+        except Exception as e:  # one box's failure must not abort the run
+            print(f"  · {b['id']}: ERROR {e}")
 
 
 def main() -> None:
     p = argparse.ArgumentParser(prog="wizard", description="edge-nodes pool wizard")
     p.add_argument("--inventory", type=Path, default=INVENTORY)
-    p.add_argument("--node", help="limit to a node id or an env name")
+    p.add_argument("--node", "--box", dest="box", help="limit to a box id")
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("status", "provision", "configure", "dns", "pool", "deploy", "up"):
         sub.add_parser(name)
@@ -276,25 +393,25 @@ def main() -> None:
     if args.cmd == "status":
         status(inv)
     elif args.cmd == "provision":
-        run_each(inv, args.node, provision)
+        run_each(inv, args.box, lambda b: provision(b, inv))
     elif args.cmd == "configure":
-        run_each(inv, args.node, lambda n: configure(n, inv))
+        run_each(inv, args.box, lambda b: configure(b, inv))
     elif args.cmd == "dns":
-        run_each(inv, args.node, lambda n: dns(n, inv))
+        run_each(inv, args.box, lambda b: dns(b, inv))
     elif args.cmd == "pool":
-        run_each(inv, args.node, lambda n: pool(n, inv))
+        run_each(inv, args.box, lambda b: pool(b, inv))
     elif args.cmd == "deploy":
-        run_each(inv, args.node, lambda n: deploy(n, inv))
+        run_each(inv, args.box, lambda b: deploy(b, inv))
     elif args.cmd == "up":
-        # dns before configure so Let's Encrypt can validate the node hostname.
-        for n in nodes(inv, args.node):
-            print(f"[{n['id']}] up")
+        # dns before configure so DNS-01 can validate the hostnames.
+        for b in boxes(inv, args.box):
+            print(f"[{b['id']}] up")
             try:
-                provision(n)
-                dns(n, inv)
-                configure(n, inv)
+                provision(b, inv)
+                dns(b, inv)
+                configure(b, inv)
             except Exception as e:
-                print(f"  · {n['id']}: ERROR {e}")
+                print(f"  · {b['id']}: ERROR {e}")
 
 
 if __name__ == "__main__":

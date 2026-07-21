@@ -98,6 +98,7 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "BUNNY_STORAGE_ZONE": os.environ.get("BUNNY_STORAGE_ZONE", ""),
         "BUNNY_STORAGE_KEY": os.environ.get("BUNNY_STORAGE_KEY", ""),
         "RESEND_API_KEY": os.environ.get("RESEND_API_KEY", ""),
+        "RESEND_KEYS": os.environ.get("RESEND_KEYS", ""),  # {brand: apiKey} per-brand accounts
         "WELCOME_FROM": os.environ.get("WELCOME_FROM", ""),
     }
     if e.get("mail") == "mailpit":
@@ -164,14 +165,14 @@ def render_caddyfile(inv: dict, box: dict) -> str:
     for env in box["envs"]:
         host = host_for(inv, box, env)
         out += (f"{host} {{\n"
-                f"\ttls {{ dns bunny {{env.BUNNY_API_KEY}} }}\n"
+                f"\ttls {{\n\t\tdns bunny {{env.BUNNY_API_KEY}}\n\t}}\n"
                 f"\tencode zstd gzip\n"
                 f"\treverse_proxy node-{env}:8080\n"
                 f"}}\n\n")
     for host in aux_hosts(inv, box):
         target = "dozzle:8080" if host.startswith("logs-") else "mailpit:8025"
         out += (f"{host} {{\n"
-                f"\ttls {{ dns bunny {{env.BUNNY_API_KEY}} }}\n"
+                f"\ttls {{\n\t\tdns bunny {{env.BUNNY_API_KEY}}\n\t}}\n"
                 f"\treverse_proxy {target}\n"
                 f"}}\n\n")
     return out
@@ -184,12 +185,22 @@ def ssh_connect(box: dict):
     if not host:
         raise RuntimeError(f"{box['id']}: no ssh_host (provision first, or set it in inventory)")
     import paramiko  # lazy — status/dns work without it
-    user = box.get("ssh_user", "root")
+    # Prefer the unprivileged deploy user; fall back to root to bootstrap a fresh
+    # box (before the deploy user exists / before harden locks root login).
+    preferred = box.get("ssh_user", "deploy")
+    candidates = [preferred] + (["root"] if preferred != "root" else [])
     client = paramiko.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname=host, username=user, allow_agent=True, look_for_keys=True, timeout=20)
-    return client, user
+    last: Exception | None = None
+    for user in candidates:
+        try:
+            client.connect(hostname=host, username=user, allow_agent=True,
+                           look_for_keys=True, timeout=20)
+            return client, user
+        except paramiko.AuthenticationException as e:
+            last = e
+    raise last or RuntimeError(f"{box['id']}: ssh auth failed for {candidates}")
 
 
 def sh(client, cmd: str, sudo: bool = False, check: bool = True) -> int:
@@ -249,6 +260,26 @@ def _verify_health(client, host: str, sudo: bool) -> None:
 
 
 # --- box operations ---------------------------------------------------------
+
+def ensure_deploy_user(client, sudo: bool) -> None:
+    """Create an unprivileged sudo user `deploy` with the pool SSH key so the
+    wizard can reconnect after harden_ssh disables root login. Idempotent."""
+    pub = os.environ.get("SSH_PUBLIC_KEY", "").strip()
+    if not pub:
+        print("      [warn] SSH_PUBLIC_KEY unset — skipping deploy user (root will stay locked!)")
+        return
+    script = (
+        "id -u deploy >/dev/null 2>&1 || useradd -m -s /bin/bash deploy; "
+        "install -d -m 700 -o deploy -g deploy /home/deploy/.ssh; "
+        f"printf '%s\\n' {shlex.quote(pub)} > /home/deploy/.ssh/authorized_keys; "
+        "chown deploy:deploy /home/deploy/.ssh/authorized_keys; "
+        "chmod 600 /home/deploy/.ssh/authorized_keys; "
+        "usermod -aG sudo deploy; "
+        "printf 'deploy ALL=(ALL) NOPASSWD:ALL\\n' > /etc/sudoers.d/90-deploy; "
+        "chmod 440 /etc/sudoers.d/90-deploy"
+    )
+    sh(client, script, sudo=sudo)
+
 
 def harden_ssh(client, sudo: bool) -> None:
     conf = ("PasswordAuthentication no\nPermitRootLogin no\nPubkeyAuthentication yes\n"
@@ -356,6 +387,8 @@ def configure(box: dict, inv: dict) -> None:
     client, user = ssh_connect(box)
     sudo = user != "root"
     try:
+        print(f"      connected as {user}; ensure deploy user (sudo, key)")
+        ensure_deploy_user(client, sudo)
         print("      harden ssh (key-only, no root)")
         harden_ssh(client, sudo)
         print("      firewall (default-deny + whitelist)")

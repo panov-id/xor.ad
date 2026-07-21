@@ -66,10 +66,25 @@ export const config = {
     smtp: { host: env("MAIL_SMTP_HOST", "mailpit"), port: Number(env("MAIL_SMTP_PORT", "1025")) },
   },
   resend: {
-    key: env("RESEND_API_KEY"),
+    key: env("RESEND_API_KEY"), // default/fallback account key
+    // Per-brand account keys (Resend free tier = 1 verified domain per account,
+    // so each brand sends from its own domain via its own account). JSON map
+    // {brandKey: apiKey}; a brand not listed falls back to `key`.
+    keysByBrand: parseResendKeys(),
     fromOverride: env("WELCOME_FROM"), // emergency global sender override (default: per-brand)
   },
 } as const;
+
+function parseResendKeys(): Record<string, string> {
+  const raw = env("RESEND_KEYS"); // JSON: {"neighbro":"re_…","sosed":"re_…"}
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, string>;
+  } catch (e) {
+    console.warn("[config] bad RESEND_KEYS json, ignoring:", e);
+    return {};
+  }
+}
 
 export function brandByKey(key: string): Brand | undefined {
   return config.brands.find((b) => b.key === key);

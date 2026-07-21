@@ -9,11 +9,16 @@ import { sendSmtp } from "./smtp.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
 
-async function viaResend(from: string, to: string, subject: string, html: string, text: string) {
-  if (!config.resend.key) return;
+async function viaResend(
+  from: string, to: string, subject: string, html: string, text: string, brandKey: string,
+) {
+  // Send from the brand's own Resend account (its domain is verified there);
+  // fall back to the default key for brands without a dedicated account.
+  const key = config.resend.keysByBrand[brandKey] || config.resend.key;
+  if (!key) return;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { authorization: `Bearer ${config.resend.key}`, "content-type": "application/json" },
+    headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
     body: JSON.stringify({ from, to: [to], subject, html, text }),
   });
   if (!res.ok) console.error(`[resend] ${res.status} ${await res.text()}`);
@@ -34,7 +39,7 @@ export async function sendWelcome(
     if (config.mail.transport === "smtp") {
       await sendSmtp({ host: config.mail.smtp.host, port: config.mail.smtp.port, from, to, subject, html });
     } else {
-      await viaResend(config.resend.fromOverride || from, to, subject, html, text);
+      await viaResend(config.resend.fromOverride || from, to, subject, html, text, brand.key);
     }
     inc("relay_mail_total", { transport: config.mail.transport, result: "sent" });
   } catch (e) {

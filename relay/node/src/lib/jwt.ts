@@ -11,11 +11,14 @@ function b64urlDecode(s: string): Uint8Array {
   return Uint8Array.from(bin, (c) => c.charCodeAt(0));
 }
 const enc = new TextEncoder();
+// TS 5.7 made Uint8Array generic over its buffer; Web Crypto wants a plain
+// BufferSource, so normalize at each boundary.
+const buf = (u: Uint8Array): BufferSource => u as unknown as BufferSource;
 
 async function hmacKey(secret: string): Promise<CryptoKey> {
   return await crypto.subtle.importKey(
     "raw",
-    enc.encode(secret),
+    buf(enc.encode(secret)),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"],
@@ -33,7 +36,7 @@ export async function sign(claims: Claims, secret: string): Promise<string> {
   const header = b64urlEncode(enc.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
   const payload = b64urlEncode(enc.encode(JSON.stringify(claims)));
   const data = `${header}.${payload}`;
-  const sig = await crypto.subtle.sign("HMAC", await hmacKey(secret), enc.encode(data));
+  const sig = await crypto.subtle.sign("HMAC", await hmacKey(secret), buf(enc.encode(data)));
   return `${data}.${b64urlEncode(new Uint8Array(sig))}`;
 }
 
@@ -44,8 +47,8 @@ export async function verify(token: string, secret: string): Promise<Claims | nu
   const ok = await crypto.subtle.verify(
     "HMAC",
     await hmacKey(secret),
-    b64urlDecode(sig),
-    enc.encode(`${header}.${payload}`),
+    buf(b64urlDecode(sig)),
+    buf(enc.encode(`${header}.${payload}`)),
   );
   if (!ok) return null;
   try {

@@ -17,12 +17,21 @@ async function collection<T>(dir: string): Promise<T[]> {
   return rows.filter((r) => r !== null) as T[];
 }
 
+// Auth guard: 401 when unauthenticated, 403 when authenticated but not admin.
+// Returns an error Response to short-circuit, or null to proceed.
+async function guard(req: Request, admin = false): Promise<Response | null> {
+  const u = await authed(req);
+  if (!u) return json({ error: "unauthorized" }, 401);
+  if (admin && u.role !== "admin") return json({ error: "forbidden" }, 403);
+  return null;
+}
+
 // --- auth ---------------------------------------------------------------------
 
 route("POST", "/auth/request-link", async ({ req }) => {
   const body = await readJson<{ email?: string }>(req);
   if (body?.email) await requestMagicLink(body.email);
-  return json({ ok: true }, 204); // always 204 — never reveal membership
+  return new Response(null, { status: 204 }); // always 204, no body — never reveal membership
 });
 
 route("GET", "/auth/callback", async ({ url }) => {
@@ -38,7 +47,8 @@ route("GET", "/auth/me", async ({ req }) => {
 // --- waitlist (any authenticated panel member) --------------------------------
 
 route("GET", "/admin/waitlist", async ({ req }) => {
-  if (!await authed(req)) return json({ error: "unauthorized" }, 401);
+  const g = await guard(req);
+  if (g) return g;
   const dir = `waitlist/${config.envName}`;
   const rows = await collection<Record<string, unknown>>(dir);
   const data = rows
@@ -50,14 +60,16 @@ route("GET", "/admin/waitlist", async ({ req }) => {
 // --- panel_users CRUD (admin only) -------------------------------------------
 
 route("GET", "/admin/panel-users", async ({ req }) => {
-  if (!await authed(req, "admin")) return json({ error: "forbidden" }, 403);
+  const g = await guard(req, true);
+  if (g) return g;
   const rows = await collection<PanelUser>(usersDir());
   const data = rows.map((u) => ({ id: u.email, ...u }));
   return json(data, 200, { "x-total-count": String(data.length) });
 });
 
 route("POST", "/admin/panel-users", async ({ req }) => {
-  if (!await authed(req, "admin")) return json({ error: "forbidden" }, 403);
+  const g = await guard(req, true);
+  if (g) return g;
   const b = await readJson<{ email?: unknown; role?: unknown }>(req);
   if (!b || !isEmail(b.email) || (b.role !== "admin" && b.role !== "moderator")) {
     return json({ error: "invalid email or role" }, 422);
@@ -69,7 +81,8 @@ route("POST", "/admin/panel-users", async ({ req }) => {
 });
 
 route("PATCH", "/admin/panel-users/:email", async ({ req, params }) => {
-  if (!await authed(req, "admin")) return json({ error: "forbidden" }, 403);
+  const g = await guard(req, true);
+  if (g) return g;
   const email = params.email.trim().toLowerCase();
   const existing = await getUser(email);
   if (!existing) return json({ error: "not found" }, 404);
@@ -83,7 +96,8 @@ route("PATCH", "/admin/panel-users/:email", async ({ req, params }) => {
 });
 
 route("DELETE", "/admin/panel-users/:email", async ({ req, params }) => {
-  if (!await authed(req, "admin")) return json({ error: "forbidden" }, 403);
+  const g = await guard(req, true);
+  if (g) return g;
   const email = params.email.trim().toLowerCase();
   await del(`${usersDir()}/${await sha256hex(email)}.json`);
   return json({ id: email });

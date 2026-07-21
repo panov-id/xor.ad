@@ -8,14 +8,13 @@ import routerProvider, {
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
-import { liveProvider } from "@refinedev/supabase";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { Layout } from "./components/layout";
 import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
-import { supabaseClient } from "./providers/supabase-client";
 import { LoginPage } from "./pages/login";
+import { AuthCallback } from "./pages/auth-callback";
 import { WaitlistList } from "./pages/waitlist/list";
 import { PanelUsersList } from "./pages/panel-users/list";
 
@@ -23,7 +22,6 @@ function App() {
   const refine = (
     <Refine
             dataProvider={dataProvider}
-            liveProvider={liveProvider(supabaseClient)}
             authProvider={authProvider}
             routerProvider={routerProvider}
             resources={[
@@ -45,6 +43,7 @@ function App() {
             }}
           >
             <Routes>
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route
                 element={
                   <Authenticated key="authenticated" fallback={<CatchAllNavigate to="/login" />}>

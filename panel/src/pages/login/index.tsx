@@ -1,15 +1,10 @@
 import { useLogin } from "@refinedev/core";
 import { useState } from "react";
 
-// Email-based magic link: Supabase emails a one-time sign-in link, and only
-// whoever controls that inbox can use it. This is what actually proves
-// "it's you" — unlike generating a link and handing it back over HTTP to
-// whoever asked, which we tried and rejected (see docs/panel).
-//
-// NOTE: this requires a real SMTP provider, which is still a placeholder —
-// no emails go out yet, so self-service login does not work end-to-end.
-// Panel access today is bootstrapped via the invite-panel-user function.
-// See docs/panel_EN.md ("Self-service sign-in") and supabase/.env.
+// Email-based magic link: the relay emails a one-time sign-in link, and only
+// whoever controls that inbox can use it — the link lands on /auth/callback,
+// which exchanges the token for a session JWT. Access is invite-only; the relay
+// answers identically for unknown emails so membership never leaks.
 export const LoginPage = () => {
   const { mutate: login, isPending } = useLogin();
   const [email, setEmail] = useState("");

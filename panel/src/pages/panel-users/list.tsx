@@ -1,6 +1,6 @@
 import { useList, useGetIdentity } from "@refinedev/core";
 import { useState } from "react";
-import { supabaseClient } from "../../providers/supabase-client";
+import { api } from "../../providers/api";
 
 type PanelUserRow = {
   id: string;
@@ -36,23 +36,22 @@ export const PanelUsersList = () => {
     setInviteLink(null);
     setCopied(false);
 
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-
-    const { data: fnResult, error } = await supabaseClient.functions.invoke("invite-panel-user", {
-      body: { email, role },
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+    const res = await api("/admin/panel-users", {
+      method: "POST",
+      body: JSON.stringify({ email, role }),
     });
-
     setSubmitting(false);
 
-    if (error || fnResult?.error) {
-      setStatus({ kind: "err", text: fnResult?.error ?? error?.message ?? "Invite failed" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setStatus({ kind: "err", text: body.error ?? "Invite failed" });
       return;
     }
 
-    setStatus({ kind: "ok", text: `Invited ${email} — copy the link below and send it to them.` });
-    setInviteLink(fnResult?.link ?? null);
+    // No hand-off link: the invitee just signs in from the login page with their
+    // email (the relay emails them a magic link). Membership is what we granted.
+    setStatus({ kind: "ok", text: `Added ${email} — they can now sign in with their email.` });
+    setInviteLink(null);
     setEmail("");
     query.refetch();
   };

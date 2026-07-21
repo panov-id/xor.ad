@@ -12,8 +12,8 @@ export function corsHeaders(origin: string | null): Record<string, string> {
   if (!allowed) return {};
   return {
     "access-control-allow-origin": allowed,
-    "access-control-allow-methods": "GET, POST, OPTIONS",
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
+    "access-control-allow-headers": "authorization, content-type",
     "access-control-max-age": "86400",
     "vary": "origin",
   };

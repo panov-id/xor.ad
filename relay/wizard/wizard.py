@@ -164,11 +164,18 @@ def render_caddyfile(inv: dict, box: dict) -> str:
     out = "{\n\tauto_https disable_redirects\n}\n\n"
     for env in box["envs"]:
         host = host_for(inv, box, env)
-        out += (f"{host} {{\n"
-                f"\ttls {{\n\t\tdns bunny {{env.BUNNY_API_KEY}}\n\t}}\n"
-                f"\tencode zstd gzip\n"
-                f"\treverse_proxy node-{env}:8080\n"
-                f"}}\n\n")
+        # Serve the box's own hostname, plus (for a public/prod env) the geo-steered
+        # pool hostname the landings actually call (api.<face> / api.relay.panov.id).
+        hosts = [host]
+        pool_host = inv["env"][env].get("pool_hostname")
+        if inv["env"][env].get("access") == "public" and pool_host:
+            hosts.append(pool_host)
+        for h in hosts:
+            out += (f"{h} {{\n"
+                    f"\ttls {{\n\t\tdns bunny {{env.BUNNY_API_KEY}}\n\t}}\n"
+                    f"\tencode zstd gzip\n"
+                    f"\treverse_proxy node-{env}:8080\n"
+                    f"}}\n\n")
     for host in aux_hosts(inv, box):
         target = "dozzle:8080" if host.startswith("logs-") else "mailpit:8025"
         out += (f"{host} {{\n"
@@ -350,6 +357,12 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
 
     print("      docker compose pull + up -d")
     sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull && docker compose up -d", sudo=sudo)
+    # The Caddyfile is a bind-mounted file: `up -d` does not restart caddy when only
+    # its content changed, so reload it explicitly (graceful; restart as fallback).
+    print("      reload caddy (pick up Caddyfile changes)")
+    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose exec -T caddy "
+               "caddy reload --config /etc/caddy/Caddyfile || docker compose restart caddy",
+               sudo=sudo, check=False)
     for env in box["envs"]:
         _verify_health(client, host_for(inv, box, env), sudo)
 

@@ -67,3 +67,21 @@ Deno.test("metrics render Prometheus counters with labels", () => {
   assert(out.includes('relay_ut_total{result="ok"} 2'));
   assert(out.includes('relay_ut_total{result="fail"} 1'));
 });
+
+Deno.test("jwt: sign/verify round-trip", async () => {
+  const { sign, verify } = await import("../src/lib/jwt.ts");
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  const token = await sign({ sub: "a@b.com", role: "admin", exp }, "s3cret");
+  const claims = await verify(token, "s3cret");
+  assertEquals(claims?.sub, "a@b.com");
+  assertEquals(claims?.role, "admin");
+});
+
+Deno.test("jwt: rejects wrong secret and expired token", async () => {
+  const { sign, verify } = await import("../src/lib/jwt.ts");
+  const good = await sign({ sub: "a@b.com", role: "admin", exp: Math.floor(Date.now()/1000)+60 }, "k1");
+  assertEquals(await verify(good, "k2"), null);                       // wrong key
+  const expired = await sign({ sub: "a@b.com", role: "admin", exp: 1 }, "k1");
+  assertEquals(await verify(expired, "k1"), null);                    // past exp
+  assertEquals(await verify("not.a.jwt", "k1"), null);               // malformed
+});

@@ -100,6 +100,11 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "RESEND_API_KEY": os.environ.get("RESEND_API_KEY", ""),
         "RESEND_KEYS": os.environ.get("RESEND_KEYS", ""),  # {brand: apiKey} per-brand accounts
         "WELCOME_FROM": os.environ.get("WELCOME_FROM", ""),
+        # Panel control plane: shared signing secret + per-env panel URL for the
+        # magic-link email; PANEL_SENDER is the (panov.id-verified) from address.
+        "SESSION_SECRET": os.environ.get("SESSION_SECRET", ""),
+        "PANEL_URL": e.get("panel_url", ""),
+        "PANEL_SENDER": os.environ.get("PANEL_SENDER", ""),
     }
     if e.get("mail") == "mailpit":
         vals.update({"MAIL_TRANSPORT": "smtp", "MAIL_SMTP_HOST": "mailpit", "MAIL_SMTP_PORT": "1025"})

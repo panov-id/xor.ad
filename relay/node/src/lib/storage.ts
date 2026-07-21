@@ -52,3 +52,51 @@ export async function put(path: string, body: unknown): Promise<void> {
   await res.body?.cancel();
   if (!res.ok) throw new Error(`bunny storage PUT ${path} -> ${res.status}`);
 }
+
+export async function get<T = unknown>(path: string): Promise<T | null> {
+  if (s.transport === "fs") {
+    try {
+      return JSON.parse(await Deno.readTextFile(fsPath(path))) as T;
+    } catch {
+      return null;
+    }
+  }
+  const res = await fetch(bunnyUrl(path), { headers: bunnyHeaders() });
+  if (!res.ok) {
+    await res.body?.cancel();
+    return null;
+  }
+  return await res.json() as T;
+}
+
+export async function del(path: string): Promise<void> {
+  if (s.transport === "fs") {
+    try {
+      await Deno.remove(fsPath(path));
+    } catch { /* already gone */ }
+    return;
+  }
+  const res = await fetch(bunnyUrl(path), { method: "DELETE", headers: bunnyHeaders() });
+  await res.body?.cancel();
+}
+
+// List object file names (not sub-dirs) under a prefix. Bunny returns a JSON
+// directory listing for a path ending in "/"; fs reads the directory.
+export async function list(prefix: string): Promise<string[]> {
+  if (s.transport === "fs") {
+    try {
+      return [...Deno.readDirSync(fsPath(prefix))].filter((e) => e.isFile).map((e) => e.name);
+    } catch {
+      return [];
+    }
+  }
+  const res = await fetch(bunnyUrl(prefix.endsWith("/") ? prefix : prefix + "/"), {
+    headers: bunnyHeaders(),
+  });
+  if (!res.ok) {
+    await res.body?.cancel();
+    return [];
+  }
+  const items = await res.json() as Array<{ ObjectName: string; IsDirectory: boolean }>;
+  return items.filter((i) => !i.IsDirectory).map((i) => i.ObjectName);
+}

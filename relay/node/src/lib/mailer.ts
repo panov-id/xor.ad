@@ -24,6 +24,32 @@ async function viaResend(
   if (!res.ok) console.error(`[resend] ${res.status} ${await res.text()}`);
 }
 
+// Panel sign-in link — a system email (not brand), sent from the panel sender
+// via the default Resend account (panov.id) or Mailpit on dev/local.
+export async function sendPanelLink(to: string, link: string): Promise<void> {
+  const subject = "Your xor panel sign-in link";
+  const html = `<p>Sign in to the panel:</p><p><a href="${link}">${link}</a></p>` +
+    `<p>This link expires in 15 minutes and can be used once.</p>`;
+  const text = `Sign in: ${link}\n(expires in 15 minutes, one-time)`;
+  if (config.mail.transport === "smtp") {
+    await sendSmtp({
+      host: config.mail.smtp.host,
+      port: config.mail.smtp.port,
+      from: config.panel.sender,
+      to,
+      subject,
+      html,
+    });
+    return;
+  }
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { authorization: `Bearer ${config.resend.key}`, "content-type": "application/json" },
+    body: JSON.stringify({ from: config.panel.sender, to: [to], subject, html, text }),
+  });
+  if (!res.ok) console.error(`[panel-mail] ${res.status} ${await res.text()}`);
+}
+
 export async function sendWelcome(
   to: string,
   opts: { lang?: string; accent?: string; mode?: string; source?: string | null; brand?: string },

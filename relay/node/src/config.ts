@@ -73,6 +73,15 @@ export const config = {
     keysByBrand: parseResendKeys(),
     fromOverride: env("WELCOME_FROM"), // emergency global sender override (default: per-brand)
   },
+
+  // Panel control plane: magic-link sessions signed with SESSION_SECRET; the
+  // login email links back to PANEL_URL. panelSender = the from for that email
+  // (a verified panov.id address, sent via the default Resend key).
+  session: { secret: env("SESSION_SECRET") },
+  panel: {
+    url: env("PANEL_URL"), // e.g. https://xor.panov.id — where the magic link lands
+    sender: env("PANEL_SENDER", "xor.panov.id <panel@panov.id>"),
+  },
 } as const;
 
 function parseResendKeys(): Record<string, string> {

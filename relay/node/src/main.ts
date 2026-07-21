@@ -12,6 +12,8 @@ import { metrics } from "./routes/metrics.ts";
 import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
 import { relayUpgrade } from "./chat/relay.ts";
+import { match } from "./lib/router.ts";
+import "./routes/admin.ts"; // registers /auth/* + /admin/* on the pattern router
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -34,17 +36,20 @@ Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req) => {
   const route = `${req.method} ${url.pathname}`;
   const reqId = crypto.randomUUID();
   const started = performance.now();
-  const handler = routes[route];
+  const handler: Handler | undefined = routes[route];
+  const patterned = handler === undefined ? match(req.method, url.pathname) : undefined;
   let res: Response;
-  if (handler) {
-    try {
+  try {
+    if (typeof handler === "function") {
       res = await handler(req);
-    } catch (e) {
-      log("error", "handler threw", { route, req_id: reqId, error: String(e) });
-      res = json({ error: "internal" }, 500);
+    } else if (patterned) {
+      res = await patterned.h({ req, params: patterned.params, url });
+    } else {
+      res = json({ error: "not found" }, 404);
     }
-  } else {
-    res = json({ error: "not found" }, 404);
+  } catch (e) {
+    log("error", "handler threw", { route, req_id: reqId, error: String(e) });
+    res = json({ error: "internal" }, 500);
   }
 
   // Don't log/count the scrape endpoint itself (avoids self-referential noise).

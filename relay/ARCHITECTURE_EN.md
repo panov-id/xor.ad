@@ -85,8 +85,10 @@ sudo `deploy` user, default-deny firewall).
 
 ## Notes
 
-- **Supabase is still alive overall** — used by the panel (`xor.panov.id`) and the
-  **sosed** landing (not migrated yet). Only neighbro's landing backend left Supabase.
+- **Supabase fully decommissioned** (2026-07-22): the landings (neighbro + sosed)
+  and the panel (`xor.panov.id`) all run on relay; both Supabase projects are
+  deleted, the api.* proxy zones and secrets removed. Pre-teardown data is in the
+  `supabase-backup-2026-07-22/` backup.
 - **relay dev/staging are private** — forms on `dev/uat.neighbro.panov.id` work only
   from whitelist IPs. **prod (`neighbro.place`) is public**.
 - **Per-brand Resend**: each brand has its own Resend account (free tier = 1 domain

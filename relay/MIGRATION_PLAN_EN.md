@@ -1,5 +1,9 @@
 # Plan: full move onto relay + decommission Supabase
 
+> ✅ **COMPLETE (2026-07-22).** All 4 phases done: data migrated, sosed+neighbro
+> landings and the panel on relay, both Supabase projects deleted (backup in
+> `supabase-backup-2026-07-22/`). relay `v0.2.0` across all envs.
+
 Goal: move **the landings (neighbro + sosed) and the panel** fully off Supabase onto
 relay, migrate the data, then **tear down the old infra**. The panel is designed up
 front as an extensible control plane (not a one-off endpoint) — it will grow.

@@ -216,6 +216,7 @@ type BrandStyle = {
   light: ModeColors;
   radius: string;       // border-radius for the outer card
   borderWidth: string;  // card border thickness
+  heroPath: string;     // header image path on the brand's landing CDN
 };
 
 const STYLES: Record<string, BrandStyle> = {
@@ -232,6 +233,7 @@ const STYLES: Record<string, BrandStyle> = {
     light: { bg: "#e9e6dd", panel: "#f4f1e8", border: "#1e1b14", fg: "#181510", muted: "#5f5a4e" },
     radius: "0",
     borderWidth: "2px",
+    heroPath: "img/hero.jpg",
   },
   sosed: {
     accents: {
@@ -247,6 +249,7 @@ const STYLES: Record<string, BrandStyle> = {
     light: { bg: "#ece4d8", panel: "#f5efe4", border: "#221a12", fg: "#1c140d", muted: "#6b5f4c" },
     radius: "14px",
     borderWidth: "1px",
+    heroPath: "img/splash.jpg",  // evening courtyard — warmer than the flat facade
   },
 };
 
@@ -289,7 +292,7 @@ export function welcomeEmail(
  <tr><td align="center" style="padding:32px 16px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.panel};border:${S.borderWidth} solid ${c.border};border-radius:${S.radius};overflow:hidden;">
    <tr><td style="border-bottom:3px solid ${ACCENT};line-height:0;">
-     <img src="https://${B.domain}/img/hero.jpg" width="518" alt="" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover;">
+     <img src="https://${B.domain}/${S.heroPath}" width="518" alt="" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover;">
    </td></tr>
    <tr><td style="padding:26px 30px;border-bottom:1px solid ${c.border};">
      <span style="font-family:${SANS};font-weight:800;font-size:18px;letter-spacing:1px;color:${c.fg};">${B.upper}</span>

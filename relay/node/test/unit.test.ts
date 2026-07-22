@@ -53,6 +53,7 @@ Deno.test("welcome: per-brand palette, accent and shape", () => {
   assert(s.html.includes("#d6552f")); // terra
   assert(s.html.includes("border-radius:14px"));
   assert(s.html.includes("background:#0d0b0a")); // sosed dark bg
+  assert(s.html.includes("img/splash.jpg")); // warm courtyard hero
 
   // sosed light mode + explicit accent
   const sl = welcomeEmail("ru", { brand: sosed, accent: "amber", mode: "light" });
@@ -69,6 +70,7 @@ Deno.test("welcome: per-brand palette, accent and shape", () => {
   assert(n.html.includes("#c6a24e")); // gold
   assert(n.html.includes("border-radius:0"));
   assert(n.html.includes("background:#0c0b09")); // neighbro dark bg
+  assert(n.html.includes("img/hero.jpg")); // neighbro keeps the facade hero
 
   // unknown accent falls back to the brand default
   const u = welcomeEmail("en", { brand: sosed, accent: "nope" });

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Production build of the admin panel (Vite) in a throwaway Node container.
-# Reads panel/.env.production for VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.
+# Reads panel/.env.production for VITE_RELAY_API_URL (the relay control-plane).
 # Output: panel/dist.
 set -euo pipefail
 

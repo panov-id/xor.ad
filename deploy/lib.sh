@@ -19,9 +19,3 @@ load_env() {
     exit 1
   fi
 }
-
-# project_ref_from_url <https://ref.supabase.co> -> ref
-project_ref_from_url() {
-  local u="${1#https://}"
-  echo "${u%%.supabase.co*}"
-}

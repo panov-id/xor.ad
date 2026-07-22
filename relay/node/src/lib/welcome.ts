@@ -218,16 +218,57 @@ const T: Record<Lang, {
   },
 };
 
-const ACCENTS: Record<string, { accent: string; ink: string }> = {
-  "": { accent: "#c6a24e", ink: "#1a1509" },
-  gold: { accent: "#c6a24e", ink: "#1a1509" },
-  crimson: { accent: "#e0342b", ink: "#fdeceb" },
-  teal: { accent: "#1fb39a", ink: "#04201c" },
-  azure: { accent: "#3d84d6", ink: "#eaf2ff" },
-  violet: { accent: "#9b5de5", ink: "#f3ecfd" },
+// Per-brand visual identity, mirroring each landing's palette and shape
+// language: neighbro is brutalist (sharp corners, thick borders), sosed is warm
+// and rounded (radius, thin borders). Keyed by brand key; unknown brands fall
+// back to the first entry's style via brandStyle().
+type Accent = { accent: string; ink: string };
+type ModeColors = { bg: string; panel: string; border: string; fg: string; muted: string };
+type BrandStyle = {
+  accents: Record<string, Accent>;
+  defaultAccent: string;
+  dark: ModeColors;
+  light: ModeColors;
+  radius: string;       // border-radius for the outer card
+  borderWidth: string;  // card border thickness
 };
-const DARK = { bg: "#0c0b09", panel: "#14120e", border: "#3a331f", fg: "#ede8dd", muted: "#8a8172" };
-const LIGHT = { bg: "#e9e6dd", panel: "#f4f1e8", border: "#1e1b14", fg: "#181510", muted: "#5f5a4e" };
+
+const STYLES: Record<string, BrandStyle> = {
+  neighbro: {
+    accents: {
+      gold: { accent: "#c6a24e", ink: "#1a1509" },
+      crimson: { accent: "#e0342b", ink: "#fdeceb" },
+      teal: { accent: "#1fb39a", ink: "#04201c" },
+      azure: { accent: "#3d84d6", ink: "#eaf2ff" },
+      violet: { accent: "#9b5de5", ink: "#f3ecfd" },
+    },
+    defaultAccent: "gold",
+    dark: { bg: "#0c0b09", panel: "#14120e", border: "#3a331f", fg: "#ede8dd", muted: "#8a8172" },
+    light: { bg: "#e9e6dd", panel: "#f4f1e8", border: "#1e1b14", fg: "#181510", muted: "#5f5a4e" },
+    radius: "0",
+    borderWidth: "2px",
+  },
+  sosed: {
+    accents: {
+      terra: { accent: "#d6552f", ink: "#fff6f0" },
+      amber: { accent: "#d68a1f", ink: "#241206" },
+      teal: { accent: "#1fa99a", ink: "#04231f" },
+      azure: { accent: "#3d84d6", ink: "#eaf2ff" },
+      violet: { accent: "#9b5de5", ink: "#f3ecfd" },
+      crimson: { accent: "#e0342b", ink: "#fdeceb" },
+    },
+    defaultAccent: "terra",
+    dark: { bg: "#0d0b0a", panel: "#17130f", border: "#3a2e20", fg: "#f0e7dc", muted: "#9a8d7c" },
+    light: { bg: "#ece4d8", panel: "#f5efe4", border: "#221a12", fg: "#1c140d", muted: "#6b5f4c" },
+    radius: "14px",
+    borderWidth: "1px",
+  },
+};
+
+function brandStyle(key: string): BrandStyle {
+  return STYLES[key] ?? Object.values(STYLES)[0];
+}
+
 const SANS = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 const MONO = "'SF Mono',ui-monospace,Menlo,Consolas,monospace";
 
@@ -249,8 +290,9 @@ export function welcomeEmail(
     title: rep(raw.title), body: raw.body.map(rep), next: rep(raw.next),
     sign: rep(raw.sign), why: rep(raw.why),
   };
-  const a = ACCENTS[opts.accent ?? ""] ?? ACCENTS[""];
-  const c = opts.mode === "light" ? LIGHT : DARK;
+  const S = brandStyle(B.key);
+  const a = S.accents[opts.accent || S.defaultAccent] ?? S.accents[S.defaultAccent];
+  const c = opts.mode === "light" ? S.light : S.dark;
   const ACCENT = a.accent;
 
   const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
@@ -260,7 +302,7 @@ export function welcomeEmail(
 <span style="display:none!important;opacity:0;color:${c.bg};font-size:1px;line-height:1px;max-height:0;max-width:0;overflow:hidden;">${t.preheader}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.bg};">
  <tr><td align="center" style="padding:32px 16px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.panel};border:1px solid ${c.border};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.panel};border:${S.borderWidth} solid ${c.border};border-radius:${S.radius};overflow:hidden;">
    <tr><td style="padding:26px 30px;border-bottom:1px solid ${c.border};">
      <span style="font-family:${SANS};font-weight:800;font-size:18px;letter-spacing:1px;color:${c.fg};">${B.upper}</span>
      <span style="font-family:${MONO};font-size:11px;letter-spacing:2px;color:${c.muted};"> &nbsp;·&nbsp; BY <span style="color:${ACCENT};">PSYTICAN</span></span>

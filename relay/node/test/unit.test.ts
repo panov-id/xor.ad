@@ -47,6 +47,34 @@ Deno.test("welcome: localized + per-brand identity", () => {
   assert(en.html.includes("NEIGHBRO")); // header wordmark
 });
 
+Deno.test("welcome: per-brand palette, accent and shape", () => {
+  // sosed: terra default accent, rounded card, sosed dark background
+  const s = welcomeEmail("ru", { brand: sosed });
+  assert(s.html.includes("#d6552f")); // terra
+  assert(s.html.includes("border-radius:14px"));
+  assert(s.html.includes("background:#0d0b0a")); // sosed dark bg
+
+  // sosed light mode + explicit accent
+  const sl = welcomeEmail("ru", { brand: sosed, accent: "amber", mode: "light" });
+  assert(sl.html.includes("#d68a1f")); // amber
+  assert(sl.html.includes("background:#ece4d8")); // sosed light bg
+
+  // sosed teal uses the sosed hex, not the neighbro one
+  const st = welcomeEmail("ru", { brand: sosed, accent: "teal" });
+  assert(st.html.includes("#1fa99a"));
+  assert(!st.html.includes("#1fb39a"));
+
+  // neighbro: gold default (empty accent from the landing), brutalist card
+  const n = welcomeEmail("en", { brand: neighbro, accent: "" });
+  assert(n.html.includes("#c6a24e")); // gold
+  assert(n.html.includes("border-radius:0"));
+  assert(n.html.includes("background:#0c0b09")); // neighbro dark bg
+
+  // unknown accent falls back to the brand default
+  const u = welcomeEmail("en", { brand: sosed, accent: "nope" });
+  assert(u.html.includes("#d6552f"));
+});
+
 Deno.test("welcome: all 16 languages have their own subject", () => {
   const langs = ["en","ru","fr","de","es","el","uk","be","kk","ka","hy","az","uz","ky","tg","ro"];
   const subjects = new Set(langs.map((l) => welcomeEmail(l, { brand: sosed }).subject));

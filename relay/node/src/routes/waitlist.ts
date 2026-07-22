@@ -37,6 +37,7 @@ export async function waitlist(req: Request): Promise<Response> {
     source,
     brand: (brandHint && brandByKey(brandHint)?.key) || resolveBrand(source).key,
     lang,
+    accent: typeof body.accent === "string" ? body.accent.slice(0, 16) : null,
     mode: typeof body.mode === "string" ? body.mode.slice(0, 16) : null,
     early_access: body.early_access === true,
     node: config.nodeId,

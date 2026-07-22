@@ -7,7 +7,7 @@
 - [ ] **Bunny.net** — Account API Key (Dashboard → Account → API Key).
 - [ ] **Supabase Cloud** — один проект (общий dev+uat); **Management token** (Account → Access Tokens) и **project ref** (Settings → API).
 - [ ] **GitHub PAT** — Environments + Secrets (write) на `panov-id/{sosed.place, neighbro.place, xor.ad}`.
-- [ ] **Namecheap** — Profile → Tools → **API Access: включить**; в whitelist добавить egress-IP хоста (узнать: `curl https://api.ipify.org`; на момент подготовки было `46.199.76.154`, может смениться если динамический).
+- [ ] **Namecheap** — Profile → Tools → **API Access: включить**; в whitelist добавить egress-IP хоста (узнать: `curl https://api.ipify.org`).
 
 ## 1. Конфиг `deploy/.env.deploy` (gitignored)
 ```bash

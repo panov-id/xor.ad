@@ -45,9 +45,9 @@ apiUrl (per env, from config.js):
 
 | Env | Node | Where | Access | Mail | Image |
 |-----|------|-------|--------|------|-------|
-| dev | n1-dev | Hetzner cpx22/nbg1 `188.245.78.216` | private (443 from whitelist IPs) | Mailpit | `relay-node:<sha>` |
+| dev | n1-dev | Hetzner cpx22/nbg1 (IP in the local inventory) | private (443 from whitelist IPs) | Mailpit | `relay-node:<sha>` |
 | staging (= landing uat) | n1-staging | same box n1 | private | Resend | `relay-node:vX.Y.Z` |
-| prod | p1-prod | Hetzner cpx22/nbg1 `178.105.61.14` | public (443) | Resend | same `vX.Y.Z` |
+| prod | p1-prod | Hetzner cpx22/nbg1 (IP in the local inventory) | public (443) | Resend | same `vX.Y.Z` |
 
 Landing ↔ relay per env:
 `dev.neighbro.panov.id → n1-dev`, `uat.neighbro.panov.id → n1-staging`,

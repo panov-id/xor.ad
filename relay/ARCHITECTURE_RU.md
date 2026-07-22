@@ -44,9 +44,9 @@ apiUrl (per env, из config.js):
 
 | Env | Нода | Где | Доступ | Почта | Образ |
 |-----|------|-----|--------|-------|-------|
-| dev | n1-dev | Hetzner cpx22/nbg1 `188.245.78.216` | приватно (443 c whitelist-IP) | Mailpit | `relay-node:<sha>` |
+| dev | n1-dev | Hetzner cpx22/nbg1 (IP в локальном inventory) | приватно (443 c whitelist-IP) | Mailpit | `relay-node:<sha>` |
 | staging (=uat лендинга) | n1-staging | тот же бокс n1 | приватно | Resend | `relay-node:vX.Y.Z` |
-| prod | p1-prod | Hetzner cpx22/nbg1 `178.105.61.14` | публично (443) | Resend | тот же `vX.Y.Z` |
+| prod | p1-prod | Hetzner cpx22/nbg1 (IP в локальном inventory) | публично (443) | Resend | тот же `vX.Y.Z` |
 
 Лендинг ↔ relay per env:
 `dev.neighbro.panov.id → n1-dev`, `uat.neighbro.panov.id → n1-staging`,

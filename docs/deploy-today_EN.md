@@ -7,7 +7,7 @@ Full architecture is in `deployment_EN.md`. dev+uat share **one** Supabase proje
 - [ ] **Bunny.net** — Account API Key (Dashboard → Account → API Key).
 - [ ] **Supabase Cloud** — one project (shared dev+uat); **Management token** (Account → Access Tokens) and **project ref** (Settings → API).
 - [ ] **GitHub PAT** — Environments + Secrets (write) on `panov-id/{sosed.place, neighbro.place, xor.ad}`.
-- [ ] **Namecheap** — Profile → Tools → **enable API Access**; whitelist the host's egress IP (find it: `curl https://api.ipify.org`; was `46.199.76.154` at prep time, may change if dynamic).
+- [ ] **Namecheap** — Profile → Tools → **enable API Access**; whitelist the host's egress IP (find it: `curl https://api.ipify.org`).
 
 ## 1. Config `deploy/.env.deploy` (gitignored)
 ```bash

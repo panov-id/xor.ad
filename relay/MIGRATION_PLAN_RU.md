@@ -346,17 +346,17 @@ export const dataProvider: DataProvider = {
 
 ## Фаза 4 — Снос старой инфры (необратимо, после 1–3)
 
-☐ 4.1 Проверить, что никто не ходит в Supabase: `grep -rn supabase panel/src sosed.place/landing neighbro.place/landing`
+☑ 4.1 Проверить, что никто не ходит в Supabase: `grep -rn supabase panel/src sosed.place/landing neighbro.place/landing`
       = пусто (кроме инертного push); сетевой аудит запросов.
-☐ 4.2 Удалить мёртвые Bunny proxy-зоны: `api.dev/uat.neighbro.panov.id`, `api.neighbro.place`,
+☑ 4.2 Удалить мёртвые Bunny proxy-зоны: `api.dev/uat.neighbro.panov.id`, `api.neighbro.place`,
       `api.dev/uat.sosed.panov.id`, `api.sosed.place` (Bunny API `DELETE /pullzone/{id}`).
-☐ 4.3 Почистить лендинги: убрать `supabaseUrl/anonKey`, инертный push, `*.supabase.co` из CSP.
-☐ 4.4 🔒 **Точка невозврата.** Бэкап обеих БД (`pg_dump` через connection string), затем
+☑ 4.3 Почистить лендинги: убрать `supabaseUrl/anonKey`, инертный push, `*.supabase.co` из CSP.
+☑ 4.4 🔒 **Точка невозврата.** Бэкап обеих БД (`pg_dump` через connection string), затем
       удалить Supabase-проекты dev (`vrkqnfonmaixuvfqsfzt`) и prod (`xyydqnwgpruqwjzacuef`)
       (`DELETE https://api.supabase.com/v1/projects/{ref}`). Только по отдельному «ок».
-☐ 4.5 Почистить секреты `SUPABASE_*`/`SUPABASE_ANON_KEY`/`VITE_SUPABASE_*` в GitHub-окружениях
+☑ 4.5 Почистить секреты `SUPABASE_*`/`SUPABASE_ANON_KEY`/`VITE_SUPABASE_*` в GitHub-окружениях
       (neighbro/sosed/xor.ad) и `deploy/.env.deploy`; убрать `db/`-деплой-тулинг Supabase.
-☐ 4.6 Обновить доки: `relay/ARCHITECTURE_*`, лендинговые `SPEC_*`, README всех трёх репо.
+☑ 4.6 Обновить доки: `relay/ARCHITECTURE_*`, лендинговые `SPEC_*`, README всех трёх репо.
 
 ---
 

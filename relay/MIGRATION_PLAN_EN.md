@@ -346,17 +346,17 @@ Remove `providers/supabase-client.ts`, `@refinedev/supabase`, the Supabase `cons
 
 ## Phase 4 — Decommission the old infra (irreversible, after 1–3)
 
-☐ 4.1 Confirm nobody calls Supabase: `grep -rn supabase panel/src sosed.place/landing neighbro.place/landing`
+☑ 4.1 Confirm nobody calls Supabase: `grep -rn supabase panel/src sosed.place/landing neighbro.place/landing`
       = empty (except the inert push); network audit of requests.
-☐ 4.2 Delete the dead Bunny proxy zones: `api.dev/uat.neighbro.panov.id`, `api.neighbro.place`,
+☑ 4.2 Delete the dead Bunny proxy zones: `api.dev/uat.neighbro.panov.id`, `api.neighbro.place`,
       `api.dev/uat.sosed.panov.id`, `api.sosed.place` (Bunny API `DELETE /pullzone/{id}`).
-☐ 4.3 Clean the landings: drop `supabaseUrl/anonKey`, the inert push, `*.supabase.co` from CSP.
-☐ 4.4 🔒 **Point of no return.** Back up both DBs (`pg_dump` via the connection string), then
+☑ 4.3 Clean the landings: drop `supabaseUrl/anonKey`, the inert push, `*.supabase.co` from CSP.
+☑ 4.4 🔒 **Point of no return.** Back up both DBs (`pg_dump` via the connection string), then
       delete the Supabase projects dev (`vrkqnfonmaixuvfqsfzt`) and prod (`xyydqnwgpruqwjzacuef`)
       (`DELETE https://api.supabase.com/v1/projects/{ref}`). Only on a separate go-ahead.
-☐ 4.5 Clean `SUPABASE_*`/`SUPABASE_ANON_KEY`/`VITE_SUPABASE_*` secrets in the GitHub
+☑ 4.5 Clean `SUPABASE_*`/`SUPABASE_ANON_KEY`/`VITE_SUPABASE_*` secrets in the GitHub
       environments (neighbro/sosed/xor.ad) and `deploy/.env.deploy`; remove the dead Supabase `db/` tooling.
-☐ 4.6 Update the docs: `relay/ARCHITECTURE_*`, the landings' `SPEC_*`, the READMEs of all three repos.
+☑ 4.6 Update the docs: `relay/ARCHITECTURE_*`, the landings' `SPEC_*`, the READMEs of all three repos.
 
 ---
 

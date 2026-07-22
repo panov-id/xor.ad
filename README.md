@@ -22,7 +22,7 @@ A place for talking to the people around you, right now, and then letting it go.
 6. **It disappears.** Messages live for 4 hours 20 minutes by default, then they're gone. The lifetime is configurable, not hardcoded.
 7. **Likes → chat.** Like something in the feed. If someone likes one of yours back, you're offered a private chat with them.
 8. **Chat.** Short back-and-forth messages. The history of that conversation exists only between the two of you — nowhere else.
-9. **Support.** A support button is always reachable from the app. A message sent through it lands in a Supabase table, and a notification (email/webhook) fires so the team knows a new ticket came in — there's no automated handling beyond that.
+9. **Support.** A support button is always reachable from the app. A message sent through it lands in the backend store, and a notification (email/webhook) fires so the team knows a new ticket came in — there's no automated handling beyond that.
 10. **Optional: share a social link.** You can attach any freeform handle or link (Telegram, Instagram, whatever) from your account and choose to share it — as a way to keep the connection alive past the chat, and as a light trust signal ("this is a real person"). Nothing is validated or restricted to a fixed platform list, and sharing it is a per-instance choice you make each time, not a default-on setting. Tapping a shared link shows a warning first — you're about to leave sosed.place / neighbro.place for an external site — before it opens.
 
 ## Design
@@ -46,14 +46,14 @@ The AI also reads for tone beyond toxicity: it flags messages with sexual subtex
 ## Architecture (alpha)
 
 - **Frontend:** React, browser-based web app — no native app for the alpha.
-- **Backend:** Supabase end to end — Postgres, Auth, Realtime, and Storage, with business logic (quotas, age filter, moderation orchestration) living in Supabase Edge Functions. No separate backend service to run or deploy.
-- **Gateway:** xor.ad is the shared custom domain every frontend talks to — the single public entry point in front of the Supabase project.
-- **Language detection:** a local language-detection library runs inside the Edge Functions — no external API call, no per-message cost.
+- **Backend:** the **relay node pool** — identical Deno nodes behind Caddy (Let's Encrypt TLS), brand-agnostic, serving every face. Today it runs the landing/panel routes (`/waitlist`, `/client-error`, panel control plane) with data in Bunny Storage and email via Resend (one account per brand); the alpha app grows on the same pool. See [`relay/ARCHITECTURE_EN.md`](./relay/ARCHITECTURE_EN.md).
+- **Gateway:** xor.ad is the shared custom domain every frontend talks to — per env the forms hit a relay node directly (`n1-dev`/`n1-staging` private, `api.relay.panov.id` public geo record for prod).
+- **Language detection:** a local language-detection library runs inside the relay nodes — no external API call, no per-message cost.
 - **Content moderation:** Google's Perspective API for toxicity, plus a low-cost LLM call per message for tone classification (sexual subtext, LGBT-related topic) — see Moderation above.
 - **Anti-abuse on posting:** Cloudflare Turnstile as the captcha layer, and Bunny Shield for IP-based rate limiting — both scoped to the feed post action, not chat.
 - **Client-side storage:** chat history is kept in the browser's IndexedDB, encrypted with the Web Crypto API before being written.
-- **Local development:** everything runs in Docker. `scripts/setup-supabase.sh` vendors the official Supabase self-hosted stack (sparse checkout of `docker/` from the Supabase repo) into `./supabase`. `docker-compose.gateway.yml` adds a plain nginx container standing in for the xor.ad gateway locally — it routes each face's hostname to its static content and proxies Supabase API paths (`/auth`, `/rest`, `/realtime`, `/storage`, `/functions`, `/graphql`) to Kong. Run both together: `docker compose -f supabase/docker-compose.yml -f docker-compose.gateway.yml --env-file supabase/.env -p xorad up -d` — the explicit `-p xorad` project name keeps this stack's volumes from colliding with any other local Supabase project (its compose file hardcodes the project name `supabase` otherwise).
-- **Deployment:** frontend served via Bunny CDN; backend runs on Supabase's managed infrastructure.
+- **Local development:** everything runs in Docker. The relay node runs locally via [`relay/local`](./relay/local) (`docker compose up --build`): storage is a mounted dir, mail goes to Mailpit — nothing leaves your machine. Landing and panel test suites run via the `docker-compose.*-tests.yml` files. The legacy vendored Supabase stack (`scripts/setup-supabase.sh`, `docker-compose.gateway.yml`) is retired — Supabase was fully decommissioned on 2026-07-22.
+- **Deployment:** frontend served via Bunny CDN; backend is the relay node pool on Hetzner (build-once images promoted dev → staging → prod, deployed via `relay/wizard`).
 - **Configuration:** every tunable — message character limit, starting post quota, message lifetime, default radius, and so on — is driven by environment variables, so behavior can be adjusted per deployment without touching code.
 
 ## Related repositories

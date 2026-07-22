@@ -1,7 +1,8 @@
 # Architecture: landings on the relay backend
 
 How the landing backend works after moving it off Supabase onto the relay node
-pool. Current for **neighbro** (fully migrated). **sosed** is still on Supabase.
+pool. Current for **both brands** (neighbro + sosed) and the panel — Supabase is
+fully decommissioned (2026-07-22).
 
 ## Overview
 
@@ -70,7 +71,7 @@ Tooling — `relay/wizard` (Docker launchpad): `provision → dns → configure/
 `pool` (add a prod node to the geo record). Nodes are hardened (key-only SSH, a
 sudo `deploy` user, default-deny firewall).
 
-## No longer used (for neighbro)
+## No longer used
 
 | Before | Now |
 |---|---|
@@ -78,10 +79,10 @@ sudo `deploy` user, default-deny firewall).
 | `waitlist` table (Supabase) | ❌ leads → Bunny Storage |
 | `client_errors` table (Supabase) | ❌ → relay `/client-error` |
 | Edge Function `send-waitlist-welcome` | ❌ → the node sends the welcome via Resend |
-| Bunny proxy zones `api.dev/uat.neighbro.panov.id`, `api.neighbro.place` (→ Supabase) | ❌ the landing does not call them (left "dead" in Bunny) |
+| Bunny proxy zones `api.dev/uat.neighbro.panov.id`, `api.neighbro.place` (→ Supabase) | ❌ deleted in Phase 4 |
 | Supabase anon key + `apikey`/`Authorization` headers on the form | ❌ not sent (relay is CORS-gated) |
 | PostgREST `/rest/v1/...` | ❌ → relay `/waitlist`, `/client-error` |
-| `push_subscriptions` (Supabase) | ⚠️ inert: no relay route, push is off (`vapidPublicKey:""`); `supabaseUrl` stays in `config.js` only for that disabled push |
+| `push_subscriptions` (Supabase) | ❌ push is off (`vapidPublicKey:""`); the inert code and `supabaseUrl` were removed from the landings in Phase 4 |
 
 ## Notes
 
@@ -99,5 +100,5 @@ sudo `deploy` user, default-deny firewall).
 ## Known loose ends
 
 - Metric `relay_mail_total{result="sent"}` increments even on a non-2xx from Resend.
-- `landing/SPEC_*.md` still document the old Supabase contract.
-- sosed: create a Resend account and migrate the landing.
+- sosed: create a Resend account (the landing is migrated; its welcome email
+  currently fails while the waitlist still stores).

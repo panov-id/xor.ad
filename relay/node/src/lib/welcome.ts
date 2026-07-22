@@ -1,7 +1,8 @@
 // Branded "you're on the waitlist" email — ported from the Supabase Edge
 // Function send-waitlist-welcome. Brutalist, in the visitor's language + chosen
-// colour theme (accent + light/dark). Table-based, inline styles, no external
-// assets (email-client safe). One node serves all faces; the brand name + domain
+// colour theme (accent + light/dark). Table-based, inline styles; the only
+// external asset is the brand's landing hero image (CDN-hosted, email clients
+// load remote images). One node serves all faces; the brand name + domain
 // + sender come from the brand registry (config.brands) — extensible to N brands.
 //
 // All 16 landing languages are covered; any unknown code falls back to en.
@@ -30,7 +31,6 @@ const T: Record<Lang, {
     hi: "Welcome", title: "You're on the list.",
     body: [
       "Neighbro is the art of being nearby — say something to the people around you right now, match, talk, and let it fade. No profile. No feed. No noise.",
-      "You're one of the first. When your neighborhood opens, you'll be among the first to walk in.",
     ],
     next: "We'll email you the moment it's live.",
     sign: "— the Neighbro team",
@@ -42,7 +42,6 @@ const T: Record<Lang, {
     hi: "Добро пожаловать", title: "Ты в списке.",
     body: [
       "Neighbro — искусство быть рядом: скажи что-то людям вокруг прямо сейчас, совпади, поговори — и отпусти. Без профиля. Без ленты. Без шума.",
-      "Ты среди первых. Когда откроется твой район — войдёшь одним из первых.",
     ],
     next: "Напишем на почту, как только всё заработает.",
     sign: "— команда Neighbro",
@@ -54,7 +53,6 @@ const T: Record<Lang, {
     hi: "Bienvenue", title: "Tu es sur la liste.",
     body: [
       "Neighbro, c'est l'art d'être tout près — dis un mot aux gens autour de toi maintenant, matche, parle, puis laisse ça s'effacer. Pas de profil. Pas de fil. Pas de bruit.",
-      "Tu es parmi les premiers. Quand ton quartier ouvrira, tu seras parmi les premiers à entrer.",
     ],
     next: "On t'écrit dès que c'est en ligne.",
     sign: "— l'équipe Neighbro",
@@ -66,7 +64,6 @@ const T: Record<Lang, {
     hi: "Willkommen", title: "Du bist auf der Liste.",
     body: [
       "Neighbro ist die Kunst, nah zu sein — sag jetzt etwas zu den Menschen um dich herum, matche, rede und lass es verblassen. Kein Profil. Kein Feed. Kein Lärm.",
-      "Du bist unter den Ersten. Wenn deine Nachbarschaft öffnet, bist du unter den Ersten, die eintreten.",
     ],
     next: "Wir mailen dir, sobald es live ist.",
     sign: "— das Neighbro-Team",
@@ -78,7 +75,6 @@ const T: Record<Lang, {
     hi: "Bienvenido", title: "Estás en la lista.",
     body: [
       "Neighbro es el arte de estar cerca: di algo a la gente a tu alrededor ahora, haz match, habla y deja que se desvanezca. Sin perfil. Sin feed. Sin ruido.",
-      "Eres de los primeros. Cuando abra tu vecindario, estarás entre los primeros en entrar.",
     ],
     next: "Te escribiremos en cuanto esté disponible.",
     sign: "— el equipo de Neighbro",
@@ -90,7 +86,6 @@ const T: Record<Lang, {
     hi: "Καλωσόρισες", title: "Είσαι στη λίστα.",
     body: [
       "Το Neighbro είναι η τέχνη του να είσαι κοντά — πες κάτι στους ανθρώπους γύρω σου τώρα, ταίριαξε, μίλα και άφησέ το να σβήσει. Χωρίς προφίλ. Χωρίς ροή. Χωρίς θόρυβο.",
-      "Είσαι από τους πρώτους. Όταν ανοίξει η γειτονιά σου, θα είσαι από τους πρώτους που θα μπουν.",
     ],
     next: "Θα σου στείλουμε email μόλις είναι έτοιμο.",
     sign: "— η ομάδα του Neighbro",
@@ -102,7 +97,6 @@ const T: Record<Lang, {
     hi: "Ласкаво просимо", title: "Ти у списку.",
     body: [
       "Neighbro — мистецтво бути поруч: скажи щось людям навколо просто зараз, збігнись, поговори — і відпусти. Без профілю. Без стрічки. Без шуму.",
-      "Ти серед перших. Коли відкриється твій район — увійдеш одним із перших.",
     ],
     next: "Напишемо на пошту, щойно все запрацює.",
     sign: "— команда Neighbro",
@@ -114,7 +108,6 @@ const T: Record<Lang, {
     hi: "Сардэчна запрашаем", title: "Ты ў спісе.",
     body: [
       "Neighbro — мастацтва быць побач: скажы нешта людзям вакол проста зараз, супадзі, пагавары — і адпусці. Без профілю. Без стужкі. Без шуму.",
-      "Ты сярод першых. Калі адкрыецца твой раён — увойдзеш адным з першых.",
     ],
     next: "Напішам на пошту, як толькі ўсё запрацуе.",
     sign: "— каманда Neighbro",
@@ -126,7 +119,6 @@ const T: Record<Lang, {
     hi: "Қош келдің", title: "Сен тізімдесің.",
     body: [
       "Neighbro — жақын болу өнері: дәл қазір айналаңдағы адамдарға бірдеңе айт, сәйкес кел, сөйлес — содан кейін жібер. Профильсіз. Таспасыз. Шусыз.",
-      "Сен алғашқылардың бірісің. Ауданың ашылғанда, алғашқылардың бірі болып кіресің.",
     ],
     next: "Іске қосылған сәтте поштаңа жазамыз.",
     sign: "— Neighbro командасы",
@@ -138,7 +130,6 @@ const T: Record<Lang, {
     hi: "კეთილი იყოს შენი მობრძანება", title: "სიაში ხარ.",
     body: [
       "Neighbro არის ახლოს ყოფნის ხელოვნება — უთხარი რაღაც შენ გარშემო მყოფ ხალხს ახლავე, დაემთხვიე, ისაუბრე და გააქრე. პროფილის გარეშე. ფიდის გარეშე. ხმაურის გარეშე.",
-      "შენ პირველთა შორის ხარ. როცა შენი უბანი გაიხსნება, პირველთა შორის შეხვალ.",
     ],
     next: "მოგწერთ, როგორც კი ამოქმედდება.",
     sign: "— Neighbro-ს გუნდი",
@@ -150,7 +141,6 @@ const T: Record<Lang, {
     hi: "Բարի գալուստ", title: "Դու ցուցակում ես։",
     body: [
       "Neighbro-ն մոտ լինելու արվեստն է — ասա մի բան շուրջդ գտնվող մարդկանց հենց հիմա, համընկիր, խոսիր և թող որ չքանա։ Առանց պրոֆիլի։ Առանց հոսքի։ Առանց աղմուկի։",
-      "Դու առաջիններից ես։ Երբ քո թաղը բացվի, առաջիններից կլինես, որ ներս կմտնես։",
     ],
     next: "Կգրենք փոստիդ հենց որ գործարկվի։",
     sign: "— Neighbro-ի թիմը",
@@ -162,7 +152,6 @@ const T: Record<Lang, {
     hi: "Xoş gəldin", title: "Siyahıdasan.",
     body: [
       "Neighbro yaxın olmaq sənətidir — indi ətrafındakı insanlara bir söz de, uyğun gəl, danış və qoy əriyib getsin. Profil yoxdur. Lent yoxdur. Səs-küy yoxdur.",
-      "Sən ilklərdənsən. Məhəllən açılanda, ilk girənlərdən biri olacaqsan.",
     ],
     next: "İşə düşən kimi poçtuna yazacağıq.",
     sign: "— Neighbro komandası",
@@ -174,7 +163,6 @@ const T: Record<Lang, {
     hi: "Xush kelibsan", title: "Roʻyxatdasan.",
     body: [
       "Neighbro — yaqin boʻlish sanʼati: hozir atrofingdagi odamlarga biror narsa ayt, mos kel, gaplash va qoʻyib yubor. Profilsiz. Lentasiz. Shovqinsiz.",
-      "Sen birinchilardansan. Mahallang ochilganda, birinchi kirganlardan boʻlasan.",
     ],
     next: "Ishga tushishi bilan pochtangga yozamiz.",
     sign: "— Neighbro jamoasi",
@@ -186,7 +174,6 @@ const T: Record<Lang, {
     hi: "Кош келдиң", title: "Тизмедесиң.",
     body: [
       "Neighbro — жакын болуу өнөрү: азыр айланаңдагы адамдарга бир нерсе айт, дал кел, сүйлөш жана коё бер. Профилсиз. Тасмасыз. Ызы-чуусуз.",
-      "Сен биринчилерденсиң. Районуң ачылганда, биринчилерден болуп киресиң.",
     ],
     next: "Иштеп баштаары менен почтаңа жазабыз.",
     sign: "— Neighbro командасы",
@@ -198,7 +185,6 @@ const T: Record<Lang, {
     hi: "Хуш омадӣ", title: "Ту дар рӯйхатӣ.",
     body: [
       "Neighbro санъати наздик будан аст — ҳозир ба одамони атрофат чизе гӯй, мувофиқ шав, сӯҳбат кун ва бигзор нопадид шавад. Бе профил. Бе лента. Бе ғавғо.",
-      "Ту аз аввалинҳо ҳастӣ. Вақте ки маҳаллаат кушода шавад, аз аввалинҳо шуда медароӣ.",
     ],
     next: "Ҳамин ки ба кор дарояд, ба почтаат менависем.",
     sign: "— дастаи Neighbro",
@@ -210,7 +196,6 @@ const T: Record<Lang, {
     hi: "Bine ai venit", title: "Ești pe listă.",
     body: [
       "Neighbro e arta de a fi aproape — spune ceva oamenilor din jurul tău chiar acum, dă match, vorbește și lasă să se stingă. Fără profil. Fără feed. Fără zgomot.",
-      "Ești printre primii. Când se deschide cartierul tău, vei fi printre primii care intră.",
     ],
     next: "Îți scriem pe mail imediat ce e live.",
     sign: "— echipa Neighbro",
@@ -303,6 +288,9 @@ export function welcomeEmail(
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.bg};">
  <tr><td align="center" style="padding:32px 16px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.panel};border:${S.borderWidth} solid ${c.border};border-radius:${S.radius};overflow:hidden;">
+   <tr><td style="border-bottom:3px solid ${ACCENT};line-height:0;">
+     <img src="https://${B.domain}/img/hero.jpg" width="518" alt="" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover;">
+   </td></tr>
    <tr><td style="padding:26px 30px;border-bottom:1px solid ${c.border};">
      <span style="font-family:${SANS};font-weight:800;font-size:18px;letter-spacing:1px;color:${c.fg};">${B.upper}</span>
      <span style="font-family:${MONO};font-size:11px;letter-spacing:2px;color:${c.muted};"> &nbsp;·&nbsp; BY <span style="color:${ACCENT};">PSYTICAN</span></span>

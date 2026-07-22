@@ -1,8 +1,8 @@
 name: _deploy (reusable)
 
-# Shared deploy steps for one environment: build+push the panel, apply DB
-# migrations, deploy edge functions. Called by deploy-dev/uat/prod.
-# Environment-scoped secrets are resolved via the job's `environment:`.
+# Shared deploy steps for one environment: build + push the panel to its CDN.
+# The panel talks to the relay control-plane (VITE_RELAY_API_URL) — no Supabase.
+# Called by deploy-dev/uat/prod; env-scoped secrets via the job's `environment:`.
 on:
   workflow_call:
     inputs:
@@ -42,18 +42,3 @@ jobs:
           BUNNY_PULL_ZONE_ID: ${{ secrets.BUNNY_PANEL_PULL_ZONE_ID }}
           BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
         run: bash deploy/deploy-panel-ci.sh
-
-      - name: Apply DB migrations
-        env:
-          CI: "true"
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: bash deploy/apply-migrations-cloud.sh
-
-      - name: Deploy edge functions
-        env:
-          CI: "true"
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          PANEL_URL: ${{ secrets.PANEL_URL }}
-        run: bash deploy/deploy-functions-cloud.sh

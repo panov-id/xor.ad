@@ -82,7 +82,7 @@ def load_records(path):
             "Name": (r.get("name") or "").strip() or "@",
             "Type": (r.get("type") or "").upper(),
             "Address": r.get("value") or r.get("address") or "",
-            "MXPref": str(r.get("priority") or 10),
+            "MXPref": str(r.get("priority") or r.get("mxpref") or 10),
             "TTL": "1800",
         })
     return out

@@ -10,7 +10,8 @@ cd "$(dirname "$0")"                       # wizard/
 ROOT="$(cd .. && pwd)"                      # relay/
 
 docker build -q -t relay-wizard . >/dev/null
-docker run --rm -it \
+TTY_FLAGS="-i"; [ -t 0 ] && TTY_FLAGS="-it"   # allow non-interactive runs (CI, scripted)
+docker run --rm $TTY_FLAGS \
   -v "$ROOT:/relay" -w /relay/wizard \
   -v "${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent" -e SSH_AUTH_SOCK=/ssh-agent \
   --env-file "${SECRETS_ENV:-/dev/null}" \

@@ -11,3 +11,5 @@
 # Deploy secrets — real tokens/keys, never committed
 /deploy/.env.deploy
 /deploy/github-secrets.json
+# Runtime artifact of deploy/setup-sosed-email.sh (Resend domain DNS payload)
+/deploy/.sosed-resend-domain.json

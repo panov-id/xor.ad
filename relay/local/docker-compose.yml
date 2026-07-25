@@ -19,6 +19,10 @@ services:
       MAIL_TRANSPORT: smtp
       MAIL_SMTP_HOST: mailpit
       MAIL_SMTP_PORT: "1025"
+      # Panel control plane. A throwaway local secret so /auth/* and /admin/*
+      # can be exercised on the stand; magic links land on the panel dev server.
+      SESSION_SECRET: local-panel-secret
+      PANEL_URL: http://localhost:5173
     volumes:
       - ./data:/data
     ports: ["8081:8080"]           # 8080 on the host is the xor.ad gateway

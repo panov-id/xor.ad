@@ -4,6 +4,7 @@
 import { config } from "../config.ts";
 import { json, readJson } from "../lib/http.ts";
 import { put, storageEnabled } from "../lib/storage.ts";
+import { log } from "../lib/log.ts";
 
 function cap(value: unknown, max: number): string | null {
   return typeof value === "string" ? value.slice(0, max) : null;
@@ -28,7 +29,9 @@ export async function clientError(req: Request): Promise<Response> {
 
   if (storageEnabled()) {
     const key = `client-errors/${config.envName}/${crypto.randomUUID()}.json`;
-    put(key, record).catch((e) => console.error("[client-error] store failed", e));
+    put(key, record).catch((error) =>
+      log("error", "client-error store failed", { key, error: String(error) })
+    );
   }
   return json({ ok: true });
 }

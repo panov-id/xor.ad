@@ -69,6 +69,6 @@ export async function waitlist(req: Request): Promise<Response> {
     mode: record.mode ?? undefined,
     source,
     brand: brandHint,
-  }).catch((e) => console.error("[waitlist] welcome failed", e));
+  }).catch((error) => log("error", "welcome dispatch failed", { email, error: String(error) }));
   return json({ ok: true });
 }

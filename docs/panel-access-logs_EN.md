@@ -337,7 +337,35 @@ and record whether denied attempts (403) are logged — proposal: yes, under a d
 
 ---
 
-## Phase 6. Logs, step 3 — relay server logs
+## Phase 6. Logs, step 3 — relay server logs — ✅ done (option a)
+
+Decision on 6.1: `log.ts` additionally writes `warn`/`error` to
+`server-logs/<env>/`. Result: the sink in `lib/log.ts`, route
+`GET /admin/logs-server` behind `logs.server.read` (admin only), page
+`pages/logs/server/list.tsx`, `test/log_sink.test.ts`, and
+`scripts/verify-server-logs-local.sh`. 29 relay tests and the panel typecheck are
+green; verified live against a real node failure.
+
+Decisions:
+- **Storm guard.** A node in trouble logs in bursts, and every persisted line is a
+  storage request. Past 32 writes in flight the copy is dropped, and the number
+  dropped rides along as `dropped_before` on the next line that gets through — a
+  reader sees the gap instead of silently reading a partial picture. stdout still
+  has everything.
+- **No recursion.** A failed write goes straight to `console.error` rather than
+  through `log()`, which would make every failed write produce another attempt.
+- **`info` is not stored** — it is one line per request, so one object per
+  request. The script proves it by comparing counts rather than asserting it.
+
+Deliberately not done, pending a decision: direct `console.error` calls bypass the
+sink — `lib/mailer.ts:24,50` (Resend responses), `routes/waitlist.ts:72`,
+`routes/client_error.ts:31`, `config.ts:38,93,104,107` (boot warnings, where
+storage is not configured yet). They will not appear in the panel until they move
+to `log()`.
+
+Also not done: retention. The prefix grows without bound.
+
+### Original phase 6 plan
 
 **6.1** Choose the source (a decision is needed before implementation):
 - (a) `lib/log.ts` additionally writes `warn`/`error` to Bunny Storage

@@ -21,7 +21,14 @@ async function viaResend(
     headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
     body: JSON.stringify({ from, to: [to], subject, html, text }),
   });
-  if (!res.ok) console.error(`[resend] ${res.status} ${await res.text()}`);
+  if (!res.ok) {
+    log("error", "welcome mail rejected", {
+      transport: "resend",
+      status: res.status,
+      brand: brandKey,
+      response: (await res.text()).slice(0, 500),
+    });
+  }
 }
 
 // Panel sign-in link — a system email (not brand), sent from the panel sender
@@ -47,7 +54,15 @@ export async function sendPanelLink(to: string, link: string): Promise<void> {
     headers: { authorization: `Bearer ${config.resend.key}`, "content-type": "application/json" },
     body: JSON.stringify({ from: config.panel.sender, to: [to], subject, html, text }),
   });
-  if (!res.ok) console.error(`[panel-mail] ${res.status} ${await res.text()}`);
+  if (!res.ok) {
+    // A rejected sign-in link is invisible to the person waiting for it, so it
+    // belongs where an operator will actually look.
+    log("error", "panel sign-in mail rejected", {
+      transport: "resend",
+      status: res.status,
+      response: (await res.text()).slice(0, 500),
+    });
+  }
 }
 
 export async function sendWelcome(

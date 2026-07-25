@@ -219,10 +219,14 @@ export const LogExplorer = ({
         <figure className="log-histogram">
           <div className="log-histogram-bars">
             {buckets.map((bucket) => (
+              // An empty bucket draws nothing: a hairline where there were no
+              // events reads as a low steady rate, which is a lie.
               <div
                 key={bucket.at}
-                className="log-histogram-bar"
-                style={{ height: `${Math.round((bucket.count / peak) * 100)}%` }}
+                className={bucket.count > 0 ? "log-histogram-bar" : "log-histogram-gap"}
+                style={bucket.count > 0
+                  ? { height: `${Math.max(Math.round((bucket.count / peak) * 100), 4)}%` }
+                  : undefined}
                 title={`${new Date(bucket.at).toLocaleString()} — ${bucket.count}`}
               />
             ))}

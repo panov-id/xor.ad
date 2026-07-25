@@ -227,10 +227,13 @@ table.panel-table {
 }
 .log-histogram-bar {
   flex: 1;
-  min-height: 1px;
   background: var(--accent);
   border-radius: 4px 4px 0 0;
   opacity: 0.85;
+}
+/* Holds the slot's width so the time axis stays even, but draws nothing. */
+.log-histogram-gap {
+  flex: 1;
 }
 .log-histogram-bar:hover {
   opacity: 1;

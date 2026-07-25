@@ -4,12 +4,16 @@
 // link. No membership is leaked: a request for an unknown email is a silent no-op.
 
 import { config } from "../config.ts";
+import { isRole, type Role } from "../access/index.ts";
 import { del, get, put } from "./storage.ts";
 import { sha256hex } from "./hash.ts";
 import { sign, verify } from "./jwt.ts";
 import { sendPanelLink } from "./mailer.ts";
 
-export type Role = "admin" | "moderator";
+// Roles are owned by the access core; re-exported so route modules keep importing
+// the panel vocabulary from one place.
+export type { Role };
+
 export interface PanelUser {
   email: string;
   role: Role;
@@ -53,13 +57,16 @@ export async function redeem(token: string): Promise<string | null> {
   );
 }
 
-// Resolve the caller from the Bearer session; null if unauthenticated or, when
-// minRole is given, under-privileged.
-export async function authed(req: Request, minRole?: Role): Promise<PanelUser | null> {
+// Resolve the caller from the Bearer session; null if unauthenticated. Says
+// nothing about what the caller may do — that is requirePermission's job
+// (lib/access_guard.ts), so there is one place where access is decided.
+export async function authed(req: Request): Promise<PanelUser | null> {
   if (!config.session.secret) return null;
   const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   const claims = await verify(jwt, config.session.secret);
   if (!claims) return null;
-  if (minRole === "admin" && claims.role !== "admin") return null;
-  return { email: claims.sub, role: claims.role as Role, created_at: "" };
+  // A session carrying a role that no longer exists is rejected at the door
+  // rather than trusted through an unchecked cast.
+  if (!isRole(claims.role)) return null;
+  return { email: claims.sub, role: claims.role, created_at: "" };
 }

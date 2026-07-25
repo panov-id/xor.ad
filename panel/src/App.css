@@ -171,6 +171,99 @@ table.panel-table {
   border-color: var(--muted);
   color: var(--muted);
 }
+.badge-viewer {
+  border-color: var(--muted);
+  color: var(--muted);
+  opacity: 0.7;
+}
+/* Audit outcome — a refusal is the row worth spotting, so it is the loud one. */
+.badge-applied {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+.badge-denied {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Shown while permissions are in flight — neither the page nor a refusal yet. */
+.loading-note {
+  color: var(--muted);
+}
+
+/* Logs */
+.log-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.log-ranges {
+  display: flex;
+  gap: 4px;
+}
+.log-ranges button.range-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.log-custom-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* One series, so the heading carries identity and no legend is needed. Bars are
+   thin, sit on the baseline with a 2px surface gap, and label on hover. */
+.log-histogram {
+  margin: 0 0 16px;
+}
+.log-histogram-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  border-bottom: 1px solid var(--muted);
+}
+.log-histogram-bar {
+  flex: 1;
+  min-height: 1px;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+  opacity: 0.85;
+}
+.log-histogram-bar:hover {
+  opacity: 1;
+}
+.log-histogram figcaption {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.log-row {
+  cursor: pointer;
+}
+.log-message {
+  max-width: 42ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-detail {
+  margin: 0;
+  padding: 8px;
+  overflow-x: auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.log-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
 
 /* Auth */
 .auth-wrap {

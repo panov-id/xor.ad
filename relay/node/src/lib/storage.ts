@@ -100,3 +100,50 @@ export async function list(prefix: string): Promise<string[]> {
   const items = await res.json() as Array<{ ObjectName: string; IsDirectory: boolean }>;
   return items.filter((i) => !i.IsDirectory).map((i) => i.ObjectName);
 }
+
+export interface StorageEntry {
+  name: string;
+  createdAt: string; // canonical ISO; "" when the transport cannot tell
+}
+
+// Bunny reports UTC without a zone suffix ("2025-07-25T10:12:33.123"), which Date
+// would read as local time. The zone is made explicit so every timestamp reaching
+// a caller is canonical ISO and lexicographic comparison is a time comparison.
+export function canonicalTimestamp(raw: string | undefined): string {
+  if (!raw) return "";
+  const withZone = /([Zz]|[+-]\d{2}:?\d{2})$/.test(raw) ? raw : `${raw}Z`;
+  const parsed = Date.parse(withZone);
+  return Number.isNaN(parsed) ? "" : new Date(parsed).toISOString();
+}
+
+// Same listing as list(), plus the creation time the transport already knows.
+// Lets a caller take the newest N objects — or a time window — without reading
+// every object first: collection keys are random UUIDs, so names carry no order.
+export async function listDetailed(prefix: string): Promise<StorageEntry[]> {
+  if (s.transport === "fs") {
+    try {
+      const entries: StorageEntry[] = [];
+      for (const entry of Deno.readDirSync(fsPath(prefix))) {
+        if (!entry.isFile) continue;
+        const stat = await Deno.stat(`${fsPath(prefix)}/${entry.name}`);
+        entries.push({ name: entry.name, createdAt: stat.mtime?.toISOString() ?? "" });
+      }
+      return entries;
+    } catch {
+      return [];
+    }
+  }
+  const res = await fetch(bunnyUrl(prefix.endsWith("/") ? prefix : prefix + "/"), {
+    headers: bunnyHeaders(),
+  });
+  if (!res.ok) {
+    await res.body?.cancel();
+    return [];
+  }
+  const items = await res.json() as Array<
+    { ObjectName: string; IsDirectory: boolean; DateCreated?: string }
+  >;
+  return items
+    .filter((item) => !item.IsDirectory)
+    .map((item) => ({ name: item.ObjectName, createdAt: canonicalTimestamp(item.DateCreated) }));
+}

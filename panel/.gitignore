@@ -1,6 +1,5 @@
-# Logs
-
-logs
+# Logs (runtime output at the panel root, not the log-viewer sources)
+/logs
 _.log
 npm-debug.log_
 yarn-debug.log*

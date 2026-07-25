@@ -11,18 +11,23 @@ import routerProvider, {
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { Layout } from "./components/layout";
+import { Gated } from "./components/gated";
 import authProvider from "./providers/auth";
+import { accessControlProvider } from "./providers/access";
 import { dataProvider } from "./providers/data";
 import { LoginPage } from "./pages/login";
 import { AuthCallback } from "./pages/auth-callback";
 import { WaitlistList } from "./pages/waitlist/list";
 import { PanelUsersList } from "./pages/panel-users/list";
+import { ClientErrorsList } from "./pages/logs/client-errors/list";
+import { AuditList } from "./pages/logs/audit/list";
 
 function App() {
   const refine = (
     <Refine
             dataProvider={dataProvider}
             authProvider={authProvider}
+            accessControlProvider={accessControlProvider}
             routerProvider={routerProvider}
             resources={[
               {
@@ -34,6 +39,16 @@ function App() {
                 name: "panel_users",
                 list: "/panel-users",
                 meta: { label: "Panel users" },
+              },
+              {
+                name: "logs_client_errors",
+                list: "/logs/client-errors",
+                meta: { label: "Client errors" },
+              },
+              {
+                name: "logs_audit",
+                list: "/logs/audit",
+                meta: { label: "Audit log" },
               },
             ]}
             options={{
@@ -54,8 +69,38 @@ function App() {
                 }
               >
                 <Route index element={<NavigateToResource resource="waitlist" />} />
-                <Route path="/waitlist" element={<WaitlistList />} />
-                <Route path="/panel-users" element={<PanelUsersList />} />
+                <Route
+                  path="/waitlist"
+                  element={
+                    <Gated resource="waitlist">
+                      <WaitlistList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/panel-users"
+                  element={
+                    <Gated resource="panel_users">
+                      <PanelUsersList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/logs/client-errors"
+                  element={
+                    <Gated resource="logs_client_errors">
+                      <ClientErrorsList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/logs/audit"
+                  element={
+                    <Gated resource="logs_audit">
+                      <AuditList />
+                    </Gated>
+                  }
+                />
               </Route>
               <Route
                 element={

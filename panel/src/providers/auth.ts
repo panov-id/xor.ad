@@ -1,10 +1,35 @@
 import { AuthProvider } from "@refinedev/core";
 import { api, clearToken, getToken } from "./api";
+import type { Permission, Role } from "../access";
 
 // Passwordless: the login form asks the relay to email a one-time magic link.
 // Following it hits /auth/callback (see pages/auth-callback), which exchanges the
 // token for a session JWT stored in localStorage. Access is invite-only; the
 // relay answers identically for unknown emails so membership never leaks.
+
+export interface PanelIdentity {
+  id: string;
+  email: string;
+  role: Role;
+  permissions: Permission[];
+}
+
+// The session is immutable for its lifetime, so /auth/me is asked once and the
+// in-flight promise is shared by every caller (check, identity, permissions, and
+// every access check the UI runs). Dropped on logout and on any 401/403.
+let identityRequest: Promise<PanelIdentity | null> | null = null;
+
+export function loadIdentity(): Promise<PanelIdentity | null> {
+  identityRequest ??= api("/auth/me")
+    .then((response) => (response.ok ? (response.json() as Promise<PanelIdentity>) : null))
+    .catch(() => null);
+  return identityRequest;
+}
+
+export function forgetIdentity(): void {
+  identityRequest = null;
+}
+
 const authProvider: AuthProvider = {
   login: async ({ email }) => {
     await api("/auth/request-link", { method: "POST", body: JSON.stringify({ email }) });
@@ -19,6 +44,7 @@ const authProvider: AuthProvider = {
 
   logout: async () => {
     clearToken();
+    forgetIdentity();
     return { success: true, redirectTo: "/login" };
   },
 
@@ -26,9 +52,9 @@ const authProvider: AuthProvider = {
     if (!getToken()) {
       return { authenticated: false, logout: true, redirectTo: "/login" };
     }
-    const res = await api("/auth/me");
-    if (!res.ok) {
+    if (!await loadIdentity()) {
       clearToken();
+      forgetIdentity();
       return { authenticated: false, logout: true, redirectTo: "/login" };
     }
     return { authenticated: true };
@@ -39,22 +65,17 @@ const authProvider: AuthProvider = {
       ?? (error as { status?: number })?.status;
     if (status === 401 || status === 403) {
       clearToken();
+      forgetIdentity();
       return { logout: true, redirectTo: "/login", error };
     }
     return { error };
   },
 
-  getPermissions: async () => {
-    const res = await api("/auth/me");
-    if (!res.ok) return null;
-    return (await res.json()).role ?? null;
-  },
+  getPermissions: async () => (await loadIdentity())?.permissions ?? [],
 
   getIdentity: async () => {
-    const res = await api("/auth/me");
-    if (!res.ok) return null;
-    const user = await res.json();
-    return { ...user, name: user.email };
+    const identity = await loadIdentity();
+    return identity ? { ...identity, name: identity.email } : null;
   },
 };
 

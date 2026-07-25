@@ -1,33 +1,32 @@
-import { useList, useGetIdentity } from "@refinedev/core";
+import { useList, usePermissions } from "@refinedev/core";
 import { useState } from "react";
 import { api } from "../../providers/api";
+import { type Permission, type Role, ROLES } from "../../access";
 
 type PanelUserRow = {
   id: string;
   email: string;
-  role: "admin" | "moderator";
+  role: Role;
   created_at: string;
 };
 
-type Identity = { role: "admin" | "moderator" | null };
-
 export const PanelUsersList = () => {
-  // useGetIdentity returns a TanStack UseQueryResult, so the identity is on
-  // `data` (unlike useList below, which is Refine's own { result, query }).
-  const { data: identity } = useGetIdentity<Identity>();
+  // usePermissions returns a TanStack UseQueryResult, so the list is on `data`
+  // (unlike useList below, which is Refine's own { result, query }).
+  const { data: permissions } = usePermissions<Permission[]>({});
   const { result, query } = useList<PanelUserRow>({
     resource: "panel_users",
     sorters: [{ field: "created_at", order: "desc" }],
   });
 
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"admin" | "moderator">("moderator");
+  const [role, setRole] = useState<Role>("moderator");
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const isAdmin = identity?.role === "admin";
+  const canManageUsers = permissions?.includes("panel_users.write") ?? false;
 
   const onInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +71,7 @@ export const PanelUsersList = () => {
     <div className="panel-card">
       <h1>Panel users</h1>
 
-      {isAdmin && (
+      {canManageUsers && (
         <form onSubmit={onInvite} className="auth-form panel-invite-form">
           <input
             type="email"
@@ -81,9 +80,14 @@ export const PanelUsersList = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <select value={role} onChange={(e) => setRole(e.target.value as "admin" | "moderator")}>
-            <option value="moderator">moderator</option>
-            <option value="admin">admin</option>
+          {/* Options come from the shared vocabulary, so a role added in the
+              relay core shows up here without touching this page. */}
+          <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
+            {ROLES.map((roleOption) => (
+              <option key={roleOption} value={roleOption}>
+                {roleOption}
+              </option>
+            ))}
           </select>
           <button type="submit" disabled={submitting}>
             Invite
@@ -99,7 +103,9 @@ export const PanelUsersList = () => {
           </button>
         </div>
       )}
-      {!isAdmin && <p className="auth-note">Only admins can invite new panel users.</p>}
+      {!canManageUsers && (
+        <p className="auth-note">Your role can view panel users but not change them.</p>
+      )}
 
       {query.isLoading ? (
         <p>Loading…</p>
@@ -117,7 +123,7 @@ export const PanelUsersList = () => {
               <tr key={row.id}>
                 <td>{row.email}</td>
                 <td>
-                  <span className={`badge ${row.role === "admin" ? "badge-admin" : "badge-moderator"}`}>
+                  <span className={`badge badge-${row.role}`}>
                     {row.role}
                   </span>
                 </td>

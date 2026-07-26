@@ -18,12 +18,23 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      # Mirrors scripts/run-relay-tests.sh — the reads and writes are the tenancy
+      # tests working against a real temp dir, because a mock of the boundary
+      # under test would prove nothing.
       - name: unit tests
         working-directory: relay/node
-        run: deno test --allow-env
+        run: deno test --allow-env --allow-read --allow-write --ignore=test/tenancy.test.ts
+      # In a process of its own: it rewrites BRANDS/SESSION_SECRET, and config.ts
+      # captures those at import, so sharing a process would leak them into
+      # everyone else's configuration.
+      - name: tenancy test
+        working-directory: relay/node
+        run: deno test --allow-env --allow-read --allow-write test/tenancy.test.ts
+      # Not just main.ts: the tools are the migration and the key minting, and a
+      # broken one is only discovered when it is needed most.
       - name: type check
         working-directory: relay/node
-        run: deno check src/main.ts
+        run: deno check $(find src tools -name "*.ts")
       - name: integration (local stand)
         run: bash relay/test/integration.sh
 

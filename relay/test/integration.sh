@@ -24,7 +24,10 @@ curl -sS -X POST "$NODE/waitlist" -H 'content-type: application/json' \
   | grep -q '"ok":true' || { echo "FAIL: waitlist"; exit 1; }
 
 echo "· assert stored object"  # put() is awaited before the 200, so the file is there
-ls data/waitlist/local/*.json >/dev/null 2>&1 || { echo "FAIL: no storage object"; exit 1; }
+# Under the tenant the key named, or — keyless, as here — the one its source hint
+# resolves to. Not data/waitlist/: that path is the pre-tenancy layout.
+ls data/tenants/sosed/waitlist/local/*.json >/dev/null 2>&1 ||
+  { echo "FAIL: no storage object under tenants/sosed"; exit 1; }
 
 echo "· assert Mailpit caught the welcome"  # SMTP is async — poll
 total=0

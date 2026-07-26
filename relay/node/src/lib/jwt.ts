@@ -28,6 +28,7 @@ async function hmacKey(secret: string): Promise<CryptoKey> {
 export interface Claims {
   sub: string;
   role: string;
+  brand: string | null; // the tenant the session acts within; null = platform
   exp: number; // unix seconds
   [k: string]: unknown;
 }

@@ -11,6 +11,11 @@ import { ALL_PERMISSIONS, isRole, type Role, ROLE_PERMISSIONS } from "./roles.ts
 
 export interface AccessSubject {
   role: Role;
+  // The tenant this subject acts within; null means a platform operator, who is
+  // not confined to one brand. `can()` ignores it on purpose: "may this action
+  // happen" and "over whose data" are separate questions, and mixing them here
+  // would make every permission check silently tenant-shaped.
+  brand: string | null;
 }
 
 // Expand a role into its concrete permissions — used for the wire payload the

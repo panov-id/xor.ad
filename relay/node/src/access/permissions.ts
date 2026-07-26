@@ -11,6 +11,10 @@ export const PERMISSIONS = [
   "logs.client_errors.read",
   "logs.audit.read",
   "logs.server.read",
+  "brands.read",
+  "brands.write",
+  "api_keys.read",
+  "api_keys.write",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

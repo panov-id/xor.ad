@@ -2,6 +2,7 @@
 // Run: deno test (in node/).
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
+  type AccessSubject,
   ALL_PERMISSIONS,
   can,
   canAll,
@@ -13,15 +14,19 @@ import {
   ROLES,
 } from "../src/access/index.ts";
 
+// The tenant is irrelevant to these tests: can() decides on the role alone, and
+// spelling `brand: null` at every call site would suggest otherwise.
+const subject = (role: AccessSubject["role"]): AccessSubject => ({ role, brand: null });
+
 Deno.test("admin holds every permission in the catalogue", () => {
   assertEquals([...permissionsOf("admin")], [...PERMISSIONS]);
   for (const permission of PERMISSIONS) {
-    assert(can({ role: "admin" }, permission), `admin missing ${permission}`);
+    assert(can(subject("admin"), permission), `admin missing ${permission}`);
   }
 });
 
 Deno.test("moderator reads the panel and its logs but writes no users", () => {
-  const moderator = { role: "moderator" } as const;
+  const moderator = subject("moderator");
   assert(can(moderator, "waitlist.read"));
   assert(can(moderator, "panel_users.read"));
   assert(can(moderator, "logs.client_errors.read"));
@@ -31,7 +36,7 @@ Deno.test("moderator reads the panel and its logs but writes no users", () => {
 });
 
 Deno.test("viewer sees the waitlist only — no logs, no users", () => {
-  const viewer = { role: "viewer" } as const;
+  const viewer = subject("viewer");
   assertEquals([...permissionsOf("viewer")], ["waitlist.read"]);
   assert(!can(viewer, "logs.client_errors.read"));
   assert(!can(viewer, "logs.audit.read"));
@@ -39,20 +44,30 @@ Deno.test("viewer sees the waitlist only — no logs, no users", () => {
   assert(!can(viewer, "panel_users.read"));
 });
 
+Deno.test("tenant_admin owns its brand and nothing of the platform", () => {
+  const tenant = subject("tenant_admin");
+  assert(can(tenant, "panel_users.write"));
+  assert(can(tenant, "api_keys.write"));
+  // The platform is not theirs: node-wide logs and the brand registry stay out.
+  assert(!can(tenant, "logs.server.read"));
+  assert(!can(tenant, "brands.read"));
+  assert(!can(tenant, "brands.write"));
+});
+
 Deno.test("access fails closed: no subject, unknown role, unknown permission", () => {
   assert(!can(null, "waitlist.read"));
   assert(!can(undefined, "waitlist.read"));
   // An unrecognised role is denied, not defaulted — a stale session carrying a
   // removed role loses access instead of inheriting someone else's.
-  assert(!can({ role: "root" } as unknown as { role: "admin" }, "waitlist.read"));
+  assert(!can({ role: "root", brand: null } as unknown as AccessSubject, "waitlist.read"));
   assertEquals([...permissionsOf("root" as unknown as "admin")], []);
 });
 
 Deno.test("canAll requires every permission", () => {
-  assert(canAll({ role: "admin" }, ["panel_users.write", "logs.server.read"]));
-  assert(canAll({ role: "moderator" }, ["waitlist.read", "panel_users.read"]));
-  assert(!canAll({ role: "moderator" }, ["panel_users.read", "panel_users.write"]));
-  assert(canAll({ role: "viewer" }, []), "an empty requirement is vacuously satisfied");
+  assert(canAll(subject("admin"), ["panel_users.write", "logs.server.read"]));
+  assert(canAll(subject("moderator"), ["waitlist.read", "panel_users.read"]));
+  assert(!canAll(subject("moderator"), ["panel_users.read", "panel_users.write"]));
+  assert(canAll(subject("viewer"), []), "an empty requirement is vacuously satisfied");
   assert(!canAll(null, ["waitlist.read"]));
 });
 

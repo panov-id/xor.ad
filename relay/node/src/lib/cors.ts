@@ -13,7 +13,8 @@ export function corsHeaders(origin: string | null): Record<string, string> {
   return {
     "access-control-allow-origin": allowed,
     "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
-    "access-control-allow-headers": "authorization, content-type",
+    // The browser drops x-api-key on the preflight without this.
+    "access-control-allow-headers": "authorization, content-type, x-api-key",
     "access-control-max-age": "86400",
     "vary": "origin",
   };

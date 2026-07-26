@@ -17,6 +17,9 @@ export type { Role };
 export interface PanelUser {
   email: string;
   role: Role;
+  // Which tenant this operator belongs to. Absent in records written before
+  // tenancy, and read as null — the platform scope they already had.
+  brand: string | null;
   created_at: string;
 }
 
@@ -52,7 +55,17 @@ export async function redeem(token: string): Promise<string | null> {
   const user = await getUser(m.email);
   if (!user) return null;
   return await sign(
-    { sub: user.email, role: user.role, exp: Math.floor(Date.now() / 1000) + SESSION_TTL_S },
+    {
+      sub: user.email,
+      role: user.role,
+      // Records predating tenancy carry no brand. Baked into the token rather
+      // than read per request: moving an operator to another brand therefore
+      // takes effect on their next sign-in, not immediately. Acceptable because
+      // moving one is rare and the session is short; if that stops being true,
+      // this is the line to revisit.
+      brand: user.brand ?? null,
+      exp: Math.floor(Date.now() / 1000) + SESSION_TTL_S,
+    },
     config.session.secret,
   );
 }
@@ -68,5 +81,12 @@ export async function authed(req: Request): Promise<PanelUser | null> {
   // A session carrying a role that no longer exists is rejected at the door
   // rather than trusted through an unchecked cast.
   if (!isRole(claims.role)) return null;
-  return { email: claims.sub, role: claims.role, created_at: "" };
+  return {
+    email: claims.sub,
+    role: claims.role,
+    // A session predating tenancy carries no brand — platform scope, same as
+    // the user record it was minted from.
+    brand: typeof claims.brand === "string" ? claims.brand : null,
+    created_at: "",
+  };
 }

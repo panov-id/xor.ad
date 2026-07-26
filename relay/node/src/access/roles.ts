@@ -7,7 +7,7 @@
 
 import type { Permission } from "./permissions.ts";
 
-export const ROLES = ["admin", "moderator", "viewer"] as const;
+export const ROLES = ["admin", "moderator", "viewer", "tenant_admin"] as const;
 
 export type Role = (typeof ROLES)[number];
 
@@ -22,6 +22,18 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     "logs.audit.read",
   ],
   viewer: ["waitlist.read"],
+  // A tenant's own administrator: full reach inside their brand, and no reach
+  // into the platform. Deliberately not "*" — the wildcard would hand every
+  // future platform permission to every tenant the day it is added.
+  tenant_admin: [
+    "waitlist.read",
+    "panel_users.read",
+    "panel_users.write",
+    "logs.client_errors.read",
+    "logs.audit.read",
+    "api_keys.read",
+    "api_keys.write",
+  ],
 };
 
 export function isRole(value: unknown): value is Role {

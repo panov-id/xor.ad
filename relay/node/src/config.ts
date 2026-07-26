@@ -24,11 +24,32 @@ const DEFAULT_BRANDS: Brand[] = [
     from: "Neighbro <hello@neighbro.place>", match: ["neighbro"] },
 ];
 
+// A brand key becomes a path segment under tenants/ (lib/scoped_storage.ts), so
+// its shape is a boundary, not a naming convention: "../.." would be a door into
+// another tenant's data. Checked at every way in — the env below and the stored
+// registry — because self-service tenant registration is on the roadmap and will
+// hand the key to someone else to choose.
+export const BRAND_KEY_PATTERN = /^[a-z0-9][a-z0-9-]{1,31}$/;
+
+export function isBrandKey(value: unknown): value is string {
+  return typeof value === "string" && BRAND_KEY_PATTERN.test(value);
+}
+
 function parseBrands(): Brand[] {
   const raw = env("BRANDS"); // full JSON array; replaces the defaults
   if (!raw) return DEFAULT_BRANDS;
   try {
     const arr = JSON.parse(raw) as Array<Partial<Brand> & Pick<Brand, "key" | "name" | "domain" | "from">>;
+    const rejected = arr.filter((b) => !isBrandKey(b.key));
+    if (rejected.length > 0) {
+      // Loud and total: a half-applied brand list would serve some tenants and
+      // silently drop others, which is harder to notice than falling back.
+      console.warn(
+        "[config] BRANDS contains unusable keys, using defaults:",
+        rejected.map((b) => String(b.key)).join(", "),
+      );
+      return DEFAULT_BRANDS;
+    }
     return arr.map((b) => ({
       key: b.key, name: b.name, domain: b.domain, from: b.from,
       upper: b.upper ?? b.name.toUpperCase(),
@@ -45,6 +66,12 @@ export const config = {
   nodeId: env("NODE_ID", "n0"),
   region: env("NODE_REGION", "unknown"),
   port: Number(env("PORT", "8080")),
+
+  // Public routes accept an x-api-key that names the tenant. Until every landing
+  // sends one (docs/api-platform_*.md, block E), a keyless request still resolves
+  // its brand from host/source and says so in the log. Flip to "true" per env
+  // once the landings are updated; the fallback goes away with the flag.
+  requireApiKey: env("REQUIRE_API_KEY") === "true",
 
   allowedOrigins: env("ALLOWED_ORIGINS")
     .split(",").map((s) => s.trim()).filter(Boolean),

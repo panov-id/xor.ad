@@ -2,12 +2,13 @@
 // Bunny Storage (object keyed by hashed email), fire a best-effort welcome email.
 // Body: { email, source?, early_access?, lang?, mode? } (matches the landing).
 
-import { brandByKey, config } from "../config.ts";
+import { config } from "../config.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { sha256hex } from "../lib/hash.ts";
-import { exists, put, storageEnabled } from "../lib/storage.ts";
+import { storageEnabled } from "../lib/storage.ts";
+import { scopedForBrand } from "../lib/scoped_storage.ts";
+import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
 import { sendWelcome } from "../lib/mailer.ts";
-import { resolveBrand } from "../lib/welcome.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 
@@ -31,11 +32,19 @@ export async function waitlist(req: Request): Promise<Response> {
   const email = body.email.trim().toLowerCase();
   const lang = typeof body.lang === "string" ? body.lang.slice(0, 8) : "en";
   const source = typeof body.source === "string" ? body.source.slice(0, 120) : null;
-  const brandHint = typeof body.brand === "string" ? body.brand : undefined;
+  // The tenant comes from the key (or, transitionally, the source hint);
+  // body.brand is no longer consulted at all, because a value the caller picks
+  // cannot decide where the caller's data lands.
+  const tenant = await resolveTenant(req, source);
+  if (isTenantDenied(tenant)) {
+    inc("relay_waitlist_total", { result: "no_tenant" });
+    return tenant.response;
+  }
+  const brand = tenant.brand;
   const record = {
     email,
     source,
-    brand: (brandHint && brandByKey(brandHint)?.key) || resolveBrand(source).key,
+    brand: brand.key,
     lang,
     accent: typeof body.accent === "string" ? body.accent.slice(0, 16) : null,
     mode: typeof body.mode === "string" ? body.mode.slice(0, 16) : null,
@@ -53,22 +62,33 @@ export async function waitlist(req: Request): Promise<Response> {
     return json({ ok: true, stored: false });
   }
 
+  // The same key inside the tenant's own space: one email may now sign up to two
+  // brands, which is the point.
+  const store = scopedForBrand(brand.key);
   const key = `waitlist/${config.envName}/${await sha256hex(email)}.json`;
 
   // Dedup: first signup wins; a repeat is a no-op (and no second welcome email).
-  if (await exists(key)) {
+  //
+  // Transitional second look: until migrate_tenants has run, a lead written
+  // before tenancy still sits in the pre-migration root, and the tenant's own
+  // space is empty. Without this, everyone who signed up before the deploy and
+  // submits the form again gets a second welcome email. Retired together with
+  // the keyless fallback, by the same flag.
+  const seenBefore = await store.exists(key) ||
+    (!config.requireApiKey && await scopedForBrand(null).exists(key));
+  if (seenBefore) {
     inc("relay_waitlist_total", { result: "duplicate" });
     return json({ ok: true, duplicate: true });
   }
 
-  await put(key, record);
+  await store.put(key, record);
   inc("relay_waitlist_total", { result: "ok" });
   sendWelcome(email, {
     lang,
     accent: typeof body.accent === "string" ? body.accent : "",
     mode: record.mode ?? undefined,
     source,
-    brand: brandHint,
+    brand: brand.key,
   }).catch((error) => log("error", "welcome dispatch failed", { email, error: String(error) }));
   return json({ ok: true });
 }

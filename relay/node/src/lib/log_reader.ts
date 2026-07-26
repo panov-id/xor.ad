@@ -9,7 +9,25 @@
 // The window/cursor/bucket logic below is pure, so it is tested without a
 // transport; readLogPage is the only part that touches storage.
 
-import { get, listDetailed, type StorageEntry } from "./storage.ts";
+import type { StorageEntry } from "./storage.ts";
+import type { ScopedStorage } from "./scoped_storage.ts";
+
+// Only the two operations a log read needs. Narrower than ScopedStorage on
+// purpose: a reader that cannot write cannot be handed a writable scope by
+// accident.
+type LogSource = Pick<ScopedStorage, "get" | "listDetailed">;
+
+// A reader who may see only part of a shared collection (a tenant reading the
+// platform-wide audit trail) supplies this. It is not a convenience filter: the
+// counts below are what a filter outside this function would leave lying — a
+// tenant must not be told how many records it cannot see.
+export type LogFilter = (record: Record<string, unknown>) => boolean;
+
+// Filtering costs exactly what the listing-based path saves: whether a record
+// belongs to the reader is only knowable after reading it. So a filtered read
+// reads its whole window, newest first, and stops here — a page that says
+// "truncated" is honest, an unbounded read of a growing collection is not.
+const FILTER_SCAN_CAP = 500;
 
 export interface LogWindow {
   from?: string; // inclusive ISO lower bound
@@ -86,16 +104,21 @@ export function bucketize(
 }
 
 // One page of a log collection: list once, decide, then read only what is shown.
+// With a filter the order reverses — read the window, then decide — see
+// filteredPage below.
 export async function readLogPage<T>(
+  source: LogSource,
   prefix: string,
   window: LogWindow,
   bucketCount: number,
+  keep?: LogFilter,
 ): Promise<LogPage<T>> {
-  const entries = await listDetailed(prefix);
+  const entries = await source.listDetailed(prefix);
+  if (keep) return await filteredPage<T>(source, prefix, entries, window, bucketCount, keep);
   const { page, matched } = selectEntries(entries, window);
   const records = await Promise.all(
     page.map(async (entry) => {
-      const record = await get<Record<string, unknown>>(`${prefix}/${entry.name}`);
+      const record = await source.get<Record<string, unknown>>(`${prefix}/${entry.name}`);
       // stored_at is the storage timestamp the ordering is based on; a record's
       // own received_at is written by the sink and may differ.
       return record === null ? null : { id: entry.name, stored_at: entry.createdAt, ...record };
@@ -112,5 +135,44 @@ export async function readLogPage<T>(
       window.from,
       window.to,
     ),
+  };
+}
+
+// The filtered path. Every number it returns counts kept records only: `total`
+// stops meaning "objects in the collection" and starts meaning "records this
+// reader has", which is both the safe answer and the one they asked for.
+async function filteredPage<T>(
+  source: LogSource,
+  prefix: string,
+  entries: readonly StorageEntry[],
+  window: LogWindow,
+  bucketCount: number,
+  keep: LogFilter,
+): Promise<LogPage<T>> {
+  const inWindow = selectEntries(entries, { ...window, limit: entries.length }).page;
+  const scanned = inWindow.slice(0, FILTER_SCAN_CAP);
+  const read = await Promise.all(
+    scanned.map(async (entry) => {
+      const record = await source.get<Record<string, unknown>>(`${prefix}/${entry.name}`);
+      return record === null ? null : { entry, record };
+    }),
+  );
+  const kept = read.filter((item) => item !== null && keep(item.record)) as {
+    entry: StorageEntry;
+    record: Record<string, unknown>;
+  }[];
+  const page = kept.slice(0, window.limit);
+  return {
+    rows: page.map(({ entry, record }) => ({
+      id: entry.name,
+      stored_at: entry.createdAt,
+      ...record,
+    })) as T[],
+    total: kept.length,
+    matched: kept.length,
+    // Two ways to be incomplete: more kept records than fit the page, or a
+    // window deeper than the scan cap. Both are the same sentence to a reader.
+    truncated: kept.length > page.length || inWindow.length > scanned.length,
+    buckets: bucketize(kept.map(({ entry }) => entry), bucketCount, window.from, window.to),
   };
 }

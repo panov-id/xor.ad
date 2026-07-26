@@ -3,7 +3,9 @@
 
 import { config } from "../config.ts";
 import { json, readJson } from "../lib/http.ts";
-import { put, storageEnabled } from "../lib/storage.ts";
+import { storageEnabled } from "../lib/storage.ts";
+import { scopedForBrand } from "../lib/scoped_storage.ts";
+import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
 import { log } from "../lib/log.ts";
 
 function cap(value: unknown, max: number): string | null {
@@ -14,6 +16,15 @@ export async function clientError(req: Request): Promise<Response> {
   const body = await readJson<Record<string, unknown>>(req);
   if (!body) return json({ ok: true }); // never argue with a logger
 
+  // Whose error this is still gets decided by the key and never by the body —
+  // but a refusal is not an option here. This route is how a landing says
+  // anything is wrong at all, so answering 401 to a page with a stale key would
+  // silence exactly the report that says the key is stale. The record is kept,
+  // unattributed, in the platform's own space, where it is visible as a problem
+  // instead of as an absence.
+  const tenant = await resolveTenant(req, cap(body.source, 120));
+  const brand = isTenantDenied(tenant) ? null : tenant.brand.key;
+
   const record = {
     kind: cap(body.kind, 64),
     message: cap(body.message, 1000),
@@ -21,6 +32,7 @@ export async function clientError(req: Request): Promise<Response> {
     page_url: cap(body.page_url, 500),
     user_agent: cap(body.user_agent, 300),
     source: cap(body.source, 120),
+    brand,
     extra: body.extra ?? null,
     node: config.nodeId,
     env: config.envName,
@@ -28,8 +40,12 @@ export async function clientError(req: Request): Promise<Response> {
   };
 
   if (storageEnabled()) {
-    const key = `client-errors/${config.envName}/${crypto.randomUUID()}.json`;
-    put(key, record).catch((error) =>
+    // An unattributed record lands in a collection of its own rather than in
+    // some tenant's: guessing an owner is the one mistake worse than not knowing.
+    const key = brand
+      ? `client-errors/${config.envName}/${crypto.randomUUID()}.json`
+      : `client-errors-unattributed/${config.envName}/${crypto.randomUUID()}.json`;
+    scopedForBrand(brand).put(key, record).catch((error) =>
       log("error", "client-error store failed", { key, error: String(error) })
     );
   }

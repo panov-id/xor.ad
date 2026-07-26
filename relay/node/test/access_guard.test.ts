@@ -15,10 +15,15 @@ const HOUR_FROM_NOW = () => Math.floor(Date.now() / 1000) + 3600;
 
 async function requestAs(
   role: string,
-  options: { secret?: string; exp?: number; email?: string } = {},
+  options: { secret?: string; exp?: number; email?: string; brand?: string | null } = {},
 ): Promise<Request> {
   const token = await sign(
-    { sub: options.email ?? `${role}@example.com`, role, exp: options.exp ?? HOUR_FROM_NOW() },
+    {
+      sub: options.email ?? `${role}@example.com`,
+      role,
+      brand: options.brand ?? null, // default: a platform operator, as before tenancy
+      exp: options.exp ?? HOUR_FROM_NOW(),
+    },
     options.secret ?? SECRET,
   );
   return new Request("https://relay.test/admin/panel-users", {

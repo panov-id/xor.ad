@@ -15,6 +15,10 @@ export interface AuditEvent {
   at: string;
   actor_email: string;
   actor_role: string;
+  // The tenant the actor was acting within; null for a platform operator. The
+  // trail itself stays platform-wide — one journal, filtered per reader — so a
+  // tenant cannot quietly drop its own record by owning the collection.
+  actor_brand: string | null;
   action: string; // "panel_users.create" | "panel_users.role_change" | ...
   target: string | null;
   outcome: AuditOutcome;
@@ -28,7 +32,7 @@ export interface AuditEvent {
 export const auditDir = (): string => `audit/${config.envName}`;
 
 interface AuditInput {
-  actor: Pick<PanelUser, "email" | "role"> | null | undefined;
+  actor: Pick<PanelUser, "email" | "role" | "brand"> | null | undefined;
   action: string;
   target?: string | null;
   outcome?: AuditOutcome;
@@ -48,6 +52,7 @@ export function recordAuditEvent(input: AuditInput): void {
     // actor means a bug upstream — recorded, not hidden behind a plausible name.
     actor_email: input.actor?.email ?? "unknown",
     actor_role: input.actor?.role ?? "unknown",
+    actor_brand: input.actor?.brand ?? null,
     action: input.action,
     target: input.target ?? null,
     outcome: input.outcome ?? "applied",

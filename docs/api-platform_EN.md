@@ -46,6 +46,94 @@ deliberate retreat from "the node knows nothing but objects" — worth discussin
 
 ---
 
+## 0. Multi-tenancy: third-party developers as brands
+
+Decided: the platform's consumers are **third parties**. A third-party developer
+connects their own domain as a brand and gets a full backend — event intake,
+transactional email from their own domain, outgoing webhooks, and **a separate panel
+login** with their own users, roles, audit trail and log explorer, all scoped to their
+brand.
+
+That settles open questions 2, 3 and 4 at once: keys, limits and public documentation
+become mandatory rather than optional; webhooks are customer-facing (so a subscription
+UI, secret rotation and a delivery SLA); and notifications are needed in both flavours,
+operator alerts and product messages.
+
+**What already supports this.** A brand is not a new concept: `Brand { key, name,
+domain, from, match[] }` in `relay/node/src/config.ts` is added through the `BRANDS`
+env with no code change, and mail is already per-brand (`RESEND_KEYS_BY_BRAND` — one
+account and one sender domain per brand). The most expensive part of the offer — "the
+email comes from you, not from us" — works today.
+
+**What is missing.** A brand today is a label, not a data boundary, and in that shape
+it cannot be handed out:
+
+```ts
+// routes/waitlist.ts — the brand arrives in the request body; the client picks it
+const brandHint = typeof body.brand === "string" ? body.brand : undefined;
+
+// …but the object key carries no brand: one namespace shared by everyone
+const key = `waitlist/${config.envName}/${await sha256hex(email)}.json`;
+```
+
+Two consequences follow, each fatal for a tenant: **deduplication is global** (an email
+signed up under tenant A is a "duplicate" for tenant B, whose lead is silently
+dropped), and **there is no isolation** (the body may name anyone else's brand).
+
+**The shape of the fix.** The brand moves into the key prefix, and its value comes from
+the request's subject rather than from the body:
+
+```ts
+// before
+const key = `waitlist/${config.envName}/${await sha256hex(email)}.json`;
+
+// after — the tenant is in the prefix, deduplication happens within the tenant
+const key = `${subject.brand}/waitlist/${config.envName}/${await sha256hex(email)}.json`;
+```
+
+The subject carries the brand in both of its kinds, and `null` means a platform
+operator, who sees everything:
+
+```ts
+export type AccessSubject =
+  | { kind: "user"; role: Role; brand: string | null }
+  | { kind: "key";  scopes: readonly Permission[]; brand: string };
+```
+
+The point: `can()` answers "is this action allowed", while tenancy is a second
+question — "over whose data" — and it is not solved by adding a filter to the routes.
+One forgotten read is a leak between tenants. So storage access goes through a layer
+that physically cannot return someone else's prefix:
+
+```ts
+function scoped(subject: AccessSubject) {
+  const prefix = subject.brand ? `${subject.brand}/` : "";
+  return {
+    put:  (path: string, body: unknown) => storage.put(prefix + path, body),
+    get:  (path: string) => storage.get(prefix + path),
+    list: (path: string) => storage.list(prefix + path),
+  };
+}
+```
+
+An API key gains an owner and a quota:
+
+```ts
+interface ApiKey {
+  id: string;
+  hash: string;
+  brand: string;          // the tenant; hard-bounds the key's reach
+  scopes: Permission[];
+  quota: { events_per_day: number; webhooks_per_day: number };
+  // …remaining fields in section 1
+}
+```
+
+**What this adds to the work.** Two things absent from the sections below: *tenant
+registration* (brands are hand-added through env today; self-service means moving them
+into storage with a panel page of their own) and *quotas with billing* (a per-key
+counter, shared across the pool — which object storage cannot hold).
+
 ## 1. Public API
 
 The endpoints today are flat and unversioned. A public API freezes that forever, so
@@ -192,27 +280,31 @@ The core's rule still holds: an unmapped resource/action pair in the panel is
 
 ## 7. Order of work, if we do it
 
-1. The state store (the decision from "The central tension"), plus the jobs table and
-   the worker.
-2. Outgoing webhooks on the queue: subscriptions, signing, retries, delivery log.
-3. Panel pages: keys, subscriptions, deliveries, queue — all on `LogExplorer`.
-4. Incoming Resend webhooks → email delivery status.
-5. The notification layer (email + in-panel), then web push.
-6. The public `/v1` with keys, idempotency and limits.
+1. **Tenancy** (section 0): the brand in storage keys, `brand` on `AccessSubject`, the
+   `scoped()` access layer, migration of existing objects.
+2. API keys: hash storage, scopes, owning brand; `/v1` with idempotency.
+3. The state store (the decision from "The central tension"), plus quotas, limits, the
+   jobs table and the worker.
+4. Outgoing webhooks on the queue: subscriptions, signing, retries, delivery log.
+5. The tenant panel: login, own users, keys, subscriptions, deliveries, queue (every
+   page on `LogExplorer`), plus self-service brand registration.
+6. Incoming Resend webhooks → email delivery status.
+7. The notification layer (email + in-panel), then web push.
 
-The first two make everything after them nearly free; item six without item one is
-self-deception, because a public API without retries and limits does not survive long.
+Tenancy comes first deliberately, against the temptation to start with the queue: it
+rewrites the storage key layout, and the queue, the delivery log and the quotas all sit
+on top of it. In the other order every one of them gets migrated a second time.
 
 ## Open questions
 
 1. **Where does state move to** — Postgres/Supabase, Redis beside the pool, an
-   external queue? This decision blocks everything else.
-2. **Who consumes the public API** — our own landings and app, or third parties? That
-   decides whether keys, limits and public documentation are needed at all.
-3. **Webhooks for whom** — our own services, or customers? Customer webhooks require a
-   subscription UI, secret rotation and a delivery SLA.
-4. **Notifications for whom** — operators (alerts) or users (product email and push)?
-   Those are two layers with different requirements.
+   external queue? This decision blocks everything else. For a platform with outside
+   tenants it is effectively settled: quotas, a pool-wide rate limit and billing cannot
+   live in object storage, which has neither an atomic increment nor a consistent
+   `list`.
+2. ~~Who consumes the public API~~ — decided: third parties, a full BaaS with its own
+   panel login (section 0). Which settles 3 — webhooks are customer-facing — and 4 —
+   notifications are needed in both flavours.
 5. **Do nodes stay interchangeable?** If yes, the queue and worker must live outside
    the node; if no, the node becomes a stateful service and the pool's deployment
    model changes.

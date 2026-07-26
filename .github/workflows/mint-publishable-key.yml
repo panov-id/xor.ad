@@ -1,0 +1,78 @@
+name: Mint publishable key
+
+# Issue a publishable API key for one brand in one relay environment.
+#
+# Run here rather than from a laptop so the storage credentials stay in GitHub:
+# the key itself is publishable (it ships inside a landing's config.js), but the
+# zone password that writes it is not.
+#
+# The input is the GitHub environment, because that is what decides which
+# secrets the job can read — the relay's own name for the same environment
+# (dev | staging | prod) is derived from it below. The two vocabularies differ
+# and are not going to converge, so the mapping lives in one place.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "GitHub environment (dev → relay dev, uat → relay staging, production → relay prod)"
+        required: true
+        type: choice
+        options: [dev, uat, production]
+      brand:
+        description: "Brand key (sosed | neighbro)"
+        required: true
+        type: string
+      origins:
+        description: "Space-separated Origin allowlist (empty accepts any — never do that outside a stand)"
+        required: false
+        type: string
+
+jobs:
+  mint:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.1.4
+
+      - name: Mint
+        working-directory: relay/node
+        env:
+          GITHUB_ENVIRONMENT: ${{ inputs.environment }}
+          BUNNY_STORAGE_ZONE: ${{ secrets.RELAY_BUNNY_STORAGE_ZONE }}
+          BUNNY_STORAGE_KEY: ${{ secrets.RELAY_BUNNY_STORAGE_KEY }}
+          BRAND: ${{ inputs.brand }}
+          ORIGINS: ${{ inputs.origins }}
+        run: |
+          test -n "$BUNNY_STORAGE_ZONE" || {
+            echo "RELAY_BUNNY_STORAGE_ZONE is not set for the '$GITHUB_ENVIRONMENT' environment"; exit 1; }
+          case "$GITHUB_ENVIRONMENT" in
+            dev)        NODE_ENV_NAME=dev ;;
+            uat)        NODE_ENV_NAME=staging ;;
+            production) NODE_ENV_NAME=prod ;;
+          esac
+          export NODE_ENV_NAME
+          echo "minting for brand '$BRAND' in relay environment '$NODE_ENV_NAME'"
+          # The id lands on stdout (the tool puts everything else on stderr), so
+          # it is readable in the run log — publishable, nothing to redact.
+          deno run --allow-env --allow-net --allow-read --allow-write \
+            tools/create_publishable_key.ts "$BRAND" $ORIGINS | tee "$RUNNER_TEMP/key.txt"
+          {
+            echo "### Publishable key"
+            echo ""
+            echo "- brand: \`$BRAND\`"
+            echo "- relay environment: \`$NODE_ENV_NAME\`"
+            echo "- key: \`$(cat "$RUNNER_TEMP/key.txt")\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # So the key can be picked up by whoever wires it into the landing's
+      # secrets, without scraping the log.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: publishable-key-${{ inputs.environment }}-${{ inputs.brand }}
+          path: ${{ runner.temp }}/key.txt
+          retention-days: 1

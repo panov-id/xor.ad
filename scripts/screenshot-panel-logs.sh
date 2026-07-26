@@ -40,6 +40,7 @@ const token = process.env.PANEL_TOKEN;
 const PAGES = [
   { path: "/logs/client-errors", file: "panel-logs-client-errors.png" },
   { path: "/logs/audit", file: "panel-logs-audit.png" },
+  { path: "/logs/server", file: "panel-logs-server.png" },
   { path: "/panel-users", file: "panel-users.png" },
 ];
 

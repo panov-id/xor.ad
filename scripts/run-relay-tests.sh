@@ -11,10 +11,19 @@ docker run --rm \
   -v "$root/relay/node":/node \
   -w /node \
   "$image" \
-  deno check src/main.ts
+  sh -c 'deno check $(find src tools -name "*.ts")'
 
 docker run --rm \
   -v "$root/relay/node":/node \
   -w /node \
   "$image" \
-  deno test --allow-env "$@"
+  deno test --allow-env --allow-read --allow-write --ignore=test/tenancy.test.ts "$@"
+
+# The tenancy test rewrites BRANDS/SESSION_SECRET for the whole process (config
+# is captured at import), so it runs in one of its own rather than leaking into
+# everyone else's configuration.
+docker run --rm \
+  -v "$root/relay/node":/node \
+  -w /node \
+  "$image" \
+  deno test --allow-env --allow-read --allow-write test/tenancy.test.ts

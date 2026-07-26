@@ -18,6 +18,9 @@ targets=(
   "panel/dist"
   "panel/tests/report"
   "panel/node_modules"
+  # The local relay stand: a tool container that wrote here as root leaves the
+  # node (which runs as another user) unable to write the same tree.
+  "relay/local/data"
 )
 
 for rel in "${targets[@]}"; do

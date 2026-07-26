@@ -1,12 +1,14 @@
-import { useList, usePermissions } from "@refinedev/core";
+import { useGetIdentity, useList, usePermissions } from "@refinedev/core";
 import { useState } from "react";
 import { api } from "../../providers/api";
 import { type Permission, type Role, ROLES } from "../../access";
+import type { PanelIdentity } from "../../providers/auth";
 
 type PanelUserRow = {
   id: string;
   email: string;
   role: Role;
+  brand: string | null;
   created_at: string;
 };
 
@@ -27,6 +29,12 @@ export const PanelUsersList = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const canManageUsers = permissions?.includes("panel_users.write") ?? false;
+
+  const { data: identity } = useGetIdentity<PanelIdentity>();
+  const isPlatform = identity?.brand === null;
+  // A tenant cannot grant the platform role, and the relay refuses it anyway —
+  // the select just stops offering what would be rejected.
+  const roleOptions = isPlatform ? ROLES : ROLES.filter((role) => role !== "admin");
 
   const onInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +91,7 @@ export const PanelUsersList = () => {
           {/* Options come from the shared vocabulary, so a role added in the
               relay core shows up here without touching this page. */}
           <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
-            {ROLES.map((roleOption) => (
+            {roleOptions.map((roleOption) => (
               <option key={roleOption} value={roleOption}>
                 {roleOption}
               </option>
@@ -115,6 +123,9 @@ export const PanelUsersList = () => {
             <tr>
               <th>Email</th>
               <th>Role</th>
+              {/* Only the platform sees several tenants; for a tenant every row
+                  carries the same brand, so the column would be noise. */}
+              {isPlatform && <th>Brand</th>}
               <th>Added</th>
             </tr>
           </thead>
@@ -127,6 +138,7 @@ export const PanelUsersList = () => {
                     {row.role}
                   </span>
                 </td>
+                {isPlatform && <td>{row.brand ?? "platform"}</td>}
                 <td>{new Date(row.created_at).toLocaleString()}</td>
               </tr>
             ))}

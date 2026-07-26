@@ -4,14 +4,17 @@ type WaitlistRow = {
   id: string;
   email: string;
   source: string;
+  brand: string | null;
   early_access: boolean;
   created_at: string;
 };
 
-const siteBadge = (source: string) => {
-  if (source.startsWith("sosed")) return <span className="badge badge-sosed">sosed.place</span>;
-  if (source.startsWith("neighbro")) return <span className="badge badge-neighbro">neighbro.place</span>;
-  return <span className="badge">{source}</span>;
+// The brand is now a stored field decided by the relay, so the panel stops
+// guessing it from the signup source; source is only the fallback for rows
+// written before tenancy.
+const brandBadge = (brand: string | null, source: string) => {
+  const label = brand ?? source ?? "—";
+  return <span className={`badge badge-${label}`}>{label}</span>;
 };
 
 export const WaitlistList = () => {
@@ -32,7 +35,7 @@ export const WaitlistList = () => {
           <thead>
             <tr>
               <th>Email</th>
-              <th>Face</th>
+              <th>Brand</th>
               <th>Signed up</th>
             </tr>
           </thead>
@@ -40,7 +43,7 @@ export const WaitlistList = () => {
             {result?.data.map((row) => (
               <tr key={row.id}>
                 <td>{row.email}</td>
-                <td>{siteBadge(row.source)}</td>
+                <td>{brandBadge(row.brand, row.source)}</td>
                 <td>{new Date(row.created_at).toLocaleString()}</td>
               </tr>
             ))}

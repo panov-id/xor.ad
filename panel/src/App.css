@@ -185,6 +185,15 @@ table.panel-table {
   border-color: var(--accent);
   color: var(--accent);
 }
+/* Log level — error is the one that should catch the eye. */
+.badge-warn {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+.badge-error {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 /* Shown while permissions are in flight — neither the page nor a refusal yet. */
 .loading-note {

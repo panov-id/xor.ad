@@ -21,6 +21,7 @@ import { WaitlistList } from "./pages/waitlist/list";
 import { PanelUsersList } from "./pages/panel-users/list";
 import { ClientErrorsList } from "./pages/logs/client-errors/list";
 import { AuditList } from "./pages/logs/audit/list";
+import { ServerLogsList } from "./pages/logs/server/list";
 
 function App() {
   const refine = (
@@ -49,6 +50,11 @@ function App() {
                 name: "logs_audit",
                 list: "/logs/audit",
                 meta: { label: "Audit log" },
+              },
+              {
+                name: "logs_server",
+                list: "/logs/server",
+                meta: { label: "Server logs" },
               },
             ]}
             options={{
@@ -98,6 +104,14 @@ function App() {
                   element={
                     <Gated resource="logs_audit">
                       <AuditList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/logs/server"
+                  element={
+                    <Gated resource="logs_server">
+                      <ServerLogsList />
                     </Gated>
                   }
                 />

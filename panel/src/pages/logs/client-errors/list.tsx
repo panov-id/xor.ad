@@ -20,5 +20,8 @@ export const ClientErrorsList = () => (
     searchField="message"
     searchPlaceholder="filter loaded messages"
     detailFields={["received_at", "stored_at", "user_agent", "stack", "extra"]}
+    // Reports that arrived without a usable key. A landing whose key broke shows
+    // up here, which is the only place it can show up at all.
+    extraScopes={[{ key: "unattributed", name: "unattributed" }]}
   />
 );

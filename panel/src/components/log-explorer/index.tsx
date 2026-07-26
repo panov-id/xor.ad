@@ -8,7 +8,9 @@
 // the menu, the routes and the access gates.
 
 import { Fragment, type ReactNode, useCallback, useEffect, useState } from "react";
+import { useGetIdentity } from "@refinedev/core";
 import { api } from "../../providers/api";
+import type { PanelIdentity } from "../../providers/auth";
 
 export interface LogRow {
   id: string;
@@ -44,7 +46,13 @@ interface LogExplorerProps {
   facetLabel?: string;
   searchField?: string; // the field the text filter matches, within loaded rows
   searchPlaceholder?: string;
-  detailFields: string[]; // shown in the expanded row
+  // Fields shown in the expanded row. Omit for collections whose shape varies
+  // per record (server logs carry whatever the call site logged) — then the
+  // whole record is shown rather than a guessed subset.
+  detailFields?: string[];
+  // Scopes the switcher offers beyond the brands themselves — collections that
+  // belong to no tenant. Platform-only, like every other entry in that list.
+  extraScopes?: { key: string; name: string }[];
 }
 
 const RANGES = [
@@ -73,6 +81,7 @@ export const LogExplorer = ({
   searchField,
   searchPlaceholder = "filter loaded rows",
   detailFields,
+  extraScopes = [],
 }: LogExplorerProps) => {
   const [range, setRange] = useState<RangeKey>("24h");
   const [customFrom, setCustomFrom] = useState("");
@@ -89,6 +98,26 @@ export const LogExplorer = ({
   const [facet, setFacet] = useState("");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  // A log page is always one tenant's collection. An empty value means "the
+  // caller's own scope", which is what a tenant always gets — they have one
+  // collection and nothing to switch to.
+  const [brand, setBrand] = useState("");
+  const [brands, setBrands] = useState<{ key: string; name: string }[]>([]);
+
+  // Whose operator this is decides whether there is a switcher at all. Asked
+  // here rather than by calling /admin/brands and reading the 403: a refusal is
+  // a poor way to learn something the identity already says.
+  const { data: identity } = useGetIdentity<PanelIdentity>();
+  const isPlatform = identity?.brand === null;
+
+  useEffect(() => {
+    if (!isPlatform) return;
+    api("/admin/brands")
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setBrands)
+      .catch(() => setBrands([]));
+  }, [isPlatform]);
 
   // The window is resolved at fetch time, not at render time: "last 15m" must mean
   // 15 minutes before the request, not before the first paint.
@@ -109,6 +138,9 @@ export const LogExplorer = ({
     setError(null);
     const params = windowParams();
     if (cursor) params.set("before", cursor);
+    // Without it the relay reads the caller's own scope: a tenant's own logs,
+    // the platform's pre-migration root.
+    if (brand) params.set("brand", brand);
 
     const response = await api(`${endpoint}?${params.toString()}`);
     if (!response.ok) {
@@ -126,7 +158,7 @@ export const LogExplorer = ({
     setTotal(page.total);
     setTruncated(page.truncated);
     setLoading(false);
-  }, [endpoint, windowParams]);
+  }, [endpoint, windowParams, brand]);
 
   useEffect(() => {
     setExpanded(null);
@@ -150,6 +182,15 @@ export const LogExplorer = ({
       <h1>{title}</h1>
 
       <div className="log-controls">
+        {brands.length > 0 && (
+          <select value={brand} onChange={(event) => setBrand(event.target.value)}>
+            <option value="">platform</option>
+            {[...brands, ...extraScopes].map((item) => (
+              <option key={item.key} value={item.key}>{item.name}</option>
+            ))}
+          </select>
+        )}
+
         <div className="log-ranges">
           {RANGES.map((candidate) => (
             <button
@@ -271,7 +312,9 @@ export const LogExplorer = ({
                     <td colSpan={columns.length}>
                       <pre className="log-detail">
                         {JSON.stringify(
-                          Object.fromEntries(detailFields.map((field) => [field, row[field]])),
+                          detailFields
+                            ? Object.fromEntries(detailFields.map((field) => [field, row[field]]))
+                            : row,
                           null,
                           2,
                         )}

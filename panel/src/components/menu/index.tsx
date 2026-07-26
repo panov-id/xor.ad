@@ -1,5 +1,13 @@
-import { type TreeMenuItem, useCan, useLogout, useMenu, usePermissions } from "@refinedev/core";
+import {
+  type TreeMenuItem,
+  useCan,
+  useGetIdentity,
+  useLogout,
+  useMenu,
+  usePermissions,
+} from "@refinedev/core";
 import { NavLink } from "react-router";
+import type { PanelIdentity } from "../../providers/auth";
 
 // One item, one access check. Refine's useMenu is not assumed to filter by
 // permissions — the check here is explicit, so what the menu shows and what the
@@ -20,9 +28,12 @@ export const Menu = () => {
   // Only used to tell "still loading" from "genuinely nothing to show", so the
   // menu is not briefly empty on the first render after sign-in.
   const { isLoading: permissionsLoading } = usePermissions({});
+  // Whose operator this session belongs to — the platform, or one tenant.
+  const { data: identity } = useGetIdentity<PanelIdentity>();
 
   return (
     <nav className="menu">
+      {identity && <p className="menu-scope">{identity.brand ?? "platform"}</p>}
       <ul>
         {permissionsLoading
           ? <li className="loading-note">Loading…</li>

@@ -11,6 +11,9 @@ export interface PanelIdentity {
   id: string;
   email: string;
   role: Role;
+  // Which tenant this operator belongs to; null means a platform operator, who
+  // sees every brand. The relay decides it — the panel only displays it.
+  brand: string | null;
   permissions: Permission[];
 }
 

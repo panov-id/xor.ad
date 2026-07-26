@@ -2,6 +2,6 @@
 // role badges. Mirrors the ROLES list in the relay access core; the permission
 // map deliberately does not live here.
 
-export const ROLES = ["admin", "moderator", "viewer"] as const;
+export const ROLES = ["admin", "moderator", "viewer", "tenant_admin"] as const;
 
 export type Role = (typeof ROLES)[number];

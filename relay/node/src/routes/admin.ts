@@ -6,7 +6,7 @@
 import { route } from "../lib/router.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
-import { type LogWindow, readLogPage } from "../lib/log_reader.ts";
+import { type LogPage, type LogScope, type LogWindow, readLogPage } from "../lib/log_reader.ts";
 import { auditDir, recordAuditEvent } from "../lib/audit.ts";
 import { authed, getUser, type PanelUser, requestMagicLink, redeem, usersDir } from "../lib/auth.ts";
 import { isRole, permissionsOf } from "../access/index.ts";
@@ -55,25 +55,84 @@ async function isLastAdmin(target: PanelUser): Promise<boolean> {
   return admins.length <= 1 && admins.some((panelUser) => panelUser.email === target.email);
 }
 
-// A log page is always one collection: merging several would make the cursor and
-// the histogram lie. `?brand=` picks it; without it a reader gets their own scope
-// (a tenant theirs, the platform the pre-migration root).
 // Not a tenant: the collection of records that arrived without a usable key, so
 // nobody could be named as their owner. It lives in the platform's own space and
 // only the platform reads it — for a tenant it is not a scope but a 403.
 const UNATTRIBUTED = "unattributed";
+// The pre-tenancy root. After a migration it is empty, which is exactly why it
+// must be asked for by name rather than being what a reader gets by default:
+// showing an empty archive to someone whose data sits under a tenant is how the
+// panel came to look broken.
+const PLATFORM_ARCHIVE = "platform";
 
-async function logScope(user: PanelUser, url: URL): Promise<ScopedStorage | Response> {
+// Merging listings is cheap per scope and linear in their number, so the platform
+// reads every tenant at once — until there are enough tenants for that to be a
+// fan-out. Past this many, a reader picks one, and the response says so instead
+// of quietly showing part of the picture.
+const MAX_MERGED_SCOPES = 10;
+
+interface LogScopes {
+  scopes: LogScope[];
+  // What the reader is actually looking at, echoed back so the panel can label
+  // the switcher and admit when the merge was capped.
+  mode: "all" | "one";
+  merged: number;
+  available: number;
+}
+
+// `?brand=` picks one collection; without it a tenant gets their own and the
+// platform gets every tenant merged. The merge is honest: ordering and paging are
+// time-based, so several listings interleave without renumbering anything.
+async function logScopes(user: PanelUser, url: URL): Promise<LogScopes | Response> {
   const asked = url.searchParams.get("brand");
-  if (!asked) return scoped(user);
+  const brands = await allBrands();
+
   if (asked === UNATTRIBUTED) {
-    return user.brand === null ? platform : json({ error: "forbidden" }, 403);
+    if (user.brand !== null) return json({ error: "forbidden" }, 403);
+    return { scopes: [{ label: UNATTRIBUTED, source: platform }], mode: "one", merged: 1, available: 1 };
   }
-  if (user.brand && asked !== user.brand) return json({ error: "forbidden" }, 403);
-  if (!(await allBrands()).some((brand) => brand.key === asked)) {
-    return json({ error: "unknown brand" }, 404);
+  if (asked === PLATFORM_ARCHIVE) {
+    if (user.brand !== null) return json({ error: "forbidden" }, 403);
+    return { scopes: [{ label: PLATFORM_ARCHIVE, source: platform }], mode: "one", merged: 1, available: 1 };
   }
-  return scopedForBrand(asked);
+  if (asked) {
+    if (user.brand && asked !== user.brand) return json({ error: "forbidden" }, 403);
+    if (!brands.some((brand) => brand.key === asked)) return json({ error: "unknown brand" }, 404);
+    return { scopes: [{ label: asked, source: scopedForBrand(asked) }], mode: "one", merged: 1, available: 1 };
+  }
+
+  // A tenant has exactly one collection, so "all" and "their own" are the same
+  // page — no reason to make them choose.
+  if (user.brand) {
+    return {
+      scopes: [{ label: user.brand, source: scoped(user) }],
+      mode: "one",
+      merged: 1,
+      available: 1,
+    };
+  }
+
+  const merged = brands.slice(0, MAX_MERGED_SCOPES);
+  return {
+    scopes: merged.map((brand) => ({ label: brand.key, source: scopedForBrand(brand.key) })),
+    mode: "all",
+    merged: merged.length,
+    available: brands.length,
+  };
+}
+
+// The envelope the log routes answer with: the page plus what it was read from.
+function logResponse(page: LogPage<Record<string, unknown>>, scopes: LogScopes): Response {
+  return json({
+    ...page,
+    scope: {
+      mode: scopes.mode,
+      of: scopes.scopes.map((scope) => scope.label),
+      // Set when there are more tenants than one page may merge — the panel says
+      // so rather than presenting a partial view as the whole.
+      capped: scopes.available > scopes.merged ? scopes.available : undefined,
+    },
+  });
 }
 
 // A log read is always capped: the collections grow without bound and every
@@ -163,20 +222,20 @@ route("GET", "/admin/logs-client-errors", async ({ req, url }) => {
   if (isDenied(access)) return access.response;
   const window = readWindow(url);
   if (!window) return json({ error: "invalid from/to/before — expected a timestamp" }, 422);
-  const store = await logScope(access.user, url);
-  if (store instanceof Response) return store;
+  const scopes = await logScopes(access.user, url);
+  if (scopes instanceof Response) return scopes;
   // Same shape, different collection: the unattributed records sit beside the
   // owned ones rather than inside them (routes/client_error.ts).
   const collectionName = url.searchParams.get("brand") === UNATTRIBUTED
     ? "client-errors-unattributed"
     : "client-errors";
   const page = await readLogPage<Record<string, unknown>>(
-    store,
+    scopes.scopes,
     `${collectionName}/${config.envName}`,
     window,
     HISTOGRAM_BUCKETS,
   );
-  return json(page);
+  return logResponse(page, scopes);
 });
 
 // The landing's own page counter (routes/pageview.ts). A tenant's traffic is
@@ -186,15 +245,15 @@ route("GET", "/admin/logs-pageviews", async ({ req, url }) => {
   if (isDenied(access)) return access.response;
   const window = readWindow(url);
   if (!window) return json({ error: "invalid from/to/before — expected a timestamp" }, 422);
-  const store = await logScope(access.user, url);
-  if (store instanceof Response) return store;
+  const scopes = await logScopes(access.user, url);
+  if (scopes instanceof Response) return scopes;
   const page = await readLogPage<Record<string, unknown>>(
-    store,
+    scopes.scopes,
     `pageviews/${config.envName}`,
     window,
     HISTOGRAM_BUCKETS,
   );
-  return json(page);
+  return logResponse(page, scopes);
 });
 
 // The node's own warn/error lines, copied here by lib/log.ts. Admin-only: they
@@ -207,13 +266,21 @@ route("GET", "/admin/logs-server", async ({ req, url }) => {
   if (access.user.brand !== null) return json({ error: "forbidden" }, 403);
   const window = readWindow(url);
   if (!window) return json({ error: "invalid from/to/before — expected a timestamp" }, 422);
+  // node-wide logs are the platform's, never a tenant's, so there is nothing to
+  // merge and nothing to choose.
+  const scopes: LogScopes = {
+    scopes: [{ label: "platform", source: platform }],
+    mode: "one",
+    merged: 1,
+    available: 1,
+  };
   const page = await readLogPage<Record<string, unknown>>(
-    scopedForBrand(null), // node-wide logs are the platform's, never a tenant's
+    scopes.scopes,
     `server-logs/${config.envName}`,
     window,
     HISTOGRAM_BUCKETS,
   );
-  return json(page);
+  return logResponse(page, scopes);
 });
 
 route("GET", "/admin/logs-audit", async ({ req, url }) => {
@@ -221,8 +288,16 @@ route("GET", "/admin/logs-audit", async ({ req, url }) => {
   if (isDenied(access)) return access.response;
   const window = readWindow(url);
   if (!window) return json({ error: "invalid from/to/before — expected a timestamp" }, 422);
+  // One platform-wide trail, filtered per reader — a single collection, so the
+  // scope switcher has nothing to offer here either.
+  const scopes: LogScopes = {
+    scopes: [{ label: access.user.brand ?? "platform", source: platform }],
+    mode: "one",
+    merged: 1,
+    available: 1,
+  };
   const page = await readLogPage<Record<string, unknown>>(
-    scopedForBrand(null), // one platform-wide trail, filtered per reader
+    scopes.scopes,
     auditDir(),
     window,
     HISTOGRAM_BUCKETS,
@@ -233,7 +308,7 @@ route("GET", "/admin/logs-audit", async ({ req, url }) => {
       ? undefined
       : (record) => record.actor_brand === access.user.brand,
   );
-  return json(page);
+  return logResponse(page, scopes);
 });
 
 // --- brands -------------------------------------------------------------------

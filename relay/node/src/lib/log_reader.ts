@@ -52,10 +52,10 @@ export interface LogPage<T> {
 // Entries inside the window, newest first, capped at the limit. Entries whose
 // timestamp the transport could not report are dropped once any bound is given:
 // an unplaceable record cannot honestly be called inside or outside a window.
-export function selectEntries(
-  entries: readonly StorageEntry[],
+export function selectEntries<T extends StorageEntry>(
+  entries: readonly T[],
   window: LogWindow,
-): { page: StorageEntry[]; matched: number } {
+): { page: T[]; matched: number } {
   const bounded = Boolean(window.from || window.to || window.before);
   const matching = entries.filter((entry) => {
     if (!entry.createdAt) return !bounded;
@@ -103,25 +103,56 @@ export function bucketize(
   return buckets;
 }
 
+// One collection read through one scope. A page may span several of them — the
+// platform reading every tenant at once — and then each row has to say which one
+// it came from, or the merged list is unreadable.
+export interface LogScope {
+  label: string; // shown in the brand column: a brand key, "platform", "unattributed"
+  source: LogSource;
+}
+
+// Which scope an entry came from. Kept beside the listing rather than inside the
+// record, because the record is whatever the sink wrote and may have no brand at
+// all (the node's own logs do not).
+type ScopedEntry = StorageEntry & { scopeIndex: number };
+
 // One page of a log collection: list once, decide, then read only what is shown.
+// Merging is honest here because ordering and paging are already time-based — the
+// cursor is an ISO stamp, not a position in one listing — so several listings
+// interleave without anything having to be renumbered.
+//
 // With a filter the order reverses — read the window, then decide — see
 // filteredPage below.
 export async function readLogPage<T>(
-  source: LogSource,
+  scopes: readonly LogScope[],
   prefix: string,
   window: LogWindow,
   bucketCount: number,
   keep?: LogFilter,
 ): Promise<LogPage<T>> {
-  const entries = await source.listDetailed(prefix);
-  if (keep) return await filteredPage<T>(source, prefix, entries, window, bucketCount, keep);
+  const perScope = await Promise.all(
+    scopes.map(async (scope, scopeIndex) =>
+      (await scope.source.listDetailed(prefix)).map((entry): ScopedEntry => ({
+        ...entry,
+        scopeIndex,
+      }))
+    ),
+  );
+  const entries = perScope.flat();
+  if (keep) return await filteredPage<T>(scopes, prefix, entries, window, bucketCount, keep);
+
   const { page, matched } = selectEntries(entries, window);
   const records = await Promise.all(
     page.map(async (entry) => {
-      const record = await source.get<Record<string, unknown>>(`${prefix}/${entry.name}`);
+      const scope = scopes[entry.scopeIndex];
+      const record = await scope.source.get<Record<string, unknown>>(`${prefix}/${entry.name}`);
       // stored_at is the storage timestamp the ordering is based on; a record's
-      // own received_at is written by the sink and may differ.
-      return record === null ? null : { id: entry.name, stored_at: entry.createdAt, ...record };
+      // own received_at is written by the sink and may differ. `scope` is the
+      // reader's own label for where this came from — set after the record so a
+      // stored field can never overwrite it.
+      return record === null
+        ? null
+        : { id: entry.name, stored_at: entry.createdAt, ...record, scope: scope.label };
     }),
   );
   return {
@@ -142,9 +173,9 @@ export async function readLogPage<T>(
 // stops meaning "objects in the collection" and starts meaning "records this
 // reader has", which is both the safe answer and the one they asked for.
 async function filteredPage<T>(
-  source: LogSource,
+  scopes: readonly LogScope[],
   prefix: string,
-  entries: readonly StorageEntry[],
+  entries: readonly ScopedEntry[],
   window: LogWindow,
   bucketCount: number,
   keep: LogFilter,
@@ -153,12 +184,14 @@ async function filteredPage<T>(
   const scanned = inWindow.slice(0, FILTER_SCAN_CAP);
   const read = await Promise.all(
     scanned.map(async (entry) => {
-      const record = await source.get<Record<string, unknown>>(`${prefix}/${entry.name}`);
+      const record = await scopes[entry.scopeIndex].source.get<Record<string, unknown>>(
+        `${prefix}/${entry.name}`,
+      );
       return record === null ? null : { entry, record };
     }),
   );
   const kept = read.filter((item) => item !== null && keep(item.record)) as {
-    entry: StorageEntry;
+    entry: ScopedEntry;
     record: Record<string, unknown>;
   }[];
   const page = kept.slice(0, window.limit);
@@ -167,6 +200,7 @@ async function filteredPage<T>(
       id: entry.name,
       stored_at: entry.createdAt,
       ...record,
+      scope: scopes[entry.scopeIndex].label,
     })) as T[],
     total: kept.length,
     matched: kept.length,

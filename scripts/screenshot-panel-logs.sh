@@ -38,9 +38,11 @@ const panelUrl = process.env.PANEL_URL;
 const token = process.env.PANEL_TOKEN;
 
 const PAGES = [
+  { path: "/logs/pageviews", file: "panel-logs-pageviews.png" },
   { path: "/logs/client-errors", file: "panel-logs-client-errors.png" },
   { path: "/logs/audit", file: "panel-logs-audit.png" },
   { path: "/logs/server", file: "panel-logs-server.png" },
+  { path: "/waitlist", file: "panel-waitlist.png" },
   { path: "/panel-users", file: "panel-users.png" },
 ];
 

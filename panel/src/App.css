@@ -149,50 +149,93 @@ table.panel-table {
 
 .badge {
   display: inline-block;
-  border: 2px solid var(--fg);
+  border: 1px solid var(--badge-line, var(--muted));
+  border-radius: 3px;
   padding: 2px 8px;
   font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--badge-ink, var(--muted));
+  white-space: nowrap;
+}
+
+/* One vocabulary of tones, used by every badge in the panel. A value that is
+   merely a value — a brand, a role, an applied action — is neutral. Colour is
+   spent on the rows worth spotting: a refusal, a warning, an error. */
+.badge-neutral {
+  --badge-line: var(--muted);
+  --badge-ink: var(--fg);
+}
+.badge-info {
+  --badge-line: var(--accent);
+  --badge-ink: var(--accent);
+}
+.badge-accent {
+  --badge-line: var(--accent);
+  --badge-ink: var(--accent);
   font-weight: 700;
-  text-transform: uppercase;
 }
-.badge-sosed {
-  border-color: var(--sosed);
-  color: var(--sosed);
-}
-.badge-neighbro {
-  border-color: var(--neighbro);
-  color: var(--neighbro);
-}
-.badge-admin {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.badge-moderator {
-  border-color: var(--muted);
-  color: var(--muted);
-}
-.badge-viewer {
-  border-color: var(--muted);
-  color: var(--muted);
-  opacity: 0.7;
-}
-/* Audit outcome — a refusal is the row worth spotting, so it is the loud one. */
-.badge-applied {
-  border-color: var(--muted);
-  color: var(--muted);
-}
-.badge-denied {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-/* Log level — error is the one that should catch the eye. */
 .badge-warn {
-  border-color: var(--muted);
-  color: var(--muted);
+  --badge-line: #b26a00;
+  --badge-ink: #8a5200;
 }
-.badge-error {
-  border-color: var(--accent);
-  color: var(--accent);
+.badge-danger {
+  --badge-line: #b3261e;
+  --badge-ink: #b3261e;
+}
+
+/* The three things a table can be instead of rows. */
+.state {
+  color: var(--muted);
+  padding: 16px 0;
+}
+.state-empty {
+  border: 1px dashed var(--muted);
+  border-radius: 4px;
+  padding: 24px;
+  text-align: center;
+}
+.state-title {
+  color: var(--fg);
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.state-hint {
+  margin: 0 0 12px;
+}
+.state-error {
+  color: #b3261e;
+}
+.state-action {
+  margin-left: 8px;
+}
+
+/* The scope switcher carries a label: an unexplained "platform" in a row of
+   controls was read as a title, not as a choice. */
+.control-labelled {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.control-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-warn {
+  color: #8a5200;
+  margin: 8px 0 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* Shown while permissions are in flight — neither the page nor a refusal yet. */

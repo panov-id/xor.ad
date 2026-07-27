@@ -2,12 +2,14 @@
 // logs; only the columns and the detail fields differ.
 
 import { formatTime, LogExplorer, type LogRow } from "../../../components/log-explorer";
+import { Badge } from "../../../components/badge";
 
 // A denial is the row worth spotting at a glance, so it carries a badge rather
-// than a bare word in a column of identical-looking text.
+// than a bare word in a column of identical-looking text. "denied" is the only
+// outcome that warns; the rest are statements of fact.
 const outcomeBadge = (row: LogRow) => {
   const outcome = String(row.outcome ?? "applied");
-  return <span className={`badge badge-${outcome}`}>{outcome}</span>;
+  return <Badge tone={outcome === "denied" ? "danger" : "neutral"}>{outcome}</Badge>;
 };
 
 export const AuditList = () => (
@@ -26,5 +28,8 @@ export const AuditList = () => (
     searchField="actor_email"
     searchPlaceholder="filter loaded actors"
     detailFields={["actor_email", "actor_role", "reason", "before", "after", "node"]}
+    // One platform-wide trail, filtered per reader — there is no second
+    // collection to switch to.
+    singleScope
   />
 );

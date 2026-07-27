@@ -1,4 +1,11 @@
+// Signups, newest first. On the shared table like every other list — before, this
+// page had a hand-written one, which is how its brand badge ended up drawn in the
+// colour reserved for errors.
+
 import { useList } from "@refinedev/core";
+import { Badge } from "../../components/badge";
+import { DataTable } from "../../components/data-table";
+import { EmptyState } from "../../components/states";
 
 type WaitlistRow = {
   id: string;
@@ -7,14 +14,6 @@ type WaitlistRow = {
   brand: string | null;
   early_access: boolean;
   created_at: string;
-};
-
-// The brand is now a stored field decided by the relay, so the panel stops
-// guessing it from the signup source; source is only the fallback for rows
-// written before tenancy.
-const brandBadge = (brand: string | null, source: string) => {
-  const label = brand ?? source ?? "—";
-  return <span className={`badge badge-${label}`}>{label}</span>;
 };
 
 export const WaitlistList = () => {
@@ -28,28 +27,36 @@ export const WaitlistList = () => {
   return (
     <div className="panel-card">
       <h1>Waitlist</h1>
-      {query.isLoading ? (
-        <p>Loading…</p>
-      ) : (
-        <table className="panel-table">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Brand</th>
-              <th>Signed up</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result?.data.map((row) => (
-              <tr key={row.id}>
-                <td>{row.email}</td>
-                <td>{brandBadge(row.brand, row.source)}</td>
-                <td>{new Date(row.created_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <DataTable<WaitlistRow>
+        columns={[
+          { key: "email", label: "Email" },
+          {
+            key: "brand",
+            label: "Brand",
+            // The brand is a stored field decided by the relay, so the panel stops
+            // guessing it from the signup source; source is only the fallback for
+            // rows written before tenancy.
+            render: (row) => <Badge>{row.brand ?? row.source ?? "—"}</Badge>,
+          },
+          {
+            key: "created_at",
+            label: "Signed up",
+            render: (row) => new Date(row.created_at).toLocaleString(),
+          },
+        ]}
+        rows={result?.data ?? []}
+        rowId={(row) => row.id}
+        loading={query.isLoading}
+        error={query.isError ? "Loading the waitlist failed." : null}
+        onRetry={() => void query.refetch()}
+        caption="Waitlist signups"
+        empty={
+          <EmptyState
+            title="No signups yet."
+            hint="A landing writes here the moment someone submits the form."
+          />
+        }
+      />
     </div>
   );
 };

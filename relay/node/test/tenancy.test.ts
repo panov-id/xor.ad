@@ -48,6 +48,19 @@ async function seed(): Promise<void> {
       created_at: "2026-07-25T10:00:00.000Z",
     });
   }
+  // Page views, one per tenant plus one from before tenancy: the fixture the
+  // merged-scope tests read, seeded here so no test depends on another running
+  // first.
+  for (const brand of ["alpha", "beta"]) {
+    await scopedForBrand(brand).put(`pageviews/${ENV_NAME}/${brand}-view.json`, {
+      path: "/",
+      lang: "en",
+      brand,
+      received_at: "2026-07-27T09:00:00.000Z",
+    });
+  }
+  await platform.put(`pageviews/${ENV_NAME}/legacy-view.json`, { path: "/", lang: "ru" });
+
   // One trail for everyone, so what a tenant may read out of it is the thing
   // worth a test. The platform's own entry carries no brand at all — the shape
   // of every record written before tenancy.
@@ -121,19 +134,29 @@ Deno.test("a tenant sees only its own operators", async () => {
   assertEquals(body.map((row: { email: string }) => row.email), ["boss@alpha.test"]);
 });
 
-Deno.test("page views are a tenant's own traffic, not everyone's", async () => {
-  const platform = scopedForBrand(null);
-  for (const brand of ["alpha", "beta"]) {
-    await scopedForBrand(brand).put(`pageviews/${ENV_NAME}/${brand}-view.json`, {
-      path: "/",
-      lang: "en",
-      brand,
-      received_at: "2026-07-27T09:00:00.000Z",
-    });
-  }
-  // A pre-tenancy view in the root: the platform's, and nobody else's.
-  await platform.put(`pageviews/${ENV_NAME}/legacy-view.json`, { path: "/", lang: "ru" });
+Deno.test("the platform reads every tenant at once, each row saying whose it is", async () => {
+  const { status, body } = await callAs(PLATFORM, "GET", "/admin/logs-pageviews");
+  assertEquals(status, 200);
+  // Both tenants' views, merged and labelled — the default that stopped the panel
+  // from showing an empty archive.
+  assertEquals(body.scope.mode, "all");
+  assertEquals([...body.scope.of].sort(), ["alpha", "beta"]);
+  assertEquals(
+    [...new Set(body.rows.map((row: { scope: string }) => row.scope))].sort(),
+    ["alpha", "beta"],
+  );
+});
 
+Deno.test("the pre-migration archive is a scope you ask for by name", async () => {
+  const { status, body } = await callAs(PLATFORM, "GET", "/admin/logs-pageviews?brand=platform");
+  assertEquals(status, 200);
+  assertEquals(body.scope.mode, "one");
+  // Seeded above, in the root rather than under a tenant.
+  assertEquals(body.rows.length, 1);
+  assertEquals(body.rows[0].scope, "platform");
+});
+
+Deno.test("page views are a tenant's own traffic, not everyone's", async () => {
   const own = await callAs(ALPHA, "GET", "/admin/logs-pageviews");
   assertEquals(own.status, 200);
   assertEquals(own.body.rows.map((row: { brand: string }) => row.brand), ["alpha"]);

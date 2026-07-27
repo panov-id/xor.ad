@@ -3,12 +3,13 @@
 // whole record instead of a fixed field list.
 
 import { formatTime, LogExplorer, type LogRow } from "../../../components/log-explorer";
+import { Badge, toneForLevel } from "../../../components/badge";
 
 // error over warn is the distinction worth seeing without reading — the level
 // carries a badge rather than sitting as one more word in a column of text.
 const levelBadge = (row: LogRow) => {
   const level = String(row.level ?? "info");
-  return <span className={`badge badge-${level}`}>{level}</span>;
+  return <Badge tone={toneForLevel(level)}>{level}</Badge>;
 };
 
 export const ServerLogsList = () => (
@@ -22,6 +23,7 @@ export const ServerLogsList = () => (
       { key: "route", label: "Route" },
       { key: "node", label: "Node" },
     ]}
+    singleScope
     facetField="level"
     facetLabel="all levels"
     searchField="msg"

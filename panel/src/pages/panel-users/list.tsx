@@ -3,6 +3,9 @@ import { useState } from "react";
 import { api } from "../../providers/api";
 import { type Permission, type Role, ROLES } from "../../access";
 import type { PanelIdentity } from "../../providers/auth";
+import { Badge, toneForRole } from "../../components/badge";
+import { DataTable } from "../../components/data-table";
+import { EmptyState } from "../../components/states";
 
 type PanelUserRow = {
   id: string;
@@ -115,36 +118,44 @@ export const PanelUsersList = () => {
         <p className="auth-note">Your role can view panel users but not change them.</p>
       )}
 
-      {query.isLoading ? (
-        <p>Loading…</p>
-      ) : (
-        <table className="panel-table">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Role</th>
-              {/* Only the platform sees several tenants; for a tenant every row
-                  carries the same brand, so the column would be noise. */}
-              {isPlatform && <th>Brand</th>}
-              <th>Added</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result?.data.map((row) => (
-              <tr key={row.id}>
-                <td>{row.email}</td>
-                <td>
-                  <span className={`badge badge-${row.role}`}>
-                    {row.role}
-                  </span>
-                </td>
-                {isPlatform && <td>{row.brand ?? "platform"}</td>}
-                <td>{new Date(row.created_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <DataTable<PanelUserRow>
+        columns={[
+          { key: "email", label: "Email" },
+          {
+            key: "role",
+            label: "Role",
+            render: (row) => <Badge tone={toneForRole(row.role)}>{row.role}</Badge>,
+          },
+          // Only the platform sees several tenants; for a tenant every row carries
+          // the same brand, so the column would be noise.
+          ...(isPlatform
+            ? [{
+              key: "brand",
+              label: "Brand",
+              render: (row: PanelUserRow) => <Badge>{row.brand ?? "platform"}</Badge>,
+            }]
+            : []),
+          {
+            key: "created_at",
+            label: "Added",
+            render: (row) => new Date(row.created_at).toLocaleString(),
+          },
+        ]}
+        rows={result?.data ?? []}
+        rowId={(row) => row.id}
+        loading={query.isLoading}
+        error={query.isError ? "Loading the operator list failed." : null}
+        onRetry={() => void query.refetch()}
+        caption="Panel operators"
+        empty={
+          <EmptyState
+            title="No operators yet."
+            hint={canManageUsers
+              ? "Invite one with the form above — they sign in by magic link."
+              : "Someone with the right to manage users has to invite them."}
+          />
+        }
+      />
     </div>
   );
 };

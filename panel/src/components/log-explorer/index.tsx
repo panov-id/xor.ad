@@ -1,29 +1,30 @@
-// Shared log explorer: a time window, a histogram of the load in that window, and
-// a newest-first page that pages backwards by cursor. Every log page in the panel
+// Shared log explorer: a scope, a time window, a histogram of that window, and a
+// newest-first page that pages backwards by cursor. Every log page in the panel
 // is this component plus a column description.
 //
 // It talks to the relay directly rather than through the Refine data provider:
-// the response is an envelope (rows + window totals + histogram), which is not the
-// provider's list + total contract. The resources stay registered in Refine for
-// the menu, the routes and the access gates.
+// the response is an envelope (rows + window totals + histogram + which scopes it
+// was read from), which is not the provider's list + total contract. The
+// resources stay registered in Refine for the menu, the routes and the gates.
 
-import { Fragment, type ReactNode, useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useGetIdentity } from "@refinedev/core";
 import { api } from "../../providers/api";
 import type { PanelIdentity } from "../../providers/auth";
+import { Badge } from "../badge";
+import { type Column, DataTable } from "../data-table";
+import { EmptyState } from "../states";
 
 export interface LogRow {
   id: string;
   stored_at: string;
+  // Which collection this row came from — set by the relay, not by the sink, so
+  // it is present even on records that carry no brand of their own.
+  scope?: string;
   [field: string]: unknown;
 }
 
-export interface LogColumn {
-  key: string;
-  label: string;
-  render?: (row: LogRow) => ReactNode;
-  wide?: boolean; // truncate with an ellipsis instead of growing the table
-}
+export type LogColumn = Column<LogRow>;
 
 interface HistogramBucket {
   at: string;
@@ -36,23 +37,31 @@ interface LogPageResponse {
   matched: number;
   truncated: boolean;
   buckets: HistogramBucket[];
+  scope?: {
+    mode: "all" | "one";
+    of: string[];
+    capped?: number;
+  };
 }
 
 interface LogExplorerProps {
   title: string;
   endpoint: string;
   columns: LogColumn[];
-  facetField?: string; // the field behind the "all …" select
+  facetField?: string;
   facetLabel?: string;
-  searchField?: string; // the field the text filter matches, within loaded rows
+  searchField?: string;
   searchPlaceholder?: string;
   // Fields shown in the expanded row. Omit for collections whose shape varies
   // per record (server logs carry whatever the call site logged) — then the
   // whole record is shown rather than a guessed subset.
   detailFields?: string[];
-  // Scopes the switcher offers beyond the brands themselves — collections that
-  // belong to no tenant. Platform-only, like every other entry in that list.
+  // Collections that belong to no tenant, offered beside the brands. Platform
+  // only, like every other entry in that list.
   extraScopes?: { key: string; name: string }[];
+  // Set when the collection exists in exactly one place (the node's own logs,
+  // the audit trail): then there is nothing to switch and no switcher.
+  singleScope?: boolean;
 }
 
 const RANGES = [
@@ -63,6 +72,12 @@ const RANGES = [
 ] as const;
 
 type RangeKey = (typeof RANGES)[number]["key"] | "custom";
+
+// "All brands" is the empty value: it is what the relay does without a `brand`
+// parameter, and it is the default because the alternative — the pre-migration
+// archive — is empty by design and made the panel look broken.
+const ALL_BRANDS = "";
+const ARCHIVE = "platform";
 
 export const formatTime = (value: unknown): string =>
   typeof value === "string" && value
@@ -82,6 +97,7 @@ export const LogExplorer = ({
   searchPlaceholder = "filter loaded rows",
   detailFields,
   extraScopes = [],
+  singleScope = false,
 }: LogExplorerProps) => {
   const [range, setRange] = useState<RangeKey>("24h");
   const [customFrom, setCustomFrom] = useState("");
@@ -92,17 +108,14 @@ export const LogExplorer = ({
   const [matched, setMatched] = useState(0);
   const [total, setTotal] = useState(0);
   const [truncated, setTruncated] = useState(false);
+  const [readFrom, setReadFrom] = useState<LogPageResponse["scope"]>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [facet, setFacet] = useState("");
   const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState<string | null>(null);
 
-  // A log page is always one tenant's collection. An empty value means "the
-  // caller's own scope", which is what a tenant always gets — they have one
-  // collection and nothing to switch to.
-  const [brand, setBrand] = useState("");
+  const [scope, setScope] = useState(ALL_BRANDS);
   const [brands, setBrands] = useState<{ key: string; name: string }[]>([]);
 
   // Whose operator this is decides whether there is a switcher at all. Asked
@@ -110,14 +123,15 @@ export const LogExplorer = ({
   // a poor way to learn something the identity already says.
   const { data: identity } = useGetIdentity<PanelIdentity>();
   const isPlatform = identity?.brand === null;
+  const showSwitcher = isPlatform && !singleScope;
 
   useEffect(() => {
-    if (!isPlatform) return;
+    if (!showSwitcher) return;
     api("/admin/brands")
       .then((response) => (response.ok ? response.json() : []))
       .then(setBrands)
       .catch(() => setBrands([]));
-  }, [isPlatform]);
+  }, [showSwitcher]);
 
   // The window is resolved at fetch time, not at render time: "last 15m" must mean
   // 15 minutes before the request, not before the first paint.
@@ -138,9 +152,8 @@ export const LogExplorer = ({
     setError(null);
     const params = windowParams();
     if (cursor) params.set("before", cursor);
-    // Without it the relay reads the caller's own scope: a tenant's own logs,
-    // the platform's pre-migration root.
-    if (brand) params.set("brand", brand);
+    // Empty means every brand the relay may merge; a value picks one collection.
+    if (scope) params.set("brand", scope);
 
     const response = await api(`${endpoint}?${params.toString()}`);
     if (!response.ok) {
@@ -157,11 +170,11 @@ export const LogExplorer = ({
     setMatched(page.matched);
     setTotal(page.total);
     setTruncated(page.truncated);
+    setReadFrom(page.scope);
     setLoading(false);
-  }, [endpoint, windowParams, brand]);
+  }, [endpoint, windowParams, scope]);
 
   useEffect(() => {
-    setExpanded(null);
     void load();
   }, [load]);
 
@@ -177,26 +190,79 @@ export const LogExplorer = ({
   const oldestLoaded = rows[rows.length - 1]?.stored_at;
   const peak = Math.max(1, ...buckets.map((bucket) => bucket.count));
 
+  // A merged read needs to say which tenant each row belongs to; a single-scope
+  // read would only repeat one value down the page.
+  const merged = readFrom?.mode === "all" && readFrom.of.length > 1;
+  const shownColumns: LogColumn[] = merged
+    ? [
+      ...columns,
+      {
+        key: "scope",
+        label: "Brand",
+        render: (row) => <Badge>{asText(row.scope)}</Badge>,
+      },
+    ]
+    : columns;
+
+  // Why a table might be empty, in the order a reader would suspect it. The
+  // scope case exists because the default used to be the pre-migration archive,
+  // and "nothing in this window" sent people looking at the clock instead.
+  const emptyState = (): ReactNode => {
+    if (rows.length > 0) {
+      return (
+        <EmptyState
+          title="No rows match the filter."
+          hint="The window has data — the facet or the search is hiding it."
+          action={{ label: "Clear filters", onClick: () => { setFacet(""); setSearch(""); } }}
+        />
+      );
+    }
+    if (scope === ARCHIVE) {
+      return (
+        <EmptyState
+          title="The pre-migration archive is empty."
+          hint="Records written since the tenancy migration live under their brand."
+          action={{ label: "Show all brands", onClick: () => setScope(ALL_BRANDS) }}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        title="Nothing in this window."
+        hint={total > 0
+          ? `${total} record(s) exist outside it — try a wider range.`
+          : "This collection has no records yet."}
+        action={range === "7d" ? undefined : { label: "Widen to 7d", onClick: () => setRange("7d") }}
+      />
+    );
+  };
+
   return (
     <div className="panel-card">
       <h1>{title}</h1>
 
       <div className="log-controls">
-        {brands.length > 0 && (
-          <select value={brand} onChange={(event) => setBrand(event.target.value)}>
-            <option value="">platform</option>
-            {[...brands, ...extraScopes].map((item) => (
-              <option key={item.key} value={item.key}>{item.name}</option>
-            ))}
-          </select>
+        {showSwitcher && (
+          <label className="control-labelled">
+            <span className="control-label">Scope</span>
+            <select value={scope} onChange={(event) => setScope(event.target.value)}>
+              <option value={ALL_BRANDS}>All brands</option>
+              {brands.map((item) => <option key={item.key} value={item.key}>{item.name}</option>)}
+              {extraScopes.map((item) => (
+                <option key={item.key} value={item.key}>{item.name}</option>
+              ))}
+              <option value={ARCHIVE}>platform (pre-migration)</option>
+            </select>
+          </label>
         )}
 
-        <div className="log-ranges">
+        <div className="log-ranges" role="group" aria-label="Time range">
           {RANGES.map((candidate) => (
             <button
               key={candidate.key}
               type="button"
               className={range === candidate.key ? "range-active" : undefined}
+              aria-pressed={range === candidate.key}
               onClick={() => setRange(candidate.key)}
             >
               {candidate.label}
@@ -205,6 +271,7 @@ export const LogExplorer = ({
           <button
             type="button"
             className={range === "custom" ? "range-active" : undefined}
+            aria-pressed={range === "custom"}
             onClick={() => setRange("custom")}
           >
             custom
@@ -215,12 +282,14 @@ export const LogExplorer = ({
           <div className="log-custom-range">
             <input
               type="datetime-local"
+              aria-label="From"
               value={customFrom}
               onChange={(event) => setCustomFrom(event.target.value)}
             />
             <span>→</span>
             <input
               type="datetime-local"
+              aria-label="To"
               value={customTo}
               onChange={(event) => setCustomTo(event.target.value)}
             />
@@ -228,13 +297,9 @@ export const LogExplorer = ({
         )}
 
         {facetField && (
-          <select value={facet} onChange={(event) => setFacet(event.target.value)}>
+          <select value={facet} onChange={(event) => setFacet(event.target.value)} aria-label={facetLabel}>
             <option value="">{facetLabel}</option>
-            {facetValues.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
+            {facetValues.map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
         )}
 
@@ -242,6 +307,7 @@ export const LogExplorer = ({
           <input
             type="search"
             placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -252,7 +318,11 @@ export const LogExplorer = ({
         </button>
       </div>
 
-      {error && <p className="status-err">{error}</p>}
+      {readFrom?.capped && (
+        <p className="status-warn" role="status">
+          Showing {readFrom.of.length} of {readFrom.capped} brands — pick one to see the rest.
+        </p>
+      )}
 
       {/* Counts across the window, computed from the storage listing alone — one
           series, so identity needs no legend; the heading names it. */}
@@ -278,55 +348,27 @@ export const LogExplorer = ({
         </figure>
       )}
 
-      {loading && rows.length === 0 ? (
-        <p className="loading-note">Loading…</p>
-      ) : (
-        <table className="panel-table">
-          <thead>
-            <tr>
-              {columns.map((column) => <th key={column.key}>{column.label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {visible.length === 0 && (
-              <tr>
-                <td colSpan={columns.length} className="loading-note">
-                  Nothing in this window.
-                </td>
-              </tr>
+      <DataTable
+        columns={shownColumns}
+        rows={visible}
+        rowId={(row) => row.id}
+        loading={loading}
+        error={error}
+        onRetry={() => void load()}
+        empty={emptyState()}
+        caption={title}
+        expanded={(row) => (
+          <pre className="log-detail">
+            {JSON.stringify(
+              detailFields
+                ? Object.fromEntries(detailFields.map((field) => [field, row[field]]))
+                : row,
+              null,
+              2,
             )}
-            {visible.map((row) => (
-              <Fragment key={row.id}>
-                <tr
-                  className="log-row"
-                  onClick={() => setExpanded(expanded === row.id ? null : row.id)}
-                >
-                  {columns.map((column) => (
-                    <td key={column.key} className={column.wide ? "log-message" : undefined}>
-                      {column.render ? column.render(row) : asText(row[column.key])}
-                    </td>
-                  ))}
-                </tr>
-                {expanded === row.id && (
-                  <tr>
-                    <td colSpan={columns.length}>
-                      <pre className="log-detail">
-                        {JSON.stringify(
-                          detailFields
-                            ? Object.fromEntries(detailFields.map((field) => [field, row[field]]))
-                            : row,
-                          null,
-                          2,
-                        )}
-                      </pre>
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      )}
+          </pre>
+        )}
+      />
 
       <div className="log-footer">
         <span className="loading-note">

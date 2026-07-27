@@ -379,7 +379,9 @@ export const LogExplorer = ({
       />
 
       <div className="log-footer">
-        <span className="loading-note">
+        {/* Announced when it changes: after "load older" or a window switch, the
+            only thing that moves for a screen-reader user is this line. */}
+        <span className="loading-note" role="status" aria-live="polite">
           {/* Never imply completeness: the relay caps every read. */}
           {visible.length === rows.length
             ? `${rows.length} loaded of ${matched} in window · ${total} stored`

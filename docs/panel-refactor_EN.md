@@ -170,6 +170,29 @@ more honest.
   pulled someone else's og images. Now "xor panel", plus `noindex`: the panel is
   private.
 
+## Pass 3 — done (2026-07-27)
+
+**D1–D3 and E1 are closed.** Screenshots: `panel-*-mobile.png`, both themes.
+
+- **A row becomes a card** on a narrow screen: the labels come from the
+  `data-label` the shared table already writes into every cell, so this is layout
+  only, with nothing to keep in sync. A message gets its own line and wraps rather
+  than being clipped at 42 characters. An empty cell prints no label — a line
+  reading "ARRIVAL" followed by silence is not information.
+- **The menu collapses into a button**: at 390 px it owned the entire first
+  screen, so the page a reader opened was never the page they saw first.
+  Following a link closes it, or it would cover the page just asked for.
+- **The toolbar wraps**, the range strip scrolls as one piece, and the search
+  takes a line of its own.
+- **Contrast is checked by arithmetic, not by eye** — `panel/tests/contrast.mjs`
+  reads the tokens out of `App.css` and computes 8 pairs per theme. All 16 pass
+  4.5:1 (lowest 6.03). Run it with `scripts/check-panel-contrast.sh`; it exits
+  non-zero on a failure, so it can gate a build.
+- **`aria-live`** on the log page's counters and on the invite form's reply:
+  after "load older" or a refusal, that line is the only thing that moves.
+
+Checks: relay 33 + 10, panel typecheck clean, contrast green.
+
 ## Order
 
 Three passes, each self-contained and checkable by screenshot:

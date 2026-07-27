@@ -105,7 +105,17 @@ export const PanelUsersList = () => {
           </button>
         </form>
       )}
-      {status && <p className={status.kind === "ok" ? "status-ok" : "status-err"}>{status.text}</p>}
+      {/* The invite's only feedback: a failure has to be announced, not merely
+          rendered. */}
+      {status && (
+        <p
+          className={status.kind === "ok" ? "status-ok" : "status-err"}
+          role={status.kind === "ok" ? "status" : "alert"}
+          aria-live="polite"
+        >
+          {status.text}
+        </p>
+      )}
       {inviteLink && (
         <div className="invite-link">
           <code>{inviteLink}</code>

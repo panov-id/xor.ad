@@ -583,3 +583,122 @@ table.panel-table {
   padding: 0 14px;
   cursor: pointer;
 }
+
+/* --- Narrow screens -----------------------------------------------------------
+   A table is a grid of relationships, and 390 px cannot hold one: the previous
+   answer was to let the text run past the edge, which loses the end of every
+   message. Here a row becomes a card of label/value pairs — the labels come from
+   the data-label the shared table already writes into every cell, so this is
+   layout only, with nothing to keep in sync. */
+@media screen and (max-width: 751px) {
+  .panel-table,
+  .panel-table tbody,
+  .panel-table tr,
+  .panel-table td {
+    display: block;
+    width: 100%;
+  }
+  /* The header row is the one part a card layout has no place for: each cell
+     carries its own label instead. Hidden accessibly, so a screen reader still
+     announces the column when it reads the cell. */
+  .panel-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .panel-table tbody tr {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: var(--space-3);
+    padding: var(--space-2);
+    background: var(--surface);
+  }
+  .panel-table tbody tr:nth-child(even of :not(.log-detail-row)) {
+    background: var(--surface);
+  }
+  .panel-table td {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-1) var(--space-2);
+    border-bottom: none;
+  }
+  .panel-table td::before {
+    content: attr(data-label);
+    color: var(--ink-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  /* A cell with nothing in it still printed its label, so every card carried a
+     line reading "ARRIVAL" followed by silence. An absent value is absent. */
+  .panel-table td:empty {
+    display: none;
+  }
+
+  /* A message is the reason the row exists: on a phone it gets its own line and
+     wraps instead of being clipped at 42 characters. */
+  .cell-wide {
+    grid-template-columns: 1fr;
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+  }
+  .log-detail-row td {
+    grid-template-columns: 1fr;
+  }
+  .log-detail-row td::before {
+    content: none;
+  }
+
+  /* The toolbar wraps rather than overflowing, and the ranges scroll as one
+     strip instead of breaking mid-row. */
+  .log-controls {
+    gap: var(--space-2);
+  }
+  .log-controls input[type="search"] {
+    flex: 1 1 100%;
+  }
+  .log-ranges {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .log-ranges::-webkit-scrollbar {
+    display: none;
+  }
+
+  .panel-card {
+    padding: var(--space-4);
+  }
+  .log-footer {
+    flex-wrap: wrap;
+  }
+}
+
+/* The menu collapses into a button: at 390 px it used to own the entire first
+   screen, so the page a reader opened was never the page they saw first. */
+.menu-toggle {
+  display: none;
+}
+@media screen and (max-width: 751px) {
+  .menu {
+    gap: var(--space-3);
+  }
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    align-self: flex-start;
+  }
+  .menu-collapsible {
+    display: none;
+  }
+  .menu-collapsible[data-open="true"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}

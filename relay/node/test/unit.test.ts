@@ -133,6 +133,20 @@ Deno.test("pageview: the viewport becomes a bucket, not a measurement", async ()
   assertEquals(viewport(Number.NaN), null);
 });
 
+// The prune deletes without reading, so what it selects is the whole safety
+// argument: an entry the transport could not date must survive.
+Deno.test("prune: only dated entries older than the cutoff are selected", async () => {
+  const { expiredEntries } = await import("../tools/prune_pageviews.ts");
+  const entries = [
+    { name: "old.json", createdAt: "2026-01-01T00:00:00.000Z", size: 1 },
+    { name: "edge.json", createdAt: "2026-07-01T00:00:00.000Z", size: 1 }, // exactly the cutoff
+    { name: "fresh.json", createdAt: "2026-07-20T00:00:00.000Z", size: 1 },
+    { name: "undated.json", createdAt: "", size: 1 },
+  ];
+  const expired = expiredEntries(entries, "2026-07-01T00:00:00.000Z");
+  assertEquals(expired.map((entry) => entry.name), ["old.json"]);
+});
+
 Deno.test("jwt: rejects wrong secret and expired token", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
   const good = await sign({ sub: "a@b.com", role: "admin", brand: null, exp: Math.floor(Date.now()/1000)+60 }, "k1");

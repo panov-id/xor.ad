@@ -36,8 +36,11 @@ landing, the migration always before the flag.
       3 neighbro); `--apply` without error; `--delete` once the copies read back.
       Result: the `waitlist/staging/` root is empty, sosed sees 2, neighbro 4,
       the platform 6 instead of 10.
-- [ ] **A4. Landings to uat** — only after A2. Before the node, the form dies at
-      the preflight: an old node does not allow `x-api-key`.
+- [x] **A4. Landings to uat** — closed automatically, as it turns out: the
+      landings' `deploy-uat.yml` fires on a push to `main` rather than by hand, so
+      uat shipped with the merge — the keys on 26.07, the counter on 27.07.
+      Verified in both uat domains' `config.js`. The node-before-landing order
+      held anyway: staging was already on `v0.4.0`.
 - [ ] **A5. Prod node** — box p1, `--confirm-prod`, a decision of its own.
 - [ ] **A6. Migrate prod's data.**
 - [ ] **A7. Landings to prod** — only after A5.
@@ -107,6 +110,25 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       origin instead of storage.
 - [ ] **D7. A per-language OG image** — the pipeline draws one for the whole
       site; it only starts to matter with translated typography.
+
+## D-bis. Our own page counter
+
+Built 2026-07-27 and deployed to dev and staging: `POST /pageview` on the relay, a
+"Page views" page in the panel, reporting from both landings. It counts everyone
+because it needs no consent — the record carries no address, no user agent and no
+identifier.
+
+- [x] **Db1. Retention.** `tools/prune_pageviews.ts` +
+      `scripts/prune-pageviews-remote.sh`: a 90-day window by default, selection
+      from listing metadata (the objects are never read — a prune must not cost
+      what the traffic it cleans up after did), plan by default, deletion only
+      with `--apply`, a window under 7 days refused, prod behind
+      `CONFIRM_PROD=yes`. Verified on the stand: the aged view went, the fresh one
+      stayed. Run by hand monthly until E1 is decided.
+- [ ] **Db2. Do tenants get `/pageview`** as part of the public API — this decides
+      whether the route is documented outward in `api-platform_*`.
+- [ ] **Db3. Daily aggregates** instead of an object per view — waits on E1; until
+      then retention holds the volume.
 
 ## E. Open decisions
 

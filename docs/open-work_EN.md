@@ -41,9 +41,21 @@ landing, the migration always before the flag.
       uat shipped with the merge — the keys on 26.07, the counter on 27.07.
       Verified in both uat domains' `config.js`. The node-before-landing order
       held anyway: staging was already on `v0.4.0`.
-- [ ] **A5. Prod node** — box p1, `--confirm-prod`, a decision of its own.
-- [ ] **A6. Migrate prod's data.**
-- [ ] **A7. Landings to prod** — only after A5.
+- [x] **A5. Prod node** — done 2026-07-27: the same `v0.5.0` release that had
+      been running on staging, promoted to box p1 with `--confirm-prod`. Smoke:
+      health, a preflight from `sosed.place`, a keyless call (what the live
+      landings still did) and a keyed one — both 200.
+- [x] **A6. Migrate prod's data** — 27 real leads (25 neighbro, 2 sosed). Before
+      the irreversible pass, **all 27** copies were compared with their originals
+      by data rather than by bytes: the originals came from the earlier Supabase
+      migration (spaces in the JSON), the copies from the node (none), so a byte
+      comparison raised a false alarm. Nothing missing, nothing different.
+      Result: the root is empty, the platform sees 29 instead of 56.
+- [x] **A7. Landings to prod** — 2026-07-27, the same tags uat had been serving
+      (`v2026.07.27-d8cbb02` and `-4e17a76`). The live sites serve the key and the
+      GA4 id in `config.js`, a `robots.txt` that allows crawling, sitemaps of 19
+      and 12 URLs, language pages with `hreflang` and without `noindex`, the
+      counter, and the FAQ structured data.
 - [ ] **A8. `REQUIRE_API_KEY=true` per environment** — once
       `relay_keyless_requests_total` and the server logs show no keyless callers
       left. It retires the transitional fallbacks: dedup into the root, and
@@ -90,9 +102,12 @@ generated `sitemap.xml`, a `robots.txt` swapped out off production, JSON-LD
 (`Organization`/`WebSite`/`FAQPage`), the FAQ, IndexNow, the consent banner, GA4
 behind a flag, edge rules (www→apex, short HTML TTL). What remains:
 
-- [ ] **D1. `ANALYTICS_ID` (GA4) and `SEARCH_CONSOLE_TOKEN` as secrets** in both
-      repositories — without them production deploys with no analytics and no
-      verification. The values have to come from the owner.
+- [x] **D1. `ANALYTICS_ID` (GA4)** — set 2026-07-27 in both repositories'
+      `production` environment: `G-WWHXHZ5QWQ` for sosed, `G-K7EP39DDK9` for
+      neighbro. dev and uat stay empty, hence no counter and no banner there.
+      `SEARCH_CONSOLE_TOKEN` is **not needed**: the domains verify by a DNS TXT
+      record rather than a meta tag, so it was deliberately not stored — two
+      verification methods would only duplicate each other.
 - [x] **D2. Local checks F1–F3** — closed 2026-07-27. `landing/verify-seo.mjs`
       (the same file in both landings) reads a generated site and answers all
       three before any deploy. sosed — 17 languages, 18 alternates per page, a
@@ -113,7 +128,7 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
 
 ## D-bis. Our own page counter
 
-Built 2026-07-27 and deployed to dev and staging: `POST /pageview` on the relay, a
+Built 2026-07-27 and deployed everywhere, production included: `POST /pageview` on the relay, a
 "Page views" page in the panel, reporting from both landings. It counts everyone
 because it needs no consent — the record carries no address, no user agent and no
 identifier.

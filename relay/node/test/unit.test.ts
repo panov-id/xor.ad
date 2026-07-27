@@ -107,6 +107,32 @@ Deno.test("jwt: sign/verify round-trip", async () => {
   assertEquals(claims?.role, "admin");
 });
 
+// The counter's privacy is these two functions: everything a visitor's browser
+// offers that could identify them is reduced here, before anything is stored.
+Deno.test("pageview: the referrer is reduced to its host", async () => {
+  const { referrerHost } = await import("../src/routes/pageview.ts");
+  // A search query lives in the referrer's query string — the reason only the
+  // host is kept.
+  assertEquals(referrerHost("https://www.google.com/search?q=secret+thing"), "www.google.com");
+  assertEquals(referrerHost("https://t.me/somechannel/42"), "t.me");
+  assertEquals(referrerHost(""), null);
+  // Parses, and its "host" is a package name — dropped, or app installs would
+  // show up as a referring site.
+  assertEquals(referrerHost("android-app://com.example"), null);
+  assertEquals(referrerHost("not a url"), null);
+  assertEquals(referrerHost(42), null);
+});
+
+Deno.test("pageview: the viewport becomes a bucket, not a measurement", async () => {
+  const { viewport } = await import("../src/routes/pageview.ts");
+  assertEquals(viewport(390), "mobile");
+  assertEquals(viewport(834), "tablet");
+  assertEquals(viewport(1920), "desktop");
+  assertEquals(viewport(0), null);
+  assertEquals(viewport("1920"), null);
+  assertEquals(viewport(Number.NaN), null);
+});
+
 Deno.test("jwt: rejects wrong secret and expired token", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
   const good = await sign({ sub: "a@b.com", role: "admin", brand: null, exp: Math.floor(Date.now()/1000)+60 }, "k1");

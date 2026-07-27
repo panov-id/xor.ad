@@ -11,6 +11,7 @@ import { health } from "./routes/health.ts";
 import { metrics } from "./routes/metrics.ts";
 import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
+import { pageview } from "./routes/pageview.ts";
 import { relayUpgrade } from "./chat/relay.ts";
 import { match } from "./lib/router.ts";
 import "./routes/admin.ts"; // registers /auth/* + /admin/* on the pattern router
@@ -22,6 +23,7 @@ const routes: Record<string, Handler> = {
   "GET /metrics": () => metrics(),
   "POST /waitlist": (req) => waitlist(req),
   "POST /client-error": (req) => clientError(req),
+  "POST /pageview": (req) => pageview(req),
   "GET /chat": (req) => relayUpgrade(req), // placeholder, returns 501
 };
 

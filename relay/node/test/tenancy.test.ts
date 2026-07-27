@@ -121,6 +121,27 @@ Deno.test("a tenant sees only its own operators", async () => {
   assertEquals(body.map((row: { email: string }) => row.email), ["boss@alpha.test"]);
 });
 
+Deno.test("page views are a tenant's own traffic, not everyone's", async () => {
+  const platform = scopedForBrand(null);
+  for (const brand of ["alpha", "beta"]) {
+    await scopedForBrand(brand).put(`pageviews/${ENV_NAME}/${brand}-view.json`, {
+      path: "/",
+      lang: "en",
+      brand,
+      received_at: "2026-07-27T09:00:00.000Z",
+    });
+  }
+  // A pre-tenancy view in the root: the platform's, and nobody else's.
+  await platform.put(`pageviews/${ENV_NAME}/legacy-view.json`, { path: "/", lang: "ru" });
+
+  const own = await callAs(ALPHA, "GET", "/admin/logs-pageviews");
+  assertEquals(own.status, 200);
+  assertEquals(own.body.rows.map((row: { brand: string }) => row.brand), ["alpha"]);
+
+  const foreign = await callAs(ALPHA, "GET", "/admin/logs-pageviews?brand=beta");
+  assertEquals(foreign.status, 403);
+});
+
 Deno.test("a tenant reads only its own entries in the shared audit trail", async () => {
   const { status, body } = await callAs(ALPHA, "GET", "/admin/logs-audit");
   assertEquals(status, 200);

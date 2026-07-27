@@ -179,6 +179,24 @@ route("GET", "/admin/logs-client-errors", async ({ req, url }) => {
   return json(page);
 });
 
+// The landing's own page counter (routes/pageview.ts). A tenant's traffic is
+// theirs, so this reads through the caller's scope like the client errors do.
+route("GET", "/admin/logs-pageviews", async ({ req, url }) => {
+  const access = await requirePermission(req, "logs.pageviews.read");
+  if (isDenied(access)) return access.response;
+  const window = readWindow(url);
+  if (!window) return json({ error: "invalid from/to/before — expected a timestamp" }, 422);
+  const store = await logScope(access.user, url);
+  if (store instanceof Response) return store;
+  const page = await readLogPage<Record<string, unknown>>(
+    store,
+    `pageviews/${config.envName}`,
+    window,
+    HISTOGRAM_BUCKETS,
+  );
+  return json(page);
+});
+
 // The node's own warn/error lines, copied here by lib/log.ts. Admin-only: they
 // carry internal detail (routes, upstream errors) the other roles do not need.
 route("GET", "/admin/logs-server", async ({ req, url }) => {

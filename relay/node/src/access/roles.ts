@@ -20,6 +20,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     "panel_users.read",
     "logs.client_errors.read",
     "logs.audit.read",
+    "logs.pageviews.read",
   ],
   viewer: ["waitlist.read"],
   // A tenant's own administrator: full reach inside their brand, and no reach
@@ -31,6 +32,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     "panel_users.write",
     "logs.client_errors.read",
     "logs.audit.read",
+    "logs.pageviews.read",
     "api_keys.read",
     "api_keys.write",
   ],

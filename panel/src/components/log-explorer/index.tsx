@@ -79,6 +79,8 @@ type RangeKey = (typeof RANGES)[number]["key"] | "custom";
 const ALL_BRANDS = "";
 const ARCHIVE = "platform";
 
+const timeLabel: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
+
 export const formatTime = (value: unknown): string =>
   typeof value === "string" && value
     ? new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -341,6 +343,12 @@ export const LogExplorer = ({
                 title={`${new Date(bucket.at).toLocaleString()} — ${bucket.count}`}
               />
             ))}
+          </div>
+          {/* When, not just how much. Three bars over an unlabelled line left the
+              reader to guess which hours they were looking at. */}
+          <div className="log-histogram-axis" aria-hidden="true">
+            <span>{new Date(buckets[0].at).toLocaleTimeString([], timeLabel)}</span>
+            <span>{new Date(buckets[buckets.length - 1].at).toLocaleTimeString([], timeLabel)}</span>
           </div>
           <figcaption>
             {matched} in window · peak {peak} per bucket

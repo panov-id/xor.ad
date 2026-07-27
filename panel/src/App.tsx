@@ -67,6 +67,11 @@ function App() {
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
               projectId: "UdqnOn-kidBre-MGpZrJ",
+              // The framework pings telemetry.refine.dev on boot with a summary
+              // of which providers are wired up. Harmless in itself, but this is
+              // an operator tool for tenant data: nothing here calls out to a
+              // third party, and an admin panel is the last place to start.
+              disableTelemetry: true,
             }}
           >
             <Routes>

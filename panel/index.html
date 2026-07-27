@@ -4,24 +4,21 @@
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="refine | Build your React-based CRUD applications, without constraints."
-    />
-    <meta
-      data-rh="true"
-      property="og:image"
-      content="https://refine.dev/img/refine_social.png"
-    />
-    <meta
-      data-rh="true"
-      name="twitter:image"
-      content="https://refine.dev/img/refine_social.png"
-    />
-    <title>
-      Refine - Build your React-based CRUD applications, without constraints.
-    </title>
+    <meta name="theme-color" content="#0d0d0c" />
+    <meta name="description" content="xor control panel" />
+    <!-- The panel is private: nothing here should be crawled or previewed. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>xor panel</title>
+    <script>
+      // Applied before the first paint, so a dark-theme operator never gets a
+      // flash of the light one. The same value the toggle writes.
+      try {
+        var stored = localStorage.getItem("panel_theme");
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.setAttribute("data-theme", stored);
+        }
+      } catch (e) { /* private mode: fall back to the system theme */ }
+    </script>
     <!-- Self-hosted fonts: preload the above-the-fold latin faces. -->
     <link rel="preload" as="font" type="font/woff2" href="/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/Yq6W-LOTXCb04q32xlpwu8Zf.woff2" crossorigin />

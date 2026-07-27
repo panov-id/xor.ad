@@ -134,6 +134,42 @@ showed `0 rows` and now shows 21; client errors show 3 instead of 0.
 box on a tall peak; the "·" badge on an ordinary view is noise — an empty cell is
 more honest.
 
+## Pass 2 — done (2026-07-27)
+
+**C1–C6 are closed.** Screenshots: `panel-*-light.png` and `panel-*-dark.png`.
+
+- **Tokens.** A component names a role (`--surface`, `--line`, `--ink-muted`)
+  rather than a colour, so the dark theme is a second set of values instead of a
+  second set of rules. Plus a spacing scale, radii and one shadow: a page's rhythm
+  became a decision rather than an accident. The old names (`--bg`, `--fg`,
+  `--muted`) stay as aliases so nothing broke halfway through.
+- **Dark theme with a toggle.** The choice is stamped on `<html data-theme>`,
+  where a selector outranks the media query **in both directions**, and applied by
+  an inline script before the first paint — a dark-theme operator never gets a
+  flash of the light one.
+- **Sidebar.** Instead of a lone `platform`: a "Signed in for" label and the
+  value, the menu directly beneath, the active item filled with the accent, and
+  only the theme toggle and logout pushed to the bottom. The 250 px hole is gone.
+- **One title**, not shouted; the content has a width, and the table has zebra
+  striping and a sticky header.
+- **The histogram** gained a baseline and labelled window edges, and a bar no
+  longer overflows the top on a tall peak.
+- **Controls** share one look, focus is visible, and the active range is
+  **filled** — it used to change only the text colour and vanish in a row of
+  identical buttons.
+
+**Found along the way:**
+
+- An older block of rules survived below the new one and won on source order: the
+  active range button got blue text on a blue fill and photographed as an empty
+  rectangle. 77 lines of superseded rules deleted.
+- The panel pinged `telemetry.refine.dev` on boot with a summary of its wired-up
+  providers. For an operator tool handling tenant data that is one call too many —
+  turned off (`disableTelemetry`).
+- The browser tab read "Refine — Build your React-based CRUD applications" and
+  pulled someone else's og images. Now "xor panel", plus `noindex`: the panel is
+  private.
+
 ## Order
 
 Three passes, each self-contained and checkable by screenshot:

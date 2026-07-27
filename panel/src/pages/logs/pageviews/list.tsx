@@ -3,13 +3,13 @@
 // is to look at is which pages, in which language, from where.
 
 import { formatTime, LogExplorer, type LogRow } from "../../../components/log-explorer";
+import { Badge } from "../../../components/badge";
 
 // A view that opened a tab is worth telling apart from a click deeper into the
 // site — it is the closest thing to "someone arrived" that a counter without
-// storage on the device can honestly say.
-const arrivalBadge = (row: LogRow) => (
-  row.first_in_tab ? <span className="badge badge-accent">first</span> : <span className="badge">·</span>
-);
+// storage on the device can honestly say. The other rows get nothing: a badge
+// reading "·" was nineteen marks of noise per screen saying "not this one".
+const arrivalBadge = (row: LogRow) => (row.first_in_tab ? <Badge tone="info">first</Badge> : null);
 
 // Empty means someone typed the address or came from a client that sends no
 // referrer; "direct" says that plainly rather than leaving a blank cell.

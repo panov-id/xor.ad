@@ -115,8 +115,11 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       links.
 - [ ] **D3. Live checks F4–F5** — no request to a Google domain before consent,
       no CSP violations in the console. After the production deploy.
-- [ ] **D4. Submit the sitemap to Search Console** — after the first production
-      deploy, both domains.
+- [x] **D4. Sitemap submitted to Search Console** — 2026-07-27, both domains
+      (`https://sosed.place/sitemap.xml` and
+      `https://neighbro.place/sitemap.xml`). They are Domain properties, so the
+      full URL is required. www was not submitted: the zones redirect it to the
+      apex, so it would only duplicate.
 - [ ] **D5. Register in Bing Webmaster Tools** — a manual step; IndexNow does not
       need it, but it brings reports.
 - [ ] **D6. A real 404 page** — blocked by Bunny: `ErrorPageCustomCode` applies

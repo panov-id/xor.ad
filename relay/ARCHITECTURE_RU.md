@@ -35,7 +35,8 @@ apiUrl (per env, из config.js):
 | Bunny CDN (зоны `neighbro-dev/uat/prod`) | хостинг статики лендинга |
 | relay node-pool (Deno) | бэкенд: `/waitlist`, `/client-error`, `/health`, `/metrics` (слот `/chat` — заглушка 501) |
 | Caddy (на каждой ноде) | TLS (Let's Encrypt, DNS-01 через Bunny), маршрутизация по хостнейму |
-| Bunny Storage (зона `sosed-waitlist-dev`) | лиды и client-errors, разведены по префиксу `waitlist/<env>/` |
+| Bunny Storage (зона `sosed-waitlist-dev`) | лиды, просмотры, client-errors и серверные логи, разведены по арендатору и префиксу `tenants/<brand>/…/<env>/` |
+| Postgres рядом с узлом (том на боксе) | управляющее состояние: ключи, бренды, квоты, очередь, идемпотентность, дневные агрегаты. Порт наружу не публикуется; без `DATABASE_URL` узел работает целиком на хранилище. См. `docs/state-decision_RU.md` |
 | Resend (аккаунт на бренд) | welcome-письмо от домена бренда |
 | Bunny DNS (зона `relay.panov.id`) | хостнеймы нод + гео-record `api.relay.panov.id` |
 | GitHub Actions | сборка образов relay (build-once) + деплой лендинга по env |

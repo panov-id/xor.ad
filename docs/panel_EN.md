@@ -1,5 +1,11 @@
 # Panel — Admin/Moderation Panel for xor.ad
 
+> **Note: describes the previous stack.** Supabase is no longer used — not its
+> Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
+> nodes, magic-link sign-in (a signed session issued by the relay itself), data in
+> Bunny Storage, control state in a Postgres beside the node.
+> Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
+
 ## Purpose
 
 An internal interface for the team: visibility into and control over the waitlist, reports, bans, and user quotas across both faces (sosed.place, neighbro.place). This is the operational surface of the shared backend, separate from the user-facing frontends. The panel is built to grow: the MVP covers the waitlist, authentication, reports/bans, and panel user management; quotas, support tickets, and the sticker catalog follow later.

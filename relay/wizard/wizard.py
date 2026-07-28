@@ -110,6 +110,12 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # landings have been rolled out — not of the image or of the secrets.
         "REQUIRE_API_KEY": "true" if e.get("require_api_key") else "false",
     }
+    if uses_database(inv, box):
+        # Reached by service name on the compose network; the password is the
+        # box's, generated once and kept in the wizard's secrets.
+        vals["DATABASE_URL"] = (
+            f"postgres://relay:{os.environ.get('POSTGRES_PASSWORD', '')}@postgres:5432/relay_{env}"
+        )
     if e.get("mail") == "mailpit":
         vals.update({"MAIL_TRANSPORT": "smtp", "MAIL_SMTP_HOST": "mailpit", "MAIL_SMTP_PORT": "1025"})
     else:
@@ -117,6 +123,40 @@ def env_file(inv: dict, box: dict, env: str) -> str:
     if os.environ.get("BRANDS"):  # extra/override brands (e.g. an Asia brand); default = sosed+neighbro
         vals["BRANDS"] = os.environ["BRANDS"]
     return "".join(f"{k}={v}\n" for k, v in vals.items())
+
+
+def uses_database(inv: dict, box: dict) -> bool:
+    """Does any environment on this box keep control state in Postgres?"""
+    return any(inv["env"][e].get("database", True) for e in box["envs"])
+
+
+def assert_one_box_per_database(inv: dict) -> None:
+    """A database beside the node is one database per environment — while the
+    environment has one box.
+
+    A second box would bring up a second Postgres and the state would drift
+    apart without erroring: a key minted on one node would not exist on the
+    other, a quota would be counted twice at half each. That is worth refusing
+    rather than discovering from a support ticket.
+    """
+    for env, settings in inv["env"].items():
+        if not settings.get("database", True):
+            continue
+        # Only boxes that actually get deployed count. The inventory also carries
+        # planned ones — a row with no ssh_host is an intention, and refusing a
+        # deploy over an intention would be refusing over nothing.
+        boxes = [
+            box["id"] for box in inv.get("box", [])
+            if env in box["envs"] and (box.get("ssh_host") or box.get("mode") == "provision")
+        ]
+        if len(boxes) > 1:
+            raise SystemExit(
+                f"env '{env}' runs on {len(boxes)} boxes ({', '.join(boxes)}) and each would "
+                f"bring up its own Postgres, so their control state would drift apart.\n"
+                f"Pick one: give '{env}' a single database reachable over the network "
+                f"(TLS + firewall), or set database = false for it and keep control state in "
+                f"object storage as before."
+            )
 
 
 def uses_mailpit(inv: dict, box: dict) -> bool:
@@ -145,6 +185,22 @@ def render_compose(inv: dict, box: dict) -> str:
     expose: ["8080"]
 """ for env in box["envs"])
     extra = ""
+    # Control state lives beside the node it serves: keys, brands, quotas, the
+    # queue. Reachable on the compose network only — the port is never published,
+    # so the database has no surface outside this box. One instance per box, with
+    # a database per environment inside it, because dev and staging share a box
+    # and must not share rows.
+    if uses_database(inv, box):
+        extra += ('  postgres:\n    image: postgres:16-alpine\n'
+                  '    restart: unless-stopped\n'
+                  '    env_file: [postgres.env]\n'
+                  '    volumes:\n'
+                  '      - pgdata:/var/lib/postgresql/data\n'
+                  '      - ./init-databases.sql:/docker-entrypoint-initdb.d/10-databases.sql:ro\n'
+                  '    healthcheck:\n'
+                  '      test: ["CMD-SHELL", "pg_isready -U relay"]\n'
+                  '      interval: 5s\n      timeout: 3s\n      retries: 20\n'
+                  '    expose: ["5432"]\n')
     if uses_mailpit(inv, box):
         extra += ('  mailpit:\n    image: axllent/mailpit:latest\n'
                   '    restart: unless-stopped\n    expose: ["1025", "8025"]\n')
@@ -165,7 +221,7 @@ def render_compose(inv: dict, box: dict) -> str:
       - caddy_config:/config
 volumes:
   caddy_data:
-  caddy_config:
+  caddy_config:{"" if not uses_database(inv, box) else chr(10) + "  pgdata:"}
 """
 
 
@@ -353,6 +409,21 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                       f"BUNNY_API_KEY={os.environ.get('BUNNY_API_KEY', '')}\n")
         for env in box["envs"]:
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
+        if uses_database(inv, box):
+            # The image creates POSTGRES_DB on first start only, so the per-env
+            # databases are created by an init script instead — it runs once, on
+            # an empty volume, and CREATE … IF NOT EXISTS is not a thing in
+            # Postgres, hence the DO block.
+            _write_remote(sftp, f"{REMOTE_ROOT}/compose/postgres.env",
+                          f"POSTGRES_USER=relay\n"
+                          f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
+                          f"POSTGRES_DB=relay\n")
+            databases = "\n".join(
+                f"SELECT 'CREATE DATABASE relay_{env}' WHERE NOT EXISTS "
+                f"(SELECT FROM pg_database WHERE datname = 'relay_{env}')\\gexec"
+                for env in box["envs"]
+            )
+            _write_remote(sftp, f"{REMOTE_ROOT}/compose/init-databases.sql", databases + "\n")
     finally:
         sftp.close()
     # If the ghcr packages are private, log in on the box so `pull` can fetch them
@@ -493,6 +564,7 @@ def main() -> None:
     global CONFIRM_PROD
     CONFIRM_PROD = args.confirm_prod
     inv = load_inventory(args.inventory)
+    assert_one_box_per_database(inv)
 
     if args.cmd == "status":
         status(inv)

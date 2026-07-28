@@ -297,14 +297,16 @@ on top of it. In the other order every one of them gets migrated a second time.
 
 ## Open questions
 
-1. **Where does state move to** — Postgres/Supabase, Redis beside the pool, an
-   external queue? This decision blocks everything else. For a platform with outside
-   tenants it is effectively settled: quotas, a pool-wide rate limit and billing cannot
-   live in object storage, which has neither an atomic increment nor a consistent
-   `list`.
+1. ~~Where does state move to~~ — settled 2026-07-28: **our own Postgres beside
+   the node**, for control state only (keys, brands, quotas, the queue,
+   idempotency, aggregates). Data — leads, page views, errors, logs — stays in
+   object storage. The reasoning: `state-decision_EN.md`.
 2. ~~Who consumes the public API~~ — decided: third parties, a full BaaS with its own
    panel login (section 0). Which settles 3 — webhooks are customer-facing — and 4 —
    notifications are needed in both flavours.
-5. **Do nodes stay interchangeable?** If yes, the queue and worker must live outside
-   the node; if no, the node becomes a stateful service and the pool's deployment
-   model changes.
+5. **Do nodes stay interchangeable?** — yes for now, with a caveat. The node
+   still holds no state of its own; the database lives beside it on the same box.
+   That holds **while an environment has one box**. A second box in the same
+   environment would bring up a second database and split the state silently, so
+   the wizard rejects that configuration. The real answer is due when the pool
+   actually grows: one database per environment over the network, or managed.

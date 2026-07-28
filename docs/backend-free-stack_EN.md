@@ -1,5 +1,11 @@
 # Free stack: Neon + Deno Deploy + Bunny (€0 over credit)
 
+> **Historical document.** It records how the backend was chosen in July 2026 and
+> is kept for the reasoning, not the conclusions: its recommendations are **out of
+> date**. What actually happened: our own pool of nodes (Deno + Caddy on VPS),
+> data in Bunny Storage, control state in a Postgres beside the node.
+> The decision in force, with its reasoning: `state-decision_EN.md`.
+
 Goal: run the backend at **€0 extra** (you have ~€13 Bunny credit), no Supabase,
 and stay portable (standard Postgres + standard Deno/Web APIs — move anywhere
 with no rewrite).

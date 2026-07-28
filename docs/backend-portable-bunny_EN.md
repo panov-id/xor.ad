@@ -1,5 +1,11 @@
 # Portable backend on your own containers (Bunny-first, no lock-in)
 
+> **Historical document.** It records how the backend was chosen in July 2026 and
+> is kept for the reasoning, not the conclusions: its recommendations are **out of
+> date**. What actually happened: our own pool of nodes (Deno + Caddy on VPS),
+> data in Bunny Storage, control state in a Postgres beside the node.
+> The decision in force, with its reasoning: `state-decision_EN.md`.
+
 Direction: **your own Docker containers that don't depend on where they run.**
 Today on Bunny Magic Containers, tomorrow on Hetzner/Fly/Railway/any `docker run`,
 with no rewrite. No Supabase stack and no Bunny-specific primitives (Edge

@@ -1,5 +1,11 @@
 # DEPLOY PROD — checklist (neighbro.place landing)
 
+> **Note: describes the previous stack.** Supabase is no longer used — not its
+> Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
+> nodes, magic-link sign-in (a signed session issued by the relay itself), data in
+> Bunny Storage, control state in a Postgres beside the node.
+> Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
+
 Prod = real domains. General mechanics in `deployment_EN.md`, dev/uat in `deploy-today_EN.md`.
 Focus: the **neighbro.place** face (sosed on hold, panel later).
 

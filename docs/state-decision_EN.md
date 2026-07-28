@@ -39,37 +39,55 @@ Moving them into a database would be a cost with nothing bought.
 What moves is **control state**: keys, brands, quotas, the queue, idempotency,
 daily aggregates. Kilobytes, not gigabytes.
 
-## A constraint worth remembering
+## The constraint to keep in mind
 
-The nodes are spread out: `eu-nuremberg` ×2, `eu-frankfurt`, `us-central1`. A
-shared database in Europe costs the American node 100–150 ms per call. That is
-too much on a public request, so counters have to be **batched and approximate**
-— accumulate locally, flush every few seconds — rather than a round trip per
-call. Quota accuracy within seconds is what every API lives with, large ones
-included.
+The inventory lists four boxes; two are up: `p1` (prod) and `n1` (dev +
+staging). The rest are lines without an address. While **each environment has one
+box**, a database beside the node is one database per environment and everything
+adds up.
+
+**A second box in the same environment breaks that silently.** It would bring up
+its own Postgres and the state would drift apart: a key minted on one would not
+exist on the other, a quota would be counted twice at half each. Nothing would
+error — two nodes would simply start disagreeing.
+
+So the wizard refuses to deploy a second database for an environment that already
+has more than one box, and says what to do instead: one database per environment
+reached over the network (TLS, firewall), or managed. That is the moment option 2
+below stops being a cost with nothing bought.
+
+Separately: even with the database next door, quotas should be counted in
+**batches** — accumulate locally, flush every few seconds — rather than a round
+trip per public request. Accuracy within seconds is what every API lives with.
 
 ## Options
 
-### 1. Managed Postgres (Neon free / Supabase) — recommended
+### 1. Postgres beside the node — chosen
 
-One database reachable from every node by connection string. The node stays
-stateless, so the pool model survives — which answers `E2` with "yes, it stays
-interchangeable".
+A container in the same compose as the node, reached by service name on the
+compose network. The port is never published, so the database has no network
+surface beyond the box.
 
-- **For.** Atomicity, locks, server-side filtering, aggregates in one query —
-  everything missing, out of the box. Branches per environment. Backups and PITR
-  are somebody else's job. Neon free: $0 idle.
-- **Against.** A new dependency in the public path, if written naively. Free-tier
-  cold start (hundreds of ms) — handled by the same batching.
-- **Mitigation.** The database is for quotas and the queue; accepting signups and
-  page views stays on storage, so a database outage **does not take the landings
-  down** — only quotas and the queue wait. That boundary should be explicit.
+- **For.** No network latency (the query never leaves the machine), no cost
+  beyond the server already paid for, no tier limits, no cold start, and no extra
+  vendor in the critical path.
+- **On the single point of failure.** None is added: prod is served by one box,
+  `p1`, and if it goes the relay goes with it. A database on that box shares the
+  fate of what it serves rather than creating a new way to fail.
+- **The minus that stays.** Backups are ours: `pg_dump` on a schedule into Bunny
+  Storage, plus a regular check that a dump restores. A dump nobody has restored
+  is not a backup, it is a hope.
+- **When to revisit.** When `n2`/`n3` come up in other clouds and nodes from
+  different providers need one database. The question then is not "ours or
+  managed" but "how do the networks meet", and it deserves load figures. The code
+  is ready either way: the database is a `DATABASE_URL`, not an architecture.
 
-### 2. Postgres on one of our nodes
+### 2. Managed Postgres (Neon / Supabase)
 
-Cheap and vendor-free, but a single point of failure, backups on us, and a volume
-tied to a machine. For control state that tenant billing depends on, that is
-worse than option 1 with nothing gained but ideology.
+Gives backups and PITR for free and removes the only real minus of option 1. It
+also adds a vendor to the path, latency where there is none today, tier limits
+and a free-plan cold start. For the current shape — one prod node, database
+beside it — that is a cost with nothing bought.
 
 ### 3. Redis / Upstash
 
@@ -82,9 +100,9 @@ Viable while quotas are counted **per node** (each allowed 1/N) and the skew is
 tolerated, and while there is no queue at all. An honest answer as long as the
 only tenant is us. It stops being honest the day the first outside one arrives.
 
-## Recommendation
+## Decision
 
-**Neon (Postgres, EU region), for control state only.** In order:
+**Our own Postgres beside the node, for control state only.** In order:
 
 1. Schema: `api_keys`, `brands`, `quota_counters`, `jobs`, `idempotency`,
    `pageview_daily`. Migrations as plain SQL files.
@@ -105,15 +123,27 @@ wait. That property is what makes the current architecture worth having.
 
 ## What it costs
 
-$0 idle on the free tier, tens of dollars a month under real traffic — less than
-today's storage bill for the same number of page views. Work: schema and
-migrations, a day; keys and brands, a day; quotas, a day; the queue with its
-worker and panel page, two or three.
+In money, nothing: a container and a volume on servers already paid for. In
+memory, `postgres:16-alpine` idles at 50–100 MB, which a `cpx22` will not notice.
+Work: schema and migrations, a day; keys and brands, a day; quotas, a day; the
+queue with its worker and panel page, two or three.
 
-## To decide before starting
+The real price is operations: backups, restore drills, major-version upgrades.
+That is exactly what managed sells.
 
-- Neon or Supabase (the latter brings a familiar SDK and auth, but costs more and
-  weighs more, and our auth is already our own).
-- Database region: EU (most nodes) against us-central (one node). EU.
-- Queue first or quotas first — webhooks need the queue, the public API needs
-  quotas, and both wait on the same thing.
+## How it is laid out
+
+- A `postgres:16-alpine` container in the box's compose, a `pgdata` volume, no
+  published port. The wizard deploys it, writes `postgres.env`, and creates one
+  database per environment (`relay_dev`, `relay_staging`, `relay_prod`) — dev and
+  staging share a box and must not share rows.
+- The node gets a `DATABASE_URL` to its own. Unset, the node behaves exactly as
+  before, entirely on storage: that is every environment before the rollout, the
+  local stand without Postgres, and the way back if something is wrong.
+- Backups: a daily `pg_dump` into Bunny Storage and a script that verifies a
+  restore.
+
+## Still to decide
+
+Queue first or quotas first — webhooks need the queue, the public API needs
+quotas, and both wait on the same thing.

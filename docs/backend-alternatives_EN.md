@@ -1,5 +1,11 @@
 # Backend alternatives to Supabase (analysis, 2026-07)
 
+> **Historical document.** It records how the backend was chosen in July 2026 and
+> is kept for the reasoning, not the conclusions: its recommendations are **out of
+> date**. What actually happened: our own pool of nodes (Deno + Caddy on VPS),
+> data in Bunny Storage, control state in a Postgres beside the node.
+> The decision in force, with its reasoning: `state-decision_EN.md`.
+
 Goal: escape Supabase Cloud's steep bill (3 environments → one Pro project each
 ≈ $45–75+/mo fixed, before usage) for something cheap now, without a rewrite, and
 with a path to a realtime app later.

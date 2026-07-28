@@ -168,13 +168,15 @@ identifier.
 
 ## E. Open decisions
 
-- [ ] **E1. Where state moves** — Postgres/Supabase, Redis beside the pool, an
-      external queue. It blocks quotas, a pool-wide rate limit, the job table and
-      a filterable journal. The code already shows the symptoms: TTL caches, a
-      `list` per request, no atomic counter.
-- [ ] **E2. Does the node stay interchangeable.** If yes, the worker and queue
-      live apart from it; if no, the node becomes a stateful service and the
-      pool's deployment model changes.
+- [x] **E1. Where state moves** — settled 2026-07-28: our own Postgres beside
+      the node, for control state only; data stays in object storage. Schema,
+      access layer and the move of keys and brands are done; quotas, the queue
+      and aggregates follow. `state-decision_EN.md`.
+- [x] **E2. Does the node stay interchangeable** — yes, while an environment has
+      one box: the node still holds no state, the database sits beside it. A
+      second box in the same environment would split the state silently, so the
+      wizard rejects that configuration with an explanation. Revisit when the
+      pool actually grows.
 
 ## F. Porting neighbro → sosed — closed 2026-07-28
 

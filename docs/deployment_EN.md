@@ -1,5 +1,11 @@
 # Deployment (runbook)
 
+> **Note: describes the previous stack.** Supabase is no longer used — not its
+> Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
+> nodes, magic-link sign-in (a signed session issued by the relay itself), data in
+> Bunny Storage, control state in a Postgres beside the node.
+> Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
+
 Production architecture: **frontends** (2 landings + panel build) on **Bunny CDN** (one Storage+Pull Zone per domain), **backend** on **Supabase Cloud** (Postgres/Auth/Realtime/Storage/Edge Functions). There's no nginx gateway in prod — frontends talk to Supabase Cloud directly (CORS), so the Supabase URL/key are parametrized per environment.
 
 The pattern is adapted from `noisen-app/infrastructure`.

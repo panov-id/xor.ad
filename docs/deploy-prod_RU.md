@@ -1,5 +1,11 @@
 # DEPLOY PROD — чеклист (лендинг neighbro.place)
 
+> **Внимание: описывает прежний стек.** Supabase больше не используется — ни
+> Postgres, ни Auth, ни Edge Functions. Сейчас: пул узлов на своих VPS, вход в
+> панель по магической ссылке (подписанная сессия в самом релее), данные в Bunny
+> Storage, управляющее состояние в Postgres рядом с узлом.
+> Актуальное: `relay/ARCHITECTURE_RU.md`, `state-decision_RU.md`, `open-work_RU.md`.
+
 Прод — реальные домены. Общая механика — в `deployment_RU.md`, dev/uat — в `deploy-today_RU.md`.
 Фокус: витрина **neighbro.place** (sosed — на паузе, панель — позже).
 

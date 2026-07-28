@@ -17,7 +17,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
+          # The same version the image runs (relay/node/Dockerfile) and the same
+          # the local test script uses. A floating v2.x once type-checked the
+          # code against a newer standard library than the one that would ship,
+          # which fails a release for a difference that does not exist in prod.
+          deno-version: v2.1.4
       # Mirrors scripts/run-relay-tests.sh — the reads and writes are the tenancy
       # tests working against a real temp dir, because a mock of the boundary
       # under test would prove nothing.

@@ -105,6 +105,10 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "SESSION_SECRET": os.environ.get("SESSION_SECRET", ""),
         "PANEL_URL": e.get("panel_url", ""),
         "PANEL_SENDER": os.environ.get("PANEL_SENDER", ""),
+        # Whether a public request must name its tenant with a key. Per env, in
+        # the inventory, because it is a property of how far that environment's
+        # landings have been rolled out — not of the image or of the secrets.
+        "REQUIRE_API_KEY": "true" if e.get("require_api_key") else "false",
     }
     if e.get("mail") == "mailpit":
         vals.update({"MAIL_TRANSPORT": "smtp", "MAIL_SMTP_HOST": "mailpit", "MAIL_SMTP_PORT": "1025"})

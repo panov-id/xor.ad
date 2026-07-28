@@ -56,10 +56,17 @@ landing, the migration always before the flag.
       GA4 id in `config.js`, a `robots.txt` that allows crawling, sitemaps of 19
       and 12 URLs, language pages with `hreflang` and without `noindex`, the
       counter, and the FAQ structured data.
-- [ ] **A8. `REQUIRE_API_KEY=true` per environment** — once
-      `relay_keyless_requests_total` and the server logs show no keyless callers
-      left. It retires the transitional fallbacks: dedup into the root, and
-      resolving the brand from the host.
+- [x] **A8. `REQUIRE_API_KEY=true` in every environment** — 2026-07-28. The flag
+      lives per environment in `inventory.toml` (`require_api_key`), because it
+      describes how far that environment's landings have rolled out, not the
+      image. Verified: keyed 200, keyless 401, and the page counter still answers
+      200 while storing nothing.
+      **Before turning it on** a gap had to be closed that was not in the plan:
+      the fixed edge rule only shortens the cache for copies fetched after it, so
+      an earlier visitor still held a keyless `config.js` for up to 30 days and
+      their form would have started answering 401. The address is now versioned
+      (`config.js?v=<build>`), and since the page itself is cached for minutes,
+      the old copy is simply never requested again.
 - [ ] **A9. Dev's image tag lives outside history.**
       `relay/wizard/inventory.toml` is gitignored, so the raised tag exists only
       on the machine that rolled it. Decide: record per-environment tags in the
@@ -92,8 +99,8 @@ arguments.
 
 - [ ] **C1. The platform's `/admin/waitlist` fan-out** — a `list` and a `get` per
       record across every brand. Fine at hundreds of leads, not beyond.
-- [ ] **C2. The `resolveBrand` fallback returns the first brand** — an unknown
-      host silently becomes sosed. Goes away with A8.
+- [x] **C2. The `resolveBrand` fallback** is no longer reachable on the public
+      routes: with `REQUIRE_API_KEY=true` a keyless request is refused before it.
 
 ## D. Search and indexing
 

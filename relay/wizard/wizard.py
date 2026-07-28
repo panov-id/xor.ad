@@ -410,6 +410,29 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         for env in box["envs"]:
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
         if uses_database(inv, box):
+            # A backup that only happens when somebody remembers is not a backup,
+            # so the box runs it: script, its own env file, and a nightly timer.
+            local_backup = Path(__file__).parent / "backup-postgres.sh"
+            _write_remote(sftp, f"{REMOTE_ROOT}/backup-postgres.sh", local_backup.read_text())
+            databases = " ".join(f"relay_{env}" for env in box["envs"])
+            _write_remote(sftp, f"{REMOTE_ROOT}/compose/backup.env",
+                          f"BUNNY_STORAGE_ZONE={os.environ.get('BUNNY_STORAGE_ZONE', '')}\n"
+                          f"BUNNY_STORAGE_KEY={os.environ.get('BUNNY_STORAGE_KEY', '')}\n"
+                          f"BUNNY_STORAGE_HOST={os.environ.get('BUNNY_STORAGE_HOST', 'storage.bunnycdn.com')}\n"
+                          f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
+                          # Quoted: the file is sourced by bash, and a bare
+                          # "relay_dev relay_staging" would run the second word.
+                          f'DATABASES="{databases}"\n')
+            _write_remote(sftp, "/tmp/relay-backup.service",
+                          "[Unit]\nDescription=Dump relay control state into Bunny Storage\n\n"
+                          "[Service]\nType=oneshot\nExecStart=/opt/relay/backup-postgres.sh\n")
+            _write_remote(sftp, "/tmp/relay-backup.timer",
+                          "[Unit]\nDescription=Nightly relay control-state backup\n\n"
+                          # A fixed hour plus jitter: boxes in one pool should not
+                          # all upload at the same second.
+                          "[Timer]\nOnCalendar=*-*-* 03:20:00 UTC\nRandomizedDelaySec=900\n"
+                          "Persistent=true\n\n[Install]\nWantedBy=timers.target\n")
+
             # The image creates POSTGRES_DB on first start only, so the per-env
             # databases are created by an init script instead — it runs once, on
             # an empty volume, and CREATE … IF NOT EXISTS is not a thing in
@@ -436,6 +459,12 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                    "--password-stdin", sudo=sudo)
 
     if uses_database(inv, box):
+        print("      backup timer")
+        sh(client, "chmod 0755 /opt/relay/backup-postgres.sh "
+                   "&& mv /tmp/relay-backup.service /tmp/relay-backup.timer /etc/systemd/system/ "
+                   "&& systemctl daemon-reload && systemctl enable --now relay-backup.timer",
+           sudo=sudo)
+
         # Schema first, then the node that expects it. Run from the node image so
         # the migration is the one that shipped with this version, and inside the
         # compose network because the database has no other door.

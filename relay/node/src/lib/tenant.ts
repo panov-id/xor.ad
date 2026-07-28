@@ -5,6 +5,7 @@
 import { type Brand, config } from "../config.ts";
 import { brandByKey } from "./brand_registry.ts";
 import { findPublishableKey, originAllowed } from "./api_key.ts";
+import { EVENTS, exceeded, record, secondsUntilReset } from "./quota.ts";
 import { resolveBrand } from "./welcome.ts";
 import { json } from "./http.ts";
 import { log } from "./log.ts";
@@ -59,6 +60,26 @@ export async function resolveTenant(req: Request, hint?: string | null): Promise
   const brand = await brandByKey(key.brand);
   // A key pointing at a deleted brand is a platform bug, not a caller error.
   if (!brand) return { response: json({ error: "brand unavailable" }, 503) };
+
+  // The allowance is checked before the work, and counted whether or not the
+  // work succeeds: a request that was served is a request that was served, and a
+  // caller retrying a failure of ours should not be charged twice — which is why
+  // this counts requests admitted, not rows written.
+  if (await exceeded(key.id, key.quota_events_per_day ?? null)) {
+    const retryAfter = secondsUntilReset();
+    return {
+      response: json(
+        {
+          error: "daily quota exceeded",
+          limit: key.quota_events_per_day,
+          resets_in_seconds: retryAfter,
+        },
+        429,
+        { "retry-after": String(retryAfter) },
+      ),
+    };
+  }
+  record(key.id, EVENTS);
 
   return { brand };
 }

@@ -17,6 +17,9 @@ export interface PublishableKey {
   origins: string[]; // exact Origin values allowed to use it; empty = any
   created_at: string;
   revoked_at: string | null;
+  // Daily allowance for public requests made with this key. null = unlimited,
+  // which is what a key has until someone sets one.
+  quota_events_per_day?: number | null;
 }
 
 export const keysDir = (): string => `platform/${config.envName}/publishable-keys`;
@@ -45,7 +48,7 @@ export async function findPublishableKey(id: string): Promise<PublishableKey | n
   // most of why keys moved here.
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
-      `SELECT id, brand, origins, created_at, revoked_at
+      `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int
          FROM api_keys WHERE id = $1 AND revoked_at IS NULL`,
       [id],
     );
@@ -79,7 +82,8 @@ export function originAllowed(key: PublishableKey, origin: string | null): boole
 export async function listPublishableKeys(): Promise<PublishableKey[]> {
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
-      `SELECT id, brand, origins, created_at, revoked_at FROM api_keys ORDER BY created_at DESC`,
+      `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int
+         FROM api_keys ORDER BY created_at DESC`,
     );
     if (rows !== null) return rows;
   }
@@ -155,4 +159,19 @@ export function isOrigin(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+// Setting an allowance is a platform decision, so it lives beside the key rather
+// than in a settings table: one row, one lifetime, one place to look.
+export async function setKeyQuota(
+  id: string,
+  limit: number | null,
+): Promise<PublishableKey | null> {
+  if (!ID_PATTERN.test(id) || !databaseEnabled()) return null;
+  const rows = await query<PublishableKey>(
+    `UPDATE api_keys SET quota_events_per_day = $2 WHERE id = $1
+     RETURNING id, brand, origins, created_at, revoked_at, quota_events_per_day::int`,
+    [id, limit],
+  );
+  return rows?.[0] ?? null;
 }

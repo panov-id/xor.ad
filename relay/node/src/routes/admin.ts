@@ -27,7 +27,9 @@ import {
   isOrigin,
   listPublishableKeys,
   revokePublishableKey,
+  setKeyQuota,
 } from "../lib/api_key.ts";
+import { usedToday } from "../lib/quota.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { config } from "../config.ts";
 
@@ -392,8 +394,13 @@ route("GET", "/admin/api-keys", async ({ req }) => {
   if (isDenied(access)) return access.response;
   // The key's own id is the row id: Refine wants one, and inventing a second
   // identifier for something that already has a public one would be noise.
-  const keys = (await listPublishableKeys())
+  const visible = (await listPublishableKeys())
     .filter((key) => access.user.brand === null || key.brand === access.user.brand);
+  // Usage today beside the limit: a quota nobody can see the effect of is a
+  // setting, not a control.
+  const keys = await Promise.all(
+    visible.map(async (key) => ({ ...key, used_today: await usedToday(key.id) })),
+  );
   return json(keys, 200, { "x-total-count": String(keys.length) });
 });
 
@@ -427,6 +434,33 @@ route("POST", "/admin/api-keys", async ({ req }) => {
   const key = await createPublishableKey(brand, origins);
   recordAuditEvent({ actor: access.user, action: "api_keys.create", target: key.id });
   return json(key, 201);
+});
+
+route("PATCH", "/admin/api-keys/:id/quota", async ({ req, params }) => {
+  const access = await requirePermission(req, "api_keys.write");
+  if (isDenied(access)) return access.response;
+  // Only the platform sets an allowance. A tenant raising its own limit would be
+  // a quota in name only.
+  if (access.user.brand !== null) return json({ error: "forbidden" }, 403);
+
+  const body = await readJson<{ quota_events_per_day?: unknown }>(req);
+  if (!body) return json({ error: "invalid body" }, 422);
+  const raw = body.quota_events_per_day;
+  // null clears the limit back to unlimited, which has to stay expressible.
+  const limit = raw === null ? null : Number(raw);
+  if (limit !== null && (!Number.isFinite(limit) || limit < 1)) {
+    return json({ error: "quota_events_per_day must be a positive number or null" }, 422);
+  }
+
+  const updated = await setKeyQuota(params.id, limit);
+  if (!updated) return json({ error: "not found" }, 404);
+  recordAuditEvent({
+    actor: access.user,
+    action: "api_keys.quota",
+    target: params.id,
+    reason: limit === null ? "unlimited" : `${limit}/day`,
+  });
+  return json(updated);
 });
 
 route("POST", "/admin/api-keys/:id/revoke", async ({ req, params }) => {

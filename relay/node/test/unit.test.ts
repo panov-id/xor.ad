@@ -98,6 +98,32 @@ Deno.test("metrics render Prometheus counters with labels", () => {
   assert(out.includes('relay_ut_total{result="fail"} 1'));
 });
 
+// The quota's arithmetic, without a database: what "today" means and what a
+// caller who ran out is told to do about it.
+Deno.test("quota: the day is UTC, not the node's timezone", async () => {
+  const { utcDay } = await import("../src/lib/quota.ts");
+  // A pool spans regions; a per-node local day would let a key spend its
+  // allowance twice by crossing midnight in two places.
+  assertEquals(utcDay(new Date("2026-07-28T23:59:59Z")), "2026-07-28");
+  assertEquals(utcDay(new Date("2026-07-29T00:00:01Z")), "2026-07-29");
+});
+
+Deno.test("quota: the reset is a number of seconds, never zero", async () => {
+  const { secondsUntilReset } = await import("../src/lib/quota.ts");
+  assertEquals(secondsUntilReset(new Date("2026-07-28T00:00:00Z")), 86400);
+  assertEquals(secondsUntilReset(new Date("2026-07-28T23:59:30Z")), 30);
+  // A Retry-After of 0 invites an immediate retry into the same refusal.
+  assert(secondsUntilReset(new Date("2026-07-28T23:59:59.900Z")) >= 1);
+});
+
+Deno.test("quota: no limit and no database mean no refusal", async () => {
+  const { exceeded } = await import("../src/lib/quota.ts");
+  // null is what every key has until someone sets an allowance, and the tests
+  // run without DATABASE_URL — both paths must let traffic through.
+  assertEquals(await exceeded("ak_pub_whatever", null), false);
+  assertEquals(await exceeded("ak_pub_whatever", 1), false);
+});
+
 Deno.test("jwt: sign/verify round-trip", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
   const exp = Math.floor(Date.now() / 1000) + 3600;

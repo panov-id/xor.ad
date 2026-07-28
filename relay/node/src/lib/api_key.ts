@@ -9,6 +9,7 @@
 
 import { config } from "../config.ts";
 import { get, list, put, storageEnabled } from "./storage.ts";
+import { enabled as databaseEnabled, query } from "./db.ts";
 
 export interface PublishableKey {
   id: string; // "ak_pub_7f3c…" — public by design, no hashing
@@ -37,7 +38,23 @@ export function invalidatePublishableKeys(): void {
 }
 
 export async function findPublishableKey(id: string): Promise<PublishableKey | null> {
-  if (!ID_PATTERN.test(id) || !storageEnabled()) return null;
+  if (!ID_PATTERN.test(id)) return null;
+
+  // With a database there is no cache and no TTL: the lookup is a single indexed
+  // read, and revocation has to land now rather than within a minute. That is
+  // most of why keys moved here.
+  if (databaseEnabled()) {
+    const rows = await query<PublishableKey>(
+      `SELECT id, brand, origins, created_at, revoked_at
+         FROM api_keys WHERE id = $1 AND revoked_at IS NULL`,
+      [id],
+    );
+    // A null means the query failed, not that the key is unknown — fall through
+    // to storage rather than refusing a caller because the database blinked.
+    if (rows !== null) return rows[0] ?? null;
+  }
+
+  if (!storageEnabled()) return null;
   const cached = cache.get(id);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.key;
   const stored = await get<PublishableKey>(`${keysDir()}/${id}.json`);
@@ -60,6 +77,12 @@ export function originAllowed(key: PublishableKey, origin: string | null): boole
 // shapes.
 
 export async function listPublishableKeys(): Promise<PublishableKey[]> {
+  if (databaseEnabled()) {
+    const rows = await query<PublishableKey>(
+      `SELECT id, brand, origins, created_at, revoked_at FROM api_keys ORDER BY created_at DESC`,
+    );
+    if (rows !== null) return rows;
+  }
   if (!storageEnabled()) return [];
   const files = await list(keysDir());
   const keys = await Promise.all(files.map((file) => get<PublishableKey>(`${keysDir()}/${file}`)));
@@ -80,6 +103,17 @@ export async function createPublishableKey(
     created_at: new Date().toISOString(),
     revoked_at: null,
   };
+  if (databaseEnabled()) {
+    const rows = await query<PublishableKey>(
+      `INSERT INTO api_keys (id, brand, origins) VALUES ($1, $2, $3)
+       RETURNING id, brand, origins, created_at, revoked_at`,
+      [key.id, brand, [...origins]],
+    );
+    if (rows !== null && rows[0]) return rows[0];
+    // Falling through on failure would mint a key the database does not know
+    // about, which is worse than not minting one.
+    throw new Error("could not write the key to the database");
+  }
   await put(`${keysDir()}/${key.id}.json`, key);
   invalidatePublishableKeys();
   return key;
@@ -89,7 +123,18 @@ export async function createPublishableKey(
 // would take with it the answer to "what was this, and when did we stop
 // trusting it".
 export async function revokePublishableKey(id: string): Promise<PublishableKey | null> {
-  if (!ID_PATTERN.test(id) || !storageEnabled()) return null;
+  if (!ID_PATTERN.test(id)) return null;
+  if (databaseEnabled()) {
+    const rows = await query<PublishableKey>(
+      // COALESCE keeps a second revoke from moving the timestamp: when we
+      // stopped trusting a key is a fact, and it happened once.
+      `UPDATE api_keys SET revoked_at = COALESCE(revoked_at, now()) WHERE id = $1
+       RETURNING id, brand, origins, created_at, revoked_at`,
+      [id],
+    );
+    if (rows !== null) return rows[0] ?? null;
+  }
+  if (!storageEnabled()) return null;
   const stored = await get<PublishableKey>(`${keysDir()}/${id}.json`);
   if (!stored) return null;
   if (stored.revoked_at) return stored; // already revoked: saying so twice changes nothing

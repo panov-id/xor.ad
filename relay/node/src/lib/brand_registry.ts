@@ -9,6 +9,7 @@
 
 import { type Brand, config, isBrandKey } from "../config.ts";
 import { get, list, put, storageEnabled } from "./storage.ts";
+import { enabled as databaseEnabled, query } from "./db.ts";
 import { log } from "./log.ts";
 
 const CACHE_TTL_MS = 60_000;
@@ -22,8 +23,31 @@ export function invalidateBrands(): void {
 }
 
 export async function allBrands(): Promise<Brand[]> {
-  if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.brands;
   const seeded = new Map(config.brands.map((brand) => [brand.key, brand]));
+
+  // With a database the registry is read directly: it is one small query, and a
+  // brand added on another node has to be visible here immediately rather than
+  // within a cache TTL. The env seeds remain the floor.
+  if (databaseEnabled()) {
+    const rows = await query<
+      { key: string; name: string; domain: string; sender: string; upper: string; match: string[] }
+    >(`SELECT key, name, domain, sender, upper, match FROM brands ORDER BY key`);
+    if (rows !== null) {
+      for (const row of rows) {
+        seeded.set(row.key, {
+          key: row.key,
+          name: row.name,
+          domain: row.domain,
+          from: row.sender,
+          upper: row.upper,
+          match: row.match ?? [row.key],
+        });
+      }
+      return [...seeded.values()];
+    }
+  }
+
+  if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.brands;
   if (storageEnabled()) {
     try {
       const files = await list(brandsDir());
@@ -94,6 +118,19 @@ export function toBrand(input: BrandInput): Brand {
 
 export async function saveBrand(input: BrandInput): Promise<Brand> {
   const brand = toBrand(input);
+  if (databaseEnabled()) {
+    const rows = await query(
+      `INSERT INTO brands (key, name, domain, sender, upper, match)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (key) DO UPDATE SET
+         name = EXCLUDED.name, domain = EXCLUDED.domain, sender = EXCLUDED.sender,
+         upper = EXCLUDED.upper, match = EXCLUDED.match, updated_at = now()`,
+      [brand.key, brand.name, brand.domain, brand.from, brand.upper, brand.match],
+    );
+    if (rows === null) throw new Error("could not write the brand to the database");
+    invalidateBrands();
+    return brand;
+  }
   await put(`${brandsDir()}/${brand.key}.json`, brand);
   // This node serves the new brand at once; the others pick it up within the
   // cache TTL, which is what makes onboarding a write rather than a redeploy.
@@ -105,6 +142,10 @@ export async function saveBrand(input: BrandInput): Promise<Brand> {
 // edited here — saying so is better than writing an override that shadows the
 // seed and confuses the next reader.
 export async function isStoredBrand(key: string): Promise<boolean> {
+  if (databaseEnabled()) {
+    const rows = await query<{ key: string }>("SELECT key FROM brands WHERE key = $1", [key]);
+    if (rows !== null) return rows.length > 0;
+  }
   if (!storageEnabled()) return false;
   return await get<Brand>(`${brandsDir()}/${key}.json`) !== null;
 }

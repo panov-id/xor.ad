@@ -78,6 +78,11 @@ export const config = {
 
   brands: parseBrands(),
 
+  // Control state: keys, brands, quotas, the queue. Unset means the node keeps
+  // its storage-only behaviour — which is what a stand without Postgres gets,
+  // and what every environment gets until the database is wired up.
+  databaseUrl: env("DATABASE_URL"),
+
   // Store: bunny (prod/dev on the pool) or fs (local — objects on a mounted dir).
   storage: {
     transport: env("STORAGE_TRANSPORT", "bunny"), // bunny | fs

@@ -314,7 +314,55 @@ Deno.test("the platform role cannot be handed to a tenant's operator", async () 
   assertEquals(status, 422);
 });
 
-Deno.test("a tenant cannot touch an operator it cannot see", async () => {
-  const { status } = await callAs(ALPHA, "DELETE", "/admin/panel-users/boss@beta.test");
-  assertEquals(status, 404); // not 403: existence elsewhere is not their business
+// The last-admin guard keeps a scope reachable. Whether it should bind depends
+// on who is asking: a tenant removing its own last operator locks the tenant out,
+// the platform removing it does not — the platform is the way back in.
+Deno.test({
+  name: "a tenant cannot remove its own last administrator",
+  sanitizeOps: false,
+  async fn() {
+    const { status } = await callAs(ALPHA, "DELETE", "/admin/panel-users/boss@alpha.test");
+    assertEquals(status, 409);
+  },
+});
+
+Deno.test({
+  name: "the platform can remove a tenant's last administrator",
+  sanitizeOps: false,
+  async fn() {
+    // A tenant of its own, so removing its only operator disturbs nothing else.
+    await callAs(PLATFORM, "POST", "/admin/brands", {
+      key: "delta",
+      name: "Delta",
+      domain: "delta.test",
+      from: "d <d@delta.test>",
+    });
+    await callAs(PLATFORM, "POST", "/admin/panel-users", {
+      email: "only@delta.test",
+      role: "tenant_admin",
+      brand: "delta",
+    });
+    const { status } = await callAs(PLATFORM, "DELETE", "/admin/panel-users/only@delta.test");
+    assertEquals(status, 200);
+  },
+});
+
+Deno.test({
+  name: "the platform still cannot remove its own last administrator",
+  sanitizeOps: false,
+  async fn() {
+    const { status } = await callAs(PLATFORM, "DELETE", "/admin/panel-users/boss@platform.test");
+    assertEquals(status, 409); // nobody would be left to sign in and undo it
+  },
+});
+
+Deno.test({
+  name: "a tenant cannot touch an operator it cannot see",
+  // The preceding delete writes its audit entry after answering; that write lands
+  // in whichever test runs next.
+  sanitizeOps: false,
+  async fn() {
+    const { status } = await callAs(ALPHA, "DELETE", "/admin/panel-users/boss@beta.test");
+    assertEquals(status, 404); // not 403: existence elsewhere is not their business
+  },
 });

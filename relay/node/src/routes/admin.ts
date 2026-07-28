@@ -59,8 +59,16 @@ function visible(reader: PanelUser, target: PanelUser): boolean {
 // Refuse to leave a scope without an administrator: its last one can neither be
 // demoted nor deleted, or nobody could sign in to fix it. The platform's
 // administrator is "admin", a tenant's is "tenant_admin".
-async function isLastAdmin(target: PanelUser): Promise<boolean> {
+//
+// The guard exists to keep a scope reachable, so it only binds someone who could
+// otherwise lock themselves out. A tenant cannot remove its own last operator —
+// there would be nobody left inside to undo it. The platform can remove a
+// tenant's, because the platform is the way back in: it creates that operator in
+// the first place. Without this, a typo in the address at onboarding produced an
+// account nobody could delete or fix from the panel at all.
+async function isLastAdmin(actor: PanelUser, target: PanelUser): Promise<boolean> {
   const brand = target.brand ?? null;
+  if (brand !== null && actor.brand === null) return false; // the platform can undo its own doing
   const adminRole = brand === null ? "admin" : "tenant_admin";
   if (target.role !== adminRole) return false;
   const admins = (await collection<PanelUser>(platform, usersDir()))
@@ -532,7 +540,7 @@ route("PATCH", "/admin/panel-users/:email", async ({ req, params }) => {
     return json({ error: "invalid role" }, 422);
   }
   const nextRole = (body?.role as PanelUser["role"]) ?? existing.role;
-  if (nextRole !== existing.role && await isLastAdmin(existing)) {
+  if (nextRole !== existing.role && await isLastAdmin(access.user, existing)) {
     recordAuditEvent({
       actor: access.user,
       action: "panel_users.role_change",
@@ -574,7 +582,7 @@ route("DELETE", "/admin/panel-users/:email", async ({ req, params }) => {
   const existing = await getUser(email);
   if (!existing) return json({ error: "not found" }, 404);
   if (!visible(access.user, existing)) return json({ error: "not found" }, 404);
-  if (await isLastAdmin(existing)) {
+  if (await isLastAdmin(access.user, existing)) {
     recordAuditEvent({
       actor: access.user,
       action: "panel_users.delete",

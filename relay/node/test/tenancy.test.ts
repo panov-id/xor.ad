@@ -284,6 +284,36 @@ Deno.test({
   },
 });
 
+// Onboarding ends at the brand unless the platform can also create that brand's
+// first administrator — nobody inside the tenant exists yet to do it.
+Deno.test({
+  name: "the platform creates a tenant's first administrator",
+  sanitizeOps: false,
+  async fn() {
+    const created = await callAs(PLATFORM, "POST", "/admin/panel-users", {
+      email: "first@beta.test",
+      role: "tenant_admin",
+      brand: "beta",
+    });
+    assertEquals(created.status, 200);
+
+    const seen = await callAs(BETA, "GET", "/admin/panel-users");
+    assert(seen.body.some((row: { email: string }) => row.email === "first@beta.test"));
+    // And alpha still cannot see them.
+    const other = await callAs(ALPHA, "GET", "/admin/panel-users");
+    assert(!other.body.some((row: { email: string }) => row.email === "first@beta.test"));
+  },
+});
+
+Deno.test("the platform role cannot be handed to a tenant's operator", async () => {
+  const { status } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
+    email: "wildcard@beta.test",
+    role: "admin",
+    brand: "beta",
+  });
+  assertEquals(status, 422);
+});
+
 Deno.test("a tenant cannot touch an operator it cannot see", async () => {
   const { status } = await callAs(ALPHA, "DELETE", "/admin/panel-users/boss@beta.test");
   assertEquals(status, 404); // not 403: existence elsewhere is not their business

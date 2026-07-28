@@ -461,7 +461,7 @@ route("POST", "/admin/panel-users", async ({ req }) => {
     });
     return access.response;
   }
-  const body = await readJson<{ email?: unknown; role?: unknown }>(req);
+  const body = await readJson<{ email?: unknown; role?: unknown; brand?: unknown }>(req);
   if (!body || !isEmail(body.email) || !isRole(body.role)) {
     return json({ error: "invalid email or role" }, 422);
   }
@@ -479,13 +479,26 @@ route("POST", "/admin/panel-users", async ({ req }) => {
     return json({ error: "role not available to a tenant" }, 403);
   }
   const email = body.email.trim().toLowerCase();
-  // A new operator lands in the creator's tenant: there is no path here for one
-  // tenant to seed a user into another, and the platform (brand null) still
-  // creates platform users.
+
+  // Whose operator is this? A tenant may only create its own, so the body is
+  // ignored for them. The platform may name a tenant — and has to be able to,
+  // or a tenant's first administrator could never be created and onboarding
+  // would end at the brand.
+  let brand = access.user.brand;
+  if (access.user.brand === null && typeof body.brand === "string" && body.brand !== "") {
+    if (!(await brandByKey(body.brand))) return json({ error: "unknown brand" }, 404);
+    // "admin" carries the wildcard, which is platform-wide by definition; inside
+    // a tenant it would mean everything, everywhere.
+    if (body.role === "admin") {
+      return json({ error: "a tenant's operator cannot hold the platform role" }, 422);
+    }
+    brand = body.brand;
+  }
+
   const user: PanelUser = {
     email,
     role: body.role,
-    brand: access.user.brand,
+    brand,
     created_at: new Date().toISOString(),
   };
   await platform.put(`${usersDir()}/${await sha256hex(email)}.json`, user);

@@ -7,6 +7,11 @@ WORKDIR /app
 # layer stable and warms the type graph).
 COPY deno.json .
 COPY src ./src
+# Migrations and the tools that apply them travel with the image: a schema change
+# belongs to the version of the code that needs it, and the database is only
+# reachable from inside the box's compose network anyway.
+COPY db ./db
+COPY tools ./tools
 RUN deno cache src/main.ts
 
 # Run as the built-in non-root user.

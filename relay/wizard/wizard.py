@@ -435,6 +435,16 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         sh(client, f"echo {shlex.quote(ghcr_token)} | docker login ghcr.io -u {shlex.quote(user)} "
                    "--password-stdin", sudo=sudo)
 
+    if uses_database(inv, box):
+        # Schema first, then the node that expects it. Run from the node image so
+        # the migration is the one that shipped with this version, and inside the
+        # compose network because the database has no other door.
+        for env in box["envs"]:
+            print(f"      migrate {env} database")
+            sh(client, f"cd {REMOTE_ROOT}/compose && docker compose run --rm --entrypoint deno "
+                       f"node-{env} run --allow-env --allow-net --allow-read tools/migrate_db.ts",
+               sudo=sudo, check=False)
+
     print("      docker compose pull + up -d")
     sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull && docker compose up -d", sudo=sudo)
     # The Caddyfile is a bind-mounted file: `up -d` does not restart caddy when only

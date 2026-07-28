@@ -17,6 +17,9 @@ type ApiKeyRow = {
   origins: string[];
   created_at: string;
   revoked_at: string | null;
+  // null = unlimited, which is what a key has until someone sets an allowance.
+  quota_events_per_day: number | null;
+  used_today: number;
 };
 
 type BrandRow = { id: string; key: string; name: string };
@@ -65,6 +68,33 @@ export const ApiKeysList = () => {
     void query.refetch();
   };
 
+  const setQuota = async (row: ApiKeyRow, raw: string) => {
+    const trimmed = raw.trim();
+    const next = trimmed === "" ? null : Number(trimmed);
+    if (next !== null && (!Number.isFinite(next) || next < 1)) {
+      setStatus({ kind: "err", text: "A quota is a positive number of requests per day, or empty for unlimited." });
+      return;
+    }
+    if (next === row.quota_events_per_day) return; // nothing typed, nothing to say
+    setStatus(null);
+    const response = await api(`/admin/api-keys/${row.id}/quota`, {
+      method: "PATCH",
+      body: JSON.stringify({ quota_events_per_day: next }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setStatus({ kind: "err", text: body.error ?? "Setting the quota failed" });
+      return;
+    }
+    setStatus({
+      kind: "ok",
+      text: next === null
+        ? "Quota cleared — this key is unlimited again."
+        : `Quota set to ${next} requests a day. It applies within about ten seconds.`,
+    });
+    void query.refetch();
+  };
+
   const revoke = async (row: ApiKeyRow) => {
     setStatus(null);
     const response = await api(`/admin/api-keys/${row.id}/revoke`, { method: "POST" });
@@ -104,6 +134,7 @@ export const ApiKeysList = () => {
       <p className="auth-note">
         A key is only usable from the origins listed here — one per line. Leaving it
         empty accepts any site, which the relay refuses on environments that require keys.
+        {isPlatform && " A daily limit is counted per key and enforced within about ten seconds; leave it empty for unlimited."}
       </p>
 
       {status && (
@@ -136,6 +167,34 @@ export const ApiKeysList = () => {
             key: "origins",
             label: "Origins",
             render: (row) => row.origins.length ? row.origins.join(" · ") : "any site",
+          },
+          {
+            key: "quota_events_per_day",
+            label: "Today / limit",
+            render: (row) => (
+              <span className="quota-cell">
+                <span className="quota-used">{row.used_today ?? 0}</span>
+                <span className="quota-slash">/</span>
+                {isPlatform && !row.revoked_at
+                  ? (
+                    <input
+                      type="number"
+                      min={1}
+                      className="quota-input"
+                      defaultValue={row.quota_events_per_day ?? ""}
+                      placeholder="∞"
+                      aria-label={`Daily limit for ${row.id}`}
+                      // On blur rather than on every keystroke: a quota is a
+                      // decision, not a slider.
+                      onBlur={(event) => void setQuota(row, event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") event.currentTarget.blur();
+                      }}
+                    />
+                  )
+                  : <span>{row.quota_events_per_day ?? "∞"}</span>}
+              </span>
+            ),
           },
           {
             key: "created_at",

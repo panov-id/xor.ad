@@ -44,6 +44,8 @@ const PAGES = [
   { path: "/logs/server", file: "panel-logs-server.png" },
   { path: "/waitlist", file: "panel-waitlist.png" },
   { path: "/panel-users", file: "panel-users.png" },
+  { path: "/api-keys", file: "panel-api-keys.png" },
+  { path: "/brands", file: "panel-brands.png" },
 ];
 
 const browser = await chromium.launch();

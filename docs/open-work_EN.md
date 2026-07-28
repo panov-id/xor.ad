@@ -176,7 +176,23 @@ identifier.
       live apart from it; if no, the node becomes a stateful service and the
       pool's deployment model changes.
 
-## F. Porting neighbro → sosed
+## F. Porting neighbro → sosed — closed 2026-07-28
+
+Checked against the code rather than the document: fonts, CSP, the service
+worker, the legal sanitiser and muted-colour contrast had all been ported
+already; sosed has neither push nor an outlined heading, so there was nothing to
+carry over. Done: the form's status lines are announced, the splash holds only on
+a tab's first view, and a dead key (`m10`, translated into ten languages for
+nothing) was removed from neighbro.
+
+**Beyond the list:** accent button contrast — the accent is random per load, and
+4 of 6 themes on sosed (plus 3 of 5 on neighbro, in production) sat at
+3.41–3.91:1 against a 4.5 bar. The colours are ~12% deeper with hue and light
+text kept. Both landings gained `check-contrast.mjs` and `find-dead-keys.mjs`.
+
+Details in `sosed.place/docs/PENDING_FROM_NEIGHBRO_EN.md`.
+
+## F. Porting neighbro → sosed (original list)
 
 `sosed.place/docs/PENDING_FROM_NEIGHBRO_EN.md`. The freeze on the sosed landing
 was lifted on 2026-07-22, but the document is still written as if it held —

@@ -8,7 +8,7 @@
 // with the public API — see docs/api-platform_*.md, section 1.
 
 import { config } from "../config.ts";
-import { get, storageEnabled } from "./storage.ts";
+import { get, list, put, storageEnabled } from "./storage.ts";
 
 export interface PublishableKey {
   id: string; // "ak_pub_7f3c…" — public by design, no hashing
@@ -51,4 +51,63 @@ export async function findPublishableKey(id: string): Promise<PublishableKey | n
 export function originAllowed(key: PublishableKey, origin: string | null): boolean {
   if (key.origins.length === 0) return true;
   return origin !== null && key.origins.includes(origin);
+}
+
+// --- managing them ------------------------------------------------------------
+//
+// Minting and revoking live here rather than in the route or the CLI tool,
+// because both do it and a key issued two ways would eventually be issued two
+// shapes.
+
+export async function listPublishableKeys(): Promise<PublishableKey[]> {
+  if (!storageEnabled()) return [];
+  const files = await list(keysDir());
+  const keys = await Promise.all(files.map((file) => get<PublishableKey>(`${keysDir()}/${file}`)));
+  return keys.filter((key): key is PublishableKey => key !== null)
+    .sort((left, right) => right.created_at.localeCompare(left.created_at));
+}
+
+export async function createPublishableKey(
+  brand: string,
+  origins: readonly string[],
+): Promise<PublishableKey> {
+  const key: PublishableKey = {
+    // Hex from a UUID: publishable, so there is nothing to hide and no reason to
+    // reach for anything cleverer.
+    id: `ak_pub_${crypto.randomUUID().replaceAll("-", "")}`,
+    brand,
+    origins: [...origins],
+    created_at: new Date().toISOString(),
+    revoked_at: null,
+  };
+  await put(`${keysDir()}/${key.id}.json`, key);
+  invalidatePublishableKeys();
+  return key;
+}
+
+// Revoking stamps the key rather than deleting it: a key that simply vanished
+// would take with it the answer to "what was this, and when did we stop
+// trusting it".
+export async function revokePublishableKey(id: string): Promise<PublishableKey | null> {
+  if (!ID_PATTERN.test(id) || !storageEnabled()) return null;
+  const stored = await get<PublishableKey>(`${keysDir()}/${id}.json`);
+  if (!stored) return null;
+  if (stored.revoked_at) return stored; // already revoked: saying so twice changes nothing
+  const revoked = { ...stored, revoked_at: new Date().toISOString() };
+  await put(`${keysDir()}/${id}.json`, revoked);
+  invalidatePublishableKeys();
+  return revoked;
+}
+
+// An origin has to be an origin: a path or a bare hostname in the allowlist
+// would never match what a browser sends, and the key would look configured
+// while refusing every request.
+export function isOrigin(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "https:" || url.protocol === "http:") &&
+      url.origin === value.replace(/\/$/, "");
+  } catch {
+    return false;
+  }
 }

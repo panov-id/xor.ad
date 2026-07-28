@@ -8,8 +8,8 @@
 // empty list accepts any origin, which is only right for a local stand.
 
 import { config } from "../src/config.ts";
-import { keysDir, type PublishableKey } from "../src/lib/api_key.ts";
-import { put, storageEnabled } from "../src/lib/storage.ts";
+import { createPublishableKey, keysDir } from "../src/lib/api_key.ts";
+import { storageEnabled } from "../src/lib/storage.ts";
 import { brandByKey } from "../src/lib/brand_registry.ts";
 
 const [brand, ...origins] = Deno.args;
@@ -28,15 +28,9 @@ if (!await brandByKey(brand)) {
   Deno.exit(1);
 }
 
-const key: PublishableKey = {
-  id: `ak_pub_${crypto.randomUUID().replaceAll("-", "")}`,
-  brand,
-  origins,
-  created_at: new Date().toISOString(),
-  revoked_at: null,
-};
-
-await put(`${keysDir()}/${key.id}.json`, key);
+// The same function the panel calls — a key issued two ways would eventually
+// be issued two shapes.
+const key = await createPublishableKey(brand, origins);
 
 // The id on stdout so `key=$(…)` works; everything else on stderr.
 console.log(key.id);

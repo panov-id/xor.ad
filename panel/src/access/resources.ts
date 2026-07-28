@@ -17,6 +17,10 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   "logs_audit.list": "logs.audit.read",
   "logs_server.list": "logs.server.read",
   "logs_pageviews.list": "logs.pageviews.read",
+  "api_keys.list": "api_keys.read",
+  "api_keys.create": "api_keys.write",
+  "brands.list": "brands.read",
+  "brands.create": "brands.write",
 };
 
 export function requiredPermission(resource: string, action: string): Permission | undefined {

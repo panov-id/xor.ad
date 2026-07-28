@@ -23,6 +23,8 @@ import { ClientErrorsList } from "./pages/logs/client-errors/list";
 import { AuditList } from "./pages/logs/audit/list";
 import { ServerLogsList } from "./pages/logs/server/list";
 import { PageviewsList } from "./pages/logs/pageviews/list";
+import { ApiKeysList } from "./pages/api-keys/list";
+import { BrandsList } from "./pages/brands/list";
 
 function App() {
   const refine = (
@@ -61,6 +63,16 @@ function App() {
                 name: "logs_pageviews",
                 list: "/logs/pageviews",
                 meta: { label: "Page views" },
+              },
+              {
+                name: "api_keys",
+                list: "/api-keys",
+                meta: { label: "Publishable keys" },
+              },
+              {
+                name: "brands",
+                list: "/brands",
+                meta: { label: "Brands" },
               },
             ]}
             options={{
@@ -131,6 +143,22 @@ function App() {
                   element={
                     <Gated resource="logs_pageviews">
                       <PageviewsList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/api-keys"
+                  element={
+                    <Gated resource="api_keys">
+                      <ApiKeysList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/brands"
+                  element={
+                    <Gated resource="brands">
+                      <BrandsList />
                     </Gated>
                   }
                 />

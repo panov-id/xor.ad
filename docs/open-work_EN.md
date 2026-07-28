@@ -78,13 +78,24 @@ landing, the migration always before the flag.
 
 ## B. Tenancy: unfinished functionality
 
-- [ ] **B1. API-key pages in the panel.** The `api_keys.read/write` permissions
-      exist; the mint/revoke routes and the UI do not — today it is the CLI and
-      the workflow.
-- [ ] **B2. Brand pages.** `brands.write` is declared; only `GET /admin/brands`
-      exists.
+- [x] **B1. API-key pages** — 2026-07-28. `GET/POST /admin/api-keys` and
+      `POST /admin/api-keys/:id/revoke`; the page shows the key in full (it is
+      public by design), its origin allowlist and a revoke button. A tenant sees
+      and mints only its own — the brand comes from the session, never the body.
+      Revoking **stamps** the key rather than deleting it: a key that vanished
+      would take with it the answer to "what was this, and when did we stop
+      trusting it". An empty allowlist is refused where the environment requires
+      keys. Minting lives in `lib/api_key.ts`, and the CLI tool now calls the
+      same function — a key issued two ways would eventually be issued two
+      shapes.
+- [x] **B2. Brand page** — 2026-07-28. `POST /admin/brands` writes to the
+      registry; the serving node picks it up at once and the rest within the
+      cache TTL, which is what makes onboarding a write rather than a redeploy.
+      Env-seeded brands are listed as `environment` and are not editable — an
+      override would shadow the seed with a copy that drifts from it.
 - [ ] **B3. Self-service tenant registration** — section 0 of `api-platform_*`.
-      Needs B2; the brand-key shape check is already done.
+      B2 is done and the key shape is validated; what remains is registration
+      from outside the panel.
 - [ ] **B4. Exercise a tenant sign-in for real** — the magic link for
       `tenant_admin`, that they cannot see server logs and cannot grant `admin`.
       Covered by tests, never done on a stand.

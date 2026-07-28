@@ -91,6 +91,7 @@ async function callAs(
   subject: { role: string; brand: string | null },
   method: string,
   path: string,
+  body?: unknown,
 ): Promise<{ status: number; body: Body }> {
   const token = await sign({
     sub: `boss@${subject.brand ?? "platform"}.test`,
@@ -102,7 +103,14 @@ async function callAs(
   const found = match(method, url.pathname);
   assert(found, `no route for ${method} ${url.pathname}`);
   const response = await found.h({
-    req: new Request(url, { method, headers: { authorization: `Bearer ${token}` } }),
+    req: new Request(url, {
+      method,
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body === undefined ? {} : { "content-type": "application/json" }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
     params: found.params,
     url,
   });
@@ -110,6 +118,7 @@ async function callAs(
 }
 
 const ALPHA = { role: "tenant_admin", brand: "alpha" } as const;
+const BETA = { role: "tenant_admin", brand: "beta" } as const;
 const PLATFORM = { role: "admin", brand: null } as const;
 
 Deno.test("a tenant sees its own leads and no one else's", async () => {
@@ -181,6 +190,98 @@ Deno.test("a tenant reads only its own entries in the shared audit trail", async
 Deno.test("the platform reads the whole audit trail", async () => {
   const { body } = await callAs(PLATFORM, "GET", "/admin/logs-audit");
   assertEquals(body.rows.length, 3);
+});
+
+// Keys name a tenant, so who may mint and see one is the same boundary as the
+// data itself — with a sharper edge: a key minted for the wrong brand would hand
+// over a tenant's traffic, not merely show it.
+// Writes audit entries, which are fire-and-forget by design: the op sanitizer
+// would otherwise attribute that write to whichever test runs next.
+Deno.test({
+  name: "a tenant mints keys only for itself",
+  sanitizeOps: false,
+  async fn() {
+  const own = await callAs(ALPHA, "POST", "/admin/api-keys", {
+    brand: "beta", // ignored: the session decides, not the body
+    origins: ["https://alpha.test"],
+  });
+  assertEquals(own.status, 201);
+  assertEquals(own.body.brand, "alpha");
+  },
+});
+
+// Writes audit entries, which are fire-and-forget by design: the op sanitizer
+// would otherwise attribute that write to whichever test runs next.
+Deno.test({
+  name: "a tenant sees only its own keys",
+  sanitizeOps: false,
+  async fn() {
+  await callAs(BETA, "POST", "/admin/api-keys", { origins: ["https://beta.test"] });
+  const { body } = await callAs(ALPHA, "GET", "/admin/api-keys");
+  assert(body.length > 0);
+  assert(body.every((key: { brand: string }) => key.brand === "alpha"));
+  },
+});
+
+// Writes audit entries, which are fire-and-forget by design: the op sanitizer
+// would otherwise attribute that write to whichever test runs next.
+Deno.test({
+  name: "a tenant cannot revoke a key it cannot see",
+  sanitizeOps: false,
+  async fn() {
+  const minted = await callAs(BETA, "POST", "/admin/api-keys", { origins: ["https://beta.test"] });
+  const { status } = await callAs(ALPHA, "POST", `/admin/api-keys/${minted.body.id}/revoke`);
+  assertEquals(status, 404); // not 403: its existence is not alpha's business
+  },
+});
+
+Deno.test("an origin has to be an origin", async () => {
+  const { status, body } = await callAs(ALPHA, "POST", "/admin/api-keys", {
+    origins: ["alpha.test/path"],
+  });
+  assertEquals(status, 422);
+  assert(String(body.error).includes("not an origin"));
+});
+
+Deno.test("a tenant cannot write the brand registry", async () => {
+  const { status } = await callAs(ALPHA, "POST", "/admin/brands", {
+    key: "gamma",
+    name: "Gamma",
+    domain: "gamma.test",
+    from: "g <g@gamma.test>",
+  });
+  assertEquals(status, 403);
+});
+
+Deno.test("a seeded brand is not editable through the registry", async () => {
+  const { status, body } = await callAs(PLATFORM, "POST", "/admin/brands", {
+    key: "alpha", // seeded from BRANDS in this test's environment
+    name: "Alpha renamed",
+    domain: "alpha.test",
+    from: "a <a@alpha.test>",
+  });
+  assertEquals(status, 409);
+  assert(String(body.error).includes("seeded"));
+});
+
+// Writes audit entries, which are fire-and-forget by design: the op sanitizer
+// would otherwise attribute that write to whichever test runs next.
+Deno.test({
+  name: "the platform onboards a brand by writing it",
+  sanitizeOps: false,
+  async fn() {
+  const { status, body } = await callAs(PLATFORM, "POST", "/admin/brands", {
+    key: "gamma",
+    name: "Gamma",
+    domain: "gamma.test",
+    from: "Gamma <hey@gamma.test>",
+  });
+  assertEquals(status, 201);
+  assertEquals(body.key, "gamma");
+  // Visible to this node at once — that is what makes onboarding a write.
+  const listed = await callAs(PLATFORM, "GET", "/admin/brands");
+  assert(listed.body.some((brand: { key: string }) => brand.key === "gamma"));
+  },
 });
 
 Deno.test("a tenant cannot touch an operator it cannot see", async () => {

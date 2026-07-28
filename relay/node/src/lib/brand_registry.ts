@@ -8,7 +8,7 @@
 // broadcast. The panel invalidates its own node immediately on write.
 
 import { type Brand, config, isBrandKey } from "../config.ts";
-import { get, list, storageEnabled } from "./storage.ts";
+import { get, list, put, storageEnabled } from "./storage.ts";
 import { log } from "./log.ts";
 
 const CACHE_TTL_MS = 60_000;
@@ -51,4 +51,60 @@ export async function allBrands(): Promise<Brand[]> {
 
 export async function brandByKey(key: string): Promise<Brand | undefined> {
   return (await allBrands()).find((brand) => brand.key === key);
+}
+
+// --- writing to it ------------------------------------------------------------
+
+export interface BrandInput {
+  key: string;
+  name: string;
+  domain: string;
+  from: string;
+  upper?: string;
+  match?: string[];
+}
+
+// What a brand must have before it is one. Returns the reason rather than a
+// boolean, because "invalid brand" is a useless thing to tell someone filling in
+// a form.
+export function brandProblem(input: Partial<BrandInput>): string | null {
+  if (!isBrandKey(input.key)) {
+    return "key must be 2-32 characters of a-z, 0-9 and dashes, starting with a letter or digit";
+  }
+  if (!input.name?.trim()) return "name is required";
+  if (!input.domain?.trim()) return "domain is required";
+  // The sender is what a recipient sees; a malformed one fails at send time,
+  // which is far from here and much harder to read.
+  if (!input.from?.includes("@")) return "from must be an email address, optionally with a display name";
+  return null;
+}
+
+export function toBrand(input: BrandInput): Brand {
+  return {
+    key: input.key,
+    name: input.name.trim(),
+    domain: input.domain.trim(),
+    from: input.from.trim(),
+    upper: input.upper?.trim() || input.name.trim().toUpperCase(),
+    // How a keyless caller would be recognised. Kept because the transitional
+    // path still uses it on any environment where REQUIRE_API_KEY is off.
+    match: input.match?.length ? input.match : [input.key],
+  };
+}
+
+export async function saveBrand(input: BrandInput): Promise<Brand> {
+  const brand = toBrand(input);
+  await put(`${brandsDir()}/${brand.key}.json`, brand);
+  // This node serves the new brand at once; the others pick it up within the
+  // cache TTL, which is what makes onboarding a write rather than a redeploy.
+  invalidateBrands();
+  return brand;
+}
+
+// Seeded brands live in the environment, not in storage, so they cannot be
+// edited here — saying so is better than writing an override that shadows the
+// seed and confuses the next reader.
+export async function isStoredBrand(key: string): Promise<boolean> {
+  if (!storageEnabled()) return false;
+  return await get<Brand>(`${brandsDir()}/${key}.json`) !== null;
 }

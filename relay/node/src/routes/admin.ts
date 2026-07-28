@@ -14,7 +14,20 @@ import { isRole, permissionsOf } from "../access/index.ts";
 // platform scope is an empty prefix, so its paths are byte-identical to the
 // pre-tenancy ones.
 import { scoped, type ScopedStorage, scopedForBrand } from "../lib/scoped_storage.ts";
-import { allBrands } from "../lib/brand_registry.ts";
+import {
+  allBrands,
+  type BrandInput,
+  brandByKey,
+  brandProblem,
+  isStoredBrand,
+  saveBrand,
+} from "../lib/brand_registry.ts";
+import {
+  createPublishableKey,
+  isOrigin,
+  listPublishableKeys,
+  revokePublishableKey,
+} from "../lib/api_key.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { config } from "../config.ts";
 
@@ -319,13 +332,111 @@ route("GET", "/admin/logs-audit", async ({ req, url }) => {
 route("GET", "/admin/brands", async ({ req }) => {
   const access = await requirePermission(req, "brands.read");
   if (isDenied(access)) return access.response;
-  const data = (await allBrands()).map((brand) => ({
-    id: brand.key,
-    key: brand.key,
-    name: brand.name,
-    domain: brand.domain,
-  }));
-  return json(data, 200, { "x-total-count": String(data.length) });
+  const stored = await Promise.all(
+    (await allBrands()).map(async (brand) => ({
+      id: brand.key,
+      key: brand.key,
+      name: brand.name,
+      domain: brand.domain,
+      from: brand.from,
+      // A seeded brand comes from the environment and cannot be edited here; the
+      // panel needs to know so it can say why rather than fail on save.
+      source: (await isStoredBrand(brand.key)) ? "registry" : "environment",
+    })),
+  );
+  return json(stored, 200, { "x-total-count": String(stored.length) });
+});
+
+// Onboarding a tenant is a write, not a redeploy. Platform only: a tenant has no
+// brands.write, and nothing here is scoped to one brand anyway.
+route("POST", "/admin/brands", async ({ req }) => {
+  const access = await requirePermission(req, "brands.write");
+  if (isDenied(access)) return access.response;
+  if (access.user.brand !== null) return json({ error: "forbidden" }, 403);
+
+  const body = await readJson<Partial<BrandInput>>(req);
+  if (!body) return json({ error: "invalid body" }, 422);
+  const problem = brandProblem(body);
+  if (problem) return json({ error: problem }, 422);
+
+  const existing = await brandByKey(body.key!);
+  if (existing && !(await isStoredBrand(body.key!))) {
+    // Writing one would shadow the seed with a copy that drifts from it.
+    return json({ error: `"${body.key}" is seeded from the environment and cannot be edited here` }, 409);
+  }
+
+  const brand = await saveBrand(body as BrandInput);
+  recordAuditEvent({
+    actor: access.user,
+    action: existing ? "brands.update" : "brands.create",
+    target: brand.key,
+  });
+  return json({ id: brand.key, ...brand }, existing ? 200 : 201);
+});
+
+// --- publishable keys ---------------------------------------------------------
+
+// A tenant sees and mints only its own; the platform sees every key. The key
+// itself is public by design, so it is returned in full — there is nothing here
+// that a landing page does not already ship.
+route("GET", "/admin/api-keys", async ({ req }) => {
+  const access = await requirePermission(req, "api_keys.read");
+  if (isDenied(access)) return access.response;
+  // The key's own id is the row id: Refine wants one, and inventing a second
+  // identifier for something that already has a public one would be noise.
+  const keys = (await listPublishableKeys())
+    .filter((key) => access.user.brand === null || key.brand === access.user.brand);
+  return json(keys, 200, { "x-total-count": String(keys.length) });
+});
+
+route("POST", "/admin/api-keys", async ({ req }) => {
+  const access = await requirePermission(req, "api_keys.write");
+  if (isDenied(access)) return access.response;
+
+  const body = await readJson<{ brand?: unknown; origins?: unknown }>(req);
+  if (!body) return json({ error: "invalid body" }, 422);
+
+  // A tenant may only mint for itself, whatever the body says — the same rule
+  // the public routes follow, for the same reason.
+  const brand = access.user.brand ?? (typeof body.brand === "string" ? body.brand : "");
+  if (!brand) return json({ error: "brand is required" }, 422);
+  if (access.user.brand !== null && brand !== access.user.brand) {
+    return json({ error: "forbidden" }, 403);
+  }
+  if (!(await brandByKey(brand))) return json({ error: "unknown brand" }, 404);
+
+  const origins = Array.isArray(body.origins) ? body.origins.map(String).filter(Boolean) : [];
+  const bad = origins.filter((origin) => !isOrigin(origin));
+  if (bad.length) {
+    return json({ error: `not an origin: ${bad.join(", ")} — expected https://example.com` }, 422);
+  }
+  // An empty allowlist accepts any site. Fine on a stand, not on an environment
+  // whose landings are public, so it is refused where it would matter.
+  if (origins.length === 0 && config.requireApiKey) {
+    return json({ error: "at least one origin is required in this environment" }, 422);
+  }
+
+  const key = await createPublishableKey(brand, origins);
+  recordAuditEvent({ actor: access.user, action: "api_keys.create", target: key.id });
+  return json(key, 201);
+});
+
+route("POST", "/admin/api-keys/:id/revoke", async ({ req, params }) => {
+  const access = await requirePermission(req, "api_keys.write");
+  if (isDenied(access)) return access.response;
+
+  const existing = (await listPublishableKeys()).find((key) => key.id === params.id);
+  // Invisible is treated as absent: whether a key exists under another tenant is
+  // not this tenant's business.
+  if (!existing || (access.user.brand !== null && existing.brand !== access.user.brand)) {
+    return json({ error: "not found" }, 404);
+  }
+
+  const revoked = await revokePublishableKey(params.id);
+  recordAuditEvent({ actor: access.user, action: "api_keys.revoke", target: params.id });
+  // The landing using this key starts failing within the lookup TTL, not
+  // instantly — worth saying out loud rather than implying immediacy.
+  return json({ ...revoked, takes_effect_within_seconds: 60 });
 });
 
 // --- panel_users CRUD ---------------------------------------------------------

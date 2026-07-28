@@ -226,6 +226,15 @@ h1 .dot {
   color: var(--accent-ink);
   font-weight: 600;
 }
+/* The collapsible holds everything below the scope header. On a desktop it is
+   simply the column the sidebar always was; the media query below turns it into
+   something a button opens. */
+.menu-collapsible {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
 .menu-spacer {
   flex: 1;
 }
@@ -334,6 +343,7 @@ table.panel-table {
 .state-action,
 .invite-form select,
 .invite-form input,
+.invite-form textarea,
 .invite-form button {
   font-family: var(--font-body);
   font-size: 0.85rem;
@@ -701,4 +711,17 @@ table.panel-table {
     flex-direction: column;
     gap: var(--space-3);
   }
+}
+
+.invite-form textarea {
+  min-width: 22rem;
+  resize: vertical;
+  line-height: 1.4;
+}
+.invite-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }

@@ -147,3 +147,27 @@ That is exactly what managed sells.
 
 Queue first or quotas first — webhooks need the queue, the public API needs
 quotas, and both wait on the same thing.
+
+## Rolled out (2026-07-28)
+
+All three environments run on their own Postgres beside the node.
+
+| Environment | Box | Image | Database | Backup |
+|---|---|---|---|---|
+| dev | n1 | `v0.8.0` | `relay_dev` | nightly, restore verified |
+| staging | n1 | `v0.8.0` | `relay_staging` | nightly |
+| prod | p1 | `v0.8.0` | `relay_prod` | nightly, restore verified |
+
+Two brands and two keys migrated per environment; the objects in storage were
+left in place — the node reads the database first and falls back to them, so
+unsetting `DATABASE_URL` restores the previous behaviour.
+
+Verified on production: the live landing keys work (`200`), the panel reads its
+list from the database, and mint → use → **revoke → immediate `401`**, with no
+wait. That was the point.
+
+Backups: `pg_dump` into `backups/<env>/postgres/` nightly at 03:20 UTC with
+jitter, kept a fortnight, old ones removed only after a successful upload. The
+restore drill (`scripts/verify-backup-restore.sh`) brings a dump up in a
+throwaway container and compares counts with the running environment: dev and
+prod both matched.

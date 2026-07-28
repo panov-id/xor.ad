@@ -439,6 +439,14 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         # Schema first, then the node that expects it. Run from the node image so
         # the migration is the one that shipped with this version, and inside the
         # compose network because the database has no other door.
+        #
+        # The database has to be up and answering before that: on a box's first
+        # deploy the volume is empty and Postgres spends a moment initialising,
+        # and a migration against a database that is not listening yet just fails
+        # and leaves the node running on storage — which is survivable, and still
+        # not what anyone asked for. --wait blocks until the healthcheck passes.
+        print("      waiting for postgres")
+        sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --wait postgres", sudo=sudo)
         for env in box["envs"]:
             print(f"      migrate {env} database")
             sh(client, f"cd {REMOTE_ROOT}/compose && docker compose run --rm --entrypoint deno "

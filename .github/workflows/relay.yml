@@ -33,7 +33,9 @@ jobs:
       # everyone else's configuration.
       - name: tenancy test
         working-directory: relay/node
-        run: deno test --allow-env --allow-read --allow-write test/tenancy.test.ts
+        # Loopback only: the invitation tests hand the letter to a fake SMTP
+        # server in-process, so the suite reads what the recipient would.
+        run: deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 test/tenancy.test.ts
       # Not just main.ts: the tools are the migration and the key minting, and a
       # broken one is only discovered when it is needed most.
       - name: type check

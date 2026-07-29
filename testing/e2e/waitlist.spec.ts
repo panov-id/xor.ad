@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { SOSED_URL, NEIGHBRO_URL } from "../helpers/env";
 import { findWaitlistRow, uniqueEmail } from "../helpers/waitlist";
 
@@ -8,9 +8,9 @@ const WAITLIST_ROUTE = "**/waitlist";
 
 // The two faces do not share markup — sosed's form is `#wl` with a `#st` status,
 // neighbro's is `#waitlist-form-1` with a `data-status-for` sibling — so the
-// selectors belong to the face rather than to the test. Written out per face
-// instead of unified in the pages, because making them match is a product
-// decision, not a test's to force.
+// selectors belong to the face rather than to the test. What they say, however,
+// is the same on both: `.ok` on success and `.err` on failure. That agreement is
+// what lets the assertions below be one set rather than two.
 interface Face {
   name: string;
   url: string;
@@ -21,8 +21,6 @@ interface Face {
   // Both landings remember a completed signup and replace the form with a
   // "you're on the list" state. A test that wants the form back has to forget it.
   doneKey: string;
-  // sosed writes the failure text but no class; neighbro marks the status `.err`.
-  expectFailure: (page: Page) => Promise<void>;
 }
 
 const faces: Face[] = [
@@ -34,13 +32,6 @@ const faces: Face[] = [
     status: "#st",
     success: "#st.ok",
     doneKey: "ss-wl-done",
-    // No error class to assert on, so the check is what the user actually sees:
-    // a message appeared and the form did not turn into the joined state.
-    expectFailure: async (page) => {
-      await expect(page.locator("#st")).not.toBeEmpty({ timeout: 15000 });
-      await expect(page.locator("#st.ok")).toHaveCount(0);
-      await expect(page.locator("form.wl#wl")).toBeVisible();
-    },
   },
   {
     name: "neighbro.place",
@@ -51,11 +42,6 @@ const faces: Face[] = [
     success:
       '[data-status-for="waitlist-form-1"].ok, [data-after-for="waitlist-form-1"].show',
     doneKey: "nb-wl-done",
-    expectFailure: async (page) => {
-      await expect(page.locator('[data-status-for="waitlist-form-1"]')).toHaveClass(/err/, {
-        timeout: 15000,
-      });
-    },
   },
 ];
 
@@ -107,7 +93,8 @@ for (const face of faces) {
 
       const email = uniqueEmail(`${face.name.split(".")[0]}-fail`);
       await submit(page, face, email);
-      await face.expectFailure(page);
+      await expect(page.locator(face.status)).toHaveClass(/err/, { timeout: 15000 });
+      await expect(page.locator(face.success)).toHaveCount(0);
 
       // Nothing should have been stored.
       expect(await findWaitlistRow(email), "no row should exist after a failed submit").toBeFalsy();

@@ -12,6 +12,43 @@ Deno.env.set("STORAGE_TRANSPORT", "fs");
 Deno.env.set("STORAGE_DIR", storageDir);
 Deno.env.set("SESSION_SECRET", SECRET);
 Deno.env.set("NODE_ENV_NAME", ENV_NAME);
+
+// A stand-in for Mailpit, on a port the OS picks. The SMTP client is a lock-step
+// dialogue that never parses a reply code, so "250 ok" to everything is a
+// faithful enough peer — and it lets these tests read the letter that was
+// actually built, rather than trust that one would have been.
+const mailbox: string[] = [];
+const smtpServer = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+(async () => {
+  for await (const conn of smtpServer) {
+    (async () => {
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const buffer = new Uint8Array(8192);
+      let letter = "";
+      try {
+        await conn.write(encoder.encode("220 fake\r\n"));
+        while (true) {
+          const read = await conn.read(buffer);
+          if (read === null) break;
+          letter += decoder.decode(buffer.subarray(0, read));
+          await conn.write(encoder.encode("250 ok\r\n"));
+        }
+      } catch {
+        // The client closes mid-dialogue; nothing here to report.
+      } finally {
+        if (letter) mailbox.push(letter);
+        try {
+          conn.close();
+        } catch { /* already closed by the client */ }
+      }
+    })();
+  }
+})();
+
+Deno.env.set("MAIL_TRANSPORT", "smtp");
+Deno.env.set("MAIL_SMTP_HOST", "127.0.0.1");
+Deno.env.set("MAIL_SMTP_PORT", String((smtpServer.addr as Deno.NetAddr).port));
 Deno.env.set(
   "BRANDS",
   JSON.stringify([
@@ -364,5 +401,144 @@ Deno.test({
   async fn() {
     const { status } = await callAs(ALPHA, "DELETE", "/admin/panel-users/boss@beta.test");
     assertEquals(status, 404); // not 403: existence elsewhere is not their business
+  },
+});
+
+// --- invitations ---------------------------------------------------------------
+//
+// Self-service tenant registration is deliberately absent: a tenant is
+// registered by the platform, and the invitation is what tells them so. The
+// letter is really built and really handed to a peer (the fake SMTP above), so
+// these tests read what the recipient would read.
+
+async function magicTokensFor(email: string): Promise<{ email: string; exp: number }[]> {
+  const platform = scopedForBrand(null);
+  // `list` answers with names relative to the directory, and takes it without a
+  // trailing slash — same shape the admin routes read their collections with.
+  const dir = `panel/${ENV_NAME}/magic`;
+  const names = await platform.list(dir);
+  const tokens = await Promise.all(
+    names.map((name) => platform.get<{ email: string; exp: number }>(`${dir}/${name}`)),
+  );
+  return tokens.filter((token): token is { email: string; exp: number } =>
+    token !== null && token.email === email
+  );
+}
+
+const daysUntil = (exp: number): number => (exp - Date.now()) / 86_400_000;
+
+// The fake server files a letter once the client hangs up, which happens after
+// sendSmtp has already returned — so the mailbox is read with a deadline rather
+// than immediately.
+async function letterContaining(fragment: string, timeoutMs = 2000): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const found = mailbox.find((letter) => letter.includes(fragment));
+    if (found) return found;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  return "";
+}
+
+Deno.test({
+  name: "the platform onboarding a tenant's operator invites them for a week",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    mailbox.length = 0;
+    const { status, body } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
+      email: "invited@alpha.test",
+      role: "tenant_admin",
+      brand: "alpha",
+    });
+    assertEquals(status, 200);
+    assertEquals((body as { invited: boolean }).invited, true);
+
+    const tokens = await magicTokensFor("invited@alpha.test");
+    assertEquals(tokens.length, 1, "one invitation, not one per attempt");
+    // A sign-in link lives fifteen minutes; an invitation read out of an inbox
+    // the next morning must not be one of those.
+    const days = daysUntil(tokens[0].exp);
+    assert(days > 6 && days <= 7, `expected ~7 days, got ${days}`);
+
+    const letter = await letterContaining("invited@alpha.test");
+    assert(letter, "the invitation should have reached a mail server");
+    assert(letter.includes("invited to"), "the letter should say what it is");
+    assert(letter.includes("/auth/callback?token="), "and carry a way in");
+    assert(letter.includes("7 days"), "and say how long it lasts");
+  },
+});
+
+Deno.test({
+  name: "a sign-in link is the short-lived one, and stays that way",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const url = new URL("https://relay.test/auth/request-link");
+    const found = match("POST", url.pathname);
+    assert(found);
+    const response = await found.h({
+      req: new Request(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: "boss@alpha.test" }),
+      }),
+      params: found.params,
+      url,
+    });
+    // 204: the route answers the same way for a member and a stranger, so it has
+    // nothing to say back.
+    assertEquals(response.status, 204);
+
+    const tokens = await magicTokensFor("boss@alpha.test");
+    assertEquals(tokens.length, 1);
+    const minutes = (tokens[0].exp - Date.now()) / 60_000;
+    assert(minutes > 14 && minutes <= 15, `expected ~15 minutes, got ${minutes}`);
+  },
+});
+
+Deno.test({
+  name: "a tenant adding its own operator sends nothing — those people it tells itself",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { status } = await callAs(ALPHA, "POST", "/admin/panel-users", {
+      email: "moderator@alpha.test",
+      role: "moderator",
+    });
+    assertEquals(status, 200);
+    assertEquals((await magicTokensFor("moderator@alpha.test")).length, 0);
+  },
+});
+
+Deno.test({
+  name: "a tenant cannot re-invite an operator of a brand it cannot see",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { status } = await callAs(BETA, "POST", "/admin/panel-users/invited@alpha.test/invite");
+    assertEquals(status, 404); // not 403: existence elsewhere is not their business
+  },
+});
+
+// Last on purpose: it takes the mail server away, and nothing after it could
+// send. What it guards is that a letter which never went out leaves no key
+// behind — an unused week-long way in that nobody was ever told about.
+Deno.test({
+  name: "an invitation that could not be sent leaves no token behind",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    smtpServer.close();
+    const { status, body } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
+      email: "unreachable@beta.test",
+      role: "tenant_admin",
+      brand: "beta",
+    });
+    // The operator exists either way: a delivery problem is not a reason to
+    // lose the account that was just created.
+    assertEquals(status, 200);
+    assertEquals((body as { invited: boolean }).invited, false);
+    assertEquals((await magicTokensFor("unreachable@beta.test")).length, 0);
   },
 });

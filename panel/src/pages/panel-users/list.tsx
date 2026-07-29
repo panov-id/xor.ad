@@ -26,15 +26,25 @@ export const PanelUsersList = () => {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("moderator");
+  // Empty = the platform itself. Only the platform ever sees this control: a
+  // tenant's operators are its own, and the relay ignores a brand it sends.
+  const [brand, setBrand] = useState("");
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState<string | null>(null);
 
   const canManageUsers = permissions?.includes("panel_users.write") ?? false;
 
   const { data: identity } = useGetIdentity<PanelIdentity>();
   const isPlatform = identity?.brand === null;
+  // Only the platform can put an operator inside someone else's brand, so only
+  // it needs the list. `enabled` keeps a tenant from asking for a page its role
+  // would be refused anyway.
+  const { result: brands } = useList<{ key: string }>({
+    resource: "brands",
+    pagination: { mode: "off" },
+    queryOptions: { enabled: isPlatform && canManageUsers },
+  });
   // A tenant cannot grant the platform role, and the relay refuses it anyway —
   // the select just stops offering what would be rejected.
   const roleOptions = isPlatform ? ROLES : ROLES.filter((role) => role !== "admin");
@@ -43,39 +53,49 @@ export const PanelUsersList = () => {
     e.preventDefault();
     setSubmitting(true);
     setStatus(null);
-    setInviteLink(null);
-    setCopied(false);
 
     const res = await api("/admin/panel-users", {
       method: "POST",
-      body: JSON.stringify({ email, role }),
+      body: JSON.stringify(brand ? { email, role, brand } : { email, role }),
     });
     setSubmitting(false);
 
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
       setStatus({ kind: "err", text: body.error ?? "Invite failed" });
       return;
     }
 
-    // No hand-off link: the invitee just signs in from the login page with their
-    // email (the relay emails them a magic link). Membership is what we granted.
-    setStatus({ kind: "ok", text: `Added ${email} — they can now sign in with their email.` });
-    setInviteLink(null);
+    // The relay emails an operator it created inside a brand, and says whether
+    // that letter went out. A platform operator gets no letter — they are the
+    // people who already have the panel open.
+    setStatus(
+      body.invited
+        ? { kind: "ok", text: `Added ${email} — an invitation is on its way.` }
+        : {
+          kind: "ok",
+          text: brand
+            ? `Added ${email}, but the invitation could not be sent. Try "Invite again".`
+            : `Added ${email} — they can now sign in with their email.`,
+        },
+    );
     setEmail("");
     query.refetch();
   };
 
-  const copyLink = async () => {
-    if (!inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
-    } catch {
-      // Clipboard unavailable (insecure origin / denied permission). The link
-      // stays visible in the <code> block for manual copy.
-      setStatus({ kind: "err", text: "Couldn't copy — select the link and copy it manually." });
+  const resendInvite = async (row: PanelUserRow) => {
+    setResending(row.email);
+    setStatus(null);
+    const res = await api(`/admin/panel-users/${encodeURIComponent(row.email)}/invite`, {
+      method: "POST",
+    });
+    setResending(null);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setStatus({ kind: "err", text: body.error ?? "Could not send the invitation" });
+      return;
     }
+    setStatus({ kind: "ok", text: `Invitation sent to ${row.email} again.` });
   };
 
   return (
@@ -93,13 +113,34 @@ export const PanelUsersList = () => {
           />
           {/* Options come from the shared vocabulary, so a role added in the
               relay core shows up here without touching this page. */}
-          <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
+          <select
+            aria-label="Role"
+            value={role}
+            onChange={(event) => setRole(event.target.value as Role)}
+          >
             {roleOptions.map((roleOption) => (
               <option key={roleOption} value={roleOption}>
                 {roleOption}
               </option>
             ))}
           </select>
+          {/* Onboarding a tenant happens here: the platform names the brand, and
+              the relay emails whoever it just let in. There is no self-service
+              registration — a tenant is registered by us, never by itself. */}
+          {isPlatform && (
+            <select
+              aria-label="Brand"
+              value={brand}
+              onChange={(event) => setBrand(event.target.value)}
+            >
+              <option value="">platform</option>
+              {(brands?.data ?? []).map((brandRow) => (
+                <option key={brandRow.key} value={brandRow.key}>
+                  {brandRow.key}
+                </option>
+              ))}
+            </select>
+          )}
           <button type="submit" disabled={submitting}>
             Invite
           </button>
@@ -115,14 +156,6 @@ export const PanelUsersList = () => {
         >
           {status.text}
         </p>
-      )}
-      {inviteLink && (
-        <div className="invite-link">
-          <code>{inviteLink}</code>
-          <button type="button" onClick={copyLink}>
-            {copied ? "Copied" : "Copy"}
-          </button>
-        </div>
       )}
       {!canManageUsers && (
         <p className="auth-note">Your role can view panel users but not change them.</p>
@@ -150,6 +183,24 @@ export const PanelUsersList = () => {
             label: "Added",
             render: (row) => new Date(row.created_at).toLocaleString(),
           },
+          // An invitation expires and letters get lost, so the way to send
+          // another one lives next to the person it concerns.
+          ...(canManageUsers
+            ? [{
+              key: "invite",
+              label: "",
+              render: (row: PanelUserRow) => (
+                <button
+                  type="button"
+                  className="row-action"
+                  disabled={resending === row.email}
+                  onClick={() => void resendInvite(row)}
+                >
+                  {resending === row.email ? "Sending…" : "Invite again"}
+                </button>
+              ),
+            }]
+            : []),
         ]}
         rows={result?.data ?? []}
         rowId={(row) => row.id}

@@ -26,4 +26,4 @@ docker run --rm \
   -v "$root/relay/node":/node \
   -w /node \
   "$image" \
-  deno test --allow-env --allow-read --allow-write test/tenancy.test.ts
+  deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 test/tenancy.test.ts

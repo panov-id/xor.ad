@@ -8,7 +8,13 @@ services:
   node:
     build: { context: ../node }
     restart: unless-stopped
-    depends_on: [mailpit]
+    depends_on:
+      mailpit:
+        condition: service_started
+      # Not just "postgres is up": the schema has to exist, or every brand, key
+      # and quota request answers "relation does not exist" on a fresh stand.
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV_NAME: local
       NODE_ID: local
@@ -27,6 +33,20 @@ services:
     volumes:
       - ./data:/data
     ports: ["8081:8080"]           # 8080 on the host is the xor.ad gateway
+
+  # The control-state schema, applied once per `up`. On a real box the wizard
+  # does this before the node starts; the stand had no equivalent, so brands and
+  # keys simply never worked here and every verify-*-local.sh script carried its
+  # own copy of the incantation.
+  migrate:
+    build: { context: ../node }
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://relay:local@postgres:5432/relay
+    command: ["run", "--allow-env", "--allow-net", "--allow-read", "tools/migrate_db.ts"]
 
   postgres:
     image: postgres:16-alpine

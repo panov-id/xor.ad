@@ -8,7 +8,7 @@ import { isRole, type Role } from "../access/index.ts";
 import { del, get, put } from "./storage.ts";
 import { sha256hex } from "./hash.ts";
 import { sign, verify } from "./jwt.ts";
-import { sendPanelLink } from "./mailer.ts";
+import { sendPanelInvite, sendPanelLink } from "./mailer.ts";
 
 // Roles are owned by the access core; re-exported so route modules keep importing
 // the panel vocabulary from one place.
@@ -24,6 +24,10 @@ export interface PanelUser {
 }
 
 const TOKEN_TTL_MS = 15 * 60_000;
+// An invitation is read out of an inbox, not clicked within the minute a
+// sign-in link expects. Same token and the same redeem path — only the deadline
+// differs, so nothing else in the flow has to learn about invitations.
+const INVITE_TTL_MS = 7 * 24 * 3600 * 1000;
 const SESSION_TTL_S = 7 * 24 * 3600;
 
 export const usersDir = (): string => `panel/${config.envName}/users`;
@@ -35,14 +39,37 @@ export async function getUser(email: string): Promise<PanelUser | null> {
   return await get<PanelUser>(await userKey(email));
 }
 
+async function issueToken(email: string, ttlMs: number): Promise<string> {
+  const token = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
+  await put(magicKey(token), { email, exp: Date.now() + ttlMs });
+  return token;
+}
+
+const linkFor = (token: string): string => `${config.panel.url}/auth/callback?token=${token}`;
+
 export async function requestMagicLink(email: string): Promise<void> {
   const e = email.trim().toLowerCase();
   if (!e) return;
   if (!await getUser(e)) return; // invite-only: never reveal membership
-  const token = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
-  await put(magicKey(token), { email: e, exp: Date.now() + TOKEN_TTL_MS });
-  const link = `${config.panel.url}/auth/callback?token=${token}`;
-  await sendPanelLink(e, link);
+  await sendPanelLink(e, linkFor(await issueToken(e, TOKEN_TTL_MS)));
+}
+
+// Onboarding. Unlike a sign-in request this one is allowed to throw: the
+// platform has just created this operator, so there is no membership to keep
+// secret, and an invitation that quietly failed to send is worse than an error —
+// the person would be waiting for a letter nobody is going to send again.
+export async function sendInvitation(user: PanelUser): Promise<void> {
+  const token = await issueToken(user.email, INVITE_TTL_MS);
+  try {
+    await sendPanelInvite(user.email, linkFor(token), user.brand);
+  } catch (error) {
+    // A letter that never went out must not leave a week-long key behind it.
+    // (A sign-in link is not cleaned up the same way: it lives fifteen minutes
+    // and its send is best-effort by design, so there is nothing worth the
+    // extra write.)
+    await del(magicKey(token));
+    throw error;
+  }
 }
 
 // Verify a magic token (one-time, unexpired) and mint a session JWT.

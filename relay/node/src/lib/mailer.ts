@@ -31,13 +31,18 @@ async function viaResend(
   }
 }
 
-// Panel sign-in link — a system email (not brand), sent from the panel sender
-// via the default Resend account (panov.id) or Mailpit on dev/local.
-export async function sendPanelLink(to: string, link: string): Promise<void> {
-  const subject = "Your xor panel sign-in link";
-  const html = `<p>Sign in to the panel:</p><p><a href="${link}">${link}</a></p>` +
-    `<p>This link expires in 15 minutes and can be used once.</p>`;
-  const text = `Sign in: ${link}\n(expires in 15 minutes, one-time)`;
+// Panel mail — system email (not brand), sent from the panel sender via the
+// default Resend account (panov.id) or Mailpit on dev/local. Throws when the
+// send is refused; each caller decides whether that is fatal for it.
+async function sendPanelMail(
+  to: string, subject: string, html: string, text: string,
+): Promise<void> {
+  // A node configured without mail used to fall through to Resend with an empty
+  // key and get a 401 for it. Saying so plainly is better: an invitation from
+  // such a node is impossible, and the caller should hear that.
+  if (config.mail.transport === "none") {
+    throw new Error("mail transport is 'none' — this node cannot send panel mail");
+  }
   if (config.mail.transport === "smtp") {
     await sendSmtp({
       host: config.mail.smtp.host,
@@ -55,14 +60,44 @@ export async function sendPanelLink(to: string, link: string): Promise<void> {
     body: JSON.stringify({ from: config.panel.sender, to: [to], subject, html, text }),
   });
   if (!res.ok) {
-    // A rejected sign-in link is invisible to the person waiting for it, so it
-    // belongs where an operator will actually look.
+    throw new Error(`panel mail rejected: ${res.status} ${(await res.text()).slice(0, 500)}`);
+  }
+}
+
+export async function sendPanelLink(to: string, link: string): Promise<void> {
+  const subject = "Your xor panel sign-in link";
+  const html = `<p>Sign in to the panel:</p><p><a href="${link}">${link}</a></p>` +
+    `<p>This link expires in 15 minutes and can be used once.</p>`;
+  const text = `Sign in: ${link}\n(expires in 15 minutes, one-time)`;
+  try {
+    await sendPanelMail(to, subject, html, text);
+  } catch (error) {
+    // A sign-in request answers the same way for everyone, so a failure cannot
+    // reach the caller without telling a stranger who is a member. It belongs
+    // where an operator will actually look instead.
     log("error", "panel sign-in mail rejected", {
-      transport: "resend",
-      status: res.status,
-      response: (await res.text()).slice(0, 500),
+      transport: config.mail.transport,
+      error: String(error),
     });
   }
+}
+
+// Invitation to the panel. Unlike a sign-in link this is not something the
+// recipient asked for, so it has to say who opened the door and to what.
+export async function sendPanelInvite(
+  to: string, link: string, brand: string | null,
+): Promise<void> {
+  const scope = brand ? `the ${brand} panel` : "the xor panel";
+  const subject = `You have been invited to ${scope}`;
+  const html = `<p>You have been given access to ${scope}.</p>` +
+    `<p><a href="${link}">${link}</a></p>` +
+    `<p>This link expires in 7 days and can be used once. After that, ask for a ` +
+    `new one from the panel's sign-in page.</p>`;
+  const text = `You have been given access to ${scope}.\n${link}\n` +
+    `(expires in 7 days, one-time; afterwards request a link from the sign-in page)`;
+  // Deliberately not caught: the caller created this operator and is waiting to
+  // hear whether they were actually told about it.
+  await sendPanelMail(to, subject, html, text);
 }
 
 export async function sendWelcome(

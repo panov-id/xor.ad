@@ -8,7 +8,16 @@ import { isEmail, json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
 import { type LogPage, type LogScope, type LogWindow, readLogPage } from "../lib/log_reader.ts";
 import { auditDir, recordAuditEvent } from "../lib/audit.ts";
-import { authed, getUser, type PanelUser, requestMagicLink, redeem, usersDir } from "../lib/auth.ts";
+import {
+  authed,
+  getUser,
+  type PanelUser,
+  redeem,
+  requestMagicLink,
+  sendInvitation,
+  usersDir,
+} from "../lib/auth.ts";
+import { log } from "../lib/log.ts";
 import { isRole, permissionsOf } from "../access/index.ts";
 // No route reaches storage directly: everything goes through a scope. The
 // platform scope is an empty prefix, so its paths are byte-identical to the
@@ -550,8 +559,33 @@ route("POST", "/admin/panel-users", async ({ req }) => {
     target: email,
     after: user,
   });
-  return json({ id: email, ...user });
+
+  // Onboarding a tenant: the platform has opened a door inside someone else's
+  // brand, and that someone has no way of knowing. A tenant adding its own
+  // operators is not this case — those people are told out of band, by the
+  // tenant. Self-service registration is deliberately absent; this invitation
+  // is what replaces it.
+  const invite = access.user.brand === null && brand !== null;
+  const invited = invite ? await tryInvite(user, access.user) : false;
+  return json({ id: email, ...user, invited });
 });
+
+// The operator exists either way: an invitation that could not be sent is a
+// delivery problem, not a reason to lose the account that was just created.
+// The caller is told, and can send it again.
+async function tryInvite(user: PanelUser, actor: PanelUser): Promise<boolean> {
+  try {
+    await sendInvitation(user);
+    recordAuditEvent({ actor, action: "panel_users.invite", target: user.email });
+    return true;
+  } catch (error) {
+    // Not an audit event: the trail's vocabulary is applied/denied, and a
+    // refused delivery is neither — nobody decided anything. It goes to the
+    // node's log, which the panel shows, and the caller sees `invited: false`.
+    log("error", "panel invitation failed", { email: user.email, error: String(error) });
+    return false;
+  }
+}
 
 route("PATCH", "/admin/panel-users/:email", async ({ req, params }) => {
   const access = await requirePermission(req, "panel_users.write");
@@ -634,4 +668,38 @@ route("DELETE", "/admin/panel-users/:email", async ({ req, params }) => {
     before: existing,
   });
   return json({ id: email });
+});
+
+// Send the invitation again — the first one expires, and letters get lost.
+// Guarded by the same permission and the same visibility as every other
+// operation on an operator: a tenant cannot mint a way into a brand it cannot
+// even see.
+route("POST", "/admin/panel-users/:email/invite", async ({ req, params }) => {
+  const access = await requirePermission(req, "panel_users.write");
+  const email = params.email.trim().toLowerCase();
+  if (isDenied(access)) {
+    recordAuditEvent({
+      actor: access.user,
+      action: "panel_users.invite",
+      target: email,
+      outcome: "denied",
+      reason: "permission denied",
+    });
+    return access.response;
+  }
+  const existing = await getUser(email);
+  if (!existing) return json({ error: "not found" }, 404);
+  if (!visible(access.user, existing)) return json({ error: "not found" }, 404);
+
+  // Here the failure is the whole answer: the caller pressed a button whose
+  // only purpose is to send this letter, so a refused delivery is an error, not
+  // a flag on an otherwise successful call.
+  try {
+    await sendInvitation(existing);
+  } catch (error) {
+    log("error", "panel invitation failed", { email, error: String(error) });
+    return json({ error: "could not send the invitation" }, 502);
+  }
+  recordAuditEvent({ actor: access.user, action: "panel_users.invite", target: email });
+  return json({ id: email, invited: true });
 });

@@ -35,12 +35,15 @@ test.describe("admin — positive flows", () => {
     await expect(page.getByRole("cell", { name: ADMIN_EMAIL })).toBeVisible();
   });
 
-  test("admin invites a moderator and gets a copyable link; the row appears", async ({ page }) => {
+  test("admin invites a moderator and the row appears", async ({ page }) => {
     await loginAs(page, ADMIN_EMAIL);
     await page.getByRole("link", { name: "Panel users" }).click();
 
     await page.locator('.panel-invite-form input[type="email"]').fill(INVITEE);
-    await page.locator(".panel-invite-form select").selectOption("moderator");
+    // Two selects now: the role, and the brand the platform is onboarding into.
+    // Named rather than positional — an unlabelled control is a screen reader's
+    // problem before it is a test's.
+    await page.getByLabel("Role").selectOption("moderator");
     await page.locator(".panel-invite-form button").click();
 
     await expect(page.locator(".status-ok")).toBeVisible({ timeout: 15000 });

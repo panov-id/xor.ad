@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CI panel deploy: upload a prebuilt panel/dist to a Bunny Storage Zone and
-# purge its Pull Zone. The Vite build (with VITE_SUPABASE_* env) runs in the
+# purge its Pull Zone. The Vite build (with VITE_RELAY_API_URL env) runs in the
 # workflow before this. Reads plain env vars, no .env.deploy needed.
 #
 # Required env: BUNNY_STORAGE_ZONE, BUNNY_STORAGE_API_KEY

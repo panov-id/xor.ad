@@ -3,6 +3,11 @@
 > ✅ **COMPLETE (2026-07-22).** All 4 phases done: data migrated, sosed+neighbro
 > landings and the panel on relay, both Supabase projects deleted (backup in
 > `supabase-backup-2026-07-22/`). relay `v0.2.0` across all envs.
+>
+> A historical document. On 2026-07-29 the one-shot phase scripts
+> (`migrate_waitlist.py`, `seed_panel_users.py`) were deleted: they read through
+> `api.supabase.com` and the projects no longer exist, so they cannot be run
+> again. The references below are left as the record of what did the move.
 
 Goal: move **the landings (neighbro + sosed) and the panel** fully off Supabase onto
 relay, migrate the data, then **tear down the old infra**. The panel is designed up

@@ -17,9 +17,11 @@ test.describe("admin — positive flows", () => {
     await expect(page.getByRole("cell", { name: "alice@test.seed" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "bob@test.seed" })).toBeVisible();
 
-    // Source is shown as a badge, not raw text.
-    await expect(page.locator(".badge-sosed").first()).toBeVisible();
-    await expect(page.locator(".badge-neighbro").first()).toBeVisible();
+    // The brand is shown as a badge, not raw text. The class carries the tone
+    // (one badge component for the whole panel), so the brand is matched on the
+    // badge's text — which is the thing the operator actually reads.
+    await expect(page.locator(".badge", { hasText: /^sosed$/ }).first()).toBeVisible();
+    await expect(page.locator(".badge", { hasText: /^neighbro$/ }).first()).toBeVisible();
   });
 
   test("admin can open panel users and sees the invite form", async ({ page }) => {
@@ -43,6 +45,6 @@ test.describe("admin — positive flows", () => {
 
     await expect(page.locator(".status-ok")).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole("cell", { name: INVITEE })).toBeVisible();
-    await expect(page.locator(".badge-moderator").last()).toBeVisible();
+    await expect(page.locator(".badge", { hasText: /^moderator$/ }).last()).toBeVisible();
   });
 });

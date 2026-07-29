@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Runs the panel E2E + responsive test suite in Docker (Playwright).
-# Assumes the Supabase stack and the panel dev server are already running.
+# Assumes the relay stand (relay/local) and the panel dev server are running.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-mkdir -p testing/screenshots panel/tests/report
+mkdir -p testing/screenshots panel/tests/report panel/tests/results
 
 # Run the container as the host user so screenshots/report aren't written as root.
 export HOST_UID="$(id -u)" HOST_GID="$(id -g)"

@@ -6,7 +6,6 @@
     "test": "playwright test"
   },
   "dependencies": {
-    "@playwright/test": "1.49.0",
-    "@supabase/supabase-js": "2.47.10"
+    "@playwright/test": "1.49.0"
   }
 }

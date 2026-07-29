@@ -40,7 +40,7 @@ Refine's hooks and components simplifies the development process and eliminates 
 To learn more about **Refine**, please check out the [Documentation](https://refine.dev/docs)
 
 - **React Router** [Docs](https://refine.dev/docs/core/providers/router-provider/)
-- **Supabase Data Provider** [Docs](https://refine.dev/docs/core/providers/data-provider/#overview)
+- **Data Provider** [Docs](https://refine.dev/docs/core/providers/data-provider/#overview) — ours talks to the relay control plane, see `src/providers/data.ts`
 
 ## License
 

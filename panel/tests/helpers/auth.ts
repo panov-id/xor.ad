@@ -1,18 +1,23 @@
 import { type Page } from "@playwright/test";
-import { PANEL_URL } from "./env";
-import { generateMagicLink } from "./admin";
+import { MODERATOR_EMAIL, PANEL_URL } from "./env";
+import { mintToken, type PanelRole } from "./token";
 
-// Signs a browser session in the same way a real user would, but without
-// SMTP: generate the magic link via the Admin API and let the app's
-// supabase-js client consume the tokens from the redirect URL hash.
-export async function loginAs(page: Page, email: string) {
-  const link = await generateMagicLink(email, PANEL_URL);
-  await page.goto(link);
-  // The verify endpoint redirects to PANEL_URL with tokens in the hash;
-  // supabase-js (detectSessionInUrl) stores the session, then the app
-  // navigates to the first authenticated resource.
-  await page.waitForURL((url) => url.origin === new URL(PANEL_URL).origin && !url.hash.includes("access_token"), {
-    timeout: 15000,
-  });
+// Signs a browser session in without the magic-link email round trip: mint the
+// same JWT the relay's /auth/callback would hand back and put it where the panel
+// keeps it (localStorage "panel_jwt", see panel/src/providers/api.ts).
+//
+// The redeem flow itself is not skipped for convenience — it is covered on the
+// relay side, where it belongs; driving it through Mailpit here would test the
+// mail catcher as much as the panel.
+export async function loginAs(page: Page, email: string, role?: PanelRole) {
+  const token = await mintToken(email, role ?? (email === MODERATOR_EMAIL ? "moderator" : "admin"));
+  // addInitScript rather than a post-load evaluate: the panel reads the token on
+  // first render, so a session written after navigation would arrive too late
+  // and bounce the test to /login.
+  await page.addInitScript(
+    ([key, value]) => window.localStorage.setItem(key, value),
+    ["panel_jwt", token],
+  );
+  await page.goto(PANEL_URL);
   await page.waitForLoadState("networkidle");
 }

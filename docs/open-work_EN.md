@@ -408,7 +408,22 @@ went on looking functional. Removed:
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.
 
-- [ ] **G1. Panel unit tests** — e2e only today.
+- [x] **G1. Panel unit tests** — 2026-07-29. vitest arrived (`npm test`,
+      `scripts/run-panel-unit-tests.sh`, all in Docker) with 10 checks over the
+      pure logic: the page permission map, deny-by-default for unmapped actions,
+      the session header on the fetch client, resource-name to route.
+
+      **The hole was bigger than the item: the panel had no CI at all.** Types
+      and the build ran for the first time inside `_deploy.yml` — during a
+      rollout. `.github/workflows/panel.yml` now runs `npm ci`, the unit tests
+      and `tsc --noEmit` on push and pull request, scoped to `panel/**` and the
+      relay's access core.
+
+      **And it found the drift it exists for:** the relay gained
+      `waitlist.write` today and the panel's copy of the catalogue did not, so
+      the secret-key page could not have offered the one scope the permission was
+      added for. Fixed, with a test that reads the relay's file and compares the
+      two lists string for string.
 - [ ] **G2. A single variable font in the panel.**
 - [ ] **G3. i18n for the decorative mockups.**
 - [ ] **G4. Rate-limiting anonymous inserts.** "Supabase Cloud / edge layer" is

@@ -5,6 +5,10 @@
 
 export const PERMISSIONS = [
   "waitlist.read",
+  // Writing a lead: not something a person does here — leads arrive from a
+  // landing — but a scope a secret key can be issued for, so the key page has to
+  // be able to offer it.
+  "waitlist.write",
   "panel_users.read",
   "panel_users.write",
   "logs.client_errors.read",

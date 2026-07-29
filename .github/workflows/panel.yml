@@ -1,0 +1,34 @@
+name: panel
+
+# The panel had no CI at all: its types and its build were checked for the first
+# time inside a deploy, which is a bad place to learn about a type error. This
+# runs the same two things before one.
+on:
+  push:
+    branches: ["**"]
+    paths: ["panel/**", ".github/workflows/panel.yml", "relay/node/src/access/**"]
+  pull_request:
+    paths: ["panel/**", ".github/workflows/panel.yml", "relay/node/src/access/**"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: install
+        working-directory: panel
+        # `ci`, not `install`: the lock file is what the deploy installs from, so
+        # a lock that disagrees with the manifest must fail here rather than
+        # mid-rollout.
+        run: npm ci
+      - name: unit tests
+        working-directory: panel
+        run: npm test
+      # The build type-checks (`tsc && refine build`), but the check on its own
+      # is faster and says what is wrong without producing a bundle nobody wants.
+      - name: type check
+        working-directory: panel
+        run: npx tsc --noEmit -p tsconfig.json

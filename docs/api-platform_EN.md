@@ -130,9 +130,22 @@ interface ApiKey {
 ```
 
 **What this adds to the work.** Two things absent from the sections below: *tenant
-registration* (brands are hand-added through env today; self-service means moving them
-into storage with a panel page of their own) and *quotas with billing* (a per-key
-counter, shared across the pool — which object storage cannot hold).
+onboarding* and *quotas with billing* (a per-key counter, shared across the pool —
+which object storage cannot hold).
+
+**There will be no self-service registration — settled 2026-07-29.** A tenant is
+onboarded by the platform alone: it creates the brand, then an operator inside that
+brand, and the node emails them an invitation. The reason is that a brand here is a
+data boundary, not a line on a form: an open registration page would mean a stranger
+creating their own namespace, keys and panel access in one click, with the platform
+finding out afterwards. While tenants are onboarded one at a time and by agreement, an
+invitation describes what actually happens more honestly than a signup form would.
+
+The invitation is the same one-time token as an ordinary sign-in link, but it lives
+seven days instead of fifteen minutes: a letter is read from an inbox the next
+morning, not in the same minute. Sending it again is
+`POST /admin/panel-users/:email/invite`, under the same visibility rules — a tenant
+cannot invite anyone into a brand it cannot see.
 
 ## 1. Public API
 
@@ -287,7 +300,8 @@ The core's rule still holds: an unmapped resource/action pair in the panel is
    jobs table and the worker.
 4. Outgoing webhooks on the queue: subscriptions, signing, retries, delivery log.
 5. The tenant panel: login, own users, keys, subscriptions, deliveries, queue (every
-   page on `LogExplorer`), plus self-service brand registration.
+   page on `LogExplorer`). No brand registration here: the platform creates it and
+   invites the tenant by email (see section 0).
 6. Incoming Resend webhooks → email delivery status.
 7. The notification layer (email + in-panel), then web push.
 

@@ -76,18 +76,19 @@ landing, the migration always before the flag.
       `uat.xor.panov.id` bundle — it carries the server-log page, the
       `tenant_admin` role and the `unattributed` scope.
 
-- [ ] **A11. day16's tail has not shipped.** `origin/main` sits at `4734392` —
-      the middle of day16, not its tip. Outside main are `6bf6f9e` (relay
-      quotas), `945d246` (the key's limit in the panel) and `52a8582` (the
-      relay typecheck in CI). So **B5 is built but not live**: uat and prod
-      follow main. A merge closes this, not code.
-- [ ] **A12. The `dev` branch fell out of the path.** The rule is `dayN` →
-      `dev` → `main` (written down in `deployment_EN.md` on 2026-07-29), but
-      `origin/dev` sits at `7d1c2cc` (the day13 era), roughly two dozen commits
-      behind, while `main` was fast-forwarded straight onto day-branch commits —
-      it holds no merge commits at all. Until `dev` catches up, the dev
-      environment shows something other than what ships to uat. Bring `dev` up
-      to `main`, then route through it.
+- [ ] **A11. day16's tail reached dev, not main.** On 2026-07-29 `dev` was
+      fast-forwarded to `6785bd1`, so the quotas (`6bf6f9e`), the key's limit in
+      the panel (`945d246`), the relay typecheck in CI (`52a8582`) and day17's
+      work all shipped to the **dev environment**. `origin/main` still sits at
+      `4734392` — the middle of day16 — and uat and prod follow it. So **B5 is
+      built and running on dev, but still not live**. A `dev` → `main` merge
+      closes this, not code.
+- [x] **A12. The `dev` branch is back in the path** — 2026-07-29. It sat at
+      `7d1c2cc` (the day13 era), 32 commits behind, while `main` was
+      fast-forwarded straight onto day-branch commits — it holds no merge
+      commits at all. `dev` was fast-forwarded to `6785bd1` (day17's tip): the
+      histories had not diverged, so it took no merge and lost nothing. From
+      here on, the `dayN` → `dev` → `main` rule in `deployment_EN.md` applies.
 
 ## B. Tenancy: unfinished functionality
 
@@ -106,9 +107,22 @@ landing, the migration always before the flag.
       cache TTL, which is what makes onboarding a write rather than a redeploy.
       Env-seeded brands are listed as `environment` and are not editable — an
       override would shadow the seed with a copy that drifts from it.
-- [ ] **B3. Self-service tenant registration** — section 0 of `api-platform_*`.
-      B2 is done and the key shape is validated; what remains is registration
-      from outside the panel.
+- [x] **B3. Tenant onboarding — by invitation, not registration.** Rejected
+      2026-07-29: there will be no self-service registration. A brand is a data
+      boundary, not a line on a form, and an open page would mean a stranger
+      creating their own namespace, keys and panel access in one click, with the
+      platform finding out afterwards.
+
+      Instead: the platform creates the brand, then an operator inside it, and
+      the node emails an invitation. The invitation is the same one-time token
+      as an ordinary sign-in link but lives **seven days** rather than fifteen
+      minutes — a letter is read the next morning. Sending it again is
+      `POST /admin/panel-users/:email/invite` and a button on the operator's
+      row, under the same visibility rules.
+
+      A gap was closed on the way: the panel's mail sender did not check for
+      `MAIL_TRANSPORT=none` and would reach for Resend with an empty key. Dead
+      code went too — the panel kept state for an invite link it never showed.
 - [ ] **B4. Exercise a tenant sign-in for real** — the magic link for
       `tenant_admin`, that they cannot see server logs and cannot grant `admin`.
       Covered by tests, never done on a stand.
@@ -246,87 +260,26 @@ text kept. Both landings gained `check-contrast.mjs` and `find-dead-keys.mjs`.
 
 Details in `sosed.place/docs/PENDING_FROM_NEIGHBRO_EN.md`.
 
-## F. Porting neighbro → sosed (original list)
+## F. Porting neighbro → sosed (original list) — checked 2026-07-29
 
-`sosed.place/docs/PENDING_FROM_NEIGHBRO_EN.md`. The freeze on the sosed landing
-was lifted on 2026-07-22, but the document is still written as if it held —
-reword it at the first port. Open items:
+The nine items from `sosed.place/docs/PENDING_FROM_NEIGHBRO_EN.md`. All closed,
+none ticked: the section above declared the port finished while this list stayed
+unmarked, so the tracker showed nine pieces of work that did not exist. Checked
+against the code rather than the document:
 
-- [ ] **F1. Self-hosted fonts** (woff2 + `fonts.css` + preload), drop the Google
-      CDN.
-- [ ] **F2. CSP `<meta http-equiv>`** in `index.html` / `legal.html`.
-- [ ] **F3. Accessibility:** `:focus-visible` on interactive elements,
-      `:focus-within` on the form; `aria-label` on the input, `role="status"` on
-      the status line; `prefers-reduced-motion` with a full animation reset.
-- [ ] **F4. Service worker:** gate `controllerchange`→reload, offline fallback
-      for navigations, `config.js` network-first.
-- [ ] **F5. A `safeUrl` sanitiser** in the legal renderer (block `javascript:`
-      and `data:`), EN fallback, fetch timeout.
-- [ ] **F6. `--muted-2` contrast to 4.5:1** and a fallback colour for
-      `h1 .outline`.
-- [ ] **F7. Splash: hold only on the session's first show.**
-- [ ] **F8. `subscribePush`:** feedback on refusal, and check `res.ok`.
-- [ ] **F9. Dead i18n keys** — check ours.
+| Item | Where |
+|---|---|
+| F1 self-hosted fonts, Google CDN gone | `landing/fonts.css`, `landing/fonts/*.woff2` |
+| F2 CSP | `index.html`, `legal.html` |
+| F3 `:focus-visible`, `role="status"`, `prefers-reduced-motion` | `index.html` |
+| F4 service worker + `controllerchange` | `landing/sw.js` |
+| F5 the `safeUrl` sanitiser | `legal.html` |
+| F6 `--muted-2` contrast | the palette in `index.html` |
+| F7 splash holds once per tab | the `ss-splash` key |
+| F9 dead translation keys | `find-dead-keys.mjs` |
 
-## H. The Supabase leftovers are gone — 2026-07-29
-
-The project was decommissioned on 2026-07-22, but the scaffolding around it
-stayed and went on looking functional. Removed:
-
-- [x] **H1. Dead files.** `docker-compose.functions.yml`,
-      `scripts/setup-supabase.sh`, `reload-functions.sh`, `apply-migrations.sh`,
-      `bootstrap-admin.sh`, `scaffold-panel.sh` (it generated the panel from the
-      `refine-supabase` preset), `test-last-admin-guard.sh` (it exercised a SQL
-      trigger inside the `supabase-db` container; the guard lives in the relay
-      and its tests cover it), the one-shot migration scripts
-      `migrate_waitlist.py` and `seed_panel_users.py` (they read through
-      `api.supabase.com` and can no longer run at all), and the on-disk
-      `supabase/` directory.
-- [x] **H2. The landing E2E moved onto the relay.** The check read the lead from
-      a Supabase `waitlist` table that no longer exists — it would have been
-      confirming emptiness. It now reads through `GET /admin/waitlist` with a
-      token signed by the stand's secret. It also turned out half the suite was
-      written against neighbro's markup: sosed has neither `form.waitlist-form`
-      nor `data-status-for`. The selectors are per face now, and the suite
-      accounts for the remembered-signup behaviour (`ss-wl-done` /
-      `nb-wl-done`) that replaces the form after a success. 14 of 14.
-- [x] **H3. The gateway is alive again.** `nginx.conf` proxied to `kong:8000`, a
-      Supabase container. It now proxies the public routes to the relay stand,
-      and `docker-compose.gateway.yml` no longer depends on someone else's
-      stack — it starts on its own.
-- [x] **H4. The panel E2E moved onto the relay.** The three RLS specs are gone:
-      there is no such layer. The rest stood on the same helpers — sign-in went
-      through Supabase Auth, seeding through the service key. Sign-in now writes
-      the session token to `localStorage` exactly as `/auth/callback` does, and
-      seeding goes through `POST /admin/panel-users` and the public
-      `POST /waitlist`. The badge assertions were repaired too: the panel moved
-      to a single component where the class carries the tone and the brand or
-      role is the text. 21 of 21.
-- [x] **H5. Loose ends.** `@supabase/supabase-js` dropped from both test suites;
-      `github-secrets.example.json` rewritten around the relay's keys; the
-      Custom-SMTP-in-Supabase-Auth step removed from `setup-panov-id-email.sh`
-      (the relay sends the mail); the panel's dev fallback pointed at
-      `localhost:8080`, the gateway, which does not serve `/admin` — corrected to
-      the stand on `8081`.
-
-Still open:
-
-- [x] **H6. The Supabase stack is off the machine** — 2026-07-29. Eleven
-      containers and the `xorad_default` network removed, `supabase/` and
-      `functions/` deleted. Nothing was lost: the 2026-07-22 backup sits in
-      `~/Projects/panov-id/supabase-backup-2026-07-22` (waitlist, panel users,
-      client errors and push subscriptions, for dev and prod).
-
-      It also explained **why** the stack shared a network with the gateway: it
-      was started as `docker compose -f supabase/docker-compose.yml -f
-      docker-compose.gateway.yml` from the repository root, and compose names the
-      project after the first file's directory — `xorad`. That is where the
-      "orphan containers" warnings and the shared network came from. The
-      rewritten gateway starts on its own, so it cannot happen again.
-- [ ] **H7. sosed's form status has no error class.** On a failed submit
-      neighbro marks the status `.err`; sosed only changes the text. The suite
-      therefore checks the two faces differently. Making them agree is a change
-      to the landing, not to the test.
+**F8 (`subscribePush`) does not apply:** sosed has no push at all, so there was
+nothing to carry over — as the section above already says.
 
 ## G. Deliberately deferred
 
@@ -335,5 +288,10 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
 - [ ] **G1. Panel unit tests** — e2e only today.
 - [ ] **G2. A single variable font in the panel.**
 - [ ] **G3. i18n for the decorative mockups.**
-- [ ] **G4. Rate-limiting anonymous inserts** — Supabase Cloud / edge layer.
+- [ ] **G4. Rate-limiting anonymous inserts.** "Supabase Cloud / edge layer" is
+      stale — that layer is gone. Today it is either the relay's quotas
+      (`lib/quota.ts` already counts per key and can refuse) or Bunny Shield in
+      front of the node. The difference matters: a quota knows whose key it is
+      but counts a request already accepted; Shield cuts before the node but by
+      address, not by tenant. Decide when abuse appears, not before.
 - [ ] **G5. `manifest lang`** — marked won't-fix.

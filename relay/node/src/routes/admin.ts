@@ -6,7 +6,13 @@
 import { route } from "../lib/router.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
-import { type LogPage, type LogScope, type LogWindow, readLogPage } from "../lib/log_reader.ts";
+import {
+  type LogPage,
+  type LogScope,
+  type LogWindow,
+  readLogPage,
+  selectEntries,
+} from "../lib/log_reader.ts";
 import { auditDir, recordAuditEvent } from "../lib/audit.ts";
 import {
   authed,
@@ -233,24 +239,51 @@ route("GET", "/auth/me", async ({ req }) => {
 
 // --- waitlist -----------------------------------------------------------------
 
-route("GET", "/admin/waitlist", async ({ req }) => {
+route("GET", "/admin/waitlist", async ({ req, url }) => {
   const access = await requirePermission(req, "waitlist.read");
   if (isDenied(access)) return access.response;
+  const window = readWindow(url);
+  if (!window) return json({ error: "invalid from/to/before — expected a timestamp" }, 422);
   const dir = `waitlist/${config.envName}`;
-  const perScope = await Promise.all(
-    (await scopesFor(access.user)).map(async (store) =>
-      (await collection<Record<string, unknown>>(store, dir))
-        // Annotated: spreading over a literal drops the index signature, and the
-        // rows are free-form records by design.
-        .map((row): Record<string, unknown> => ({ ...row, brand: row.brand ?? store.brand }))
+
+  // List, then read only what is shown — the discipline the log pages already
+  // follow. Reading every lead on every visit is what made this a fan-out: one
+  // object read per lead per brand, on a page that shows two hundred of them.
+  // Listing is one call per scope and returns no bodies.
+  const stores = await scopesFor(access.user);
+  const entries = (await Promise.all(
+    stores.map(async (store, storeIndex) =>
+      (await store.listDetailed(dir)).map((entry) => ({ ...entry, storeIndex }))
     ),
-  );
-  // One email may now exist in several tenants, so the row id carries the brand
-  // too; without it the panel would collapse two different leads into one.
-  const data = perScope.flat()
-    .sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")))
-    .map((row) => ({ id: `${String(row.brand ?? "-")}:${String(row.email)}`, ...row }));
-  return json(data, 200, { "x-total-count": String(data.length) });
+  )).flat();
+
+  // Ordering is by the object's own timestamp, not the record's `created_at`:
+  // the latter cannot be known without reading the object, which is the cost
+  // being removed. They agree for anything the node wrote; leads copied by the
+  // tenancy migration carry the migration's time instead and therefore cluster.
+  const { page, matched } = selectEntries(entries, window);
+
+  const rows = await Promise.all(page.map(async (entry) => {
+    const store = stores[entry.storeIndex];
+    const row = await store.get<Record<string, unknown>>(`${dir}/${entry.name}`);
+    if (row === null) return null;
+    const brand = row.brand ?? store.brand;
+    // One email may exist in several tenants, so the row id carries the brand
+    // too; without it the panel would collapse two different leads into one.
+    return {
+      id: `${String(brand ?? "-")}:${String(row.email)}`,
+      stored_at: entry.createdAt,
+      ...row,
+      brand,
+    };
+  }));
+
+  // x-total-count is every lead in scope, not the page: the panel says "200 of
+  // 1200" rather than implying it has them all.
+  return json(rows.filter((row) => row !== null), 200, {
+    "x-total-count": String(entries.length),
+    "x-matched-count": String(matched),
+  });
 });
 
 // --- logs ---------------------------------------------------------------------

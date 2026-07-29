@@ -172,8 +172,24 @@ landing, the migration always before the flag.
 Items 9 and 10 of `tenancy-review_EN.md` needed no code but still stand as
 arguments.
 
-- [ ] **C1. The platform's `/admin/waitlist` fan-out** — a `list` and a `get` per
-      record across every brand. Fine at hundreds of leads, not beyond.
+- [x] **C1. The platform's `/admin/waitlist` fan-out** — 2026-07-29. The route
+      read **every** lead across every brand on every visit to the page: 29 leads
+      go unnoticed, 29,000 are 29,000 storage reads for one page load.
+
+      It now follows the discipline the log pages already do: list the metadata
+      (one call per scope, no bodies), select the window, read only what is
+      shown. `limit` (200 by default, 500 at most) and a `before` cursor arrived
+      with it, and the headers carry both the total and the matched count.
+
+      The response shape did not change — an array plus `x-total-count` — so the
+      panel and its tests were left alone.
+
+      **The trade:** ordering is now by the object's storage timestamp rather
+      than the record's `created_at`, because the latter cannot be known without
+      reading the object, which is the cost being removed. They agree for
+      anything the node wrote; leads copied by the tenancy migration carry the
+      migration's time and therefore cluster. The same trade is already made, and
+      written down, for the logs.
 - [x] **C2. The `resolveBrand` fallback** is no longer reachable on the public
       routes: with `REQUIRE_API_KEY=true` a keyless request is refused before it.
 

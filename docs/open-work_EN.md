@@ -123,9 +123,25 @@ landing, the migration always before the flag.
       A gap was closed on the way: the panel's mail sender did not check for
       `MAIL_TRANSPORT=none` and would reach for Resend with an empty key. Dead
       code went too — the panel kept state for an invite link it never showed.
-- [ ] **B4. Exercise a tenant sign-in for real** — the magic link for
-      `tenant_admin`, that they cannot see server logs and cannot grant `admin`.
-      Covered by tests, never done on a stand.
+- [x] **B4. Exercise a tenant sign-in for real** — 2026-07-29, on the stand.
+      `scripts/verify-tenant-login-local.sh` had been written and never run. The
+      operator walks the whole path — letter, link, session — and the panel sees
+      them as `tenant_admin` of `sosed`. The walls hold: own leads, keys and page
+      views 200; server logs, the brand registry and another brand 403; an
+      attempt to grant themselves `admin` 403; a key requested "for neighbro" is
+      minted for `sosed`.
+
+      **It found a bug the tests could not.** Minting a key answered 500 on the
+      `api_keys.brand → brands.key` foreign key. The cause is a contradiction
+      inside `001_control_state.sql`: a comment twenty lines above the constraint
+      says a brand may live in the `BRANDS` variable alone, while the constraint
+      demands a row. Both cannot be true. Dropped in
+      `003_api_keys_brand_fk.sql`; the code-level check was already there and
+      knows both sources (`brandByKey`).
+
+      The tests never saw it and could not: they run without a database, on file
+      storage, where the `INSERT` branch is not taken at all. This is only
+      catchable on a stand — which is what the item existed for.
 - [x] **B5. Per-key quotas and limits** — 2026-07-28, once E1 landed. The daily
       allowance lives on the key, the counters in `quota_counters`
       (`db/002_quotas.sql`). A node counts locally and flushes on a ten-second
@@ -140,6 +156,14 @@ landing, the migration always before the flag.
       does **not** refuse the request: a quota is a business limit, not a safety
       one. The panel edits the limit and shows today's spend. Verified with
       `scripts/verify-quota-local.sh`.
+- [ ] **B7. Check whether the foreign key reached production.** The `B4` bug
+      hits brands with no row in `brands` — which is exactly "the platform's own
+      faces", the ones the schema says stay on the env seed. If production has no
+      rows for `sosed` and `neighbro`, minting a key through the panel failed
+      there the same way and nobody had tried: the live landing keys were minted
+      before control state moved into Postgres. One `GET /admin/brands` against
+      production answers it — a brand marked `environment` with no row means it
+      was affected. The cure is the same `003`, arriving with the next image.
 - [ ] **B6. Secret (server-to-server) keys** — the second key type from
       section 1 of `api-platform_*`, together with the public `/v1`.
 
@@ -203,8 +227,9 @@ identifier.
       stayed. Run by hand monthly until E1 is decided.
 - [ ] **Db2. Do tenants get `/pageview`** as part of the public API — this decides
       whether the route is documented outward in `api-platform_*`.
-- [ ] **Db3. Daily aggregates** instead of an object per view — waits on E1; until
-      then retention holds the volume.
+- [x] **Db3. Daily aggregates** — 2026-07-29, with `Eb4`. The object per view
+      stayed but stopped being where the numbers come from: the count lives in
+      `pageview_daily`, and the object only carries the detail, for 14 days.
 
 ## E. Open decisions
 
@@ -241,8 +266,40 @@ built; only Eb4 is still open.
       error message, not a database. Old copies are pruned **after** a
       successful upload, never before. The restore is exercised by
       `scripts/verify-backup-restore.sh` rather than assumed.
-- [ ] **Eb4. The queue and daily aggregates** — the next thing worth moving into
-      the database; see `Db3`.
+- [x] **Eb4. The queue and daily aggregates** — 2026-07-29, together with `Db3`.
+
+      **The count.** `POST /pageview` now writes an increment to
+      `pageview_daily` (brand · day · path · lang) as well as the object.
+      Batched every 10 seconds, like quotas: a page view is a request a visitor
+      is waiting on, and the database must not be on its path. Increments are
+      added, never assigned, so two nodes flushing at once sum.
+
+      **Retention.** Objects live 14 days instead of 90. The window no longer
+      decides whether the numbers survive — it is now the length of time the
+      detail the aggregate cannot hold is worth reading: referrer, viewport,
+      time of day.
+
+      **The queue.** `lib/jobs.ts` — a worker inside the node: claiming through
+      `FOR UPDATE SKIP LOCKED`, a `locked_until` lease (a node that dies does not
+      take the job with it), retries that back off, and exhausted attempts that
+      leave the row with its `last_error` rather than deleting it. The prune job
+      re-arms itself for tomorrow, so the schedule lives in the same table as the
+      work. Without `DATABASE_URL` none of it starts.
+
+      **What the plan did not include.** The panel's `total` counts objects, not
+      views — after the first prune it would have shown traffic collapsing by
+      two thirds. So the response now carries `lifetime` from the aggregate and
+      the panel says both: "36 stored · 36 all time". And for the two numbers to
+      agree on an environment that has been running, there is
+      `tools/backfill_pageview_daily.ts`, which folds the existing objects into
+      rows. It rebuilds whole days rather than adding to them, so a second run
+      converges instead of doubling. **Run it on dev before objects start
+      expiring.**
+
+      Verified by `scripts/verify-pageview-aggregate-local.sh` against a real
+      Postgres: increments adding up, the count surviving a prune, one of two
+      workers winning a job, a failed job deferred. Unit tests cannot cover this
+      — they run on file storage, where these branches are never taken.
 
 ## F. Porting neighbro → sosed — closed 2026-07-28
 
@@ -280,6 +337,56 @@ against the code rather than the document:
 
 **F8 (`subscribePush`) does not apply:** sosed has no push at all, so there was
 nothing to carry over — as the section above already says.
+
+## H. The Supabase leftovers are gone — 2026-07-29
+
+The project was decommissioned on 2026-07-22, but the scaffolding stayed and
+went on looking functional. Removed:
+
+- [x] **H1. Dead files.** `docker-compose.functions.yml`,
+      `scripts/setup-supabase.sh`, `reload-functions.sh`, `apply-migrations.sh`,
+      `bootstrap-admin.sh`, `scaffold-panel.sh` (it generated the panel from the
+      `refine-supabase` preset), `test-last-admin-guard.sh` (it exercised a SQL
+      trigger inside the `supabase-db` container; the guard lives in the relay),
+      the one-shot migration scripts `migrate_waitlist.py` and
+      `seed_panel_users.py` (they read through `api.supabase.com` and can no
+      longer run), and the on-disk `supabase/` directory.
+- [x] **H2. The landing E2E moved onto the relay.** The check read the lead from
+      a Supabase `waitlist` table that no longer exists — it would have been
+      confirming emptiness. It now reads through `GET /admin/waitlist`. It also
+      turned out half the suite was written against neighbro's markup: sosed has
+      neither `form.waitlist-form` nor `data-status-for`. The selectors are per
+      face now, and the suite accounts for the remembered-signup behaviour
+      (`ss-wl-done` / `nb-wl-done`). 14 of 14.
+- [x] **H3. The gateway is alive again.** `nginx.conf` proxied to `kong:8000`, a
+      Supabase container. It now proxies the public routes to the relay stand,
+      and `docker-compose.gateway.yml` no longer depends on someone else's stack.
+- [x] **H4. The panel E2E moved onto the relay.** The three RLS specs are gone:
+      there is no such layer. The rest stood on the same helpers — sign-in through
+      Supabase Auth, seeding through the service key. Sign-in now writes the
+      session token to `localStorage` exactly as `/auth/callback` does, and
+      seeding goes through `POST /admin/panel-users` and the public
+      `POST /waitlist`. 21 of 21.
+- [x] **H5. Loose ends.** `@supabase/supabase-js` dropped from both test suites;
+      `github-secrets.example.json` rewritten around the relay's keys; the
+      Custom-SMTP-in-Supabase-Auth step removed from `setup-panov-id-email.sh`;
+      the panel's dev fallback pointed at `localhost:8080`, the gateway, which
+      does not serve `/admin` — corrected to the stand on `8081`.
+- [x] **H6. The Supabase stack is off the machine** — 2026-07-29. Eleven
+      containers and the `xorad_default` network removed, `supabase/` and
+      `functions/` deleted. The 2026-07-22 backup is intact:
+      `~/Projects/panov-id/supabase-backup-2026-07-22`. It also explained **why**
+      the stack shared a network with the gateway: it was started as
+      `docker compose -f supabase/docker-compose.yml -f docker-compose.gateway.yml`
+      from the repository root, and compose names the project after the first
+      file's directory — `xorad`.
+- [x] **H7. sosed's form status on failure** — 2026-07-29. The landing changed
+      the text but not the class, so the one moment a form has to be unmistakable
+      looked like every other. An `--err` token was added to four palettes and a
+      `.status.err` rule; the colour is not the accent — the accent is random per
+      load and terracotta on some themes. Contrast measured: 7.17 and 6.74 on the
+      dark backgrounds, 5.52 and 6.08 on the light ones, against a 4.5 bar. The
+      E2E now checks both faces the same way.
 
 ## G. Deliberately deferred
 

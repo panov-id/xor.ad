@@ -123,6 +123,18 @@ Database backups: `backup-postgres.sh` is laid down on the box by the wizard and
 runs from a systemd timer; the restore is exercised by
 `scripts/verify-backup-restore.sh`.
 
+**Background work lives inside the node.** The queue is the `jobs` table in the
+same database; the worker starts with the node and stays silent without
+`DATABASE_URL`. It carries one job today — pruning page-view objects older than
+14 days — and that job re-arms itself for tomorrow. The manual
+`scripts/prune-pageviews-remote.sh` remains, but only for a run off schedule.
+
+**On an environment that has been running,** fold the existing objects into
+daily rows once before the first prune: `tools/backfill_pageview_daily.ts` (no
+flags shows the plan, then `--apply`). Otherwise the panel reports more objects
+stored than views counted. It rebuilds whole days, so a second run converges
+rather than doubling.
+
 ## SPA fallback for the panel
 
 The panel is an SPA with client-side routing. Its Pull Zone needs

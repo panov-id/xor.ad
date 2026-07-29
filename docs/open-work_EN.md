@@ -1,8 +1,8 @@
 # Open work: one consolidated checklist
 
-Assembled 2026-07-27 from three parallel lines of work. Covers `xor.ad` (relay,
-panel, infrastructure), `sosed.place` and `neighbro.place` (landings). A living
-document — tick items as they close.
+Assembled 2026-07-27 from three parallel lines of work, updated 2026-07-29.
+Covers `xor.ad` (relay, panel, infrastructure), `sosed.place` and
+`neighbro.place` (landings). A living document — tick items as they close.
 
 Sources: `status-tenancy_EN.md`, `tenancy-review_EN.md`,
 `review-checklist_EN.md`, `sosed.place/docs/SEO_AND_ANALYTICS_EN.md`,
@@ -76,6 +76,19 @@ landing, the migration always before the flag.
       `uat.xor.panov.id` bundle — it carries the server-log page, the
       `tenant_admin` role and the `unattributed` scope.
 
+- [ ] **A11. day16's tail has not shipped.** `origin/main` sits at `4734392` —
+      the middle of day16, not its tip. Outside main are `6bf6f9e` (relay
+      quotas), `945d246` (the key's limit in the panel) and `52a8582` (the
+      relay typecheck in CI). So **B5 is built but not live**: uat and prod
+      follow main. A merge closes this, not code.
+- [ ] **A12. The `dev` branch fell out of the path.** The rule is `dayN` →
+      `dev` → `main` (written down in `deployment_EN.md` on 2026-07-29), but
+      `origin/dev` sits at `7d1c2cc` (the day13 era), roughly two dozen commits
+      behind, while `main` was fast-forwarded straight onto day-branch commits —
+      it holds no merge commits at all. Until `dev` catches up, the dev
+      environment shows something other than what ships to uat. Bring `dev` up
+      to `main`, then route through it.
+
 ## B. Tenancy: unfinished functionality
 
 - [x] **B1. API-key pages** — 2026-07-28. `GET/POST /admin/api-keys` and
@@ -99,7 +112,20 @@ landing, the migration always before the flag.
 - [ ] **B4. Exercise a tenant sign-in for real** — the magic link for
       `tenant_admin`, that they cannot see server logs and cannot grant `admin`.
       Covered by tests, never done on a stand.
-- [ ] **B5. Per-key quotas and limits** — waits on E1.
+- [x] **B5. Per-key quotas and limits** — 2026-07-28, once E1 landed. The daily
+      allowance lives on the key, the counters in `quota_counters`
+      (`db/002_quotas.sql`). A node counts locally and flushes on a ten-second
+      timer: an UPDATE per public request would put the database on the path of
+      every signup and every page view — exactly the dependency a storage-first
+      design avoids. The cost is honest: within one flush interval a key can
+      overshoot by an interval's worth of traffic, which is why the smallest
+      sensible quota here is a daily one rather than a per-second one.
+      Increments are **added**, never assigned, so two nodes flushing at once
+      sum instead of overwriting. A check counts the database plus this node's
+      unflushed total, so a burst is caught at once. An unreachable database
+      does **not** refuse the request: a quota is a business limit, not a safety
+      one. The panel edits the limit and shows today's spend. Verified with
+      `scripts/verify-quota-local.sh`.
 - [ ] **B6. Secret (server-to-server) keys** — the second key type from
       section 1 of `api-platform_*`, together with the public `/v1`.
 
@@ -170,13 +196,39 @@ identifier.
 
 - [x] **E1. Where state moves** — settled 2026-07-28: our own Postgres beside
       the node, for control state only; data stays in object storage. Schema,
-      access layer and the move of keys and brands are done; quotas, the queue
-      and aggregates follow. `state-decision_EN.md`.
+      access layer and the move of keys and brands are done, quotas followed
+      (B5); the queue and aggregates come next. It reached production the same
+      day, with a backup behind it — what was built is in **E-bis**.
+      `state-decision_EN.md`.
 - [x] **E2. Does the node stay interchangeable** — yes, while an environment has
       one box: the node still holds no state, the database sits beside it. A
       second box in the same environment would split the state silently, so the
       wizard rejects that configuration with an explanation. Revisit when the
       pool actually grows.
+
+## E-bis. Control state: what was built
+
+The E1 decision reached production on 2026-07-28. This section records what was
+built; only Eb4 is still open.
+
+- [x] **Eb1. A database beside the node.** Postgres on the same box, for control
+      state only — keys and brands moved there first. The node still holds no
+      state itself (E2), so it stays interchangeable.
+- [x] **Eb2. Migrations ship in the image** and run before the node starts: the
+      schema and the code that expects it cannot drift apart, because they
+      arrive as one artefact. The wizard waits for the database before
+      migrating — otherwise a first deploy raced a container that was up against
+      a Postgres that was not yet accepting connections.
+- [x] **Eb3. Nightly dumps and a restore drill.** `backup-postgres.sh` lives on
+      the box and runs from a systemd timer — a backup that only happens when
+      someone remembers is not a backup. `pg_dump --clean --if-exists` (so it
+      restores onto a non-empty database), gzip, upload to Bunny Storage, a
+      fortnight of retention. A dump under 512 bytes is refused: that size is an
+      error message, not a database. Old copies are pruned **after** a
+      successful upload, never before. The restore is exercised by
+      `scripts/verify-backup-restore.sh` rather than assumed.
+- [ ] **Eb4. The queue and daily aggregates** — the next thing worth moving into
+      the database; see `Db3`.
 
 ## F. Porting neighbro → sosed — closed 2026-07-28
 
@@ -215,6 +267,66 @@ reword it at the first port. Open items:
 - [ ] **F7. Splash: hold only on the session's first show.**
 - [ ] **F8. `subscribePush`:** feedback on refusal, and check `res.ok`.
 - [ ] **F9. Dead i18n keys** — check ours.
+
+## H. The Supabase leftovers are gone — 2026-07-29
+
+The project was decommissioned on 2026-07-22, but the scaffolding around it
+stayed and went on looking functional. Removed:
+
+- [x] **H1. Dead files.** `docker-compose.functions.yml`,
+      `scripts/setup-supabase.sh`, `reload-functions.sh`, `apply-migrations.sh`,
+      `bootstrap-admin.sh`, `scaffold-panel.sh` (it generated the panel from the
+      `refine-supabase` preset), `test-last-admin-guard.sh` (it exercised a SQL
+      trigger inside the `supabase-db` container; the guard lives in the relay
+      and its tests cover it), the one-shot migration scripts
+      `migrate_waitlist.py` and `seed_panel_users.py` (they read through
+      `api.supabase.com` and can no longer run at all), and the on-disk
+      `supabase/` directory.
+- [x] **H2. The landing E2E moved onto the relay.** The check read the lead from
+      a Supabase `waitlist` table that no longer exists — it would have been
+      confirming emptiness. It now reads through `GET /admin/waitlist` with a
+      token signed by the stand's secret. It also turned out half the suite was
+      written against neighbro's markup: sosed has neither `form.waitlist-form`
+      nor `data-status-for`. The selectors are per face now, and the suite
+      accounts for the remembered-signup behaviour (`ss-wl-done` /
+      `nb-wl-done`) that replaces the form after a success. 14 of 14.
+- [x] **H3. The gateway is alive again.** `nginx.conf` proxied to `kong:8000`, a
+      Supabase container. It now proxies the public routes to the relay stand,
+      and `docker-compose.gateway.yml` no longer depends on someone else's
+      stack — it starts on its own.
+- [x] **H4. The panel E2E moved onto the relay.** The three RLS specs are gone:
+      there is no such layer. The rest stood on the same helpers — sign-in went
+      through Supabase Auth, seeding through the service key. Sign-in now writes
+      the session token to `localStorage` exactly as `/auth/callback` does, and
+      seeding goes through `POST /admin/panel-users` and the public
+      `POST /waitlist`. The badge assertions were repaired too: the panel moved
+      to a single component where the class carries the tone and the brand or
+      role is the text. 21 of 21.
+- [x] **H5. Loose ends.** `@supabase/supabase-js` dropped from both test suites;
+      `github-secrets.example.json` rewritten around the relay's keys; the
+      Custom-SMTP-in-Supabase-Auth step removed from `setup-panov-id-email.sh`
+      (the relay sends the mail); the panel's dev fallback pointed at
+      `localhost:8080`, the gateway, which does not serve `/admin` — corrected to
+      the stand on `8081`.
+
+Still open:
+
+- [x] **H6. The Supabase stack is off the machine** — 2026-07-29. Eleven
+      containers and the `xorad_default` network removed, `supabase/` and
+      `functions/` deleted. Nothing was lost: the 2026-07-22 backup sits in
+      `~/Projects/panov-id/supabase-backup-2026-07-22` (waitlist, panel users,
+      client errors and push subscriptions, for dev and prod).
+
+      It also explained **why** the stack shared a network with the gateway: it
+      was started as `docker compose -f supabase/docker-compose.yml -f
+      docker-compose.gateway.yml` from the repository root, and compose names the
+      project after the first file's directory — `xorad`. That is where the
+      "orphan containers" warnings and the shared network came from. The
+      rewritten gateway starts on its own, so it cannot happen again.
+- [ ] **H7. sosed's form status has no error class.** On a failed submit
+      neighbro marks the status `.err`; sosed only changes the text. The suite
+      therefore checks the two faces differently. Making them agree is a change
+      to the landing, not to the test.
 
 ## G. Deliberately deferred
 

@@ -19,7 +19,7 @@ Open questions: can the freeze be lifted early; freeze per face or across all of
 In a chat/match — a shared visual board for two: **dominoes, checkers, chess**. The twist: **no built-in rules** — the engine just draws the board and lets you move/place pieces freely; the players make up and honor the rules themselves. It's an ice-breaker and a "shared moment," not a competition.
 
 Sketch:
-- The shared board syncs in real time (Supabase Realtime, websockets — through the api proxy).
+- The shared board syncs in real time (websockets through the relay node).
 - Set: dominoes, checkers/chess (same "just drag the pieces" mechanic), easy to add new boards.
 - No move validation, score, or winner — only board state + dragging.
 - Lives inside the chat/match; disappears with it (ephemeral).

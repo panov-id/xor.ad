@@ -1,5 +1,12 @@
 # Roadmap — checklist
 
+> **Historical document.** A snapshot from 7 July 2026 — before the move off
+> Supabase onto our own relay node, and before the production rollout. The live
+> tracker is [`open-work_EN.md`](open-work_EN.md). The product half (sections
+> 3–5) still stands; the infrastructure half (section 6 and "Next session") does
+> not: Supabase is out of the path, control state lives in our own Postgres
+> beside the node, and production shipped on 2026-07-27/28.
+
 Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 
 ## 0. Done (foundation)

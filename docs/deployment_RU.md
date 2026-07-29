@@ -1,129 +1,158 @@
 # Деплой (runbook)
 
-Прод-архитектура: **фронтенды** (2 лендинга + сборка панели) на **Bunny CDN** (по отдельной Storage+Pull Zone на домен), **бэкенд** на **Supabase Cloud** (Postgres/Auth/Realtime/Storage/Edge Functions). Гейта nginx в проде нет — фронтенды ходят в Supabase Cloud напрямую (CORS), поэтому Supabase URL/ключ параметризованы по окружению.
+Переписан 29.07.2026 под текущую архитектуру. До этого документ описывал эпоху
+Supabase Cloud: тот бэкенд из тракта вынесен, вместе с ним ушли скрипты
+`deploy/*-cloud.sh`, `deploy/wizard.sh` и `deploy/deploy-cdn.sh`.
 
-Паттерн адаптирован из `noisen-app/infrastructure`.
+## Что где живёт
 
-## Три окружения (dev / UAT / prod)
+```
+sosed.place / neighbro.place      статика на Bunny CDN (Storage + Pull Zone на домен)
+xor.panov.id                      панель (Vite-сборка) там же, отдельной зоной
+api.<фейс>                        узел relay на своих боксах, за Caddy
+   └─ Postgres рядом с узлом      только управляющее состояние (ключи, бренды, квоты)
+   └─ Bunny Storage               данные (заявки, просмотры, логи) и дампы базы
+```
 
-**Supabase пока один общий** на все окружения (разделим на 3 проекта позже). Каждый лендинг ходит в свой `api.*` (Bunny Pull Zone → прокси на Supabase), панель — напрямую в Supabase. Снаружи всё разделено, под капотом одна база.
+Витрины и панель — статика, собирается в CI и заливается в зону. Всё
+динамическое идёт в **узел relay**, у него своя топология и свой регламент
+релизов: `relay/SPEC_RU.md`, `relay/RELEASE_RU.md`, `relay/ARCHITECTURE_RU.md`.
 
-| Окружение | Ветка/триггер | лендинг | api (прокси→Supabase) | панель |
-|-----------|---------------|---------|------------------------|--------|
-| **dev** | push в `dev` | dev.sosed.panov.id / dev.neighbro.panov.id | api.dev.sosed.panov.id / api.dev.neighbro.panov.id | dev.xor.panov.id |
-| **UAT** | push/мерж в `main` → авто-тег | uat.sosed.panov.id / uat.neighbro.panov.id | api.uat.sosed.panov.id / api.uat.neighbro.panov.id | uat.xor.panov.id |
-| **prod** | ручной запуск с выбором тега | sosed.place / neighbro.place | api.sosed.place / api.neighbro.place | xor.panov.id |
+## Три окружения
 
-> Прокси-зоны `api.*`: в панели Bunny выключить кеш, поставить **Origin Host Header = `<ref>.supabase.co`** (иначе Supabase не сроутит) и включить **WebSockets** (Pull Zone → General → WebSockets) — тогда realtime Supabase (`/realtime/v1/websocket`) идёт через прокси. Панель бьёт в Supabase напрямую (у неё auth/функции).
+Имена окружений **расходятся** между GitHub и релеем — это не опечатка:
 
-### Флоу продвижения
+| GitHub Environment | Окружение релея | Витрины | Панель |
+|---|---|---|---|
+| `dev` | dev | dev.sosed.panov.id / dev.neighbro.panov.id | dev.xor.panov.id |
+| `uat` | **staging** | uat.sosed.panov.id / uat.neighbro.panov.id | uat.xor.panov.id |
+| `production` | prod | sosed.place / neighbro.place | xor.panov.id |
 
-1. Работаешь в `dev` → каждый push деплоит на **dev** (`Deploy dev`).
-2. Мержишь `dev` → `main` → workflow `Deploy UAT` ставит **авто-тег** `vГГГГ.ММ.ДД-<sha>`, пушит его и деплоит этот тег на **UAT**.
-3. Проверяешь UAT. Если ок — запускаешь вручную `Deploy prod` (Actions → Run workflow) и **указываешь тег** релиза → деплой на **prod**.
+Пары `uat` ↔ `staging` держатся в одном месте — в описании входа
+`.github/workflows/mint-publishable-key.yml`.
 
-### CI/CD (GitHub Actions, по workflow в каждом репо)
+## Флоу веток
 
-- **sosed.place / neighbro.place** — деплоят свой лендинг: `deploy-dev.yml`, `deploy-uat.yml` (авто-тег на `main`), `deploy-prod.yml` (dispatch с тегом). Сборки нет — статика.
-- **xor.ad** — reusable `_deploy.yml` (сборка панели + миграции + Edge Functions), вызывается из `deploy-dev/uat/prod.yml`.
+Канон: **`dayN` → `dev` → `main`.**
 
-### Секреты (GitHub Environments: `dev`, `uat`, `production`)
+1. День работы идёт в своей ветке `dayN`, отведённой от предыдущей. Апстрим у неё
+   не выставляется — ветка отслеживает только свой одноимённый remote-реф.
+2. Готовое вливается в `dev` → push деплоит витрины и панель на **dev**.
+3. `dev` → `main` → workflow `Deploy UAT` ставит **датированный тег**
+   `vГГГГ.ММ.ДД-<sha7>`, пушит его и деплоит **этот тег** на uat.
+4. Прод — только руками: Actions → `Deploy prod` → Run workflow, в поле `ref`
+   указать тот тег, что уже проверен на uat.
 
-В каждом репо создать три Environment и положить в них секреты (свои значения на окружение):
+Прод берёт **тег, а не ветку**: то, что смотрели на uat, и уезжает в бой, без
+пересборки от «текущего main». Узел релея живёт по тому же принципу, но своими
+образами — `relay/RELEASE_RU.md`.
 
-- **Лендинги (sosed/neighbro):** `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY`, `BUNNY_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
-- **xor.ad (панель+бэкенд):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `BUNNY_PANEL_STORAGE_ZONE`, `BUNNY_PANEL_STORAGE_API_KEY`, `BUNNY_PANEL_PULL_ZONE_ID`, `BUNNY_API_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `PANEL_URL`.
+## CI/CD
 
-Проставить всё это руками по 3 репо × 3 окружения долго — есть помощник:
+**Витрины (`sosed.place`, `neighbro.place`)** — по три workflow в каждом репо,
+сборки нет, только генерация страниц и заливка:
+
+| Workflow | Триггер | Что делает |
+|---|---|---|
+| `deploy-dev.yml` | push в `dev` | `deploy/deploy-landing.sh` с `LANDING_ENV=dev` |
+| `deploy-uat.yml` | push в `main` | режет тег `vГГГГ.ММ.ДД-<sha7>` и деплоит его на uat |
+| `deploy-prod.yml` | ручной запуск с тегом | тот же скрипт с `LANDING_ENV=prod` |
+
+**Панель (`xor.ad`)** — `deploy-dev/uat/prod.yml` зовут общий `_deploy.yml`:
+`npm ci && npm run build` в `panel/` с `VITE_RELAY_API_URL`, затем
+`deploy/deploy-panel-ci.sh` в зону панели.
+
+**Узел (`xor.ad`)** — `relay.yml`: тесты и сборка образов на push в любую ветку
+и на тег `v*`, только по путям `relay/**`. Деплой узла делает визард, не CI.
+
+**Ключи** — `mint-publishable-key.yml`: выпускает publishable-ключ бренду в
+выбранном окружении, чтобы пароль зоны не покидал GitHub.
+
+## Секреты (GitHub Environments)
+
+В каждом репозитории три Environment (`dev`, `uat`, `production`), значения свои
+на окружение.
+
+**Витрины:** `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY`, `BUNNY_PULL_ZONE_ID`,
+`BUNNY_API_KEY`, `RELAY_API_URL`, `RELAY_PUBLISHABLE_KEY`. Только в
+`production`: `ANALYTICS_ID` (GA4) и `SEARCH_CONSOLE_TOKEN`. На dev и uat
+`ANALYTICS_ID` пуст намеренно — нет счётчика, нет и баннера согласия.
+`SEARCH_CONSOLE_TOKEN` фактически не нужен: домены верифицированы TXT-записью в
+DNS, а не meta-тегом.
+
+**Панель (`xor.ad`):** `VITE_RELAY_API_URL`, `BUNNY_PANEL_STORAGE_ZONE`,
+`BUNNY_PANEL_STORAGE_API_KEY`, `BUNNY_PANEL_PULL_ZONE_ID`, `BUNNY_API_KEY`.
+
+Проставлять руками 3 репо × 3 окружения долго — есть помощник:
 
 ```bash
 cp deploy/github-secrets.example.json deploy/github-secrets.json
 # заполнить github_token и значения по всем repo/env
-deploy/set-github-secrets.sh   # создаёт Environments и заливает секреты через GitHub API
+deploy/set-github-secrets.sh   # создаёт Environments и заливает секреты через API
 ```
 
-`deploy/github-secrets.json` в gitignore. Токену нужны права Environments (write) + Secrets (write) на каждый репо. Пустые значения пропускаются — можно заполнять постепенно.
+`deploy/github-secrets.json` в gitignore. Токену нужны Environments (write) +
+Secrets (write) на каждый репозиторий. Пустые значения пропускаются — можно
+заполнять постепенно.
 
-### Визард (по окружениям)
+## Узел relay
 
-Одной интерактивной командой поднять окружение: Bunny-зоны+домены для обеих витрин и панели, миграции Supabase, GitHub-секреты этого окружения.
+Поднимается и катится визардом, не через Actions:
 
 ```bash
-deploy/wizard.sh
-# спросит: окружение (dev/uat/prod), Bunny API key, Supabase token, project ref, GitHub token
+relay/wizard/run.sh status                            # что где стоит
+relay/wizard/run.sh --node n1 deploy                  # dev/staging
+relay/wizard/run.sh --node p1 --confirm-prod deploy   # prod
 ```
 
-Идемпотентно. В конце печатает DNS-записи. SSL для доменов включить в панели Bunny вручную. Начать можно с `dev`.
+Флаги `--node` и `--confirm-prod` — глобальные, поэтому идут **до** подкоманды.
+Подкоманды: `status`, `provision`, `configure`, `dns`, `pool`, `deploy`, `up`.
 
-Ниже — ручной деплой теми же скриптами (для локального прогона/отладки одного окружения).
+Прод-гейт: `--confirm-prod` **и** `image_tag` окружения должен быть
+опубликованным GitHub Release — визард проверяет через API. Миграции едут в
+образе и применяются до старта узла; визард ждёт готовности базы перед
+миграцией. Инвентарь (`relay/wizard/inventory.toml`) в gitignore — отсюда
+открытый вопрос `A9` в `open-work_RU.md`.
 
-## Предварительно (делаешь ты — я не могу создать аккаунты/ключи)
+Бэкап базы: `backup-postgres.sh` разложен визардом на бокс и запускается
+systemd-таймером; восстановление проверяется `scripts/verify-backup-restore.sh`.
 
-1. **Bunny.net:** аккаунт, Account API Key (Account → API Key). Три Storage Zone + Pull Zone: под `sosed.place`, `neighbro.place`, `panel.xor.ad`. Для каждой Pull Zone привязать кастомный домен и включить TLS (Bunny выдаёт Let's Encrypt).
-2. **Supabase:** Management API токен (Account → Access Tokens). Проект можно создать скриптом (ниже) или заранее в дашборде.
-3. **DNS:** записи на `sosed.place`, `neighbro.place`, `panel.xor.ad` → на CNAME соответствующих Pull Zone.
-4. **SMTP для входа в панель:** вход по magic-link требует SMTP в Supabase Auth (напр. Resend). Без него залогиниться нельзя — как временный обход, ссылку входа генерируют через Admin API (см. `scripts/bootstrap-admin.sh` для локали, аналогично для облака).
+## SPA-fallback для панели
 
-## Конфигурация
+Панель — SPA с клиентским роутингом. В её Pull Zone нужен
+**Custom404FilePath → `/index.html`**, иначе прямой заход на `/waitlist` даст
+404. Ставится `deploy/bunny-panel-spa-fallback.sh`.
 
-```bash
-cp deploy/.env.deploy.example deploy/.env.deploy
-# заполнить: SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, BUNNY_API_KEY,
-# и по три BUNNY_<TARGET>_STORAGE_ZONE / _STORAGE_KEY / _PULL_ZONE_ID,
-# плюс PANEL_URL / SOSED_URL / NEIGHBRO_URL.
-```
+## Кэш `config.js` витрин
 
-`deploy/.env.deploy` в gitignore (реальные секреты).
+`config.js` генерируется при деплое и **не является ассетом с хэшем в имени** —
+его нельзя кэшировать как ассет. Адрес версионируется (`config.js?v=<build>`),
+страница живёт минуты, edge rule укорачивает TTL: `deploy/bunny-config-cache-rule.sh`.
+История вопроса — `A8` в `open-work_RU.md`.
 
-## Бэкенд: Supabase Cloud
+## Смоук после деплоя
 
-```bash
-deploy/setup-supabase-cloud.sh       # создаёт/находит проект, пишет URL+ключи в .env.deploy
-deploy/apply-migrations-cloud.sh     # db/migrations/*.sql через Management API
-deploy/deploy-functions-cloud.sh     # Edge Function invite-panel-user + секрет SITE_URL
-deploy/bootstrap-admin-cloud.sh ev.panov@gmail.com   # первый админ панели
-```
+1. Витрина открывается, форма вейтлиста отвечает «Готово», заявка видна в панели
+   на странице Waitlist под нужным брендом.
+2. `config.js` отдаёт актуальный `RELAY_PUBLISHABLE_KEY`; в проде — ещё и GA4 ID.
+3. `/health` узла отвечает; preflight с домена витрины отдаёт `x-api-key` в
+   allow-headers; запрос без ключа получает 401 там, где `require_api_key=true`.
+4. Панель открывается, вход по magic-link, видны Waitlist и логи.
 
-Затем в Supabase Dashboard → Authentication:
-- **Site URL** = `PANEL_URL` (напр. `https://panel.xor.ad`).
-- **Redirect URLs** — добавить `PANEL_URL`.
-- **SMTP** — подключить провайдера (Resend), иначе magic-link не отправляется.
-
-## Фронтенд: панель (Vite build)
-
-```bash
-cp panel/.env.production.example panel/.env.production
-# вписать VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY (из deploy/.env.deploy)
-```
-
-## Деплой на Bunny
-
-```bash
-deploy/deploy-all.sh          # сборка панели + заливка всех трёх целей
-# либо по одной:
-deploy/build-panel.sh
-deploy/deploy-cdn.sh sosed
-deploy/deploy-cdn.sh neighbro
-deploy/deploy-cdn.sh panel
-```
-
-Для лендингов `config.js` генерируется на этапе деплоя и указывает на Supabase Cloud (закоммиченный `config.js` остаётся локальным same-origin). Панель собирается с прод-URL из `.env.production`.
-
-## SPA-fallback для панели (важно)
-
-Панель — SPA с клиентским роутингом (react-router). В Bunny Pull Zone панели включить **Error Pages → 404 → `/index.html` со статусом 200** (или Origin/Edge Rule), иначе прямой заход на `/waitlist` даст 404.
-
-## Smoke-тест после деплоя
-
-1. Открыть `https://sosed.place` и `https://neighbro.place`, отправить почту в вейтлист → «Готово», строка появляется в Supabase (`waitlist`).
-2. Открыть `https://panel.xor.ad` → войти админом (magic-link при настроенном SMTP), увидеть вейтлист и пользователей панели.
+Пункты 3–4 автоматизированы в `relay/test/smoke.sh`.
 
 ## Откат
 
-Bunny хранит только последний загруженный набор. Откат = задеплоить предыдущий коммит: `git checkout <prev> && deploy/deploy-cdn.sh <target>`. Бэкенд — миграции только вперёд; для отката нужна обратная миграция.
+- **Витрины и панель:** Bunny хранит только последний залитый набор, поэтому
+  откат = запустить `Deploy prod` с предыдущим тегом.
+- **Узел:** задеплоить предыдущий `:vX.Y.Z` на затронутом окружении.
+- **База:** миграции только вперёд; для отката нужна обратная миграция либо
+  восстановление из ночного дампа.
 
 ## Открытые вопросы
 
-- SMTP-провайдер не выбран (Resend отложен) — без него вход в панель только через Admin-API-ссылку.
-- Инфраструктуру (3 Supabase-проекта, 9 Bunny-зон, поддомены, DNS/TLS, GitHub Environments + секреты) нужно поднять руками — скрипты и workflow готовы, но ресурсы создаёшь ты.
-- Bunny Shield (рейтлимит) и Cloudflare Turnstile (капча) — для флоу публикации постов, не входят в этот деплой.
+- `A9` — теги образов окружений живут вне истории (инвентарь в gitignore).
+- Bunny Shield (рейтлимит) и капча — для будущего флоу публикации постов, в этот
+  деплой не входят.
+- Своя страница 404 упирается в Bunny: `ErrorPageCustomCode` относится к ошибкам
+  origin, а не к 404 от storage (`D6`).

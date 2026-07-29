@@ -1,0 +1,19 @@
+-- Drop api_keys → brands foreign key.
+--
+-- 001 says, twenty lines above the constraint it then wrote: "the BRANDS
+-- environment variable stays as the bootstrap seed for the platform's own faces
+-- and for a stand with no database; a row here overrides a seeded brand with the
+-- same key." A foreign key says the row must exist. Both cannot be true, and a
+-- live tenant proved which one the system actually lives by: minting a key for
+-- sosed — a seeded brand with no row — answered 500 on a foreign key violation.
+--
+-- The database cannot see the seed, so it cannot be the place that decides
+-- whether a brand exists. The check that can already runs: the route asks
+-- brandByKey() before minting, and that knows the registry and the seed alike.
+--
+-- What the constraint also bought — ON DELETE RESTRICT, so a brand with live
+-- keys could not be removed — is not lost today, because nothing deletes a
+-- brand: there is no such route. When one appears it has to make that check
+-- itself, against both sources, which is the same reason this constraint had to
+-- go.
+ALTER TABLE api_keys DROP CONSTRAINT IF EXISTS api_keys_brand_fkey;

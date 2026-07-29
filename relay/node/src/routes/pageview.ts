@@ -58,8 +58,17 @@ export async function pageview(req: Request): Promise<Response> {
     inc("relay_pageviews_total", { brand: "unknown", result: "no_tenant" });
     return json({ ok: true });
   }
-  const brand = tenant.brand.key;
+  return accept(tenant.brand.key, body);
+}
 
+// Counting a view once the tenant is known. Split from the route so the public
+// API can pass the brand its key names, instead of forging a request for the
+// route to resolve again by a rule that knows nothing about secret keys.
+export function acceptPageview(brand: string, body: Record<string, unknown>): Response {
+  return accept(brand, body);
+}
+
+function accept(brand: string, body: Record<string, unknown>): Response {
   const record = {
     // The path only — a landing has no query strings worth keeping, and one
     // could carry anything.

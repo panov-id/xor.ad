@@ -67,10 +67,19 @@ landing, the migration always before the flag.
       their form would have started answering 401. The address is now versioned
       (`config.js?v=<build>`), and since the page itself is cached for minutes,
       the old copy is simply never requested again.
-- [ ] **A9. Dev's image tag lives outside history.**
-      `relay/wizard/inventory.toml` is gitignored, so the raised tag exists only
-      on the machine that rolled it. Decide: record per-environment tags in the
-      release doc, or un-ignore the file.
+- [x] **A9. The image tag lived outside history** — 2026-07-29, by splitting
+      the file. Un-ignoring `inventory.toml` whole was not an option: this is a
+      public repository, commit `8002c46` ("remove concrete server/egress IP
+      addresses from the public repo") took addresses out of it deliberately, and
+      the inventory holds four boxes' `ssh_host` and three environments' IP
+      allowlists.
+
+      So the file is in two. `relay/wizard/environments.toml` is **tracked**: an
+      environment's composition, `image_tag` above all, so "which build is on
+      dev" is answered by history rather than by the machine that rolled it.
+      `inventory.toml` stays ignored and keeps what a public repository must not
+      carry. The wizard reads both and merges, local winning, so a local
+      experiment still needs no edit to a tracked file.
 - [x] **A10. The UAT panel** — closed itself: the deploy from the merge into
       `main` did run, just later than I looked. Verified 2026-07-27 in the
       `uat.xor.panov.id` bundle — it carries the server-log page, the
@@ -220,10 +229,12 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       apex, so it would only duplicate.
 - [ ] **D5. Register in Bing Webmaster Tools** — a manual step; IndexNow does not
       need it, but it brings reports.
-- [ ] **D6. A real 404 page** — blocked by Bunny: `ErrorPageCustomCode` applies
-      to origin errors, not to a 404 from storage. The page exists and is served
-      at `/404.html`, and the status code is correct. Either accept it, or run an
-      origin instead of storage.
+- [x] **D6. A real 404 page — accepted as it is.** Settled 2026-07-29:
+      won't-fix. Bunny's `ErrorPageCustomCode` applies to origin errors, not to a
+      404 from a storage zone. The page exists, is served at `/404.html`, and the
+      status code is right; what is lost is the look of a stranger's placeholder
+      on a mistyped address. An origin instead of storage would fix it and add a
+      moving part where there are currently only files — dearer than the gain.
 - [ ] **D7. A per-language OG image** — the pipeline draws one for the whole
       site; it only starts to matter with translated typography.
 
@@ -241,8 +252,15 @@ identifier.
       with `--apply`, a window under 7 days refused, prod behind
       `CONFIRM_PROD=yes`. Verified on the stand: the aged view went, the fresh one
       stayed. Run by hand monthly until E1 is decided.
-- [ ] **Db2. Do tenants get `/pageview`** as part of the public API — this decides
-      whether the route is documented outward in `api-platform_*`.
+- [x] **Db2. They do** — settled 2026-07-29 and built the same day.
+      `POST /v1/pageview` under the `pageviews.write` scope. It is worth exposing
+      precisely because of what the counter refuses to record: no address, no
+      user agent, nothing that outlives the request — so a tenant owes their
+      visitors no consent banner for it, and that is the entire offer.
+
+      No idempotency here, unlike the waitlist: a repeated view is a view, and
+      collapsing two identical reports would make the counter lie in the one
+      direction it exists to measure.
 - [x] **Db3. Daily aggregates** — 2026-07-29, with `Eb4`. The object per view
       stayed but stopped being where the numbers come from: the count lives in
       `pageview_daily`, and the object only carries the detail, for 14 days.

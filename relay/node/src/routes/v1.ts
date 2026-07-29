@@ -16,6 +16,7 @@ import { can } from "../access/index.ts";
 import { resolveSecretKey, type SecretKey } from "../lib/secret_key.ts";
 import { recall, remember } from "../lib/idempotency.ts";
 import { acceptLead } from "./waitlist.ts";
+import { acceptPageview } from "./pageview.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { inc } from "../lib/metrics.ts";
 
@@ -102,6 +103,36 @@ route("POST", "/v1/waitlist", async ({ req }) => {
   }
   inc("relay_v1_total", { route: "waitlist", result: response.ok ? "ok" : "rejected" });
   return response;
+});
+
+// A tenant counting its own traffic. Worth exposing precisely because of what it
+// refuses to record: no address, no user agent, nothing that survives the
+// request — so the caller owes their visitors no consent banner for it.
+//
+// No idempotency here, unlike the waitlist. A repeated view is a view: two
+// identical reports a second apart are two people, or one person twice, and
+// collapsing them would make the counter lie in the one direction that matters.
+route("POST", "/v1/pageview", async ({ req }) => {
+  const caller = await authenticate(req);
+  if (caller instanceof Response) return caller;
+  if (!can({ scopes: caller.scopes, brand: caller.brand }, "pageviews.write")) {
+    inc("relay_v1_total", { route: "pageview", result: "forbidden" });
+    return denied(caller, "pageviews.write");
+  }
+
+  const raw = await req.text();
+  let parsed: Record<string, unknown> | null = null;
+  try {
+    parsed = raw ? JSON.parse(raw) : null;
+  } catch {
+    return apiError("invalid_body", "the body is not JSON", 422);
+  }
+  if (!parsed || typeof parsed !== "object") {
+    return apiError("invalid_body", "expected a JSON object", 422);
+  }
+
+  inc("relay_v1_total", { route: "pageview", result: "ok" });
+  return acceptPageview(caller.brand, parsed);
 });
 
 // A caller's own view of the key it is holding: which tenant, which scopes. The

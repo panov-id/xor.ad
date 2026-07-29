@@ -1,3 +1,11 @@
+# Local half of the wizard's configuration — copy to inventory.toml and fill in.
+# Gitignored on purpose: the boxes' addresses and the IP allowlists must not be
+# in a public repository (see commit 8002c46).
+#
+# The other half — which image each environment runs, and everything else about
+# its composition — is environments.toml, and that one is tracked, so the answer
+# to "what is on dev" survives the machine that rolled it.
+#
 # Pool inventory. Copy to inventory.toml (gitignored) and fill in.
 #
 # Model: BOXES host one or more env STACKS (multi-stand). dev+staging share the same
@@ -20,30 +28,23 @@ ssh_whitelist = ["203.0.113.5"]     # <-- your admin IP(s)
 
 # --- environments -----------------------------------------------------------
 [env.dev]
-access = "private"                  # private = reachable only from whitelist_ips
-tls = "dns01"                       # DNS-01 via Bunny (no public port 80 needed)
-image_tag = "dev"
-mail = "mailpit"                    # dev: catch welcome emails in Mailpit
+# Composition (image_tag, access, tls, mail, allowed_origins, panel_url) lives
+# in environments.toml, which IS tracked. Only what must stay out of a public
+# repository belongs here.
 whitelist_ips = ["203.0.113.5"]     # who may reach dev on 443 (testers/you)
-allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id"]
 
 [env.staging]
-access = "private"
-tls = "dns01"
-image_tag = "dev"        # promote: set to the release vX.Y.Z
-mail = "resend"                     # staging sends for real (closer to prod)
+# Composition (image_tag, access, tls, mail, allowed_origins, panel_url) lives
+# in environments.toml, which IS tracked. Only what must stay out of a public
+# repository belongs here.
 whitelist_ips = ["203.0.113.5"]
-allowed_origins = ["https://staging.sosed.panov.id", "https://staging.neighbro.panov.id"]
 
 # prod lives on its OWN boxes (add [[box]] with envs=["prod"]); public-facing.
 [env.prod]
-access = "public"                   # 443 open to the world (real landing traffic)
-tls = "dns01"
-image_tag = "dev"        # promote: set to the release vX.Y.Z
-mail = "resend"
+# Composition (image_tag, access, tls, mail, allowed_origins, panel_url) lives
+# in environments.toml, which IS tracked. Only what must stay out of a public
+# repository belongs here.
 whitelist_ips = []
-allowed_origins = ["https://sosed.place", "https://neighbro.place"]
-pool_hostname = "api.relay.panov.id" # geo-steered record (cutover target, prod only)
 
 # --- boxes (physical servers) ----------------------------------------------
 # dev+staging share these three; provision-mode via provider API, configure-mode for

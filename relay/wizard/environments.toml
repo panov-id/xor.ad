@@ -1,0 +1,39 @@
+# Environment composition — tracked, so "which image is on which
+# environment" is answerable from history rather than only from the machine
+# that last rolled it. That question is the whole of A9.
+#
+# What is deliberately NOT here lives in inventory.toml, which stays
+# ignored: the boxes' addresses and the IP allowlists. Commit 8002c46 took
+# concrete addresses out of this public repository on purpose, and this file
+# must not put them back.
+#
+# inventory.toml may override any key below — the wizard merges it on top.
+
+
+[env.dev]
+access = "private"
+tls = "dns01"
+image_tag = "sha-3b471d8"
+require_api_key = true
+mail = "mailpit"
+allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id", "https://dev.xor.panov.id"]
+panel_url = "https://dev.xor.panov.id"
+
+[env.staging]
+access = "private"
+tls = "dns01"
+image_tag = "v0.9.0"
+require_api_key = true
+mail = "resend"
+allowed_origins = ["https://uat.sosed.panov.id", "https://uat.neighbro.panov.id", "https://uat.xor.panov.id"]
+panel_url = "https://uat.xor.panov.id"
+
+[env.prod]
+access = "public"
+tls = "dns01"
+image_tag = "v0.8.0"
+require_api_key = true
+mail = "resend"
+allowed_origins = ["https://sosed.place", "https://www.sosed.place", "https://neighbro.place", "https://www.neighbro.place", "https://xor.panov.id"]
+panel_url = "https://xor.panov.id"
+pool_hostname = "api.relay.panov.id"

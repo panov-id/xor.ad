@@ -35,6 +35,7 @@ ROOT = HERE.parent
 NODE_DIR = ROOT / "node"
 CADDY_DIR = ROOT / "caddy"
 INVENTORY = HERE / "inventory.toml"
+ENVIRONMENTS = HERE / "environments.toml"
 REMOTE_ROOT = "/opt/relay"
 CONFIRM_PROD = False  # set from --confirm-prod; gates deploys to public (prod) boxes
 
@@ -45,7 +46,21 @@ def load_inventory(path: Path) -> dict:
     if not path.exists():
         sys.exit(f"no {path.name} — copy inventory.example.toml and fill it in")
     with path.open("rb") as fh:
-        return tomllib.load(fh)
+        inv = tomllib.load(fh)
+
+    # Environment composition — the image tag above all — is tracked in
+    # environments.toml, so "which build is on dev" is answerable from history
+    # rather than only from the machine that last rolled it. inventory.toml stays
+    # out of git and keeps what a public repository must not carry: the boxes'
+    # addresses and the IP allowlists. It wins on any key it repeats, so a local
+    # experiment is still possible without editing a tracked file.
+    if ENVIRONMENTS.exists():
+        with ENVIRONMENTS.open("rb") as fh:
+            shared = tomllib.load(fh).get("env", {})
+        for name, local in inv.get("env", {}).items():
+            shared.setdefault(name, {}).update(local)
+        inv["env"] = shared
+    return inv
 
 
 def boxes(inv: dict, only: str | None) -> list[dict]:

@@ -9,6 +9,11 @@ export const PERMISSIONS = [
   // landing — but a scope a secret key can be issued for, so the key page has to
   // be able to offer it.
   "waitlist.write",
+  // Reporting a page view. A tenant counting its own traffic through our counter
+  // needs no consent banner, because the record carries no address, no user
+  // agent and no identifier — that is the whole offer, and it is why this is
+  // worth exposing rather than keeping to our own landings.
+  "pageviews.write",
   "panel_users.read",
   "panel_users.write",
   "logs.client_errors.read",

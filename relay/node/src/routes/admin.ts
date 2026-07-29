@@ -18,7 +18,9 @@ import {
   usersDir,
 } from "../lib/auth.ts";
 import { log } from "../lib/log.ts";
-import { isRole, permissionsOf } from "../access/index.ts";
+import { lifetimeTotals } from "../lib/pageview_daily.ts";
+import { areScopes, createSecretKey, listSecretKeys, revokeSecretKey } from "../lib/secret_key.ts";
+import { can, isRole, permissionsOf } from "../access/index.ts";
 // No route reaches storage directly: everything goes through a scope. The
 // platform scope is an empty prefix, so its paths are byte-identical to the
 // pre-tenancy ones.
@@ -154,9 +156,16 @@ async function logScopes(user: PanelUser, url: URL): Promise<LogScopes | Respons
 }
 
 // The envelope the log routes answer with: the page plus what it was read from.
-function logResponse(page: LogPage<Record<string, unknown>>, scopes: LogScopes): Response {
+function logResponse(
+  page: LogPage<Record<string, unknown>>,
+  scopes: LogScopes,
+  // Only the page-view route has one: a count that outlives the objects it was
+  // counted from. Absent everywhere else, and the panel shows what it is given.
+  lifetime?: { views: number; first_views: number } | null,
+): Response {
   return json({
     ...page,
+    ...(lifetime ? { lifetime } : {}),
     scope: {
       mode: scopes.mode,
       of: scopes.scopes.map((scope) => scope.label),
@@ -285,7 +294,14 @@ route("GET", "/admin/logs-pageviews", async ({ req, url }) => {
     window,
     HISTOGRAM_BUCKETS,
   );
-  return logResponse(page, scopes);
+  // `page.total` counts objects, and objects are pruned to a fortnight — so on
+  // its own it would report a prune as a collapse in traffic. The aggregate is
+  // the number that means "how many views", and it is kept per brand, so the
+  // pseudo-scopes (the pre-tenancy archive, unattributed) have none to add.
+  const brands = scopes.scopes
+    .map((scope) => scope.label)
+    .filter((label) => label !== PLATFORM_ARCHIVE && label !== UNATTRIBUTED);
+  return logResponse(page, scopes, await lifetimeTotals(brands));
 });
 
 // The node's own warn/error lines, copied here by lib/log.ts. Admin-only: they
@@ -470,6 +486,72 @@ route("PATCH", "/admin/api-keys/:id/quota", async ({ req, params }) => {
     reason: limit === null ? "unlimited" : `${limit}/day`,
   });
   return json(updated);
+});
+
+// --- secret keys ---------------------------------------------------------------
+//
+// Beside the publishable ones and under the same permission: both answer "who
+// may call us as this tenant", and an operator trusted with one is trusted with
+// the other.
+
+route("GET", "/admin/secret-keys", async ({ req }) => {
+  const access = await requirePermission(req, "api_keys.read");
+  if (isDenied(access)) return access.response;
+  const keys = await listSecretKeys(access.user.brand);
+  // The id is already the row's id; Refine wants the field, and the key has it.
+  return json(keys, 200, { "x-total-count": String(keys.length) });
+});
+
+route("POST", "/admin/secret-keys", async ({ req }) => {
+  const access = await requirePermission(req, "api_keys.write");
+  if (isDenied(access)) return access.response;
+  const body = await readJson<{ brand?: unknown; name?: unknown; scopes?: unknown }>(req);
+  if (!body) return json({ error: "invalid body" }, 422);
+
+  // A tenant mints only for itself, whatever the body says — the same rule the
+  // publishable keys follow.
+  const brand = access.user.brand ?? (typeof body.brand === "string" ? body.brand : "");
+  if (!brand) return json({ error: "brand is required" }, 422);
+  if (access.user.brand !== null && brand !== access.user.brand) {
+    return json({ error: "forbidden" }, 403);
+  }
+  if (!(await brandByKey(brand))) return json({ error: "unknown brand" }, 404);
+
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
+  if (!name) return json({ error: "a name is required — an unnamed key is one nobody dares revoke" }, 422);
+  if (!areScopes(body.scopes)) return json({ error: "scopes must be known permissions" }, 422);
+  if (body.scopes.length === 0) return json({ error: "at least one scope is required" }, 422);
+
+  // A key cannot be granted what its issuer does not hold: otherwise minting one
+  // is a way around the issuer's own limits.
+  const beyond = body.scopes.filter((scope) => !can(access.user, scope));
+  if (beyond.length) {
+    return json({ error: `beyond your own permissions: ${beyond.join(", ")}` }, 403);
+  }
+
+  const minted = await createSecretKey(brand, name, body.scopes, access.user.email);
+  recordAuditEvent({
+    actor: access.user,
+    action: "secret_keys.create",
+    target: minted.key.id,
+    after: { brand, name, scopes: body.scopes },
+  });
+  // The only response that ever carries the secret. Said plainly, because the
+  // caller has one chance to keep it.
+  return json({ ...minted.key, secret: minted.secret, shown_once: true }, 201);
+});
+
+route("POST", "/admin/secret-keys/:id/revoke", async ({ req, params }) => {
+  const access = await requirePermission(req, "api_keys.write");
+  if (isDenied(access)) return access.response;
+  const existing = (await listSecretKeys(access.user.brand)).find((key) => key.id === params.id);
+  // Not found rather than forbidden for a key of another brand: its existence is
+  // not this caller's business.
+  if (!existing) return json({ error: "not found" }, 404);
+  const revoked = await revokeSecretKey(params.id);
+  if (!revoked) return json({ error: "already revoked" }, 409);
+  recordAuditEvent({ actor: access.user, action: "secret_keys.revoke", target: params.id });
+  return json(revoked);
 });
 
 route("POST", "/admin/api-keys/:id/revoke", async ({ req, params }) => {

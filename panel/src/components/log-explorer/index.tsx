@@ -34,6 +34,9 @@ interface HistogramBucket {
 interface LogPageResponse {
   rows: LogRow[];
   total: number;
+  // Page views only: counted in the database, so it outlives the objects the
+  // rest of this envelope is built from. Absent for every other collection.
+  lifetime?: { views: number; first_views: number };
   matched: number;
   truncated: boolean;
   buckets: HistogramBucket[];
@@ -109,6 +112,7 @@ export const LogExplorer = ({
   const [buckets, setBuckets] = useState<HistogramBucket[]>([]);
   const [matched, setMatched] = useState(0);
   const [total, setTotal] = useState(0);
+  const [lifetime, setLifetime] = useState<{ views: number; first_views: number } | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [readFrom, setReadFrom] = useState<LogPageResponse["scope"]>();
   const [loading, setLoading] = useState(false);
@@ -171,6 +175,7 @@ export const LogExplorer = ({
     setBuckets(page.buckets);
     setMatched(page.matched);
     setTotal(page.total);
+    setLifetime(page.lifetime ?? null);
     setTruncated(page.truncated);
     setReadFrom(page.scope);
     setLoading(false);
@@ -191,6 +196,9 @@ export const LogExplorer = ({
   );
   const oldestLoaded = rows[rows.length - 1]?.stored_at;
   const peak = Math.max(1, ...buckets.map((bucket) => bucket.count));
+  // "stored" counts objects, and objects are pruned; the lifetime count is not.
+  // Saying both keeps a prune from reading as a collapse in traffic.
+  const lifetimeLabel = lifetime ? ` · ${lifetime.views} all time` : "";
 
   // A merged read needs to say which tenant each row belongs to; a single-scope
   // read would only repeat one value down the page.
@@ -384,8 +392,8 @@ export const LogExplorer = ({
         <span className="loading-note" role="status" aria-live="polite">
           {/* Never imply completeness: the relay caps every read. */}
           {visible.length === rows.length
-            ? `${rows.length} loaded of ${matched} in window · ${total} stored`
-            : `${visible.length} shown of ${rows.length} loaded · ${matched} in window · ${total} stored`}
+            ? `${rows.length} loaded of ${matched} in window · ${total} stored${lifetimeLabel}`
+            : `${visible.length} shown of ${rows.length} loaded · ${matched} in window · ${total} stored${lifetimeLabel}`}
           {truncated && " · older entries not loaded"}
         </span>
         {truncated && oldestLoaded && (

@@ -1,12 +1,17 @@
 // Drop page views older than a cutoff, per tenant.
 //
 //   deno run --allow-env --allow-net --allow-read --allow-write \
-//     tools/prune_pageviews.ts [--days=90] [--apply] [--brand=<key>]
+//     tools/prune_pageviews.ts [--days=14] [--apply] [--brand=<key>]
 //
 // Without --apply it only reports. The counter writes one object per view, so
-// the collection grows with traffic and nothing else shrinks it; until state
-// moves somewhere with aggregates (docs/api-platform_*, open question 1), the
-// answer is a retention window.
+// the collection grows with traffic and nothing else shrinks it.
+//
+// The count itself no longer depends on these objects: it lives in
+// `pageview_daily`, a row per brand/day/path/lang, and outlives any prune. What
+// an object still carries is what the aggregate deliberately does not — the
+// referrer, the viewport and the time of day — so the window is now the length
+// of time that detail is worth reading, not the length of time the numbers must
+// survive. Hence a fortnight rather than a quarter.
 //
 // Age comes from the listing metadata, never from reading the objects: a prune
 // that had to read what it deletes would cost as much as the traffic it cleans
@@ -20,7 +25,7 @@ import { allBrands } from "../src/lib/brand_registry.ts";
 // A window this short is far more likely to be a typo than an intention, and the
 // deletion is not reversible.
 const MINIMUM_DAYS = 7;
-const DEFAULT_DAYS = 90;
+const DEFAULT_DAYS = 14;
 
 // Pure, so the boundary condition is testable without a transport.
 export function expiredEntries(
@@ -32,55 +37,81 @@ export function expiredEntries(
   return entries.filter((entry) => entry.createdAt && entry.createdAt < cutoffIso);
 }
 
-if (import.meta.main) {
-  const apply = Deno.args.includes("--apply");
-  const daysArgument = Deno.args.find((argument) => argument.startsWith("--days="));
-  const brandArgument = Deno.args.find((argument) => argument.startsWith("--brand="));
-  const days = daysArgument ? Number(daysArgument.split("=")[1]) : DEFAULT_DAYS;
-  const onlyBrand = brandArgument?.split("=")[1];
+export interface PruneResult {
+  removed: number;
+  kept: number;
+  expired: number;
+}
+
+// The prune itself, so the scheduled job and the command line do the same thing
+// rather than two things that agree for now. `report` is where the command line
+// puts its narration; the job passes nothing and reads the result.
+export async function prunePageviews(
+  options: { days?: number; apply?: boolean; onlyBrand?: string; report?: (line: string) => void },
+): Promise<PruneResult> {
+  const days = options.days ?? DEFAULT_DAYS;
+  const apply = options.apply ?? false;
+  const say = options.report ?? (() => {});
 
   if (!Number.isFinite(days) || days < MINIMUM_DAYS) {
-    console.error(`--days must be a number of at least ${MINIMUM_DAYS} (got "${days}")`);
-    Deno.exit(1);
+    throw new Error(`days must be a number of at least ${MINIMUM_DAYS} (got "${days}")`);
   }
-  if (!storageEnabled()) {
-    console.error("storage is not configured — nothing to prune");
-    Deno.exit(1);
-  }
+  if (!storageEnabled()) throw new Error("storage is not configured — nothing to prune");
 
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-  console.log(`env ${config.envName} · keeping views newer than ${cutoff} (${days} days)`);
+  say(`env ${config.envName} · keeping views newer than ${cutoff} (${days} days)`);
 
   // The platform's own scope holds anything written before the tenancy
   // migration; a tenant's holds everything since.
   const brands = (await allBrands()).map((brand) => brand.key);
-  const scopes = onlyBrand ? [onlyBrand] : [null, ...brands];
+  const scopes = options.onlyBrand ? [options.onlyBrand] : [null, ...brands];
 
   let removed = 0;
   let kept = 0;
+  let expiredTotal = 0;
   for (const brand of scopes) {
     const store = scopedForBrand(brand);
     const directory = `pageviews/${config.envName}`;
     const entries = await store.listDetailed(directory);
     const expired = expiredEntries(entries, cutoff);
     kept += entries.length - expired.length;
+    expiredTotal += expired.length;
 
     const label = brand ?? "platform";
-    console.log(`\n== ${label} — ${entries.length} object(s), ${expired.length} past the cutoff`);
+    say(`\n== ${label} — ${entries.length} object(s), ${expired.length} past the cutoff`);
     if (expired.length === 0) continue;
 
     if (!apply) {
-      console.log(`   would delete ${expired.length} (oldest ${expired[expired.length - 1]?.createdAt})`);
+      say(`   would delete ${expired.length} (oldest ${expired[expired.length - 1]?.createdAt})`);
       continue;
     }
     for (const entry of expired) {
       await store.del(`${directory}/${entry.name}`);
       removed += 1;
     }
-    console.log(`   deleted ${expired.length}`);
+    say(`   deleted ${expired.length}`);
   }
 
-  console.log(`\n== summary (${apply ? "applied" : "plan only"})`);
-  console.log(`   kept ${kept} · ${apply ? `deleted ${removed}` : "nothing was deleted"}`);
+  say(`\n== summary (${apply ? "applied" : "plan only"})`);
+  say(`   kept ${kept} · ${apply ? `deleted ${removed}` : "nothing was deleted"}`);
+  return { removed, kept, expired: expiredTotal };
+}
+
+if (import.meta.main) {
+  const apply = Deno.args.includes("--apply");
+  const daysArgument = Deno.args.find((argument) => argument.startsWith("--days="));
+  const brandArgument = Deno.args.find((argument) => argument.startsWith("--brand="));
+
+  try {
+    await prunePageviews({
+      days: daysArgument ? Number(daysArgument.split("=")[1]) : undefined,
+      apply,
+      onlyBrand: brandArgument?.split("=")[1],
+      report: (line) => console.log(line),
+    });
+  } catch (error) {
+    console.error(String(error instanceof Error ? error.message : error));
+    Deno.exit(1);
+  }
   if (!apply) console.log("\nre-run with --apply to delete");
 }

@@ -19,6 +19,10 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   "logs_pageviews.list": "logs.pageviews.read",
   "api_keys.list": "api_keys.read",
   "api_keys.create": "api_keys.write",
+  // Same permission as the publishable ones: an operator trusted to hand out one
+  // kind of key is trusted with the other.
+  "secret_keys.list": "api_keys.read",
+  "secret_keys.create": "api_keys.write",
   "brands.list": "brands.read",
   "brands.create": "brands.write",
 };

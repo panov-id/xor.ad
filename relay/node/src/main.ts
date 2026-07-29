@@ -14,7 +14,10 @@ import { clientError } from "./routes/client_error.ts";
 import { pageview } from "./routes/pageview.ts";
 import { relayUpgrade } from "./chat/relay.ts";
 import { match } from "./lib/router.ts";
+import { startWorker } from "./lib/jobs.ts";
+import { armScheduledJobs, registerScheduledJobs } from "./lib/scheduled.ts";
 import "./routes/admin.ts"; // registers /auth/* + /admin/* on the pattern router
+import "./routes/v1.ts"; // registers the public /v1/* API on the same router
 
 type Handler = (req: Request) => Response | Promise<Response>;
 
@@ -28,6 +31,14 @@ const routes: Record<string, Handler> = {
 };
 
 assertConfig();
+
+// Background work, if there is a database to hold it. Both calls are no-ops
+// without one, so a stand with no Postgres behaves exactly as it did.
+registerScheduledJobs();
+startWorker();
+armScheduledJobs().catch((error) =>
+  log("error", "could not arm the scheduled jobs", { error: String(error) })
+);
 
 Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req) => {
   const url = new URL(req.url);

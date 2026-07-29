@@ -3,4 +3,11 @@
 
 export { isPermission, type Permission, PERMISSIONS } from "./permissions.ts";
 export { ALL_PERMISSIONS, isRole, type Role, ROLE_PERMISSIONS, ROLES } from "./roles.ts";
-export { type AccessSubject, can, canAll, permissionsOf } from "./can.ts";
+export {
+  type AccessSubject,
+  can,
+  canAll,
+  type KeySubject,
+  permissionsOf,
+  type UserSubject,
+} from "./can.ts";

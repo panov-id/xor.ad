@@ -6,6 +6,12 @@
 
 export const PERMISSIONS = [
   "waitlist.read",
+  // Writing a lead is not something a person does through the panel — leads
+  // arrive from a landing. It exists for the public API, where a tenant's own
+  // server posts them with a secret key, and it is granted to keys rather than
+  // to roles. `admin` picks it up through the wildcard, which is what the
+  // wildcard is for.
+  "waitlist.write",
   "panel_users.read",
   "panel_users.write",
   "logs.client_errors.read",

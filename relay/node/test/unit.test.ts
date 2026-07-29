@@ -181,3 +181,27 @@ Deno.test("jwt: rejects wrong secret and expired token", async () => {
   assertEquals(await verify(expired, "k1"), null);                    // past exp
   assertEquals(await verify("not.a.jwt", "k1"), null);               // malformed
 });
+
+// The page-view counter without a database: `record` must be a no-op rather than
+// a throw, because the request it runs inside is one a visitor is waiting on.
+Deno.test("pageview counts: no database, no counting, no complaint", async () => {
+  const { record, flush, utcDay } = await import("../src/lib/pageview_daily.ts");
+  // DATABASE_URL is unset in this suite, so the module is disabled.
+  record("sosed", "/", "ru", true);
+  await flush(); // must not throw and must not hang
+  assertEquals(utcDay(new Date("2026-07-29T23:59:59.000Z")), "2026-07-29");
+  // A day boundary is UTC, not local: two nodes in two zones must agree on which
+  // row they are adding to.
+  assertEquals(utcDay(new Date("2026-07-30T00:00:00.000Z")), "2026-07-30");
+});
+
+Deno.test("prune: the default window is the one the objects are kept for", async () => {
+  const source = await Deno.readTextFile(
+    new URL("../tools/prune_pageviews.ts", import.meta.url),
+  );
+  // A fortnight, matching what the aggregate made possible: the count no longer
+  // depends on the objects, so they live only as long as their detail is read.
+  assert(/const DEFAULT_DAYS = 14;/.test(source));
+  // And the floor that stops a typo from deleting a month of detail.
+  assert(/const MINIMUM_DAYS = 7;/.test(source));
+});

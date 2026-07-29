@@ -15,6 +15,7 @@ import { storageEnabled } from "../lib/storage.ts";
 import { scopedForBrand } from "../lib/scoped_storage.ts";
 import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
 import { inc } from "../lib/metrics.ts";
+import { record as countDaily } from "../lib/pageview_daily.ts";
 import { log } from "../lib/log.ts";
 
 function cap(value: unknown, max: number): string | null {
@@ -77,6 +78,11 @@ export async function pageview(req: Request): Promise<Response> {
   };
 
   inc("relay_pageviews_total", { brand, result: "ok" });
+
+  // The count goes to a row, the detail to an object. The row is what survives
+  // retention and answers "how many"; the object carries referrer, viewport and
+  // the time of day, which the aggregate deliberately does not.
+  countDaily(brand, record.path, record.lang, record.first_in_tab);
 
   if (storageEnabled()) {
     const key = `pageviews/${config.envName}/${crypto.randomUUID()}.json`;

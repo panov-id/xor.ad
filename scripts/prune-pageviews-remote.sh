@@ -2,7 +2,7 @@
 # Prune old page views in a real environment's storage, from inside the Deno
 # image so nothing lands on the host.
 #
-#   scripts/prune-pageviews-remote.sh dev                    # plan, 90 days
+#   scripts/prune-pageviews-remote.sh dev                    # plan, 14 days
 #   scripts/prune-pageviews-remote.sh dev --days=30          # plan, 30 days
 #   scripts/prune-pageviews-remote.sh dev --apply            # delete
 #   CONFIRM_PROD=yes scripts/prune-pageviews-remote.sh prod --apply

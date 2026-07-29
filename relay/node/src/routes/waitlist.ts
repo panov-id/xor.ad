@@ -2,7 +2,7 @@
 // Bunny Storage (object keyed by hashed email), fire a best-effort welcome email.
 // Body: { email, source?, early_access?, lang?, mode? } (matches the landing).
 
-import { config } from "../config.ts";
+import { type Brand, config } from "../config.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { storageEnabled } from "../lib/storage.ts";
@@ -29,18 +29,29 @@ export async function waitlist(req: Request): Promise<Response> {
     return json({ error: "invalid email" }, 422);
   }
 
-  const email = body.email.trim().toLowerCase();
-  const lang = typeof body.lang === "string" ? body.lang.slice(0, 8) : "en";
+  // The tenant comes from the key, or — transitionally — from the source hint.
   const source = typeof body.source === "string" ? body.source.slice(0, 120) : null;
-  // The tenant comes from the key (or, transitionally, the source hint);
-  // body.brand is no longer consulted at all, because a value the caller picks
-  // cannot decide where the caller's data lands.
   const tenant = await resolveTenant(req, source);
   if (isTenantDenied(tenant)) {
     inc("relay_waitlist_total", { result: "no_tenant" });
     return tenant.response;
   }
-  const brand = tenant.brand;
+  return await acceptLead(tenant.brand, body);
+}
+
+// Taking a lead, once the tenant is known. Split from the route so the public
+// API can call it with the brand its secret key names, rather than forging a
+// request for the route to re-resolve — a second path to the same decision is a
+// second place for it to be made differently.
+export async function acceptLead(brand: Brand, body: Body): Promise<Response> {
+  if (!isEmail(body.email)) {
+    inc("relay_waitlist_total", { result: "invalid" });
+    return json({ error: "invalid email" }, 422);
+  }
+
+  const email = body.email.trim().toLowerCase();
+  const lang = typeof body.lang === "string" ? body.lang.slice(0, 8) : "en";
+  const source = typeof body.source === "string" ? body.source.slice(0, 120) : null;
   const record = {
     email,
     source,

@@ -24,6 +24,7 @@ import { AuditList } from "./pages/logs/audit/list";
 import { ServerLogsList } from "./pages/logs/server/list";
 import { PageviewsList } from "./pages/logs/pageviews/list";
 import { ApiKeysList } from "./pages/api-keys/list";
+import { SecretKeysList } from "./pages/secret-keys/list";
 import { BrandsList } from "./pages/brands/list";
 
 function App() {
@@ -68,6 +69,11 @@ function App() {
                 name: "api_keys",
                 list: "/api-keys",
                 meta: { label: "Publishable keys" },
+              },
+              {
+                name: "secret_keys",
+                list: "/secret-keys",
+                meta: { label: "Secret keys" },
               },
               {
                 name: "brands",
@@ -151,6 +157,14 @@ function App() {
                   element={
                     <Gated resource="api_keys">
                       <ApiKeysList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/secret-keys"
+                  element={
+                    <Gated resource="secret_keys">
+                      <SecretKeysList />
                     </Gated>
                   }
                 />

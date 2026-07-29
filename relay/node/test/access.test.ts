@@ -12,11 +12,13 @@ import {
   permissionsOf,
   ROLE_PERMISSIONS,
   ROLES,
+  type Role,
+  type UserSubject,
 } from "../src/access/index.ts";
 
 // The tenant is irrelevant to these tests: can() decides on the role alone, and
 // spelling `brand: null` at every call site would suggest otherwise.
-const subject = (role: AccessSubject["role"]): AccessSubject => ({ role, brand: null });
+const subject = (role: Role): UserSubject => ({ role, brand: null });
 
 Deno.test("admin holds every permission in the catalogue", () => {
   assertEquals([...permissionsOf("admin")], [...PERMISSIONS]);
@@ -101,4 +103,40 @@ Deno.test("guards recognise their own values", () => {
   assert(isPermission("logs.audit.read"));
   assert(!isPermission("logs.audit"));
   assert(!isPermission(42));
+});
+
+// --- keys as subjects ----------------------------------------------------------
+//
+// A key carries its permissions directly. The point of the second subject kind
+// is that `can()` stays the one place the question is answered — the core never
+// learns whether it is talking about a person or a machine.
+
+Deno.test("a key holds exactly its scopes and nothing adjacent", () => {
+  const key = { scopes: ["waitlist.write"] as const, brand: "sosed" };
+  assert(can(key, "waitlist.write"));
+  assert(!can(key, "waitlist.read"), "write must not imply read");
+  assert(!can(key, "panel_users.write"));
+});
+
+Deno.test("a key has no wildcard — there is no admin among machines", () => {
+  // "*" is a role construct. Handed to a key as a scope it is simply a string
+  // that matches no permission, which is the safe way for it to be meaningless.
+  const key = { scopes: [ALL_PERMISSIONS] as unknown as typeof PERMISSIONS, brand: null };
+  for (const permission of PERMISSIONS) {
+    assert(!can(key, permission), `wildcard must not grant ${permission}`);
+  }
+});
+
+Deno.test("an empty key is denied everything, like a null subject", () => {
+  const key = { scopes: [], brand: "sosed" };
+  for (const permission of PERMISSIONS) assert(!can(key, permission));
+  assert(!canAll(key, ["waitlist.read"]));
+});
+
+Deno.test("waitlist.write exists for keys, and no role but admin holds it", () => {
+  assert(isPermission("waitlist.write"));
+  for (const role of ROLES) {
+    const holds = permissionsOf(role).includes("waitlist.write");
+    assertEquals(holds, role === "admin", `${role} should ${role === "admin" ? "" : "not "}hold it`);
+  }
 });

@@ -35,6 +35,31 @@ Refine's hooks and components simplifies the development process and eliminates 
     npm run start
 ```
 
+### The UI kit
+
+`ui-kit.html` — every control the panel has, on one page, in both themes:
+`http://localhost:62173/ui-kit.html` with the dev server running.
+
+It is the place to look before writing a new page, and the place to add a
+component when a new one earns its keep. Two rules keep it honest:
+
+- it imports `src/App.css` rather than carrying a copy, so it is painted by the
+  same file the product is;
+- the markup printed under each example is read out of the rendered DOM, not
+  typed alongside it — a snippet a person maintains drifts, and then the kit
+  teaches the wrong thing.
+
+Dev only: Vite builds `index.html`, so the kit is never part of a bundle.
+
+### Contrast
+
+```bash
+    node check-contrast.mjs
+```
+
+Reads the tokens out of `src/App.css` and checks every ink against the surface
+it is printed on, in both themes, against 4.5:1. Runs in CI (`.github/workflows/panel.yml`).
+
 ## Learn More
 
 To learn more about **Refine**, please check out the [Documentation](https://refine.dev/docs)

@@ -26,6 +26,15 @@
   --warn-ink: #8a5200;
   --danger-line: #b3261e;
   --danger-ink: #b3261e;
+  /* Success had no token, so the one place that reports it wrote #3fb950 — a
+     green picked to read on black, used on white at 2.5:1. It is a role like any
+     other and gets a value per theme. */
+  --ok-line: #1a7f37;
+  --ok-ink: #1a7f37;
+  /* A hole is darker than the surface around it in both themes, but "darker" is
+     a different colour in each: ink at low alpha reads as a shadow on white and
+     as nothing at all on near-black, where plain black is the honest answer. */
+  --sunk-ink: color-mix(in srgb, var(--line-strong) 20%, transparent);
 
   /* One scale for spacing, so a page's rhythm is a choice and not an accident. */
   --space-1: 4px;
@@ -40,6 +49,26 @@
   --border-w: 2px;
   --shadow-card: 4px 4px 0 var(--line-strong);
   --content-max: 1280px;
+
+  /* One vocabulary of depth. The card's offset shadow was already the panel's
+     signature; these say the same thing at three volumes, so a control's state
+     is legible from its relief alone: at rest, come up to meet the pointer,
+     pushed into the page. A field is always the third — the place you put
+     something into is a hole, not a tile. */
+  --depth-rest: 3px 3px 0 var(--line-strong);
+  --depth-hover: 5px 5px 0 var(--line-strong);
+  --depth-small: 2px 2px 0 var(--line-strong);
+  --sunk: inset 3px 3px 0 var(--sunk-ink);
+  --press: 2px; /* how far a pressed thing travels, and its shadow with it */
+
+  /* Two sizes, not the nine this file had grown. Everything readable is one
+     size; only the uppercase micro-labels step down, because a table head set
+     in body text stops being a head and starts being a row.
+
+     The page title is the exception and is not a token: it is one element, sized
+     once, in the display face — a third variable would invite a fourth. */
+  --text: 15px;
+  --text-micro: 12px;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: "Unbounded", "Inter", sans-serif;
 }
@@ -59,7 +88,10 @@
     --warn-ink: #e8b768;
     --danger-line: #ef6a60;
     --danger-ink: #ef8078;
+    --ok-line: #3fb950;
+    --ok-ink: #56d364;
     --shadow-card: 4px 4px 0 var(--line-strong);
+    --sunk-ink: rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -78,6 +110,9 @@
   --warn-ink: #8a5200;
   --danger-line: #b3261e;
   --danger-ink: #b3261e;
+  --ok-line: #1a7f37;
+  --ok-ink: #1a7f37;
+  --sunk-ink: color-mix(in srgb, var(--line-strong) 20%, transparent);
 }
 :root[data-theme="dark"] {
   --page: #0d0d0c;
@@ -93,13 +128,9 @@
   --warn-ink: #e8b768;
   --danger-line: #ef6a60;
   --danger-ink: #ef8078;
-}
-
-/* The old names, kept so nothing that still says --bg/--fg breaks mid-refactor. */
-:root {
-  --bg: var(--page);
-  --fg: var(--ink);
-  --muted: var(--ink-muted);
+  --ok-line: #3fb950;
+  --ok-ink: #56d364;
+  --sunk-ink: rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -111,7 +142,7 @@ body {
   background: var(--page);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: var(--text);
   line-height: 1.5;
 }
 
@@ -164,7 +195,7 @@ h1 .dot {
   padding: 0;
   margin: 0;
   color: var(--ink-muted);
-  font-size: 0.8rem;
+  font-size: var(--text);
 }
 .breadcrumb a {
   color: var(--ink-muted);
@@ -194,13 +225,13 @@ h1 .dot {
 }
 .menu-scope-label {
   color: var(--ink-muted);
-  font-size: 0.7rem;
+  font-size: var(--text-micro);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .menu-scope-value {
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: var(--text);
 }
 .menu ul {
   list-style: none;
@@ -244,7 +275,7 @@ h1 .dot {
   background: transparent;
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: var(--text);
   padding: var(--space-2) var(--space-3);
   cursor: pointer;
 }
@@ -295,7 +326,7 @@ table.panel-table {
   top: 0;
   background: var(--surface-sunken);
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: var(--text-micro);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ink-muted);
@@ -323,13 +354,11 @@ table.panel-table {
 }
 .log-detail {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-/* Controls: one look for every native element, so a select stops looking like a
-   guest from another interface. */
 .log-controls {
   display: flex;
   flex-wrap: wrap;
@@ -337,46 +366,205 @@ table.panel-table {
   gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
-.log-controls select,
-.log-controls input,
-.log-controls button,
-.state-action,
-.invite-form select,
-.invite-form input,
-.invite-form textarea,
-.invite-form button {
+
+/* --- Controls ------------------------------------------------------------------
+   Addressed by what they are, not by where they were found. Every button, field
+   and select in the panel is in the language because it is one — a new page is
+   dressed the moment it renders, rather than when someone remembers to extend a
+   list of selectors. That list was the actual defect: `brands`, the two key
+   pages and the log explorer had all been written after it and were still wearing
+   browser defaults.
+
+   Checkboxes and radios are excluded here and rebuilt further down: the browser
+   draws them itself and ignores a shadow, so they have to be replaced rather than
+   dressed.
+
+   The two welded boxes — .auth-form and .invite-link — opt out on purpose. They
+   are single-specificity selectors like these, so they win the tie by coming
+   later in the file; where they need to cancel rather than override, they say so. */
+button,
+select,
+textarea,
+input:not([type="checkbox"], [type="radio"]) {
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--text);
   padding: 6px 10px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
 }
-.log-controls button,
-.state-action,
-.invite-form button {
-  cursor: pointer;
-}
-.log-controls button:hover:not(:disabled),
-.state-action:hover {
+
+/* --- Relief -------------------------------------------------------------------
+   Two roles, told apart before they are read. A field is a hole you put something
+   into: sunk, and sunk whether or not it is focused, because what it is does not
+   change when you look at it. A button is a thing sitting on the page: it lifts
+   to meet the pointer and is pushed in when clicked, and the shadow travels with
+   it rather than merely darkening — that is the difference between a button that
+   moves and a button that changes colour. */
+select,
+textarea,
+input:not([type="checkbox"], [type="radio"]) {
   background: var(--surface-sunken);
+  box-shadow: var(--sunk);
 }
-.log-controls button:disabled {
+
+button {
+  cursor: pointer;
+  box-shadow: var(--depth-rest);
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out;
+}
+button:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--depth-hover);
+}
+/* :active is the click itself; aria-pressed is a click that stayed. One rule, so
+   a segmented control cannot drift from the buttons it is made of. */
+button:active:not(:disabled),
+button[aria-pressed="true"] {
+  transform: translate(var(--press), var(--press));
+  box-shadow: var(--sunk);
+}
+/* A button that cannot be pressed does not stand up either. */
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+/* A field that cannot be typed into stays a hole — it is still the place the
+   value goes — but says it is not available now. */
+select:disabled,
+textarea:disabled,
+input:not([type="checkbox"], [type="radio"]):disabled {
   opacity: 0.5;
   cursor: default;
 }
+@media (prefers-reduced-motion: reduce) {
+  button,
+  select,
+  textarea,
+  input:not([type="checkbox"], [type="radio"]) {
+    transition: none;
+  }
+}
+
 .log-ranges {
   display: flex;
-  gap: 2px;
+  /* Room for the relief: at 2px the shadow of one range landed on the next. */
+  gap: var(--space-2);
 }
 /* The active range is filled, not merely tinted: a range that only changed the
-   text colour was hard to find in a row of identical buttons. */
+   text colour was hard to find in a row of identical buttons. It is also held
+   down — a chosen range is a pressed button that stayed pressed. */
 .log-ranges .range-active {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
   font-weight: 600;
+}
+.log-ranges .range-active:hover {
+  background: var(--accent);
+  transform: translate(var(--press), var(--press));
+  box-shadow: var(--sunk);
+}
+
+/* --- Ticks --------------------------------------------------------------------
+   A native checkbox cannot carry relief — the browser draws it and ignores a
+   shadow — so it is replaced rather than decorated. The two states are the
+   button's two states held rather than momentary: standing up while empty,
+   pushed in and filled once chosen. Radios are the same control with a round
+   corner; the panel has none today, and this is here so the first one to arrive
+   is already in the language rather than a browser default among brutalist
+   neighbours. */
+.scope-picker input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0;
+  padding: 0;
+  border: var(--border-w) solid var(--line-strong);
+  /* Half the shared radius, not the whole of it: 6px on a 17px box rounds the
+     corners away entirely, and a tick that reads as a circle is a radio — the
+     one distinction these two controls carry in their shape. */
+  border-radius: calc(var(--radius) / 2);
+  background: var(--surface);
+  box-shadow: var(--depth-small);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out;
+}
+input[type="radio"] {
+  border-radius: 50%;
+}
+.scope-picker input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--depth-rest);
+}
+.scope-picker input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translate(var(--press), var(--press));
+  box-shadow: var(--sunk);
+}
+/* The mark is drawn, not typed: a ✓ glyph would inherit whatever font the control
+   ended up with and slide half a pixel per browser. */
+.scope-picker input[type="checkbox"]:checked::after {
+  content: "";
+  width: 0.62em;
+  height: 0.62em;
+  background: var(--accent-ink);
+  clip-path: polygon(14% 44%, 0 60%, 40% 100%, 100% 18%, 84% 4%, 38% 68%);
+}
+input[type="radio"]:checked::after {
+  content: "";
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
+  background: var(--accent-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scope-picker input[type="checkbox"],
+  input[type="radio"] {
+    transition: none;
+  }
+}
+
+/* The scopes a key may be issued for: a list of ticks that had no styling at all,
+   which is why they were the one place the panel still looked like a form from
+   1998. */
+.scope-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+/* Inside the minting form the ticks are a second row of the same box, not a third
+   field: fifteen of them cannot share a line with a text input without crushing
+   it to a sliver, which is what they had been doing. The fields and the button
+   keep the welded top row; the scopes get the width they need underneath. */
+.auth-form {
+  flex-wrap: wrap;
+}
+.auth-form .scope-picker {
+  flex: 1 0 100%;
+  order: 1;
+  margin: 0;
+  padding: var(--space-3);
+  border-top: var(--border-w) solid var(--ink);
+}
+.scope-picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
 }
 
 /* Histogram: the bars sit on a baseline with a labelled span, so "when" is
@@ -406,12 +594,12 @@ table.panel-table {
   display: flex;
   justify-content: space-between;
   color: var(--ink-muted);
-  font-size: 0.7rem;
+  font-size: var(--text-micro);
   padding-top: var(--space-1);
 }
 .log-histogram figcaption {
   color: var(--ink-muted);
-  font-size: 0.75rem;
+  font-size: var(--text);
 }
 
 .log-footer {
@@ -424,13 +612,13 @@ table.panel-table {
 
 .badge {
   display: inline-block;
-  border: 1px solid var(--badge-line, var(--muted));
+  border: 1px solid var(--badge-line, var(--ink-muted));
   border-radius: 3px;
   padding: 2px 8px;
-  font-size: 0.75rem;
+  font-size: var(--text-micro);
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--badge-ink, var(--muted));
+  color: var(--badge-ink, var(--ink-muted));
   white-space: nowrap;
 }
 
@@ -438,8 +626,8 @@ table.panel-table {
    merely a value — a brand, a role, an applied action — is neutral. Colour is
    spent on the rows worth spotting: a refusal, a warning, an error. */
 .badge-neutral {
-  --badge-line: var(--muted);
-  --badge-ink: var(--fg);
+  --badge-line: var(--ink-muted);
+  --badge-ink: var(--ink);
 }
 .badge-info {
   --badge-line: var(--accent);
@@ -450,28 +638,30 @@ table.panel-table {
   --badge-ink: var(--accent);
   font-weight: 700;
 }
+/* Through the tokens, not past them: these five were written as hex and so kept
+   their light-theme values on a near-black page, where #b3261e sits at 3.2:1. */
 .badge-warn {
-  --badge-line: #b26a00;
-  --badge-ink: #8a5200;
+  --badge-line: var(--warn-line);
+  --badge-ink: var(--warn-ink);
 }
 .badge-danger {
-  --badge-line: #b3261e;
-  --badge-ink: #b3261e;
+  --badge-line: var(--danger-line);
+  --badge-ink: var(--danger-ink);
 }
 
 /* The three things a table can be instead of rows. */
 .state {
-  color: var(--muted);
+  color: var(--ink-muted);
   padding: 16px 0;
 }
 .state-empty {
-  border: 1px dashed var(--muted);
+  border: 1px dashed var(--ink-muted);
   border-radius: 4px;
   padding: 24px;
   text-align: center;
 }
 .state-title {
-  color: var(--fg);
+  color: var(--ink);
   font-weight: 600;
   margin: 0 0 4px;
 }
@@ -479,7 +669,7 @@ table.panel-table {
   margin: 0 0 12px;
 }
 .state-error {
-  color: #b3261e;
+  color: var(--danger-ink);
 }
 .state-action {
   margin-left: 8px;
@@ -493,14 +683,14 @@ table.panel-table {
   gap: 6px;
 }
 .control-label {
-  color: var(--muted);
-  font-size: 0.75rem;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .status-warn {
-  color: #8a5200;
+  color: var(--warn-ink);
   margin: 8px 0 0;
 }
 
@@ -515,7 +705,7 @@ table.panel-table {
 
 /* Shown while permissions are in flight — neither the page nor a refusal yet. */
 .loading-note {
-  color: var(--muted);
+  color: var(--ink-muted);
 }
 
 /* Logs */
@@ -526,35 +716,67 @@ table.panel-table {
 }
 .auth-form {
   display: flex;
-  border: var(--border-w) solid var(--fg);
+  border: var(--border-w) solid var(--ink);
   box-shadow: 6px 6px 0 var(--accent);
 }
-.auth-form input,
+/* Sunk like every other field — the shared rule already says so; what is special
+   here is that the field has no border of its own, because the box around the
+   whole form is the border. */
+/* Not the ticks. They live inside this form too, and `flex: 1` told every one of
+   them to fill the line it was on — invisible while the scopes sat in a row and
+   obvious the moment they stacked, where each tick stretched the full width of
+   the card and pushed its own label to the far edge. */
+.auth-form input:not([type="checkbox"], [type="radio"]),
 .auth-form select {
   flex: 1;
   border: none;
-  background: transparent;
-  color: var(--fg);
-  font-size: 1rem;
   padding: 12px;
-  outline: none;
   font-family: inherit;
   min-width: 0;
 }
+/* The focus ring is drawn inside. `outline: none` used to live here — on the one
+   form every person meets, which meant the login field was the single control in
+   the panel that never showed a keyboard where it was. An outline drawn outside
+   would be clipped by the welded border, so the ring is inset instead: same
+   signal, and it fits in the box. */
+.auth-form input:not([type="checkbox"], [type="radio"]):focus-visible,
+.auth-form select:focus-visible {
+  outline: none;
+  box-shadow: var(--sunk), inset 0 0 0 var(--border-w) var(--accent);
+}
+/* The button is a segment of the form's box rather than a tile on the page, so it
+   cannot travel: it would tear a hole in the border it shares. It presses in
+   place instead — the same idiom, minus the journey. Hence the cancellations:
+   the shared rules would have it stand up and move. */
 .auth-form button {
   border: none;
-  border-left: var(--border-w) solid var(--fg);
+  border-left: var(--border-w) solid var(--ink);
   background: var(--accent);
-  color: #fff;
-  font-family: "Unbounded", sans-serif;
+  color: var(--accent-ink);
+  font-family: var(--font-display);
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.8rem;
   padding: 12px 16px;
-  cursor: pointer;
+  box-shadow: none;
+  transition: box-shadow 90ms ease-out, filter 90ms ease-out;
+}
+.auth-form button:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+  transform: none;
+  box-shadow: none;
+}
+.auth-form button:active:not(:disabled) {
+  transform: none;
+  box-shadow: var(--sunk);
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-form button {
+    transition: none;
+  }
 }
 .auth-note {
-  color: var(--muted);
+  color: var(--ink-muted);
   margin-top: 16px;
 }
 .panel-invite-form {
@@ -562,10 +784,10 @@ table.panel-table {
   margin: 0 0 16px;
 }
 .status-ok {
-  color: #3fb950;
+  color: var(--ok-ink);
 }
 .status-err {
-  color: #ff6b6b;
+  color: var(--danger-ink);
 }
 .invite-link {
   display: flex;
@@ -576,22 +798,26 @@ table.panel-table {
 }
 .invite-link code {
   flex: 1;
-  border: 2px solid var(--muted);
+  border: 2px solid var(--ink-muted);
   padding: 8px 10px;
-  font-size: 0.8rem;
+  font-size: var(--text);
   overflow-x: auto;
   white-space: nowrap;
 }
 .invite-link button {
-  border: 2px solid var(--fg);
-  background: var(--fg);
-  color: var(--bg);
-  font-family: "Unbounded", sans-serif;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--page);
+  font-family: var(--font-display);
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.7rem;
   padding: 0 14px;
-  cursor: pointer;
+}
+/* This one is filled, so the shared hover's pale wash would turn it inside out.
+   It keeps its ink and takes the lift only — and it has to say so at the shared
+   rule's specificity, or the wash wins on a tie broken by file order. */
+.invite-link button:hover:not(:disabled) {
+  background: var(--ink);
 }
 
 /* --- Narrow screens -----------------------------------------------------------
@@ -639,7 +865,7 @@ table.panel-table {
   .panel-table td::before {
     content: attr(data-label);
     color: var(--ink-muted);
-    font-size: 0.7rem;
+    font-size: var(--text-micro);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -685,6 +911,38 @@ table.panel-table {
   }
   .log-footer {
     flex-wrap: wrap;
+  }
+
+  /* The welded row is two fields and a button sharing one box, and 390 px cannot
+     hold three of anything: the fields collapsed to slivers reading "what is it
+     fo" and "pick a bra" — the very failure the scopes were lifted out of this
+     row to avoid. The box stays welded; it just welds top to bottom, so the
+     seams turn with it. */
+  .auth-form {
+    flex-direction: column;
+  }
+  .auth-form button {
+    border-left: none;
+    border-top: var(--border-w) solid var(--ink);
+  }
+
+  /* One scope per line. Two-and-a-bit columns of ticks left a ragged edge where
+     a long scope name wrapped under its own checkbox. */
+  .scope-picker {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* The copied link and its button stop fighting over one line: the code needs
+     the width, the button needs to stay pressable. */
+  .invite-link {
+    flex-wrap: wrap;
+  }
+  .invite-link code {
+    flex: 1 0 100%;
+  }
+  .invite-link button {
+    padding: var(--space-2) 14px;
   }
 }
 
@@ -740,13 +998,12 @@ table.panel-table {
 .quota-slash {
   color: var(--ink-muted);
 }
-.quota-input {
+/* Written as `input.quota-input` to match the shared rule's specificity rather
+   than lose to it: everything it used to repeat — the frame, the sunk field, the
+   font — now comes from there, and only what is genuinely different is left.
+   It sits inside a table cell, which is the place a reader is least likely to
+   guess that a number can be typed over, so the relief is doing real work here. */
+input.quota-input {
   width: 6rem;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
   padding: 2px 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
 }

@@ -32,3 +32,11 @@ jobs:
       - name: type check
         working-directory: panel
         run: npx tsc --noEmit -p tsconfig.json
+      # Contrast is arithmetic on the tokens, so it belongs where arithmetic can
+      # be checked. Five colours in this stylesheet had been written as hex and
+      # kept their light-theme values on a near-black page — 2.5:1 where 4.5 is
+      # the floor — and nothing said so until someone counted. No dependencies:
+      # it reads App.css and does the sums.
+      - name: contrast
+        working-directory: panel
+        run: node check-contrast.mjs

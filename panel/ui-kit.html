@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>xor panel — UI kit</title>
+    <script>
+      // Same pre-paint theme read as index.html, so the kit opens in whichever
+      // theme the panel was last left in rather than flashing the other one.
+      try {
+        var stored = localStorage.getItem("panel_theme");
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.setAttribute("data-theme", stored);
+        }
+      } catch (e) { /* private mode: fall back to the system theme */ }
+    </script>
+    <!--
+      The panel's real stylesheet, imported rather than copied. A kit with its
+      own copy of the rules is a kit that disagrees with the product within a
+      week; this one cannot, because it is painted by the same file the app is.
+      Imported from a module so Vite serves it with HMR — edit App.css and this
+      page repaints.
+    -->
+    <script type="module">
+      import "/src/App.css";
+    </script>
+    <style>
+      /* The kit's own scaffolding. Deliberately not part of the system: nothing
+         here should be copied into the panel, which is why every class is
+         prefixed and none of them touch a component. */
+      .kit-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--space-6) var(--space-5) var(--space-7);
+      }
+      .kit-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+      }
+      .kit-lede {
+        color: var(--ink-muted);
+        max-width: 60ch;
+        margin: var(--space-2) 0 0;
+      }
+      .kit-themes {
+        display: flex;
+        gap: var(--space-2);
+      }
+      .kit-toc {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-4);
+        padding: var(--space-3) 0 var(--space-5);
+        border-bottom: 1px solid var(--line);
+        margin-bottom: var(--space-6);
+      }
+      .kit-toc a {
+        color: var(--ink-muted);
+        text-decoration: none;
+        font-size: var(--text-micro);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .kit-toc a:hover {
+        color: var(--ink);
+      }
+      .kit-section {
+        margin-bottom: var(--space-7);
+      }
+      .kit-section > h2 {
+        font-family: var(--font-display);
+        font-size: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-muted);
+        border-bottom: 1px solid var(--line);
+        padding-bottom: var(--space-2);
+        margin: 0 0 var(--space-4);
+      }
+      .kit-note {
+        color: var(--ink-muted);
+        max-width: 68ch;
+        margin: 0 0 var(--space-4);
+      }
+      .kit-item {
+        margin-bottom: var(--space-5);
+      }
+      .kit-item > h3 {
+        font-size: var(--text);
+        font-weight: 600;
+        margin: 0 0 var(--space-1);
+      }
+      .kit-why {
+        color: var(--ink-muted);
+        max-width: 68ch;
+        margin: 0 0 var(--space-3);
+      }
+      .kit-demo {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: var(--space-4);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .kit-demo.kit-demo-block {
+        display: block;
+      }
+      .kit-source {
+        margin: 0;
+        padding: var(--space-3);
+        background: var(--surface-sunken);
+        border: 1px solid var(--line);
+        border-top: none;
+        border-radius: 0 0 var(--radius) var(--radius);
+        font-size: var(--text-micro);
+        line-height: 1.5;
+        overflow-x: auto;
+        color: var(--ink-muted);
+        white-space: pre;
+        tab-size: 2;
+      }
+      .kit-demo:has(+ .kit-source) {
+        border-radius: var(--radius) var(--radius) 0 0;
+      }
+      .kit-swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: var(--space-2);
+      }
+      .kit-swatch {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-size: var(--text-micro);
+        font-variant-numeric: tabular-nums;
+      }
+      .kit-chip {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+      }
+      .kit-swatch code {
+        color: var(--ink);
+      }
+      .kit-swatch span {
+        color: var(--ink-muted);
+      }
+      .kit-menu-sample {
+        max-width: 240px;
+      }
+      /* The sign-in block centres itself vertically on a page it owns; inside a
+         demo box that is 15vh of nothing above it. Cancelled here, in the kit's
+         own layout, rather than in the component. */
+      .kit-demo .auth-wrap {
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="kit-page">
+      <header class="kit-head">
+        <div>
+          <h1>xor.ad<span class="dot">.</span> UI kit</h1>
+          <p class="kit-lede">
+            Every control the panel has, painted by the panel's own
+            <code>src/App.css</code> — not a copy of it. What you see here is
+            what the product looks like, or the kit is broken.
+          </p>
+        </div>
+        <div class="kit-themes">
+          <button type="button" data-theme-set="light">Light</button>
+          <button type="button" data-theme-set="dark">Dark</button>
+          <button type="button" data-theme-set="system">System</button>
+        </div>
+      </header>
+
+      <nav class="kit-toc">
+        <a href="#tokens">Tokens</a>
+        <a href="#type">Type</a>
+        <a href="#relief">Relief</a>
+        <a href="#buttons">Buttons</a>
+        <a href="#fields">Fields</a>
+        <a href="#ticks">Ticks</a>
+        <a href="#forms">Welded forms</a>
+        <a href="#badges">Badges</a>
+        <a href="#tables">Tables</a>
+        <a href="#states">States</a>
+        <a href="#logs">Log toolbar</a>
+        <a href="#nav">Navigation</a>
+      </nav>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="tokens">
+        <h2>Tokens</h2>
+        <p class="kit-note">
+          A component names a role and never a colour, so the dark theme is a
+          second set of values rather than a second set of rules. The values
+          below are read from the running page, so this table cannot fall behind
+          the stylesheet either.
+        </p>
+        <div class="kit-swatches" id="kit-swatches"></div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="type">
+        <h2>Type</h2>
+        <p class="kit-note">
+          Two sizes. Everything readable is <code>--text</code>; only the
+          uppercase micro-labels step down to <code>--text-micro</code>, because
+          a table head set in body text stops being a head and starts being a
+          row. The page title is the one exception, sized once in the display
+          face.
+        </p>
+        <div class="kit-item">
+          <div class="kit-demo kit-demo-block" data-source>
+            <h1>Page title<span class="dot">.</span></h1>
+            <p>Body text: the size a table is read at for an hour.</p>
+            <span class="control-label">Micro label</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="relief">
+        <h2>Relief</h2>
+        <p class="kit-note">
+          Two roles, told apart before they are read. A <strong>field is a
+          hole</strong> you put something into: sunk, and sunk whether or not it
+          is focused, because what it is does not change when you look at it. A
+          <strong>button is a thing sitting on the page</strong>: it lifts to
+          meet the pointer and is pushed in when clicked, and the shadow travels
+          with it rather than merely darkening.
+        </p>
+        <div class="kit-item">
+          <h3>The three volumes</h3>
+          <p class="kit-why">
+            <code>--depth-rest</code> at rest, <code>--depth-hover</code> under
+            the pointer, <code>--sunk</code> pressed — and <code>--sunk</code>
+            again for anything you type into, which is the whole idea: pressed
+            and "a hole" are the same shape.
+          </p>
+          <div class="kit-demo" data-source>
+            <button type="button">At rest</button>
+            <button type="button" aria-pressed="true">Held down</button>
+            <input type="text" value="A field" size="10" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="buttons">
+        <h2>Buttons</h2>
+        <p class="kit-note">
+          No class needed. A <code>&lt;button&gt;</code> anywhere in the panel is
+          already in the language — that is the point of the shared rule, and the
+          reason four pages written after the old selector list were wearing
+          browser defaults until it existed.
+        </p>
+
+        <div class="kit-item">
+          <h3>States</h3>
+          <p class="kit-why">
+            Hover and press are not screenshots — put a pointer on them. Disabled
+            does not stand up: it loses its shadow as well as its ink.
+          </p>
+          <div class="kit-demo" data-source>
+            <button type="button">Default</button>
+            <button type="button" aria-pressed="true">Pressed, and stayed</button>
+            <button type="button" disabled>Disabled</button>
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>In a table row</h3>
+          <p class="kit-why">
+            <code>.row-action</code> and <code>.state-action</code> are spacing,
+            not looks: the relief already came from being a button.
+          </p>
+          <div class="kit-demo" data-source>
+            <button type="button" class="row-action">Invite again</button>
+            <button type="button" class="state-action">Retry</button>
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>Segmented range</h3>
+          <p class="kit-why">
+            The chosen range is filled and held down —
+            <code>aria-pressed</code> is a click that stayed, so the state is in
+            the markup a screen reader reads, not only in a class.
+          </p>
+          <div class="kit-demo" data-source>
+            <div class="log-ranges">
+              <button type="button">1h</button>
+              <button type="button" class="range-active" aria-pressed="true">24h</button>
+              <button type="button">7d</button>
+              <button type="button">30d</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="fields">
+        <h2>Fields</h2>
+        <p class="kit-note">
+          Also no class. Sunk, framed, and the same size as the text around
+          them.
+        </p>
+
+        <div class="kit-item">
+          <h3>The natives</h3>
+          <div class="kit-demo" data-source>
+            <input type="text" placeholder="text" />
+            <input type="search" placeholder="search" />
+            <select>
+              <option>a select</option>
+              <option>second option</option>
+            </select>
+            <input type="text" value="disabled" disabled />
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>Textarea</h3>
+          <div class="kit-demo kit-demo-block" data-source>
+            <textarea rows="3" placeholder="a note, wrapping to several lines"></textarea>
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>A number inside a table cell</h3>
+          <p class="kit-why">
+            <code>input.quota-input</code> — written at the shared rule's
+            specificity so it can trim rather than fight it: width and padding
+            only. A cell is the place a reader is least likely to guess that a
+            number can be typed over, so the relief is doing real work.
+          </p>
+          <div class="kit-demo" data-source>
+            <span class="quota-cell">
+              <span class="quota-used">142</span>
+              <span class="quota-slash">/</span>
+              <input class="quota-input" type="number" value="5000" />
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="ticks">
+        <h2>Ticks</h2>
+        <p class="kit-note">
+          A native checkbox cannot carry relief — the browser draws it and
+          ignores a shadow — so it is replaced rather than decorated. Standing up
+          while empty, pushed in and filled once chosen. The square corner is the
+          only thing telling it apart from a radio, which is why the radius is
+          half the shared one.
+        </p>
+        <div class="kit-item">
+          <div class="kit-demo" data-source>
+            <div class="scope-picker">
+              <label><input type="checkbox" /> waitlist.read</label>
+              <label><input type="checkbox" checked /> waitlist.write</label>
+              <label><input type="radio" name="kit-radio" /> one</label>
+              <label><input type="radio" name="kit-radio" checked /> the other</label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="forms">
+        <h2>Welded forms</h2>
+        <p class="kit-note">
+          <code>.auth-form</code> is the one place the vocabulary is
+          deliberately broken: the fields and the button share a single box, so
+          the button cannot travel — it would tear a hole in the border it
+          shares — and presses in place instead. On a narrow screen the box welds
+          top to bottom rather than crushing three things onto one line.
+        </p>
+
+        <div class="kit-item">
+          <h3>Sign in</h3>
+          <div class="kit-demo kit-demo-block" data-source>
+            <div class="auth-wrap">
+              <h1>xor.ad<span class="dot">.</span> panel</h1>
+              <form class="auth-form" onsubmit="return false">
+                <input type="email" placeholder="your email" />
+                <button type="submit">Send sign-in link</button>
+              </form>
+              <p class="auth-note">A link, not a password.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>Minting a key</h3>
+          <p class="kit-why">
+            The scopes are a second row of the same box, not a third field:
+            fifteen ticks cannot share a line with a text input without crushing
+            it to a sliver.
+          </p>
+          <div class="kit-demo kit-demo-block" data-source>
+            <form class="auth-form" onsubmit="return false">
+              <input type="text" placeholder="what is it for" />
+              <select>
+                <option>pick a brand</option>
+              </select>
+              <button type="submit">Mint</button>
+              <div class="scope-picker">
+                <label><input type="checkbox" /> waitlist.read</label>
+                <label><input type="checkbox" /> waitlist.write</label>
+                <label><input type="checkbox" /> pageviews.write</label>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>Toolbar form</h3>
+          <p class="kit-why">
+            <code>.invite-form</code> is layout only — flex and a gap. The
+            controls inside it are dressed by being controls.
+          </p>
+          <div class="kit-demo kit-demo-block" data-source>
+            <form class="invite-form" onsubmit="return false">
+              <input type="email" placeholder="email to invite" />
+              <select>
+                <option>moderator</option>
+                <option>tenant_admin</option>
+              </select>
+              <button type="submit">Invite</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="kit-item">
+          <h3>Something shown once</h3>
+          <p class="kit-why">
+            The filled button keeps its ink on hover and takes the lift only —
+            the shared pale wash would turn it inside out.
+          </p>
+          <div class="kit-demo kit-demo-block" data-source>
+            <div class="invite-link">
+              <code>ak_live_3bfdf893fccc4f61a8f20b767fbae7c7</code>
+              <button type="button">Copy</button>
+            </div>
+            <p class="status-ok">Copied.</p>
+            <p class="status-err">Could not reach the relay.</p>
+            <p class="status-warn">This key has no origins yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="badges">
+        <h2>Badges</h2>
+        <p class="kit-note">
+          One vocabulary of tones. A value that is merely a value — a brand, a
+          role, an applied action — is neutral. Colour is spent on the rows worth
+          spotting: a refusal, a warning, an error.
+        </p>
+        <div class="kit-item">
+          <div class="kit-demo" data-source>
+            <span class="badge badge-neutral">platform</span>
+            <span class="badge badge-info">moderator</span>
+            <span class="badge badge-accent">admin</span>
+            <span class="badge badge-warn">retried</span>
+            <span class="badge badge-danger">denied</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="tables">
+        <h2>Tables</h2>
+        <p class="kit-note">
+          Every cell carries a <code>data-label</code>. On a phone the row
+          becomes a card of label/value pairs built from exactly that attribute —
+          layout only, with nothing to keep in sync. Narrow this window past
+          751 px and watch the table become cards.
+        </p>
+        <div class="kit-item">
+          <div class="kit-demo kit-demo-block" data-source>
+            <div class="panel-card">
+              <table class="panel-table">
+                <thead>
+                  <tr><th>Email</th><th>Role</th><th>Brand</th><th>Added</th><th></th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td data-label="Email">ops@sosed.test</td>
+                    <td data-label="Role"><span class="badge badge-info">tenant_admin</span></td>
+                    <td data-label="Brand"><span class="badge badge-neutral">sosed</span></td>
+                    <td data-label="Added">30.07.2026, 10:24</td>
+                    <td><button type="button" class="row-action">Invite again</button></td>
+                  </tr>
+                  <tr>
+                    <td data-label="Email">admin@local.test</td>
+                    <td data-label="Role"><span class="badge badge-accent">admin</span></td>
+                    <td data-label="Brand"><span class="badge badge-neutral">platform</span></td>
+                    <td data-label="Added">30.07.2026, 09:57</td>
+                    <td><button type="button" class="row-action">Invite again</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="states">
+        <h2>States</h2>
+        <p class="kit-note">
+          The three things a table can be instead of rows. All three say what to
+          do next, because a page that only says "nothing here" leaves the reader
+          to guess whether that is a bug.
+        </p>
+        <div class="kit-item">
+          <div class="kit-demo kit-demo-block" data-source>
+            <div class="state state-empty">
+              <p class="state-title">No secret keys yet.</p>
+              <p class="state-hint">Mint one above for a server that calls /v1.</p>
+            </div>
+            <p class="state state-error">The relay did not answer.
+              <button type="button" class="state-action">Try again</button>
+            </p>
+            <p class="loading-note">Checking what you may see…</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="logs">
+        <h2>Log toolbar</h2>
+        <p class="kit-note">
+          The shape every log page shares: a scope, a search, the ranges, a
+          histogram that answers "when" without hovering, and a footer that says
+          how much of the collection you are looking at.
+        </p>
+        <div class="kit-item">
+          <div class="kit-demo kit-demo-block" data-source>
+            <div class="panel-card">
+              <div class="log-controls">
+                <span class="control-labelled">
+                  <span class="control-label">Scope</span>
+                  <select>
+                    <option>all brands</option>
+                    <option>sosed</option>
+                  </select>
+                </span>
+                <input type="search" placeholder="filter by message" />
+                <div class="log-ranges">
+                  <button type="button">1h</button>
+                  <button type="button" class="range-active" aria-pressed="true">24h</button>
+                  <button type="button">7d</button>
+                </div>
+                <button type="button">Refresh</button>
+              </div>
+              <figure class="log-histogram">
+                <div class="log-histogram-bars">
+                  <div class="log-histogram-bar" style="height: 20%"></div>
+                  <div class="log-histogram-bar" style="height: 45%"></div>
+                  <div class="log-histogram-bar" style="height: 100%"></div>
+                  <div class="log-histogram-bar" style="height: 30%"></div>
+                  <div class="log-histogram-gap"></div>
+                  <div class="log-histogram-bar" style="height: 62%"></div>
+                  <div class="log-histogram-bar" style="height: 12%"></div>
+                </div>
+                <div class="log-histogram-axis"><span>24h ago</span><span>now</span></div>
+                <figcaption>36 stored · 36 all time</figcaption>
+              </figure>
+              <div class="log-footer">
+                <span class="control-label">Showing 2 of 36</span>
+                <button type="button">Load older</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- -->
+      <section class="kit-section" id="nav">
+        <h2>Navigation</h2>
+        <div class="kit-item">
+          <h3>Breadcrumb</h3>
+          <div class="kit-demo" data-source>
+            <ul class="breadcrumb">
+              <li><a href="#nav">Secret keys</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="kit-item">
+          <h3>Sidebar</h3>
+          <p class="kit-why">
+            The scope header says whose panel this is; below it the menu, and
+            only Logout pinned to the bottom.
+          </p>
+          <div class="kit-demo kit-demo-block" data-source>
+            <nav class="menu kit-menu-sample">
+              <div class="menu-scope">
+                <span class="menu-scope-label">Signed in for</span>
+                <span class="menu-scope-value">platform</span>
+              </div>
+              <ul>
+                <li><a href="#nav">Waitlist</a></li>
+                <li><a href="#nav" class="active">Panel users</a></li>
+                <li><a href="#nav">Client errors</a></li>
+              </ul>
+              <button type="button" class="theme-toggle">Theme: auto</button>
+              <button type="button">Logout</button>
+            </nav>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      // --- the theme switcher, writing what the panel's own toggle writes ------
+      const root = document.documentElement;
+      for (const button of document.querySelectorAll("[data-theme-set]")) {
+        button.addEventListener("click", () => {
+          const choice = button.dataset.themeSet;
+          if (choice === "system") {
+            root.removeAttribute("data-theme");
+            localStorage.removeItem("panel_theme");
+          } else {
+            root.setAttribute("data-theme", choice);
+            localStorage.setItem("panel_theme", choice);
+          }
+        });
+      }
+
+      // --- the swatches, read from the running page ---------------------------
+      // Listed by name because "which of these is a colour" is not something the
+      // browser can be asked; the values are not, because those it can.
+      const TOKENS = [
+        "page", "surface", "surface-sunken",
+        "ink", "ink-muted", "line", "line-strong",
+        "accent", "accent-ink",
+        "ok-ink", "warn-ink", "danger-ink",
+      ];
+      const styles = getComputedStyle(root);
+      const swatches = document.getElementById("kit-swatches");
+      for (const name of TOKENS) {
+        const value = styles.getPropertyValue(`--${name}`).trim();
+        const row = document.createElement("div");
+        row.className = "kit-swatch";
+        row.innerHTML =
+          `<span class="kit-chip" style="background: var(--${name})"></span>` +
+          `<span><code>--${name}</code><br><span>${value}</span></span>`;
+        swatches.append(row);
+      }
+
+      // --- the source under each demo, printed from the demo itself -----------
+      // Not hand-written next to it: a snippet typed by a person drifts from the
+      // markup it describes, and then the kit is teaching the wrong thing. This
+      // reads the DOM that just rendered, so the two cannot disagree.
+      function tidy(html) {
+        const lines = html.split("\n").map((line) => line.replace(/\s+$/, ""));
+        while (lines.length && !lines[0].trim()) lines.shift();
+        while (lines.length && !lines.at(-1).trim()) lines.pop();
+        const indent = Math.min(
+          ...lines.filter((line) => line.trim()).map((line) => line.match(/^ */)[0].length),
+        );
+        return lines.map((line) => line.slice(indent)).join("\n");
+      }
+      for (const demo of document.querySelectorAll("[data-source]")) {
+        const source = document.createElement("pre");
+        source.className = "kit-source";
+        source.textContent = tidy(demo.innerHTML);
+        demo.after(source);
+      }
+    </script>
+  </body>
+</html>

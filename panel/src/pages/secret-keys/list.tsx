@@ -154,23 +154,35 @@ export const SecretKeysList = () => {
       </p>
 
       {mayWrite && (
-        <form onSubmit={mint} className="auth-form">
-          <input
-            type="text"
-            placeholder="what is it for"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-          {isPlatform && (
-            <select aria-label="Brand" value={brand} onChange={(event) => setBrand(event.target.value)}>
-              <option value="">pick a brand</option>
-              {(brandResult?.data ?? []).map((row) => (
-                <option key={row.key} value={row.key}>{row.key}</option>
-              ))}
-            </select>
-          )}
-          <div className="scope-picker">
+        <form onSubmit={mint} className="form-stack">
+          <div className="form-row">
+            <div className="field">
+              <label className="field-label" htmlFor="secret-name">What is it for</label>
+              <input
+                id="secret-name"
+                type="text"
+                placeholder="nightly importer"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </div>
+            {isPlatform && (
+              <div className="field">
+                <label className="field-label" htmlFor="secret-brand">Brand</label>
+                <select id="secret-brand" value={brand} onChange={(event) => setBrand(event.target.value)}>
+                  <option value="">pick a brand</option>
+                  {(brandResult?.data ?? []).map((row) => (
+                    <option key={row.key} value={row.key}>{row.key}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+          {/* A group of ticks is named by a legend, not by the field beside it. */}
+          <fieldset className="field">
+            <legend className="field-label">Scopes</legend>
+            <div className="scope-picker">
             {offered.map((permission) => (
               <label key={permission}>
                 <input
@@ -181,8 +193,11 @@ export const SecretKeysList = () => {
                 {permission}
               </label>
             ))}
+            </div>
+          </fieldset>
+          <div className="form-actions">
+            <button type="submit" className="button-primary" disabled={busy || scopes.length === 0}>Mint key</button>
           </div>
-          <button type="submit" disabled={busy || scopes.length === 0}>Mint</button>
         </form>
       )}
 
@@ -274,7 +289,7 @@ export const SecretKeysList = () => {
               label: "",
               render: (row: SecretKeyRow) =>
                 row.revoked_at ? null : (
-                  <button type="button" className="row-action" onClick={() => void revoke(row)}>
+                  <button type="button" className="row-action button-danger" onClick={() => void revoke(row)}>
                     Revoke
                   </button>
                 ),

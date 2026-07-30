@@ -113,23 +113,32 @@ export const ApiKeysList = () => {
     <div className="panel-card">
       <h1>Publishable keys</h1>
 
-      <form className="invite-form" onSubmit={mint}>
+      <form className="form-stack" onSubmit={mint}>
         {isPlatform && (
-          <select value={brand} onChange={(event) => setBrand(event.target.value)} required>
-            <option value="">brand…</option>
-            {brandResult?.data.map((item) => (
-              <option key={item.key} value={item.key}>{item.name}</option>
-            ))}
-          </select>
+          <div className="field">
+            <label className="field-label" htmlFor="key-brand">Brand</label>
+            <select id="key-brand" value={brand} onChange={(event) => setBrand(event.target.value)} required>
+              <option value="">brand…</option>
+              {brandResult?.data.map((item) => (
+                <option key={item.key} value={item.key}>{item.name}</option>
+              ))}
+            </select>
+          </div>
         )}
-        <textarea
-          value={origins}
-          onChange={(event) => setOrigins(event.target.value)}
-          placeholder={"https://example.com\nhttps://www.example.com"}
-          aria-label="Allowed origins, one per line"
-          rows={2}
-        />
-        <button type="submit" disabled={busy}>{busy ? "Minting…" : "Mint key"}</button>
+        <div className="field">
+          <label className="field-label" htmlFor="key-origins">Allowed origins</label>
+          <textarea
+            id="key-origins"
+            value={origins}
+            onChange={(event) => setOrigins(event.target.value)}
+            placeholder={"https://example.com\nhttps://www.example.com"}
+            rows={2}
+          />
+          <p className="field-hint">One per line.</p>
+        </div>
+        <div className="form-actions">
+          <button type="submit" className="button-primary" disabled={busy}>{busy ? "Minting…" : "Mint key"}</button>
+        </div>
       </form>
       <p className="auth-note">
         A key is only usable from the origins listed here — one per line. Leaving it
@@ -208,7 +217,7 @@ export const ApiKeysList = () => {
               row.revoked_at
                 ? <Badge tone="danger" title={new Date(row.revoked_at).toLocaleString()}>revoked</Badge>
                 : (
-                  <button type="button" className="state-action" onClick={() => void revoke(row)}>
+                  <button type="button" className="state-action button-danger" onClick={() => void revoke(row)}>
                     Revoke
                   </button>
                 ),

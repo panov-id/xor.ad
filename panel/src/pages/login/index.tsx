@@ -32,17 +32,25 @@ export const LoginPage = () => {
           Check <strong>{email}</strong> for a sign-in link.
         </p>
       ) : (
-        <form onSubmit={onSubmit} className="auth-form">
-          <input
-            type="email"
-            placeholder="your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={isPending}>
-            Send sign-in link
-          </button>
+        <form onSubmit={onSubmit} className="form-stack">
+          <div className="field">
+            {/* Named by a label, not by a placeholder: the placeholder leaves as
+                soon as anyone types, and it was the field's only accessible name. */}
+            <label className="field-label" htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-actions">
+            <button type="submit" className="button-primary" disabled={isPending}>
+              Send sign-in link
+            </button>
+          </div>
         </form>
       )}
     </div>

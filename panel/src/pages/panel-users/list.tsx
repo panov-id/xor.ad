@@ -103,18 +103,25 @@ export const PanelUsersList = () => {
       <h1>Panel users</h1>
 
       {canManageUsers && (
-        <form onSubmit={onInvite} className="auth-form panel-invite-form">
-          <input
-            type="email"
-            placeholder="email to invite"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <form onSubmit={onInvite} className="form-stack panel-invite-form">
+          <div className="field">
+            <label className="field-label" htmlFor="invite-email">Email</label>
+            <input
+              id="invite-email"
+              type="email"
+              placeholder="ops@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-row">
+          <div className="field">
           {/* Options come from the shared vocabulary, so a role added in the
               relay core shows up here without touching this page. */}
+          <label className="field-label" htmlFor="invite-role">Role</label>
           <select
-            aria-label="Role"
+            id="invite-role"
             value={role}
             onChange={(event) => setRole(event.target.value as Role)}
           >
@@ -124,12 +131,15 @@ export const PanelUsersList = () => {
               </option>
             ))}
           </select>
+          </div>
           {/* Onboarding a tenant happens here: the platform names the brand, and
               the relay emails whoever it just let in. There is no self-service
               registration — a tenant is registered by us, never by itself. */}
           {isPlatform && (
+            <div className="field">
+            <label className="field-label" htmlFor="invite-brand">Brand</label>
             <select
-              aria-label="Brand"
+              id="invite-brand"
               value={brand}
               onChange={(event) => setBrand(event.target.value)}
             >
@@ -140,10 +150,14 @@ export const PanelUsersList = () => {
                 </option>
               ))}
             </select>
+            </div>
           )}
-          <button type="submit" disabled={submitting}>
-            Invite
-          </button>
+          </div>
+          <div className="form-actions">
+            <button type="submit" className="button-primary" disabled={submitting}>
+              Invite
+            </button>
+          </div>
         </form>
       )}
       {/* The invite's only feedback: a failure has to be announced, not merely

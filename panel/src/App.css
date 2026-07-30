@@ -31,10 +31,25 @@
      other and gets a value per theme. */
   --ok-line: #1a7f37;
   --ok-ink: #1a7f37;
-  /* A hole is darker than the surface around it in both themes, but "darker" is
-     a different colour in each: ink at low alpha reads as a shadow on white and
-     as nothing at all on near-black, where plain black is the honest answer. */
-  --sunk-ink: color-mix(in srgb, var(--line-strong) 20%, transparent);
+  /* The hole, and it is drawn hard. It used to be ink at 20% alpha, which on a
+     4px step is a grey smear — a bevel from another decade, and the only soft
+     edge in a system where everything else is opaque and unblurred.
+     Direction is per theme, and for the reason the shadow has one: a recess lit
+     from the top-left is dark on its near wall, and on a dark page there is no
+     darker left to go. There the far wall catches the light instead, which is
+     the same hole seen in the same light — see --sunk in the dark blocks. */
+  --sunk-ink: #a8a8a2;
+
+  /* A shadow is a role, not the border's colour borrowed. These were the same
+     token, which worked in the light theme by luck and died in the dark one:
+     --line-strong is #4a4a52 there, so every shadow fell at 2.06:1 on the
+     surface it was cast on — a depth nobody could see.
+     It is also why the reference libraries cannot be copied here wholesale.
+     Theirs is pure black in both themes, which they can afford because their
+     dark background is a mid grey; ours is near-black, where black measures
+     1.08:1 and disappears completely. On a dark page a shadow has to be
+     LIGHTER than what it falls on. */
+  --shadow-ink: #14140f;
 
   /* One scale for spacing, so a page's rhythm is a choice and not an accident. */
   --space-1: 4px;
@@ -47,19 +62,33 @@
 
   --radius: 6px;
   --border-w: 2px;
-  --shadow-card: 4px 4px 0 var(--line-strong);
+  /* One height for anything you click or type into. Without it the height of a
+     control is whatever its type and the font's metrics work out to: this page
+     had nine of them, and a select came out 2px taller than the input beside it
+     in the same toolbar, so a row of controls sat on three different lines.
+     A number editing in place inside a table cell is the one deliberate
+     exception, and it gets a size rather than an accident. */
+  --control-h: 36px;
+  --control-h-small: 28px;
+  --shadow-card: 4px 4px 0 var(--shadow-ink);
   --content-max: 1280px;
 
-  /* One vocabulary of depth. The card's offset shadow was already the panel's
-     signature; these say the same thing at three volumes, so a control's state
-     is legible from its relief alone: at rest, come up to meet the pointer,
-     pushed into the page. A field is always the third — the place you put
-     something into is a hole, not a tile. */
-  --depth-rest: 3px 3px 0 var(--line-strong);
-  --depth-hover: 5px 5px 0 var(--line-strong);
-  --depth-small: 2px 2px 0 var(--line-strong);
-  --sunk: inset 3px 3px 0 var(--sunk-ink);
-  --press: 2px; /* how far a pressed thing travels, and its shadow with it */
+  /* One vocabulary of depth, at the volume the idiom is actually written in.
+     A thing at rest stands 4px off the page, rises to 6 under the pointer, and
+     when pressed travels exactly its own 4px and gives the shadow up — it does
+     not dim, it does not invert, it drives into the hole it was casting. That
+     last move is the whole grammar: the shadow was never decoration, it was the
+     distance, and pressing spends it.
+
+     A field is the other half: the place you put something into is a hole, not
+     a tile, so it is sunk by the same 4. */
+  --depth-rest: 4px 4px 0 var(--shadow-ink);
+  --depth-hover: 6px 6px 0 var(--shadow-ink);
+  --depth-small: 2px 2px 0 var(--shadow-ink);
+  --sunk: inset 4px 4px 0 var(--sunk-ink);
+  --press: 4px;       /* exactly --depth-rest's offset: the thing lands on its shadow.
+                         Only :active travels — a state that persists keeps its
+                         place, or it drops out of the row it belongs to. */
 
   /* Two sizes, not the nine this file had grown. Everything readable is one
      size; only the uppercase micro-labels step down, because a table head set
@@ -90,8 +119,12 @@
     --danger-ink: #ef8078;
     --ok-line: #3fb950;
     --ok-ink: #56d364;
-    --shadow-card: 4px 4px 0 var(--line-strong);
-    --sunk-ink: rgba(0, 0, 0, 0.55);
+    /* Lighter than the page, not darker — see the note on --shadow-ink. 6.99:1
+       against the page here, where the old borrowed border colour managed 2.06
+       and the reference libraries' black would manage 1.08. */
+    --shadow-ink: #9a9aa6;
+    --sunk-ink: #5f5f6b;
+    --sunk: inset -4px -4px 0 var(--sunk-ink);
   }
 }
 
@@ -112,7 +145,9 @@
   --danger-ink: #b3261e;
   --ok-line: #1a7f37;
   --ok-ink: #1a7f37;
-  --sunk-ink: color-mix(in srgb, var(--line-strong) 20%, transparent);
+  --shadow-ink: #14140f;
+  --sunk-ink: #a8a8a2;
+  --sunk: inset 4px 4px 0 var(--sunk-ink);
 }
 :root[data-theme="dark"] {
   --page: #0d0d0c;
@@ -130,7 +165,9 @@
   --danger-ink: #ef8078;
   --ok-line: #3fb950;
   --ok-ink: #56d364;
-  --sunk-ink: rgba(0, 0, 0, 0.55);
+  --shadow-ink: #9a9aa6;
+  --sunk-ink: #5f5f6b;
+  --sunk: inset -4px -4px 0 var(--sunk-ink);
 }
 
 * {
@@ -143,6 +180,9 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text);
+  /* 500, not 400. The idiom is blunt everywhere or nowhere, and a hairline body
+     under 2px frames reads as two different products sharing a page. */
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -158,9 +198,25 @@ h1 .dot {
   color: var(--accent);
 }
 
+/* Focus, said once. Anything that draws its own frame turns that frame accent
+   and nothing else happens: a frame plus a ring around it is one event drawn
+   twice, which is a double border by another name. Measured before the ring was
+   dropped — the resting frame against the accent is 3.07:1 in the light theme
+   and 3.35:1 in the dark, over the 3:1 WCAG 2.2 asks of a state change, so the
+   colour alone carries it.
+
+   The outline stays for everything that has no frame to turn: links, summaries,
+   skip targets. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  border-color: var(--accent);
+  outline: none;
 }
 
 /* Layout */
@@ -269,15 +325,14 @@ h1 .dot {
 .menu-spacer {
   flex: 1;
 }
+/* Everything here except the fill now comes from the shared rule; this block
+   had kept a 1px border of its own from before that rule existed, so the menu
+   was the one place drawn at half the weight of the rest. */
 .menu button {
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
   background: transparent;
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: var(--text);
-  padding: var(--space-2) var(--space-3);
-  cursor: pointer;
+  /* Horizontal only: the height comes from --control-h like everything else, and
+     8px of padding on top of it made the menu the one 38px control on the page. */
+  padding: 0 var(--space-3);
 }
 .menu button:hover {
   background: var(--surface-sunken);
@@ -363,7 +418,7 @@ table.panel-table {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
@@ -379,9 +434,10 @@ table.panel-table {
    draws them itself and ignores a shadow, so they have to be replaced rather than
    dressed.
 
-   The two welded boxes — .auth-form and .invite-link — opt out on purpose. They
-   are single-specificity selectors like these, so they win the tie by coming
-   later in the file; where they need to cancel rather than override, they say so. */
+   .invite-link opts out on purpose: it is a filled button welded to the code it
+   copies. It is a single-specificity selector like these, so it wins the tie by
+   coming later in the file, and where it cancels rather than overrides it says
+   so. It is the last of these; .auth-form, the other one, has been retired. */
 button,
 select,
 textarea,
@@ -389,67 +445,178 @@ input:not([type="checkbox"], [type="radio"]) {
   font-family: var(--font-body);
   font-size: var(--text);
   padding: 6px 10px;
-  border: 1px solid var(--line-strong);
+  /* The same 2px the cards are drawn with. Controls had been at 1px, which is
+     why they read as guests inside a frame twice as heavy as they were. */
+  border: var(--border-w) solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
+  /* Stated, not inherited from the type. A select is drawn by the browser with
+     metrics of its own and came out 2px taller than the input next to it; with
+     `line-height: normal` every control ends up whatever its own font works out
+     to. One height and one line box, and a toolbar sits on one line. */
+  min-height: var(--control-h);
+  line-height: 1.2;
+}
+/* A button centres its own label. Inputs and selects do that themselves; a
+   button with a min-height and no vertical padding would print its text at the
+   top of the box. */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* A label that wraps makes the control 54px tall in a row of 36px ones, which
+     is the stated height defeated by its own content. The reference carries this
+     on every button for the same reason (docs/brutalism_*.md §5). */
+  white-space: nowrap;
+}
+/* A height, not a floor. Chromium refuses `line-height` on a select — it stays
+   `normal` whatever is declared — so the box works out to 37 and a min-height of
+   36 never bites. This is the one control that has to be told outright. */
+select {
+  height: var(--control-h);
+}
+
+/* Multi-line by definition, so the floor is a starting height rather than the
+   height. */
+textarea {
+  min-height: calc(var(--control-h) * 2);
+  line-height: 1.4;
 }
 
 /* --- Relief -------------------------------------------------------------------
-   Two roles, told apart before they are read. A field is a hole you put something
-   into: sunk, and sunk whether or not it is focused, because what it is does not
-   change when you look at it. A button is a thing sitting on the page: it lifts
-   to meet the pointer and is pushed in when clicked, and the shadow travels with
-   it rather than merely darkening — that is the difference between a button that
-   moves and a button that changes colour. */
+   One rule now, where there were two directions to read: a shadow means you press
+   this; flat with a fill means you type here. Nothing else carries depth.
+
+   A field used to be sunk by 4px. It read as a grey band eating the top-left
+   corner, it crowded the text, and it made the field the loudest thing in a row
+   of them — while a field should be quiet until someone is in it. The fill and
+   the frame are the affordance; the depth vocabulary is spent entirely on the
+   things that can be pressed. */
 select,
 textarea,
 input:not([type="checkbox"], [type="radio"]) {
   background: var(--surface-sunken);
-  box-shadow: var(--sunk);
 }
 
+/* Being in a field is the only loud state it has: the fill comes up to the
+   surface, and the frame turns accent. */
+select:focus-visible,
+textarea:focus-visible,
+input:not([type="checkbox"], [type="radio"]):focus-visible {
+  background: var(--surface);
+}
+
+/* No transition. The idiom is hard edges and whole pixels; easing a 4px jump
+   over 90ms was the one soft thing left in it, and it also split every state in
+   half — transform and box-shadow glided while fill, frame and text snapped. Now
+   the whole state arrives at once. */
 button {
   cursor: pointer;
   box-shadow: var(--depth-rest);
-  transition: transform 90ms ease-out, box-shadow 90ms ease-out;
 }
+/* Rising: the gap under it grows from 4 to 6 and the button itself does not
+   move. It used to travel -2 as well, which made hover-then-press a six-pixel
+   journey — further than anything else in the panel moves, and enough that a
+   pointer crossing a toolbar set every button in it swimming. The shadow says
+   it alone. */
 button:hover:not(:disabled) {
-  background: var(--surface-sunken);
-  transform: translate(-1px, -1px);
   box-shadow: var(--depth-hover);
 }
-/* :active is the click itself; aria-pressed is a click that stayed. One rule, so
-   a segmented control cannot drift from the buttons it is made of. */
-button:active:not(:disabled),
-button[aria-pressed="true"] {
+/* Pressing spends the distance: it travels exactly --depth-rest's offset and
+   gives the shadow up entirely, landing where the shadow was. For :active that
+   is enough — you are watching it happen, and the movement is the message. */
+/* :not([aria-pressed="true"]) because :active outranks the held rule — 0,2,1
+   against 0,1,1 — so clicking a chosen range used to shove it 4px out of the row
+   for as long as the mouse was down. What is held stays held. */
+button:active:not(:disabled):not([aria-pressed="true"]) {
   transform: translate(var(--press), var(--press));
-  box-shadow: var(--sunk);
+  box-shadow: none;
+}
+/* aria-pressed is a click that STAYED, and it is read later, at rest, with
+   nothing beside it to measure 4px against. A button that has merely lost its
+   shadow looks like one whose shadow was forgotten. So the state that persists
+   inverts: it is unmistakable at a glance and it cannot be confused with a
+   field, which a quiet grey fill was — the two came out the same colour.
+   (.log-ranges .range-active fills with the accent instead, on two classes, and
+   still wins here: a chosen range is the same idea said louder.) */
+/* And it does not travel. Movement sells :active because you are watching it
+   happen; aria-pressed is read later, at rest, in a row where its neighbours did
+   not move — so the chosen segment sat 4px below the rest of the toolbar and
+   broke the line. It keeps its place, gives up the shadow because it is in the
+   row rather than on it, and inverts, which is legible without anything beside
+   it to measure against. */
+button[aria-pressed="true"] {
+  transform: none;
+  box-shadow: none;
+  background: var(--ink);
+  color: var(--page);
+  border-color: var(--ink);
+}
+/* Focus on an inverted button cannot be the accent: read against the ink fill it
+   now sits on, --accent measures 2.82:1, under the 3:1 a state change needs. It
+   takes the colour it prints in instead — 16.5:1, and the same idea, since the
+   frame is still the thing that changes. */
+button[aria-pressed="true"]:focus-visible {
+  border-color: var(--page);
 }
 /* A button that cannot be pressed does not stand up either. */
+/* Named, not faded. `opacity: .5` dimmed the frame, the fill and the label
+   together — and on the inverted held state it produced a grey block rather than
+   a disabled button. Each part is now told what it is. */
 button:disabled {
-  opacity: 0.5;
   cursor: default;
   box-shadow: none;
   transform: none;
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-muted);
 }
-/* A field that cannot be typed into stays a hole — it is still the place the
-   value goes — but says it is not available now. */
+/* --- Intent --------------------------------------------------------------------
+   Two, because the panel wants two: the one action a view exists for, and the
+   ones that take something away. Everything else is the plain button above, and
+   that is the point — an intent is spent, not decorated with.
+
+   Intent chooses the fill and the ink. It never touches the geometry: the frame,
+   the height and the shadow are the same for all of them, so a row of mixed
+   buttons still sits on one line and presses the same way. */
+.button-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* Accent on accent is nothing. A filled button's focus takes the colour it
+   prints in — the same trade the held state makes, for the same reason. */
+.button-primary:focus-visible {
+  border-color: var(--accent-ink);
+}
+/* Outlined, not filled: this is danger among other actions — it opens a
+   confirmation rather than being one. The filled form belongs to the dialog that
+   confirms, and arrives with the first dialog that needs it. */
+.button-danger {
+  border-color: var(--danger-line);
+  color: var(--danger-ink);
+}
+
+/* A field that cannot be typed into is still the place the value goes, and says
+   it is not available in the same words the buttons use: the frame goes quiet,
+   the text goes muted, the fill stays. Left on `opacity: .5` it would have been
+   the one control fading while the button beside it named its parts — and two
+   disabled controls in one row have to look disabled the same way. */
 select:disabled,
 textarea:disabled,
 input:not([type="checkbox"], [type="radio"]):disabled {
-  opacity: 0.5;
   cursor: default;
+  border-color: var(--line);
+  color: var(--ink-muted);
 }
-@media (prefers-reduced-motion: reduce) {
-  button,
-  select,
-  textarea,
-  input:not([type="checkbox"], [type="radio"]) {
-    transition: none;
-  }
+/* A tick is drawn rather than dressed, so it says it in the two things it has. */
+.scope-picker input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  cursor: default;
+  border-color: var(--line);
+  box-shadow: none;
 }
-
 .log-ranges {
   display: flex;
   /* Room for the relief: at 2px the shadow of one range landed on the next. */
@@ -466,8 +633,8 @@ input:not([type="checkbox"], [type="radio"]):disabled {
 }
 .log-ranges .range-active:hover {
   background: var(--accent);
-  transform: translate(var(--press), var(--press));
-  box-shadow: var(--sunk);
+  transform: none;
+  box-shadow: none;
 }
 
 /* --- Ticks --------------------------------------------------------------------
@@ -497,7 +664,6 @@ input[type="radio"] {
   display: inline-grid;
   place-content: center;
   cursor: pointer;
-  transition: transform 90ms ease-out, box-shadow 90ms ease-out;
 }
 input[type="radio"] {
   border-radius: 50%;
@@ -507,12 +673,15 @@ input[type="radio"]:hover {
   transform: translate(-1px, -1px);
   box-shadow: var(--depth-rest);
 }
+/* Chosen, and chosen is a state that persists — so like every other one it does
+   not travel. In a column of scopes the ticked ones would sit 2px below the rest
+   and the list would read as ragged. The fill says it instead. */
 .scope-picker input[type="checkbox"]:checked,
 input[type="radio"]:checked {
   background: var(--accent);
   border-color: var(--accent);
-  transform: translate(var(--press), var(--press));
-  box-shadow: var(--sunk);
+  transform: none;
+  box-shadow: none;
 }
 /* The mark is drawn, not typed: a ✓ glyph would inherit whatever font the control
    ended up with and slide half a pixel per browser. */
@@ -530,13 +699,6 @@ input[type="radio"]:checked::after {
   border-radius: 50%;
   background: var(--accent-ink);
 }
-@media (prefers-reduced-motion: reduce) {
-  .scope-picker input[type="checkbox"],
-  input[type="radio"] {
-    transition: none;
-  }
-}
-
 /* The scopes a key may be issued for: a list of ticks that had no styling at all,
    which is why they were the one place the panel still looked like a form from
    1998. */
@@ -545,20 +707,6 @@ input[type="radio"]:checked::after {
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
   margin-bottom: var(--space-3);
-}
-/* Inside the minting form the ticks are a second row of the same box, not a third
-   field: fifteen of them cannot share a line with a text input without crushing
-   it to a sliver, which is what they had been doing. The fields and the button
-   keep the welded top row; the scopes get the width they need underneath. */
-.auth-form {
-  flex-wrap: wrap;
-}
-.auth-form .scope-picker {
-  flex: 1 0 100%;
-  order: 1;
-  margin: 0;
-  padding: var(--space-3);
-  border-top: var(--border-w) solid var(--ink);
 }
 .scope-picker label {
   display: inline-flex;
@@ -612,7 +760,9 @@ input[type="radio"]:checked::after {
 
 .badge {
   display: inline-block;
-  border: 1px solid var(--badge-line, var(--ink-muted));
+  /* The same weight the controls carry. At 1px a badge sat inside a table drawn
+     with heavier lines than itself. */
+  border: var(--border-w) solid var(--badge-line, var(--ink-muted));
   border-radius: 3px;
   padding: 2px 8px;
   font-size: var(--text-micro);
@@ -712,77 +862,89 @@ input[type="radio"]:checked::after {
 .auth-wrap {
   max-width: 400px;
   margin: 15vh auto;
+  /* 400 wide on a 390 screen means the form touches both edges. */
+  padding: 0 var(--space-4);
   text-align: center;
 }
-.auth-form {
+/* --- Forms ---------------------------------------------------------------------
+   Label above, control under it, the action last and alone, one column. This
+   replaces .auth-form, which welded two fields and a button into a single box.
+
+   The weld cost more than it bought. Its parts lost their own affordances — a
+   select stopped looking like a select and the button could not press, because
+   travelling would have torn the border it shared. The seams were ambiguous to
+   hit. It needed an exception in the shared rules, a second rule to come apart
+   on a phone, a third so the ticks inside it did not inherit `flex: 1`, and a
+   fourth to give its button a focus ring, since it had no frame of its own to
+   turn. And it is where boxes inside boxes came from.
+
+   A group is a heading and a distance now. */
+.form-stack {
   display: flex;
-  border: var(--border-w) solid var(--ink);
-  box-shadow: 6px 6px 0 var(--accent);
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 480px;
+  margin: 0 0 var(--space-5);
+  /* .auth-wrap centres its heading; a column of labels read centred would be a
+     different form on every line. */
+  text-align: left;
 }
-/* Sunk like every other field — the shared rule already says so; what is special
-   here is that the field has no border of its own, because the box around the
-   whole form is the border. */
-/* Not the ticks. They live inside this form too, and `flex: 1` told every one of
-   them to fill the line it was on — invisible while the scopes sat in a row and
-   obvious the moment they stacked, where each tick stretched the full width of
-   the card and pushed its own label to the far edge. */
-.auth-form input:not([type="checkbox"], [type="radio"]),
-.auth-form select {
-  flex: 1;
+/* A fieldset carries browser chrome nobody asked for. */
+fieldset.field {
   border: none;
-  padding: 12px;
-  font-family: inherit;
+  margin: 0;
+  padding: 0;
+}
+fieldset.field > legend {
+  padding: 0;
+}
+/* Short fields belong on one line — each still carrying its own label. */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   min-width: 0;
 }
-/* The focus ring is drawn inside. `outline: none` used to live here — on the one
-   form every person meets, which meant the login field was the single control in
-   the panel that never showed a keyboard where it was. An outline drawn outside
-   would be clipped by the welded border, so the ring is inset instead: same
-   signal, and it fits in the box. */
-.auth-form input:not([type="checkbox"], [type="radio"]):focus-visible,
-.auth-form select:focus-visible {
-  outline: none;
-  box-shadow: var(--sunk), inset 0 0 0 var(--border-w) var(--accent);
+/* The basis belongs to the row, not to the field. Left on .field it also applied
+   inside the column, where flex-grow works down the page — so the sign-in form
+   stretched its one field to fill the block and left a canyon above the button. */
+.form-row > .field {
+  flex: 1 1 12rem;
 }
-/* The button is a segment of the form's box rather than a tile on the page, so it
-   cannot travel: it would tear a hole in the border it shares. It presses in
-   place instead — the same idiom, minus the journey. Hence the cancellations:
-   the shared rules would have it stand up and move. */
-.auth-form button {
-  border: none;
-  border-left: var(--border-w) solid var(--ink);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-family: var(--font-display);
+/* A label, not a placeholder. A placeholder is an example and leaves the moment
+   someone types, taking the only statement of what the field was with it — and a
+   field named only by its placeholder has no accessible name at all. */
+.field-label {
+  font-size: var(--text-micro);
   font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 12px 16px;
-  box-shadow: none;
-  transition: box-shadow 90ms ease-out, filter 90ms ease-out;
+  color: var(--ink-muted);
 }
-.auth-form button:hover:not(:disabled) {
-  background: var(--accent);
-  filter: brightness(1.08);
-  transform: none;
-  box-shadow: none;
+.field-hint {
+  font-size: var(--text-micro);
+  color: var(--ink-muted);
+  margin: 0;
 }
-.auth-form button:active:not(:disabled) {
-  transform: none;
-  box-shadow: var(--sunk);
+/* The action ends the form: on its own line, so it is never read as one more
+   field, and last, so it is reached after the questions rather than before. */
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
 }
-@media (prefers-reduced-motion: reduce) {
-  .auth-form button {
-    transition: none;
-  }
-}
+
 .auth-note {
   color: var(--ink-muted);
   margin-top: 16px;
 }
-.panel-invite-form {
-  max-width: 480px;
-  margin: 0 0 16px;
-}
+
 .status-ok {
   color: var(--ok-ink);
 }
@@ -913,17 +1075,10 @@ input[type="radio"]:checked::after {
     flex-wrap: wrap;
   }
 
-  /* The welded row is two fields and a button sharing one box, and 390 px cannot
-     hold three of anything: the fields collapsed to slivers reading "what is it
-     fo" and "pick a bra" — the very failure the scopes were lifted out of this
-     row to avoid. The box stays welded; it just welds top to bottom, so the
-     seams turn with it. */
-  .auth-form {
+  /* The only action on a phone gets the width. */
+  .form-actions {
     flex-direction: column;
-  }
-  .auth-form button {
-    border-left: none;
-    border-top: var(--border-w) solid var(--ink);
+    align-items: stretch;
   }
 
   /* One scope per line. Two-and-a-bit columns of ticks left a ragged edge where
@@ -971,18 +1126,10 @@ input[type="radio"]:checked::after {
   }
 }
 
-.invite-form textarea {
-  min-width: 22rem;
+.field textarea {
   resize: vertical;
-  line-height: 1.4;
 }
-.invite-form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
-}
+
 
 /* Today's usage against the limit, read as one value rather than two columns:
    a number alone answers nothing, and "142 / 5000" answers at a glance. */
@@ -1005,5 +1152,7 @@ input[type="radio"]:checked::after {
    guess that a number can be typed over, so the relief is doing real work here. */
 input.quota-input {
   width: 6rem;
+  min-height: var(--control-h-small);
   padding: 2px 6px;
 }
+

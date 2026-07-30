@@ -54,17 +54,30 @@ export const BrandsList = () => {
     <div className="panel-card">
       <h1>Brands</h1>
 
-      <form className="invite-form" onSubmit={submit}>
-        <input {...field("key")} placeholder="key (a-z0-9-)" required aria-label="Brand key" />
-        <input {...field("name")} placeholder="display name" required aria-label="Display name" />
-        <input {...field("domain")} placeholder="example.com" required aria-label="Domain" />
-        <input
-          {...field("from")}
-          placeholder="Name <hey@example.com>"
-          required
-          aria-label="Sender address"
-        />
-        <button type="submit" disabled={busy}>{busy ? "Saving…" : "Add brand"}</button>
+      <form className="form-stack" onSubmit={submit}>
+        <div className="form-row">
+          <div className="field">
+            <label className="field-label" htmlFor="brand-key">Brand key</label>
+            <input id="brand-key" {...field("key")} placeholder="sosed" required />
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="brand-name">Display name</label>
+            <input id="brand-name" {...field("name")} placeholder="сосед" required />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="field">
+            <label className="field-label" htmlFor="brand-domain">Domain</label>
+            <input id="brand-domain" {...field("domain")} placeholder="sosed.place" required />
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="brand-from">Sender address</label>
+            <input id="brand-from" {...field("from")} placeholder="сосед <hey@sosed.place>" required />
+          </div>
+        </div>
+        <div className="form-actions">
+          <button type="submit" className="button-primary" disabled={busy}>{busy ? "Saving…" : "Add brand"}</button>
+        </div>
       </form>
       <p className="auth-note">
         The key becomes a storage path and cannot change afterwards. The sender must be

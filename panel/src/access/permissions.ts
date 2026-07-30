@@ -14,6 +14,10 @@ export const PERMISSIONS = [
   // agent and no identifier — that is the whole offer, and it is why this is
   // worth exposing rather than keeping to our own landings.
   "pageviews.write",
+  // Reporting a client-side error, for the same reason: a scope a secret key can
+  // be issued for, so the key page has to be able to offer it. Reading them is
+  // `logs.client_errors.read` and stays a separate scope.
+  "client_errors.write",
   "panel_users.read",
   "panel_users.write",
   "logs.client_errors.read",
@@ -27,3 +31,13 @@ export const PERMISSIONS = [
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
+
+// Mirrors the relay's list of the same name. Scopes no person holds and no page
+// performs: the key form offers them regardless of the operator's own
+// permissions, because the relay accepts them from any issuer for their own
+// brand — and without that a tenant would see an empty scope picker.
+export const KEY_ONLY_SCOPES: readonly Permission[] = [
+  "waitlist.write",
+  "pageviews.write",
+  "client_errors.write",
+];

@@ -3,7 +3,7 @@
 // new panel resource = one more `route(...)` block over a stored collection,
 // named by the permission it requires.
 
-import { route } from "../lib/router.ts";
+import { type Handler, route } from "../lib/router.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
 import {
@@ -26,7 +26,7 @@ import {
 import { log } from "../lib/log.ts";
 import { lifetimeTotals } from "../lib/pageview_daily.ts";
 import { areScopes, createSecretKey, listSecretKeys, revokeSecretKey } from "../lib/secret_key.ts";
-import { can, isRole, permissionsOf } from "../access/index.ts";
+import { can, isKeyOnlyScope, isRole, permissionsOf } from "../access/index.ts";
 // No route reaches storage directly: everything goes through a scope. The
 // platform scope is an empty prefix, so its paths are byte-identical to the
 // pre-tenancy ones.
@@ -494,7 +494,11 @@ route("POST", "/admin/api-keys", async ({ req }) => {
   return json(key, 201);
 });
 
-route("PATCH", "/admin/api-keys/:id/quota", async ({ req, params }) => {
+// One handler, two paths: the allowance is a column of `api_keys` and both kinds
+// of key live in that table, so a second implementation would be a second set of
+// rules about the same number. The panel calls whichever path matches the page it
+// is on.
+const setQuota: Handler = async ({ req, params }) => {
   const access = await requirePermission(req, "api_keys.write");
   if (isDenied(access)) return access.response;
   // Only the platform sets an allowance. A tenant raising its own limit would be
@@ -519,7 +523,10 @@ route("PATCH", "/admin/api-keys/:id/quota", async ({ req, params }) => {
     reason: limit === null ? "unlimited" : `${limit}/day`,
   });
   return json(updated);
-});
+};
+
+route("PATCH", "/admin/api-keys/:id/quota", setQuota);
+route("PATCH", "/admin/secret-keys/:id/quota", setQuota);
 
 // --- secret keys ---------------------------------------------------------------
 //
@@ -530,7 +537,12 @@ route("PATCH", "/admin/api-keys/:id/quota", async ({ req, params }) => {
 route("GET", "/admin/secret-keys", async ({ req }) => {
   const access = await requirePermission(req, "api_keys.read");
   if (isDenied(access)) return access.response;
-  const keys = await listSecretKeys(access.user.brand);
+  const listed = await listSecretKeys(access.user.brand);
+  // Usage today beside the limit, exactly as the publishable keys do it: a quota
+  // whose effect nobody can see is a setting rather than a control.
+  const keys = await Promise.all(
+    listed.map(async (key) => ({ ...key, used_today: await usedToday(key.id) })),
+  );
   // The id is already the row's id; Refine wants the field, and the key has it.
   return json(keys, 200, { "x-total-count": String(keys.length) });
 });
@@ -557,7 +569,16 @@ route("POST", "/admin/secret-keys", async ({ req }) => {
 
   // A key cannot be granted what its issuer does not hold: otherwise minting one
   // is a way around the issuer's own limits.
-  const beyond = body.scopes.filter((scope) => !can(access.user, scope));
+  //
+  // The exception is the key-only scopes. Nobody holds them — they are not things
+  // a person does, and no role lists them — so the rule above would forbid every
+  // tenant from issuing the one kind of key the public API exists for, and leave
+  // the platform minting keys on their behalf forever. The brand is already the
+  // caller's own, fixed above from the session, so the exception cannot reach
+  // another tenant.
+  const beyond = body.scopes.filter((scope) =>
+    !can(access.user, scope) && !isKeyOnlyScope(scope)
+  );
   if (beyond.length) {
     return json({ error: `beyond your own permissions: ${beyond.join(", ")}` }, 403);
   }

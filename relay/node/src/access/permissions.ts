@@ -17,6 +17,12 @@ export const PERMISSIONS = [
   // agent and no identifier — that is the whole offer, and it is why this is
   // worth exposing rather than keeping to our own landings.
   "pageviews.write",
+  // Reporting a client-side error. Same shape as the two above: not an action a
+  // person performs in the panel, but one a tenant's own front-end performs
+  // through the public API. Reading them is `logs.client_errors.read` and stays
+  // separate — sending us a report says nothing about being allowed to read
+  // everyone's.
+  "client_errors.write",
   "panel_users.read",
   "panel_users.write",
   "logs.client_errors.read",
@@ -30,6 +36,21 @@ export const PERMISSIONS = [
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
+
+// Scopes that exist for keys and for nothing else: no panel page performs them
+// and no role holds them, which is why a tenant cannot be refused one on the
+// grounds of not holding it. They are the whole of what a tenant's own server
+// does through the public API, and the brand it does it in comes from the
+// session, never from the scope — so issuing one widens what a key may do and
+// never what a person may do.
+export const KEY_ONLY_SCOPES: readonly Permission[] = [
+  "waitlist.write",
+  "pageviews.write",
+  "client_errors.write",
+];
+
+export const isKeyOnlyScope = (value: string): boolean =>
+  (KEY_ONLY_SCOPES as readonly string[]).includes(value);
 
 export function isPermission(value: unknown): value is Permission {
   return typeof value === "string" && (PERMISSIONS as readonly string[]).includes(value);

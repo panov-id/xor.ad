@@ -25,9 +25,12 @@ jobs:
       # Mirrors scripts/run-relay-tests.sh — the reads and writes are the tenancy
       # tests working against a real temp dir, because a mock of the boundary
       # under test would prove nothing.
+      # The database suite is excluded here and runs in the `database` job below:
+      # this job has no Postgres, and that is deliberate — a node without
+      # DATABASE_URL is a supported configuration.
       - name: unit tests
         working-directory: relay/node
-        run: deno test --allow-env --allow-read --allow-write --ignore=test/tenancy.test.ts
+        run: deno test --allow-env --allow-read --allow-write --ignore=test/tenancy.test.ts,test/database.test.ts
       # In a process of its own: it rewrites BRANDS/SESSION_SECRET, and config.ts
       # captures those at import, so sharing a process would leak them into
       # everyone else's configuration.
@@ -44,8 +47,45 @@ jobs:
       - name: integration (local stand)
         run: bash relay/test/integration.sh
 
+  # Its own job, because it is the only one that needs a database — and because
+  # what it covers is invisible to the job above: every suite there runs with
+  # DATABASE_URL unset, so the branches that need Postgres do not fail, they never
+  # execute. A foreign key that made key issuance impossible shipped that way.
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: relay
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: relay_test
+        ports: ["5432:5432"]
+        # The runner's step starts long before Postgres accepts a connection;
+        # without this the migration loses a race it cannot retry.
+        options: >-
+          --health-cmd "pg_isready -U relay -d relay_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      DATABASE_URL: postgres://relay:test@localhost:5432/relay_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.1.4
+      # The same tool the wizard runs before a node starts, so CI proves the
+      # migrations apply as well as that the code passes.
+      - name: migrations
+        working-directory: relay/node
+        run: deno run --allow-env --allow-net --allow-read tools/migrate_db.ts
+      - name: database tests
+        working-directory: relay/node
+        run: deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts
+
   build-push:
-    needs: test
+    needs: [test, database]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:

@@ -10,6 +10,7 @@
 import { config } from "../config.ts";
 import { get, list, put, storageEnabled } from "./storage.ts";
 import { enabled as databaseEnabled, query } from "./db.ts";
+import { isSecretKeyId } from "./secret_key.ts";
 
 export interface PublishableKey {
   id: string; // "ak_pub_7f3c…" — public by design, no hashing
@@ -163,11 +164,14 @@ export function isOrigin(value: string): boolean {
 
 // Setting an allowance is a platform decision, so it lives beside the key rather
 // than in a settings table: one row, one lifetime, one place to look.
+// Both kinds of key, on purpose: the allowance is a column of `api_keys` and
+// applies to whoever holds the key, and refusing a secret key here would leave
+// /v1 enforcing a limit that nothing could set.
 export async function setKeyQuota(
   id: string,
   limit: number | null,
 ): Promise<PublishableKey | null> {
-  if (!ID_PATTERN.test(id) || !databaseEnabled()) return null;
+  if (!(ID_PATTERN.test(id) || isSecretKeyId(id)) || !databaseEnabled()) return null;
   const rows = await query<PublishableKey>(
     `UPDATE api_keys SET quota_events_per_day = $2 WHERE id = $1
      RETURNING id, brand, origins, created_at, revoked_at, quota_events_per_day::int`,

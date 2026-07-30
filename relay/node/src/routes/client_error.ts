@@ -24,7 +24,18 @@ export async function clientError(req: Request): Promise<Response> {
   // instead of as an absence.
   const tenant = await resolveTenant(req, cap(body.source, 120));
   const brand = isTenantDenied(tenant) ? null : tenant.brand.key;
+  return accept(brand, body);
+}
 
+// Storing a report once the tenant is known. Split from the route so the public
+// API can pass the brand its secret key names, rather than forging a request for
+// the route to resolve again by a rule that knows nothing about secret keys —
+// the same split the page counter already makes.
+export function acceptClientError(brand: string, body: Record<string, unknown>): Response {
+  return accept(brand, body);
+}
+
+function accept(brand: string | null, body: Record<string, unknown>): Response {
   const record = {
     kind: cap(body.kind, 64),
     message: cap(body.message, 1000),

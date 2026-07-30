@@ -6,8 +6,10 @@ import {
   ALL_PERMISSIONS,
   can,
   canAll,
+  isKeyOnlyScope,
   isPermission,
   isRole,
+  KEY_ONLY_SCOPES,
   PERMISSIONS,
   permissionsOf,
   ROLE_PERMISSIONS,
@@ -131,6 +133,33 @@ Deno.test("an empty key is denied everything, like a null subject", () => {
   const key = { scopes: [], brand: "sosed" };
   for (const permission of PERMISSIONS) assert(!can(key, permission));
   assert(!canAll(key, ["waitlist.read"]));
+});
+
+// The exception that lets a tenant issue a key rests on this being true: the
+// scopes are held by nobody, so "you cannot grant what you do not hold" would
+// forbid everyone. If a role ever picks one up, the rule and the exception start
+// disagreeing about the same scope — and only one of them is checked per request.
+Deno.test("the key-only scopes are held by no role, wildcard aside", () => {
+  for (const scope of KEY_ONLY_SCOPES) {
+    assert(isPermission(scope), `${scope} is not in the catalogue`);
+    assert(isKeyOnlyScope(scope));
+    for (const role of ROLES) {
+      if (role === "admin") continue; // holds everything through the wildcard
+      assert(
+        !ROLE_PERMISSIONS[role].includes(scope),
+        `${role} must not list ${scope} — it is a scope for keys, not for people`,
+      );
+    }
+  }
+});
+
+Deno.test("a scope a person can perform is not key-only", () => {
+  for (const permission of PERMISSIONS) {
+    if (isKeyOnlyScope(permission)) continue;
+    assert(!KEY_ONLY_SCOPES.includes(permission));
+  }
+  // The catalogue grows; this is the pair that must not drift silently.
+  assertEquals(KEY_ONLY_SCOPES.length, PERMISSIONS.filter(isKeyOnlyScope).length);
 });
 
 Deno.test("waitlist.write exists for keys, and no role but admin holds it", () => {

@@ -26,7 +26,17 @@ export interface SecretKey {
   created_at: string;
   last_used_at: string | null;
   revoked_at: string | null;
+  // The daily allowance, shared with the publishable keys' column. Selected
+  // everywhere a key is resolved, because the limit is useless to a caller that
+  // never reads it: /v1 checks it on every request, and it was silently absent
+  // here while the panel showed it as if it applied.
+  quota_events_per_day?: number | null;
 }
+
+// The columns every read of a key returns. Written once: a limit missing from one
+// of three near-identical SELECTs is exactly how it came to be unenforced.
+const COLUMNS = `id, brand, name, scopes, created_by, created_at, last_used_at,
+                 revoked_at, quota_events_per_day::int`;
 
 // Same shape as the publishable one, different prefix: both are recognisable at
 // a glance in a log line, which is when it matters most.
@@ -70,7 +80,7 @@ export async function createSecretKey(
   const rows = await query<SecretKey>(
     `INSERT INTO api_keys (id, brand, kind, secret_hash, name, scopes, created_by)
      VALUES ($1, $2, 'secret', $3, $4, $5, $6)
-     RETURNING id, brand, name, scopes, created_by, created_at, last_used_at, revoked_at`,
+     RETURNING ${COLUMNS}`,
     [id, brand, await sha256hex(secret), name, [...scopes], createdBy],
   );
   if (!rows?.[0]) throw new Error("could not write the key to the database");
@@ -85,7 +95,7 @@ export async function resolveSecretKey(presented: string | null): Promise<Secret
   const parts = splitSecret(presented);
   if (!parts) return null;
   const rows = await query<SecretKey>(
-    `SELECT id, brand, name, scopes, created_by, created_at, last_used_at, revoked_at
+    `SELECT ${COLUMNS}
        FROM api_keys
       WHERE id = $1 AND kind = 'secret' AND secret_hash = $2 AND revoked_at IS NULL`,
     [parts.id, await sha256hex(parts.secret)],
@@ -103,7 +113,7 @@ export async function resolveSecretKey(presented: string | null): Promise<Secret
 export async function listSecretKeys(brand: string | null): Promise<SecretKey[]> {
   if (!databaseEnabled()) return [];
   const rows = await query<SecretKey>(
-    `SELECT id, brand, name, scopes, created_by, created_at, last_used_at, revoked_at
+    `SELECT ${COLUMNS}
        FROM api_keys
       WHERE kind = 'secret' AND ($1::text IS NULL OR brand = $1)
       ORDER BY created_at DESC`,
@@ -119,7 +129,7 @@ export async function revokeSecretKey(id: string): Promise<SecretKey | null> {
   const rows = await query<SecretKey>(
     `UPDATE api_keys SET revoked_at = now()
       WHERE id = $1 AND kind = 'secret' AND revoked_at IS NULL
-      RETURNING id, brand, name, scopes, created_by, created_at, last_used_at, revoked_at`,
+      RETURNING ${COLUMNS}`,
     [id],
   );
   return rows?.[0] ?? null;

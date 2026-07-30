@@ -25,6 +25,15 @@ export function shouldPersist(level: Level): boolean {
   return PERSISTED_LEVELS.includes(level);
 }
 
+// A logger must not be the thing that throws. `JSON.stringify` refuses a BigInt,
+// and the driver hands one back for every bigint column — a job's id among them —
+// so logging a failed job used to raise a TypeError from inside the failure
+// handler, which is the worst possible moment to lose both the line and the
+// caller. Numbers that big are for reading, so text is the honest rendering.
+function serializable(_key: string, value: unknown): unknown {
+  return typeof value === "bigint" ? value.toString() : value;
+}
+
 export function log(level: Level, msg: string, fields: Record<string, unknown> = {}): void {
   const entry: Record<string, unknown> = {
     ts: new Date().toISOString(),
@@ -34,8 +43,12 @@ export function log(level: Level, msg: string, fields: Record<string, unknown> =
     env: config.envName,
     ...fields,
   };
-  (level === "error" ? console.error : console.log)(JSON.stringify(entry));
-  if (shouldPersist(level)) persist(entry);
+  const rendered = JSON.stringify(entry, serializable);
+  (level === "error" ? console.error : console.log)(rendered);
+  // The rendered form, not the raw entry: the value the console refuses would be
+  // refused again by the storage write, where it surfaces as an unhandled
+  // rejection rather than as a line anybody sees.
+  if (shouldPersist(level)) persist(JSON.parse(rendered));
 }
 
 function persist(entry: Record<string, unknown>): void {

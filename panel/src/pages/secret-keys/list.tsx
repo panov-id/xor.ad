@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { useGetIdentity, useList } from "@refinedev/core";
 import { api } from "../../providers/api";
-import { type Permission, PERMISSIONS } from "../../access";
+import { KEY_ONLY_SCOPES, type Permission, PERMISSIONS } from "../../access";
 import type { PanelIdentity } from "../../providers/auth";
 import { Badge } from "../../components/badge";
 import { DataTable } from "../../components/data-table";
@@ -25,6 +25,8 @@ type SecretKeyRow = {
   created_at: string;
   last_used_at: string | null;
   revoked_at: string | null;
+  quota_events_per_day: number | null;
+  used_today?: number;
 };
 
 type BrandRow = { id: string; key: string; name: string };
@@ -53,9 +55,13 @@ export const SecretKeysList = () => {
   const [busy, setBusy] = useState(false);
 
   // A key may never hold more than its issuer does — the relay refuses it
-  // anyway, so the list only offers what would be accepted.
+  // anyway, so the list only offers what would be accepted. The key-only scopes
+  // are the exception at both ends: nobody holds them, and the relay accepts them
+  // from any issuer for their own brand, so filtering them out here would leave a
+  // tenant with nothing to pick.
   const offered = PERMISSIONS.filter((permission) =>
-    identity?.permissions?.includes(permission) ?? false
+    KEY_ONLY_SCOPES.includes(permission) ||
+    (identity?.permissions?.includes(permission) ?? false)
   );
 
   const toggle = (permission: Permission) =>
@@ -97,6 +103,33 @@ export const SecretKeysList = () => {
     } catch {
       setStatus({ kind: "err", text: "Couldn't copy — select the key and copy it manually." });
     }
+  };
+
+  const setQuota = async (row: SecretKeyRow, raw: string) => {
+    const trimmed = raw.trim();
+    const next = trimmed === "" ? null : Number(trimmed);
+    if (next !== null && (!Number.isFinite(next) || next < 1)) {
+      setStatus({ kind: "err", text: "A quota is a positive number of requests per day, or empty for unlimited." });
+      return;
+    }
+    if (next === row.quota_events_per_day) return; // nothing typed, nothing to say
+    setStatus(null);
+    const response = await api(`/admin/secret-keys/${encodeURIComponent(row.id)}/quota`, {
+      method: "PATCH",
+      body: JSON.stringify({ quota_events_per_day: next }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setStatus({ kind: "err", text: body.error ?? "Setting the quota failed" });
+      return;
+    }
+    setStatus({
+      kind: "ok",
+      text: next === null
+        ? "Quota cleared — this key is unlimited again."
+        : `Quota set to ${next} requests a day. It applies within about ten seconds.`,
+    });
+    query.refetch();
   };
 
   const revoke = async (row: SecretKeyRow) => {
@@ -190,6 +223,34 @@ export const SecretKeysList = () => {
             label: "Scopes",
             render: (row) => (
               <>{row.scopes.map((scope) => <Badge key={scope} tone="info">{scope}</Badge>)}</>
+            ),
+          },
+          {
+            key: "quota_events_per_day",
+            label: "Today / limit",
+            render: (row) => (
+              <span className="quota-cell">
+                <span className="quota-used">{row.used_today ?? 0}</span>
+                <span className="quota-slash">/</span>
+                {isPlatform && !row.revoked_at
+                  ? (
+                    <input
+                      type="number"
+                      min={1}
+                      className="quota-input"
+                      defaultValue={row.quota_events_per_day ?? ""}
+                      placeholder="∞"
+                      aria-label={`Daily limit for ${row.id}`}
+                      // On blur rather than on every keystroke: a quota is a
+                      // decision, not a slider.
+                      onBlur={(event) => void setQuota(row, event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") event.currentTarget.blur();
+                      }}
+                    />
+                  )
+                  : <span>{row.quota_events_per_day ?? "∞"}</span>}
+              </span>
             ),
           },
           {

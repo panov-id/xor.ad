@@ -41,12 +41,23 @@ docker run -d --name "$container" --network "$network" --network-alias postgres 
 
 # Ready means "answering", not "started": the container is up long before the
 # first connection is accepted, and migrating too early fails on a race.
+#
+# Over TCP, and not the unix socket. The image runs a temporary server to create
+# the database, and that one listens on the socket alone — the log says
+# "listening on Unix socket" and nothing more, while the real server also says
+# "listening on IPv4 address". A socket probe therefore answers "accepting
+# connections" during initialisation, and the check right after it can land in
+# the tenth of a second between that server stopping and the real one starting.
+# Which is exactly what it did: three runs in a row failed, the same script
+# under `bash -x` passed.
+ready() { docker exec "$container" pg_isready -h 127.0.0.1 -U relay -d relay_test >/dev/null 2>&1; }
 for _ in $(seq 40); do
-  if docker exec "$container" pg_isready -U relay -d relay_test >/dev/null 2>&1; then break; fi
+  if ready; then break; fi
   sleep 0.5
 done
-docker exec "$container" pg_isready -U relay -d relay_test >/dev/null || {
+ready || {
   echo "postgres did not become ready" >&2
+  docker logs "$container" 2>&1 | tail -20 >&2
   exit 1
 }
 

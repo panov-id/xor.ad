@@ -8,7 +8,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
-api="http://localhost:8081"
+api="http://localhost:62080"
 secret="local-panel-secret"   # matches relay/local/docker-compose.yml
 data="$root/relay/local/data"
 

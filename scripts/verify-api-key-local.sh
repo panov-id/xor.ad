@@ -8,7 +8,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-api="http://localhost:8081"
+api="http://localhost:62080"
 stamp="$(date +%s)"
 
 echo "== bringing up the local stand"

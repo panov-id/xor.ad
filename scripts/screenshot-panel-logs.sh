@@ -4,8 +4,8 @@
 # needs the panel dev server and the relay stand, no Supabase.
 #
 # Prerequisites:
-#   relay/local/docker-compose.yml   up   (relay  -> :8081)
-#   scripts/run-panel-dev-local.sh   up   (panel  -> :5174)
+#   relay/local/docker-compose.yml   up   (relay  -> :62080)
+#   scripts/run-panel-dev-local.sh   up   (panel  -> :62174)
 #
 # Output: testing/screenshots/panel-*.png
 set -euo pipefail
@@ -15,7 +15,7 @@ deno_image="denoland/deno:alpine-2.1.4"
 # The base Playwright image ships browsers but not the npm package; the panel's
 # own test image adds it, so that one is reused here.
 playwright_image="panel-tests-runner"
-panel_url="${PANEL_URL:-http://localhost:5174}"
+panel_url="${PANEL_URL:-http://localhost:62174}"
 secret="local-panel-secret"   # matches relay/local/docker-compose.yml
 
 mkdir -p "$root/testing/screenshots"

@@ -6,8 +6,8 @@
 export const GATEWAY_PORT = process.env.GATEWAY_PORT ?? "8080";
 export const SOSED_URL = `http://sosed.place:${GATEWAY_PORT}`;
 export const NEIGHBRO_URL = `http://neighbro.place:${GATEWAY_PORT}`;
-// The stand publishes the node on 8081 (8080 belongs to the gateway).
-export const RELAY_URL = process.env.RELAY_URL ?? "http://localhost:8081";
+// The stand publishes the node on 62080 (8080 belongs to the gateway).
+export const RELAY_URL = process.env.RELAY_URL ?? "http://localhost:62080";
 // The stand signs sessions with a throwaway secret, so a token minted from it is
 // only ever valid against that stand.
 export const SESSION_SECRET = process.env.SESSION_SECRET ?? "local-panel-secret";

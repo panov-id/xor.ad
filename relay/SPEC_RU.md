@@ -160,7 +160,7 @@ staging → prod; prod за гейтом **опубликованного рел
 ## 12. Локальный стенд
 
 `local/` — самодостаточный: node (fs storage, почта → Mailpit) + Mailpit + Dozzle.
-`docker compose up`; node `:8081`, Mailpit `:8025`, Dozzle `:8090`; waitlist-JSON
+`docker compose up`; node `:62080`, Mailpit `:62025`, Dozzle `:62090`; waitlist-JSON
 в `./data`.
 
 ## 13. Runbook (частые операции)

@@ -6,8 +6,8 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
-api="http://localhost:8081"
-database="postgres://relay:local@localhost:5433/relay"
+api="http://localhost:62080"
+database="postgres://relay:local@localhost:62432/relay"
 
 run_tool() { # $1… = deno args
   docker run --rm --network host -v "$root/relay/node":/node -w /node \

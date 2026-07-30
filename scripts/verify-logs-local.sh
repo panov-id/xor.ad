@@ -9,9 +9,16 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
-api="http://localhost:8081"
+api="http://localhost:62080"
 secret="local-panel-secret"   # matches relay/local/docker-compose.yml
-seed_dir="$root/relay/local/data/client-errors/local"
+# Records are a brand's, and live under its prefix (lib/scoped_storage.ts). The
+# platform's default view merges the brands; the bare root collection is the
+# pre-tenancy archive and is reachable only as ?brand=platform, so seeding there
+# — as this script used to — asks the route for records it no longer looks at.
+data="$root/relay/local/data"
+sosed_dir="$data/tenants/sosed/client-errors/local"
+neighbro_dir="$data/tenants/neighbro/client-errors/local"
+archive_dir="$data/client-errors/local"
 
 echo "== bringing up the local stand"
 docker compose -f "$root/relay/local/docker-compose.yml" up -d --build node >/dev/null
@@ -23,12 +30,12 @@ done
 curl -fsS "$api/health" >/dev/null || { echo "stand did not come up"; exit 1; }
 
 echo "== seeding client-error records with known timestamps"
-rm -rf "$seed_dir"
-mkdir -p "$seed_dir"
+rm -rf "$sosed_dir" "$neighbro_dir" "$archive_dir"
+mkdir -p "$sosed_dir" "$neighbro_dir" "$archive_dir"
 # fs storage reports mtime as the record's creation time, so the timestamps are
 # set explicitly: minutes ago -> newest, days ago -> outside a short window.
-seed() { # $1 = minutes ago, $2 = kind, $3 = message
-  local file="$seed_dir/$(uuidgen 2>/dev/null || python3 -c 'import uuid;print(uuid.uuid4())').json"
+seed() { # $1 = minutes ago, $2 = kind, $3 = message, $4 = directory
+  local file="$4/$(uuidgen 2>/dev/null || python3 -c 'import uuid;print(uuid.uuid4())').json"
   cat > "$file" <<JSON
 {
   "kind": "$2",
@@ -46,11 +53,16 @@ JSON
   touch -d "$1 minutes ago" "$file"
 }
 
-seed 2 "fetch-failed" "Failed to fetch /waitlist"
-seed 7 "render" "Cannot read properties of undefined"
-seed 20 "fetch-failed" "Failed to fetch /client-error"
-seed 90 "render" "Hydration mismatch"
-seed 4320 "legacy" "Three days old — outside every short window"
+# Across two brands, so the platform's default page proves it merges rather than
+# reads one collection and stops.
+seed 2 "fetch-failed" "Failed to fetch /waitlist" "$sosed_dir"
+seed 7 "render" "Cannot read properties of undefined" "$neighbro_dir"
+seed 20 "fetch-failed" "Failed to fetch /client-error" "$sosed_dir"
+seed 90 "render" "Hydration mismatch" "$neighbro_dir"
+seed 4320 "legacy" "Three days old — outside every short window" "$sosed_dir"
+# The pre-tenancy archive: nothing writes here any more, and the default view no
+# longer merges it, so its own record checks that ?brand=platform still opens it.
+seed 30 "archive" "Written before tenancy, still readable" "$archive_dir"
 
 echo "== minting session tokens"
 mint() {
@@ -81,7 +93,7 @@ summary() { # reads /tmp/logs-body.json
 }
 
 echo
-echo "== whole collection (no window)"
+echo "== whole collection (no window; expects the 5 brand records, merged, no archive)"
 echo "   HTTP $(call '' "$admin_token")"
 summary
 
@@ -99,6 +111,16 @@ cursor="$(docker run --rm -v /tmp/logs-body.json:/body.json "$image" deno eval '
   const page = JSON.parse(await Deno.readTextFile("/body.json"));
   console.log(page.rows.at(-1).stored_at);' 2>/dev/null | tail -1)"
 echo "   older than $cursor -> HTTP $(call "?limit=2&before=$cursor" "$admin_token")"
+summary
+
+echo
+echo "== one brand (expects only sosed's 3)"
+echo "   HTTP $(call '?brand=sosed' "$admin_token")"
+summary
+
+echo
+echo "== the pre-tenancy archive (expects its 1 record, which no other view shows)"
+echo "   HTTP $(call '?brand=platform' "$admin_token")"
 summary
 
 echo

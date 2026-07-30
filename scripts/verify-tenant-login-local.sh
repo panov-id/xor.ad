@@ -9,8 +9,8 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
-api="http://localhost:8081"
-mailpit="http://localhost:8025"
+api="http://localhost:62080"
+mailpit="http://localhost:62025"
 secret="local-panel-secret"   # matches relay/local/docker-compose.yml
 tenant_email="tenant-boss@example.com"
 

@@ -1,11 +1,14 @@
 # Local stand — vжух: `docker compose up` and everything's here.
-#   node    http://localhost:8081   the API (fs storage, mail -> Mailpit)
-#   Mailpit http://localhost:8025   catches welcome emails
-#   Dozzle  http://localhost:8090   live container logs in the browser
+#   node    http://localhost:62080   the API (fs storage, mail -> Mailpit)
+#   Mailpit http://localhost:62025   catches welcome emails
+#   Dozzle  http://localhost:62090   live container logs in the browser
 # Waitlist objects land in ./data/waitlist/local/*.json so you can eyeball them.
 name: edge-node-local
 services:
   node:
+    # the API itself: tens of MB at rest, room for a burst of requests
+    mem_limit: 512m
+    cpus: 1.0
     build: { context: ../node }
     restart: unless-stopped
     depends_on:
@@ -29,16 +32,19 @@ services:
       # Panel control plane. A throwaway local secret so /auth/* and /admin/*
       # can be exercised on the stand; magic links land on the panel dev server.
       SESSION_SECRET: local-panel-secret
-      PANEL_URL: http://localhost:5173
+      PANEL_URL: http://localhost:62173
     volumes:
       - ./data:/data
-    ports: ["8081:8080"]           # 8080 on the host is the xor.ad gateway
+    ports: ["62080:8080"]           # 8080 on the host is the xor.ad gateway
 
   # The control-state schema, applied once per `up`. On a real box the wizard
   # does this before the node starts; the stand had no equivalent, so brands and
   # keys simply never worked here and every verify-*-local.sh script carried its
   # own copy of the incantation.
   migrate:
+    # one-shot: applies the schema and exits
+    mem_limit: 256m
+    cpus: 0.5
     build: { context: ../node }
     restart: "no"
     depends_on:
@@ -49,12 +55,15 @@ services:
     command: ["run", "--allow-env", "--allow-net", "--allow-read", "tools/migrate_db.ts"]
 
   postgres:
+    # control state for a stand, not a production dataset
+    mem_limit: 512m
+    cpus: 0.75
     image: postgres:16-alpine
     environment:
       POSTGRES_PASSWORD: local
       POSTGRES_USER: relay
       POSTGRES_DB: relay
-    ports: ["5433:5432"]
+    ports: ["62432:5432"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U relay"]
       interval: 2s
@@ -62,12 +71,18 @@ services:
       retries: 15
 
   mailpit:
+    # holds the letters a stand sends, in memory, and few of them
+    mem_limit: 128m
+    cpus: 0.25
     image: axllent/mailpit:latest
     restart: unless-stopped
-    ports: ["8025:8025"]           # web UI (SMTP on 1025, internal)
+    ports: ["62025:8025"]           # web UI (SMTP on 1025, internal)
 
   dozzle:
+    # tails container logs; the work is the browser's
+    mem_limit: 128m
+    cpus: 0.25
     image: amir20/dozzle:latest
     restart: unless-stopped
     volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
-    ports: ["8090:8080"]
+    ports: ["62090:8080"]

@@ -7,6 +7,9 @@
 
 services:
   visual-tests:
+    # screenshots at several viewports, one Chromium
+    mem_limit: 3g
+    cpus: 2.0
     build: ./testing
     # Write screenshots as the host user, not root, so git doesn't choke on
     # root-owned output files. HOST_UID/HOST_GID are exported by the runner.

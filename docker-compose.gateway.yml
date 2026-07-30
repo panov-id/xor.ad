@@ -16,6 +16,9 @@
 
 services:
   nginx:
+    # static files and one proxy_pass
+    mem_limit: 128m
+    cpus: 0.5
     container_name: xor-ad-gateway
     image: nginx:1.27-alpine
     restart: unless-stopped

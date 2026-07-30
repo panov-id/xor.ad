@@ -16,14 +16,14 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
-api="http://localhost:8081"
+api="http://localhost:62080"
 secret="local-panel-secret"
 
 echo "== stand"
 docker compose -f "$root/relay/local/docker-compose.yml" up -d --build node postgres >/dev/null
 for _ in $(seq 30); do curl -fsS "$api/health" >/dev/null 2>&1 && break; sleep 1; done
 docker run --rm --network host -v "$root/relay/node":/node -w /node \
-  -e DATABASE_URL='postgres://relay:local@localhost:5433/relay' "$image" \
+  -e DATABASE_URL='postgres://relay:local@localhost:62432/relay' "$image" \
   deno run --allow-env --allow-net --allow-read tools/migrate_db.ts 2>/dev/null | tail -1
 
 token="$(docker run --rm -e SESSION_SECRET="$secret" -v "$root/relay/node":/node -w /node "$image" \

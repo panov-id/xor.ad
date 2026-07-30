@@ -9,7 +9,7 @@ set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
-api="http://localhost:8081"
+api="http://localhost:62080"
 psql() { docker exec -i edge-node-local-postgres-1 psql -U relay -d relay -tAc "$1"; }
 
 echo "== bringing up the stand (migrations run before the node)"

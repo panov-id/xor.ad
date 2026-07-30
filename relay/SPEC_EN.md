@@ -161,7 +161,7 @@ rollback = redeploy the previous `vX.Y.Z`.
 ## 12. Local stand
 
 `local/` — self-contained: node (fs storage, mail → Mailpit) + Mailpit + Dozzle.
-`docker compose up`; node `:8081`, Mailpit `:8025`, Dozzle `:8090`; waitlist JSON
+`docker compose up`; node `:62080`, Mailpit `:62025`, Dozzle `:62090`; waitlist JSON
 in `./data`.
 
 ## 13. Runbook (common tasks)

@@ -2,12 +2,15 @@
 #
 # Drives the real waitlist form through the xor.ad gateway and verifies the lead
 # reached the relay node. Host networking so the gateway (localhost:8080) and the
-# node (localhost:8081) resolve as on the host; Chromium's host-resolver-rules
+# node (localhost:62080) resolve as on the host; Chromium's host-resolver-rules
 # map the face hostnames to the gateway.
 #
 # Requires the gateway + the relay stand to be up. Run: scripts/run-landing-tests.sh
 services:
   landing-tests:
+    # drives a real Chromium; the browser is the whole cost
+    mem_limit: 3g
+    cpus: 2.0
     build: ./testing
     network_mode: host
     command: npm test

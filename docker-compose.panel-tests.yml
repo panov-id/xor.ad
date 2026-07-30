@@ -1,12 +1,15 @@
 # Panel E2E / responsive test runner (Playwright in Docker).
 #
-# Uses host networking so localhost:5173 (panel dev server) and localhost:8081
+# Uses host networking so localhost:62173 (panel dev server) and localhost:62080
 # (the relay stand) resolve exactly as on the host.
 #
 # Requires the panel dev server and the relay stand to be up first.
 # Run: scripts/run-panel-tests.sh
 services:
   panel-tests:
+    # drives a real Chromium; the browser is the whole cost
+    mem_limit: 3g
+    cpus: 2.0
     build: ./panel/tests
     network_mode: host
     # Write screenshots/report as the host user, not root, so git doesn't choke

@@ -1,17 +1,20 @@
 # Local dev server for the admin panel (Refine + Vite), hot-reloading.
 # Run: docker compose -f docker-compose.panel.yml up
-# Then open http://localhost:5173
+# Then open http://localhost:62173
 #
 # Talks to the local relay stand (relay/local), which must be up — the panel has
 # no backend of its own.
 services:
   panel-dev:
+    # npm install and a Vite dev server — the install is the peak
+    mem_limit: 2g
+    cpus: 2.0
     image: node:22-bookworm
     working_dir: /app
     volumes:
       - ./panel:/app
     environment:
-      VITE_RELAY_API_URL: http://localhost:8081
+      VITE_RELAY_API_URL: http://localhost:62080
     ports:
-      - "5173:5173"
+      - "62173:5173"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"

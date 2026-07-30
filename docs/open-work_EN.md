@@ -173,8 +173,18 @@ landing, the migration always before the flag.
       before control state moved into Postgres. One `GET /admin/brands` against
       production answers it — a brand marked `environment` with no row means it
       was affected. The cure is the same `003`, arriving with the next image.
-- [ ] **B6. Secret (server-to-server) keys** — the second key type from
-      section 1 of `api-platform_*`, together with the public `/v1`.
+- [x] **B6. Secret (server-to-server) keys** — the second key type from
+      section 1 of `api-platform_*`, together with the public `/v1`. The code
+      arrived in `d87a721` but the item was never ticked; verified on the stand
+      and closed on 2026-07-30.
+
+      A key is minted with scopes, and the secret is **shown once** and never
+      readable back — the listing returns the key without it. `/v1` identifies
+      the caller by the secret, and repeating a request answers the same and
+      writes nothing twice (`idempotent-replay: true`, one lead at the tenant).
+      The scope is the limit: a wrong secret and a keyless call get 401, a tenant
+      asking for `logs.server.read` gets 403, a revoked key gets 401.
+      Checked by `scripts/verify-secret-keys-local.sh`.
 
 ## C. Tenancy: review leftovers
 
@@ -405,7 +415,7 @@ went on looking functional. Removed:
       `github-secrets.example.json` rewritten around the relay's keys; the
       Custom-SMTP-in-Supabase-Auth step removed from `setup-panov-id-email.sh`;
       the panel's dev fallback pointed at `localhost:8080`, the gateway, which
-      does not serve `/admin` — corrected to the stand on `8081`.
+      does not serve `/admin` — corrected to the stand on `62080`.
 - [x] **H6. The Supabase stack is off the machine** — 2026-07-29. Eleven
       containers and the `xorad_default` network removed, `supabase/` and
       `functions/` deleted. The 2026-07-22 backup is intact:

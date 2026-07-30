@@ -4,7 +4,7 @@
 // silently shipping a localhost target and masking a misconfigured deploy.
 // The local relay stand (relay/local). Not 8080 — that is the landing gateway,
 // which serves the faces and proxies only their public routes, never /admin.
-const DEV_URL = "http://localhost:8081";
+const DEV_URL = "http://localhost:62080";
 
 function required(value: string | undefined, devFallback: string, name: string): string {
   if (value) return value;

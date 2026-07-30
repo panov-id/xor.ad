@@ -5,12 +5,19 @@
 set -euo pipefail
 LOCAL="$(cd "$(dirname "$0")/../local" && pwd)"
 cd "$LOCAL"
-NODE=http://localhost:8081
-MAILPIT=http://localhost:8025
+NODE=http://localhost:62080
+MAILPIT=http://localhost:62025
 
 cleanup() { docker compose down -v >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
+# Down before the wipe, not only after. ./data is bind-mounted, so removing it
+# under a stand another script left running swaps the inode the container holds:
+# it keeps writing into the deleted directory and every mkdir answers ENOENT.
+# `up -d` would not save us — it does not recreate a container whose config has
+# not changed, so the node would never see the new directory. On a fresh machine
+# this is a no-op, which is why CI never caught it.
+cleanup
 rm -rf data && mkdir -p data && chmod 777 data   # fresh + writable by the container's non-root user (uid may differ from the host, e.g. CI)
 docker compose up -d --build >/tmp/relay-int.log 2>&1 || { echo "up failed"; tail -20 /tmp/relay-int.log; exit 1; }
 

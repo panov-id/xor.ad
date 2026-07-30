@@ -29,8 +29,13 @@
       /* The kit's own scaffolding. Deliberately not part of the system: nothing
          here should be copied into the panel, which is why every class is
          prefixed and none of them touch a component. */
+      /* One ruler for the whole page. The column used to be 1100px while the
+         prose inside it stopped at 68ch, so every section had two right edges —
+         612px of text against a 1052px box. The column is now the measure
+         itself: text and examples begin and end on the same two lines, and
+         nothing needs a max-width of its own. */
       .kit-page {
-        max-width: 1100px;
+        max-width: 760px;
         margin: 0 auto;
         padding: var(--space-6) var(--space-5) var(--space-7);
       }
@@ -44,7 +49,6 @@
       }
       .kit-lede {
         color: var(--ink-muted);
-        max-width: 60ch;
         margin: var(--space-2) 0 0;
       }
       .kit-themes {
@@ -84,7 +88,6 @@
       }
       .kit-note {
         color: var(--ink-muted);
-        max-width: 68ch;
         margin: 0 0 var(--space-4);
       }
       .kit-item {
@@ -97,14 +100,18 @@
       }
       .kit-why {
         color: var(--ink-muted);
-        max-width: 68ch;
         margin: 0 0 var(--space-3);
       }
+      /* An example is one card: the demo on top, the markup folded underneath,
+         a hairline between them. The floor on the height is what stops the page
+         lurching — a row of badges is 57px and a sidebar is 383, and with
+         nothing underneath them the eye reads the difference as a stutter. */
       .kit-demo {
         background: var(--surface);
         border: 1px solid var(--line);
-        border-radius: var(--radius);
+        border-radius: var(--radius) var(--radius) 0 0;
         padding: var(--space-4);
+        min-height: 96px;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -113,12 +120,56 @@
       .kit-demo.kit-demo-block {
         display: block;
       }
+
+      /* Folded, and closed by default. The markup blocks ran from 43px to 655 —
+         the log toolbar's listing was twice the height of the thing it
+         described — so the code, not the components, was setting the rhythm of
+         a page whose job is to show components. It is one click away. */
+      .kit-fold {
+        border: 1px solid var(--line);
+        border-top: none;
+        border-radius: 0 0 var(--radius) var(--radius);
+        background: var(--surface);
+      }
+      .kit-fold > summary {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-micro);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-muted);
+        cursor: pointer;
+        user-select: none;
+        list-style: none;
+        border-radius: 0 0 var(--radius) var(--radius);
+      }
+      /* Two vendors, one triangle: the default marker sits in a different place
+         in each, and this one has to line up with the text beside it. */
+      .kit-fold > summary::-webkit-details-marker {
+        display: none;
+      }
+      .kit-fold > summary::before {
+        content: "▸";
+        font-size: 0.9em;
+      }
+      .kit-fold[open] > summary::before {
+        content: "▾";
+      }
+      .kit-fold > summary:hover {
+        color: var(--ink);
+        background: var(--surface-sunken);
+      }
+      .kit-fold[open] > summary {
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+      }
       .kit-source {
         margin: 0;
         padding: var(--space-3);
         background: var(--surface-sunken);
-        border: 1px solid var(--line);
-        border-top: none;
+        border: none;
         border-radius: 0 0 var(--radius) var(--radius);
         font-size: var(--text-micro);
         line-height: 1.5;
@@ -126,9 +177,6 @@
         color: var(--ink-muted);
         white-space: pre;
         tab-size: 2;
-      }
-      .kit-demo:has(+ .kit-source) {
-        border-radius: var(--radius) var(--radius) 0 0;
       }
       .kit-swatches {
         display: grid;
@@ -677,10 +725,15 @@
         return lines.map((line) => line.slice(indent)).join("\n");
       }
       for (const demo of document.querySelectorAll("[data-source]")) {
+        const fold = document.createElement("details");
+        fold.className = "kit-fold";
+        const summary = document.createElement("summary");
+        summary.textContent = "Markup";
         const source = document.createElement("pre");
         source.className = "kit-source";
         source.textContent = tidy(demo.innerHTML);
-        demo.after(source);
+        fold.append(summary, source);
+        demo.after(fold);
       }
     </script>
   </body>

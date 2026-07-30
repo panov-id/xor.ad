@@ -1,0 +1,849 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="3656" viewBox="0 0 1440 3656" font-family="Inter, system-ui, sans-serif">
+  <title>xor.ad panel — UI kit v3: the full inventory</title>
+  <desc>
+    A mockup, not the implementation. Real geometry: 2px frames, 4px hard offset
+    shadows, radius 6, control height 36, the light palette's real values.
+    v3 adds the HTML5 inventory, corrects the focus treatment (accent only) and
+    the held state in a row (no travel).
+  </desc>
+
+  <style>
+    @font-face { font-family: "Inter"; font-weight: 400 700;
+      src: url(/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2) format("woff2"); }
+    @font-face { font-family: "Unbounded"; font-weight: 700;
+      src: url(/fonts/Yq6W-LOTXCb04q32xlpwu8Zf.woff2) format("woff2"); }
+    .display { font-family: "Unbounded", "Inter", sans-serif; font-weight: 700; fill: #14140f; }
+    .body  { font-size: 14px; font-weight: 500; fill: #14140f; }
+    .muted { font-size: 13px; font-weight: 500; fill: #5b5b55; }
+    .micro { font-size: 11px; font-weight: 700; fill: #5b5b55; letter-spacing: 0.7px; }
+    .mono  { font-family: ui-monospace, Menlo, monospace; font-size: 11px; fill: #5b5b55; }
+    .flabel{ font-size: 11px; font-weight: 700; fill: #14140f; letter-spacing: 0.3px; }
+    .note  { font-size: 11px; font-weight: 500; fill: #3355dd; font-style: italic; }
+    .bad   { font-size: 11px; font-weight: 600; fill: #b3261e; }
+    .good  { font-size: 11px; font-weight: 600; fill: #1a7f37; }
+  </style>
+
+  <defs>
+    <!-- one card: shadow behind, frame in front -->
+    <g id="card-352"><rect x="4" y="4" width="352" height="0"/></g>
+  </defs>
+
+  <rect width="1440" height="3656" fill="#f2f2f0"/>
+
+  <!-- ============================================================== RAIL === -->
+  <g>
+    <rect x="0" y="0" width="240" height="3656" fill="#ffffff"/>
+    <rect x="238" y="0" width="2" height="3656" fill="#14140f"/>
+    <text x="24" y="52" class="micro">XOR.AD PANEL</text>
+    <text x="24" y="80" class="display" font-size="20">UI kit</text>
+    <text x="24" y="100" class="mono">v3 — full inventory</text>
+
+    <rect x="26" y="120" width="192" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+    <path d="M42 138 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 M46 142 l4,4" fill="none" stroke="#5b5b55" stroke-width="2"/>
+    <text x="60" y="143" class="muted">Filter</text>
+
+    <text x="24" y="196" class="micro">FOUNDATIONS</text>
+    <g class="body">
+      <text x="28" y="224">Colour · space · depth</text>
+      <text x="28" y="252">Type</text>
+      <text x="28" y="280">Focus</text>
+    </g>
+    <text x="24" y="320" class="micro">CONTROLS</text>
+    <g class="body">
+      <rect x="16" y="332" width="208" height="28" rx="6" fill="#3355dd"/>
+      <text x="28" y="351" style="fill:#ffffff" font-weight="700">Buttons</text>
+      <text x="28" y="380">Selection</text>
+      <text x="28" y="408">Text inputs</text>
+      <text x="28" y="436">Pickers</text>
+    </g>
+    <text x="24" y="476" class="micro">FEEDBACK</text>
+    <g class="body">
+      <text x="28" y="504">Alerts</text>
+      <text x="28" y="532">Progress</text>
+      <text x="28" y="560">Empty · error · loading</text>
+    </g>
+    <text x="24" y="600" class="micro">NAVIGATION</text>
+    <g class="body">
+      <text x="28" y="628">Tabs</text>
+      <text x="28" y="656">Pagination</text>
+      <text x="28" y="684">Breadcrumb · links</text>
+    </g>
+    <text x="24" y="724" class="micro">OVERLAYS</text>
+    <g class="body">
+      <text x="28" y="752">Menu</text>
+      <text x="28" y="780">Tooltip</text>
+      <text x="28" y="808">Dialog</text>
+    </g>
+    <text x="24" y="848" class="micro">DATA</text>
+    <g class="body">
+      <text x="28" y="876">Table</text>
+      <text x="28" y="904">Badges · tags</text>
+      <text x="28" y="932">Code · keys</text>
+    </g>
+
+    <g transform="translate(0,980)">
+      <rect x="30" y="4" width="184" height="36" rx="6" fill="#14140f"/>
+      <rect x="26" y="0" width="184" height="36" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <text x="118" y="24" class="body" font-size="13" text-anchor="middle">Light · Dark · System</text>
+    </g>
+  </g>
+
+  <!-- ========================================================== MASTHEAD === -->
+  <g transform="translate(288,48)">
+    <rect x="0" y="0" width="1104" height="104" rx="6" fill="#14140f"/>
+    <text x="28" y="48" class="display" font-size="28" style="fill:#f2f2f0">The inventory<tspan fill="#7d9bff">.</tspan></text>
+    <text x="28" y="78" class="body" style="fill:#f2f2f0;opacity:0.75">
+      Every control the panel has or will want, plus two corrections: focus, and what a held button does in a row.
+    </text>
+  </g>
+
+  <!-- ============================================================= FOCUS === -->
+  <g transform="translate(288,188)">
+    <text x="0" y="20" class="display" font-size="22">Focus</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+    <text x="0" y="58" class="muted">One event, one line. The frame turns accent — nothing is drawn around it.</text>
+  </g>
+
+  <g transform="translate(288,262)">
+    <!-- was -->
+    <rect x="0" y="0" width="536" height="152" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <g transform="translate(20,18)">
+      <rect x="0" y="0" width="18" height="18" rx="4" fill="#b3261e"/>
+      <path d="M5 5 l8 8 M13 5 l-8 8" fill="none" stroke="#ffffff" stroke-width="3"/>
+      <text x="28" y="14" class="body" font-weight="700">Was — two lines for one event</text>
+    </g>
+    <g transform="translate(24,58)">
+      <rect x="-4" y="-4" width="228" height="44" rx="10" fill="none" stroke="#3355dd" stroke-width="2"/>
+      <rect x="0" y="0" width="220" height="36" rx="6" fill="#ffffff" stroke="#3355dd" stroke-width="2"/>
+      <text x="14" y="24" class="body">ops@<tspan fill="#3355dd">|</tspan></text>
+    </g>
+    <text x="24" y="138" class="muted">A frame and a ring around it: one event, drawn twice.</text>
+
+    <!-- is -->
+    <g transform="translate(568,0)">
+      <rect x="0" y="0" width="536" height="152" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <g transform="translate(20,18)">
+        <rect x="0" y="0" width="18" height="18" rx="4" fill="#1a7f37"/>
+        <path d="M4 9 l4 4 l6 -7" fill="none" stroke="#ffffff" stroke-width="3"/>
+        <text x="28" y="14" class="body" font-weight="700">Is — the frame, and only the frame</text>
+      </g>
+      <g transform="translate(24,58)">
+        <rect x="0" y="0" width="220" height="36" rx="6" fill="#ffffff" stroke="#3355dd" stroke-width="2"/>
+        <text x="14" y="24" class="body">ops@<tspan fill="#3355dd">|</tspan></text>
+      </g>
+      <text x="264" y="74" class="mono">border-color: --accent</text>
+      <text x="264" y="90" class="mono">and no outline at all</text>
+      <text x="264" y="112" class="mono">3.07:1 against the resting frame —</text>
+      <text x="264" y="128" class="mono">over the 3:1 a state change needs</text>
+      <text x="24" y="138" class="muted">Applies to every focusable thing, not only fields.</text>
+    </g>
+  </g>
+
+  <!-- =========================================================== BUTTONS === -->
+  <g transform="translate(288,444)">
+    <text x="0" y="20" class="display" font-size="22">Buttons</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+    <text x="0" y="58" class="muted">Intent chooses the fill; the shadow is the same for all of them.</text>
+  </g>
+
+  <g transform="translate(288,518)">
+    <rect x="0" y="0" width="1104" height="440" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+
+    <text x="24" y="30" class="micro">INTENT</text>
+    <g transform="translate(24,44)">
+      <!-- primary -->
+      <g><rect x="4" y="4" width="108" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="108" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/>
+         <text x="54" y="24" class="body" font-size="13" style="fill:#ffffff" text-anchor="middle">Mint key</text></g>
+      <text x="0" y="58" class="mono">primary — one per view</text>
+      <!-- secondary -->
+      <g transform="translate(180,0)">
+         <rect x="4" y="4" width="108" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="108" height="36" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <text x="54" y="24" class="body" font-size="13" text-anchor="middle">Refresh</text>
+         <text x="0" y="58" class="mono">secondary — default</text></g>
+      <!-- danger -->
+      <g transform="translate(360,0)">
+         <rect x="4" y="4" width="108" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="108" height="36" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/>
+         <text x="54" y="24" class="body" font-size="13" fill="#b3261e" text-anchor="middle">Revoke</text>
+         <text x="0" y="58" class="mono">danger, in a row — see below</text></g>
+      <!-- ghost -->
+      <g transform="translate(540,0)">
+         <rect x="0" y="0" width="108" height="36" rx="6" fill="none" stroke="#d9d9d4" stroke-width="2"/>
+         <text x="54" y="24" class="body" font-size="13" fill="#5b5b55" text-anchor="middle">Cancel</text>
+         <text x="0" y="58" class="mono">ghost — no depth, no weight</text></g>
+      <!-- link -->
+      <g transform="translate(720,0)">
+         <text x="0" y="24" class="body" font-size="13" fill="#3355dd" text-decoration="underline">Learn more</text>
+         <text x="0" y="58" class="mono">link — inline in prose</text></g>
+      <!-- icon -->
+      <g transform="translate(880,0)">
+         <rect x="4" y="4" width="36" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <path d="M12 18 h12 M18 12 v12" stroke="#14140f" stroke-width="2"/>
+         <text x="0" y="58" class="mono">icon — square, labelled</text></g>
+    </g>
+
+    <line x1="2" y1="140" x2="1102" y2="140" stroke="#d9d9d4" stroke-width="1"/>
+
+    <text x="24" y="166" class="micro">SIZE · WITH ICON · LOADING · FULL WIDTH</text>
+    <g transform="translate(24,180)">
+      <g transform="translate(0,16)"><rect x="3" y="3" width="76" height="28" rx="5" fill="#14140f"/>
+         <rect x="0" y="0" width="76" height="28" rx="5" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <text x="38" y="19" class="body" font-size="12" text-anchor="middle">Small 28</text></g>
+      <g transform="translate(96,8)">
+         <rect x="4" y="4" width="92" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="92" height="36" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <text x="46" y="24" class="body" font-size="13" text-anchor="middle">Default 36</text></g>
+      <g transform="translate(208,0)">
+         <rect x="4" y="4" width="104" height="44" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="104" height="44" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <text x="52" y="28" class="body" text-anchor="middle">Large 44</text></g>
+      <!-- with icon -->
+      <g transform="translate(340,8)">
+         <rect x="4" y="4" width="132" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="132" height="36" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <path d="M16 18 l5 5 l9 -11" fill="none" stroke="#1a7f37" stroke-width="2.5"/>
+         <text x="44" y="24" class="body" font-size="13">Approve</text></g>
+      <!-- loading -->
+      <g transform="translate(492,8)">
+         <rect x="0" y="0" width="120" height="36" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2" opacity="0.6"/>
+         <path d="M22 18 a8 8 0 1 1 6 7.7" fill="none" stroke="#5b5b55" stroke-width="2.5"/>
+         <text x="44" y="24" class="body" font-size="13" fill="#5b5b55">Minting…</text></g>
+      <!-- full width -->
+      <g transform="translate(636,8)">
+         <rect x="4" y="4" width="412" height="36" rx="6" fill="#14140f"/>
+         <rect x="0" y="0" width="412" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/>
+         <text x="206" y="24" class="body" font-size="13" style="fill:#ffffff" text-anchor="middle">Full width — the only action on a phone</text></g>
+    </g>
+
+    <line x1="2" y1="240" x2="1102" y2="240" stroke="#d9d9d4" stroke-width="1"/>
+
+    <text x="24" y="270" class="micro">A BUTTON GROUP — ONE ACTION, ONE ALTERNATIVE</text>
+    <g transform="translate(24,286)">
+      <text x="0" y="16" class="muted">Cancel</text>
+      <g transform="translate(72,-2)">
+        <rect x="4" y="4" width="112" height="28" rx="5" fill="#14140f"/>
+        <rect x="0" y="0" width="112" height="28" rx="5" fill="#3355dd" stroke="#14140f" stroke-width="2"/>
+        <text x="56" y="19" class="body" font-size="12" style="fill:#ffffff" text-anchor="middle">Send invite</text>
+      </g>
+      <text x="212" y="16" class="mono">the quiet one first, the committing one last and right</text>
+    </g>
+
+    <line x1="2" y1="336" x2="1102" y2="336" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="24" y="360" class="micro">DANGER COMES IN TWO — AND THEY ARE NOT INTERCHANGEABLE</text>
+    <g transform="translate(24,372)">
+      <!-- among other actions -->
+      <rect x="4" y="4" width="108" height="36" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="108" height="36" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/>
+      <text x="54" y="24" class="body" font-size="13" fill="#b3261e" text-anchor="middle">Revoke…</text>
+      <text x="126" y="16" class="body" font-size="13" font-weight="700">Outlined — danger among other actions.</text>
+      <text x="126" y="34" class="mono">In a row, a table, a menu. It opens a confirmation; the ellipsis says so.</text>
+
+      <!-- the confirmation itself -->
+      <g transform="translate(560,0)">
+        <rect x="4" y="4" width="108" height="36" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="108" height="36" rx="6" fill="#b3261e" stroke="#14140f" stroke-width="2"/>
+        <text x="54" y="24" class="body" font-size="13" style="fill:#ffffff" text-anchor="middle">Revoke key</text>
+        <text x="126" y="16" class="body" font-size="13" font-weight="700">Filled — the confirmation.</text>
+        <text x="126" y="34" class="mono">Only inside a dialog, once, as the thing that does it.</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========================================================= SELECTION === -->
+  <g transform="translate(288,984)">
+    <text x="0" y="20" class="display" font-size="22">Selection</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+    <text x="0" y="58" class="muted">Shape carries meaning: square is many, round is one, a track is on or off.</text>
+  </g>
+
+  <g transform="translate(288,1058)">
+    <!-- checkbox / radio -->
+    <rect x="0" y="0" width="352" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">CHECKBOX · MANY OF</text>
+    <g transform="translate(20,40)">
+      <g><rect x="2" y="2" width="18" height="18" rx="3" fill="#14140f"/>
+         <rect x="0" y="0" width="18" height="18" rx="3" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <text x="28" y="14" class="body" font-size="13">unchecked</text></g>
+      <g transform="translate(0,30)">
+         <rect x="0" y="0" width="18" height="18" rx="3" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+         <path d="M4 9 l3.5 3.5 l6 -7" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+         <text x="28" y="14" class="body" font-size="13">checked</text></g>
+      <g transform="translate(0,60)">
+         <rect x="0" y="0" width="18" height="18" rx="3" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+         <rect x="4" y="8" width="10" height="2.5" fill="#ffffff"/>
+         <text x="28" y="14" class="body" font-size="13">indeterminate — some children</text></g>
+      <g transform="translate(0,90)" opacity="0.5">
+         <rect x="0" y="0" width="18" height="18" rx="3" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+         <text x="28" y="14" class="body" font-size="13">disabled</text></g>
+      <g transform="translate(0,120)">
+         <rect x="0" y="0" width="18" height="18" rx="3" fill="#ffffff" stroke="#3355dd" stroke-width="2"/>
+         <text x="28" y="14" class="body" font-size="13">focus</text></g>
+    </g>
+
+    <!-- radio -->
+    <g transform="translate(376,0)">
+      <rect x="0" y="0" width="352" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">RADIO · ONE OF</text>
+      <g transform="translate(20,40)">
+        <g><circle cx="10" cy="9" r="9" fill="#14140f" transform="translate(2,2)"/>
+           <circle cx="10" cy="9" r="9" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="28" y="14" class="body" font-size="13">every 15 minutes</text></g>
+        <g transform="translate(0,30)">
+           <circle cx="10" cy="9" r="9" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+           <circle cx="10" cy="9" r="3.6" fill="#ffffff"/>
+           <text x="28" y="14" class="body" font-size="13">hourly</text></g>
+        <g transform="translate(0,60)" opacity="0.5">
+           <circle cx="10" cy="9" r="9" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="28" y="14" class="body" font-size="13">daily — needs a paid plan</text></g>
+      </g>
+      <text x="20" y="164" class="mono">grouped by a fieldset, named by a legend</text>
+      <text x="20" y="184" class="mono">— a radio without a group is a bug</text>
+    </g>
+
+    <!-- switch -->
+    <g transform="translate(752,0)">
+      <rect x="0" y="0" width="352" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">SWITCH · TAKES EFFECT AT ONCE</text>
+      <g transform="translate(20,44)">
+        <rect x="2" y="2" width="52" height="28" rx="14" fill="#14140f"/>
+        <rect x="0" y="0" width="52" height="28" rx="14" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        <circle cx="14" cy="14" r="9" fill="#14140f"/>
+        <text x="66" y="19" class="body" font-size="13">off</text>
+      </g>
+      <g transform="translate(20,86)">
+        <rect x="0" y="0" width="52" height="28" rx="14" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+        <circle cx="38" cy="14" r="9" fill="#ffffff"/>
+        <text x="66" y="19" class="body" font-size="13">on</text>
+      </g>
+      <text x="20" y="152" class="mono">a switch acts immediately; a checkbox waits</text>
+      <text x="20" y="170" class="mono">for the form to be submitted. Never mix them.</text>
+    </g>
+  </g>
+
+  <!-- the corrected held state -->
+  <g transform="translate(288,1294)">
+    <rect x="0" y="0" width="1104" height="146" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="24" y="28" class="micro">SEGMENTED — AND THE CORRECTION YOU ASKED FOR</text>
+
+    <!-- wrong -->
+    <g transform="translate(24,46)">
+      <rect x="0" y="0" width="18" height="18" rx="4" fill="#b3261e"/>
+      <path d="M5 5 l8 8 M13 5 l-8 8" fill="none" stroke="#ffffff" stroke-width="3"/>
+      <text x="26" y="14" class="body" font-size="13" font-weight="700">travels — breaks the row</text>
+      <g transform="translate(0,30)">
+        <g><rect x="4" y="4" width="48" height="32" rx="6" fill="#14140f"/>
+           <rect x="0" y="0" width="48" height="32" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="24" y="21" class="body" font-size="12" text-anchor="middle">1h</text></g>
+        <g transform="translate(60,4)">
+           <rect x="0" y="0" width="48" height="32" rx="6" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+           <text x="24" y="21" class="body" font-size="12" style="fill:#ffffff" text-anchor="middle">24h</text></g>
+        <g transform="translate(120,0)">
+           <rect x="4" y="4" width="48" height="32" rx="6" fill="#14140f"/>
+           <rect x="0" y="0" width="48" height="32" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="24" y="21" class="body" font-size="12" text-anchor="middle">7d</text></g>
+        <line x1="-6" y1="0" x2="180" y2="0" stroke="#b3261e" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="190" y="20" class="bad">the chosen one sits 4px lower than its neighbours</text>
+      </g>
+    </g>
+
+    <!-- right -->
+    <g transform="translate(568,46)">
+      <rect x="0" y="0" width="18" height="18" rx="4" fill="#1a7f37"/>
+      <path d="M4 9 l4 4 l6 -7" fill="none" stroke="#ffffff" stroke-width="3"/>
+      <text x="26" y="14" class="body" font-size="13" font-weight="700">stays — the fill carries the state</text>
+      <g transform="translate(0,30)">
+        <g><rect x="4" y="4" width="48" height="32" rx="6" fill="#14140f"/>
+           <rect x="0" y="0" width="48" height="32" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="24" y="21" class="body" font-size="12" text-anchor="middle">1h</text></g>
+        <g transform="translate(60,0)">
+           <rect x="0" y="0" width="48" height="32" rx="6" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+           <text x="24" y="21" class="body" font-size="12" style="fill:#ffffff" text-anchor="middle">24h</text></g>
+        <g transform="translate(120,0)">
+           <rect x="4" y="4" width="48" height="32" rx="6" fill="#14140f"/>
+           <rect x="0" y="0" width="48" height="32" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="24" y="21" class="body" font-size="12" text-anchor="middle">7d</text></g>
+        <line x1="-6" y1="0" x2="180" y2="0" stroke="#1a7f37" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="190" y="20" class="good">one baseline; no shadow because it is in, not on</text>
+      </g>
+    </g>
+    <text x="24" y="132" class="mono">Rule: travel belongs to :active — momentary, watched. A state that persists keeps its place and changes fill.</text>
+  </g>
+
+  <!-- ======================================================== TEXT INPUTS == -->
+  <g transform="translate(288,1500)">
+    <text x="0" y="20" class="display" font-size="22">Text inputs</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+    <text x="0" y="58" class="muted">Same box, different jobs. Every one labelled; the placeholder only ever shows an example.</text>
+  </g>
+
+  <g transform="translate(288,1574)">
+    <!-- text / email -->
+    <rect x="0" y="0" width="352" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">TEXT · EMAIL · URL</text>
+    <line x1="20" y1="34" x2="332" y2="34" stroke="#d9d9d4" stroke-width="1"/>
+    <g transform="translate(20,52)">
+      <text x="0" y="0" class="flabel">Name</text>
+      <rect x="0" y="8" width="312" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+      <text x="14" y="32" class="body">nightly importer</text>
+    </g>
+    <g transform="translate(20,124)">
+      <text x="0" y="-8" class="flabel">Email</text>
+      <rect x="0" y="0" width="312" height="36" rx="6" fill="#f7f7f5" stroke="#b3261e" stroke-width="2"/>
+      <text x="14" y="24" class="body">ops@sosed</text>
+      <text x="0" y="52" class="bad">Needs a domain — ops@sosed.test</text>
+    </g>
+
+    <!-- password -->
+    <g transform="translate(376,0)">
+      <rect x="0" y="0" width="352" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">PASSWORD · WITH A REVEAL</text>
+      <g transform="translate(20,44)">
+        <rect x="0" y="0" width="312" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="14" y="24" class="body" letter-spacing="2">••••••••••</text>
+        <g transform="translate(270,6)">
+          <path d="M0 12 q12 -10 24 0 q-12 10 -24 0" fill="none" stroke="#5b5b55" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3.5" fill="#5b5b55"/>
+        </g>
+      </g>
+      <text x="20" y="112" class="mono">the reveal is a button inside the field,</text>
+      <text x="20" y="128" class="mono">not a second control beside it</text>
+      <text x="20" y="152" class="note">never disable paste</text>
+    </g>
+
+    <!-- number -->
+    <g transform="translate(752,0)">
+      <rect x="0" y="0" width="352" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">NUMBER · WITH STEPPERS</text>
+      <g transform="translate(20,44)">
+        <rect x="0" y="0" width="180" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="14" y="24" class="body" font-variant="tabular-nums">5 000</text>
+        <line x1="140" y1="0" x2="140" y2="36" stroke="#14140f" stroke-width="2"/>
+        <path d="M152 14 l6 -6 l6 6" fill="none" stroke="#14140f" stroke-width="2"/>
+        <path d="M152 24 l6 6 l6 -6" fill="none" stroke="#14140f" stroke-width="2"/>
+        <text x="196" y="24" class="muted">requests / day</text>
+      </g>
+      <text x="20" y="112" class="mono">right-aligned digits, tabular figures,</text>
+      <text x="20" y="128" class="mono">the unit outside the box</text>
+    </g>
+  </g>
+
+  <g transform="translate(288,1798)">
+    <!-- search -->
+    <rect x="0" y="0" width="352" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">SEARCH · WITH A CLEAR</text>
+    <g transform="translate(20,44)">
+      <rect x="0" y="0" width="312" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+      <path d="M20 18 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M25 23 l5,5" fill="none" stroke="#5b5b55" stroke-width="2"/>
+      <text x="40" y="24" class="body">panel_users</text>
+      <g transform="translate(284,10)">
+        <circle cx="8" cy="8" r="8" fill="#d9d9d4"/>
+        <path d="M5 5 l6 6 M11 5 l-6 6" stroke="#14140f" stroke-width="2"/>
+      </g>
+    </g>
+    <text x="20" y="112" class="mono">filters as you type; the clear is always</text>
+    <text x="20" y="128" class="mono">reachable, and Esc does the same</text>
+
+    <!-- select -->
+    <g transform="translate(376,0)">
+      <rect x="0" y="0" width="352" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">SELECT · CLOSED, OPEN</text>
+      <g transform="translate(20,44)">
+        <rect x="0" y="0" width="150" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="14" y="24" class="body">sosed</text>
+        <path d="M124 15 l6 6 l6 -6" fill="none" stroke="#14140f" stroke-width="2"/>
+      </g>
+      <g transform="translate(186,44)">
+        <rect x="4" y="4" width="146" height="98" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="146" height="98" rx="6" fill="#ffffff" stroke="#3355dd" stroke-width="2"/>
+        <rect x="2" y="2" width="142" height="28" rx="4" fill="#3355dd"/>
+        <text x="14" y="21" class="body" font-size="13" style="fill:#ffffff">sosed</text>
+        <text x="14" y="50" class="body" font-size="13">neighbro</text>
+        <text x="14" y="78" class="body" font-size="13">platform</text>
+      </g>
+    </g>
+
+    <!-- date / time -->
+    <g transform="translate(752,0)">
+      <rect x="0" y="0" width="352" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">DATE · TIME · RANGE</text>
+      <g transform="translate(20,44)">
+        <rect x="0" y="0" width="150" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="14" y="24" class="body" font-variant="tabular-nums">30.07.2026</text>
+        <rect x="120" y="8" width="20" height="20" rx="3" fill="none" stroke="#5b5b55" stroke-width="2"/>
+        <line x1="120" y1="14" x2="140" y2="14" stroke="#5b5b55" stroke-width="2"/>
+      </g>
+      <g transform="translate(186,44)">
+        <rect x="0" y="0" width="110" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="14" y="24" class="body" font-variant="tabular-nums">10:24</text>
+      </g>
+      <text x="20" y="112" class="mono">the range is two fields with one label,</text>
+      <text x="20" y="128" class="mono">the second never earlier than the first</text>
+    </g>
+  </g>
+
+  <g transform="translate(288,2002)">
+    <!-- textarea -->
+    <rect x="0" y="0" width="352" height="200" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">TEXTAREA</text>
+    <g transform="translate(20,40)">
+      <rect x="0" y="0" width="312" height="104" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+      <text x="14" y="24" class="body">Two lines of a note that wraps and</text>
+      <text x="14" y="44" class="body">keeps its own height.</text>
+      <path d="M296 92 l8 -8 M290 92 l14 -14" stroke="#5b5b55" stroke-width="2"/>
+      <text x="0" y="126" class="mono">grows down only, never sideways</text>
+    </g>
+    <text x="20" y="186" class="mono">counter appears past 80% of the limit</text>
+
+    <!-- file -->
+    <g transform="translate(376,0)">
+      <rect x="0" y="0" width="352" height="200" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">FILE · DROP TARGET</text>
+      <g transform="translate(20,40)">
+        <rect x="0" y="0" width="312" height="72" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="156" y="32" class="body" font-size="13" text-anchor="middle">Drop a CSV here</text>
+        <text x="156" y="52" class="muted" font-size="12" text-anchor="middle">or <tspan fill="#3355dd" text-decoration="underline">choose a file</tspan></text>
+      </g>
+      <g transform="translate(20,126)">
+        <rect x="0" y="0" width="312" height="36" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="2"/>
+        <text x="12" y="23" class="body" font-size="13">leads-july.csv</text>
+        <text x="200" y="23" class="mono">248 KB</text>
+        <path d="M290 12 l10 10 M300 12 l-10 10" stroke="#b3261e" stroke-width="2"/>
+      </g>
+      <text x="20" y="186" class="mono">what was chosen is shown, and removable</text>
+    </g>
+
+    <!-- range / colour -->
+    <g transform="translate(752,0)">
+      <rect x="0" y="0" width="352" height="200" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">RANGE · COLOUR</text>
+      <g transform="translate(20,52)">
+        <rect x="0" y="8" width="312" height="8" rx="4" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <rect x="0" y="8" width="180" height="8" rx="4" fill="#3355dd"/>
+        <g transform="translate(172,-2)">
+          <rect x="2" y="2" width="20" height="24" rx="4" fill="#14140f"/>
+          <rect x="0" y="0" width="20" height="24" rx="4" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        </g>
+        <text x="0" y="46" class="mono">0</text>
+        <text x="150" y="46" class="mono">the value, always shown: 5 000</text>
+        <text x="300" y="46" class="mono">10k</text>
+      </g>
+      <g transform="translate(20,132)">
+        <rect x="2" y="2" width="44" height="32" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="44" height="32" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/>
+        <text x="58" y="21" class="body" font-size="13">#3355dd</text>
+        <text x="150" y="21" class="mono">a swatch that opens a picker</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- =========================================================== FEEDBACK == -->
+  <g transform="translate(288,2236)">
+    <text x="0" y="20" class="display" font-size="22">Feedback</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+    <text x="0" y="58" class="muted">Say what happened, and what to do about it. Colour never carries the message alone.</text>
+  </g>
+
+  <g transform="translate(288,2310)">
+    <!-- alerts -->
+    <rect x="0" y="0" width="536" height="228" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">ALERT · FOUR INTENTS</text>
+    <g transform="translate(20,38)">
+      <rect x="0" y="0" width="496" height="36" rx="6" fill="#ffffff" stroke="#3355dd" stroke-width="2"/>
+      <rect x="2" y="2" width="6" height="32" fill="#3355dd"/>
+      <text x="20" y="23" class="body" font-size="13">The key is shown once. Copy it now.</text>
+    </g>
+    <g transform="translate(20,82)">
+      <rect x="0" y="0" width="496" height="36" rx="6" fill="#ffffff" stroke="#1a7f37" stroke-width="2"/>
+      <rect x="2" y="2" width="6" height="32" fill="#1a7f37"/>
+      <text x="20" y="23" class="body" font-size="13">Invitation sent to ops@sosed.test.</text>
+    </g>
+    <g transform="translate(20,126)">
+      <rect x="0" y="0" width="496" height="36" rx="6" fill="#ffffff" stroke="#b26a00" stroke-width="2"/>
+      <rect x="2" y="2" width="6" height="32" fill="#b26a00"/>
+      <text x="20" y="23" class="body" font-size="13">This key has no origins — it will be refused.</text>
+    </g>
+    <g transform="translate(20,170)">
+      <rect x="0" y="0" width="496" height="36" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/>
+      <rect x="2" y="2" width="6" height="32" fill="#b3261e"/>
+      <text x="20" y="23" class="body" font-size="13">The relay did not answer.</text>
+      <text x="404" y="23" class="body" font-size="13" fill="#3355dd" text-decoration="underline">Try again</text>
+    </g>
+
+    <!-- progress / meter / spinner / skeleton -->
+    <g transform="translate(568,0)">
+      <rect x="0" y="0" width="536" height="228" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">PROGRESS · METER · WAITING</text>
+
+      <g transform="translate(20,42)">
+        <rect x="0" y="0" width="360" height="16" rx="8" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <rect x="2" y="2" width="226" height="12" rx="6" fill="#3355dd"/>
+        <text x="376" y="13" class="mono">64% · known length</text>
+      </g>
+      <g transform="translate(20,74)">
+        <rect x="0" y="0" width="360" height="16" rx="8" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <rect x="60" y="2" width="120" height="12" rx="6" fill="#5b5b55"/>
+        <text x="376" y="13" class="mono">unknown — it moves</text>
+      </g>
+      <g transform="translate(20,106)">
+        <rect x="0" y="0" width="360" height="16" rx="8" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <rect x="2" y="2" width="326" height="12" rx="6" fill="#b26a00"/>
+        <text x="376" y="13" class="mono">quota 4 620 / 5 000</text>
+      </g>
+
+      <g transform="translate(20,146)">
+        <path d="M12 12 a12 12 0 1 1 9 11.6" fill="none" stroke="#14140f" stroke-width="3"/>
+        <text x="40" y="18" class="body" font-size="13">Loading…</text>
+      </g>
+      <g transform="translate(180,140)">
+        <rect x="0" y="0" width="180" height="12" rx="6" fill="#f7f7f5"/>
+        <rect x="0" y="20" width="140" height="12" rx="6" fill="#f7f7f5"/>
+        <rect x="0" y="40" width="160" height="12" rx="6" fill="#f7f7f5"/>
+        <text x="196" y="30" class="mono">skeleton — keeps the layout</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========================================================= NAVIGATION == -->
+  <g transform="translate(288,2562)">
+    <text x="0" y="20" class="display" font-size="22">Navigation</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(288,2614)">
+    <!-- tabs -->
+    <rect x="0" y="0" width="352" height="180" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">TABS</text>
+    <g transform="translate(20,44)">
+      <text x="0" y="16" class="body" font-size="13" font-weight="700">Publishable</text>
+      <rect x="0" y="24" width="88" height="3" fill="#3355dd"/>
+      <text x="104" y="16" class="muted">Secret</text>
+      <text x="176" y="16" class="muted">Revoked</text>
+      <line x1="0" y1="26" x2="312" y2="26" stroke="#d9d9d4" stroke-width="1"/>
+    </g>
+    <text x="20" y="116" class="mono">the chosen one is weight plus a rule,</text>
+    <text x="20" y="132" class="mono">not a box — a tab is not a button</text>
+    <text x="20" y="158" class="mono">aria-selected, and the panel is labelled by it</text>
+
+    <!-- pagination -->
+    <g transform="translate(376,0)">
+      <rect x="0" y="0" width="352" height="180" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">PAGINATION</text>
+      <g transform="translate(20,44)">
+        <g><rect x="2" y="2" width="30" height="30" rx="5" fill="#14140f"/>
+           <rect x="0" y="0" width="30" height="30" rx="5" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <path d="M18 9 l-6 6 l6 6" fill="none" stroke="#14140f" stroke-width="2"/></g>
+        <g transform="translate(40,0)">
+           <rect x="0" y="0" width="30" height="30" rx="5" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+           <text x="15" y="20" class="body" font-size="12" style="fill:#ffffff" text-anchor="middle">1</text></g>
+        <g transform="translate(78,0)">
+           <rect x="2" y="2" width="30" height="30" rx="5" fill="#14140f"/>
+           <rect x="0" y="0" width="30" height="30" rx="5" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <text x="15" y="20" class="body" font-size="12" text-anchor="middle">2</text></g>
+        <text x="126" y="20" class="muted">…</text>
+        <g transform="translate(150,0)">
+           <rect x="2" y="2" width="30" height="30" rx="5" fill="#14140f"/>
+           <rect x="0" y="0" width="30" height="30" rx="5" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+           <path d="M12 9 l6 6 l-6 6" fill="none" stroke="#14140f" stroke-width="2"/></g>
+        <text x="200" y="20" class="mono">20 of 1 284</text>
+      </g>
+      <text x="20" y="128" class="mono">"load older" for a log — a cursor has no</text>
+      <text x="20" y="144" class="mono">page numbers to give</text>
+    </g>
+
+    <!-- breadcrumb / links -->
+    <g transform="translate(752,0)">
+      <rect x="0" y="0" width="352" height="180" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">BREADCRUMB · LINKS</text>
+      <g transform="translate(20,48)">
+        <text x="0" y="0" class="muted">Keys</text>
+        <text x="40" y="0" class="muted">/</text>
+        <text x="56" y="0" class="muted">Secret</text>
+        <text x="112" y="0" class="body" font-size="13" font-weight="700">ak_live_3bfd…</text>
+      </g>
+      <g transform="translate(20,86)">
+        <text x="0" y="0" class="body" font-size="13" fill="#3355dd" text-decoration="underline">a link in prose</text>
+        <text x="0" y="26" class="body" font-size="13" fill="#5b5b55" text-decoration="underline">visited</text>
+        <text x="0" y="52" class="body" font-size="13" fill="#3355dd" text-decoration="underline">external ↗</text>
+      </g>
+      <text x="20" y="164" class="mono">underlined always — colour alone is not a link</text>
+    </g>
+  </g>
+
+  <!-- =========================================================== OVERLAYS == -->
+  <g transform="translate(288,2830)">
+    <text x="0" y="20" class="display" font-size="22">Overlays</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(288,2882)">
+    <!-- menu -->
+    <rect x="0" y="0" width="352" height="232" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">MENU</text>
+    <g transform="translate(20,40)">
+      <rect x="4" y="4" width="120" height="32" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="120" height="32" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <text x="14" y="21" class="body" font-size="13">Actions</text>
+      <path d="M96 13 l5 5 l5 -5" fill="none" stroke="#14140f" stroke-width="2"/>
+    </g>
+    <g transform="translate(20,84)">
+      <rect x="4" y="4" width="220" height="108" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="220" height="108" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <rect x="2" y="2" width="216" height="30" rx="4" fill="#f7f7f5"/>
+      <text x="14" y="22" class="body" font-size="13">Rename</text>
+      <text x="14" y="52" class="body" font-size="13">Duplicate</text>
+      <line x1="2" y1="66" x2="218" y2="66" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="14" y="88" class="body" font-size="13" fill="#b3261e">Revoke…</text>
+    </g>
+    <text x="20" y="216" class="mono">destructive last, after a rule, with an ellipsis</text>
+
+    <!-- tooltip -->
+    <g transform="translate(376,0)">
+      <rect x="0" y="0" width="352" height="232" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">TOOLTIP</text>
+      <g transform="translate(60,64)">
+        <rect x="-14" y="0" width="212" height="34" rx="6" fill="#14140f"/>
+        <text x="92" y="22" class="body" font-size="12" style="fill:#f2f2f0" text-anchor="middle">Shown once — copy it now</text>
+        <path d="M86 34 l6 8 l6 -8" fill="#14140f"/>
+      </g>
+      <g transform="translate(126,110)">
+        <rect x="2" y="2" width="48" height="32" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="48" height="32" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        <text x="24" y="21" class="body" font-size="12" text-anchor="middle">Copy</text>
+      </g>
+      <text x="20" y="176" class="mono">a tooltip explains; it never holds the only</text>
+      <text x="20" y="192" class="mono">copy of something you need</text>
+    </g>
+
+    <!-- dialog -->
+    <g transform="translate(752,0)">
+      <rect x="0" y="0" width="352" height="232" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">DIALOG · DESTRUCTIVE</text>
+      <rect x="20" y="38" width="312" height="150" rx="6" fill="#f7f7f5"/>
+      <g transform="translate(36,52)">
+        <rect x="4" y="4" width="280" height="122" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="280" height="122" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        <text x="16" y="28" class="display" font-size="14">Revoke this key?</text>
+        <text x="16" y="52" class="muted" font-size="12">Anything using it stops working at once.</text>
+        <text x="16" y="70" class="muted" font-size="12">This cannot be undone.</text>
+        <text x="16" y="104" class="muted" font-size="12">Cancel</text>
+        <g transform="translate(158,86)">
+          <rect x="3" y="3" width="104" height="26" rx="5" fill="#14140f"/>
+          <rect x="0" y="0" width="104" height="26" rx="5" fill="#b3261e" stroke="#14140f" stroke-width="2"/>
+          <text x="52" y="18" class="body" font-size="12" style="fill:#ffffff" text-anchor="middle">Revoke key</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- =============================================================== DATA == -->
+  <g transform="translate(288,3130)">
+    <text x="0" y="20" class="display" font-size="22">Data</text>
+    <line x1="0" y1="34" x2="1104" y2="34" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(288,3182)">
+    <!-- table -->
+    <rect x="0" y="0" width="716" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="20" y="26" class="micro">TABLE · SORTABLE, SELECTABLE</text>
+    <g transform="translate(20,36)">
+      <rect x="0" y="0" width="676" height="30" rx="4" fill="#f7f7f5"/>
+      <g transform="translate(18,6)">
+        <rect x="0" y="0" width="16" height="16" rx="3" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+        <rect x="3.5" y="7" width="9" height="2.5" fill="#ffffff"/>
+      </g>
+      <text x="52" y="20" class="micro">EMAIL</text>
+      <g transform="translate(240,0)">
+        <text x="0" y="20" class="micro" style="fill:#14140f">ADDED</text>
+        <path d="M46 16 l4 -6 l4 6 z" fill="#14140f"/>
+      </g>
+      <text x="400" y="20" class="micro">ROLE</text>
+      <text x="560" y="20" class="micro">QUOTA</text>
+    </g>
+    <g transform="translate(20,66)">
+      <rect x="0" y="0" width="676" height="34" fill="#ffffff"/>
+      <g transform="translate(18,9)">
+        <rect x="0" y="0" width="16" height="16" rx="3" fill="#3355dd" stroke="#3355dd" stroke-width="2"/>
+        <path d="M3.5 8 l3 3 l5.5 -6" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+      </g>
+      <text x="52" y="22" class="body" font-size="13">ops@sosed.test</text>
+      <text x="242" y="22" class="body" font-size="13" font-variant="tabular-nums">30.07 10:24</text>
+      <text x="400" y="22" class="body" font-size="13">tenant_admin</text>
+      <text x="560" y="22" class="body" font-size="13" font-variant="tabular-nums">142 / 5 000</text>
+      <line x1="0" y1="34" x2="676" y2="34" stroke="#d9d9d4" stroke-width="1"/>
+    </g>
+    <g transform="translate(20,100)">
+      <rect x="0" y="0" width="676" height="34" rx="4" fill="#f7f7f5"/>
+      <g transform="translate(18,9)">
+        <rect x="0" y="0" width="16" height="16" rx="3" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      </g>
+      <text x="52" y="22" class="body" font-size="13">admin@local.test</text>
+      <text x="242" y="22" class="body" font-size="13" font-variant="tabular-nums">30.07 09:57</text>
+      <text x="400" y="22" class="body" font-size="13">admin</text>
+      <text x="560" y="22" class="body" font-size="13" font-variant="tabular-nums">— </text>
+    </g>
+    <text x="20" y="176" class="mono">numbers right and tabular; the sorted column says so in its head</text>
+
+    <!-- badges, tags, avatar, kbd, code -->
+    <g transform="translate(740,0)">
+      <rect x="0" y="0" width="364" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="20" y="26" class="micro">BADGE · TAG · AVATAR · KEY · CODE</text>
+      <g transform="translate(20,38)">
+        <rect x="0" y="0" width="66" height="22" rx="4" fill="#ffffff" stroke="#5b5b55" stroke-width="2"/>
+        <text x="33" y="16" class="body" font-size="12" text-anchor="middle">platform</text>
+        <rect x="76" y="0" width="78" height="22" rx="4" fill="#ffffff" stroke="#3355dd" stroke-width="2"/>
+        <text x="115" y="16" class="body" font-size="12" fill="#3355dd" text-anchor="middle">moderator</text>
+        <rect x="164" y="0" width="58" height="22" rx="4" fill="#ffffff" stroke="#b26a00" stroke-width="2"/>
+        <text x="193" y="16" class="body" font-size="12" fill="#8a5200" text-anchor="middle">retried</text>
+        <rect x="232" y="0" width="56" height="22" rx="4" fill="#ffffff" stroke="#b3261e" stroke-width="2"/>
+        <text x="260" y="16" class="body" font-size="12" fill="#b3261e" text-anchor="middle">denied</text>
+      </g>
+      <!-- removable tag -->
+      <g transform="translate(20,72)">
+        <rect x="0" y="0" width="120" height="26" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="12" y="18" class="body" font-size="12">waitlist.read</text>
+        <path d="M104 9 l8 8 M112 9 l-8 8" stroke="#14140f" stroke-width="2"/>
+        <text x="136" y="18" class="mono">a chosen scope, removable</text>
+      </g>
+      <!-- avatar -->
+      <g transform="translate(20,112)">
+        <circle cx="16" cy="16" r="16" fill="#3355dd"/>
+        <text x="16" y="21" class="body" font-size="13" style="fill:#ffffff" text-anchor="middle">OS</text>
+        <text x="44" y="14" class="body" font-size="13">ops@sosed.test</text>
+        <text x="44" y="30" class="mono">initials — we hold no pictures</text>
+      </g>
+      <!-- kbd + code -->
+      <g transform="translate(20,158)">
+        <rect x="0" y="0" width="30" height="22" rx="4" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        <text x="15" y="16" class="mono" style="fill:#14140f" text-anchor="middle">⌘</text>
+        <rect x="36" y="0" width="30" height="22" rx="4" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        <text x="51" y="16" class="mono" style="fill:#14140f" text-anchor="middle">K</text>
+        <rect x="82" y="0" width="200" height="22" rx="4" fill="#f7f7f5"/>
+        <text x="92" y="16" class="mono">GET /v1/waitlist</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================================== NOTE === -->
+  <g transform="translate(288,3418)">
+    <rect x="0" y="0" width="1104" height="152" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="24" y="30" class="micro">WHAT IS ALREADY BUILT, AND WHAT THIS ADDS</text>
+    <g class="body" font-size="13">
+      <text x="24" y="58" fill="#1a7f37" font-weight="700">Built:</text>
+      <text x="76" y="58">buttons · fields · ticks · badges · table · toolbar · breadcrumb · sidebar · empty/error/loading</text>
+      <text x="24" y="84" fill="#3355dd" font-weight="700">New here:</text>
+      <text x="100" y="84">button intents and sizes · switch · indeterminate · password · number steppers · search clear ·</text>
+      <text x="100" y="104">date/time · file drop · range · colour · alerts · progress/meter/skeleton · tabs · pagination ·</text>
+      <text x="100" y="124">menu · tooltip · dialog · sortable and selectable table · tags · avatar · kbd</text>
+    </g>
+  </g>
+
+  <g transform="translate(288,3590)">
+    <rect x="0" y="0" width="1104" height="40" rx="6" fill="#f7f7f5" stroke="#d9d9d4" stroke-width="2"/>
+    <text x="20" y="25" class="muted">
+      Mockup — panel/public/kit-mockup.svg. Nothing implemented yet; pick what is worth building and in what order.
+    </text>
+  </g>
+</svg>

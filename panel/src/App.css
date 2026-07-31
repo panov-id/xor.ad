@@ -27,18 +27,14 @@
   --danger-line: #b3261e;
   --danger-ink: #b3261e;
   /* Success had no token, so the one place that reports it wrote #3fb950 — a
-     green picked to read on black, used on white at 2.5:1. It is a role like any
-     other and gets a value per theme. */
-  --ok-line: #1a7f37;
+     green picked to read on black, used on white at 2.5:1. Only the ink is here:
+     there is no ok badge, so the -line half of the pair was never consumed. */
   --ok-ink: #1a7f37;
-  /* The hole, and it is drawn hard. It used to be ink at 20% alpha, which on a
-     4px step is a grey smear — a bevel from another decade, and the only soft
-     edge in a system where everything else is opaque and unblurred.
-     Direction is per theme, and for the reason the shadow has one: a recess lit
-     from the top-left is dark on its near wall, and on a dark page there is no
-     darker left to go. There the far wall catches the light instead, which is
-     the same hole seen in the same light — see --sunk in the dark blocks. */
-  --sunk-ink: #a8a8a2;
+  /* There is no recess token any more. A field was sunk by 4px until the rule
+     became "a shadow means you press this, flat with a fill means you type here";
+     the tokens outlived the rule by a while and are gone now. If a hole is ever
+     wanted again, it is `inset` in the light theme and `inset -` in the dark,
+     because on a near-black page there is nothing darker to reach. */
 
   /* A shadow is a role, not the border's colour borrowed. These were the same
      token, which worked in the light theme by luck and died in the dark one:
@@ -61,6 +57,10 @@
   --space-7: 48px;
 
   --radius: 6px;
+  /* For things smaller than a control, where 6 eats the whole corner: a badge and
+     the head of a histogram bar. Two radii, not the five the file had grown —
+     6, 4, 3, 2 and a circle, each written as a number where it was needed. */
+  --radius-small: 3px;
   --border-w: 2px;
   /* One height for anything you click or type into. Without it the height of a
      control is whatever its type and the font's metrics work out to: this page
@@ -70,6 +70,11 @@
      exception, and it gets a size rather than an accident. */
   --control-h: 36px;
   --control-h-small: 28px;
+  /* The same offset a control rests at, and deliberately so: a card stands off
+     the page for the same reason a button does. Law 1 governs which things may
+     carry depth — pressable ones and the surfaces that hold them — not whether
+     two of them may stand at the same height. Kept as its own name because a
+     card's depth and a control's are free to part company later. */
   --shadow-card: 4px 4px 0 var(--shadow-ink);
   --content-max: 1280px;
 
@@ -85,7 +90,6 @@
   --depth-rest: 4px 4px 0 var(--shadow-ink);
   --depth-hover: 6px 6px 0 var(--shadow-ink);
   --depth-small: 2px 2px 0 var(--shadow-ink);
-  --sunk: inset 4px 4px 0 var(--sunk-ink);
   --press: 4px;       /* exactly --depth-rest's offset: the thing lands on its shadow.
                          Only :active travels — a state that persists keeps its
                          place, or it drops out of the row it belongs to. */
@@ -117,14 +121,11 @@
     --warn-ink: #e8b768;
     --danger-line: #ef6a60;
     --danger-ink: #ef8078;
-    --ok-line: #3fb950;
     --ok-ink: #56d364;
     /* Lighter than the page, not darker — see the note on --shadow-ink. 6.99:1
        against the page here, where the old borrowed border colour managed 2.06
        and the reference libraries' black would manage 1.08. */
     --shadow-ink: #9a9aa6;
-    --sunk-ink: #5f5f6b;
-    --sunk: inset -4px -4px 0 var(--sunk-ink);
   }
 }
 
@@ -143,11 +144,8 @@
   --warn-ink: #8a5200;
   --danger-line: #b3261e;
   --danger-ink: #b3261e;
-  --ok-line: #1a7f37;
   --ok-ink: #1a7f37;
   --shadow-ink: #14140f;
-  --sunk-ink: #a8a8a2;
-  --sunk: inset 4px 4px 0 var(--sunk-ink);
 }
 :root[data-theme="dark"] {
   --page: #0d0d0c;
@@ -163,11 +161,8 @@
   --warn-ink: #e8b768;
   --danger-line: #ef6a60;
   --danger-ink: #ef8078;
-  --ok-line: #3fb950;
   --ok-ink: #56d364;
   --shadow-ink: #9a9aa6;
-  --sunk-ink: #5f5f6b;
-  --sunk: inset -4px -4px 0 var(--sunk-ink);
 }
 
 * {
@@ -211,14 +206,6 @@ h1 .dot {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-button:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-input:focus-visible {
-  border-color: var(--accent);
-  outline: none;
-}
-
 /* Layout */
 .layout {
   display: flex;
@@ -297,9 +284,13 @@ input:focus-visible {
   flex-direction: column;
   gap: 2px;
 }
+/* 38.5px against the 36px of the two buttons directly below it, because 8px of
+   padding plus a 1.5 line box does not land on --control-h by accident. */
 .menu a {
-  display: block;
-  padding: var(--space-2) var(--space-3);
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
   border-radius: var(--radius);
   color: var(--ink);
   text-decoration: none;
@@ -363,11 +354,12 @@ input:focus-visible {
   overflow-x: auto;
 }
 
+/* No frame of its own. The card around it is already a 2px frame 26px away, and a
+   second rectangle at half the weight inside the first is the nesting this system
+   spent its rebuild removing. The rules between rows are enough. */
 table.panel-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
 }
 .panel-table th,
 .panel-table td {
@@ -376,9 +368,15 @@ table.panel-table {
   text-align: left;
   vertical-align: top;
 }
+/* No `position: sticky` here, though it was tried. `.panel-card` carries
+   `overflow-x: auto` so a wide table scrolls inside the card rather than the page
+   — and CSS computes the other axis to `auto` with it, which makes the card a
+   scroll container. Sticky then resolves against a box that never scrolls
+   vertically, so the header simply left with the rest: measured at -272px after
+   scrolling 600. It was doing nothing but claiming to.
+   To bring it back, the table needs a scrollport of its own with a height —
+   which is a decision about how tall a log page should be, not a stylesheet fix. */
 .panel-table thead th {
-  position: sticky;
-  top: 0;
   background: var(--surface-sunken);
   font-family: var(--font-display);
   font-size: var(--text-micro);
@@ -389,7 +387,12 @@ table.panel-table {
 .panel-table tbody tr:nth-child(even of :not(.log-detail-row)) {
   background: var(--surface-sunken);
 }
-.panel-table tbody tr:hover {
+/* :not(.log-detail-row) is here for weight, not for meaning. The stripe above is
+   0,3,2 — `:nth-child(… of S)` adds S's own specificity — so a plain
+   `tbody tr:hover` at 0,2,2 lost, and exactly every second row answered a hover
+   while `.log-row` put a pointing hand on all of them. A state that lies is worse
+   than no state. */
+.panel-table tbody tr:hover:not(.log-detail-row) {
   background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 .panel-table tr:last-child td {
@@ -555,9 +558,11 @@ button[aria-pressed="true"] {
   border-color: var(--ink);
 }
 /* Focus on an inverted button cannot be the accent: read against the ink fill it
-   now sits on, --accent measures 2.82:1, under the 3:1 a state change needs. It
-   takes the colour it prints in instead — 16.5:1, and the same idea, since the
-   frame is still the thing that changes. */
+   now sits on, --accent measures 2.34:1 in the dark theme and 3.07:1 in the
+   light — so it fails exactly where the fill is brightest, and passes elsewhere
+   by a hair. It takes the colour it prints in instead: 16.5:1 in both, and the
+   same idea, since the frame is still the thing that changes.
+   (This comment first said 2.82:1, which is neither theme's number.) */
 button[aria-pressed="true"]:focus-visible {
   border-color: var(--page);
 }
@@ -570,7 +575,12 @@ button:disabled {
   box-shadow: none;
   transform: none;
   background: var(--surface);
-  border-color: var(--line);
+  /* --line, not --ink-muted, was the first attempt: 1.19:1 on white and 1.35:1
+     on the dark surface, which is the control erased rather than disabled — the
+     very failure `opacity` was banned for. The frame and the label now share
+     --ink-muted: 6.8:1 in both themes, plainly quieter than the 18.5:1 of an
+     enabled frame, and still there. */
+  border-color: var(--ink-muted);
   color: var(--ink-muted);
 }
 /* --- Intent --------------------------------------------------------------------
@@ -597,6 +607,71 @@ button:disabled {
   border-color: var(--danger-line);
   color: var(--danger-ink);
 }
+/* A button inside a table row is not a button on a page. At the full 36 and
+   carrying depth, twenty rows read as a field of floating buttons and the data
+   stops being the subject — the action should be reachable without out-shouting
+   what it acts on. So: shorter, smaller type, flat.
+
+   It gives up its depth, and with it the press — a control at rest on the surface
+   has nowhere to travel to. Hover answers with fill instead, which is the row's
+   own idiom. Specificity is spelled out rather than left to file order: the base
+   :active carries an extra :not([aria-pressed]) and would otherwise outweigh
+   this at (0,3,1) against (0,3,0). */
+.row-action {
+  min-height: var(--control-h-small);
+  padding: 2px var(--space-2);
+  font-size: var(--text-micro);
+  box-shadow: none;
+}
+.row-action:hover:not(:disabled) {
+  box-shadow: none;
+  background: var(--surface-sunken);
+}
+.row-action:active:not(:disabled):not([aria-pressed="true"]) {
+  transform: none;
+  box-shadow: none;
+}
+
+/* --- Focus --------------------------------------------------------------------
+   Written here, after the control rules, and at their weight or above. It used to
+   sit up with the global :focus-visible, where `input:focus-visible` (0,1,1) tied
+   with the base `input:not([type=checkbox],[type=radio])` (0,1,1) and lost on file
+   order — so a focused text field kept its resting frame while a select beside it
+   turned accent. The one control every person uses was the one with no focus at
+   all, and only a measurement caught it. */
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:not([type="checkbox"], [type="radio"]):focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+/* The ticks are drawn by us at 0,2,1, so the rule above could not reach them
+   either — and the outline they would have fallen back to was switched off. On
+   the secret-keys page that is fourteen controls you can tab through blind. */
+.scope-picker input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Where the frame cannot say it, the ring comes back.
+   Three controls colour their own frame before focus arrives: danger says so with
+   --danger-line, and a chosen range or a ticked scope is already filled with the
+   accent. Turning such a frame accent changes nothing a person can see — red to
+   blue at the same lightness measures 1.08:1 — so for these the state is drawn
+   outside, where it has the page to be seen against. It is still one line: here
+   the frame carries the intent, and the ring carries the state. */
+button.button-danger:focus-visible {
+  border-color: var(--danger-line);
+}
+button.button-danger:focus-visible,
+.log-ranges .range-active:focus-visible,
+.scope-picker input[type="checkbox"]:checked:focus-visible,
+input[type="radio"]:checked:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* A field that cannot be typed into is still the place the value goes, and says
    it is not available in the same words the buttons use: the frame goes quiet,
@@ -607,20 +682,29 @@ select:disabled,
 textarea:disabled,
 input:not([type="checkbox"], [type="radio"]):disabled {
   cursor: default;
-  border-color: var(--line);
+  border-color: var(--ink-muted);
   color: var(--ink-muted);
 }
 /* A tick is drawn rather than dressed, so it says it in the two things it has. */
 .scope-picker input[type="checkbox"]:disabled,
 input[type="radio"]:disabled {
   cursor: default;
-  border-color: var(--line);
+  border-color: var(--ink-muted);
   box-shadow: none;
 }
+/* Rendered since the custom range was added, styled never: a bare div laying two
+   36px fields and an arrow out on inline whitespace instead of the toolbar's gap. */
+.log-custom-range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .log-ranges {
   display: flex;
-  /* Room for the relief: at 2px the shadow of one range landed on the next. */
-  gap: var(--space-2);
+  /* 12, like every other toolbar. At 8 the shadow of one range landed against the
+     frame of the next — the same wall the outer toolbar was widened to avoid. */
+  gap: var(--space-3);
 }
 /* The active range is filled, not merely tinted: a range that only changed the
    text colour was hard to find in a row of identical buttons. It is also held
@@ -650,8 +734,12 @@ input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
-  width: 1.15em;
-  height: 1.15em;
+  /* Stated, not 1.15em. The shared font-size rule excludes [type=checkbox], so an
+     em here resolved against the browser's 13.33px default and produced a 15.3px
+     tick — the "height from the font's metrics" accident hunted out of every other
+     control, still living in this one. */
+  width: 18px;
+  height: 18px;
   margin: 0;
   padding: 0;
   border: var(--border-w) solid var(--line-strong);
@@ -670,7 +758,9 @@ input[type="radio"] {
 }
 .scope-picker input[type="checkbox"]:hover,
 input[type="radio"]:hover {
-  transform: translate(-1px, -1px);
+  /* Law 2, applied here last. It used to travel -1 -1, which made a column of
+     fifteen scopes twitch under a moving pointer — the only thing left in the
+     panel that moved without being pressed. Only the gap grows. */
   box-shadow: var(--depth-rest);
 }
 /* Chosen, and chosen is a state that persists — so like every other one it does
@@ -702,9 +792,12 @@ input[type="radio"]:checked::after {
 /* The scopes a key may be issued for: a list of ticks that had no styling at all,
    which is why they were the one place the panel still looked like a form from
    1998. */
+/* A grid, not a wrap. Fourteen labels of unequal length wrapped into six rows with
+   no two right edges alike; it was the ugliest block on the page. Columns give it
+   an edge to line up against, and auto-fill keeps it honest at any width. */
 .scope-picker {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
   gap: var(--space-2) var(--space-4);
   margin-bottom: var(--space-3);
 }
@@ -733,7 +826,7 @@ input[type="radio"]:checked::after {
   flex: 1;
   min-height: 2px;
   background: var(--accent);
-  border-radius: 2px 2px 0 0;
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
 }
 .log-histogram-gap {
   flex: 1;
@@ -763,7 +856,7 @@ input[type="radio"]:checked::after {
   /* The same weight the controls carry. At 1px a badge sat inside a table drawn
      with heavier lines than itself. */
   border: var(--border-w) solid var(--badge-line, var(--ink-muted));
-  border-radius: 3px;
+  border-radius: var(--radius-small);
   padding: 2px 8px;
   font-size: var(--text-micro);
   font-weight: 600;
@@ -789,7 +882,8 @@ input[type="radio"]:checked::after {
   font-weight: 700;
 }
 /* Through the tokens, not past them: these five were written as hex and so kept
-   their light-theme values on a near-black page, where #b3261e sits at 3.2:1. */
+   their light-theme values on a near-black page, where #b3261e sits at 2.76:1
+   against the card it is printed on. */
 .badge-warn {
   --badge-line: var(--warn-line);
   --badge-ink: var(--warn-ink);
@@ -805,8 +899,10 @@ input[type="radio"]:checked::after {
   padding: 16px 0;
 }
 .state-empty {
-  border: 1px dashed var(--ink-muted);
-  border-radius: 4px;
+  /* Dashed because nothing is there yet, but the same weight as every other
+     frame: at 1px it was the one line on the page drawn half as heavy. */
+  border: var(--border-w) dashed var(--ink-muted);
+  border-radius: var(--radius);
   padding: 24px;
   text-align: center;
 }
@@ -859,11 +955,17 @@ input[type="radio"]:checked::after {
 }
 
 /* Logs */
+/* The heading is centred and the form is not — text-align used to sit on the
+   wrapper, so the label and the field beneath the title read as a different
+   layout. It belongs to the heading alone. */
 .auth-wrap {
   max-width: 400px;
-  margin: 15vh auto;
+  margin: 12vh auto;
   /* 400 wide on a 390 screen means the form touches both edges. */
   padding: 0 var(--space-4);
+}
+.auth-wrap > h1,
+.auth-wrap > .auth-note {
   text-align: center;
 }
 /* --- Forms ---------------------------------------------------------------------
@@ -953,21 +1055,28 @@ fieldset.field > legend {
 }
 .invite-link {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: stretch;
   margin: 12px 0 16px;
   max-width: 640px;
 }
+/* The only two controls on the page that were not 36px, and they sat side by side:
+   a square grey box welded to a round black one, 42.5px tall between them. */
 .invite-link code {
   flex: 1;
-  border: 2px solid var(--ink-muted);
-  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  padding: 0 10px;
   font-size: var(--text);
   overflow-x: auto;
   white-space: nowrap;
 }
 .invite-link button {
-  border: 2px solid var(--ink);
+  border: var(--border-w) solid var(--ink);
   background: var(--ink);
   color: var(--page);
   font-family: var(--font-display);
@@ -1006,15 +1115,18 @@ fieldset.field > legend {
     overflow: hidden;
     clip: rect(0 0 0 0);
   }
+  /* Separated by fill and distance, not by a frame. The row-card used to carry a
+     1px frame while sharing the card's exact --surface — a border drawn around
+     something that was already the same colour as its container, which is a
+     border for its own sake. */
   .panel-table tbody tr {
-    border: 1px solid var(--line);
     border-radius: var(--radius);
     margin-bottom: var(--space-3);
-    padding: var(--space-2);
-    background: var(--surface);
+    padding: var(--space-3);
+    background: var(--surface-sunken);
   }
   .panel-table tbody tr:nth-child(even of :not(.log-detail-row)) {
-    background: var(--surface);
+    background: var(--surface-sunken);
   }
   .panel-table td {
     display: grid;
@@ -1023,6 +1135,11 @@ fieldset.field > legend {
     align-items: baseline;
     padding: var(--space-1) var(--space-2);
     border-bottom: none;
+  }
+  /* A grid item stretches, and a 2px rounded rectangle twice as wide as its text
+     is exactly the affordance of a field. Badges keep their own width. */
+  .panel-table td > .badge {
+    justify-self: start;
   }
   .panel-table td::before {
     content: attr(data-label);
@@ -1055,7 +1172,7 @@ fieldset.field > legend {
   /* The toolbar wraps rather than overflowing, and the ranges scroll as one
      strip instead of breaking mid-row. */
   .log-controls {
-    gap: var(--space-2);
+    gap: var(--space-3);
   }
   .log-controls input[type="search"] {
     flex: 1 1 100%;

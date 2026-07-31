@@ -9,7 +9,7 @@
 import type { ReactNode } from "react";
 
 export const LoadingState = ({ what = "data" }: { what?: string }) => (
-  <p className="state state-loading" role="status" aria-live="polite">Loading {what}…</p>
+  <p className="state" role="status" aria-live="polite">Loading {what}…</p>
 );
 
 export const ErrorState = ({ message, onRetry }: { message: string; onRetry?: () => void }) => (

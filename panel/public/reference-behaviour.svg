@@ -1,0 +1,413 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="2280" viewBox="0 0 1440 2280" font-family="Inter, system-ui, sans-serif">
+  <title>neobrutalism.dev — how it behaves, and how ours differs</title>
+  <desc>
+    Read from ekmas/neobrutalism-components: button.tsx, switch.tsx, tabs.tsx,
+    accordion.tsx, checkbox.tsx, badge.tsx. Their behaviour first, drawn at their
+    own values, then the eight places ours disagrees.
+  </desc>
+
+  <style>
+    @font-face { font-family: "Inter"; font-weight: 400 700;
+      src: url(/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2) format("woff2"); }
+    @font-face { font-family: "Unbounded"; font-weight: 700;
+      src: url(/fonts/Yq6W-LOTXCb04q32xlpwu8Zf.woff2) format("woff2"); }
+    .display { font-family: "Unbounded", "Inter", sans-serif; font-weight: 700; fill: #14140f; }
+    .body  { font-size: 13px; font-weight: 500; fill: #14140f; }
+    .small { font-size: 11px; font-weight: 500; fill: #14140f; }
+    .muted { font-size: 12px; font-weight: 500; fill: #5b5b55; }
+    .micro { font-size: 10px; font-weight: 700; fill: #5b5b55; letter-spacing: 0.7px; }
+    .mono  { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #5b5b55; }
+    .monoink { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #14140f; }
+    .theirs { font-size: 11px; font-weight: 600; fill: #6d28d9; }
+    .ours   { font-size: 11px; font-weight: 600; fill: #3355dd; }
+  </style>
+
+  <rect width="1440" height="2280" fill="#f2f2f0"/>
+
+  <!-- ========================================================== MASTHEAD === -->
+  <g transform="translate(48,40)">
+    <rect x="0" y="0" width="1344" height="96" rx="6" fill="#14140f"/>
+    <text x="24" y="42" class="display" font-size="24" style="fill:#f2f2f0">Their behaviour, read from their code<tspan fill="#a78bfa">.</tspan></text>
+    <text x="24" y="70" class="body" style="fill:#f2f2f0;opacity:0.75">
+      ekmas/neobrutalism-components — button · switch · tabs · accordion · checkbox · badge. Drawn at their values, not ours.
+    </text>
+  </g>
+
+  <!-- ============================================== 1 · THE DEFINING MOVE == -->
+  <g transform="translate(48,168)">
+    <text x="0" y="16" class="display" font-size="17">The move the whole thing is built on</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(48,208)">
+    <rect x="0" y="0" width="1344" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="28" y="30" class="micro">HOVER IS THE PRESS — NOT :ACTIVE</text>
+
+    <!-- rest, drawn double size -->
+    <g transform="translate(80,56)">
+      <text x="0" y="-6" class="micro">AT REST</text>
+      <rect x="8" y="8" width="180" height="72" rx="10" fill="#14140f"/>
+      <rect x="0" y="0" width="180" height="72" rx="10" fill="#a78bfa" stroke="#14140f" stroke-width="4"/>
+      <text x="90" y="44" class="body" font-size="18" text-anchor="middle">Click me</text>
+      <text x="0" y="106" class="mono">shadow 4 4 0 0 · the distance</text>
+    </g>
+
+    <!-- the arrow -->
+    <g transform="translate(320,96)">
+      <path d="M0 20 h96 m-14 -8 l14 8 l-14 8" fill="none" stroke="#6d28d9" stroke-width="3"/>
+      <text x="48" y="8" class="theirs" text-anchor="middle">pointer enters</text>
+      <text x="48" y="46" class="mono">no click required</text>
+    </g>
+
+    <!-- hovered -->
+    <g transform="translate(480,56)">
+      <text x="0" y="-6" class="micro">ON HOVER</text>
+      <rect x="0" y="0" width="180" height="72" rx="10" fill="none" stroke="#a8a8a2" stroke-width="2" stroke-dasharray="4 4"/>
+      <g transform="translate(8,8)">
+        <rect x="0" y="0" width="180" height="72" rx="10" fill="#a78bfa" stroke="#14140f" stroke-width="4"/>
+        <text x="90" y="44" class="body" font-size="18" text-anchor="middle">Click me</text>
+      </g>
+      <text x="0" y="114" class="mono">translate +4 +4 · shadow: none</text>
+    </g>
+
+    <g transform="translate(740,56)">
+      <text x="0" y="10" class="body" font-weight="700">The button is pressed by looking at it.</text>
+      <text x="0" y="34" class="muted">It travels exactly its shadow's offset and lands where the shadow was —</text>
+      <text x="0" y="54" class="muted">the same grammar we use, but fired by the pointer arriving rather than by</text>
+      <text x="0" y="74" class="muted">a click. There is no :active rule anywhere in their button.</text>
+      <text x="0" y="106" class="monoink">hover:translate-x-boxShadowX  hover:translate-y-boxShadowY  hover:shadow-none</text>
+      <text x="0" y="134" class="mono">boxShadowX = boxShadowY = 4px, from globals.css</text>
+    </g>
+  </g>
+
+  <!-- ================================================== 2 · FOUR VARIANTS == -->
+  <g transform="translate(48,460)">
+    <text x="0" y="16" class="display" font-size="17">Four variants — three of them are about the shadow</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(48,500)">
+    <rect x="0" y="0" width="1344" height="286" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <rect x="1" y="1" width="1342" height="28" rx="5" fill="#f7f7f5"/>
+    <text x="24" y="20" class="micro">VARIANT</text>
+    <text x="300" y="20" class="micro">AT REST</text>
+    <text x="540" y="20" class="micro">ON HOVER</text>
+    <text x="800" y="20" class="micro">WHAT IT SAYS</text>
+
+    <!-- default -->
+    <text x="24" y="66" class="body" font-weight="700">default</text>
+    <text x="24" y="84" class="mono">bg-main + shadow</text>
+    <g transform="translate(300,48)">
+      <rect x="4" y="4" width="104" height="36" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="24" class="small" text-anchor="middle">Click me</text>
+    </g>
+    <g transform="translate(540,48)">
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="none" stroke="#a8a8a2" stroke-width="1" stroke-dasharray="3 3"/>
+      <g transform="translate(4,4)">
+        <rect x="0" y="0" width="104" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <text x="52" y="24" class="small" text-anchor="middle">Click me</text>
+      </g>
+    </g>
+    <text x="800" y="72" class="muted">stands off the page, presses in when addressed</text>
+    <line x1="1" y1="100" x2="1343" y2="100" stroke="#d9d9d4" stroke-width="1"/>
+
+    <!-- neutral -->
+    <text x="24" y="134" class="body" font-weight="700">neutral</text>
+    <text x="24" y="152" class="mono">bg-secondary + shadow</text>
+    <g transform="translate(300,116)">
+      <rect x="4" y="4" width="104" height="36" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="24" class="small" text-anchor="middle">Click me</text>
+    </g>
+    <g transform="translate(540,116)">
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="none" stroke="#a8a8a2" stroke-width="1" stroke-dasharray="3 3"/>
+      <g transform="translate(4,4)">
+        <rect x="0" y="0" width="104" height="36" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+        <text x="52" y="24" class="small" text-anchor="middle">Click me</text>
+      </g>
+    </g>
+    <text x="800" y="140" class="muted">the same move, without claiming to be the main action</text>
+    <line x1="1" y1="168" x2="1343" y2="168" stroke="#d9d9d4" stroke-width="1"/>
+
+    <!-- reverse -->
+    <text x="24" y="202" class="body" font-weight="700">reverse</text>
+    <text x="24" y="220" class="mono">flat, gains the shadow</text>
+    <g transform="translate(300,188)">
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="24" class="small" text-anchor="middle">Click me</text>
+    </g>
+    <g transform="translate(540,184)">
+      <rect x="4" y="8" width="104" height="36" rx="6" fill="none" stroke="#a8a8a2" stroke-width="1" stroke-dasharray="3 3"/>
+      <rect x="4" y="4" width="104" height="36" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="24" class="small" text-anchor="middle">Click me</text>
+      <path d="M124 26 l-14 -14 m0 0 l0 9 m0 -9 l9 0" fill="none" stroke="#6d28d9" stroke-width="2"/>
+    </g>
+    <text x="800" y="200" class="muted">lies flat until addressed, then <tspan font-weight="700">pops out</tspan> — translate −4 −4</text>
+    <text x="800" y="222" class="muted">and gains the shadow it did not have</text>
+    <line x1="1" y1="240" x2="1343" y2="240" stroke="#d9d9d4" stroke-width="1"/>
+
+    <!-- noShadow -->
+    <text x="24" y="270" class="body" font-weight="700">noShadow</text>
+    <g transform="translate(300,252)">
+      <rect x="0" y="0" width="104" height="30" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="20" class="small" text-anchor="middle">Click me</text>
+    </g>
+    <text x="540" y="272" class="mono">— nothing happens —</text>
+    <text x="800" y="272" class="muted">for a control inside a box that must not move</text>
+  </g>
+
+  <!-- ==================================================== 3 · THE REST ===== -->
+  <g transform="translate(48,826)">
+    <text x="0" y="16" class="display" font-size="17">Sizes, focus, disabled, timing</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(48,866)">
+    <rect x="0" y="0" width="660" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="24" y="28" class="micro">FOUR SIZES, STATED IN THE CLASS</text>
+    <g transform="translate(24,50)">
+      <g transform="translate(0,8)">
+        <rect x="3" y="3" width="90" height="36" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="90" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <text x="45" y="23" class="small" text-anchor="middle">sm · h-9</text>
+      </g>
+      <g transform="translate(110,6)">
+        <rect x="4" y="4" width="100" height="40" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="100" height="40" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <text x="50" y="25" class="small" text-anchor="middle">default · h-10</text>
+      </g>
+      <g transform="translate(230,2)">
+        <rect x="4" y="4" width="110" height="44" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="110" height="44" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <text x="55" y="27" class="small" text-anchor="middle">lg · h-11</text>
+      </g>
+      <g transform="translate(360,6)">
+        <rect x="4" y="4" width="40" height="40" rx="6" fill="#14140f"/>
+        <rect x="0" y="0" width="40" height="40" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <path d="M14 20 h12 M20 14 v12" stroke="#14140f" stroke-width="2"/>
+      </g>
+      <text x="420" y="30" class="mono">icon · size-10</text>
+    </g>
+    <text x="24" y="140" class="mono">36 · 40 · 44 · 40 square — never left to the font</text>
+    <text x="24" y="164" class="mono">horizontal padding changes with the size; the frame never does</text>
+  </g>
+
+  <g transform="translate(732,866)">
+    <rect x="0" y="0" width="660" height="196" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="24" y="28" class="micro">FOCUS · DISABLED · TIMING</text>
+    <g transform="translate(24,46)">
+      <rect x="-4" y="-4" width="112" height="44" rx="10" fill="none" stroke="#14140f" stroke-width="2"/>
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="24" class="small" text-anchor="middle">focus</text>
+      <text x="124" y="16" class="mono">ring-2 ring-black ring-offset-2</text>
+      <text x="124" y="32" class="mono">a black ring, outside, through a gap —</text>
+      <text x="124" y="48" class="mono">and the frame stays black too</text>
+    </g>
+    <g transform="translate(24,110)" opacity="0.5">
+      <rect x="4" y="4" width="104" height="36" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="104" height="36" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="52" y="24" class="small" text-anchor="middle">disabled</text>
+    </g>
+    <text x="148" y="128" class="mono">opacity-50 + pointer-events-none —</text>
+    <text x="148" y="144" class="mono">the shadow survives, it just fades with everything else</text>
+    <text x="24" y="180" class="monoink">transition-all — every property eases, nothing snaps</text>
+  </g>
+
+  <!-- ============================================== 4 · OTHER COMPONENTS === -->
+  <g transform="translate(48,1102)">
+    <text x="0" y="16" class="display" font-size="17">The same grammar elsewhere</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(48,1142)">
+    <rect x="0" y="0" width="318" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="16" y="24" class="micro">SWITCH</text>
+    <g transform="translate(16,46)">
+      <rect x="0" y="0" width="48" height="24" rx="12" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+      <circle cx="12" cy="12" r="8" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <text x="62" y="17" class="small">off</text>
+      <g transform="translate(0,36)">
+        <rect x="0" y="0" width="48" height="24" rx="12" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <circle cx="36" cy="12" r="8" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+        <text x="62" y="17" class="small">on</text>
+      </g>
+    </g>
+    <text x="16" y="140" class="mono">h-6 w-12, thumb h-4 w-4 with its own</text>
+    <text x="16" y="156" class="mono">2px frame; translate-x-1 → translate-x-6</text>
+    <text x="16" y="180" class="mono">the track eases colour, the thumb eases</text>
+    <text x="16" y="196" class="mono">position — two transitions, named apart</text>
+  </g>
+
+  <g transform="translate(390,1142)">
+    <rect x="0" y="0" width="318" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="16" y="24" class="micro">TABS</text>
+    <g transform="translate(16,44)">
+      <rect x="0" y="0" width="286" height="44" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <rect x="4" y="4" width="90" height="36" rx="5" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="49" y="27" class="small" text-anchor="middle">Account</text>
+      <text x="140" y="27" class="small" text-anchor="middle">Password</text>
+      <text x="240" y="27" class="small" text-anchor="middle">Team</text>
+    </g>
+    <text x="16" y="122" class="mono">the list is a box, h-12 with 2px and p-1;</text>
+    <text x="16" y="138" class="mono">the chosen tab is a filled box inside it</text>
+    <text x="16" y="164" class="mono">the others carry border-2 border-transparent,</text>
+    <text x="16" y="180" class="mono">so choosing changes colour and nothing moves</text>
+  </g>
+
+  <g transform="translate(732,1142)">
+    <rect x="0" y="0" width="318" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="16" y="24" class="micro">ACCORDION</text>
+    <g transform="translate(16,42)">
+      <rect x="4" y="4" width="286" height="106" rx="6" fill="#14140f"/>
+      <rect x="0" y="0" width="286" height="106" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <rect x="2" y="2" width="282" height="34" fill="#a78bfa"/>
+      <line x1="2" y1="36" x2="284" y2="36" stroke="#14140f" stroke-width="2"/>
+      <text x="14" y="24" class="small" font-weight="700">Is it accessible?</text>
+      <path d="M256 16 l7 7 l7 -7" fill="none" stroke="#14140f" stroke-width="2" transform="rotate(180 263 20)"/>
+      <text x="14" y="58" class="small">Yes. It follows the WAI-ARIA pattern.</text>
+      <line x1="2" y1="72" x2="284" y2="72" stroke="#d9d9d4" stroke-width="1"/>
+      <text x="14" y="94" class="small">Is it styled?</text>
+      <path d="M256 84 l7 7 l7 -7" fill="none" stroke="#14140f" stroke-width="2"/>
+    </g>
+    <text x="16" y="176" class="mono">the header is filled with the accent, always;</text>
+    <text x="16" y="192" class="mono">open squares its bottom corners and the caret turns 180°</text>
+  </g>
+
+  <g transform="translate(1074,1142)">
+    <rect x="0" y="0" width="318" height="212" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <text x="16" y="24" class="micro">CHECKBOX · BADGE</text>
+    <g transform="translate(16,46)">
+      <rect x="0" y="0" width="18" height="18" rx="4" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+      <g transform="translate(32,0)">
+        <rect x="0" y="0" width="18" height="18" rx="4" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+        <path d="M4 9 l3.5 3.5 l6.5 -7.5" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+      </g>
+      <text x="66" y="14" class="mono">size-4, outline-2 — outline, not border,</text>
+      <text x="66" y="30" class="mono">so the box does not change size</text>
+    </g>
+    <g transform="translate(16,104)">
+      <rect x="0" y="0" width="70" height="24" rx="6" fill="#a78bfa" stroke="#14140f" stroke-width="2"/>
+      <text x="35" y="17" class="small" text-anchor="middle">default</text>
+      <rect x="82" y="0" width="70" height="24" rx="6" fill="#f7f7f5" stroke="#14140f" stroke-width="2"/>
+      <text x="117" y="17" class="small" text-anchor="middle">neutral</text>
+    </g>
+    <text x="16" y="160" class="mono">a badge has the frame but never the shadow —</text>
+    <text x="16" y="176" class="mono">it is a label, and labels are not pressed</text>
+  </g>
+
+  <!-- ================================================ 5 · THEIRS vs OURS === -->
+  <g transform="translate(48,1394)">
+    <text x="0" y="16" class="display" font-size="17">Where ours disagrees — eight places</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(48,1434)">
+    <rect x="0" y="0" width="1344" height="376" rx="6" fill="#ffffff" stroke="#d9d9d4" stroke-width="1"/>
+    <rect x="1" y="1" width="1342" height="30" rx="5" fill="#f7f7f5"/>
+    <text x="24" y="21" class="micro">WHAT</text>
+    <text x="290" y="21" class="theirs">THEIRS</text>
+    <text x="640" y="21" class="ours">OURS</text>
+    <text x="980" y="21" class="micro">WHY WE DIFFER</text>
+
+    <g class="small">
+      <g transform="translate(0,54)">
+        <text x="24" y="0">the press</text>
+        <text x="290" y="0">on hover — the pointer presses it</text>
+        <text x="640" y="0">on :active — the click presses it</text>
+        <text x="980" y="0" class="muted">a pointer crossing a toolbar would fire every button on the way</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,94)">
+        <text x="24" y="0">hover</text>
+        <text x="290" y="0">translate +4, shadow gone</text>
+        <text x="640" y="0">stays put, gap grows 4 → 6</text>
+        <text x="980" y="0" class="muted">so hover and press stay two different statements</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,134)">
+        <text x="24" y="0">focus</text>
+        <text x="290" y="0">ring-2 black, offset 2, over a black frame</text>
+        <text x="640" y="0">the frame itself turns accent, no ring</text>
+        <text x="980" y="0" class="muted">a frame plus a ring is one event drawn twice</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,174)">
+        <text x="24" y="0">disabled</text>
+        <text x="290" y="0">opacity-50 on everything</text>
+        <text x="640" y="0">frame --line, label --ink-muted</text>
+        <text x="980" y="0" class="muted">opacity fades the label with the frame and reads as broken</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,214)">
+        <text x="24" y="0">timing</text>
+        <text x="290" y="0">transition-all — everything eases</text>
+        <text x="640" y="0">nothing eases</text>
+        <text x="980" y="0" class="muted">easing a 4px jump is the one soft thing in an idiom of hard edges</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,254)">
+        <text x="24" y="0">variants</text>
+        <text x="290" y="0">default · neutral · reverse · noShadow</text>
+        <text x="640" y="0">default · primary · danger</text>
+        <text x="980" y="0" class="muted">theirs vary the depth, ours vary the intent — a panel needs intent</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,294)">
+        <text x="24" y="0">the shadow's colour</text>
+        <text x="290" y="0">pure black, in both themes</text>
+        <text x="640" y="0">lighter than the page in the dark theme</text>
+        <text x="980" y="0" class="muted">their dark background is a mid grey; ours is near black — 1.08:1</text>
+        <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
+      </g>
+      <g transform="translate(0,334)">
+        <text x="24" y="0">a held state</text>
+        <text x="290" y="0">none — a tab fills, a button never holds</text>
+        <text x="640" y="0">aria-pressed inverts and keeps its place</text>
+        <text x="980" y="0" class="muted">the panel has segmented ranges; a marketing kit does not</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================================================== 6 · WORTH TAKING === -->
+  <g transform="translate(48,1850)">
+    <text x="0" y="16" class="display" font-size="17">Worth taking from theirs</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#14140f" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(48,1890)">
+    <rect x="0" y="0" width="660" height="196" rx="6" fill="#ffffff" stroke="#1a7f37" stroke-width="2"/>
+    <text x="24" y="30" class="micro" style="fill:#1a7f37">TAKE</text>
+    <g class="small">
+      <text x="24" y="58">· <tspan font-weight="700">reverse</tspan> — a flat control that pops out when addressed. We have</text>
+      <text x="38" y="76">nothing for a thing that should not look raised until you reach it.</text>
+      <text x="24" y="104">· <tspan font-weight="700">noShadow</tspan> as a named variant rather than an exception per place.</text>
+      <text x="24" y="132">· the switch's thumb carrying its own 2px frame — ours has none drawn.</text>
+      <text x="24" y="160">· tabs as a framed box with a filled chosen tab, instead of a rule.</text>
+    </g>
+  </g>
+
+  <g transform="translate(732,1890)">
+    <rect x="0" y="0" width="660" height="196" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/>
+    <text x="24" y="30" class="micro" style="fill:#b3261e">LEAVE</text>
+    <g class="small">
+      <text x="24" y="58">· press-on-hover — wrong for a dense panel, right for a landing page.</text>
+      <text x="24" y="86">· the black focus ring over a black frame — two lines, one event.</text>
+      <text x="24" y="114">· opacity for disabled — it fades the label along with the frame.</text>
+      <text x="24" y="142">· transition-all — half a state easing while the rest snaps was exactly</text>
+      <text x="38" y="160">the defect we removed.</text>
+      <text x="24" y="188" class="mono">and the black shadow in dark: 1.08:1 on our page</text>
+    </g>
+  </g>
+
+  <g transform="translate(48,2122)">
+    <rect x="0" y="0" width="1344" height="56" rx="6" fill="#f7f7f5" stroke="#d9d9d4" stroke-width="2"/>
+    <text x="20" y="24" class="body">
+      panel/public/reference-behaviour.svg — their behaviour read from button.tsx, switch.tsx, tabs.tsx, accordion.tsx, checkbox.tsx, badge.tsx.
+    </text>
+    <text x="20" y="44" class="muted">
+      Purple is theirs. Nothing here is implemented; the two panels above are the proposal.
+    </text>
+  </g>
+</svg>

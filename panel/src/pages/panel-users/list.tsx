@@ -103,7 +103,7 @@ export const PanelUsersList = () => {
       <h1>Panel users</h1>
 
       {canManageUsers && (
-        <form onSubmit={onInvite} className="form-stack panel-invite-form">
+        <form onSubmit={onInvite} className="form-stack" aria-label="Invite a user">
           <div className="field">
             <label className="field-label" htmlFor="invite-email">Email</label>
             <input

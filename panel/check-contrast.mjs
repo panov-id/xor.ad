@@ -19,17 +19,34 @@ import { dirname, join } from "node:path";
 const here = dirname(fileURLToPath(import.meta.url));
 const css = readFileSync(join(here, "src/App.css"), "utf8");
 
-// The three blocks that define values: the default (light), the dark media
-// query, and the two explicit [data-theme] choices. The explicit ones are what a
-// person actually gets after touching the toggle, so those are the ones checked.
-function tokensOf(selector) {
-  const start = css.indexOf(selector);
-  if (start === -1) throw new Error(`no ${selector} block in App.css`);
-  const open = css.indexOf("{", start);
-  const close = css.indexOf("\n}", open);
-  const block = css.slice(open, close);
+// Four blocks define values, not two: the default :root, the dark media query,
+// and the two explicit [data-theme] choices. Only the explicit pair used to be
+// counted — the two a person gets *after* touching the toggle. The two nobody
+// checked are what everybody sees *before* touching it, which is most people.
+//
+// Braces are matched rather than assumed, because the dark media query nests its
+// :root one level in and the old "find the next \n}" would have stopped early.
+function blockAt(from) {
+  const open = css.indexOf("{", from);
+  if (open === -1) throw new Error("no block after index " + from);
+  let depth = 0;
+  for (let i = open; i < css.length; i++) {
+    if (css[i] === "{") depth++;
+    else if (css[i] === "}" && --depth === 0) return { body: css.slice(open + 1, i), end: i };
+  }
+  throw new Error("unbalanced braces in App.css");
+}
+
+// A path of selectors: each is searched for after the previous one, so
+// ["@media (prefers-color-scheme: dark)", ":root"] reaches the nested block.
+function tokensOf(path) {
+  let at = 0;
+  for (const selector of [path].flat()) {
+    at = css.indexOf(selector, at);
+    if (at === -1) throw new Error(`no ${selector} block in App.css`);
+  }
   const tokens = {};
-  for (const [, name, value] of block.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
+  for (const [, name, value] of blockAt(at).body.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
     tokens[name] = value.trim();
   }
   return tokens;
@@ -73,8 +90,10 @@ const THRESHOLD = 4.5;
 let failed = 0;
 
 for (const [selector, theme] of [
-  [':root[data-theme="light"]', "light"],
-  [':root[data-theme="dark"]', "dark"],
+  [":root {", "default (light, before the toggle is touched)"],
+  [["@media (prefers-color-scheme: dark)", ":root"], "system dark (before the toggle is touched)"],
+  [':root[data-theme="light"]', "light (chosen)"],
+  [':root[data-theme="dark"]', "dark (chosen)"],
 ]) {
   const tokens = tokensOf(selector);
   console.log(`\n${theme}`);

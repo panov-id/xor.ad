@@ -101,16 +101,40 @@
       }
 
       /* --- section ----------------------------------------------------------- */
+      /* Two columns, because most exhibits are small. Measured before this: ten
+         of nineteen demos filled under 60% of their box and four under 31% — a
+         breadcrumb 112px wide sat alone in 812. The single ruler is what stops a
+         page of shrink-to-fit boxes going ragged on the right, so the boxes keep
+         the ruler and share it instead. Anything that genuinely needs the width
+         spans both columns. */
       .kit-section {
         margin-bottom: var(--space-7);
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-5) var(--space-4);
+      }
+      .kit-section > h2,
+      .kit-section > .kit-note,
+      .kit-section > .kit-swatches,
+      .kit-item[data-wide] {
+        grid-column: 1 / -1;
+      }
+      /* Below 900 the two columns are narrower than the widest exhibit. */
+      @media screen and (max-width: 900px) {
+        .kit-section {
+          grid-template-columns: minmax(0, 1fr);
+        }
       }
       .kit-section > h2 {
         font-family: var(--font-display);
-        font-size: 1.5rem;
+        /* Louder than it was. At 1.5rem a section title carried the same weight
+           as the box beneath it holding one button, and the page read as a list
+           with no hierarchy in it. */
+        font-size: 2rem;
         margin: 0 0 var(--space-2);
         padding-bottom: var(--space-2);
         border-bottom: var(--border-w) solid var(--line-strong);
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
       }
       /* One line, and only where the drawing cannot say it. Everything longer
          went to the stylesheet's comments, which is where it is maintained. */
@@ -120,8 +144,17 @@
       }
 
       /* --- one example ------------------------------------------------------- */
+      /* The grid's gap spaces these now. A column, so the demo can take whatever
+         height is left over and two boxes sharing a row end on the same line —
+         otherwise the shorter of the pair leaves the row's bottom edge ragged and
+         their MARKUP strips sit at two different heights. */
       .kit-item {
-        margin-bottom: var(--space-5);
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .kit-item > .kit-demo {
+        flex: 1;
       }
       .kit-item > h3 {
         font-size: var(--text-micro);
@@ -241,9 +274,11 @@
         max-width: 240px;
       }
       /* The sign-in block centres itself on a page it owns; in a demo that is
-         15vh of nothing above it. */
+         15vh of nothing above it. Left, not centred: it was the one exhibit of
+         nineteen sitting on a different axis, and a kit is read down its left
+         edge. */
       .kit-demo .auth-wrap {
-        margin: 0 auto;
+        margin: 0;
       }
     </style>
   </head>
@@ -271,7 +306,7 @@
         <a href="#buttons">Buttons</a>
         <a href="#fields">Fields</a>
         <a href="#ticks">Ticks</a>
-        <a href="#forms">Welded forms</a>
+        <a href="#forms">Forms</a>
         <a href="#badges">Badges</a>
         <a href="#tables">Tables</a>
         <a href="#states">States</a>
@@ -296,7 +331,7 @@
           <code>--text-micro</code> for uppercase labels. The page title is the
           one exception.
         </p>
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <div class="kit-demo kit-demo-block" data-source>
             <h1>Page title<span class="dot">.</span></h1>
             <p>Body text: the size a table is read at for an hour.</p>
@@ -312,7 +347,7 @@
           The shadow is not decoration, it is the distance — and pressing spends
           it. A field is the other half: a hole, not a tile.
         </p>
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <h3>Rest · held · hole</h3>
           <div class="kit-demo" data-source>
             <button type="button">At rest</button>
@@ -330,7 +365,7 @@
           already in the language.
         </p>
 
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <h3>States</h3>
           <div class="kit-demo" data-source>
             <button type="button">Default</button>
@@ -368,7 +403,7 @@
           on one line whatever it is made of.
         </p>
 
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <h3>The natives</h3>
           <div class="kit-demo" data-source>
             <input type="text" placeholder="text" />
@@ -407,11 +442,22 @@
           Replaced, not decorated: the browser draws a native checkbox and ignores
           a shadow.
         </p>
+        <!-- Two exhibits, not one: a square that answers "which of these" and a
+             circle that answers "which one". Side by side they also fill the row
+             they sit in. -->
         <div class="kit-item">
+          <h3>Checkbox</h3>
           <div class="kit-demo" data-source>
             <div class="scope-picker">
               <label><input type="checkbox" /> waitlist.read</label>
               <label><input type="checkbox" checked /> waitlist.write</label>
+            </div>
+          </div>
+        </div>
+        <div class="kit-item">
+          <h3>Radio</h3>
+          <div class="kit-demo" data-source>
+            <div class="scope-picker">
               <label><input type="radio" name="kit-radio" /> one</label>
               <label><input type="radio" name="kit-radio" checked /> the other</label>
             </div>
@@ -421,60 +467,89 @@
 
       <!-- ---------------------------------------------------------------- -->
       <section class="kit-section" id="forms">
-        <h2>Welded forms</h2>
+        <h2>Forms</h2>
         <p class="kit-note">
-          The one place the vocabulary is deliberately broken: fields and button
-          share a single box, so the button presses in place instead of
-          travelling.
+          A label above its control, short fields sharing a line, the action last
+          and alone. Nothing is welded: every part keeps the affordance it has
+          everywhere else, so a button here presses the way a button presses.
         </p>
 
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <h3>Sign in</h3>
           <div class="kit-demo kit-demo-block" data-source>
             <div class="auth-wrap">
               <h1>xor.ad<span class="dot">.</span> panel</h1>
-              <form class="auth-form" onsubmit="return false">
-                <input type="email" placeholder="your email" />
-                <button type="submit">Send sign-in link</button>
+              <form class="form-stack" onsubmit="return false">
+                <div class="field">
+                  <label class="field-label" for="kit-login-email">Email</label>
+                  <input id="kit-login-email" type="email" placeholder="ops@example.com" />
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="button-primary">Send sign-in link</button>
+                </div>
               </form>
               <p class="auth-note">A link, not a password.</p>
             </div>
           </div>
         </div>
 
-        <div class="kit-item">
-          <h3>Minting a key</h3>
+        <div class="kit-item" data-wide>
+          <h3>Two fields on one line</h3>
           <div class="kit-demo kit-demo-block" data-source>
-            <form class="auth-form" onsubmit="return false">
-              <input type="text" placeholder="what is it for" />
-              <select>
-                <option>pick a brand</option>
-              </select>
-              <button type="submit">Mint</button>
-              <div class="scope-picker">
-                <label><input type="checkbox" /> waitlist.read</label>
-                <label><input type="checkbox" /> waitlist.write</label>
-                <label><input type="checkbox" /> pageviews.write</label>
+            <form class="form-stack" onsubmit="return false">
+              <div class="field">
+                <label class="field-label" for="kit-invite-email">Email</label>
+                <input id="kit-invite-email" type="email" placeholder="ops@example.com" />
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label class="field-label" for="kit-invite-role">Role</label>
+                  <select id="kit-invite-role">
+                    <option>moderator</option>
+                    <option>tenant_admin</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="kit-invite-brand">Brand</label>
+                  <select id="kit-invite-brand">
+                    <option>platform</option>
+                    <option>neighbro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="button-primary">Invite</button>
               </div>
             </form>
           </div>
         </div>
 
-        <div class="kit-item">
-          <h3>Toolbar form</h3>
+        <div class="kit-item" data-wide>
+          <h3>A group of ticks, and a hint</h3>
           <div class="kit-demo kit-demo-block" data-source>
-            <form class="invite-form" onsubmit="return false">
-              <input type="email" placeholder="email to invite" />
-              <select>
-                <option>moderator</option>
-                <option>tenant_admin</option>
-              </select>
-              <button type="submit">Invite</button>
+            <form class="form-stack" onsubmit="return false">
+              <div class="field">
+                <label class="field-label" for="kit-key-origins">Allowed origins</label>
+                <textarea id="kit-key-origins" rows="2" placeholder="https://example.com"></textarea>
+                <p class="field-hint">One per line.</p>
+              </div>
+              <!-- A group of ticks is named by a legend, not by a label beside it. -->
+              <fieldset class="field">
+                <legend class="field-label">Scopes</legend>
+                <div class="scope-picker">
+                  <label><input type="checkbox" /> waitlist.read</label>
+                  <label><input type="checkbox" /> waitlist.write</label>
+                  <label><input type="checkbox" /> pageviews.write</label>
+                </div>
+              </fieldset>
+              <div class="form-actions">
+                <button type="submit" class="button-primary">Mint key</button>
+              </div>
             </form>
           </div>
         </div>
 
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <h3>Shown once, and the three statuses</h3>
           <div class="kit-demo kit-demo-block" data-source>
             <div class="invite-link">
@@ -495,7 +570,7 @@
           A value that is merely a value is neutral. Colour is spent on the rows
           worth spotting.
         </p>
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <div class="kit-demo" data-source>
             <span class="badge badge-neutral">platform</span>
             <span class="badge badge-info">moderator</span>
@@ -513,9 +588,10 @@
           Every cell carries a <code>data-label</code>; past 751px the row becomes
           a card built from it. Narrow the window and watch.
         </p>
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
+          <!-- No .panel-card around it: the holder already is one, and two 2px
+               frames one inside the other is the nesting this kit argues against. -->
           <div class="kit-demo kit-demo-block" data-source>
-            <div class="panel-card">
               <table class="panel-table">
                 <thead>
                   <tr><th>Email</th><th>Role</th><th>Brand</th><th>Added</th><th></th></tr>
@@ -537,7 +613,6 @@
                   </tr>
                 </tbody>
               </table>
-            </div>
           </div>
         </div>
       </section>
@@ -549,7 +624,7 @@
           The three things a table can be instead of rows. All three say what to
           do next.
         </p>
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
           <div class="kit-demo kit-demo-block" data-source>
             <div class="state state-empty">
               <p class="state-title">No secret keys yet.</p>
@@ -570,9 +645,9 @@
           The shape every log page shares: a scope, a search, the ranges, a
           histogram, a footer.
         </p>
-        <div class="kit-item">
+        <div class="kit-item" data-wide>
+          <!-- Same as the table above: the holder is the card. -->
           <div class="kit-demo kit-demo-block" data-source>
-            <div class="panel-card">
               <div class="log-controls">
                 <span class="control-labelled">
                   <span class="control-label">Scope</span>
@@ -606,7 +681,6 @@
                 <span class="control-label">Showing 2 of 36</span>
                 <button type="button">Load older</button>
               </div>
-            </div>
           </div>
         </div>
       </section>
@@ -622,7 +696,9 @@
             </ul>
           </div>
         </div>
-        <div class="kit-item">
+        <!-- Its own row: a menu is tall, and paired with the breadcrumb it
+             stretched a one-line link into a box three hundred pixels deep. -->
+        <div class="kit-item" data-wide>
           <h3>Sidebar</h3>
           <div class="kit-demo kit-demo-block" data-source>
             <nav class="menu kit-menu-sample">

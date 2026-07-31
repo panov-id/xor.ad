@@ -5,6 +5,13 @@
 > Bunny + Resend). This is about the future chat — which will live in its **own
 > repository**.
 
+> ⚠️ **v1 went a different way.** `chat_EN.md` §8 settles it: **there is no
+> end-to-end encryption**; the node sees plaintext and runs it through AI
+> moderation. Privacy rests on the server **writing nothing** — no conversation
+> history exists there at all. Everything below about E2E and untrusted
+> community nodes is an **alternative branch for the future**, incompatible with
+> v1: you cannot moderate text and be blind to it at the same time.
+
 ## The idea in a sentence
 
 The chat backend is **not one vendor but a decentralized, geo-distributed pool of

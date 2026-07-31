@@ -1,8 +1,12 @@
-// Chat WS-relay slot — PLACEHOLDER for the future decentralized chat.
-// See docs/chat-decentralized-ideas_{RU,EN}.md. A relay node terminates the
-// room WebSocket and fans out END-TO-END-ENCRYPTED messages; it never sees
-// plaintext or holds keys. Kept as a stub so the node structure is chat-ready
-// without pulling any chat logic into the v1 landing build.
+// Chat WS-relay slot — PLACEHOLDER for the chat. See docs/chat_{RU,EN}.md §8.
+// A node terminates the room WebSocket by chat_id and fans messages out; it
+// PASSES THEM THROUGH AI MODERATION IN PLAINTEXT and writes nothing to the
+// database — history lives only in the participants' browsers. Privacy rests on
+// storing nothing, not on encryption: v1 traded end-to-end encryption away for
+// moderation. The E2E variant is kept as a future alternative in
+// docs/chat-decentralized-ideas_{RU,EN}.md, and it is incompatible with this
+// one. Kept as a stub so the node structure is chat-ready without pulling any
+// chat logic into the v1 landing build.
 
 export const NODE_ROLE = Deno.env.get("NODE_ROLE") ?? "relay"; // core | relay
 

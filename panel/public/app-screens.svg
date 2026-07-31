@@ -1,0 +1,1129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="4560" viewBox="0 0 1440 4560" font-family="'Golos Text', Inter, system-ui, sans-serif">
+  <title>sosed.place — the app, screen by screen</title>
+  <desc>
+    Eleven screens of the chat app drawn from docs/chat_RU.md: the kit's geometry
+    (2px frames, 4px hard offset shadows, radius 6, control height 36) with the
+    landing's gold accent. Phones are 375 wide — the base screen from §10.
+  </desc>
+
+  <style>
+    @font-face { font-family: "Golos Text"; font-weight: 400 600;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+
+    .display { font-weight: 600; fill: #1c140d; }
+    .body    { font-size: 13px; font-weight: 400; fill: #1c140d; }
+    .bodyb   { font-size: 13px; font-weight: 600; fill: #1c140d; }
+    .small   { font-size: 11px; font-weight: 400; fill: #1c140d; }
+    .muted   { font-size: 11px; font-weight: 400; fill: #6b5c4c; }
+    .micro   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 9px; fill: #6b5c4c; letter-spacing: 0.6px; }
+    .mono    { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px; fill: #6b5c4c; }
+    .monoink { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px; fill: #1c140d; }
+  </style>
+
+  <rect width="1440" height="4560" fill="#ece4d8"/>
+
+  <!-- ============================================================ MASTHEAD -->
+  <g transform="translate(48,40)">
+    <rect x="0" y="0" width="1344" height="96" rx="6" fill="#1c140d"/>
+    <text x="24" y="42" class="display" font-size="24" style="fill:#f0e7dc">The app, screen by screen<tspan fill="#d68a1f">.</tspan></text>
+    <text x="24" y="70" class="body" style="fill:#f0e7dc;opacity:0.78">Eleven screens off docs/chat_RU.md — kit geometry, landing gold. Phone = 375, the base screen from §10.</text>
+    <g transform="translate(1090,30)">
+      <rect x="0" y="0" width="14" height="14" rx="3" fill="#d68a1f"/>
+      <text x="22" y="11" class="mono" style="fill:#f0e7dc">accent</text>
+      <rect x="86" y="0" width="14" height="14" rx="3" fill="#ffffff" stroke="#f0e7dc" stroke-width="1"/>
+      <text x="108" y="11" class="mono" style="fill:#f0e7dc">surface</text>
+    </g>
+  </g>
+
+  <!-- ============================================== ROW 1 — GETTING IN ==== -->
+  <g transform="translate(48,176)">
+    <text x="0" y="14" class="display" font-size="17">1 · Getting in</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#1c140d" stroke-width="2"/>
+  </g>
+
+  <!-- ========== 01 · ENTRY: name + age ================================== -->
+  <g transform="translate(47,220)">
+    <text x="0" y="-6" class="micro">01 · ENTRY — §8.2</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g transform="translate(24,52)">
+      <path d="M0 26 L15 12 L30 26 L30 40 L0 40 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+      <text x="40" y="34" class="display" font-size="19">SOSED</text>
+    </g>
+
+    <text x="24" y="152" class="display" font-size="22">who are you?</text>
+    <text x="24" y="178" class="muted">Two fields, once. No email, no password.</text>
+
+    <g transform="translate(24,208)">
+      <text x="0" y="10" class="micro">NAME</text>
+      <rect x="4" y="22" width="327" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="18" width="327" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="12" y="41" class="body">Zhenya</text>
+      <rect x="70" y="26" width="2" height="20" fill="#d68a1f"/>
+    </g>
+
+    <g transform="translate(24,290)">
+      <text x="0" y="10" class="micro">AGE</text>
+      <rect x="4" y="22" width="120" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="18" width="120" height="36" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+      <text x="12" y="41" class="body" fill="#6b5c4c">38</text>
+      <text x="136" y="41" class="muted">13–120, changeable later</text>
+    </g>
+
+    <g transform="translate(24,372)">
+      <rect x="0" y="0" width="327" height="96" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="22" class="micro">READ THIS</text>
+      <text x="14" y="42" class="small">Your identity lives in this browser only.</text>
+      <text x="14" y="60" class="small">Another browser or device is someone else.</text>
+      <text x="14" y="78" class="small" fill="#b3261e">Clearing browser data erases it for good.</text>
+    </g>
+
+    <g transform="translate(24,492)">
+      <rect x="4" y="4" width="327" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="bodyb" fill="#241206" text-anchor="middle">start</text>
+    </g>
+
+    <text x="24" y="568" class="mono">age decides the feed — §8.2 bands</text>
+    <text x="24" y="586" class="mono">so it is asked before anything else</text>
+  </g>
+
+  <!-- ========== 02 · FEED =============================================== -->
+  <g transform="translate(532,220)">
+    <text x="0" y="-6" class="micro">02 · FEED — §8.3</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <!-- header -->
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <path d="M20 34 L30 24 L40 34 L40 42 L20 42 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+      <text x="50" y="41" class="display" font-size="15">SOSED</text>
+      <g transform="translate(232,16)">
+        <rect x="0" y="0" width="60" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="30" y="16" class="small" text-anchor="middle">21–45</text>
+      </g>
+      <g transform="translate(300,16)">
+        <rect x="0" y="0" width="56" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="28" y="16" class="small" text-anchor="middle">2 km</text>
+      </g>
+    </g>
+
+    <!-- card 1 -->
+    <g transform="translate(24,76)">
+      <rect x="4" y="4" width="327" height="118" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="118" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="28" class="body">anyone heading to the embankment</text>
+      <text x="14" y="46" class="body">tonight, around nine</text>
+      <g transform="translate(14,62)">
+        <rect x="0" y="0" width="66" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="33" y="14" class="small" text-anchor="middle">company</text>
+        <rect x="76" y="0" width="58" height="20" rx="4" fill="#ffffff" stroke="#cfc4b2" stroke-width="2"/>
+        <text x="105" y="14" class="small" fill="#6b5c4c" text-anchor="middle">1.2 km</text>
+      </g>
+      <line x1="14" y1="94" x2="313" y2="94" stroke="#cfc4b2" stroke-width="1"/>
+      <text x="14" y="110" class="mono">4h left</text>
+      <g transform="translate(246,88)">
+        <rect x="0" y="0" width="66" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <path d="M12 16 L18 10 L24 16 L24 20 L12 20 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+        <text x="44" y="16" class="small" text-anchor="middle">12</text>
+      </g>
+    </g>
+
+    <!-- card 2 — liked by me -->
+    <g transform="translate(24,214)">
+      <rect x="4" y="4" width="327" height="118" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="118" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="28" class="body">looking for a fourth for dominoes,</text>
+      <text x="14" y="46" class="body">rules optional</text>
+      <g transform="translate(14,62)">
+        <rect x="0" y="0" width="46" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="23" y="14" class="small" text-anchor="middle">alone</text>
+        <rect x="56" y="0" width="58" height="20" rx="4" fill="#ffffff" stroke="#cfc4b2" stroke-width="2"/>
+        <text x="85" y="14" class="small" fill="#6b5c4c" text-anchor="middle">600 m</text>
+      </g>
+      <line x1="14" y1="94" x2="313" y2="94" stroke="#cfc4b2" stroke-width="1"/>
+      <text x="14" y="110" class="mono">1h left</text>
+      <g transform="translate(246,88)">
+        <rect x="0" y="0" width="66" height="24" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <path d="M12 16 L18 10 L24 16 L24 20 L12 20 Z" fill="#241206" stroke="#241206" stroke-width="2"/>
+        <text x="44" y="16" class="small" fill="#241206" text-anchor="middle">8</text>
+      </g>
+    </g>
+
+    <!-- card 3 -->
+    <g transform="translate(24,352)">
+      <rect x="4" y="4" width="327" height="100" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="100" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="28" class="body">we are five, we have a speaker</text>
+      <g transform="translate(14,44)">
+        <rect x="0" y="0" width="44" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="22" y="14" class="small" text-anchor="middle">party</text>
+        <rect x="54" y="0" width="58" height="20" rx="4" fill="#ffffff" stroke="#cfc4b2" stroke-width="2"/>
+        <text x="83" y="14" class="small" fill="#6b5c4c" text-anchor="middle">3 km</text>
+      </g>
+      <line x1="14" y1="76" x2="313" y2="76" stroke="#cfc4b2" stroke-width="1"/>
+      <text x="14" y="92" class="mono">5h left</text>
+      <g transform="translate(246,70)">
+        <rect x="0" y="0" width="66" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <path d="M12 16 L18 10 L24 16 L24 20 L12 20 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+        <text x="44" y="16" class="small" text-anchor="middle">3</text>
+      </g>
+    </g>
+
+    <text x="24" y="500" class="mono">no author, ever — a circle, not a pin</text>
+    <text x="24" y="518" class="mono">the like tells you nothing about who</text>
+
+    <!-- bottom nav -->
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <rect x="0" y="0" width="375" height="64" fill="#ece4d8"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="bodyb" fill="#1c140d" text-anchor="middle">feed</text>
+        <rect x="33" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="140" y="12" class="body" fill="#6b5c4c" text-anchor="middle">chats</text>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 03 · SAY ================================================ -->
+  <g transform="translate(1017,220)">
+    <text x="0" y="-6" class="micro">03 · NEW PHRASE — §8.3</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="24" y="35" class="body">←</text>
+      <text x="48" y="35" class="display" font-size="15">say something</text>
+    </g>
+
+    <g transform="translate(24,76)">
+      <rect x="4" y="4" width="327" height="92" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="92" rx="6" fill="#ffffff" stroke="#d68a1f" stroke-width="2"/>
+      <text x="14" y="26" class="body">anyone heading to the embankment</text>
+      <text x="14" y="44" class="body">tonight, around nine<tspan fill="#d68a1f">|</tspan></text>
+      <text x="313" y="82" class="mono" text-anchor="end">52 / 240</text>
+    </g>
+
+    <text x="24" y="196" class="micro">WHO ARE YOU TONIGHT</text>
+    <g transform="translate(24,206)">
+      <rect x="4" y="4" width="105" height="34" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="105" height="34" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="52" y="22" class="body" text-anchor="middle">alone</text>
+      <rect x="115" y="0" width="105" height="34" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="167" y="22" class="bodyb" fill="#241206" text-anchor="middle">company</text>
+      <rect x="230" y="4" width="97" height="34" rx="6" fill="#1c140d"/>
+      <rect x="226" y="0" width="97" height="34" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="274" y="22" class="body" text-anchor="middle">party</text>
+    </g>
+
+    <text x="24" y="278" class="micro">WHERE — DRAG THE CIRCLE ANYWHERE</text>
+    <g transform="translate(24,288)">
+      <rect x="0" y="0" width="327" height="180" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+      <g stroke="#cfc4b2" stroke-width="1">
+        <line x1="0" y1="45" x2="327" y2="45"/><line x1="0" y1="90" x2="327" y2="90"/><line x1="0" y1="135" x2="327" y2="135"/>
+        <line x1="82" y1="0" x2="82" y2="180"/><line x1="164" y1="0" x2="164" y2="180"/><line x1="246" y1="0" x2="246" y2="180"/>
+      </g>
+      <path d="M0 118 L60 104 L120 126 L200 96 L280 112 L327 100" fill="none" stroke="#cfc4b2" stroke-width="3"/>
+      <circle cx="164" cy="90" r="62" fill="#d68a1f" fill-opacity="0.18" stroke="#d68a1f" stroke-width="2"/>
+      <circle cx="164" cy="90" r="5" fill="#1c140d"/>
+      <rect x="196" y="80" width="62" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="227" y="94" class="small" text-anchor="middle">2 km</text>
+    </g>
+
+    <g transform="translate(24,492)">
+      <text x="0" y="10" class="micro">RADIUS</text>
+      <line x1="0" y1="30" x2="327" y2="30" stroke="#cfc4b2" stroke-width="4"/>
+      <line x1="0" y1="30" x2="120" y2="30" stroke="#d68a1f" stroke-width="4"/>
+      <rect x="110" y="20" width="20" height="20" rx="4" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="0" y="54" class="mono">100 m</text>
+      <text x="327" y="54" class="mono" text-anchor="end">10 km</text>
+    </g>
+
+    <g transform="translate(24,570)">
+      <rect x="4" y="4" width="327" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="bodyb" fill="#241206" text-anchor="middle">post · lives 6h</text>
+    </g>
+    <text x="24" y="638" class="mono">moderated before it is published — §8.3</text>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="body" fill="#6b5c4c" text-anchor="middle">chats</text>
+        <text x="235" y="12" class="bodyb" text-anchor="middle">say</text>
+        <rect x="221" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================== ROW 2 — MATCH ========== -->
+  <g transform="translate(48,1056)">
+    <text x="0" y="14" class="display" font-size="17">2 · From a like to a chat</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#1c140d" stroke-width="2"/>
+  </g>
+
+  <!-- ========== 04 · MATCHES LIST ======================================= -->
+  <g transform="translate(47,1100)">
+    <text x="0" y="-6" class="micro">04 · MATCHES — §8.5</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="24" y="35" class="display" font-size="15">chats</text>
+    </g>
+
+    <g transform="translate(24,72)">
+      <rect x="0" y="0" width="160" height="32" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="80" y="21" class="body" text-anchor="middle">chats 3</text>
+      <rect x="171" y="4" width="160" height="32" rx="6" fill="#1c140d"/>
+      <rect x="167" y="0" width="160" height="32" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="247" y="21" class="bodyb" fill="#241206" text-anchor="middle">matches 2</text>
+    </g>
+
+    <!-- match card A -->
+    <g transform="translate(24,128)">
+      <rect x="4" y="4" width="327" height="150" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="150" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="24" class="micro">THEY SAID</text>
+      <line x1="14" y1="32" x2="14" y2="72" stroke="#d68a1f" stroke-width="3"/>
+      <text x="26" y="48" class="body">we are five, we have a speaker</text>
+      <text x="26" y="66" class="body">and nowhere to go</text>
+      <g transform="translate(14,84)">
+        <rect x="0" y="0" width="44" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="22" y="14" class="small" text-anchor="middle">party</text>
+        <text x="56" y="14" class="bodyb">Anya, 24</text>
+      </g>
+      <line x1="14" y1="118" x2="313" y2="118" stroke="#cfc4b2" stroke-width="1"/>
+      <text x="14" y="136" class="mono" style="fill:#b3261e">expires in 12m</text>
+      <g transform="translate(199,124)">
+        <rect x="4" y="4" width="110" height="30" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="110" height="30" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <text x="55" y="20" class="bodyb" fill="#241206" text-anchor="middle">open chat</text>
+      </g>
+    </g>
+
+    <!-- match card B — waiting -->
+    <g transform="translate(24,306)">
+      <rect x="4" y="4" width="327" height="150" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="150" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="24" class="micro">THEY SAID</text>
+      <line x1="14" y1="32" x2="14" y2="72" stroke="#d68a1f" stroke-width="3"/>
+      <text x="26" y="48" class="body">looking for a fourth for dominoes,</text>
+      <text x="26" y="66" class="body">rules optional</text>
+      <g transform="translate(14,84)">
+        <rect x="0" y="0" width="46" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="23" y="14" class="small" text-anchor="middle">alone</text>
+        <text x="58" y="14" class="bodyb">Marat, 31</text>
+      </g>
+      <line x1="14" y1="118" x2="313" y2="118" stroke="#cfc4b2" stroke-width="1"/>
+      <text x="14" y="136" class="mono">expires in 48m</text>
+      <g transform="translate(199,124)">
+        <rect x="0" y="0" width="110" height="30" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+        <text x="55" y="20" class="body" fill="#6b5c4c" text-anchor="middle">waiting for them</text>
+      </g>
+    </g>
+
+    <text x="24" y="500" class="mono">a match needs both phrases alive</text>
+    <text x="24" y="518" class="mono">and both people to press — §8.5</text>
+    <text x="24" y="536" class="mono">nothing is shown before that</text>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="bodyb" text-anchor="middle">chats</text>
+        <rect x="126" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 05 · MATCH CARD, consent ================================ -->
+  <g transform="translate(532,1100)">
+    <text x="0" y="-6" class="micro">05 · CONSENT — §8.5, §8.6</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="24" y="35" class="body">←</text>
+      <text x="48" y="35" class="display" font-size="15">it is mutual</text>
+      <text x="351" y="35" class="mono" style="fill:#b3261e" text-anchor="end">12m</text>
+    </g>
+
+    <g transform="translate(24,80)">
+      <rect x="4" y="4" width="327" height="132" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="132" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="24" class="micro">1 · YOU LIKED</text>
+      <line x1="14" y1="34" x2="14" y2="74" stroke="#d68a1f" stroke-width="3"/>
+      <text x="26" y="50" class="body">we are five, we have a speaker</text>
+      <text x="26" y="68" class="body">and nowhere to go</text>
+      <g transform="translate(14,88)">
+        <rect x="0" y="0" width="44" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="22" y="14" class="small" text-anchor="middle">party</text>
+        <text x="56" y="14" class="bodyb">Anya, 24</text>
+      </g>
+    </g>
+
+    <g transform="translate(24,232)">
+      <rect x="0" y="0" width="327" height="76" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="24" class="micro">2 · THEY LIKED</text>
+      <text x="14" y="46" class="small">“a bench, a thermos, no plans”</text>
+      <text x="14" y="64" class="mono">your phrase, 3h ago</text>
+    </g>
+
+    <text x="24" y="346" class="micro">DELETE THE CHAT AFTER, IF WE GO QUIET</text>
+    <g transform="translate(24,356)">
+      <rect x="4" y="4" width="105" height="34" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="105" height="34" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="52" y="22" class="body" text-anchor="middle">30 min</text>
+      <rect x="115" y="0" width="105" height="34" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="167" y="22" class="bodyb" fill="#241206" text-anchor="middle">1 hour</text>
+      <rect x="230" y="4" width="97" height="34" rx="6" fill="#1c140d"/>
+      <rect x="226" y="0" width="97" height="34" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="274" y="22" class="body" text-anchor="middle">3 hours</text>
+    </g>
+    <text x="24" y="426" class="muted">The shorter of the two choices wins. You will</text>
+    <text x="24" y="444" class="muted">not be told which of you set it.</text>
+
+    <g transform="translate(24,476)">
+      <rect x="4" y="4" width="327" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="bodyb" fill="#241206" text-anchor="middle">open chat</text>
+    </g>
+    <text x="24" y="540" class="muted">They have to press it too. If the phrase dies</text>
+    <text x="24" y="558" class="muted">first, this disappears — and there was no chat.</text>
+
+    <text x="24" y="612" class="mono">name and age are revealed here</text>
+    <text x="24" y="630" class="mono">and nowhere earlier — §8.5</text>
+  </g>
+
+  <!-- ========== 06 · CHATS LIST ========================================= -->
+  <g transform="translate(1017,1100)">
+    <text x="0" y="-6" class="micro">06 · CHATS — §3, §8.6</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="24" y="35" class="display" font-size="15">chats</text>
+    </g>
+
+    <g transform="translate(24,72)">
+      <rect x="4" y="4" width="160" height="32" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="160" height="32" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="80" y="21" class="bodyb" fill="#241206" text-anchor="middle">chats 3</text>
+      <rect x="167" y="0" width="160" height="32" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="247" y="21" class="body" text-anchor="middle">matches 2</text>
+    </g>
+
+    <!-- thread 1 — active -->
+    <g transform="translate(24,128)">
+      <rect x="4" y="4" width="327" height="92" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="92" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <rect x="14" y="14" width="36" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="32" y="38" class="bodyb" fill="#241206" text-anchor="middle">A</text>
+      <text x="62" y="28" class="bodyb">Anya, 24</text>
+      <text x="313" y="28" class="mono" text-anchor="end">21:04</text>
+      <text x="62" y="48" class="muted">so the embankment then? I am near the</text>
+      <text x="62" y="72" class="mono">chat fades after 1h of silence</text>
+      <text x="313" y="72" class="body" text-anchor="end">›</text>
+    </g>
+
+    <!-- thread 2 — fading -->
+    <g transform="translate(24,248)">
+      <rect x="4" y="4" width="327" height="92" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="92" rx="6" fill="#f7f2e8" stroke="#b3261e" stroke-width="2"/>
+      <rect x="14" y="14" width="36" height="36" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+      <text x="32" y="38" class="bodyb" text-anchor="middle">M</text>
+      <text x="62" y="28" class="bodyb">Marat, 31</text>
+      <text x="313" y="28" class="mono" text-anchor="end">19:40</text>
+      <text x="62" y="48" class="muted">you: I will bring the board</text>
+      <text x="62" y="72" class="mono" style="fill:#b3261e">deletes in 6m — say something</text>
+      <text x="313" y="72" class="body" text-anchor="end">›</text>
+    </g>
+
+    <!-- thread 3 — unread -->
+    <g transform="translate(24,368)">
+      <rect x="4" y="4" width="327" height="92" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="92" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <rect x="14" y="14" width="36" height="36" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+      <text x="32" y="38" class="bodyb" text-anchor="middle">K</text>
+      <text x="62" y="28" class="bodyb">Kira, 27</text>
+      <text x="313" y="28" class="mono" text-anchor="end">18:12</text>
+      <text x="62" y="48" class="muted">liked one more of your phrases</text>
+      <text x="62" y="72" class="mono">chat fades after 30m of silence</text>
+      <circle cx="305" cy="66" r="9" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="305" y="70" class="small" fill="#241206" text-anchor="middle">2</text>
+    </g>
+
+    <text x="24" y="512" class="mono">the tab counters are the whole inbox</text>
+    <text x="24" y="530" class="mono">§8.12 — no notifications screen</text>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="bodyb" text-anchor="middle">chats</text>
+        <rect x="126" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================== ROW 3 — INSIDE ========= -->
+  <g transform="translate(48,1936)">
+    <text x="0" y="14" class="display" font-size="17">3 · Inside the chat, and yourself</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#1c140d" stroke-width="2"/>
+  </g>
+
+  <!-- ========== 07 · CONVERSATION ======================================= -->
+  <g transform="translate(47,1980)">
+    <text x="0" y="-6" class="micro">07 · CONVERSATION — §4, §8.7</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="20" y="35" class="body">←</text>
+      <text x="42" y="30" class="bodyb">Anya, 24</text>
+      <text x="42" y="46" class="mono">fades after 1h of silence</text>
+      <g transform="translate(325,14)">
+        <rect x="0" y="0" width="30" height="28" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="15" y="19" class="body" text-anchor="middle">⚄</text>
+      </g>
+    </g>
+
+    <!-- liked, in order -->
+    <g transform="translate(24,72)">
+      <rect x="0" y="0" width="327" height="104" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="22" class="micro">LIKED, IN ORDER</text>
+      <text x="14" y="44" class="small"><tspan class="monoink">1</tspan>  you liked · “we are five, we have a speaker”</text>
+      <text x="14" y="64" class="small"><tspan class="monoink">2</tspan>  they liked · “a bench, a thermos, no plans”</text>
+      <text x="14" y="84" class="small"><tspan class="monoink">3</tspan>  they liked · “anyone for the embankment”</text>
+    </g>
+
+    <!-- sys -->
+    <g transform="translate(24,192)">
+      <rect x="60" y="0" width="207" height="24" rx="6" fill="#ece4d8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="163" y="16" class="mono" text-anchor="middle">you both liked this — chat is open</text>
+    </g>
+
+    <!-- them -->
+    <g transform="translate(24,232)">
+      <rect x="4" y="4" width="228" height="44" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="228" height="44" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="26" class="body">so the embankment then?</text>
+      <text x="218" y="38" class="mono" text-anchor="end">21:02</text>
+    </g>
+
+    <!-- me -->
+    <g transform="translate(123,292)">
+      <rect x="4" y="4" width="228" height="44" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="228" height="44" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="26" class="body" fill="#241206">nine works. bench by the pier</text>
+      <text x="218" y="38" class="mono" style="fill:#241206;opacity:0.7" text-anchor="end">21:03</text>
+    </g>
+
+    <!-- extra like -->
+    <g transform="translate(48,352)">
+      <rect x="0" y="0" width="279" height="82" rx="6" fill="#ece4d8" stroke="#d68a1f" stroke-width="2"/>
+      <text x="139" y="20" class="micro" style="fill:#8a5200" text-anchor="middle">THEY LIKED ONE MORE OF YOURS</text>
+      <line x1="14" y1="30" x2="14" y2="60" stroke="#d68a1f" stroke-width="3"/>
+      <text x="26" y="44" class="small"><tspan class="monoink">3</tspan>  anyone heading to the embankment</text>
+      <text x="26" y="60" class="small">tonight, around nine</text>
+      <text x="26" y="76" class="mono">company</text>
+    </g>
+
+    <!-- them 2 -->
+    <g transform="translate(24,446)">
+      <rect x="4" y="4" width="200" height="44" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="200" height="44" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="26" class="body">that one was mine too</text>
+      <text x="190" y="38" class="mono" text-anchor="end">21:04</text>
+    </g>
+
+    <text x="24" y="530" class="mono">history lives in this browser only</text>
+    <text x="24" y="548" class="mono">the server keeps none of it — §8.8</text>
+
+    <!-- composer -->
+    <g transform="translate(0,632)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(24,16)">
+        <rect x="0" y="0" width="277" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="12" y="23" class="body" fill="#6b5c4c">Write a message…</text>
+        <rect x="291" y="4" width="36" height="36" rx="6" fill="#1c140d"/>
+        <rect x="287" y="0" width="36" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <path d="M298 18 L312 18 M306 12 L312 18 L306 24" fill="none" stroke="#241206" stroke-width="2"/>
+      </g>
+    </g>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="bodyb" text-anchor="middle">chats</text>
+        <rect x="126" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 08 · GAME =============================================== -->
+  <g transform="translate(532,1980)">
+    <text x="0" y="-6" class="micro">08 · GAME — §6</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="20" y="35" class="body">←</text>
+      <text x="42" y="30" class="bodyb">Anya, 24</text>
+      <text x="42" y="46" class="mono">fades after 1h of silence</text>
+      <g transform="translate(325,14)">
+        <rect x="0" y="0" width="30" height="28" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <text x="15" y="19" class="body" fill="#241206" text-anchor="middle">⚄</text>
+      </g>
+    </g>
+
+    <g transform="translate(24,76)">
+      <rect x="46" y="0" width="235" height="24" rx="6" fill="#ece4d8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="163" y="16" class="mono" text-anchor="middle">they proposed a board: checkers</text>
+    </g>
+
+    <!-- board -->
+    <g transform="translate(27,116)">
+      <rect x="4" y="4" width="320" height="320" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="320" height="320" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+      <g>
+        <rect x="40" y="0" width="40" height="40" fill="#e2d7c3"/><rect x="120" y="0" width="40" height="40" fill="#e2d7c3"/><rect x="200" y="0" width="40" height="40" fill="#e2d7c3"/><rect x="280" y="0" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="0" y="40" width="40" height="40" fill="#e2d7c3"/><rect x="80" y="40" width="40" height="40" fill="#e2d7c3"/><rect x="160" y="40" width="40" height="40" fill="#e2d7c3"/><rect x="240" y="40" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="40" y="80" width="40" height="40" fill="#e2d7c3"/><rect x="120" y="80" width="40" height="40" fill="#e2d7c3"/><rect x="200" y="80" width="40" height="40" fill="#e2d7c3"/><rect x="280" y="80" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="0" y="120" width="40" height="40" fill="#e2d7c3"/><rect x="80" y="120" width="40" height="40" fill="#e2d7c3"/><rect x="160" y="120" width="40" height="40" fill="#e2d7c3"/><rect x="240" y="120" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="40" y="160" width="40" height="40" fill="#e2d7c3"/><rect x="120" y="160" width="40" height="40" fill="#e2d7c3"/><rect x="200" y="160" width="40" height="40" fill="#e2d7c3"/><rect x="280" y="160" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="0" y="200" width="40" height="40" fill="#e2d7c3"/><rect x="80" y="200" width="40" height="40" fill="#e2d7c3"/><rect x="160" y="200" width="40" height="40" fill="#e2d7c3"/><rect x="240" y="200" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="40" y="240" width="40" height="40" fill="#e2d7c3"/><rect x="120" y="240" width="40" height="40" fill="#e2d7c3"/><rect x="200" y="240" width="40" height="40" fill="#e2d7c3"/><rect x="280" y="240" width="40" height="40" fill="#e2d7c3"/>
+        <rect x="0" y="280" width="40" height="40" fill="#e2d7c3"/><rect x="80" y="280" width="40" height="40" fill="#e2d7c3"/><rect x="160" y="280" width="40" height="40" fill="#e2d7c3"/><rect x="240" y="280" width="40" height="40" fill="#e2d7c3"/>
+      </g>
+      <g stroke="#1c140d" stroke-width="2">
+        <circle cx="60" cy="20" r="13" fill="#1c140d"/><circle cx="140" cy="20" r="13" fill="#1c140d"/><circle cx="220" cy="20" r="13" fill="#1c140d"/>
+        <circle cx="20" cy="60" r="13" fill="#1c140d"/><circle cx="180" cy="60" r="13" fill="#1c140d"/>
+        <circle cx="140" cy="180" r="13" fill="#d68a1f"/>
+        <circle cx="60" cy="260" r="13" fill="#d68a1f"/><circle cx="220" cy="260" r="13" fill="#d68a1f"/>
+        <circle cx="100" cy="300" r="13" fill="#d68a1f"/><circle cx="260" cy="300" r="13" fill="#d68a1f"/>
+      </g>
+      <g>
+        <circle cx="180" cy="140" r="13" fill="#d68a1f" fill-opacity="0.35" stroke="#d68a1f" stroke-width="2" stroke-dasharray="4 3"/>
+      </g>
+    </g>
+
+    <g transform="translate(24,462)">
+      <rect x="0" y="0" width="327" height="66" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="22" class="micro">NO RULES</text>
+      <text x="14" y="42" class="small">Both of you can move anything, anywhere.</text>
+      <text x="14" y="58" class="small">No turns, no captures, no winner.</text>
+    </g>
+
+    <text x="24" y="562" class="mono">a move counts as activity — §8.6</text>
+    <text x="24" y="580" class="mono">so a silent game keeps the chat alive</text>
+
+    <g transform="translate(0,632)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(24,16)">
+        <rect x="0" y="0" width="277" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="12" y="23" class="body" fill="#6b5c4c">Write a message…</text>
+        <rect x="287" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <path d="M298 18 L312 18 M306 12 L312 18 L306 24" fill="none" stroke="#1c140d" stroke-width="2"/>
+      </g>
+    </g>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="bodyb" text-anchor="middle">chats</text>
+        <rect x="126" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 09 · ME ================================================= -->
+  <g transform="translate(1017,1980)">
+    <text x="0" y="-6" class="micro">09 · ME — §8.2, §8.4</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="24" y="35" class="display" font-size="15">me</text>
+    </g>
+
+    <g transform="translate(24,76)">
+      <text x="0" y="10" class="micro">NAME</text>
+      <rect x="0" y="18" width="200" height="34" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="12" y="40" class="body">Zhenya</text>
+      <text x="216" y="10" class="micro">AGE</text>
+      <rect x="216" y="18" width="76" height="34" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="228" y="40" class="body">38</text>
+      <text x="304" y="40" class="mono">edit</text>
+    </g>
+
+    <g transform="translate(24,148)">
+      <rect x="0" y="0" width="327" height="56" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="22" class="small">Still 38? We ask every few months.</text>
+      <text x="14" y="42" class="mono">going below 21 is refused — §8.2</text>
+    </g>
+
+    <text x="24" y="238" class="micro">WHO YOU SEE — YOUR BAND IS 21 AND UP</text>
+    <g transform="translate(24,250)">
+      <line x1="0" y1="18" x2="327" y2="18" stroke="#cfc4b2" stroke-width="4"/>
+      <line x1="40" y1="18" x2="240" y2="18" stroke="#d68a1f" stroke-width="4"/>
+      <rect x="30" y="8" width="20" height="20" rx="4" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <rect x="230" y="8" width="20" height="20" rx="4" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="0" y="46" class="mono">21</text>
+      <text x="327" y="46" class="mono" text-anchor="end">no limit</text>
+      <text x="140" y="46" class="monoink">24 — 52</text>
+    </g>
+
+    <g transform="translate(24,324)">
+      <rect x="4" y="4" width="327" height="112" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="112" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="22" class="micro">WHAT WE COUNT — NEVER WITH WHOM</text>
+      <text x="14" y="48" class="display" font-size="20">148</text>
+      <text x="14" y="66" class="mono">likes received</text>
+      <text x="118" y="48" class="display" font-size="20">96</text>
+      <text x="118" y="66" class="mono">likes given</text>
+      <text x="222" y="48" class="display" font-size="20">11</text>
+      <text x="222" y="66" class="mono">matches</text>
+      <line x1="14" y1="80" x2="313" y2="80" stroke="#cfc4b2" stroke-width="1"/>
+      <text x="14" y="98" class="mono">7 chats opened · 2 refusals</text>
+    </g>
+
+    <g transform="translate(24,460)">
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="body" text-anchor="middle">blocked people · 1</text>
+    </g>
+
+    <g transform="translate(24,520)">
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#ece4d8" stroke="#b3261e" stroke-width="2"/>
+      <text x="163" y="23" class="body" fill="#b3261e" text-anchor="middle">start over…</text>
+      <text x="0" y="58" class="muted">A new identity loses every chat — yours and</text>
+      <text x="0" y="76" class="muted">your peers'. Nothing can be restored.</text>
+    </g>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="body" fill="#6b5c4c" text-anchor="middle">chats</text>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="bodyb" text-anchor="middle">me</text>
+        <rect x="314" y="22" width="28" height="3" fill="#d68a1f"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================== ROW 4 — WHEN IT FAILS == -->
+  <g transform="translate(48,2816)">
+    <text x="0" y="14" class="display" font-size="17">4 · When it does not work</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#1c140d" stroke-width="2"/>
+  </g>
+
+  <!-- ========== 10a · MODERATION REFUSAL ================================ -->
+  <g transform="translate(47,2860)">
+    <text x="0" y="-6" class="micro">10a · REFUSED — §8.3, §8.8</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="24" y="35" class="body">←</text>
+      <text x="48" y="35" class="display" font-size="15">say something</text>
+    </g>
+
+    <g transform="translate(24,76)">
+      <rect x="4" y="4" width="327" height="92" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="92" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/>
+      <text x="14" y="26" class="body">[the text that was refused]</text>
+      <text x="313" y="82" class="mono" text-anchor="end">61 / 240</text>
+    </g>
+
+    <g transform="translate(24,184)">
+      <rect x="0" y="0" width="327" height="86" rx="6" fill="#ece4d8" stroke="#b3261e" stroke-width="2"/>
+      <text x="14" y="22" class="micro" style="fill:#b3261e">NOT PUBLISHED</text>
+      <text x="14" y="44" class="small">This reads as an insult aimed at a person.</text>
+      <text x="14" y="62" class="small">Rewrite it and try again.</text>
+      <text x="14" y="80" class="mono">nothing was written to the server</text>
+    </g>
+
+    <g transform="translate(24,296)">
+      <rect x="0" y="0" width="327" height="56" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="24" class="small">Refusals so far: <tspan class="monoink">2</tspan></text>
+      <text x="14" y="44" class="mono">a few more and sending is paused — §8.8</text>
+    </g>
+
+    <g transform="translate(24,384)">
+      <rect x="4" y="4" width="327" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="bodyb" fill="#241206" text-anchor="middle">rewrite</text>
+    </g>
+
+    <text x="24" y="480" class="mono">the feed is checked before publishing,</text>
+    <text x="24" y="498" class="mono">not after — a public window, §8.3</text>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="body" fill="#6b5c4c" text-anchor="middle">chats</text>
+        <text x="235" y="12" class="bodyb" text-anchor="middle">say</text>
+        <rect x="221" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 10b · NOT DELIVERED ===================================== -->
+  <g transform="translate(532,2860)">
+    <text x="0" y="-6" class="micro">10b · NOT DELIVERED — §8.8, §8.12</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <text x="20" y="35" class="body">←</text>
+      <text x="42" y="30" class="bodyb">Marat, 31</text>
+      <text x="42" y="46" class="mono">fades after 30m of silence</text>
+    </g>
+
+    <g transform="translate(24,84)">
+      <rect x="4" y="4" width="228" height="44" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="228" height="44" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="26" class="body">bring the board, I have time</text>
+      <text x="218" y="38" class="mono" text-anchor="end">19:38</text>
+    </g>
+
+    <!-- delivered -->
+    <g transform="translate(123,144)">
+      <rect x="4" y="4" width="228" height="44" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="228" height="44" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="14" y="26" class="body" fill="#241206">on my way</text>
+      <text x="218" y="38" class="mono" style="fill:#241206;opacity:0.7" text-anchor="end">19:40 ✓</text>
+    </g>
+
+    <!-- pending -->
+    <g transform="translate(123,204)">
+      <rect x="0" y="0" width="228" height="44" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="26" class="body" fill="#6b5c4c">ten minutes out</text>
+      <text x="218" y="38" class="mono" text-anchor="end">sending…</text>
+    </g>
+
+    <!-- error -->
+    <g transform="translate(123,264)">
+      <rect x="0" y="0" width="228" height="44" rx="6" fill="#ece4d8" stroke="#b3261e" stroke-width="2"/>
+      <text x="14" y="26" class="body" fill="#b3261e">at the pier now, where are you</text>
+      <text x="218" y="38" class="mono" style="fill:#b3261e" text-anchor="end">not delivered</text>
+    </g>
+    <g transform="translate(213,320)">
+      <rect x="0" y="0" width="138" height="30" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="69" y="20" class="small" fill="#6b5c4c" text-anchor="middle">send again · 15s</text>
+    </g>
+
+    <g transform="translate(24,376)">
+      <rect x="0" y="0" width="327" height="82" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <text x="14" y="22" class="micro">WHY THE WAIT GROWS</text>
+      <text x="14" y="42" class="small">Each retry waits longer: 5s · 15s · 45s · 135s.</text>
+      <text x="14" y="60" class="small">They got a push and may be opening the app.</text>
+      <text x="14" y="78" class="mono">nothing is queued on the server — §8.8</text>
+    </g>
+
+    <text x="24" y="510" class="mono">a refused message would say so instead,</text>
+    <text x="24" y="528" class="mono">and retrying it would be pointless</text>
+
+    <g transform="translate(0,632)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(24,16)">
+        <rect x="0" y="0" width="277" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="12" y="23" class="body" fill="#6b5c4c">Write a message…</text>
+        <rect x="287" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <path d="M298 18 L312 18 M306 12 L312 18 L306 24" fill="none" stroke="#1c140d" stroke-width="2"/>
+      </g>
+    </g>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="body" fill="#6b5c4c" text-anchor="middle">feed</text>
+        <text x="140" y="12" class="bodyb" text-anchor="middle">chats</text>
+        <rect x="126" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 10c · EMPTY FEED ======================================== -->
+  <g transform="translate(1017,2860)">
+    <text x="0" y="-6" class="micro">10c · NOTHING IN RANGE — §8.13</text>
+    <rect x="4" y="4" width="375" height="760" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="375" height="760" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <g>
+      <rect x="0" y="0" width="375" height="56" fill="#ece4d8"/>
+      <line x1="0" y1="56" x2="375" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <path d="M20 34 L30 24 L40 34 L40 42 L20 42 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+      <text x="50" y="41" class="display" font-size="15">SOSED</text>
+      <g transform="translate(232,16)">
+        <rect x="0" y="0" width="60" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="30" y="16" class="small" text-anchor="middle">24–28</text>
+      </g>
+      <g transform="translate(300,16)">
+        <rect x="0" y="0" width="56" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="28" y="16" class="small" text-anchor="middle">600 m</text>
+      </g>
+    </g>
+
+    <g transform="translate(24,140)">
+      <rect x="0" y="0" width="327" height="180" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+      <g stroke="#cfc4b2" stroke-width="1">
+        <line x1="0" y1="45" x2="327" y2="45"/><line x1="0" y1="90" x2="327" y2="90"/><line x1="0" y1="135" x2="327" y2="135"/>
+        <line x1="82" y1="0" x2="82" y2="180"/><line x1="164" y1="0" x2="164" y2="180"/><line x1="246" y1="0" x2="246" y2="180"/>
+      </g>
+      <circle cx="164" cy="90" r="34" fill="none" stroke="#cfc4b2" stroke-width="2" stroke-dasharray="6 4"/>
+      <circle cx="164" cy="90" r="5" fill="#6b5c4c"/>
+    </g>
+
+    <text x="24" y="368" class="display" font-size="19">nothing here yet</text>
+    <text x="24" y="396" class="body">Nobody in this circle is talking right now,</text>
+    <text x="24" y="416" class="body">or nobody matches your age filter.</text>
+
+    <g transform="translate(24,444)">
+      <rect x="4" y="4" width="327" height="36" rx="6" fill="#1c140d"/>
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="bodyb" fill="#241206" text-anchor="middle">widen the circle</text>
+    </g>
+    <g transform="translate(24,496)">
+      <rect x="0" y="0" width="327" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+      <text x="163" y="23" class="body" text-anchor="middle">say something yourself</text>
+    </g>
+
+    <text x="24" y="590" class="mono">the teenage band will be sparse at launch</text>
+    <text x="24" y="608" class="mono">— an open question in §8.13</text>
+
+    <g transform="translate(0,696)">
+      <line x1="0" y1="0" x2="375" y2="0" stroke="#1c140d" stroke-width="2"/>
+      <g transform="translate(0,22)">
+        <text x="47" y="12" class="bodyb" text-anchor="middle">feed</text>
+        <rect x="33" y="22" width="28" height="3" fill="#d68a1f"/>
+        <text x="140" y="12" class="body" fill="#6b5c4c" text-anchor="middle">chats</text>
+        <text x="235" y="12" class="body" fill="#6b5c4c" text-anchor="middle">say</text>
+        <text x="328" y="12" class="body" fill="#6b5c4c" text-anchor="middle">me</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================== ROW 5 — DESKTOP ======== -->
+  <g transform="translate(48,3696)">
+    <text x="0" y="14" class="display" font-size="17">5 · Desktop, ≥900 — three columns</text>
+    <line x1="0" y1="26" x2="1344" y2="26" stroke="#1c140d" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(47,3744)">
+    <text x="0" y="-6" class="micro">11 · WORKSPACE — §9</text>
+    <rect x="4" y="4" width="1344" height="640" rx="6" fill="#1c140d"/>
+    <rect x="0" y="0" width="1344" height="640" rx="6" fill="#ece4d8" stroke="#1c140d" stroke-width="2"/>
+
+    <!-- top bar -->
+    <g>
+      <line x1="0" y1="56" x2="1344" y2="56" stroke="#1c140d" stroke-width="2"/>
+      <path d="M24 38 L34 28 L44 38 L44 46 L24 46 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+      <text x="54" y="45" class="display" font-size="15">SOSED</text>
+      <g transform="translate(1150,16)">
+        <rect x="0" y="0" width="76" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="38" y="16" class="small" text-anchor="middle">21–45</text>
+        <rect x="86" y="0" width="76" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="124" y="16" class="small" text-anchor="middle">Zhenya</text>
+      </g>
+    </g>
+
+    <!-- column 1 — feed -->
+    <g transform="translate(24,80)">
+      <text x="0" y="10" class="micro">FEED — FLEX 1</text>
+      <g transform="translate(0,24)">
+        <rect x="4" y="4" width="556" height="86" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="556" height="86" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="16" y="30" class="body">anyone heading to the embankment tonight, around nine</text>
+        <g transform="translate(16,44)">
+          <rect x="0" y="0" width="66" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+          <text x="33" y="14" class="small" text-anchor="middle">company</text>
+          <rect x="76" y="0" width="58" height="20" rx="4" fill="#ffffff" stroke="#cfc4b2" stroke-width="2"/>
+          <text x="105" y="14" class="small" fill="#6b5c4c" text-anchor="middle">1.2 km</text>
+          <text x="150" y="14" class="mono">4h left</text>
+        </g>
+        <g transform="translate(474,48)">
+          <rect x="0" y="0" width="66" height="24" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+          <path d="M12 16 L18 10 L24 16 L24 20 L12 20 Z" fill="none" stroke="#1c140d" stroke-width="2"/>
+          <text x="44" y="16" class="small" text-anchor="middle">12</text>
+        </g>
+      </g>
+      <g transform="translate(0,128)">
+        <rect x="4" y="4" width="556" height="86" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="556" height="86" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="16" y="30" class="body">looking for a fourth for dominoes, rules optional</text>
+        <g transform="translate(16,44)">
+          <rect x="0" y="0" width="46" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+          <text x="23" y="14" class="small" text-anchor="middle">alone</text>
+          <rect x="56" y="0" width="58" height="20" rx="4" fill="#ffffff" stroke="#cfc4b2" stroke-width="2"/>
+          <text x="85" y="14" class="small" fill="#6b5c4c" text-anchor="middle">600 m</text>
+          <text x="130" y="14" class="mono">1h left</text>
+        </g>
+        <g transform="translate(474,48)">
+          <rect x="0" y="0" width="66" height="24" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+          <path d="M12 16 L18 10 L24 16 L24 20 L12 20 Z" fill="#241206" stroke="#241206" stroke-width="2"/>
+          <text x="44" y="16" class="small" fill="#241206" text-anchor="middle">8</text>
+        </g>
+      </g>
+      <g transform="translate(0,232)">
+        <rect x="4" y="4" width="556" height="86" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="556" height="86" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="16" y="30" class="body">we are five, we have a speaker and nowhere to go</text>
+        <g transform="translate(16,44)">
+          <rect x="0" y="0" width="44" height="20" rx="4" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+          <text x="22" y="14" class="small" text-anchor="middle">party</text>
+          <rect x="54" y="0" width="58" height="20" rx="4" fill="#ffffff" stroke="#cfc4b2" stroke-width="2"/>
+          <text x="83" y="14" class="small" fill="#6b5c4c" text-anchor="middle">3 km</text>
+          <text x="128" y="14" class="mono">5h left</text>
+        </g>
+      </g>
+      <g transform="translate(0,336)">
+        <rect x="4" y="4" width="464" height="36" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="464" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="14" y="23" class="body" fill="#6b5c4c">Say something…</text>
+        <rect x="478" y="4" width="82" height="36" rx="6" fill="#1c140d"/>
+        <rect x="474" y="0" width="82" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <text x="515" y="23" class="bodyb" fill="#241206" text-anchor="middle">say</text>
+      </g>
+    </g>
+
+    <line x1="608" y1="56" x2="608" y2="640" stroke="#1c140d" stroke-width="2"/>
+
+    <!-- column 2 — chats -->
+    <g transform="translate(632,80)">
+      <text x="0" y="10" class="micro">CHATS — 300</text>
+      <g transform="translate(0,24)">
+        <rect x="0" y="0" width="130" height="28" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <text x="65" y="19" class="bodyb" fill="#241206" text-anchor="middle">chats 3</text>
+        <rect x="140" y="0" width="130" height="28" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="205" y="19" class="body" text-anchor="middle">matches 2</text>
+      </g>
+      <g transform="translate(0,68)">
+        <rect x="4" y="4" width="270" height="72" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="270" height="72" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <rect x="12" y="12" width="30" height="30" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="27" y="33" class="bodyb" text-anchor="middle">A</text>
+        <text x="52" y="26" class="bodyb" fill="#241206">Anya, 24</text>
+        <text x="52" y="44" class="small" fill="#241206">so the embankment then?</text>
+        <text x="52" y="62" class="mono" style="fill:#241206;opacity:0.75">fades after 1h of silence</text>
+      </g>
+      <g transform="translate(0,152)">
+        <rect x="4" y="4" width="270" height="72" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="270" height="72" rx="6" fill="#f7f2e8" stroke="#b3261e" stroke-width="2"/>
+        <rect x="12" y="12" width="30" height="30" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+        <text x="27" y="33" class="bodyb" text-anchor="middle">M</text>
+        <text x="52" y="26" class="bodyb">Marat, 31</text>
+        <text x="52" y="44" class="muted">you: I will bring the board</text>
+        <text x="52" y="62" class="mono" style="fill:#b3261e">deletes in 6m</text>
+      </g>
+      <g transform="translate(0,236)">
+        <rect x="4" y="4" width="270" height="72" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="270" height="72" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <rect x="12" y="12" width="30" height="30" rx="6" fill="#f7f2e8" stroke="#1c140d" stroke-width="2"/>
+        <text x="27" y="33" class="bodyb" text-anchor="middle">K</text>
+        <text x="52" y="26" class="bodyb">Kira, 27</text>
+        <text x="52" y="44" class="muted">liked one more of your phrases</text>
+        <text x="52" y="62" class="mono">fades after 30m of silence</text>
+        <circle cx="252" cy="26" r="9" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <text x="252" y="30" class="small" fill="#241206" text-anchor="middle">2</text>
+      </g>
+    </g>
+
+    <line x1="928" y1="56" x2="928" y2="640" stroke="#1c140d" stroke-width="2"/>
+
+    <!-- column 3 — active chat -->
+    <g transform="translate(952,80)">
+      <text x="0" y="10" class="micro">ACTIVE CHAT — 400</text>
+      <g transform="translate(0,24)">
+        <text x="0" y="14" class="bodyb">Anya, 24</text>
+        <text x="0" y="32" class="mono">fades after 1h of silence</text>
+        <g transform="translate(338,0)">
+          <rect x="0" y="0" width="30" height="28" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+          <text x="15" y="19" class="body" text-anchor="middle">⚄</text>
+        </g>
+        <line x1="0" y1="46" x2="368" y2="46" stroke="#cfc4b2" stroke-width="2"/>
+      </g>
+      <g transform="translate(0,86)">
+        <rect x="0" y="0" width="368" height="66" rx="6" fill="#f7f2e8" stroke="#cfc4b2" stroke-width="2"/>
+        <text x="14" y="20" class="micro">LIKED, IN ORDER</text>
+        <text x="14" y="40" class="small"><tspan class="monoink">1</tspan>  you liked · “we are five, we have a speaker”</text>
+        <text x="14" y="58" class="small"><tspan class="monoink">2</tspan>  they liked · “a bench, a thermos, no plans”</text>
+      </g>
+      <g transform="translate(0,168)">
+        <rect x="4" y="4" width="228" height="40" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="228" height="40" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="14" y="25" class="body">so the embankment then?</text>
+      </g>
+      <g transform="translate(140,220)">
+        <rect x="4" y="4" width="228" height="40" rx="6" fill="#1c140d"/>
+        <rect x="0" y="0" width="228" height="40" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <text x="14" y="25" class="body" fill="#241206">nine works. bench by the pier</text>
+      </g>
+      <g transform="translate(44,272)">
+        <rect x="0" y="0" width="280" height="60" rx="6" fill="#ece4d8" stroke="#d68a1f" stroke-width="2"/>
+        <text x="140" y="18" class="micro" style="fill:#8a5200" text-anchor="middle">THEY LIKED ONE MORE OF YOURS</text>
+        <line x1="14" y1="28" x2="14" y2="48" stroke="#d68a1f" stroke-width="3"/>
+        <text x="26" y="42" class="small"><tspan class="monoink">3</tspan>  anyone heading to the embankment</text>
+      </g>
+      <g transform="translate(0,352)">
+        <rect x="0" y="0" width="318" height="36" rx="6" fill="#ffffff" stroke="#1c140d" stroke-width="2"/>
+        <text x="12" y="23" class="body" fill="#6b5c4c">Write a message…</text>
+        <rect x="336" y="4" width="32" height="36" rx="6" fill="#1c140d"/>
+        <rect x="332" y="0" width="36" height="36" rx="6" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+        <path d="M343 18 L357 18 M351 12 L357 18 L351 24" fill="none" stroke="#241206" stroke-width="2"/>
+      </g>
+    </g>
+
+    <text x="24" y="620" class="mono">columns collapse into vertical rails below 900 — the conversation becomes a full-screen overlay</text>
+  </g>
+
+  <!-- ============================================================== FOOTER -->
+  <g transform="translate(48,4432)">
+    <line x1="0" y1="0" x2="1344" y2="0" stroke="#1c140d" stroke-width="2"/>
+    <text x="0" y="24" class="mono">Drawn off docs/chat_RU.md §§2–9 and §8. Geometry from the kit: 2px frames, 4px hard shadows, radius 6, control 36. Accent — the landing's gold.</text>
+    <text x="0" y="44" class="mono">Never drawn, because it never exists: an author under a feed phrase, a message on the server, an identifier of anyone you have not matched with.</text>
+  </g>
+</svg>

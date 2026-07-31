@@ -9,35 +9,49 @@
    <html data-theme> and must win over the media query, which is why it is written
    as a separate selector rather than a value inside one. */
 :root {
+  /* One value per token, both themes inside it. There used to be four blocks —
+     :root, the dark media query, and the two explicit [data-theme] choices — so
+     every colour was written four times and a fifth reader had to be told which
+     of the four they were looking at. The counter proved the obvious risk was
+     real in the least interesting way: the two blocks nobody had checked were
+     byte-identical duplicates of the two that were. light-dark() removes the
+     possibility rather than the duplication.
+
+     It resolves against the used color-scheme, so the theme is chosen once, at
+     the bottom of this section, by stamping a scheme on the root. Stamping the
+     scheme rather than overriding values also fixes something the old blocks
+     could not: a native scrollbar, a select's dropdown and a date picker are
+     drawn by the browser from color-scheme, so choosing "dark" on a light system
+     used to leave those parts light. */
   color-scheme: light dark;
 
   /* Hybrid, as decided: a calm base for reading tables for an hour, brutalist
      weight kept for the frame and the accents. */
-  --page: #f2f2f0;
-  --surface: #ffffff;
-  --surface-sunken: #f7f7f5;
-  --ink: #14140f;
-  --ink-muted: #5b5b55;
-  --line: #d9d9d4;
-  --line-strong: #14140f;
-  --accent: #3355dd;
-  --accent-ink: #ffffff;
+  --page: light-dark(#f2f2f0, #0d0d0c);
+  --surface: light-dark(#ffffff, #16161a);
+  --surface-sunken: light-dark(#f7f7f5, #1d1d22);
+  --ink: light-dark(#14140f, #f2f2ee);
+  --ink-muted: light-dark(#5b5b55, #a0a09a);
+  --line: light-dark(#d9d9d4, #2e2e34);
+  --line-strong: light-dark(#14140f, #4a4a52);
+  --accent: light-dark(#3355dd, #7d9bff);
+  --accent-ink: light-dark(#ffffff, #0d0d0c);
   /* A hover that does not touch the shadow. The depth is a statement about
      where the control sits, and it was being used to say two things at once —
      the gap growing 4 to 6 read as the button rising, while pressing lowers it,
      so a pointer crossing a toolbar set the whole row breathing. Hover firms the
      button up instead: the fill steps toward the ink, the height never changes,
      and the only thing that ever moves is a press. */
-  --surface-hover: #ebebe7;
-  --accent-hover: #2743bb;
-  --warn-line: #b26a00;
-  --warn-ink: #8a5200;
-  --danger-line: #b3261e;
-  --danger-ink: #b3261e;
+  --surface-hover: light-dark(#ebebe7, #24242c);
+  --accent-hover: light-dark(#2743bb, #a3b6ff);
+  --warn-line: light-dark(#b26a00, #d99a3a);
+  --warn-ink: light-dark(#8a5200, #e8b768);
+  --danger-line: light-dark(#b3261e, #ef6a60);
+  --danger-ink: light-dark(#b3261e, #ef8078);
   /* Success had no token, so the one place that reports it wrote #3fb950 — a
      green picked to read on black, used on white at 2.5:1. Only the ink is here:
      there is no ok badge, so the -line half of the pair was never consumed. */
-  --ok-ink: #1a7f37;
+  --ok-ink: light-dark(#1a7f37, #56d364);
   /* There is no recess token any more. A field was sunk by 4px until the rule
      became "a shadow means you press this, flat with a fill means you type here";
      the tokens outlived the rule by a while and are gone now. If a hole is ever
@@ -52,8 +66,9 @@
      Theirs is pure black in both themes, which they can afford because their
      dark background is a mid grey; ours is near-black, where black measures
      1.08:1 and disappears completely. On a dark page a shadow has to be
-     LIGHTER than what it falls on. */
-  --shadow-ink: #14140f;
+     LIGHTER than what it falls on: 6.99:1 against the page here, where the
+     borrowed border colour managed 2.06 and their black would manage 1.08. */
+  --shadow-ink: light-dark(#14140f, #9a9aa6);
 
   /* One scale for spacing, so a page's rhythm is a choice and not an accident. */
   --space-1: 4px;
@@ -116,69 +131,14 @@
   --font-display: "Unbounded", "Inter", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page: #0d0d0c;
-    --surface: #16161a;
-    --surface-sunken: #1d1d22;
-    --ink: #f2f2ee;
-    --ink-muted: #a0a09a;
-    --line: #2e2e34;
-    --line-strong: #4a4a52;
-    --accent: #7d9bff;
-    --accent-ink: #0d0d0c;
-    --surface-hover: #24242c;
-    --accent-hover: #a3b6ff;
-    --warn-line: #d99a3a;
-    --warn-ink: #e8b768;
-    --danger-line: #ef6a60;
-    --danger-ink: #ef8078;
-    --ok-ink: #56d364;
-    /* Lighter than the page, not darker — see the note on --shadow-ink. 6.99:1
-       against the page here, where the old borrowed border colour managed 2.06
-       and the reference libraries' black would manage 1.08. */
-    --shadow-ink: #9a9aa6;
-  }
-}
-
-/* An explicit choice outranks the system, in both directions. */
+/* The whole of the theme switch. An explicit choice outranks the system in both
+   directions because it is a selector and the system preference is not; every
+   light-dark() above resolves against whichever scheme is in force here. */
 :root[data-theme="light"] {
-  --page: #f2f2f0;
-  --surface: #ffffff;
-  --surface-sunken: #f7f7f5;
-  --ink: #14140f;
-  --ink-muted: #5b5b55;
-  --line: #d9d9d4;
-  --line-strong: #14140f;
-  --accent: #3355dd;
-  --accent-ink: #ffffff;
-  --surface-hover: #ebebe7;
-  --accent-hover: #2743bb;
-  --warn-line: #b26a00;
-  --warn-ink: #8a5200;
-  --danger-line: #b3261e;
-  --danger-ink: #b3261e;
-  --ok-ink: #1a7f37;
-  --shadow-ink: #14140f;
+  color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --page: #0d0d0c;
-  --surface: #16161a;
-  --surface-sunken: #1d1d22;
-  --ink: #f2f2ee;
-  --ink-muted: #a0a09a;
-  --line: #2e2e34;
-  --line-strong: #4a4a52;
-  --accent: #7d9bff;
-  --accent-ink: #0d0d0c;
-  --surface-hover: #24242c;
-  --accent-hover: #a3b6ff;
-  --warn-line: #d99a3a;
-  --warn-ink: #e8b768;
-  --danger-line: #ef6a60;
-  --danger-ink: #ef8078;
-  --ok-ink: #56d364;
-  --shadow-ink: #9a9aa6;
+  color-scheme: dark;
 }
 
 * {

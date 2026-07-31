@@ -766,6 +766,7 @@
             root.setAttribute("data-theme", choice);
             localStorage.setItem("panel_theme", choice);
           }
+          paintSwatches();
         });
       }
 
@@ -773,22 +774,39 @@
       // Listed by name because "which of these is a colour" is not something the
       // browser can be asked; the values are not, because those it can.
       const TOKENS = [
-        "page", "surface", "surface-sunken",
-        "ink", "ink-muted", "line", "line-strong", "shadow-ink", "sunk-ink",
-        "accent", "accent-ink",
+        "page", "surface", "surface-sunken", "surface-hover",
+        "ink", "ink-muted", "line", "line-strong", "shadow-ink",
+        "accent", "accent-ink", "accent-hover",
         "ok-ink", "warn-ink", "danger-ink",
       ];
-      const styles = getComputedStyle(root);
+      // A custom property's computed value is its token stream, so reading --page
+      // hands back the literal `light-dark(#f2f2f0, #0d0d0c)` — the two themes at
+      // once, and neither of them what is on the screen. It resolves only when
+      // used, so each token goes through a real colour property and is read back
+      // from there: what the swatch prints is what the page is painted with.
       const swatches = document.getElementById("kit-swatches");
-      for (const name of TOKENS) {
-        const value = styles.getPropertyValue(`--${name}`).trim();
-        const row = document.createElement("div");
-        row.className = "kit-swatch";
-        row.innerHTML =
-          `<span class="kit-chip" style="background: var(--${name})"></span>` +
-          `<span><code>--${name}</code><span class="kit-value">${value}</span></span>`;
-        swatches.append(row);
+      function paintSwatches() {
+        const probe = document.createElement("span");
+        probe.style.display = "none";
+        root.append(probe);
+        swatches.replaceChildren();
+        for (const name of TOKENS) {
+          probe.style.color = `var(--${name})`;
+          const value = getComputedStyle(probe).color;
+          const row = document.createElement("div");
+          row.className = "kit-swatch";
+          row.innerHTML =
+            `<span class="kit-chip" style="background: var(--${name})"></span>` +
+            `<span><code>--${name}</code><span class="kit-value">${value}</span></span>`;
+          swatches.append(row);
+        }
+        probe.remove();
       }
+      paintSwatches();
+      // The printed value is now the resolved colour, so it belongs to a theme.
+      // Repainted on every change of one, including the system's while "system"
+      // is chosen — otherwise the swatches state yesterday's theme in today's.
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintSwatches);
 
       // --- the source under each demo, printed from the demo itself -----------
       // Not hand-written next to it: a snippet typed by a person drifts from the

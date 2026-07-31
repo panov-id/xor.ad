@@ -221,27 +221,29 @@ a new "this ink on that surface" pair does not.
 Our `panel/check-contrast.mjs` does not discover blocks either: it knows one
 accent. If the panel gains a second palette, it has to be rewritten to discover.
 
-**And it checks two of the four blocks.** It iterates only
-`[data-theme="light"]` and `[data-theme="dark"]`; `:root` and the media query —
-which is exactly what a person sees **before** touching the toggle — are never
-checked. The silent drift this same section warns about is invisible in CI
-precisely where most people live.
+**It used to check two of the four blocks**, iterating `[data-theme="light"]` and
+`[data-theme="dark"]` while `:root` and the media query — exactly what a person
+sees **before** touching the toggle — went unchecked. Widening it to all four
+found the drift this section warns about in its least interesting form: the two
+unchecked blocks were byte-identical to the two checked ones. It now reads the
+single block and resolves each `light-dark()` pair twice, so the two themes
+cannot disagree about which tokens exist.
 
-**The panel's obstacle, stated plainly.** Every colour token is declared **four
-times**: in `:root`, in the `prefers-color-scheme: dark` query, and in
-`[data-theme="light"]` and `[data-theme="dark"]`. Two of the four are exact copies
-of the other two. Changing one colour is four synchronised edits, and the failure
-is silent — a theme that quietly kept the old value.
+**The panel's obstacle, since removed.** Every colour token used to be declared
+**four times**: in `:root`, in the `prefers-color-scheme: dark` query, and in
+`[data-theme="light"]` and `[data-theme="dark"]`. Two of the four were exact
+copies of the other two. Changing one colour was four synchronised edits, and the
+failure was silent — a theme that quietly kept the old value.
 
 The storefronts do not have this illness precisely because their accent lives on
 its own axis: two accent declarations per palette, not eight.
 
-**Two steps to fix it:**
+**Two steps to fix it. The second one is done.**
 
 1. **Move the accent onto its own axis**, as the storefronts do:
    `[data-accent="…"] { --accent; --accent-ink }`. Adding a palette becomes two
-   lines instead of edits in four blocks.
-2. **Collapse the themes to one declaration** with `light-dark()`:
+   lines instead of edits in four blocks. **Not done.**
+2. **Collapse the themes to one declaration** with `light-dark()` — **done**:
 
 ```css
 :root {
@@ -253,8 +255,20 @@ its own axis: two accent declarations per palette, not eight.
 :root[data-theme="dark"]  { color-scheme: dark; }
 ```
 
-Supported by current Chrome, Safari and Firefox; the panel is an internal tool on
-modern browsers. **Neither step is implemented — this is the recommendation.**
+Four blocks became one: seventeen colours written once each, and the theme chosen
+by stamping a scheme on the root. Verified in the browser across all six
+combinations of choice and system setting — the three light ones resolve to one
+set of values, the three dark ones to another.
+
+Stamping the scheme rather than overriding values also fixes what the old blocks
+could not: a scrollbar, a select's dropdown and a date picker are drawn by the
+browser from `color-scheme`, so choosing dark on a light system used to leave
+those parts light.
+
+The price is stated rather than assumed: `light-dark()` needs Chrome 123, Edge
+123, Firefox 120 or Safari 17.5. There is no fallback — a custom property accepts
+an unknown function at parse time and fails at use time, which drains the colour
+from the whole page — so the floor is written into the panel's `browserslist`.
 
 ## 6. Controls
 
@@ -374,8 +388,8 @@ Remaining:
 - The storefront accents' exact hexes are not finalised — they need picking by eye.
 - No variable font as such: Unbounded and Inter are wired as weight files.
 - Whether the direction applies identically to both storefronts is undecided.
-- Two axes and `light-dark()` (§5) are proposed, not implemented.
-- The contrast checker covers two of the four theme blocks (§5).
+- The second axis, `data-accent` (§5), is proposed, not implemented.
+  `light-dark()` is done.
 - Three classes render with no rules behind them: `row-action`, `state-loading` and
   `panel-invite-form` (the last held by the tests). Either style them or drop them.
 - 32 of the 46 components in `panel/public/kit-full.svg` are drawn only.

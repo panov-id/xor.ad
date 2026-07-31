@@ -19,35 +19,37 @@ import { dirname, join } from "node:path";
 const here = dirname(fileURLToPath(import.meta.url));
 const css = readFileSync(join(here, "src/App.css"), "utf8");
 
-// Four blocks define values, not two: the default :root, the dark media query,
-// and the two explicit [data-theme] choices. Only the explicit pair used to be
-// counted — the two a person gets *after* touching the toggle. The two nobody
-// checked are what everybody sees *before* touching it, which is most people.
+// One block defines the values now: every colour is a light-dark(a, b) pair in
+// :root, and the theme is chosen by stamping a color-scheme. So this reads that
+// one block and resolves it twice — which is also the only way left for the two
+// themes to disagree about which tokens exist, since they are written together.
 //
-// Braces are matched rather than assumed, because the dark media query nests its
-// :root one level in and the old "find the next \n}" would have stopped early.
+// Braces are matched rather than assumed: the block runs past nested comments and
+// the old "find the next \n}" would have stopped early.
 function blockAt(from) {
   const open = css.indexOf("{", from);
   if (open === -1) throw new Error("no block after index " + from);
   let depth = 0;
   for (let i = open; i < css.length; i++) {
     if (css[i] === "{") depth++;
-    else if (css[i] === "}" && --depth === 0) return { body: css.slice(open + 1, i), end: i };
+    else if (css[i] === "}" && --depth === 0) return css.slice(open + 1, i);
   }
   throw new Error("unbalanced braces in App.css");
 }
 
-// A path of selectors: each is searched for after the previous one, so
-// ["@media (prefers-color-scheme: dark)", ":root"] reaches the nested block.
-function tokensOf(path) {
-  let at = 0;
-  for (const selector of [path].flat()) {
-    at = css.indexOf(selector, at);
-    if (at === -1) throw new Error(`no ${selector} block in App.css`);
-  }
+const PAIR = /^light-dark\(\s*([^,]+?)\s*,\s*(.+?)\s*\)$/;
+
+// A token that is not a pair is the same in both themes; one that is resolves to
+// its first value in light and its second in dark, exactly as the browser does.
+function tokensOf(theme) {
+  const at = css.indexOf(":root {");
+  if (at === -1) throw new Error("no :root block in App.css");
+  const body = blockAt(at).replace(/\/\*[\s\S]*?\*\//g, "");
   const tokens = {};
-  for (const [, name, value] of blockAt(at).body.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
-    tokens[name] = value.trim();
+  for (const [, name, raw] of body.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
+    const value = raw.trim();
+    const pair = value.match(PAIR);
+    tokens[name] = pair ? (theme === "dark" ? pair[2] : pair[1]) : value;
   }
   return tokens;
 }
@@ -91,13 +93,10 @@ const PAIRS = [
 const THRESHOLD = 4.5;
 let failed = 0;
 
-for (const [selector, theme] of [
-  [":root {", "default (light, before the toggle is touched)"],
-  [["@media (prefers-color-scheme: dark)", ":root"], "system dark (before the toggle is touched)"],
-  [':root[data-theme="light"]', "light (chosen)"],
-  [':root[data-theme="dark"]', "dark (chosen)"],
-]) {
-  const tokens = tokensOf(selector);
+// Two, not four: chosen and inherited-from-the-system are the same values now,
+// because there is only one place the values are written.
+for (const theme of ["light", "dark"]) {
+  const tokens = tokensOf(theme);
   console.log(`\n${theme}`);
   for (const [inkName, surfaceName, what] of PAIRS) {
     const ink = tokens[inkName];

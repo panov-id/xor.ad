@@ -30,11 +30,10 @@ draft's sharpenings held up in practice, with one exception:
 - **6px radius, not a sharp corner.** The draft proposed sharp corners; the
   reference libraries keep 5px and we keep 6. Brutalism here is weight and
   flatness, not a right angle — and on a tick, 6px rounds the square into a circle,
-  which is why a tick gets half the radius. Four more literals live in the file
-  besides those two — 4px on the empty state, 3px on the badge, 2px on a histogram
-  bar, 0 on the code in a key row. They are oversight rather than rule, and the
-  badge additionally will not follow `--radius` if it is ever changed, which §5
-  declares mandatory.
+  which is why a tick gets half the radius. There is one more, `--radius-small`
+  at 3px, for things smaller than a control — a badge and the head of a histogram
+  bar, where 6px eats the whole corner. Those two were the file's five hand-written
+  radii; every corner now follows a token, which §5 declares mandatory.
 - Hard, unblurred shadows — **4px 4px 0 0**.
 - Dark theme first — yes, with the caveat in §4: it is not the same drawing with
   inverted values.
@@ -56,9 +55,14 @@ page for the same reason a button does, and its `--shadow-card` is deliberately
 equal to `--depth-rest`. The law says who may carry depth, not that two of them
 may not stand at the same height.
 
-**2 — Nothing moves but a press.** Hover grows the gap under a control from 4 to
-6 and the control stays put. Only `:active` travels, exactly its own 4px, giving
-the shadow up and landing where the shadow was.
+**2 — Nothing moves but a press, and nothing but a press changes the depth.**
+The shadow is the control's height above the page, so hovering may not touch it:
+a button does not change height because a pointer is over it. Under the pointer
+the fill steps toward the ink and everything else is left alone. Only `:active`
+travels, exactly its own 4px, giving the shadow up and landing where the shadow
+was. Hover used to grow the gap 4 → 6, which announced a rise one pixel before
+the press announced a fall, and left a row of buttons breathing as a pointer
+crossed it.
 
 **3 — What persists fills, and keeps its place.** `aria-pressed="true"` inverts
 and does not move. A chosen thing that stepped 4px out of its row would break the
@@ -112,8 +116,9 @@ second set of values rather than a second set of rules.
 --radius           6px          (half of it for a tick)
 --border-w         2px          everywhere
 --control-h        36px         --control-h-small 28px, for a number inside a table cell
---depth-rest       4px 4px 0    --depth-hover 6px 6px 0, --depth-small 2px 2px 0
---press            4px          exactly --depth-rest's offset
+--depth-rest       4px 4px 0    --depth-small 2px 2px 0. There is no hover depth.
+--press            4px          exactly --depth-rest's offset; --press-small 2px for a tick
+--surface-hover    fill only    the whole of what hover changes; --accent-hover for a filled button
 --text             15px         --text-micro 12px. The page title is the one exception.
 ```
 
@@ -257,8 +262,8 @@ modern browsers. **Neither step is implemented — this is the recommendation.**
 
 | | rest | hover | press | focus | held | disabled |
 |---|---|---|---|---|---|---|
-| geometry | shadow 4 | shadow 6, no move | +4, no shadow | unchanged | no move, no shadow | no move, no shadow |
-| colour | by intent | unchanged | unchanged | frame → accent | inverts | frame `--line`, label `--ink-muted` |
+| geometry | shadow 4 | unchanged | +4, no shadow | unchanged | no move, no shadow | no move, no shadow |
+| colour | by intent | fill → `--surface-hover` (`--accent-hover` when filled) | unchanged | frame → accent | inverts | frame `--ink-muted`, label `--ink-muted` |
 
 `:active` carries `:not([aria-pressed="true"])`, or it outranks the held rule —
 0,2,1 against 0,1,1 — and shoves a chosen segment out of its row while the mouse
@@ -359,7 +364,8 @@ Closed from the draft: `border-width` (2px), `border-radius` (6px) and
 `shadow-offset` (4/4) are decided; the display face is chosen (Unbounded); the dark
 theme is built. Closed since: the tick is stated in pixels (18) and no longer
 travels on hover — law 2 reached the checkbox and the radio; the two toolbar gaps
-are at 12.
+are at 12. The histogram has a scale: its top rule is the peak and says so, and
+its floor took the colour of the axis labels (6.9:1 dark, against 1.19:1 before).
 
 Remaining:
 
@@ -370,12 +376,6 @@ Remaining:
 - The contrast checker covers two of the four theme blocks (§5).
 - Three classes render with no rules behind them: `row-action`, `state-loading` and
   `panel-invite-form` (the last held by the tests). Either style them or drop them.
-- Three radii are written as numbers while `--radius` is 6px: the histogram bar (2),
-  the badge (3), the empty state (4). Three values from nowhere.
-- `.state-empty` carries the last 1px frame, after everything else moved to 2px.
-- The histogram is unfinished: no scale, two thirds of the box empty, and its
-  baseline invisible in the dark theme. That is a decision about what it shows,
-  not a style fix.
 - A column of 56 identical `applied` badges: a badge marks the exception and the
   norm is set in text. A decision about which outcomes deserve one.
 - 32 of the 46 components in `panel/public/kit-full.svg` are drawn only.

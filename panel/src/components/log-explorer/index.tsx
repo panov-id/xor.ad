@@ -338,7 +338,10 @@ export const LogExplorer = ({
           series, so identity needs no legend; the heading names it. */}
       {buckets.length > 0 && (
         <figure className="log-histogram">
-          <div className="log-histogram-bars">
+          <div className="log-histogram-plot">
+            {/* The top rule is the peak, so the number belongs on it. */}
+            <span className="log-histogram-peak">peak {peak}</span>
+            <div className="log-histogram-bars">
             {buckets.map((bucket) => (
               // An empty bucket draws nothing: a hairline where there were no
               // events reads as a low steady rate, which is a lie.
@@ -351,6 +354,7 @@ export const LogExplorer = ({
                 title={`${new Date(bucket.at).toLocaleString()} — ${bucket.count}`}
               />
             ))}
+            </div>
           </div>
           {/* When, not just how much. Three bars over an unlabelled line left the
               reader to guess which hours they were looking at. */}
@@ -358,9 +362,8 @@ export const LogExplorer = ({
             <span>{new Date(buckets[0].at).toLocaleTimeString([], timeLabel)}</span>
             <span>{new Date(buckets[buckets.length - 1].at).toLocaleTimeString([], timeLabel)}</span>
           </div>
-          <figcaption>
-            {matched} in window · peak {peak} per bucket
-          </figcaption>
+          {/* The peak moved onto the rule it describes. */}
+          <figcaption>{matched} in window</figcaption>
         </figure>
       )}
 

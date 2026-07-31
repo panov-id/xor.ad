@@ -322,8 +322,8 @@
       <g transform="translate(0,94)">
         <text x="24" y="0">hover</text>
         <text x="290" y="0">translate +4, shadow gone</text>
-        <text x="640" y="0">stays put, gap grows 4 → 6</text>
-        <text x="980" y="0" class="muted">so hover and press stay two different statements</text>
+        <text x="640" y="0">stays put, same gap — the fill firms up</text>
+        <text x="980" y="0" class="muted">the depth is the height; only a press may change it</text>
         <line x1="1" y1="16" x2="1343" y2="16" stroke="#d9d9d4" stroke-width="1"/>
       </g>
       <g transform="translate(0,134)">

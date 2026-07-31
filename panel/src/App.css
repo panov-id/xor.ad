@@ -22,6 +22,14 @@
   --line-strong: #14140f;
   --accent: #3355dd;
   --accent-ink: #ffffff;
+  /* A hover that does not touch the shadow. The depth is a statement about
+     where the control sits, and it was being used to say two things at once —
+     the gap growing 4 to 6 read as the button rising, while pressing lowers it,
+     so a pointer crossing a toolbar set the whole row breathing. Hover firms the
+     button up instead: the fill steps toward the ink, the height never changes,
+     and the only thing that ever moves is a press. */
+  --surface-hover: #ebebe7;
+  --accent-hover: #2743bb;
   --warn-line: #b26a00;
   --warn-ink: #8a5200;
   --danger-line: #b3261e;
@@ -79,17 +87,19 @@
   --content-max: 1280px;
 
   /* One vocabulary of depth, at the volume the idiom is actually written in.
-     A thing at rest stands 4px off the page, rises to 6 under the pointer, and
-     when pressed travels exactly its own 4px and gives the shadow up — it does
-     not dim, it does not invert, it drives into the hole it was casting. That
-     last move is the whole grammar: the shadow was never decoration, it was the
-     distance, and pressing spends it.
+     A thing at rest stands 4px off the page, and when pressed it travels exactly
+     its own 4px and gives the shadow up — it does not dim, it does not invert, it
+     drives into the hole it was casting. That move is the whole grammar: the
+     shadow was never decoration, it was the distance, and pressing spends it.
 
-     A field is the other half: the place you put something into is a hole, not
-     a tile, so it is sunk by the same 4. */
+     So there are two depths and no hover depth. A control has one height at rest
+     and none while pressed; nothing in between. --depth-hover, 6/6, is gone — it
+     changed the distance without anything having happened, and it announced a
+     rise one pixel before the press announced a fall. */
   --depth-rest: 4px 4px 0 var(--shadow-ink);
-  --depth-hover: 6px 6px 0 var(--shadow-ink);
   --depth-small: 2px 2px 0 var(--shadow-ink);
+  /* Each press is its own depth spent, so a 2px thing travels 2. */
+  --press-small: 2px;
   --press: 4px;       /* exactly --depth-rest's offset: the thing lands on its shadow.
                          Only :active travels — a state that persists keeps its
                          place, or it drops out of the row it belongs to. */
@@ -117,6 +127,8 @@
     --line-strong: #4a4a52;
     --accent: #7d9bff;
     --accent-ink: #0d0d0c;
+    --surface-hover: #24242c;
+    --accent-hover: #a3b6ff;
     --warn-line: #d99a3a;
     --warn-ink: #e8b768;
     --danger-line: #ef6a60;
@@ -140,6 +152,8 @@
   --line-strong: #14140f;
   --accent: #3355dd;
   --accent-ink: #ffffff;
+  --surface-hover: #ebebe7;
+  --accent-hover: #2743bb;
   --warn-line: #b26a00;
   --warn-ink: #8a5200;
   --danger-line: #b3261e;
@@ -157,6 +171,8 @@
   --line-strong: #4a4a52;
   --accent: #7d9bff;
   --accent-ink: #0d0d0c;
+  --surface-hover: #24242c;
+  --accent-hover: #a3b6ff;
   --warn-line: #d99a3a;
   --warn-ink: #e8b768;
   --danger-line: #ef6a60;
@@ -297,7 +313,7 @@ h1 .dot {
   font-weight: 500;
 }
 .menu a:hover {
-  background: var(--surface-sunken);
+  background: var(--surface-hover);
 }
 .menu .active {
   background: var(--accent);
@@ -326,7 +342,7 @@ h1 .dot {
   padding: 0 var(--space-3);
 }
 .menu button:hover {
-  background: var(--surface-sunken);
+  background: var(--surface-hover);
 }
 .theme-toggle {
   align-self: flex-start;
@@ -519,13 +535,17 @@ button {
   cursor: pointer;
   box-shadow: var(--depth-rest);
 }
-/* Rising: the gap under it grows from 4 to 6 and the button itself does not
-   move. It used to travel -2 as well, which made hover-then-press a six-pixel
-   journey — further than anything else in the panel moves, and enough that a
-   pointer crossing a toolbar set every button in it swimming. The shadow says
-   it alone. */
+/* The shadow does not move. It is the button's height above the page, and a
+   button does not change height because a pointer is over it — only a press
+   changes height, and a press is the whole of what the shadow is there to make
+   readable. Growing it on hover said "rising" one pixel before pressing said
+   "falling", and a pointer crossing a toolbar left a row of buttons breathing.
+
+   Hover firms the button up instead: the fill steps toward the ink. Nothing
+   moves, nothing about the depth changes, and the button under the pointer is
+   simply the more definite one. */
 button:hover:not(:disabled) {
-  box-shadow: var(--depth-hover);
+  background: var(--surface-hover);
 }
 /* Pressing spends the distance: it travels exactly --depth-rest's offset and
    gives the shadow up entirely, landing where the shadow was. For :active that
@@ -595,6 +615,12 @@ button:disabled {
   background: var(--accent);
   color: var(--accent-ink);
 }
+/* A filled button firms up the same way, in its own colour: the plain hover fill
+   outweighs .button-primary on its own (0,2,1 against 0,1,0) and would have
+   turned the one action a view exists for grey under the pointer. */
+.button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
 /* Accent on accent is nothing. A filled button's focus takes the colour it
    prints in — the same trade the held state makes, for the same reason. */
 .button-primary:focus-visible {
@@ -624,8 +650,7 @@ button:disabled {
   box-shadow: none;
 }
 .row-action:hover:not(:disabled) {
-  box-shadow: none;
-  background: var(--surface-sunken);
+  background: var(--surface-hover);
 }
 .row-action:active:not(:disabled):not([aria-pressed="true"]) {
   transform: none;
@@ -758,10 +783,18 @@ input[type="radio"] {
 }
 .scope-picker input[type="checkbox"]:hover,
 input[type="radio"]:hover {
-  /* Law 2, applied here last. It used to travel -1 -1, which made a column of
-     fifteen scopes twitch under a moving pointer — the only thing left in the
-     panel that moved without being pressed. Only the gap grows. */
-  box-shadow: var(--depth-rest);
+  /* The same as a button: the depth is left alone and the fill firms up. It used
+     to travel -1 -1, which made a column of fifteen scopes twitch under a moving
+     pointer, and then it grew its shadow instead, which made the column breathe.
+     Neither was the tick answering — both were the tick moving. */
+  background: var(--surface-hover);
+}
+/* And it presses like everything else: it travels its own 2px and lands on its
+   shadow. It was the last control that answered a click by not moving. */
+.scope-picker input[type="checkbox"]:active,
+input[type="radio"]:active {
+  transform: translate(var(--press-small), var(--press-small));
+  box-shadow: none;
 }
 /* Chosen, and chosen is a state that persists — so like every other one it does
    not travel. In a column of scopes the ticked ones would sit 2px below the rest
@@ -814,13 +847,46 @@ input[type="radio"]:checked::after {
 .log-histogram {
   margin: 0 0 var(--space-4);
 }
+/* The plot is two rules and what is between them. The tallest bar is always
+   100%, so the top edge IS the peak — labelling it turns the emptiness above a
+   short bar into distance from the busiest bucket, which is the only thing a
+   height here can mean. Without it the bars were percentages of a number printed
+   in prose underneath, and nothing on the drawing could be read.
+
+   No padding above the bars: with border-box the padding would push the top rule
+   clear of the tallest bar, and a peak line that no bar reaches is a lie. */
+/* Room for the peak label, which straddles the rule: without it the digits sat
+   half outside the figure and were cut by its top edge. */
+.log-histogram-plot {
+  position: relative;
+  padding-top: var(--space-3);
+}
 .log-histogram-bars {
   display: flex;
   align-items: flex-end;
   gap: 2px;
   height: 72px;
-  padding-top: var(--space-2);
-  border-bottom: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
+  /* The floor the bars stand on. It was 1px of --line — 1.19:1 on the dark card,
+     which is not a line. --line-strong only reaches 2.06:1 there, still under the
+     3:1 a boundary is asked for, and unlike a control's frame this one has no
+     fill behind it to be read by. So it takes the colour of the axis labels
+     underneath it, which is what it belongs to: 6.9:1 dark, 6.1:1 light. */
+  border-bottom: var(--border-w) solid var(--ink-muted);
+}
+/* Sits on the peak rule rather than under it, and carries the surface with it so
+   the dashes do not run through the digits. */
+.log-histogram-peak {
+  position: absolute;
+  /* On the rule, which is where the plot's padding ends. */
+  top: var(--space-3);
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0 var(--space-1);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
 }
 .log-histogram-bar {
   flex: 1;
@@ -1085,8 +1151,8 @@ fieldset.field > legend {
   padding: 0 14px;
 }
 /* This one is filled, so the shared hover's pale wash would turn it inside out.
-   It keeps its ink and takes the lift only — and it has to say so at the shared
-   rule's specificity, or the wash wins on a tie broken by file order. */
+   It keeps the ink it prints in, and says so at the shared rule's specificity or
+   the wash wins on a tie broken by file order. */
 .invite-link button:hover:not(:disabled) {
   background: var(--ink);
 }

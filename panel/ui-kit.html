@@ -93,11 +93,12 @@
         font-size: var(--text-micro);
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        transition: transform 90ms ease-out, box-shadow 90ms ease-out;
       }
+      /* The kit's own chrome obeys the kit: hover changes the fill, never the
+         depth and never the position. This link used to rise and travel, which
+         is the behaviour the page below it argues against. */
       .kit-toc a:hover {
-        transform: translate(-1px, -1px);
-        box-shadow: var(--depth-rest);
+        background: var(--surface-hover);
       }
 
       /* --- section ----------------------------------------------------------- */
@@ -218,7 +219,7 @@
       }
       .kit-fold > summary:hover {
         color: var(--ink);
-        background: var(--surface-sunken);
+        background: var(--surface-hover);
       }
       .kit-fold[open] > summary {
         border-bottom: var(--border-w) solid var(--line-strong);
@@ -345,7 +346,9 @@
         <h2>Relief</h2>
         <p class="kit-note">
           The shadow is not decoration, it is the distance — and pressing spends
-          it. A field is the other half: a hole, not a tile.
+          it: the control travels its own 4px and lands where the shadow was.
+          Hovering never touches it. Nothing here rises, and the only thing that
+          moves is a press. A field is the other half: a hole, not a tile.
         </p>
         <div class="kit-item" data-wide>
           <h3>Rest · held · hole</h3>
@@ -665,17 +668,20 @@
                 <button type="button">Refresh</button>
               </div>
               <figure class="log-histogram">
-                <div class="log-histogram-bars">
-                  <div class="log-histogram-bar" style="height: 20%"></div>
-                  <div class="log-histogram-bar" style="height: 45%"></div>
-                  <div class="log-histogram-bar" style="height: 100%"></div>
-                  <div class="log-histogram-bar" style="height: 30%"></div>
-                  <div class="log-histogram-gap"></div>
-                  <div class="log-histogram-bar" style="height: 62%"></div>
-                  <div class="log-histogram-bar" style="height: 12%"></div>
+                <div class="log-histogram-plot">
+                  <span class="log-histogram-peak">peak 12</span>
+                  <div class="log-histogram-bars">
+                    <div class="log-histogram-bar" style="height: 20%"></div>
+                    <div class="log-histogram-bar" style="height: 45%"></div>
+                    <div class="log-histogram-bar" style="height: 100%"></div>
+                    <div class="log-histogram-bar" style="height: 30%"></div>
+                    <div class="log-histogram-gap"></div>
+                    <div class="log-histogram-bar" style="height: 62%"></div>
+                    <div class="log-histogram-bar" style="height: 12%"></div>
+                  </div>
                 </div>
                 <div class="log-histogram-axis"><span>24h ago</span><span>now</span></div>
-                <figcaption>36 stored · 36 all time</figcaption>
+                <figcaption>36 in window</figcaption>
               </figure>
               <div class="log-footer">
                 <span class="control-label">Showing 2 of 36</span>

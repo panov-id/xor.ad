@@ -65,7 +65,7 @@
       <text x="17" y="22" class="body" fill="#5b5b55" text-anchor="middle">off</text>
     </g>
     <text x="16" y="158" class="mono">intent picks the fill, never the geometry</text>
-    <text x="16" y="176" class="mono">rest 4 · hover 6 · press +4 and gone</text>
+    <text x="16" y="176" class="mono">rest 4 · hover 4, firmer fill · press +4 and gone</text>
   </g>
 
   <!-- badge -->

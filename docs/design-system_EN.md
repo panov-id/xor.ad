@@ -366,6 +366,8 @@ theme is built. Closed since: the tick is stated in pixels (18) and no longer
 travels on hover — law 2 reached the checkbox and the radio; the two toolbar gaps
 are at 12. The histogram has a scale: its top rule is the peak and says so, and
 its floor took the colour of the axis labels (6.9:1 dark, against 1.19:1 before).
+In the audit log the badge is spent on `denied` alone — the norm is printed as a
+word rather than as fifty-six frames down a column.
 
 Remaining:
 
@@ -376,6 +378,4 @@ Remaining:
 - The contrast checker covers two of the four theme blocks (§5).
 - Three classes render with no rules behind them: `row-action`, `state-loading` and
   `panel-invite-form` (the last held by the tests). Either style them or drop them.
-- A column of 56 identical `applied` badges: a badge marks the exception and the
-  norm is set in text. A decision about which outcomes deserve one.
 - 32 of the 46 components in `panel/public/kit-full.svg` are drawn only.

@@ -417,6 +417,12 @@ table.panel-table {
 .log-row {
   cursor: pointer;
 }
+/* A value that is merely a value: printed, not badged. A badge marks the
+   exception, and a column of fifty-six identical ones marks nothing — it just
+   costs a frame, a fill and a corner radius per row to say "normal". */
+.cell-quiet {
+  color: var(--ink-muted);
+}
 .cell-wide {
   max-width: 42ch;
   overflow: hidden;

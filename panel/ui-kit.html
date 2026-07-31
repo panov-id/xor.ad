@@ -571,15 +571,43 @@
         <h2>Badges</h2>
         <p class="kit-note">
           A value that is merely a value is neutral. Colour is spent on the rows
-          worth spotting.
+          worth spotting — and a value that is the norm is not badged at all.
         </p>
         <div class="kit-item" data-wide>
+          <h3>The five tones</h3>
           <div class="kit-demo" data-source>
             <span class="badge badge-neutral">platform</span>
             <span class="badge badge-info">moderator</span>
             <span class="badge badge-accent">admin</span>
             <span class="badge badge-warn">retried</span>
             <span class="badge badge-danger">denied</span>
+          </div>
+        </div>
+        <div class="kit-item" data-wide>
+          <h3>A badge marks the exception</h3>
+          <div class="kit-demo kit-demo-block" data-source>
+            <table class="panel-table">
+              <thead>
+                <tr><th>Actor</th><th>Action</th><th>Outcome</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-label="Actor">ops@sosed.test</td>
+                  <td data-label="Action">key.mint</td>
+                  <td data-label="Outcome"><span class="cell-quiet">applied</span></td>
+                </tr>
+                <tr>
+                  <td data-label="Actor">ann@local.test</td>
+                  <td data-label="Action">user.invite</td>
+                  <td data-label="Outcome"><span class="badge badge-danger">denied</span></td>
+                </tr>
+                <tr>
+                  <td data-label="Actor">admin@local.test</td>
+                  <td data-label="Action">brand.rename</td>
+                  <td data-label="Outcome"><span class="cell-quiet">applied</span></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>

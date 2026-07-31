@@ -4,12 +4,16 @@
 import { formatTime, LogExplorer, type LogRow } from "../../../components/log-explorer";
 import { Badge } from "../../../components/badge";
 
-// A denial is the row worth spotting at a glance, so it carries a badge rather
-// than a bare word in a column of identical-looking text. "denied" is the only
-// outcome that warns; the rest are statements of fact.
-const outcomeBadge = (row: LogRow) => {
+// A denial is the row worth spotting at a glance, so it carries a badge. Nothing
+// else does: almost every entry in this log is "applied", and badging all of them
+// drew fifty-six frames down the column to say "normal" — which left the one row
+// that mattered wearing the same shape as its neighbours. The outcome is still
+// printed on every row; it is just a word where it is not news.
+const outcomeCell = (row: LogRow) => {
   const outcome = String(row.outcome ?? "applied");
-  return <Badge tone={outcome === "denied" ? "danger" : "neutral"}>{outcome}</Badge>;
+  return outcome === "denied"
+    ? <Badge tone="danger">denied</Badge>
+    : <span className="cell-quiet">{outcome}</span>;
 };
 
 export const AuditList = () => (
@@ -21,7 +25,7 @@ export const AuditList = () => (
       { key: "actor_email", label: "Actor" },
       { key: "action", label: "Action" },
       { key: "target", label: "Target" },
-      { key: "outcome", label: "Outcome", render: outcomeBadge },
+      { key: "outcome", label: "Outcome", render: outcomeCell },
     ]}
     facetField="action"
     facetLabel="all actions"

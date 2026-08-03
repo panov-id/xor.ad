@@ -66,9 +66,13 @@ export async function acceptLead(brand: Brand, body: Body): Promise<Response> {
     created_at: new Date().toISOString(),
   };
 
+  const lead = (await sha256hex(email)).slice(0, 12);
+
   if (!storageEnabled()) {
     // Don't lose the lead silently — make it loud in logs and still 200 the user.
-    log("error", "waitlist storage disabled, dropping lead", { email });
+    // The address itself is not in the line: a log outlives what it describes and
+    // is read by whoever is debugging, so it carries the digest instead.
+    log("error", "waitlist storage disabled, dropping lead", { lead });
     inc("relay_waitlist_total", { result: "dropped" });
     return json({ ok: true, stored: false });
   }
@@ -100,6 +104,6 @@ export async function acceptLead(brand: Brand, body: Body): Promise<Response> {
     mode: record.mode ?? undefined,
     source,
     brand: brand.key,
-  }).catch((error) => log("error", "welcome dispatch failed", { email, error: String(error) }));
+  }).catch((error) => log("error", "welcome dispatch failed", { lead, error: String(error) }));
   return json({ ok: true });
 }

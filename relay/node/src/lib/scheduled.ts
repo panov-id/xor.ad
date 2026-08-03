@@ -9,11 +9,21 @@
 import { enqueue, enqueueOnce, handle } from "./jobs.ts";
 import { log } from "./log.ts";
 import { prunePageviews } from "../../tools/prune_pageviews.ts";
+import { pruneObjects } from "../../tools/prune_objects.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
+// Everything else the policy promises a window for. Page views keep their own job
+// because their window is argued separately.
+export const PRUNE_OBJECTS = "prune_objects";
 const A_DAY_MS = 24 * 60 * 60 * 1000;
 
 export function registerScheduledJobs(): void {
+  handle(PRUNE_OBJECTS, async (payload) => {
+    const result = await pruneObjects({ apply: true, only: payload.only as string | undefined });
+    log("info", "pruned stored objects", { ...result, skipped: result.skipped.join(",") });
+    await enqueue(PRUNE_OBJECTS, payload, new Date(Date.now() + A_DAY_MS));
+  });
+
   handle(PRUNE_PAGEVIEWS, async (payload) => {
     const days = typeof payload.days === "number" ? payload.days : undefined;
     const result = await prunePageviews({ days, apply: true });
@@ -29,4 +39,5 @@ export function registerScheduledJobs(): void {
 // node.
 export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_PAGEVIEWS, {}, new Date(Date.now() + A_DAY_MS));
+  await enqueueOnce(PRUNE_OBJECTS, {}, new Date(Date.now() + A_DAY_MS));
 }

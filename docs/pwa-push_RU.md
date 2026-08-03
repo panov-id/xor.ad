@@ -1,5 +1,11 @@
 # Спека: PWA-оболочка + Web Push (вейтлист → уведомление → «soon»)
 
+> **Внимание: описывает прежний стек.** Supabase больше не используется — ни
+> Postgres, ни Auth, ни Edge Functions. Сегодня: пул своих VPS-узлов, вход по
+> magic-link (сессию подписывает сам релей), данные в Bunny Storage, служебное
+> состояние в Postgres рядом с узлом.
+> Актуальное: `relay/ARCHITECTURE_RU.md`, `state-decision_RU.md`, `open-work_RU.md`.
+
 Статус: спека. Код — отдельным шагом.
 
 ## Идея

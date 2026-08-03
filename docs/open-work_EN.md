@@ -432,6 +432,29 @@ went on looking functional. Removed:
       dark backgrounds, 5.52 and 6.08 on the light ones, against a 4.5 bar. The
       E2E now checks both faces the same way.
 
+## J. Legal and mail
+
+From the privacy review of 2026-08-02. Both storefronts' policies already name the
+address to write to about data — so the address has to exist.
+
+- [ ] **J1. Create `privacy@` on both storefronts.** `privacy@sosed.place` and
+      `privacy@neighbro.place`, forwarding to `ev.panov@gmail.com`. Both domains
+      already sit on ImprovMX (`mx1/mx2.improvmx.com`), so this is an alias in the
+      service's panel, not a DNS change.
+
+      **Why it is urgent:** the privacy policy of both storefronts is already
+      published with that address and promises an answer within a month. Until the
+      mailbox exists the document promises a channel that does not — and the GDPR
+      clock starts when a request is sent, not when we happen to read it.
+
+- [ ] **J2. Create `eugene@panov.id`**, forwarding to `ev.panov@gmail.com`.
+      `panov.id` is on ImprovMX too, and DKIM there is already verified. A personal
+      address on an own domain, kept apart from the storefronts.
+
+- [ ] **J3. Check that forwarding arrives.** Send to each of the three addresses
+      and confirm the mail lands. An alias nobody tested is a mailbox you learn
+      about from a complaint.
+
 ## G. Deliberately deferred
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.

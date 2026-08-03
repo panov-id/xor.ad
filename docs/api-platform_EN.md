@@ -34,13 +34,13 @@ Options, cheapest first:
 | Option | What it buys | What it costs |
 | --- | --- | --- |
 | **No queue**, send inside the request | zero infrastructure | events lost on failure, no retries, slow responses |
-| **Postgres (Supabase is already there)** — a jobs table plus `SELECT … FOR UPDATE SKIP LOCKED` | transactions, retries, DLQ, inspectable in SQL | the node stops being stateless-over-objects; the pool needs connectivity to the database |
+| **Postgres (we already run our own, beside the node)** — a jobs table plus `SELECT … FOR UPDATE SKIP LOCKED` | transactions, retries, DLQ, inspectable in SQL | the node stops being stateless-over-objects; the pool needs connectivity to the database |
 | **Redis/Valkey beside the pool** | fast queues, streams, TTL | one more production service; persistence is its own decision |
 | **External queue** (QStash / Cloudflare Queues) | retries and schedules out of the box, nodes stay stateless | an external dependency, its limits, data leaves the perimeter |
 | **Deno KV** on the node | no external service at all | node-local, not shared across the pool — unusable for a pool |
 
-Provisional recommendation: **Postgres**, because Supabase is already in the
-infrastructure and it is the only option where the queue, the webhook subscriptions
+Provisional recommendation: **Postgres**, because our own database already runs beside the
+node and it is the only option where the queue, the webhook subscriptions
 and the delivery log live in one place and can be queried like adults. But it is a
 deliberate retreat from "the node knows nothing but objects" — worth discussing.
 

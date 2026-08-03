@@ -1,5 +1,11 @@
 # DEPLOY TODAY — раннбук dev + uat (лендинги + панель)
 
+> **Внимание: описывает прежний стек.** Supabase больше не используется — ни
+> Postgres, ни Auth, ни Edge Functions. Сегодня: пул своих VPS-узлов, вход по
+> magic-link (сессию подписывает сам релей), данные в Bunny Storage, служебное
+> состояние в Postgres рядом с узлом.
+> Актуальное: `relay/ARCHITECTURE_RU.md`, `state-decision_RU.md`, `open-work_RU.md`.
+
 Быстрый чеклист, чтобы поднять **dev** и **uat** за один заход. Прод — отдельно, позже.
 Общая архитектура и детали — в `deployment_RU.md`. dev+uat делят **один** Supabase-проект.
 

@@ -1,5 +1,11 @@
 # Improvement checklist — neighbro (landing) + panel
 
+> **Note: describes the previous stack.** Supabase is no longer used — not its
+> Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
+> nodes, magic-link sign-in (a signed session issued by the relay itself), data in
+> Bunny Storage, control state in a Postgres beside the node.
+> Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
+
 Compiled from a multi-angle review (correctness, a11y, PWA/SW, security, i18n, performance, architecture, auth, tests, consistency). Paths are relative to `/home/eugene-panov/Projects/panov-id/xor.ad`.
 
 Priority legend: 🔴 critical (before public launch) · 🟠 important · 🟡 hygiene.

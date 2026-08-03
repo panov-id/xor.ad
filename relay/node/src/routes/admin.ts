@@ -718,7 +718,8 @@ async function tryInvite(user: PanelUser, actor: PanelUser): Promise<boolean> {
     // Not an audit event: the trail's vocabulary is applied/denied, and a
     // refused delivery is neither — nobody decided anything. It goes to the
     // node's log, which the panel shows, and the caller sees `invited: false`.
-    log("error", "panel invitation failed", { email: user.email, error: String(error) });
+    log("error", "panel invitation failed",
+        { role: user.role, brand: user.brand, error: String(error) });
     return false;
   }
 }
@@ -833,7 +834,7 @@ route("POST", "/admin/panel-users/:email/invite", async ({ req, params }) => {
   try {
     await sendInvitation(existing);
   } catch (error) {
-    log("error", "panel invitation failed", { email, error: String(error) });
+    log("error", "panel invitation failed", { error: String(error) });
     return json({ error: "could not send the invitation" }, 502);
   }
   recordAuditEvent({ actor: access.user, action: "panel_users.invite", target: email });

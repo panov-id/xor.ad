@@ -1,0 +1,52 @@
+# Measurement bench for the moderation pipeline. Two services: the guard model
+# behind Ollama, and the bench that drives every layer around it.
+#
+# Nothing here is part of the product yet — this stand exists to answer which
+# model and which arrangement to build, with numbers instead of opinions.
+
+name: moderation-bench
+
+services:
+  guard:
+    image: ollama/ollama:latest
+    # Bound to localhost only: the model must not be reachable from outside the
+    # machine, not even on a development box.
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - guard-models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  bench:
+    build: .
+    depends_on:
+      guard:
+        condition: service_healthy
+    environment:
+      GUARD_URL: http://guard:11434
+      GUARD_MODEL: llama-guard3:1b
+      TRANSLATION_MODEL: facebook/nllb-200-distilled-600M
+      # Arm A reads the original; arm B reads the English translation. Both are
+      # encoders, so both answer in milliseconds rather than seconds.
+      NATIVE_CLASSIFIER: textdetox/xlmr-large-toxicity-classifier
+      ENGLISH_CLASSIFIER: unitary/toxic-bert
+      DECIDING_ARM: translated
+      TOXICITY_THRESHOLD: "0.50"
+      CONFIDENCE_FLOOR: "0.50"
+    volumes:
+      - ./:/bench
+      - bench-cache:/cache
+    # Three cores is what the production node has; measuring on more would
+    # produce a latency number we could never reproduce there.
+    cpus: 3.0
+    mem_limit: 6g
+    stdin_open: true
+    tty: true
+
+volumes:
+  guard-models:
+  bench-cache:

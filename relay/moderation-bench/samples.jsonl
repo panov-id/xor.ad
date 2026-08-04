@@ -1,0 +1,47 @@
+# A smoke set, not a measurement. Its only job is to prove that every layer runs
+# and that a language nobody declared still goes through the pipeline. Real
+# numbers come from the human-labelled datasets in step 2 — these labels are mine
+# and would flatter any model measured against them.
+#
+# Fields: text, label (toxic | clean), note (why this line is here).
+{"text": "Anyone at the beach today? Water looks calm.", "label": "clean", "note": "en, ordinary"}
+{"text": "You are a complete idiot and nobody wants you here.", "label": "toxic", "note": "en, plain insult"}
+{"text": "Кто на пляже? Вода спокойная сегодня.", "label": "clean", "note": "ru, ordinary"}
+{"text": "Ты полный придурок, вали отсюда.", "label": "toxic", "note": "ru, plain insult"}
+{"text": "Ty polnyy pridurok, vali otsyuda.", "label": "toxic", "note": "ru in latin letters — the transliteration case"}
+{"text": "Т_ы п р и д у р о к", "label": "toxic", "note": "ru spaced out — the obfuscation case"}
+{"text": "Θέλει κανείς τένις το απόγευμα;", "label": "clean", "note": "el, ordinary"}
+{"text": "Είσαι ηλίθιος, φύγε από εδώ.", "label": "toxic", "note": "el, plain insult"}
+{"text": "Eisai ilithios, fyge apo edo.", "label": "toxic", "note": "greeklish — greek in latin letters"}
+{"text": "Wer ist heute am Strand? Das Wasser ist ruhig.", "label": "clean", "note": "de, ordinary"}
+{"text": "Du bist ein Vollidiot, verschwinde.", "label": "toxic", "note": "de, plain insult"}
+{"text": "¿Alguien en la playa? El agua está tranquila.", "label": "clean", "note": "es, ordinary"}
+{"text": "Eres un imbécil, lárgate de aquí.", "label": "toxic", "note": "es, plain insult"}
+{"text": "Quelqu'un à la plage ? L'eau est calme.", "label": "clean", "note": "fr, ordinary"}
+{"text": "Tu es un imbécile, dégage d'ici.", "label": "toxic", "note": "fr, plain insult"}
+{"text": "Kto jest dzisiaj na plaży? Woda jest spokojna.", "label": "clean", "note": "pl, ordinary"}
+{"text": "Jesteś idiotą, wynoś się stąd.", "label": "toxic", "note": "pl, plain insult"}
+{"text": "Хто на пляжі? Вода сьогодні спокійна.", "label": "clean", "note": "uk, ordinary"}
+{"text": "Ти повний ідіот, іди звідси.", "label": "toxic", "note": "uk, plain insult"}
+{"text": "Cine este pe plajă? Apa este calmă.", "label": "clean", "note": "ro, ordinary"}
+{"text": "Ești un idiot, pleacă de aici.", "label": "toxic", "note": "ro, plain insult"}
+{"text": "Хто сёння на пляжы? Вада спакойная.", "label": "clean", "note": "be, ordinary"}
+{"text": "Ты поўны ідыёт, ідзі адсюль.", "label": "toxic", "note": "be, plain insult — no public labelled data for this language"}
+{"text": "Бүгін жағажайда кім бар? Су тыныш.", "label": "clean", "note": "kk, ordinary"}
+{"text": "Сен ақымақсың, кет бұл жерден.", "label": "toxic", "note": "kk, plain insult — no public labelled data"}
+{"text": "ვინ არის დღეს პლაჟზე? წყალი მშვიდია.", "label": "clean", "note": "ka, ordinary"}
+{"text": "შე იდიოტო, წადი აქედან.", "label": "toxic", "note": "ka, plain insult — no public labelled data"}
+{"text": "Bu gün çimərlikdə kim var? Su sakitdir.", "label": "clean", "note": "az, ordinary"}
+{"text": "Sən axmaqsan, buradan get.", "label": "toxic", "note": "az, plain insult — no public labelled data"}
+{"text": "Ո՞վ է այսօր լողափին։ Ջուրը հանգիստ է։", "label": "clean", "note": "hy, ordinary"}
+{"text": "Դու հիմար ես, հեռացիր այստեղից։", "label": "toxic", "note": "hy, plain insult — no public labelled data"}
+{"text": "Бүгүн пляжда ким бар? Суу тынч.", "label": "clean", "note": "ky, ordinary"}
+{"text": "Сен акмаксың, бул жерден кет.", "label": "toxic", "note": "ky, plain insult — no public labelled data"}
+{"text": "Имрӯз дар соҳил кӣ ҳаст? Об ором аст.", "label": "clean", "note": "tg, ordinary"}
+{"text": "Ту аблаҳӣ, аз ин ҷо рав.", "label": "toxic", "note": "tg, plain insult — no public labelled data"}
+{"text": "Bugun plyajda kim bor? Suv tinch.", "label": "clean", "note": "uz, ordinary"}
+{"text": "Sen ahmoqsan, bu yerdan ket.", "label": "toxic", "note": "uz, plain insult — no public labelled data"}
+{"text": "วันนี้ใครอยู่ที่ชายหาดบ้าง น้ำสงบดี", "label": "clean", "note": "th — a language no storefront declares, and it must still be handled"}
+{"text": "من على الشاطئ اليوم؟ الماء هادئ.", "label": "clean", "note": "ar — likewise undeclared"}
+{"text": "Ciao! Qualcuno in spiaggia oggi?", "label": "clean", "note": "it — likewise undeclared"}
+{"text": "Θέλει κανείς tennis σήμερα? I am free after 6.", "label": "clean", "note": "code switching in one message — the hardest case for translation"}

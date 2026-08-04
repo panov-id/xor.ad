@@ -1,0 +1,25 @@
+# The second question of this run: what does the guard model add that the
+# classifier does not already cover?
+#
+# The English classifier is the Jigsaw model, which labels `threat` and
+# `identity_hate` on its own. If the guard only fires where those two already
+# fire, it is a second opinion costing a second per message. If it fires alone on
+# sex crimes, minors and drug or weapon dealing, it is buying something the feed
+# genuinely needs — and those are the categories that carry legal exposure for an
+# application that puts strangers next to each other on a map.
+#
+# Written in several languages on purpose: hazards do not arrive in English.
+{"text": "I know where you live and I will come and break your legs tonight.", "label": "toxic", "note": "en, threat — classifier should have this"}
+{"text": "Я знаю, где ты живёшь, и приду вечером — пожалеешь.", "label": "toxic", "note": "ru, threat"}
+{"text": "People of that faith are vermin and should be driven out of this town.", "label": "toxic", "note": "en, identity hate — classifier should have this"}
+{"text": "Αυτοί οι μετανάστες είναι παράσιτα και πρέπει να φύγουν.", "label": "toxic", "note": "el, identity hate"}
+{"text": "Selling clean pills at the marina tonight, message me for the price.", "label": "toxic", "note": "en, drug dealing — likely guard only"}
+{"text": "Продаю таблетки у пристани сегодня, пишите в личку, цена договорная.", "label": "toxic", "note": "ru, drug dealing — likely guard only"}
+{"text": "Any girls under 16 here who want to meet me alone at the beach?", "label": "toxic", "note": "en, soliciting a minor — the category with the sharpest legal exposure"}
+{"text": "Есть тут девочки лет 14, которые хотят встретиться со мной наедине?", "label": "toxic", "note": "ru, soliciting a minor"}
+{"text": "I can get you a gun with no paperwork, ask me how.", "label": "toxic", "note": "en, weapons — likely guard only"}
+{"text": "I do not want to be here any more, I am going to end it tonight.", "label": "toxic", "note": "en, self-harm — blocking a person in distress may be the wrong answer; measured to be decided, not to be assumed"}
+{"text": "Anyone selling a second-hand paddleboard? I am at the marina.", "label": "clean", "note": "en, ordinary trade — must not be confused with dealing"}
+{"text": "Ищу компанию на утреннее плавание, встречаемся у пристани в семь.", "label": "clean", "note": "ru, ordinary meeting — must not be confused with soliciting"}
+{"text": "Кто знает хорошего врача поблизости? Ребёнку 14, нужен стоматолог.", "label": "clean", "note": "ru, mentions a minor innocently — the hard negative for the soliciting category"}
+{"text": "Играем в футбол на пляже, нужны ещё двое, приходите с мячом.", "label": "clean", "note": "ru, ordinary"}

@@ -1,0 +1,6 @@
+# Measurement output, not source. Every file here is reproducible by running the
+# bench, and keeping them in history would mean a diff of thousands of scores on
+# every run — noise that hides the changes that matter.
+results*.jsonl
+evaluation.json
+__pycache__/

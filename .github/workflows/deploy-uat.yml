@@ -4,6 +4,15 @@ on:
   push:
     branches: [main]
 
+# A called workflow inherits the caller's permissions and may not ask for more.
+# relay.yml needs packages: write to push the images and id-token: write for
+# keyless signing, so the grant has to be made here — without it the run fails
+# before any job starts, which is exactly what happened.
+permissions:
+  contents: write # the release tag
+  packages: write # ghcr push, in the called build
+  id-token: write # cosign keyless signing, in the called build
+
 jobs:
   release:
     runs-on: ubuntu-latest

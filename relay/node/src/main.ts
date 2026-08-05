@@ -12,6 +12,7 @@ import { metrics } from "./routes/metrics.ts";
 import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
 import { pageview } from "./routes/pageview.ts";
+import { report } from "./routes/report.ts";
 import { relayUpgrade } from "./chat/relay.ts";
 import { match } from "./lib/router.ts";
 import { startWorker } from "./lib/jobs.ts";
@@ -27,6 +28,10 @@ const routes: Record<string, Handler> = {
   "POST /waitlist": (req) => waitlist(req),
   "POST /client-error": (req) => clientError(req),
   "POST /pageview": (req) => pageview(req),
+  // Article 16 DSA: a notice that something here is illegal. Public and
+  // unauthenticated by design — an authority or a stranger must be able to
+  // reach it without an account.
+  "POST /report": (req) => report(req),
   "GET /chat": (req) => relayUpgrade(req), // placeholder, returns 501
 };
 

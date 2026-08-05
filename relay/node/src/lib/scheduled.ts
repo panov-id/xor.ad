@@ -10,11 +10,16 @@ import { enqueue, enqueueOnce, handle } from "./jobs.ts";
 import { log } from "./log.ts";
 import { prunePageviews } from "../../tools/prune_pageviews.ts";
 import { pruneObjects } from "../../tools/prune_objects.ts";
+import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
 // Everything else the policy promises a window for. Page views keep their own job
 // because their window is argued separately.
 export const PRUNE_OBJECTS = "prune_objects";
+// Notices under Article 16 and the statements of reasons that answer them.
+// The window is a year, and it is promised in the privacy policy — which makes
+// forgetting to run this a broken promise rather than untidiness.
+export const PRUNE_DSA = "prune_dsa_records";
 const A_DAY_MS = 24 * 60 * 60 * 1000;
 
 export function registerScheduledJobs(): void {
@@ -22,6 +27,12 @@ export function registerScheduledJobs(): void {
     const result = await pruneObjects({ apply: true, only: payload.only as string | undefined });
     log("info", "pruned stored objects", { ...result, skipped: result.skipped.join(",") });
     await enqueue(PRUNE_OBJECTS, payload, new Date(Date.now() + A_DAY_MS));
+  });
+
+  handle(PRUNE_DSA, async (payload) => {
+    const result = await pruneDsaRecords({ apply: true });
+    log("info", "pruned DSA records", { ...result });
+    await enqueue(PRUNE_DSA, payload, new Date(Date.now() + A_DAY_MS));
   });
 
   handle(PRUNE_PAGEVIEWS, async (payload) => {
@@ -40,4 +51,5 @@ export function registerScheduledJobs(): void {
 export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_PAGEVIEWS, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_OBJECTS, {}, new Date(Date.now() + A_DAY_MS));
+  await enqueueOnce(PRUNE_DSA, {}, new Date(Date.now() + A_DAY_MS));
 }

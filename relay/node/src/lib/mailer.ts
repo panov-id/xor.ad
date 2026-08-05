@@ -123,3 +123,47 @@ export async function sendWelcome(
     log("error", "welcome mail failed", { error: String(e) });
   }
 }
+
+// Article 16(4) DSA: a notice gets a confirmation of receipt without undue delay,
+// whenever the notifier left an address. Deliberately plain — it confirms, states
+// what happens next, and promises no deadline the operator cannot hold.
+export async function sendNoticeReceipt(
+  to: string,
+  opts: { id: string | null; brand?: string; lang?: string },
+): Promise<void> {
+  if (config.mail.transport === "none") return;
+  const brand = (opts.brand && brandByKey(opts.brand)) || resolveBrand(null);
+  const reference = opts.id ? opts.id.slice(0, 8) : "—";
+  const subject = `${brand.name}: your report has been received`;
+  const lines = [
+    "We received your report and it is on the queue.",
+    "",
+    `Reference: ${reference}`,
+    "",
+    "A person will look at it — not an automated system — and you will be told",
+    "what was decided and why, together with how to contest that decision.",
+    "",
+    "If the content had already disappeared before your report arrived, we will",
+    "say so plainly rather than pretend to have examined it.",
+  ];
+  const body = lines.join("\n");
+  const html = `<p>${lines.map((line) => line || "&nbsp;").join("<br>")}</p>`;
+  try {
+    if (config.mail.transport === "smtp") {
+      await sendSmtp({
+        host: config.mail.smtp.host,
+        port: config.mail.smtp.port,
+        from: brand.from,
+        to,
+        subject,
+        html,
+      });
+    } else {
+      await viaResend(config.resend.fromOverride || brand.from, to, subject, html, body, brand.key);
+    }
+    inc("relay_mail_total", { transport: config.mail.transport, result: "sent", kind: "notice_receipt" });
+  } catch (e) {
+    inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind: "notice_receipt" });
+    log("error", "notice receipt failed", { error: String(e) });
+  }
+}

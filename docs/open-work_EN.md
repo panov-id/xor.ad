@@ -614,6 +614,18 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       today and carries no token, so enforcing would take the prod API down.
       Capability first, then the move, and only then enforcement.
 
+**The 2026-08-05 check found the address header never arrived.** The token
+      does (verified on a throwaway zone with an echo origin); `X-Real-IP` does
+      not: **Bunny treats that name as its own and silently ignores an edge rule
+      writing it**. Variable expansion works fine — the same value under
+      `X-Client-IP` arrives every time. The prod zone now carries an `X-Client-IP`
+      rule and the node reads that first.
+
+      Found by experiment rather than by reading: the limit was filled to `429`
+      down the direct path, and the same request through the CDN still passed —
+      different buckets, so the node was seeing the edge address, not the client's.
+      **This is exactly why the Caddy token check could not be switched on blind.**
+
       **Left, in this order:**
       - [ ] **ship an image containing this code to prod.** The node runs `v0.8.0`:
         the variable is delivered, but the limit and the token check are not in

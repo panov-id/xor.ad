@@ -33,6 +33,15 @@ export function clientAddress(req: Request): ClientAddress {
   const presented = req.headers.get("x-origin-token");
 
   if (token && presented === token) {
+    // A header name we chose, because the obvious one is not ours to set:
+    // Bunny reserves X-Real-IP and silently ignores an edge rule that writes it.
+    // Verified against an echo origin — a static header arrived, X-Real-IP never
+    // did, and the same value under X-Client-IP arrived every time.
+    const client = req.headers.get("x-client-ip")?.trim();
+    if (client) return { ip: client, viaEdge: true };
+
+    // Kept for any other proxy in front of a node, and for the day the CDN
+    // starts sending it.
     const real = req.headers.get("x-real-ip")?.trim();
     if (real) return { ip: real, viaEdge: true };
 

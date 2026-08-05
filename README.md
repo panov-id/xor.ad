@@ -35,7 +35,7 @@ Sensitive data lives on the device, not on the server. Concretely: chat history 
 
 ## Moderation
 
-Every message — in the feed or in a private chat — is checked by Google's Perspective API before it's allowed to go out; messages that fail the check simply aren't published or sent. On top of that, everyone starts with a quota of 5 posts; if other users report or block you, that quota drops.
+Every feed message is checked **on our own node** before it is allowed to go out, and the text never leaves that node. Private chats are not checked at all; messages that fail the check simply aren't published or sent. On top of that, everyone starts with a quota of 5 posts; if other users report or block you, that quota drops.
 
 The AI also reads for tone beyond toxicity: it flags messages with sexual subtext and messages that are LGBT-related, and it rejects harassment, drug-related content, and sex-work solicitation outright. The general bar: content should stay within the norms of a calm, peaceful society.
 
@@ -49,7 +49,7 @@ The AI also reads for tone beyond toxicity: it flags messages with sexual subtex
 - **Backend:** the **relay node pool** — identical Deno nodes behind Caddy (Let's Encrypt TLS), brand-agnostic, serving every face. Today it runs the landing/panel routes (`/waitlist`, `/client-error`, panel control plane) with data in Bunny Storage and email via Resend (one account per brand); the alpha app grows on the same pool. See [`relay/ARCHITECTURE_EN.md`](./relay/ARCHITECTURE_EN.md).
 - **Gateway:** xor.ad is the shared custom domain every frontend talks to — per env the forms hit a relay node directly (`n1-dev`/`n1-staging` private, `api.relay.panov.id` public geo record for prod).
 - **Language detection:** a local language-detection library runs inside the relay nodes — no external API call, no per-message cost.
-- **Content moderation:** Google's Perspective API for toxicity, plus a low-cost LLM call per message for tone classification (sexual subtext, LGBT-related topic) — see Moderation above.
+- **Content moderation:** classifiers run inside the relay nodes, with no external service — neither Perspective nor a third-party language model; per message for tone classification (sexual subtext, LGBT-related topic) — see Moderation above.
 - **Anti-abuse on posting:** Cloudflare Turnstile as the captcha layer, and Bunny Shield for IP-based rate limiting — both scoped to the feed post action, not chat.
 - **Client-side storage:** chat history is kept in the browser's IndexedDB, encrypted with the Web Crypto API before being written.
 - **Local development:** everything runs in Docker. The relay node runs locally via [`relay/local`](./relay/local) (`docker compose up --build`): storage is a mounted dir, mail goes to Mailpit — nothing leaves your machine. Landing and panel test suites run via the `docker-compose.*-tests.yml` files, both against that stand. The landing suite also needs the gateway (`docker-compose.gateway.yml`), which serves both faces by hostname and proxies their API calls to the node. The vendored Supabase stack is gone — Supabase was decommissioned on 2026-07-22 and its last leftovers removed on 2026-07-29.

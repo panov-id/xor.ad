@@ -449,13 +449,14 @@ address to write to about data — so the address has to exist.
       mailbox exists the document promises a channel that does not — and the GDPR
       clock starts when a request is sent, not when we happen to read it.
 
-- [ ] **J2. Create `eugene@panov.id`**, forwarding to `ev.panov@gmail.com`.
-      `panov.id` is on ImprovMX too, and DKIM there is already verified. A personal
-      address on an own domain, kept apart from the storefronts.
+- [x] **J3. Forwarding verified — 2026-08-05.** All three addresses came back
+      `delivered`: both `privacy@` from `no-reply@panov.id`, and `eugene@panov.id`
+      from `hey@sosed.place` — each sent from a different domain so the test never
+      runs inside its own. `delivered` means the receiving MX (ImprovMX) took the
+      message; the final hop into the personal inbox is confirmed by eye.
 
-- [ ] **J3. Check that forwarding arrives.** Send to each of the three addresses
-      and confirm the mail lands. An alias nobody tested is a mailbox you learn
-      about from a complaint.
+      J2 was dropped: `eugene@panov.id` already existed, forwarding to
+      `eugene.panov.id@gmail.com`, which is the right destination.
 
 From the legal pass of 2026-08-05. Payments were taken out of the service, offers
 were written into the Terms, and the DSA was worked through. Below is what that

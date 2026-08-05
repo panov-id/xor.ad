@@ -518,6 +518,19 @@ pass opened and did not close.
       assessment impossible. The analysis is in
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
 
+- [ ] **J11. The UAT auto-tag builds no image.** Merging `dev → main` tags the
+      commit `v2026.08.05-<sha>`, but no image exists under it: `type=semver` in
+      `.github/workflows/relay.yml` only emits a tag for a valid semantic
+      version, and `2026.08.05-…` with its leading zero is not one. Checked in the
+      registry on 2026-08-05: `v2026.08.05-1480743` → 404, `sha-1480743` → 200.
+
+      The consequence: a UAT node cannot be pinned to its own release tag, and
+      staging currently runs `sha-1480743`. It matters more for prod, which
+      deploys a **published release** — so that tag has to be real semver
+      (`v0.9.0` does exist in the registry). Decide: either change the auto-tag
+      format to semver, or accept that the auto-tag is a marker in history and
+      images are always pinned by sha.
+
 ## G. Deliberately deferred
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.

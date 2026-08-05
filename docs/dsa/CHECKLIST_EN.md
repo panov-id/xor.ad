@@ -11,11 +11,10 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
 - [x] Terms and policy: the notice channel, statements of reasons, retention
 - [x] Policy: the snapshot, the notifier's name and email, a one-year period
 - [x] The Cypriot Digital Services Coordinator established and named in the Terms
+- [x] The micro-enterprise status checked and recorded — README §3, checked 5 Aug 2026
 
 ## Before launch — mandatory
 
-- [ ] **Confirm the micro-enterprise status** and record the date of the check.
-      Arts. 20, 21, 24, 26 and 27 are lifted on the strength of it
 - [ ] **The `report.html` form** on both faces: the fields from SPEC §3, plus the
       separate path without name and email for the §5.1 case
 - [ ] **Confirmation of receipt** — an email through Resend, immediate, automatic
@@ -40,8 +39,8 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
 
 ## To re-check regularly
 
-- [ ] The micro-enterprise status — yearly. Losing it switches Section 3 on after
-      a year
+- [ ] The micro-enterprise status — **by 5 Aug 2027**, yearly thereafter. Losing
+      it switches Section 3 on after a year; update the record in README §3
 - [ ] Whether the faces have acquired revenue: paid advertising or a subscription
       would change both the tax picture and several answers in the README
 

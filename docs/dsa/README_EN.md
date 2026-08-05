@@ -65,6 +65,28 @@ Art. 24 (reporting and the Commission's decision database), Art. 25 (dark
 patterns), Art. 26 (advertising transparency), Art. 27 (recommender systems),
 Art. 28 (protection of minors).
 
+### The record of the check
+
+| | |
+|---|---|
+| **Date checked** | 5 August 2026 |
+| **Confirmed by** | the operator, Evgenii Panov |
+| **Persons employed** | 0 — the operator is a private individual with no staff and no standing contractors |
+| **Annual turnover** | €0 — the Service takes money from neither residents nor businesses |
+| **Conclusion** | **micro enterprise**: both figures sit below the threshold of Recommendation 2003/361/EC (fewer than 10 employed, turnover or balance sheet not above €2m) |
+| **Next check** | by 5 August 2027, and out of turn on any of the events below |
+
+The status is lost if **any one** of these appears: hiring that brings the head
+count to 10; any turnover approaching €2m a year; control passing to a company
+we would count as linked to (their figures then add to ours). The first two are
+implausible for the current model; the third is not — changing the legal form
+from a private individual to a company calls for a recount.
+
+Losing the status switches Section 3 on **after a year**. That year is the whole
+budget of time for building an Art. 20 internal appeals process and choosing an
+Art. 21 body, which is why the check cannot be skipped: discovering the loss
+after the fact spends part of that year before anyone notices.
+
 Three caveats, which is why this cannot be relied on silently:
 
 1. **The exemption lives and dies with the status.** Outgrow the threshold and

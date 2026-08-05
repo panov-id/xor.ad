@@ -26,6 +26,20 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
       decision, and the dispatch of both letters
 - [ ] **Deletion after a year** — a scheduled job, alongside the existing cleanup
       of offer complaints
+- [ ] **Languages of the point of contact (Art. 11(3))** — name in the Terms the
+      languages in which we can be addressed. One of them must be an official
+      language of the Member State of establishment: for Cyprus, **Greek** or
+      Turkish. Today no languages are named at all. Needs a decision: do we
+      undertake to accept Greek, and how would we handle it
+- [ ] **A link to the form** in the footer and on the legal pages of both faces —
+      the mechanism must be "easy to access" (Art. 16(1))
+- [ ] **Letter templates**: confirmation of receipt, reply to the notifier,
+      statement of reasons to the author, refusal of a service-quality complaint.
+      Each carrying the mandatory elements from SPEC §6 and §7
+- [ ] **Notification of material changes** to the documents. The Terms and the
+      policy promise it themselves ("signposted in the Service"), and Art. 14(6)
+      requires it. No mechanism exists: a banner or a screen on first entry after
+      an edit is needed
 
 ## After launch
 

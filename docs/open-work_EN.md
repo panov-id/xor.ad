@@ -455,6 +455,43 @@ address to write to about data — so the address has to exist.
       and confirm the mail lands. An alias nobody tested is a mailbox you learn
       about from a complaint.
 
+From the legal pass of 2026-08-05. Payments were taken out of the service, offers
+were written into the Terms, and the DSA was worked through. Below is what that
+pass opened and did not close.
+
+- [ ] **J4. Build the Art. 16 notice mechanism.** The full list is in
+      [`dsa/CHECKLIST_EN.md`](./dsa/CHECKLIST_EN.md), the "before launch" section:
+      the `report.html` form, the confirmation email, the `notice` and
+      `statement_of_reasons` tables with RLS, the content snapshot, the review
+      screen in the panel, deletion after a year.
+
+      **Why it is urgent:** both storefronts' Terms **already** promise that
+      illegal content can be reported, that receipt is confirmed and that a
+      reasoned answer follows. No mechanism exists. Harmless while there are no
+      users; on launch day it is an unkept promise in a contract and a hole in
+      the Art. 6 shield.
+
+- [ ] **J5. Name the languages of the point of contact (Art. 11(3)).** One of them
+      must be an official language of the Member State of establishment — for
+      Cyprus, Greek or Turkish. The Terms name no languages today. A decision is
+      needed: do we undertake to accept Greek, and what do we do with it.
+
+- [ ] **J6. Notify users of material changes** to the documents. The Terms and the
+      policy promise this themselves, and Art. 14(6) DSA requires it. No
+      mechanism exists.
+
+- [ ] **J7. Have the translations read by native speakers.** The community
+      guidelines and footers in `kk`, `ka`, `hy`, `az`, `uz`, `ky`, `tg`, `el`,
+      `ro` were written by the assistant. The grammar is probably right; the
+      naturalness is unverified.
+
+- [ ] **J8. Donations: the tax side.** Voluntary donations to a private individual
+      in Cyprus are a question for an accountant. The documents deliberately say
+      nothing about it.
+
+- [ ] **J9. Re-check the micro-enterprise status by 2027-08-05.** The lifting of
+      DSA Section 3 rests on it. The current record is in `dsa/README_EN.md`, §3.
+
 ## G. Deliberately deferred
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.

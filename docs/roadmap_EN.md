@@ -35,7 +35,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 ## 2. Legal / compliance
 - [x] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (GDPR-style; served copies in `landing/legal/`).
 - [x] **Removed the ARC number** from all documents, the prototype, and memory.
-- [x] **Conduct rules**: ban harassment/bullying/shaming/anti-social behavior; ban selling goods/services — promotion only via the paid ad block. In **Terms §8** and **Community Guidelines**; **Rules** tab in legal.html + footer link (6 languages).
+- [x] **Conduct rules**: ban harassment/bullying/shaming/anti-social behavior; ban selling goods/services — promotion only via offers. In **Terms §8** and **Community Guidelines**; **Rules** tab in legal.html + footer link (6 languages).
 - [x] Reconciled `legal/` duplicates: kept `terms_/privacy_/community-guidelines_`; deleted old `terms-of-service_/privacy-policy_`.
 - [ ] Set up `support@neighbro.place` mailbox.
 - [ ] Legal review of the Terms (13+ together with offline meetings is sensitive).
@@ -61,7 +61,6 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [ ] Real tables/RLS for messages, likes, chats, profile, age filter, ephemerality (TTL/fade).
 - [ ] Realtime (websockets via the api proxy) for chat and games.
 - [ ] Web Push (VAPID per face, anonymous subscriptions).
-- [ ] PayPal payments → internal balance (stickers/ads).
 - [x] **dev + UAT deployed** (neighbro landing + panel; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny zones + api proxy with Origin Host Header/WebSockets/cache=0; panov.id DNS; GitHub secrets). prod later. sosed provisioned only, not deployed.
 
 ## Next session (deploy follow-ups)
@@ -72,7 +71,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [ ] Decide on **sosed**: deploy the face or hold.
 - [ ] **prod** (once uat is accepted): `run-wizard.sh prod` + prod DNS — real domains `neighbro.place`/`sosed.place`/`xor.panov.id` (DNS at their registrar, not only panov.id) + Bunny SSL/proxy.
 - [ ] Settle the branch flow (day-branches vs `dev`/`main`) — everything is on `day4` now, deploys come from `dev`/`main`.
-- [ ] Continue product: app screens (Say/match/Set location/games), tables/RLS, Web Push, PayPal (sections 3–6).
+- [ ] Continue product: app screens (Say/match/Set location/games), tables/RLS, Web Push (sections 3–6).
 
 ## Open questions
 - Accent set on the landing (all 11 or a subset).

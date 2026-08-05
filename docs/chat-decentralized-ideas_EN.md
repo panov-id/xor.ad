@@ -90,9 +90,12 @@ the client + cryptography, not in server hardening.
 
 ## Incentives to run a node
 
-- Why would a stranger run one? Tie it to the app's internal economy
-  (balance/bonuses/referrals — already on the roadmap): reward for contributed
-  capacity/uptime. Design the mechanics carefully (anti-abuse first).
+- Why would a stranger run one — **an open question**. There is no internal
+  economy (no balance, bonuses or referrals) and none is planned, so there is
+  nothing to pay for capacity with. What remains are non-monetary motives — a
+  district running its own node, visible contribution, trust in neighbourhood
+  infrastructure — and none of them is tested. Without an answer here the pool
+  of community nodes will not come together.
 
 ## Bunny's role
 

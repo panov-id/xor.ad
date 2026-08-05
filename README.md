@@ -73,4 +73,10 @@ A separate admin/moderation panel gives the team visibility into reports, bans, 
 
 ## Beyond the alpha
 
-The core idea stays ephemeral — this isn't meant to become another permanent-profile social network. What grows from here: more faces for more regions and languages, richer in-chat experience, native apps once the web alpha proves the concept works, and an internal balance. The balance would be funded by real money (PayPal, on both faces) as well as internal mechanics like bonuses and referrals — inviting someone rewards both the inviter and the invitee once the invitee joins through that link — and spendable on two things: decorative stickers for messages/chat (a fixed catalog managed from the admin panel, purchased in-app), and boosting — paying to promote your own message so it stands out in the feed. Regular messages stay text-only, no image attachments; an image is only possible on a boosted/promoted message. Details still open.
+The core idea stays ephemeral — this isn't meant to become another permanent-profile social network. What grows from here: more faces for more regions and languages, richer in-chat experience, native apps once the web alpha proves the concept works, and decorative stickers for messages/chat (a fixed catalog managed from the admin panel). There are no payments inside the Service and none are planned: no balance, no internal currency, no credits — stickers are free. The only form of advertising is **neighbourhood offers**: a post by a local business that must carry a discount, published free of charge, with the platform taking no money and no barter (the mechanic lives in [`docs/offers/`](./docs/offers/)). Images and links are possible only in offers; regular messages stay text-only. Infrastructure costs are covered by voluntary donations. Details still open.
+
+## Support
+
+The Service takes no money: offers are published free of charge and there is no internal balance. Voluntary donations cover the infrastructure.
+
+[![PayPal](https://img.shields.io/badge/PayPal-donate-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=5SMKMYYWFHMJC)

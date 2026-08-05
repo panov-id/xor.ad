@@ -40,7 +40,7 @@ there, not what the cover says.
 | **Google / Perspective** — feed moderation | the text of the message being published | Google APIs ToS + Google Privacy Policy; Perspective has no separate self-serve DPA | needs checking | — | 🛑 **the service is closing**, see below |
 | **Resend** — email | the recipient's address and the letter | **baked in** — accepted with the Terms of Service, updated 2025-12-31 | yes, EU and UK SCCs + EU-US DPF certification | [list](https://resend.com/legal/subprocessors), 14 days' notice | ⚠️ download a copy for the file |
 | **An LLM provider** — second stage of moderation | the text of a message the first stage did not pass | with Anthropic: baked into the Commercial ToS, accepted in the console, no standalone PDF | yes, SCCs inside the DPA | list published, 15 days' notice | ❌ provider not chosen |
-| **PayPal** — paying for balance | payment data | **not a processor** — see below | — | — | ⚠️ described wrongly in the policy |
+| **PayPal** — donations | nothing goes to it: a person leaves for PayPal's own site | **not a processor** — see below | — | — | ✅ described as a controller in both policies |
 
 ### Perspective closes on 2026-12-31
 
@@ -70,9 +70,10 @@ go there, but the record has to say exactly that rather than leave it implied.
 
 Payment providers process data at their own discretion and under their own
 regulatory duties, not on our instructions. An ordinary DPA is not concluded with
-them. Right now the policy lists PayPal alongside Bunny and Resend; that has to be
-rewritten — it is an independent controller, and people should be pointed at its
-own policy.
+them — and we do not need one: the Service takes no payments at all, only
+voluntary donations through an outbound link. A person leaves for PayPal's own
+site; we send it nothing and never learn who donated. Both storefront policies
+say so in a separate paragraph, outside the list of processors.
 
 ## What to do
 
@@ -84,8 +85,7 @@ own policy.
 4. Decide what moderation becomes after Perspective closes — that decides who
    there is to sign anything with for that stage at all.
 5. Choose an LLM provider and accept its DPA in the console.
-6. Fix both storefront policies: describe PayPal as a controller.
-7. Fold all of it into the Article 30 record — this table is already half of it.
+6. Fold all of it into the Article 30 record — this table is already half of it.
 
 I cannot sign anything for you: the accounts and the legal entity are yours.
 Everything else — collecting, checking, writing — is mine.

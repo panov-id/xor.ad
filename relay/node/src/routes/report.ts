@@ -14,6 +14,8 @@ import { sendNoticeReceipt } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { captureTarget } from "../lib/dsa_snapshot.ts";
+import { clientAddress } from "../lib/client_ip.ts";
+import { check, REPORT_HOURLY } from "../lib/rate_limit.ts";
 
 const KINDS = new Set(["feed_message", "offer", "chat", "other"]);
 
@@ -37,6 +39,21 @@ const text = (value: unknown, max: number): string | null =>
   typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 
 export async function report(req: Request): Promise<Response> {
+  // A limit here is more delicate than on a signup: refusing a report of illegal
+  // content is refusing a legal obligation. So it sits high — ten an hour from
+  // one address is a script, not a diligent neighbour — and it refuses with 429
+  // and a retry-after rather than silently.
+  const { ip } = clientAddress(req);
+  const verdict = check(REPORT_HOURLY, ip);
+  if (!verdict.allowed) {
+    inc("relay_report_total", { result: "rate_limited" });
+    return json(
+      { error: "too many reports from here — try later, or write to support" },
+      429,
+      { "retry-after": String(verdict.retryAfterSeconds) },
+    );
+  }
+
   const body = await readJson<Body>(req);
   if (!body) {
     inc("relay_report_total", { result: "invalid" });

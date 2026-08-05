@@ -13,6 +13,7 @@ import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
 import { pageview } from "./routes/pageview.ts";
 import { report } from "./routes/report.ts";
+import { rememberRemote } from "./lib/client_ip.ts";
 // Registers its own routes on import, like the admin module does.
 import "./routes/dsa.ts";
 import { relayUpgrade } from "./chat/relay.ts";
@@ -47,7 +48,9 @@ armScheduledJobs().catch((error) =>
   log("error", "could not arm the scheduled jobs", { error: String(error) })
 );
 
-Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req) => {
+Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
+  // The only place the connection's own address is known.
+  rememberRemote(req, info?.remoteAddr?.hostname);
   const url = new URL(req.url);
   const origin = req.headers.get("origin");
 

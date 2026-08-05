@@ -1,0 +1,58 @@
+// Whose address is this, really.
+//
+// A header claiming to be the client's address is worth exactly as much as the
+// hop that set it. Bunny sends `X-Real-IP` with the visitor's address and adds a
+// shared secret by an edge rule; anything arriving without that secret came
+// straight at the node, and its headers are the sender's own invention. Trusting
+// them there would hand a rate limiter its own defeat: pick a fresh address per
+// request and the limit never fires.
+//
+// So: the header counts when the request proves it came through the CDN, and
+// otherwise the connection's own address is used — which cannot be forged,
+// because packets have to come back.
+
+import { config } from "../config.ts";
+
+// Set where the connection is accepted; read wherever the address is needed.
+// Weak so a finished request takes its entry with it.
+const remotes = new WeakMap<Request, string>();
+
+export function rememberRemote(req: Request, hostname: string | undefined): void {
+  if (hostname) remotes.set(req, hostname);
+}
+
+export interface ClientAddress {
+  ip: string;
+  // Whether the address came from a header we had reason to believe. Callers
+  // that log or count may care; callers that limit generally should not.
+  viaEdge: boolean;
+}
+
+export function clientAddress(req: Request): ClientAddress {
+  const token = config.originToken;
+  const presented = req.headers.get("x-origin-token");
+
+  if (token && presented === token) {
+    const real = req.headers.get("x-real-ip")?.trim();
+    if (real) return { ip: real, viaEdge: true };
+
+    // X-Forwarded-For is "client, proxy1, proxy2…" — the first entry is the one
+    // the edge saw. Used only as a fallback: Bunny sends X-Real-IP, and a chain
+    // is easier to spoof one entry into.
+    const forwarded = req.headers.get("x-forwarded-for");
+    if (forwarded) {
+      const first = forwarded.split(",")[0]?.trim();
+      if (first) return { ip: first, viaEdge: true };
+    }
+  }
+
+  return { ip: remotes.get(req) || "unknown", viaEdge: false };
+}
+
+// Whether a request that claims to come through the edge actually proved it.
+// The token is optional in config: a node with none simply never trusts a header,
+// which is the correct behaviour for dev and for any node not behind the CDN.
+export function cameThroughEdge(req: Request): boolean {
+  const token = config.originToken;
+  return Boolean(token) && req.headers.get("x-origin-token") === token;
+}

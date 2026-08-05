@@ -552,10 +552,31 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       shares one key. That is not protection but a lever for denial of service: a
       bot that burns the quota in a minute closes signups for everyone for a day.
 
-      What to build:
-      - a **per-IP** limit on `/waitlist` in the node, separate from the key quota;
-      - a honeypot field in the landing form — it stops naive bots without a captcha;
-      - the same limit in Caddy, so a flood never reaches the application.
+      **Done 2026-08-05:**
+      - `lib/rate_limit.ts` — a per-address window in the node's memory, separate
+        from the key quota. `/waitlist` 5 an hour, `/report` 10 an hour (higher:
+        refusing a report of illegal content is refusing a legal obligation).
+        Refusal is `429` with `retry-after`; four unit tests in
+        `test/rate_limit.test.ts`.
+      - `lib/client_ip.ts` — the address comes from `X-Real-IP` **only** with a
+        valid `X-Origin-Token`, and otherwise from the connection itself. Without
+        that the header is forged and the limit is bypassed by substituting
+        someone else's address.
+      - a honeypot in both landing forms and in the report form; a filled field
+        looks like success and sends nothing. Verified in a browser: zero requests
+        to `/waitlist`.
+      - `ORIGIN_TOKEN` in the node config, empty by default: a node without one
+        never trusts the header, which is correct for dev.
+
+      **Left, and the order is not optional:**
+      - [ ] issue `ORIGIN_TOKEN` to the prod node and add the header by an edge
+        rule on the `xorad-api-prod` zone;
+      - [ ] check `X-Origin-Token` in Caddy — a request without it should not
+        reach the application;
+      - [ ] firewall: port 443 only from Bunny edge addresses
+        (`https://api.bunny.net/system/edgeserverlist`);
+      - [ ] **only then** repoint `api.relay.panov.id` at the zone and turn on
+        Shield Basic.
 
       There will be no external captcha — the decision is recorded in
       `relay/HARDENING_EN.md`. The cost of getting this wrong is concrete:

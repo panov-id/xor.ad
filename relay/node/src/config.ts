@@ -73,6 +73,12 @@ export const config = {
   // once the landings are updated; the fallback goes away with the flag.
   requireApiKey: env("REQUIRE_API_KEY") === "true",
 
+  // The secret Bunny adds by an edge rule. Its presence is what makes an
+  // X-Real-IP header worth believing; without it the node counts by the address
+  // the connection actually came from. Empty on a node that is not behind the
+  // CDN, which is every node today.
+  originToken: env("ORIGIN_TOKEN"),
+
   allowedOrigins: env("ALLOWED_ORIGINS")
     .split(",").map((s) => s.trim()).filter(Boolean),
 

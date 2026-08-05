@@ -11,9 +11,14 @@ import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
 import { sendWelcome } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { clientAddress } from "../lib/client_ip.ts";
+import { check, WAITLIST_HOURLY } from "../lib/rate_limit.ts";
 
 interface Body {
   email?: unknown;
+  // Not a field a person sees. Anything in it came from something that fills
+  // every input it finds.
+  website?: unknown;
   source?: unknown;
   early_access?: unknown;
   lang?: unknown;
@@ -24,6 +29,27 @@ interface Body {
 
 export async function waitlist(req: Request): Promise<Response> {
   const body = await readJson<Body>(req);
+
+  // A filled honeypot is answered exactly like a success. Telling a bot it was
+  // caught is telling it what to change.
+  if (body && typeof body.website === "string" && body.website.trim()) {
+    inc("relay_waitlist_total", { result: "honeypot" });
+    return json({ ok: true }, 202);
+  }
+
+  // The address, then the limit — before the email is even looked at, because a
+  // flood is refused on arrival rather than after validation.
+  const { ip } = clientAddress(req);
+  const verdict = check(WAITLIST_HOURLY, ip);
+  if (!verdict.allowed) {
+    inc("relay_waitlist_total", { result: "rate_limited" });
+    return json(
+      { error: "too many signups from here — try later" },
+      429,
+      { "retry-after": String(verdict.retryAfterSeconds) },
+    );
+  }
+
   if (!body || !isEmail(body.email)) {
     inc("relay_waitlist_total", { result: "invalid" });
     return json({ error: "invalid email" }, 422);

@@ -568,15 +568,31 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       - `ORIGIN_TOKEN` in the node config, empty by default: a node without one
         never trusts the header, which is correct for dev.
 
-      **Left, and the order is not optional:**
-      - [ ] issue `ORIGIN_TOKEN` to the prod node and add the header by an edge
-        rule on the `xorad-api-prod` zone;
-      - [ ] check `X-Origin-Token` in Caddy — a request without it should not
-        reach the application;
-      - [ ] firewall: port 443 only from Bunny edge addresses
+      **Done 2026-08-05 on the prod node:**
+      - [x] `ORIGIN_TOKEN` issued to p1-prod (`wizard configure --confirm-prod`);
+        `/health` answers after the restart. The secret lives in
+        `wizard/secrets.env`, outside the repository, and `wizard.py` puts it into
+        the node's env.
+      - [x] an edge rule on the `xorad-api-prod` zone adds `X-Origin-Token` to
+        every forwarded request (`deploy/bunny-api-origin-token.sh`, read back
+        from the API). The condition is "any URL" — Bunny demands at least one.
+
+      **The order as first written was wrong, and it matters.** The Caddy check
+      cannot be switched on before the DNS move: traffic reaches the node directly
+      today and carries no token, so enforcing would take the prod API down.
+      Capability first, then the move, and only then enforcement.
+
+      **Left, in this order:**
+      - [ ] **ship an image containing this code to prod.** The node runs `v0.8.0`:
+        the variable is delivered, but the limit and the token check are not in
+        that image. Until a release, the protection does not run and the edge rule
+        merely adds a header nobody reads;
+      - [ ] repoint `api.relay.panov.id` at the zone (traffic then goes through the
+        CDN and carries the header);
+      - [ ] **after that** — the `X-Origin-Token` check in Caddy, and the firewall:
+        port 443 only from Bunny edge addresses
         (`https://api.bunny.net/system/edgeserverlist`);
-      - [ ] **only then** repoint `api.relay.panov.id` at the zone and turn on
-        Shield Basic.
+      - [ ] turn on Shield Basic.
 
       There will be no external captcha — the decision is recorded in
       `relay/HARDENING_EN.md`. The cost of getting this wrong is concrete:

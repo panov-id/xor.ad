@@ -124,6 +124,12 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # the inventory, because it is a property of how far that environment's
         # landings have been rolled out — not of the image or of the secrets.
         "REQUIRE_API_KEY": "true" if e.get("require_api_key") else "false",
+        # The shared secret the CDN adds by an edge rule. Its presence is what
+        # makes an X-Real-IP header worth believing, and later what Caddy will
+        # require. Empty on an environment that is not behind the CDN, which is
+        # every environment until the prod switch — and empty means the node
+        # never trusts a header, which is the safe default rather than a gap.
+        "ORIGIN_TOKEN": os.environ.get("ORIGIN_TOKEN", ""),
     }
     if uses_database(inv, box):
         # Reached by service name on the compose network; the password is the

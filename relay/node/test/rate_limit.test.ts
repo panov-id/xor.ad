@@ -4,7 +4,7 @@
 // address, and it forgets.
 
 import { assertEquals } from "jsr:@std/assert@1";
-import { check, type Limit, reset } from "../src/lib/rate_limit.ts";
+import { check, checkAll, type Limit, reset } from "../src/lib/rate_limit.ts";
 
 const LIMIT: Limit = { name: "test", max: 3, windowMs: 60_000 };
 
@@ -47,4 +47,38 @@ Deno.test("retry-after points at when the oldest hit expires", () => {
   // 60s window, 30s elapsed: about 30 left, and never zero — a client told to
   // retry in zero seconds retries immediately.
   assertEquals(refused.retryAfterSeconds, 30);
+});
+
+// Two windows exist because they catch different things: a burst, and a patient
+// script that stays under the burst threshold and grinds all day.
+const HOURLY: Limit = { name: "two-hourly", max: 3, windowMs: 60_000 };
+const DAILY: Limit = { name: "two-daily", max: 5, windowMs: 600_000 };
+
+Deno.test("the daily window catches what the hourly one lets through", () => {
+  reset();
+  let now = 1_000_000;
+  // Three per short window, refilling each time: the hourly limit never fires.
+  for (let round = 0; round < 2; round++) {
+    for (let i = 0; i < 3; i++) {
+      const verdict = checkAll([HOURLY, DAILY], "1.1.1.1", now);
+      if (round === 1 && i === 2) {
+        // The sixth hit crosses the daily maximum of five.
+        assertEquals(verdict.allowed, false);
+      } else {
+        assertEquals(verdict.allowed, true);
+      }
+    }
+    now += 61_000; // past the hourly window, still inside the daily one
+  }
+});
+
+Deno.test("the refusal reported is the window that has to be waited out", () => {
+  reset();
+  const now = 2_000_000;
+  for (let i = 0; i < 3; i++) checkAll([HOURLY, DAILY], "9.9.9.9", now);
+  const refused = checkAll([HOURLY, DAILY], "9.9.9.9", now);
+  assertEquals(refused.allowed, false);
+  // The hourly one filled first, so its 60s — not the daily 600s — is what the
+  // caller is told to wait.
+  assertEquals(refused.retryAfterSeconds, 60);
 });

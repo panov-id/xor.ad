@@ -15,7 +15,7 @@ import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { captureTarget } from "../lib/dsa_snapshot.ts";
 import { clientAddress } from "../lib/client_ip.ts";
-import { check, REPORT_HOURLY } from "../lib/rate_limit.ts";
+import { checkAll, REPORT_LIMITS } from "../lib/rate_limit.ts";
 
 const KINDS = new Set(["feed_message", "offer", "chat", "other"]);
 
@@ -44,7 +44,7 @@ export async function report(req: Request): Promise<Response> {
   // one address is a script, not a diligent neighbour — and it refuses with 429
   // and a retry-after rather than silently.
   const { ip } = clientAddress(req);
-  const verdict = check(REPORT_HOURLY, ip);
+  const verdict = checkAll(REPORT_LIMITS, ip);
   if (!verdict.allowed) {
     inc("relay_report_total", { result: "rate_limited" });
     return json(

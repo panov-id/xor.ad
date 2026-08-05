@@ -31,8 +31,28 @@ export interface Limit {
   windowMs: number;
 }
 
-export const WAITLIST_HOURLY: Limit = { name: "waitlist", max: 5, windowMs: 60 * 60 * 1000 };
-export const REPORT_HOURLY: Limit = { name: "report", max: 10, windowMs: 60 * 60 * 1000 };
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
+
+// Two windows rather than one, because they answer different questions. The
+// hourly one stops a burst; the daily one stops a patient script that stays just
+// under it and grinds all day.
+//
+// The numbers assume the address is shared. Behind carrier-grade NAT a single
+// address can carry a whole cell tower, so a threshold tuned to one person would
+// refuse the sixth neighbour on the same operator and look like a broken site.
+// Twenty in an hour is no longer "a few people signing up" — it is a script.
+export const WAITLIST_LIMITS: Limit[] = [
+  { name: "waitlist", max: 20, windowMs: HOUR },
+  { name: "waitlist-day", max: 60, windowMs: DAY },
+];
+
+// Higher on purpose: refusing a report of illegal content is refusing a legal
+// obligation, so the cost of a false refusal here is not an annoyed visitor.
+export const REPORT_LIMITS: Limit[] = [
+  { name: "report", max: 10, windowMs: HOUR },
+  { name: "report-day", max: 40, windowMs: DAY },
+];
 
 export interface Verdict {
   allowed: boolean;
@@ -64,6 +84,20 @@ export function check(limit: Limit, address: string, now = Date.now()): Verdict 
   hits.push(now);
   buckets.set(key, { hits });
   return { allowed: true, remaining: limit.max - hits.length, retryAfterSeconds: 0 };
+}
+
+// Every window must allow it; the first refusal is the one reported, because
+// that is the one the caller has to wait out.
+export function checkAll(limits: Limit[], address: string, now = Date.now()): Verdict {
+  let allowed: Verdict = { allowed: true, remaining: Number.MAX_SAFE_INTEGER, retryAfterSeconds: 0 };
+  for (const limit of limits) {
+    const verdict = check(limit, address, now);
+    if (!verdict.allowed) return verdict;
+    // Report the tightest remaining, so a caller that surfaces it tells the truth
+    // about which window runs out first.
+    if (verdict.remaining < allowed.remaining) allowed = verdict;
+  }
+  return allowed;
 }
 
 // For tests, and for nothing else: a limiter that cannot be reset is a limiter

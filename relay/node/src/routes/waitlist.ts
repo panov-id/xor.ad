@@ -12,7 +12,7 @@ import { sendWelcome } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { clientAddress } from "../lib/client_ip.ts";
-import { check, WAITLIST_HOURLY } from "../lib/rate_limit.ts";
+import { checkAll, WAITLIST_LIMITS } from "../lib/rate_limit.ts";
 
 interface Body {
   email?: unknown;
@@ -40,7 +40,7 @@ export async function waitlist(req: Request): Promise<Response> {
   // The address, then the limit — before the email is even looked at, because a
   // flood is refused on arrival rather than after validation.
   const { ip } = clientAddress(req);
-  const verdict = check(WAITLIST_HOURLY, ip);
+  const verdict = checkAll(WAITLIST_LIMITS, ip);
   if (!verdict.allowed) {
     inc("relay_waitlist_total", { result: "rate_limited" });
     return json(

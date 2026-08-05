@@ -524,12 +524,18 @@ pass opened and did not close.
       version, and `2026.08.05-…` with its leading zero is not one. Checked in the
       registry on 2026-08-05: `v2026.08.05-1480743` → 404, `sha-1480743` → 200.
 
-      The consequence: a UAT node cannot be pinned to its own release tag, and
-      staging currently runs `sha-1480743`. It matters more for prod, which
-      deploys a **published release** — so that tag has to be real semver
-      (`v0.9.0` does exist in the registry). Decide: either change the auto-tag
-      format to semver, or accept that the auto-tag is a marker in history and
-      images are always pinned by sha.
+      **Fixed 2026-08-05.** The auto-tag in `deploy-uat.yml` across all three
+      repositories is now `v$(date +%Y.%-m.%-d)-g${GITHUB_SHA::7}` — no leading
+      zeros, and a letter in front of the sha. The prefix is not cosmetic: a sha
+      of all digits starting with zero would be an invalid numeric pre-release
+      identifier and would break the build the same way, once in a thousand
+      releases. Checked against the official semver regexp: the old format fails,
+      the new one passes, including that edge case.
+
+      One tail remains: **tags already pushed are not reissued**, so the
+      `v2026.08.05-*` ones stay imageless and staging runs `sha-1480743`. The next
+      `dev → main` merge produces a tag an image is built for, and from then on
+      staging and prod can be pinned to a release as intended.
 
 ## G. Deliberately deferred
 

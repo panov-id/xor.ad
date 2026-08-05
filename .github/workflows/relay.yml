@@ -9,6 +9,17 @@ on:
     paths: ["relay/**", ".github/workflows/relay.yml"]
   pull_request:
     paths: ["relay/**", ".github/workflows/relay.yml"]
+  # Called by deploy-uat.yml right after it creates the release tag. A tag pushed
+  # from a workflow carries GITHUB_TOKEN, and GitHub deliberately does not start
+  # a new run for those — so the release tag never triggered this build on its
+  # own, at any tag format. Being called does not depend on whose token wrote the
+  # tag, which is the point.
+  workflow_call:
+    inputs:
+      release_tag:
+        description: "Tag to label the images with, in addition to the sha"
+        type: string
+        required: true
 
 jobs:
   test:
@@ -86,7 +97,7 @@ jobs:
 
   build-push:
     needs: [test, database]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -114,6 +125,9 @@ jobs:
             type=sha
             type=ref,event=branch
             type=semver,pattern=v{{version}}
+            # The release tag as given. Not type=semver: that reads the ref, and
+            # on a call the ref is the branch, not the tag.
+            type=raw,value=${{ inputs.release_tag }},enable=${{ inputs.release_tag != '' }}
       - name: build + push (multi-arch)
         id: build
         uses: docker/build-push-action@v6

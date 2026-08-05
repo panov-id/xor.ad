@@ -33,6 +33,15 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Created release $TAG"
 
+  # Build the images under the release tag. Without this the tag exists in git
+  # and nowhere in the registry, and a node can only ever be pinned by sha.
+  images:
+    needs: release
+    uses: ./.github/workflows/relay.yml
+    with:
+      release_tag: ${{ needs.release.outputs.tag }}
+    secrets: inherit
+
   call:
     needs: release
     uses: ./.github/workflows/_deploy.yml

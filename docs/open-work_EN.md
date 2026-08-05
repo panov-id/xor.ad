@@ -532,6 +532,19 @@ pass opened and did not close.
       releases. Checked against the official semver regexp: the old format fails,
       the new one passes, including that edge case.
 
+**The cause ran deeper than the format — 2026-08-05.** No build ever ran
+      from the tag: it is pushed inside a workflow with the stock `GITHUB_TOKEN`,
+      and GitHub deliberately starts no run for events created with that token.
+      The auto-tag therefore **never** built an image, at any format. `v0.9.0` is
+      in the registry because a person pushed it by hand.
+
+      **Fixed by a call rather than a token.** `relay.yml` accepts a
+      `workflow_call` with a `release_tag` input and labels the image with it
+      (`type=raw`, because `type=semver` reads the ref and on a call the ref is
+      the branch, not the tag); `deploy-uat.yml` calls it right after creating the
+      tag. The build no longer depends on whose token wrote the tag. A long-lived
+      PAT in secrets was deliberately not introduced: it expires silently.
+
       One tail remains: **tags already pushed are not reissued**, so the
       `v2026.08.05-*` ones stay imageless and staging runs `sha-1480743`. The next
       `dev → main` merge produces a tag an image is built for, and from then on

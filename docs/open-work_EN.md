@@ -485,14 +485,12 @@ pass opened and did not close.
       policy promise this themselves, and Art. 14(6) DSA requires it. No
       mechanism exists.
 
-- [ ] **J7. Have the translations read by native speakers.** The community
+- [ ] **J7. Go through the translations again, in-house.** The community
       guidelines and footers in `kk`, `ka`, `hy`, `az`, `uz`, `ky`, `tg`, `el`,
-      `ro` were written by the assistant. The grammar is probably right; the
-      naturalness is unverified.
-
-- [ ] **J8. Donations: the tax side.** Voluntary donations to a private individual
-      in Cyprus are a question for an accountant. The documents deliberately say
-      nothing about it.
+      `ro` were written by the assistant, and waiting for native readers was
+      dropped — the second pass is his too. The residual risk stays stated: the
+      grammar can be corrected, but naturalness cannot be checked without a
+      native speaker.
 
 - [ ] **J9. Re-check the micro-enterprise status by 2027-08-05.** The lifting of
       DSA Section 3 rests on it. The current record is in `dsa/README_EN.md`, §3.

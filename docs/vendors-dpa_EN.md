@@ -37,6 +37,7 @@ there, not what the cover says.
 |---|---|---|---|---|---|
 | **Bunny** — hosting, CDN, object storage | everything the Service keeps; page addresses; visitors' IP | **in the dashboard** — the DPA has to be opened and concluded there; it is not automatic | not stated on the GDPR page — check the text from the dashboard | [list](https://bunny.net/gdpr/sub-processors/): Zendesk, Slack, Google Workspace, MailChannels, **OpenAI**, Atlassian | ❌ not concluded |
 | **Resend** — email | the recipient's address and the letter | **baked in** — accepted with the Terms of Service, updated 2025-12-31 | yes, EU and UK SCCs + EU-US DPF certification | [list](https://resend.com/legal/subprocessors), 14 days' notice | ⚠️ download a copy for the file |
+| **Google Analytics 4** — storefront analytics | truncated IP, page addresses, referrer, browser data | accepted in the GA console (Google Ads Data Processing Terms) | yes, SCCs inside Google's terms | [Google's list](https://business.safety.google/subprocessors/) | ⚠️ confirm the terms are accepted |
 | **PayPal** — donations | nothing goes to it: a person leaves for PayPal's own site | **not a processor** — see below | — | — | ✅ described as a controller in both policies |
 
 ### Bunny: OpenAI among the subprocessors
@@ -58,10 +59,21 @@ say so in a separate paragraph, outside the list of processors.
 ## What to do
 
 1. Open the Bunny dashboard, conclude the DPA, download a copy. Check its text for
-   the SCCs.
-2. Download the Resend DPA for the file; check the DPF certification is reflected
-   in it.
-3. Fold all of it into the Article 30 record — this table is already half of it.
+   the SCCs. **The only place where processing already runs without a contract.**
+2. Confirm in the Google Analytics console that the data-processing terms are
+   accepted.
+3. Download the **executed** copy of the Resend DPA from the dashboard — the
+   edition itself is already checked, see
+   [`legal-archive/resend-dpa_EN.md`](./legal-archive/resend-dpa_EN.md).
+
+Done:
+
+- [x] **2026-08-05.** The Resend DPA edition checked: SCCs as an annex (sections
+      6.2, 6.4, 6.5), EU-US DPF certification (11.1), 14 days' notice on
+      subprocessors. The record lives in `legal-archive/`.
+- [x] **2026-08-05.** The Article 30 record compiled —
+      [`article-30-register_EN.md`](./article-30-register_EN.md). It is wider than
+      this table: it covers all processing, not only vendors.
 
 I cannot sign anything for you: the accounts and the legal entity are yours.
 Everything else — collecting, checking, writing — is mine.

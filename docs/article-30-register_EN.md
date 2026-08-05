@@ -190,10 +190,12 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 
 - [x] **The Bunny DPA is concluded** — the signed v1 of 2022-12-17 was received on
       2026-08-05. Art. 28 is closed.
-- [ ] **Bunny's transfers outside the EEA are not settled.** The agreement carries
-      no SCCs, while §4.6 permits processing anywhere in the world. Check the panel
-      for a newer edition; failing that, restrict regions or request the SCCs —
+- [x] **Bunny transfers — decided 2026-08-05.** The agreement carries no SCCs, but
+      every storage zone sits in region `DE` with no replication, and neither chat
+      nor the feed goes there. What crosses the border is the edge log alone (IP and
+      page address) — accepted as a residual risk, see
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
+- [ ] When creating new Bunny zones, check the region: it must be `DE`, no replicas.
 - [ ] Confirm that the current data-processing terms are accepted in Google
       Analytics.
 - [ ] Download the executed copy of the Resend DPA from the dashboard.

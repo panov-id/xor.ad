@@ -60,6 +60,27 @@ lives here is the record.
 - [ ] Confirm that acceptance is recorded on our side (a signature or a dashboard
       record), or the copy stays one-sided.
 
+## What the region check showed (2026-08-05)
+
+§4.6 reads worse than it works. In fact:
+
+- **every Bunny storage zone is in region `DE` (Germany), with no replication.**
+  Data at rest never leaves the EU;
+- **the feed and the profiles** live in our own Postgres beside the node
+  (Hetzner, Germany);
+- **chat never reaches Bunny at all** — the node carries it without storing it.
+
+Exactly one thing leaves the EEA: **edge servers worldwide see the IP and the
+page address** when static files are fetched. That is inherent to any delivery
+network and the direct price of the service working anywhere, not a
+misconfiguration.
+
+**Decision: accept it as a residual risk.** Not because it is convenient, but
+because the alternative is dropping the CDN and serving from a single point,
+degrading the product for the sake of paperwork. Three conditions hold: storage
+stays in `DE` without replicas, regions get checked whenever new zones are
+created, and if a DPA edition with SCCs appears we move to it.
+
 ## How this changes the status
 
 Before: ❌ no contract at all — the processing was unlawful under Art. 28.

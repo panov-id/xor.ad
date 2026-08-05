@@ -36,7 +36,6 @@ there, not what the cover says.
 | Processor | What reaches them | Form of agreement | SCC / DPF | Subprocessors | Status |
 |---|---|---|---|---|---|
 | **Bunny** — hosting, CDN, object storage | everything the Service keeps; page addresses; visitors' IP | **in the dashboard** — the DPA has to be opened and concluded there; it is not automatic | not stated on the GDPR page — check the text from the dashboard | [list](https://bunny.net/gdpr/sub-processors/): Zendesk, Slack, Google Workspace, MailChannels, **OpenAI**, Atlassian | ❌ not concluded |
-| **Cloudflare** — Turnstile (captcha) | the visitor's IP and browser signals | **baked in** to the subscription agreement, version 6.4 of 2026-04-03 | yes, EU/UK/CH SCCs, section 6 | [list](https://www.cloudflare.com/gdpr/subprocessors/), 30 days' notice | ⚠️ confirm the current version is accepted |
 | **Resend** — email | the recipient's address and the letter | **baked in** — accepted with the Terms of Service, updated 2025-12-31 | yes, EU and UK SCCs + EU-US DPF certification | [list](https://resend.com/legal/subprocessors), 14 days' notice | ⚠️ download a copy for the file |
 | **PayPal** — donations | nothing goes to it: a person leaves for PayPal's own site | **not a processor** — see below | — | — | ✅ described as a controller in both policies |
 
@@ -60,10 +59,9 @@ say so in a separate paragraph, outside the list of processors.
 
 1. Open the Bunny dashboard, conclude the DPA, download a copy. Check its text for
    the SCCs.
-2. Confirm that the current Cloudflare DPA (6.4) is accepted; download it.
-3. Download the Resend DPA for the file; check the DPF certification is reflected
+2. Download the Resend DPA for the file; check the DPF certification is reflected
    in it.
-4. Fold all of it into the Article 30 record — this table is already half of it.
+3. Fold all of it into the Article 30 record — this table is already half of it.
 
 I cannot sign anything for you: the accounts and the legal entity are yours.
 Everything else — collecting, checking, writing — is mine.
@@ -71,7 +69,6 @@ Everything else — collecting, checking, writing — is mine.
 ## Sources
 
 - [bunny.net GDPR](https://bunny.net/gdpr/) · [subprocessors](https://bunny.net/gdpr/sub-processors/)
-- [Cloudflare Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/)
 - [Resend DPA](https://resend.com/legal/dpa) · [GDPR](https://resend.com/security/gdpr)
 - [Anthropic: how to view and sign the DPA](https://privacy.claude.com/en/articles/7996862-how-do-i-view-and-sign-your-data-processing-addendum-dpa)
 

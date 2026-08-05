@@ -28,8 +28,10 @@ to `SPEC_{EN,RU}.md` (architecture) and `RELEASE_{EN,RU}.md` (delivery).
 - **Secret hygiene.** Replace the broad PAT + account-wide Bunny key on boxes with
   **least-privilege**: a `read:packages`-only token, a scoped Bunny DNS key. Move
   `secrets.env` to **SOPS/age** (or a secret manager); rotation policy.
-- **Public `/waitlist` protection.** **Bunny Shield** rate-limit + **Turnstile**
-  captcha before prod; per-IP throttling; input hardening.
+- **Public `/waitlist` protection.** A per-IP rate limit **in the node** and in
+  Caddy before prod, a honeypot field in the form, input hardening. There will be
+  no external captcha, and the CDN cannot help: `/waitlist` goes straight to the
+  node, bypassing Bunny.
 - **Geo-pool health monitor (prod).** Bunny DNS health check on the `api.<face>`
   record so a dead node drops out of rotation automatically.
 - **PII / GDPR.** Emails are personal data: retention policy, a **deletion**

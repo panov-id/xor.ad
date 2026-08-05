@@ -519,10 +519,25 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       two lists string for string.
 - [ ] **G2. A single variable font in the panel.**
 - [ ] **G3. i18n for the decorative mockups.**
-- [ ] **G4. Rate-limiting anonymous inserts.** "Supabase Cloud / edge layer" is
-      stale — that layer is gone. Today it is either the relay's quotas
-      (`lib/quota.ts` already counts per key and can refuse) or Bunny Shield in
-      front of the node. The difference matters: a quota knows whose key it is
-      but counts a request already accepted; Shield cuts before the node but by
-      address, not by tenant. Decide when abuse appears, not before.
+- [ ] **G4. Public `/waitlist` protection — the node is the only place.** Checked
+      2026-08-05: `/waitlist` has **no protection at all**, and the old wording
+      ("either quotas or Bunny Shield in front of the node") is wrong — Shield is
+      not in front of the node. All nine Bunny zones serve static files from
+      storage (`origin` is empty), the landing calls
+      `fetch(API_URL + "/waitlist")` straight into the node behind Caddy on
+      Hetzner, and Caddy has no rate limit either. No CDN tier can help here.
+
+      Today's daily quota in `lib/quota.ts` counts **per key**, and every visitor
+      shares one key. That is not protection but a lever for denial of service: a
+      bot that burns the quota in a minute closes signups for everyone for a day.
+
+      What to build:
+      - a **per-IP** limit on `/waitlist` in the node, separate from the key quota;
+      - a honeypot field in the landing form — it stops naive bots without a captcha;
+      - the same limit in Caddy, so a flood never reaches the application.
+
+      There will be no external captcha — the decision is recorded in
+      `relay/HARDENING_EN.md`. The cost of getting this wrong is concrete:
+      `/waitlist` sends mail through Resend, so abuse turns us into a spam source
+      and burns the domain's reputation.
 - [ ] **G5. `manifest lang`** — marked won't-fix.

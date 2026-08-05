@@ -656,10 +656,21 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
         merely adds a header nobody reads;
       - [ ] repoint `api.relay.panov.id` at the zone (traffic then goes through the
         CDN and carries the header);
-      - [ ] **after that** — the `X-Origin-Token` check in Caddy, and the firewall:
-        port 443 only from Bunny edge addresses
-        (`https://api.bunny.net/system/edgeserverlist`);
-      - [ ] turn on Shield Basic.
+      - [x] the `X-Origin-Token` check in Caddy — on since 2026-08-05;
+      - [x] **the Bunny-edge firewall — deliberately NOT built, 2026-08-05.**
+        The list holds 582 IPv4 and 320 IPv6 addresses: nearly a thousand rules,
+        wanting an `ipset` and a refresh daemon. The Caddy lock already refuses
+        anything that came around the CDN **before the application sees it**; a
+        firewall adds only a TCP-level refusal, which does not save us from a real
+        flood — the node's link saturates first, which is what Bunny is in front
+        of it for. In exchange we would take on a risk: Bunny's list changes, and a
+        stale one means the prod API refusing everything with no bug anywhere.
+        Revisit if a flood ever reaches the node;
+      - [ ] **turn on Shield Basic** — in the dashboard, the Bunny Shield tab of
+        the `xorad-api-prod` zone. Take a general profile rather than "WordPress":
+        behind this zone is an API with JSON bodies, and a site profile treats
+        `POST` as suspicious. Do not leave Learning Mode until a real
+        `POST /report` has gone through the zone.
 
       There will be no external captcha — the decision is recorded in
       `relay/HARDENING_EN.md`. The cost of getting this wrong is concrete:

@@ -55,6 +55,20 @@ export function clientAddress(req: Request): ClientAddress {
     }
   }
 
+  // Not through the CDN — but still not a direct connection: every request
+  // reaches this process through Caddy on the same box, so the connection's
+  // address is Caddy's and identical for everybody. Counting by it would put the
+  // whole world in one bucket and let a single script refuse signups for
+  // everyone, which is the very thing this limiter exists to prevent.
+  //
+  // Caddy sets X-Forwarded-For, and nothing else can: the node's port is not
+  // published, so the only peer able to reach it is the proxy beside it.
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return { ip: first, viaEdge: false };
+  }
+
   return { ip: remotes.get(req) || "unknown", viaEdge: false };
 }
 

@@ -626,6 +626,17 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       different buckets, so the node was seeing the edge address, not the client's.
       **This is exactly why the Caddy token check could not be switched on blind.**
 
+**The same experiment exposed a flaw in the limiter itself — 2026-08-05.**
+      The node sits behind Caddy, so the connection address it sees is always the
+      proxy's and identical for everyone. The fallback counted by that, which put
+      **every visitor in one bucket** — twenty an hour for the whole site, and one
+      script closing signups for all of them. Precisely what the limiter was
+      written to prevent.
+
+      Fixed: without a token the address comes from `X-Forwarded-For`, which Caddy
+      sets itself. It cannot be forged from outside — the node's port is not
+      published, so the only peer that can reach it is the proxy beside it.
+
       **Left, in this order:**
       - [ ] **ship an image containing this code to prod.** The node runs `v0.8.0`:
         the variable is delivered, but the limit and the token check are not in

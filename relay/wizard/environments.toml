@@ -31,7 +31,7 @@ panel_url = "https://uat.xor.panov.id"
 [env.prod]
 access = "public"
 tls = "dns01"
-image_tag = "v2026.8.5-gce58271"
+image_tag = "v2026.8.5-g244d2d5"
 require_api_key = true
 mail = "resend"
 allowed_origins = ["https://sosed.place", "https://www.sosed.place", "https://neighbro.place", "https://www.neighbro.place", "https://xor.panov.id"]

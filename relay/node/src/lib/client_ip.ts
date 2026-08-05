@@ -65,8 +65,16 @@ export function clientAddress(req: Request): ClientAddress {
   // published, so the only peer able to reach it is the proxy beside it.
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return { ip: first, viaEdge: false };
+    // The LAST entry, not the first. A chain reads "client, proxy1, proxy2…",
+    // and every entry except the one our own proxy appended was written by
+    // somebody we have no reason to believe. Caddy 2.7 and later happens to
+    // discard an incoming X-Forwarded-For from an untrusted peer, which makes
+    // first and last the same value here — but that is its default, not our
+    // guarantee, and `trusted_proxies` would change it. Taking the last entry is
+    // correct either way.
+    const parts = forwarded.split(",").map((part) => part.trim()).filter(Boolean);
+    const nearest = parts[parts.length - 1];
+    if (nearest) return { ip: nearest, viaEdge: false };
   }
 
   return { ip: remotes.get(req) || "unknown", viaEdge: false };

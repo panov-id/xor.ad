@@ -471,10 +471,12 @@ pass opened and did not close.
       users; on launch day it is an unkept promise in a contract and a hole in
       the Art. 6 shield.
 
-- [ ] **J5. Name the languages of the point of contact (Art. 11(3)).** One of them
-      must be an official language of the Member State of establishment — for
-      Cyprus, Greek or Turkish. The Terms name no languages today. A decision is
-      needed: do we undertake to accept Greek, and what do we do with it.
+- [x] **J5. The point-of-contact languages are named — 2026-08-05.** In both
+      storefronts' Terms: English and Greek, answered in the language of the
+      request. Greek was taken because Art. 11(3) requires an official language of
+      the country of establishment, and the Coordinator's site is in Greek. We
+      have no native speaker — incoming mail gets translated; an accepted risk,
+      recorded in `dsa/README_EN.md`, §2.
 
 - [ ] **J6. Notify users of material changes** to the documents. The Terms and the
       policy promise this themselves, and Art. 14(6) DSA requires it. No

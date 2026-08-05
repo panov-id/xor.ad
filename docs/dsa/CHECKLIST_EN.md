@@ -12,6 +12,7 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
 - [x] Policy: the snapshot, the notifier's name and email, a one-year period
 - [x] The Cypriot Digital Services Coordinator established and named in the Terms
 - [x] The micro-enterprise status checked and recorded — README §3, checked 5 Aug 2026
+- [x] The point-of-contact languages named in the Terms: English and Greek (Art. 11(3))
 
 ## Before launch — mandatory
 
@@ -26,11 +27,6 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
       decision, and the dispatch of both letters
 - [ ] **Deletion after a year** — a scheduled job, alongside the existing cleanup
       of offer complaints
-- [ ] **Languages of the point of contact (Art. 11(3))** — name in the Terms the
-      languages in which we can be addressed. One of them must be an official
-      language of the Member State of establishment: for Cyprus, **Greek** or
-      Turkish. Today no languages are named at all. Needs a decision: do we
-      undertake to accept Greek, and how would we handle it
 - [ ] **A link to the form** in the footer and on the legal pages of both faces —
       the mechanism must be "easy to access" (Art. 16(1))
 - [ ] **Letter templates**: confirmation of receipt, reply to the notifier,

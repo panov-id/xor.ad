@@ -40,7 +40,13 @@ Sections 1 and 2 know no size exemptions beyond the ones spelled out in them.
   it arrives. A notice under Art. 16 is precisely what creates that knowledge
   (Art. 16(3)), so sloppiness with notices costs not a fine but the shield itself.
 - **Art. 11–12** — a single point of contact for authorities and for users, with
-  the languages stated. For us that is the face's support address.
+  the languages stated. For us that is the face's support address. Art. 11(3)
+  requires the languages to be named and to include an official language of the
+  country of establishment, so the Terms name **English and Greek**. Greek is not
+  a formality: the Coordinator's site is in Greek, and correspondence from it
+  will arrive in Greek. Operationally that means translating what comes in and
+  answering in the language it was written in; we have no in-house speaker, and
+  that is an accepted risk rather than an oversight.
 - **Art. 13** — a legal representative is required only from providers not
   established in the Union. Cyprus is the EU, so this **does not apply**.
 - **Art. 14** — the terms must describe the policies and tools of content

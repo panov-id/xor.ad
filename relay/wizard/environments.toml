@@ -22,7 +22,7 @@ panel_url = "https://dev.xor.panov.id"
 [env.staging]
 access = "private"
 tls = "dns01"
-image_tag = "sha-1480743"
+image_tag = "v2026.8.5-gce58271"
 require_api_key = true
 mail = "resend"
 allowed_origins = ["https://uat.sosed.panov.id", "https://uat.neighbro.panov.id", "https://uat.xor.panov.id"]

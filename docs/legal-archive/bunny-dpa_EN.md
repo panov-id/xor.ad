@@ -81,6 +81,37 @@ degrading the product for the sake of paperwork. Three conditions hold: storage
 stays in `DE` without replicas, regions get checked whenever new zones are
 created, and if a DPA edition with SCCs appears we move to it.
 
+## Notice of new sub-processors — 2026-08-05
+
+A letter arrived: bunny.net is adding **two new sub-processors**, effective
+**2026-08-19**. The wording is that they "will handle some of your organization's
+personal account data".
+
+**The clock, under our own agreement (§3.2):** written notice in advance,
+objection **within 5 days** on "reasonable, documented grounds"; no answer counts
+as authorisation. The window therefore closes around **2026-08-10**.
+
+**The problem: the vendors are not named.** Neither in the letter nor on the
+public page `bunny.net/gdpr/sub-processors/`, which still lists the previous six
+(Zendesk, Slack, Google Workspace, MailChannels, OpenAI, Atlassian). One cannot
+object on "reasonable, documented grounds" to parties one cannot see: there is
+nothing to assess — not the purpose, not the country, not whether our users' data
+reaches them at all.
+
+**Position:** ask for the names, and state that a five-day window cannot run from
+a notice that makes assessment impossible. This is not pedantry: the right to
+object under Art. 28(2) GDPR is empty if the object of the objection is unnamed.
+
+**What softens it.** The wording says "personal account data" — the data of **our
+account** (the operator's name, email, billing), not the data of storefront
+visitors. If that holds, the data subject here is the operator rather than our
+users, and the question is a smaller one. It needs confirming rather than assuming.
+
+- [ ] Write to bunny.net: name the two sub-processors, their purpose and country;
+      confirm that only client account data is affected.
+- [ ] Once answered — decide whether to object, and update the list in
+      [`../vendors-dpa_EN.md`](../vendors-dpa_EN.md) and the Article 30 record.
+
 ## How this changes the status
 
 Before: ❌ no contract at all — the processing was unlawful under Art. 28.

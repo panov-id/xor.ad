@@ -510,6 +510,14 @@ pass opened and did not close.
 - [ ] **J9. Re-check the micro-enterprise status by 2027-08-05.** The lifting of
       DSA Section 3 rests on it. The current record is in `dsa/README_EN.md`, §3.
 
+- [ ] **J10. Answer Bunny about the two new sub-processors — by 2026-08-10.**
+      The notice arrived 2026-08-05, the change takes effect 2026-08-19, and the
+      objection window under §3.2 is five days. The vendors are **not named**,
+      neither in the letter nor on the public page. Ask for the names, purpose and
+      country, and state that the window cannot run from a notice that makes
+      assessment impossible. The analysis is in
+      [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
+
 ## G. Deliberately deferred
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.

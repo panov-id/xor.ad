@@ -481,9 +481,13 @@ pass opened and did not close.
       have no native speaker — incoming mail gets translated; an accepted risk,
       recorded in `dsa/README_EN.md`, §2.
 
-- [ ] **J6. Notify users of material changes** to the documents. The Terms and the
-      policy promise this themselves, and Art. 14(6) DSA requires it. No
-      mechanism exists.
+- [x] **J6. New-edition notice — 2026-08-05.** With no mail and no accounts, the
+      only honest way is to say it at the door. Both storefronts compare the
+      stored edition against the current one and show a bar with an "accept"
+      button; a first visit stores the edition silently (use is acceptance,
+      `terms §3`). Translated into every locale and verified with Playwright: a
+      fresh visitor sees nothing, someone on an older edition sees it in their
+      own language, and after accepting it does not come back.
 
 - [ ] **J7. Go through the translations again, in-house.** The community
       guidelines and footers in `kk`, `ka`, `hy`, `az`, `uz`, `ky`, `tg`, `el`,

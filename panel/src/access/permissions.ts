@@ -28,6 +28,11 @@ export const PERMISSIONS = [
   "brands.write",
   "api_keys.read",
   "api_keys.write",
+  // Notices under Article 16 DSA — the queue and the decision on it. Separate
+  // from the log permissions because a notice carries a name, an email and a
+  // copy of someone's message.
+  "dsa_notices.read",
+  "dsa_notices.decide",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

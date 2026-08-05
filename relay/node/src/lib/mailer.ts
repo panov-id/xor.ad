@@ -167,3 +167,109 @@ export async function sendNoticeReceipt(
     log("error", "notice receipt failed", { error: String(e) });
   }
 }
+
+// Article 16(5): the notifier learns what was decided, why, whether a machine
+// took part, and where to go if they disagree. The redress routes are named
+// rather than gestured at — and the one we do not have (a formal internal appeal
+// under Article 20) is not claimed.
+export async function sendNoticeDecision(
+  to: string,
+  opts: { id: string; brand: string; decision: "upheld" | "rejected"; facts: string },
+): Promise<void> {
+  if (config.mail.transport === "none") return;
+  const brand = brandByKey(opts.brand) || resolveBrand(null);
+  const outcome = opts.decision === "upheld"
+    ? "We agreed with your report, and the content has been restricted."
+    : "We did not agree with your report, and the content stays.";
+  const lines = [
+    `Your report ${opts.id.slice(0, 8)} has been decided.`,
+    "",
+    outcome,
+    "",
+    "Why:",
+    opts.facts,
+    "",
+    "A person took this decision. Automated systems screen what is published,",
+    "but they did not decide your report.",
+    "",
+    "If you disagree: reply to this email and a person will look again. You may",
+    "also complain to the Digital Services Coordinator of your country or of",
+    "Cyprus — the Radiotelevision and Digital Services Authority, rtdsa.org.cy —",
+    "or go to court. We do not operate a formal internal appeals body.",
+  ];
+  await deliver(brand, to, `${brand.name}: your report has been decided`, lines);
+}
+
+// Article 17: whoever's content was restricted is owed the reasons. The
+// notifier's identity is never in here — that rule is stricter than the article
+// allows, and it is the one the offers spec already sets for complaints.
+export async function sendStatementOfReasons(
+  to: string,
+  opts: {
+    brand: string;
+    restriction: string;
+    facts: string;
+    groundKind: "legal" | "contractual";
+    groundText: string;
+  },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  if (!to.includes("@")) return false; // an identity, not an address — nothing to send to
+  const brand = brandByKey(opts.brand) || resolveBrand(null);
+  const lines = [
+    "Something you posted has been restricted, and here is why.",
+    "",
+    `What was done: ${opts.restriction.replace(/_/g, " ")}.`,
+    "",
+    "Facts and circumstances:",
+    opts.facts,
+    "",
+    opts.groundKind === "legal"
+      ? "Legal ground:"
+      : "Which rule of the Terms this breaks:",
+    opts.groundText,
+    "",
+    "This followed a report from someone else. We do not tell you who they are.",
+    "",
+    "Automated systems screen what is published; this decision was taken by a",
+    "person.",
+    "",
+    "If you disagree: reply to this email and a person will look again. You may",
+    "also complain to the Digital Services Coordinator of your country or of",
+    "Cyprus — the Radiotelevision and Digital Services Authority, rtdsa.org.cy —",
+    "or go to court.",
+  ];
+  return await deliver(brand, to, `${brand.name}: why your content was restricted`, lines);
+}
+
+// One sender for both letters: same transports as everything else, and a boolean
+// back so a caller that records delivery can record the truth.
+async function deliver(
+  brand: { key: string; name: string; from: string },
+  to: string,
+  subject: string,
+  lines: string[],
+): Promise<boolean> {
+  const body = lines.join("\n");
+  const html = `<p>${lines.map((line) => line || "&nbsp;").join("<br>")}</p>`;
+  try {
+    if (config.mail.transport === "smtp") {
+      await sendSmtp({
+        host: config.mail.smtp.host,
+        port: config.mail.smtp.port,
+        from: brand.from,
+        to,
+        subject,
+        html,
+      });
+    } else {
+      await viaResend(config.resend.fromOverride || brand.from, to, subject, html, body, brand.key);
+    }
+    inc("relay_mail_total", { transport: config.mail.transport, result: "sent", kind: "dsa" });
+    return true;
+  } catch (e) {
+    inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind: "dsa" });
+    log("error", "dsa mail failed", { error: String(e), subject });
+    return false;
+  }
+}

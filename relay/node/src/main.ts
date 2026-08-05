@@ -13,6 +13,8 @@ import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
 import { pageview } from "./routes/pageview.ts";
 import { report } from "./routes/report.ts";
+// Registers its own routes on import, like the admin module does.
+import "./routes/dsa.ts";
 import { relayUpgrade } from "./chat/relay.ts";
 import { match } from "./lib/router.ts";
 import { startWorker } from "./lib/jobs.ts";

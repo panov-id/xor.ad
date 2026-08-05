@@ -33,6 +33,14 @@ export const PERMISSIONS = [
   "brands.write",
   "api_keys.read",
   "api_keys.write",
+  // Notices under Article 16 DSA. Kept apart from the log permissions on purpose:
+  // a notice carries the notifier's name and email and a copy of someone's
+  // message, which is a different thing to hand out than a page-view count.
+  "dsa_notices.read",
+  // Deciding a notice is not an edit — it removes someone's content or refuses
+  // someone's report, and both outcomes are owed a written reason. Whoever holds
+  // this is the person the statement of reasons comes from.
+  "dsa_notices.decide",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

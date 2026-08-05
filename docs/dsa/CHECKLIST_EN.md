@@ -50,8 +50,30 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
       what was decided, why, whether automation took part, the redress routes) and
       the statement of reasons to the author (Art. 17(3) — seven elements, and the
       notifier's identity **never** disclosed)
-- [ ] **RLS on both tables**: a notifier sees only their own notice, an author
-      only their own statement
+- [x] **Access control — 2026-08-05.** The RLS line came from the spec rather than
+      from this codebase: there is no row-level security here at all, and access
+      is a permission plus a scope. Two permissions now exist — `dsa_notices.read`
+      and `dsa_notices.decide` — in both catalogues (relay and panel, which a test
+      compares). The notifier and the author read nothing from the database: they
+      receive letters, and no endpoint exists for them to read, so "sees only
+      their own" has nothing to guard here.
+- [x] **The `report.html` form** — 2026-08-05, both storefronts. The Art. 16(2)
+      fields, the separate path without name and email for the §5.1 case, a
+      honeypot, and an answer carrying the reference. In English, like the legal
+      pages: the form is part of the same surface, and Art. 16(1) asks for
+      accessibility rather than translation.
+- [x] **Links to the form** — the footer of both storefronts (the `footerReport`
+      key, translated into every locale), the `legal.html` footer, and a mention
+      in `terms §11`.
+- [x] **Letter templates** — `sendNoticeDecision` (Art. 16(5)) and
+      `sendStatementOfReasons` (Art. 17(3)) in `lib/mailer.ts`. The notifier's
+      identity is never disclosed to the author; the redress routes are named,
+      including the fact that we run no formal internal appeal.
+- [x] **Panel routes** — `routes/dsa.ts`: the queue `GET /admin/dsa/notices` and
+      the decision `POST /admin/dsa/notices/:id/decide`. The decision does not
+      accept a status — it accepts the reasoning and writes the status from it;
+      an upheld notice requires the restriction, the ground and the addressee, or
+      the Art. 17 statement would be blank.
 - [ ] **A link to the form** in the footer and on the legal pages of both faces —
       the mechanism must be "easy to access" (Art. 16(1))
 - [ ] **Letter templates**: confirmation of receipt, reply to the notifier,

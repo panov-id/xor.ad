@@ -169,7 +169,7 @@ processing is identical and only the storefront differs, so the record is shared
 
 | Processor | What it receives | Contract | Transfers outside EEA | Status |
 |---|---|---|---|---|
-| **Bunny** — hosting, CDN, storage | storefront statics, page addresses, visitors' IPs | concluded in the dashboard | check the DPA text | ❌ **not concluded** |
+| **Bunny** — hosting, CDN, storage | storefront statics, page addresses, visitors' IPs | **signed**, v1 of 2022-12-17, entity in Slovenia (EU) | ❌ no SCCs, §4.6 permits worldwide processing | ⚠️ Art. 28 closed, [transfer open](./legal-archive/bunny-dpa_EN.md) |
 | **Resend** — email | recipient address and letter text | baked into the ToS, ed. 2025-12-31 | SCCs + EU-US DPF | ✅ checked 2026-08-05 |
 | **The browser's push service** | subscription endpoint | set by the browser vendor | depends on the service | — |
 | **Google Analytics 4** | truncated IP, page addresses | accepted in the GA console | yes | ⚠️ confirm acceptance |
@@ -188,9 +188,12 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 
 ## Open items in this record
 
-- [ ] **The Bunny DPA is not concluded** — the only place where processing is
-      already running without a contract. Art. 28 GDPR: without it the transfer
-      is unlawful in itself.
+- [x] **The Bunny DPA is concluded** — the signed v1 of 2022-12-17 was received on
+      2026-08-05. Art. 28 is closed.
+- [ ] **Bunny's transfers outside the EEA are not settled.** The agreement carries
+      no SCCs, while §4.6 permits processing anywhere in the world. Check the panel
+      for a newer edition; failing that, restrict regions or request the SCCs —
+      [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
 - [ ] Confirm that the current data-processing terms are accepted in Google
       Analytics.
 - [ ] Download the executed copy of the Resend DPA from the dashboard.

@@ -85,6 +85,58 @@ sudo `deploy` user, default-deny firewall).
 | PostgREST `/rest/v1/...` | ❌ → relay `/waitlist`, `/client-error` |
 | `push_subscriptions` (Supabase) | ❌ push is off (`vapidPublicKey:""`); the inert code and `supabaseUrl` were removed from the landings in Phase 4 |
 
+## Decision: REST through Bunny, WebSocket direct
+
+Taken 2026-08-05.
+
+Proxy zones in front of the API existed before — and were **deleted** during the
+migration off Supabase (see "No longer used"). What comes back is not that
+construction: back then the zone proxied someone else's backend; now it is there
+for what a single node cannot do — absorb a flood before it reaches the
+application.
+
+**Why it became necessary.** The public `/waitlist` has no protection at all:
+no rate limit in the node, none in Caddy, and the daily quota in `lib/quota.ts`
+counts per key — one key shared by every visitor. A bot that burns it in a minute
+closes signups for everyone for a day. We are not taking an external captcha: that
+is a new processor of other people's IPs for a single function. What remains is
+the CDN we already run and already have as a processor.
+
+**Prod naming:**
+
+    pool.relay.panov.id   A (geo) → pool nodes       ← origin, closed from outside
+    api.relay.panov.id    Bunny pull zone            ← what the landings call
+    ws.relay.panov.id     A (geo) → pool nodes       ← chat, direct, once it exists
+
+`apiUrl` in `config.js` does not change: the landings call `api.relay.panov.id`
+exactly as before. What changes is what sits behind that name — a pull zone with
+caching off instead of an A record, while the old geo record moves to `pool`.
+
+**Dev and uat stay as they are.** They are private, port 443 is open to
+whitelisted IPs only, and no public traffic reaches them. A CDN there would solve
+a problem that does not exist.
+
+**WebSockets stay off Bunny.** It can proxy them, but bills by connection-minute
+($0.235 per million), and chat means long-lived connections. It gets its own
+`ws.` name straight into the pool. Revisit when chat is built and there is
+something to measure.
+
+**Without a lock on the origin the whole thing is decorative.** If
+`pool.relay.panov.id` stays reachable from outside, the CDN is bypassed in one
+line. So, at the same time:
+
+- Caddy checks an `X-Origin-Token` header, which Bunny adds by an edge rule;
+- the firewall allows 443 only from Bunny edge addresses (the list comes from
+  `https://api.bunny.net/system/edgeserverlist`, refreshed by a script);
+- the node trusts `X-Real-IP` **only** when the token is valid — otherwise the
+  header is forged and the rate limit is bypassed by substituting someone else's
+  address.
+
+**The node keeps its own rate limit** even behind the CDN: not duplication but the
+last line. A CDN can be bypassed, the node cannot, and only the node knows whose
+key and whose address it is.
+
+
 ## Notes
 
 - **Supabase fully decommissioned** (2026-07-22): the landings (neighbro + sosed)

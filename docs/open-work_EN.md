@@ -489,12 +489,21 @@ pass opened and did not close.
       fresh visitor sees nothing, someone on an older edition sees it in their
       own language, and after accepting it does not come back.
 
-- [ ] **J7. Go through the translations again, in-house.** The community
-      guidelines and footers in `kk`, `ka`, `hy`, `az`, `uz`, `ky`, `tg`, `el`,
-      `ro` were written by the assistant, and waiting for native readers was
-      dropped — the second pass is his too. The residual risk stays stated: the
-      grammar can be corrected, but naturalness cannot be checked without a
-      native speaker.
+- [x] **J7. Second pass on the translations — 2026-08-05.** Every string the
+      assistant wrote was gone through: the donate word, the new-edition bar, the
+      offers sentence in the guidelines — across 17 locales in sosed and 10 in
+      neighbro.
+
+      Three were fixed, and they were errors rather than taste: `uz` "ianot" →
+      **`xayriya`** (a bookish word replaced by the ordinary one), `be` "данат" →
+      **`падтрымаць`** (a calque from Russian; Belarusian does not say that), `el`
+      "διαβάστε" → **`διάβασε`** (polite plural next to the informal "Θες" — a
+      register mismatch).
+
+      **The residual risk stays and will not be removed.** Grammar and register can
+      be read; naturalness cannot be checked without a native speaker. If someone
+      on `kk`, `ka`, `hy`, `az`, `uz`, `ky`, `tg` ever turns up — show them the
+      footer and the guidelines.
 
 - [ ] **J9. Re-check the micro-enterprise status by 2027-08-05.** The lifting of
       DSA Section 3 rests on it. The current record is in `dsa/README_EN.md`, §3.

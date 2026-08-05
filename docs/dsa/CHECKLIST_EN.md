@@ -14,19 +14,44 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
 - [x] The micro-enterprise status checked and recorded — README §3, checked 5 Aug 2026
 - [x] The point-of-contact languages named in the Terms: English and Greek (Art. 11(3))
 
-## Before launch — mandatory
+## Done 2026-08-05 (the server side)
+
+- [x] **Tables** `dsa_notices` and `dsa_statements` — migration
+      `relay/node/db/005_dsa_notices.sql`. The checks live in the schema: the
+      reasoning cannot be empty, `bona_fide` must be true, name and email are
+      nullable for the §5.1 exception.
+- [x] **Endpoint** `POST /report` — `relay/node/src/routes/report.ts`, public and
+      unauthenticated: an authority or a stranger must reach it without an account.
+- [x] **Snapshot** — `relay/node/src/lib/dsa_snapshot.ts`, taken on arrival. It
+      reports **three** states: captured, `target_gone`, `not_accessible`. The
+      third covers chat (never stored) and surfaces the product has not built;
+      saying "expired" when we never looked would be a lie.
+- [x] **Confirmation of receipt** — `sendNoticeReceipt` in `lib/mailer.ts`,
+      Art. 16(4), best-effort: a letter must not lose the notice.
+- [x] **Deletion after a year** — `tools/prune_dsa_records.ts` plus the `PRUNE_DSA`
+      job in `lib/scheduled.ts`, next to the page-view sweep.
+- [x] Types checked in a container: `docker run --rm -v "$PWD:/app" -w /app
+      denoland/deno:2.1.4 deno check src/main.ts`.
+
+## Before launch — what is left
 
 - [ ] **The `report.html` form** on both faces: the fields from SPEC §3, plus the
-      separate path without name and email for the §5.1 case
-- [ ] **Confirmation of receipt** — an email through Resend, immediate, automatic
-- [ ] **The `notice` and `statement_of_reasons` tables** with RLS: a notifier sees
-      only their own notice, an author only their own statement
-- [ ] **The snapshot on notice creation** — before examination, or the content
-      expires on the timer first
-- [ ] **An examination screen in the panel**: the queue, the snapshot, the
-      decision, and the dispatch of both letters
-- [ ] **Deletion after a year** — a scheduled job, alongside the existing cleanup
-      of offer complaints
+      separate path without name and email for the §5.1 case. Without it the
+      endpoint exists but nobody can reach it — which is the Art. 16(1)
+      "easy to access" requirement. **Decide when starting:** the form's language.
+      The legal pages are EN-only by decision; the form is an interface, so either
+      repeat EN-only or translate into 17 and 10 locales.
+- [ ] **A link to the form** in the footer and on the legal pages of both faces
+- [ ] **An examination screen in the panel**: a queue over
+      `status IN ('received','in_review')`, the snapshot, the decision, the
+      dispatch of both letters. The `dsa_notices_queue` index is already shaped
+      for it.
+- [ ] **Templates for the two letters**: the reply to the notifier (Art. 16(5) —
+      what was decided, why, whether automation took part, the redress routes) and
+      the statement of reasons to the author (Art. 17(3) — seven elements, and the
+      notifier's identity **never** disclosed)
+- [ ] **RLS on both tables**: a notifier sees only their own notice, an author
+      only their own statement
 - [ ] **A link to the form** in the footer and on the legal pages of both faces —
       the mechanism must be "easy to access" (Art. 16(1))
 - [ ] **Letter templates**: confirmation of receipt, reply to the notifier,

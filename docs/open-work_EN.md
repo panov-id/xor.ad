@@ -462,11 +462,13 @@ From the legal pass of 2026-08-05. Payments were taken out of the service, offer
 were written into the Terms, and the DSA was worked through. Below is what that
 pass opened and did not close.
 
-- [ ] **J4. Build the Art. 16 notice mechanism.** The full list is in
-      [`dsa/CHECKLIST_EN.md`](./dsa/CHECKLIST_EN.md), the "before launch" section:
-      the `report.html` form, the confirmation email, the `notice` and
-      `statement_of_reasons` tables with RLS, the content snapshot, the review
-      screen in the panel, deletion after a year.
+- [ ] **J4. Art. 16 notice mechanism — the server side landed 2026-08-05, no
+      interface yet.** Built: the tables, the public `POST /report`, the snapshot
+      with its three states, the receipt, the yearly sweep. Left: the
+      **`report.html` form** (without it there is no way to reach the endpoint),
+      the links to it, the examination screen in the panel, the two letter
+      templates, RLS. File names and detail —
+      [`dsa/CHECKLIST_EN.md`](./dsa/CHECKLIST_EN.md).
 
       **Why it is urgent:** both storefronts' Terms **already** promise that
       illegal content can be reported, that receipt is confirmed and that a
@@ -551,4 +553,13 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       `relay/HARDENING_EN.md`. The cost of getting this wrong is concrete:
       `/waitlist` sends mail through Resend, so abuse turns us into a spam source
       and burns the domain's reputation.
+
+      **State as of 2026-08-05.** The `xorad-api-prod` pull zone is created and
+      verified (`deploy/bunny-api-zone.sh`; `/health` answers 200 through the CDN),
+      and **DNS is deliberately not switched**. The order from here is strict:
+      first the lock on the origin (`X-Origin-Token` in Caddy plus a firewall
+      allowlist of Bunny edge addresses), then trusting `X-Real-IP` only with a
+      valid token, then the per-IP limit and the honeypot, and only then repoint
+      `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
+      leaves the node reachable around the CDN.
 - [ ] **G5. `manifest lang`** — marked won't-fix.

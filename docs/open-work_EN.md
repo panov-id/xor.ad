@@ -437,7 +437,9 @@ went on looking functional. Removed:
 From the privacy review of 2026-08-02. Both storefronts' policies already name the
 address to write to about data — so the address has to exist.
 
-- [ ] **J1. Create `privacy@` on both storefronts.** `privacy@sosed.place` and
+- [x] **J1. Created — 2026-08-05.** `privacy@sosed.place` and `privacy@neighbro.place`
+      created by `deploy/add-privacy-aliases.sh`, forwarding to `ev.panov@gmail.com`.
+      DNS, MX and Resend untouched — aliases only. The original task text: `privacy@sosed.place` and
       `privacy@neighbro.place`, forwarding to `ev.panov@gmail.com`. Both domains
       already sit on ImprovMX (`mx1/mx2.improvmx.com`), so this is an alias in the
       service's panel, not a DNS change.

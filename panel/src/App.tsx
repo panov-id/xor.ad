@@ -18,6 +18,7 @@ import { dataProvider } from "./providers/data";
 import { LoginPage } from "./pages/login";
 import { AuthCallback } from "./pages/auth-callback";
 import { WaitlistList } from "./pages/waitlist/list";
+import { DsaNoticesList } from "./pages/dsa-notices/list";
 import { PanelUsersList } from "./pages/panel-users/list";
 import { ClientErrorsList } from "./pages/logs/client-errors/list";
 import { AuditList } from "./pages/logs/audit/list";
@@ -39,6 +40,11 @@ function App() {
                 name: "waitlist",
                 list: "/waitlist",
                 meta: { label: "Waitlist" },
+              },
+              {
+                name: "dsa_notices",
+                list: "/dsa-notices",
+                meta: { label: "Illegal-content reports" },
               },
               {
                 name: "panel_users",
@@ -109,6 +115,14 @@ function App() {
                   element={
                     <Gated resource="waitlist">
                       <WaitlistList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/dsa-notices"
+                  element={
+                    <Gated resource="dsa_notices">
+                      <DsaNoticesList />
                     </Gated>
                   }
                 />

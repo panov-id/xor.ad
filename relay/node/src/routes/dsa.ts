@@ -36,7 +36,7 @@ interface NoticeRow {
 const OPEN = ["received", "in_review"];
 
 // The queue: oldest first, because a notice that waits is the one that matters.
-route("GET", "/admin/dsa/notices", async ({ req, url }) => {
+route("GET", "/admin/dsa-notices", async ({ req, url }) => {
   const access = await requirePermission(req, "dsa_notices.read");
   if (isDenied(access)) return access.response;
 
@@ -52,7 +52,8 @@ route("GET", "/admin/dsa/notices", async ({ req, url }) => {
   );
   if (rows === null) return json({ error: "database unavailable" }, 503);
 
-  return json({ notices: rows });
+  // A plain array plus the count header: what the panel's data provider reads.
+  return json(rows, 200, { "x-total-count": String(rows.length) });
 });
 
 interface DecisionBody {
@@ -69,7 +70,7 @@ const RESTRICTIONS = new Set(["removed", "hidden", "offer_taken_down", "access_r
 const trimmed = (value: unknown, max: number): string | null =>
   typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 
-route("POST", "/admin/dsa/notices/:id/decide", async ({ req, params }) => {
+route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
   const access = await requirePermission(req, "dsa_notices.decide");
   if (isDenied(access)) return access.response;
 

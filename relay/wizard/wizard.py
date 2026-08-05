@@ -257,11 +257,29 @@ def render_caddyfile(inv: dict, box: dict) -> str:
         if inv["env"][env].get("access") == "public" and pool_host:
             hosts.append(pool_host)
         for h in hosts:
+            # The pool hostname is the one the CDN fronts, and everything reaching
+            # it should have come through the CDN — which adds X-Origin-Token by an
+            # edge rule. Anything without the token went around, and around is
+            # where a flood would come from. Refused here rather than in the
+            # application, so it never costs a request.
+            #
+            # Only the pool hostname. The box's own name stays open on purpose:
+            # it is how a person checks the node when the CDN is the suspect, and
+            # the per-address limit applies there just the same.
+            guard = ""
+            if h == pool_host and os.environ.get("ORIGIN_TOKEN"):
+                guard = ('\t@viaCdn header X-Origin-Token {env.ORIGIN_TOKEN}\n'
+                         '\thandle @viaCdn {\n'
+                         f'\t\treverse_proxy node-{env}:8080\n'
+                         '\t}\n'
+                         '\thandle {\n'
+                         '\t\trespond "not through the front door" 403\n'
+                         '\t}\n')
             out += (f"{h} {{\n"
                     f"\ttls {{\n\t\tdns bunny {{env.BUNNY_API_KEY}}\n\t}}\n"
                     f"\tencode zstd gzip\n"
-                    f"\treverse_proxy node-{env}:8080\n"
-                    f"}}\n\n")
+                    + (guard if guard else f"\treverse_proxy node-{env}:8080\n")
+                    + "}\n\n")
     for host in aux_hosts(inv, box):
         target = "dozzle:8080" if host.startswith("logs-") else "mailpit:8025"
         out += (f"{host} {{\n"
@@ -427,7 +445,11 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/docker-compose.yml", render_compose(inv, box))
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/Caddyfile", render_caddyfile(inv, box))
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/caddy.env",
-                      f"BUNNY_API_KEY={os.environ.get('BUNNY_API_KEY', '')}\n")
+                      f"BUNNY_API_KEY={os.environ.get('BUNNY_API_KEY', '')}\n"
+                      # Caddy compares the header against this; empty means the
+                      # guard is not rendered at all, which is the right default
+                      # for a node that is not behind the CDN.
+                      f"ORIGIN_TOKEN={os.environ.get('ORIGIN_TOKEN', '')}\n")
         for env in box["envs"]:
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
         if uses_database(inv, box):

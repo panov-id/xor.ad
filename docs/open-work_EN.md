@@ -637,6 +637,18 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       sets itself. It cannot be forged from outside — the node's port is not
       published, so the only peer that can reach it is the proxy beside it.
 
+      **The lock went on 2026-08-05.** Caddy on the prod node lets `api.relay…`
+      through only with a valid `X-Origin-Token`, which the edge rule adds; without
+      it the answer is `403` and the request never reaches the application.
+      Verified: `200` through the CDN, `403` on the same hostname around it, `202`
+      for a real `POST /report`.
+
+      The direct `p1-prod.relay.panov.id` door **stays open on purpose**: it is how
+      one looks at the node when the CDN is the suspect, and the per-address limit
+      applies there just the same. The price is that the CDN can be bypassed by
+      another name — which helps only somebody who wants to dodge Shield rather
+      than somebody who wants volume.
+
       **Left, in this order:**
       - [ ] **ship an image containing this code to prod.** The node runs `v0.8.0`:
         the variable is delivered, but the limit and the token check are not in

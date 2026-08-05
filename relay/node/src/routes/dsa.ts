@@ -86,7 +86,11 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
   if (!facts) return json({ error: "facts are required — they are the statement of reasons" }, 422);
 
   const rows = await query<NoticeRow>(
-    `SELECT id, brand, target_id, notifier_email, status FROM dsa_notices WHERE id = $1`,
+    // decided_at has to be selected, or the guard below reads undefined and a
+    // notice can be decided twice — which sends a second pair of letters and
+    // silently replaces the first decision. Found by deciding one twice on dev.
+    `SELECT id, brand, target_id, notifier_email, status, decided_at
+       FROM dsa_notices WHERE id = $1`,
     [params.id],
   );
   if (rows === null) return json({ error: "database unavailable" }, 503);

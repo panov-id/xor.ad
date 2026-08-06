@@ -8,8 +8,8 @@ A place for talking to the people around you, right now, and then letting it go.
 
 ## The faces
 
-- **sosed.place** — Russian-speaking audience, Soviet-flavored visual identity.
-- **neighbro.place** — English-speaking audience, European-leaning tone and visuals.
+- **sosed.place** — one face, with its own name, tone and visual identity.
+- **neighbro.place** — the other face: a different look over the same platform.
 - **xor.ad** — the platform underneath both. One backend, one database, one shared pool of users and feed — sosed.place and neighbro.place are different skins over the same data, not isolated audiences. Moderation policy can still differ per face where needed (see Moderation below). New faces for new audiences plug into the same gateway.
 
 ## The alpha experience

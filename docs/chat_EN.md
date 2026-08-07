@@ -78,6 +78,21 @@ Requirements level — schema as sketches; implementation is a separate step (mi
 
 **Core principle: no user identifier ever leaves the server.** A client knows exactly two kinds of UUID — a feed phrase id and a chat id. Who wrote a phrase, who liked it, who is in a chat with whom, how many chats someone has — all of it stays inside the database and never appears in an API response.
 
+**Second principle: a brand is a face, not a boundary of visibility.** `identities` and `feed_messages` have no `brand` column and never will. There is one world, divided only by geography and the age band.
+
+This is a decision, not an oversight. A neighbourhood network split by which website you arrived from stops being a neighbourhood network: two people on the same street must see each other whether they came through one storefront, the other, or the terminal. And for a face whose own storefront is only just starting, the shared feed is the only thing standing between a person and an empty screen.
+
+A brand still decides a great deal — just not this:
+
+| A brand decides | A brand does not decide |
+|---|---|
+| texts, emails, styling, the legal entity | who is visible in the feed |
+| where waitlist leads land (`scoped_storage`) | who a match is possible with |
+| who sees them in the panel | who ends up in a chat |
+| attribution: which face a person came through | — |
+
+Technically the brand comes from the API key and from nowhere else (`lib/tenant.ts`), while a person is identified by their own signature (§8.2). These are different questions and must not be conflated: the key answers "which face", the signature "which person".
+
 ### 8.1. Stack
 
 Our own node, not Supabase: Deno + our own Postgres (`relay/node/src/lib/db.ts`, driver `jsr:@db/postgres`).

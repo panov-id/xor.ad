@@ -834,3 +834,55 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       ciphertext with nonce, tag and base64, and that must fit inside the 8 KB
       `NOTIFY` payload with room to spare (§8.1, §8.13). Raising it is allowed,
       but not blindly.
+- [ ] **G9. A key for the native client — none of this is in the node.** Decided
+      07.08.2026 along with the `depth` spec (`depth-client_EN.md` §2.5) and the
+      second principle in §8 of the chat spec.
+
+      Verified against the code on 07.08.2026:
+      - `lib/tenant.ts` — the brand comes from `x-api-key` and from nowhere else;
+      - `lib/api_key.ts:72` — `originAllowed()` admits everyone on an empty origin
+        list, but such a key cannot be minted: an empty list is refused where the
+        environment requires keys (B1);
+      - `lib/tenant.ts:66` — the daily quota is counted **per key**;
+      - there is no `client_type` field, neither in `api_keys` nor in the panel
+        form.
+
+      **To do, in this order:**
+      - [ ] a `client_type` field (`browser` | `native`) in `api_keys`, in the
+        minting form and in the list. For `native` no origin list is created or
+        checked — the decision written into the data rather than inferred from an
+        empty list;
+      - [ ] forbid a per-key daily quota for `native`: the key is shared by every
+        container, and a per-key counter means one script locks `depth` for
+        everyone. The same defect as G4 on `/waitlist`, only wider;
+      - [ ] per-identity limits on top of the per-address one (`lib/rate_limit.ts`):
+        for a native client the address is currently the only thing holding it
+        back;
+      - [ ] the `depth` brand in the brand registry, and its first `native` key;
+      - [ ] rotation by overlap: several keys live at once, the old one fading on
+        an announced window. A plain revocation breaks every digest-pinned image,
+        including the ones that will never update.
+
+      **What not to do:** a `brand` column in `identities` or `feed_messages`. The
+      feed is shared across all faces — §8 of the chat spec, second principle. A
+      brand decides texts, emails, where leads land and who sees them in the panel;
+      it does not decide who is visible in the feed.
+- [ ] **G10. Terms for client authors — before the image is published.** Decided
+      07.08.2026. They are needed on the day the `depth` image goes public,
+      because an open client plus a documented protocol is an invitation to write
+      another one.
+
+      Contents: what the node guarantees and what it does not, a ban on collecting
+      our people's data with somebody else's client, the obligation to show the
+      terms and the Article 16 path, and the platform's right to cut off a client
+      that abuses this. Spelled out in `depth-client_EN.md` §8.3.
+
+      **No DPA is being prepared and hosting other people's networks is not on
+      offer** — a decision, not a deferral. To someone who wants their own network
+      the answer is: run your own node. The protocol is documented, the client is
+      open, the node's sources are in this repository — they are their own
+      operator and we are not a party. Hosting someone else's network here would
+      mean bringing a brand boundary back into the feed (forbidden by the second
+      principle in §8 of the chat spec) and becoming that operator's processor:
+      Article 28, sub-processors, data-subject requests, a split of DSA roles.
+      Revisit only if concrete demand appears.

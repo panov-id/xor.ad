@@ -133,6 +133,39 @@ $ depth
   ─────────────────────────────────────────────
 ```
 
+### 2.5. The key inside the image
+
+The image carries a publishable key for the `depth` brand. It is **baked in and
+public** — exactly like the storefront keys that sit in `config.js` and are
+visible to anyone through "view source". A person never types it and never hears
+about it.
+
+That is safe precisely because the key is **not authentication**. It answers the
+question "which face did this request come through", and nothing else; a person
+is identified by the signature of their own pair (§8.2 of the chat spec).
+Stealing the key is pointless: everybody has it already.
+
+Three requirements follow, all of them on the node's side:
+
+- **`client_type: native`.** A terminal has no `Origin` header by nature rather
+  than by oversight, so no allowed-origin list is created or checked for such a
+  key. The type is written into the key rather than inferred from an empty list:
+  "empty means everyone may" is the kind of implicitness someone eventually slips
+  on.
+- **No per-key daily quota.** The key is shared by every container in the world,
+  so a per-key counter is one bucket for everyone: a single script burns it in a
+  minute and locks `depth` for the rest. The limits live per address and per
+  identity.
+- **Revocation replaced by overlap.** The image is pinned by digest and lives on
+  people's machines for months; revoking the key would break everything running
+  at once, including what will never update. So several keys are live at a time
+  and the old one fades on an announced window (8.2).
+
+The `depth` brand is its own entry in the brand registry: it shows how many people
+arrived through the terminal, it has its own terms texts and its own key to
+rotate. It does **not affect visibility**: the feed is shared across all faces,
+recorded as a separate principle in §8 of the chat spec.
+
 ---
 
 ## 3. Commands
@@ -510,16 +543,35 @@ Because the client is pinned by digest, old images will live on people's machine
 for a long time. So the refusal has to be legible, and the support window has to
 be announced rather than implied.
 
-### 8.3. Forks
+### 8.3. Third parties: your own client, your own network
 
-A fork is the normal consequence of an open client, and the server is ready for
-it: it treats the client as hostile by default (1.2).
+An open client means other clients will appear. That is fine, and the server is
+ready for it: it treats the client as hostile by default (1.2). Two different
+wishes need telling apart.
 
-What the node guarantees: permission checks, length limits, rate limits, feed
-moderation before publication, age bands.
+**"I want my own client"** — go ahead. The node does not distinguish what drew the
+screen, and should not. Terms for client authors set the frame:
 
-What it does not guarantee: that somebody else's client will draw a counter, show
-a disclaimer or erase history. Whoever built the fork answers for that.
+- **the node guarantees** permission checks, length and rate limits, feed
+  moderation before publication, age bands;
+- **the node does not guarantee** that somebody else's client will draw a counter,
+  show the terms or erase history — whoever built the fork answers for that;
+- **you may not** collect our people's data with your client; showing the terms and
+  the Article 16 path is an obligation, not a courtesy;
+- a client that abuses this we may cut off.
+
+**"I want my own network"** — then run your own node. That is not a brush-off but
+the cheapest answer for both sides: the protocol is documented, the client is open,
+and the node's sources live in this same repository. You are your own operator on
+your own infrastructure, and we are not a party at all.
+
+Hosting somebody else's network is not on offer, and that is a decision rather than
+a gap. A separate world would mean a brand boundary inside the feed — exactly what
+§8 of the chat spec forbids in its second principle. And legally it is a different
+role: we would become that operator's **processor**, with everything that entails —
+an Article 28 contract, a sub-processor list, assistance with data-subject
+requests, a split of DSA roles. There is no such service, so there is no need for
+such a contract.
 
 ---
 

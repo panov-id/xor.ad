@@ -510,13 +510,32 @@ pass opened and did not close.
 - [ ] **J9. Re-check the micro-enterprise status by 2027-08-05.** The lifting of
       DSA Section 3 rests on it. The current record is in `dsa/README_EN.md`, §3.
 
-- [ ] **J10. Answer Bunny about the two new sub-processors — by 2026-08-10.**
-      The notice arrived 2026-08-05, the change takes effect 2026-08-19, and the
-      objection window under §3.2 is five days. The vendors are **not named**,
-      neither in the letter nor on the public page. Ask for the names, purpose and
-      country, and state that the window cannot run from a notice that makes
-      assessment impossible. The analysis is in
-      [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
+- [x] **J10. Bunny's two new sub-processors — we do not object. Decided
+      2026-08-07.** The notice arrived 2026-08-05, the change takes effect
+      2026-08-19, the §3.2 objection window is five days and silence counts as
+      consent. We let the window pass **deliberately**.
+
+      There is nothing to object to: the change concerns "personal account data" —
+      the operator's account details, not the storefronts' visitors. The data
+      subject here is the operator, and blocking a change about one's own data
+      serves no purpose. General authorisation of sub-processors with an objection
+      window is the ordinary mechanism of Art. 28(2); not objecting breaches
+      nothing.
+
+      Accepted as residual risk: the names were never given, "account data" was
+      never confirmed in writing, the country is unknown. The analysis and the
+      full list of what we accepted are in
+      [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md), and
+      `vendors-dpa_EN.md` marks the two as unnamed.
+- [ ] **J12. Re-check Bunny's sub-processor list after 2026-08-19.** Once the
+      change takes effect, look at the public page and record the names in
+      `vendors-dpa_EN.md`. This is bookkeeping, not an objection — the objection
+      window will have expired by then (J10).
+
+      **One thing to watch:** should the new sub-processors sit outside the EEA
+      and touch visitor data rather than account data, the cross-border picture
+      changes. We accepted it on specific grounds — region `DE`, no replicas,
+      chat and feed never go there — and those grounds would need revisiting.
 
 - [ ] **J11. The UAT auto-tag builds no image.** Merging `dev → main` tags the
       commit `v2026.08.05-<sha>`, but no image exists under it: `type=semver` in

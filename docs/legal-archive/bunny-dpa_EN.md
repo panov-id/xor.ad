@@ -107,10 +107,32 @@ account** (the operator's name, email, billing), not the data of storefront
 visitors. If that holds, the data subject here is the operator rather than our
 users, and the question is a smaller one. It needs confirming rather than assuming.
 
-- [ ] Write to bunny.net: name the two sub-processors, their purpose and country;
-      confirm that only client account data is affected.
-- [ ] Once answered — decide whether to object, and update the list in
-      [`../vendors-dpa_EN.md`](../vendors-dpa_EN.md) and the Article 30 record.
+**Decision — we do not object, 2026-08-07.** The §3.2 window closes around
+2026-08-10; we let it pass deliberately, and silence here means consent.
+
+Why this rather than a letter. There is nothing for us to object to: the change
+concerns "personal account data" — the **operator's account** details, name,
+email, billing. The data subject in that case is the operator, not the
+storefronts' visitors, and blocking a change about one's own data serves no
+purpose. General authorisation of sub-processors with an objection window is the
+ordinary mechanism of Art. 28(2), and not objecting breaches nothing.
+
+What we accept as residual risk in doing so:
+
+- **the names were never given** — neither in the notice nor on the public page.
+  Two recipients stay nameless in our own records, and that is a gap in our
+  accountability rather than theirs;
+- **the "account data" wording is not expressly confirmed** — we read it
+  literally, but never asked for that in writing;
+- **the country is unknown.** Should the new sub-processors turn out to sit
+  outside the EEA and touch visitor data rather than account data, the
+  cross-border picture changes — and we accepted that picture on specific
+  grounds (region `DE`, no replicas, chat and feed never go there).
+
+Hence the one thing left to do, and without haste: **re-check the public list
+after 2026-08-19**, once the change takes effect, and record the names in
+[`../vendors-dpa_EN.md`](../vendors-dpa_EN.md). That is bookkeeping, not an
+objection.
 
 ## How this changes the status
 

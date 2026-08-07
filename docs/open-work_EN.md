@@ -937,3 +937,33 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       same defect, only rarer. It is fixed either by promoting the digest
       (`docker buildx imagetools create --tag`) or accepted deliberately — not
       decided.
+
+      **A check on 2026-08-07 showed the fix above was incomplete.** On commit
+      `e3de4ec`: `relay-node` — release `8a561fe8…` against sha `472661b7…`,
+      **different**; `relay-caddy` matched. The opposite of the first case, where
+      caddy was the one that differed — so the matches are **luck**, the builds are
+      not reproducible, and the rule was holding by chance.
+
+      The cause remained: in the ordinary flow a commit lands on **three** refs —
+      `dayN`, `dev`, `main` — and the branch trigger started a build on each.
+      Removing `main` removed one of three rather than restoring the rule. The
+      commit message of `e3de4ec` ("Build the commit once") claimed more than was
+      done.
+
+      **The complete fix lives inside `relay.yml`, not in the triggers**, because
+      only there does it cover every path at once, the manual `vX.Y.Z` tag
+      included:
+
+      - `concurrency: relay-build-<sha>-<image>` — runs for one commit queue
+        instead of racing. Without it two simultaneous runs would both see "no
+        image" and both build;
+      - an **"already built?"** step — if `sha-<short>` is in the registry, this
+        commit was built by an earlier run;
+      - if it was, instead of building, **every** tag `metadata-action` would have
+        applied (release, branch, sha) is attached to the existing manifest with
+        `docker buildx imagetools create`;
+      - cosign signing and the Trivy scan run only on a real build: a run that just
+        added tags has nothing new to sign — that digest was signed when it was
+        first built.
+
+      This also closes the manual release tag recorded as unresolved above.

@@ -114,6 +114,15 @@ jobs:
     needs: [test, database]
     if: github.event_name == 'push' || github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
+    # One commit, one image — however many refs it lands on. In the ordinary flow
+    # a commit reaches dayN, then dev, then main, and each landing used to start
+    # its own build: three images for one commit, each overwriting the sha tag the
+    # previous had written. Runs for the same sha now queue instead of racing, and
+    # the ones behind find the image already there (see "already built?" below).
+    # Without the queue both would look, both would see nothing, and both build.
+    concurrency:
+      group: relay-build-${{ github.sha }}-${{ matrix.image }}
+      cancel-in-progress: false
     permissions:
       contents: read
       packages: write
@@ -143,8 +152,39 @@ jobs:
             # The release tag as given. Not type=semver: that reads the ref, and
             # on a call the ref is the branch, not the tag.
             type=raw,value=${{ inputs.release_tag }},enable=${{ inputs.release_tag != '' }}
+      # The sha tag is the identity of a commit's image. If it is already in the
+      # registry this commit was built by an earlier run, and building again would
+      # produce a *different* image for the same source — multi-arch builds are not
+      # bit-reproducible, and relay-caddy proved it on 2026-08-07 with two digests
+      # for one commit.
+      - name: already built?
+        id: existing
+        run: |
+          reference="ghcr.io/panov-id/relay-${{ matrix.image }}:sha-${GITHUB_SHA::7}"
+          if docker buildx imagetools inspect "$reference" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "уже собран: $reference"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "не найден, собираем: $reference"
+          fi
+
+      # Label the manifest that exists rather than making a new one. Every tag the
+      # metadata step would have applied is applied here, so a release tag and a
+      # branch tag still land — on the bytes that were tested, not on a rebuild.
+      - name: tag the image that already exists
+        if: steps.existing.outputs.found == 'true'
+        run: |
+          arguments=()
+          while IFS= read -r tag; do
+            [ -n "$tag" ] && arguments+=(--tag "$tag")
+          done <<< "${{ steps.meta.outputs.tags }}"
+          docker buildx imagetools create "${arguments[@]}" \
+            "ghcr.io/panov-id/relay-${{ matrix.image }}:sha-${GITHUB_SHA::7}"
+
       - name: build + push (multi-arch)
         id: build
+        if: steps.existing.outputs.found == 'false'
         uses: docker/build-push-action@v6
         with:
           context: relay/${{ matrix.image }}
@@ -154,9 +194,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           sbom: true # SBOM attestation
           provenance: mode=max # SLSA provenance
+      # Signing and scanning belong to the build that produced the image. A run
+      # that only added tags has nothing new to sign: the digest it labelled was
+      # signed and scanned when it was first built.
       - name: sign (cosign, keyless)
+        if: steps.existing.outputs.found == 'false'
         run: cosign sign --yes ghcr.io/panov-id/relay-${{ matrix.image }}@${{ steps.build.outputs.digest }}
       - name: vulnerability scan (report)
+        if: steps.existing.outputs.found == 'false'
         # Run Trivy's official image directly — avoids the trivy-action composite
         # whose setup-trivy pin is fragile. Report only; don't block on base CVEs.
         run: |

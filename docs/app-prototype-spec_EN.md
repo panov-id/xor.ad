@@ -96,7 +96,7 @@ Color tokens (recolor everything at once):
   - `me` — right, accent fill `--gold` + `--gold-ink`;
   - `sys` — centered, mono ("you both liked this — chat is open");
   - each bubble carries a time (`HH:MM`).
-- Composer (`.composer`): text input `Write a message…` (`maxlength=240`) + send button (arrow, accent fill). Submit appends a `me` bubble with the current time and scrolls to bottom.
+- Composer (`.composer`): text input `Write a message…` (`maxlength=256`) + send button (arrow, accent fill). Submit appends a `me` bubble with the current time and scrolls to bottom.
 - **Propose a game** (🎲): dominoes / checkers / chess with **no built-in rules** — players drag pieces and agree the rules themselves; the other person gets a request to accept. (Details in `backlog_EN.md`.)
 
 ## 8. Bottom navigation (mobile, `≤899px`)

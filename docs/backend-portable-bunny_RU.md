@@ -154,7 +154,7 @@ persistent volume под данные. Всё на Bunny, один вендор.
 - [ ] `send-waitlist-welcome` → роут (Resend уже настроен)
 - [ ] JWT-gateway → middleware проверки сессии
 - [ ] magic-link: выпуск токена + письмо (Resend) + верификация → session JWT
-- [ ] web-push (VAPID): ES256-подпись + aes128gcm (перенести текущую функцию)
+- [x] ~~web-push (VAPID)~~ — отменён 07.08.2026, см. `pwa-push_RU.md`
 
 ### Фаза 4 — realtime
 - [ ] WS-сервер в контейнере: лента + исчезающий чат

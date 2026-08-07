@@ -60,7 +60,8 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 ## 6. Backend / data / deploy
 - [ ] Real tables/RLS for messages, likes, chats, profile, age filter, ephemerality (TTL/fade).
 - [ ] Realtime (websockets via the api proxy) for chat and games.
-- [ ] Web Push (VAPID per face, anonymous subscriptions).
+- [x] ~~Web Push~~ — **cancelled 07.08.2026**, see `docs/pwa-push_EN.md`. The
+      launch call goes by waitlist email.
 - [x] **dev + UAT deployed** (neighbro landing + panel; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny zones + api proxy with Origin Host Header/WebSockets/cache=0; panov.id DNS; GitHub secrets). prod later. sosed provisioned only, not deployed.
 
 ## Next session (deploy follow-ups)
@@ -71,7 +72,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [ ] Decide on **sosed**: deploy the face or hold.
 - [ ] **prod** (once uat is accepted): `run-wizard.sh prod` + prod DNS — real domains `neighbro.place`/`sosed.place`/`xor.panov.id` (DNS at their registrar, not only panov.id) + Bunny SSL/proxy.
 - [ ] Settle the branch flow (day-branches vs `dev`/`main`) — everything is on `day4` now, deploys come from `dev`/`main`.
-- [ ] Continue product: app screens (Say/match/Set location/games), tables/RLS, Web Push (sections 3–6).
+- [ ] Continue product: app screens (Say/match/Set location/games), tables/RLS (sections 3–6).
 
 ## Open questions
 - Accent set on the landing (all 11 or a subset).

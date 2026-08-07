@@ -204,8 +204,7 @@ Postgres + realtime-WS + cron, все 3 окружения в одном мес�
 - [ ] `send-waitlist-welcome` → роут (Resend)
 - [ ] JWT-gateway → middleware сессии (WebCrypto ES256/HS256)
 - [ ] magic-link: выпуск токена + письмо (Resend) + верификация → session JWT
-- [ ] web-push (VAPID): подпись/шифрование на WebCrypto (проверить, что либа
-      идёт на Deno-рантайме)
+- [x] ~~web-push (VAPID)~~ — отменён 07.08.2026, см. `pwa-push_RU.md`
 
 ### Фаза 4 — эфемерка и realtime
 - [ ] `Deno.cron` (раз в час): `DELETE ... WHERE expires_at < now()` + ленивый

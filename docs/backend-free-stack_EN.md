@@ -194,7 +194,7 @@ realtime WS + cron, all 3 envs in one place.
 - [ ] `send-waitlist-welcome` → route (Resend)
 - [ ] JWT gateway → session middleware (WebCrypto ES256/HS256)
 - [ ] magic-link: issue token + email (Resend) + verify → session JWT
-- [ ] web-push (VAPID): sign/encrypt via WebCrypto (verify the lib runs on Deno)
+- [x] ~~web-push (VAPID)~~ — cancelled 07.08.2026, see `pwa-push_EN.md`
 
 ### Phase 4 — ephemera and realtime
 - [ ] `Deno.cron` (hourly): `DELETE ... WHERE expires_at < now()` + lazy read filter

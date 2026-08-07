@@ -1,4 +1,4 @@
-# Spec: PWA shell + Web Push (waitlist → notification → "soon")
+# Spec: the storefront PWA shell (Web Push cancelled)
 
 > **Note: describes the previous stack.** Supabase is no longer used — not its
 > Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
@@ -6,83 +6,112 @@
 > Bunny Storage, control state in a Postgres beside the node.
 > Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
 
-Status: spec. Code is a separate step.
+## Status
 
-## Idea
+This document described two unrelated things, and their fates differ:
 
-A face's landing (`sosed.place` / `neighbro.place`) is upgraded into a **PWA** with a single "soon" screen — the beginning of the app itself. A person leaves their email on the waitlist → opts into notifications → gets a **Web Push** "you're on the list" immediately, and a launch broadcast "we're live" later. The push opens the installed PWA on the "soon" screen.
+| Part | State |
+|---|---|
+| **The PWA shell** — manifest, the cache in `sw.js`, `version.json`, icons | built and working, described below |
+| **Web Push** — VAPID, subscriptions, broadcast | **cancelled 07.08.2026**, not to be implemented |
 
-## PWA shell (pattern from noisen)
+## Why Web Push was cancelled
 
-Reuse `noisen-app`'s proven approach:
+The reason is the one recorded in the chat spec (`chat_EN.md` §8.12), and the
+decision is taken **for the whole platform** — the application, the storefronts
+and the terminal client. What is recorded here is only its consequence for the
+storefronts.
 
-- `manifest.json` — name/icons/`display: standalone`/`start_url: /`, brand theme (Soviet for sosed, European for neighbro).
-- `sw.js` — service worker with a versioned cache `<face>-<BUILD>`: `install` (precache + `skipWaiting`), `activate` (purge old caches + `clients.claim`), `fetch` (stale-while-revalidate, GET only).
-- Registration: `navigator.serviceWorker.register('./sw.js')` + reload on `controllerchange`.
-- The deploy injects `__BUILD__` (git hash) into `sw.js` and writes `version.json` — the page polls it and offers to update (like noisen's `deploy-cdn.sh`).
+Briefly: a push is impossible without an intermediary — a service worker plus
+somebody else's delivery service (Google, Mozilla, Apple). Even when the payload
+is opaque, that intermediary receives a durable subscription identifier tied to a
+person's browser, and the **rhythm** — when exactly something reaches them and
+how often. A product whose own server does not keep the correspondence cannot
+hand its metadata to a third party for convenience.
+
+Worth saying separately: **the transport described here died before the decision
+did.** The broadcast was built on Supabase Edge Functions, and Supabase is out of
+the project (see the note above). What is being cancelled is a plan, not a
+working mechanism.
+
+## What replaces the launch call
+
+The pushes had exactly one benefit visible to a person: telling those who left a
+request that we have opened. It is replaced without loss, because the
+replacement is already built:
+
+```
+was:    waitlist → push subscription → "we're live" broadcast
+                                       through somebody else's push service
+
+now:    waitlist → email (Resend, DKIM verified on panov.id) →
+                                       a "we're live" letter
+```
+
+The email already works, is already described in the Article 30 register and in
+the sub-processor list, and — more to the point — **a person leaves it
+themselves, deliberately**, unlike a subscription that attaches itself to a
+browser silently, in one tap, and then lives at somebody else's service.
+
+So the cancellation takes away no capability; it removes a second channel that
+duplicated the first and cost more — in keys, a table, a sub-processor and a
+dependency on Apple's and Google's policies.
+
+## The PWA shell stays
+
+It has nothing to do with pushes and carries on:
+
+- `manifest.json` — name, icons, `display: standalone`, `start_url: /`, a theme
+  per brand.
+- `sw.js` — **cache only**: a versioned `<face>-<BUILD>`, `install` (precache +
+  `skipWaiting`), `activate` (old caches cleared + `clients.claim`), `fetch`
+  (stale-while-revalidate for GET only).
+- Registration via `navigator.serviceWorker.register('./sw.js')` + a reload on
+  `controllerchange`.
+- The deploy injects `__BUILD__` (the git hash) into `sw.js` and writes
+  `version.json` — the page polls it and offers to update.
 - Icons 192/512 + maskable + svg.
 
-The "soon" screen, initially, is the current landing content (pitch + waitlist form + use cases), now PWA-installable.
+The "soon" screen is the landing's current content (pitch, waitlist form, cases),
+only installable.
 
-## Web Push (we add this ourselves; noisen has none)
+There are **no** `push` or `notificationclick` handlers in `sw.js` — they have
+been removed.
 
-### Keys
-- A VAPID pair **per face** (sosed and neighbro use different keys, revocable independently). The face's public key ships to the frontend (in `config.js`); the private key is an Edge Function secret (`VAPID_PRIVATE_SOSED` / `VAPID_PRIVATE_NEIGHBRO`).
+## Dropped from the plan
 
-### Subscribe flow (on waitlist submit)
-1. The form writes the email to `waitlist` as it does now.
-2. On success: `Notification.requestPermission()`.
-3. If granted: `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: <face VAPID public> })`.
-4. Store the subscription in `push_subscriptions` (via the `api.*` proxy, anon insert by RLS). **Anonymous** — no email. Dedupe by the unique `endpoint`. Store `lang` = `navigator.language` (2 letters) to pick the push language.
+- A VAPID pair per storefront, the public key in the frontend, the private one in
+  secrets.
+- The `push_subscriptions` table and its RLS.
+- The `send-push` function: `immediate` ("you're on the list") and `broadcast`
+  ("we're live").
+- The broadcast screen in the panel: message selection by key, a storefront
+  filter, confirmation with the recipient count, a sent counter.
+- Push texts in 15 languages and language selection by the subscription's `lang`.
+- The "add to home screen" hint for iOS — it existed only because Web Push works
+  there for an installed PWA alone.
 
-### Sending
-- Edge Function `send-push`:
-  - **immediate** — right after subscribing, sends "you're on the list" to that endpoint, in the subscription's language;
-  - **broadcast** — to subscriptions, triggered from the admin panel.
-  - Uses web-push with the **matching face's** VAPID private key; prunes dead subscriptions (410/404).
+## Removed from the code
 
-### Broadcast (admin panel)
-- The admin picks a **predefined message by key** (e.g. `launch`) — the system sends each recipient in **their language** automatically (from `lang`, fallback EN).
-- **Face filter**: sosed / neighbro / both.
-- Before sending, a confirmation with the recipient count; afterwards, a sent/failed counter.
+- `neighbro.place/landing/index.html` — `subscribePush()`, the
+  `CFG.vapidPublicKey` branch, the `[data-notify]` block.
+- `sosed.place/landing/sw.js` and `neighbro.place/landing/sw.js` — the `push`
+  listener and `showNotification`.
+- `sosed.place/landing/config.js` and `neighbro.place/landing/config.js` — the
+  `vapidPublicKey` field.
 
-### Push languages (15)
-Ship the push copy (2 short strings per message) in 15 languages up front; the language comes from the subscription's `lang`, fallback EN. Set (Europe + CIS + big global):
-`en, ru, es, fr, de, it, pt, pl, uk, nl, tr, el, ar, zh, ja`.
-The landing UI stays at 6 languages — expanded separately.
+`sosed.place` had no subscription block in its landing at all — the storefronts
+had diverged earlier, and that is tidied up along the way.
 
-### Service worker handling
-- `self.addEventListener('push', ...)` → `showNotification(title, { body, icon, data:{url} })`.
-- `self.addEventListener('notificationclick', ...)` → open/focus the PWA at `start_url` (the "soon" screen).
+There were no live subscribers: `vapidPublicKey` was empty on both storefronts
+(the button was hidden), no subscription endpoint ever appeared on the node, and
+there is no such table in the node's schema. There was nothing to delete but
+dormant code.
 
-## Data (migration)
+## Open
 
-```
-push_subscriptions:
-  id uuid pk
-  endpoint text unique           -- dedupe key
-  p256dh text, auth text         -- subscription keys
-  source text                    -- sosed.place / neighbro.place (for VAPID + filter)
-  lang text                      -- navigator.language (2 letters), for push language
-  created_at timestamptz
-  RLS: anon insert only (like waitlist); read/broadcast via service_role in the Edge Function
-```
-No email in the table — the subscription is anonymous.
-
-## Limitations (important)
-
-- **iOS Safari**: Web Push only works if the PWA is **added to the home screen** (A2HS). In a normal Safari tab pushes won't arrive — show an "add to home screen" hint.
-- **Permission** is requested only after an explicit action (waitlist submit), never on load.
-- **Realtime is not involved here** — push is a separate mechanic (Supabase sockets are for the app feed later).
-
-## Decided
-
-- VAPID — a pair per face.
-- Subscription is anonymous (dedupe by `endpoint`), store `lang`.
-- 15 push languages, auto by `lang`, fallback EN.
-- Broadcast: predefined message by key → localized to the subscription's language; face filter; confirmation + counter.
-
-## To pin down at implementation
-
-- The 2 message texts (`waitlist_confirmed`, `launch`) in 15 languages — write during coding.
-- The iOS "add to home screen" hint — copy/appearance.
+- Whether to keep `sw.js` at all, given that its only job is the offline cache.
+  For now yes: it also carries the update mechanism through `version.json`.
+- The "we're live" letter — text and languages. That used to be 15 push
+  languages; the set is now decided by the languages of the emails, not of the
+  subscriptions.

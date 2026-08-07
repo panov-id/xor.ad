@@ -246,7 +246,6 @@ answer at all.
 | Channel | State | What it needs |
 | --- | --- | --- |
 | Email | working (Resend, per brand) | templates decoupled from the welcome-email code |
-| Web push | draft in `docs/pwa-push_*.md` | VAPID keys, subscription storage, sending from the queue |
 | In-panel | none | an event feed from the audit trail and deliveries; the cheapest of the four |
 | Telegram | none | bot token, chat id; handy for on-call alerts |
 
@@ -303,7 +302,7 @@ The core's rule still holds: an unmapped resource/action pair in the panel is
    page on `LogExplorer`). No brand registration here: the platform creates it and
    invites the tenant by email (see section 0).
 6. Incoming Resend webhooks → email delivery status.
-7. The notification layer (email + in-panel), then web push.
+7. The notification layer: email and in-panel notices. Web push is cancelled (`pwa-push_EN.md`).
 
 Tenancy comes first deliberately, against the temptation to start with the queue: it
 rewrites the storage key layout, and the queue, the delivery log and the quotas all sit

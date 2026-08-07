@@ -90,15 +90,7 @@ processing is identical and only the storefront differs, so the record is shared
   [`legal-archive/resend-dpa_EN.md`](./legal-archive/resend-dpa_EN.md).
 - **Retention.** Until launch and one year after; sooner on request.
 
-### 6. Push notifications
-
-- **Purpose.** Tell someone about a burst nearby, if they asked for it.
-- **Basis.** Consent.
-- **Data.** Subscription endpoint and keys, language.
-- **Recipients.** The push service of the person's browser.
-- **Retention.** While the subscription is active.
-
-### 7. Support
+### 6. Support
 
 - **Purpose.** Answer a request, including GDPR rights requests.
 - **Basis.** Performance of a contract and legal obligation — Art. 6(1)(c).
@@ -106,7 +98,7 @@ processing is identical and only the storefront differs, so the record is shared
 - **Recipients.** Resend (delivering the reply).
 - **Retention.** 1 year.
 
-### 8. Notices of illegal content (Art. 16 DSA)
+### 7. Notices of illegal content (Art. 16 DSA)
 
 - **Purpose.** Receive, examine and justify a decision on a report of illegal
   content; discharge Arts. 16–17 DSA.
@@ -120,7 +112,7 @@ processing is identical and only the storefront differs, so the record is shared
 - **Retention.** 1 year, then deletion; an anonymous counter remains.
 - **A notifier's identity is never disclosed to the author.**
 
-### 9. Advertisers and complaints about offers
+### 8. Advertisers and complaints about offers
 
 - **Purpose.** Keep the profile of a business publishing offers, and examine
   complaints that a promised discount was refused.
@@ -132,7 +124,7 @@ processing is identical and only the storefront differs, so the record is shared
 - **Retention.** Profile and complaints — **one year from the last offer**, then
   deletion.
 
-### 10. Storefront analytics
+### 9. Storefront analytics
 
 - **Purpose.** Understand site usage.
 - **Basis.** **Consent** in the banner, Art. 6(1)(a). Without it the counter does
@@ -143,7 +135,7 @@ processing is identical and only the storefront differs, so the record is shared
 - **Transfers outside the EEA.** Yes.
 - **Retention.** Per the GA4 settings.
 
-### 11. Our own page counter
+### 10. Our own page counter
 
 - **Purpose.** Count page views ourselves, without external systems.
 - **Basis.** Legitimate interests; it needs no consent because there is nothing in
@@ -151,7 +143,7 @@ processing is identical and only the storefront differs, so the record is shared
 - **Data.** Non-identifying view records.
 - **Retention.** Detailed views 14 days, then an aggregate.
 
-### 12. Logs and errors
+### 11. Logs and errors
 
 - **Purpose.** Security and reliability.
 - **Basis.** Legitimate interests.
@@ -161,7 +153,7 @@ processing is identical and only the storefront differs, so the record is shared
 - **Retention.** Server logs and client errors 30 days. Backups 14 days
   (`relay/wizard/backup-postgres.sh`, `keep_days`).
 
-### 13. Administering the panel
+### 12. Administering the panel
 
 - **Purpose.** Handle complaints, manage brands and keys, stay accountable for
   actions taken.
@@ -182,7 +174,6 @@ processing is identical and only the storefront differs, so the record is shared
 |---|---|---|---|---|
 | **Bunny** — hosting, CDN, storage | storefront statics, page addresses, visitors' IPs | **signed**, v1 of 2022-12-17, entity in Slovenia (EU) | ❌ no SCCs, §4.6 permits worldwide processing | ⚠️ Art. 28 closed, [transfer open](./legal-archive/bunny-dpa_EN.md) |
 | **Resend** — email | recipient address and letter text | baked into the ToS, ed. 2025-12-31 | SCCs + EU-US DPF | ✅ checked 2026-08-05 |
-| **The browser's push service** | subscription endpoint | set by the browser vendor | depends on the service | — |
 | **Google Analytics 4** | truncated IP, page addresses | accepted in the GA console | yes | ⚠️ confirm acceptance |
 
 Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
@@ -206,6 +197,16 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
       nor the feed goes there. What crosses the border is the edge log alone (IP and
       page address) — accepted as a residual risk, see
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
+- [x] **Push notifications cancelled — 07.08.2026.** The activity and the
+      "browser's push service" sub-processor are removed from this record. The
+      processing **never ran for a day**: the VAPID public key was empty on both
+      storefronts, the subscribe offer was hidden, no subscription endpoint ever
+      appeared on the node, and there is no subscription table in the schema —
+      not one endpoint was ever received. The decision covers the whole platform
+      (`chat_EN.md` §8.12), the code is removed from the storefronts and the
+      deploy scripts, and the plan is rewritten in `pwa-push_EN.md`. The launch
+      call goes by waitlist email through Resend — the "Waiting list" activity
+      already covers it.
 - [ ] When creating new Bunny zones, check the region: it must be `DE`, no replicas.
 - [ ] Confirm that the current data-processing terms are accepted in Google
       Analytics.

@@ -81,7 +81,7 @@ merge dev→main, tag vX.Y.Z ──CI──▶ relay-node:vX.Y.Z → депло�
 | Bunny proxy-зоны `api.dev/uat.neighbro.panov.id`, `api.neighbro.place` (→ Supabase) | ❌ удалены в Phase 4 |
 | anon-ключ Supabase + заголовки `apikey`/`Authorization` в форме | ❌ не шлётся (relay гейтится по CORS) |
 | PostgREST `/rest/v1/...` | ❌ → relay `/waitlist`, `/client-error` |
-| `push_subscriptions` (Supabase) | ❌ push выключен (`vapidPublicKey:""`); инертный код и `supabaseUrl` убраны из лендингов в Phase 4 |
+| `push_subscriptions` (Supabase) | ❌ push **отменён 07.08.2026** (`docs/pwa-push_RU.md`); инертный код и `supabaseUrl` убраны из лендингов в Phase 4, остатки и `vapidPublicKey` — 07.08.2026 |
 
 ## Решение: REST через Bunny, WebSocket напрямую
 

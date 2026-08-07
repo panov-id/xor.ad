@@ -766,3 +766,71 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
 - [ ] **G5. `manifest lang`** — marked won't-fix.
+- [ ] **G6. Message length limit — enforcement on the node.** Decided 07.08.2026
+      and written into the chat spec (§4, §8.6): `max_message_length` is returned
+      when a chat opens, defaults to **256 characters**, and is checked **on the
+      node** — anything longer is refused with `error`. The feed stays at **128**;
+      that is a different limit and the two should not be merged.
+- [ ] **G7. Storefront privacy policies — two gaps.** Found 07.08.2026 while
+      removing the push promises.
+
+      - **Only the English version is published.** `landing/legal/` holds
+        `privacy_EN.md` and no Russian one — while `community-guidelines` are
+        translated into ten languages and the storefront UI speaks six. Someone
+        reading the site in Russian gets the main document in a foreign language.
+      - **Two sources of truth have diverged.** `legal/privacy_{RU,EN}.md` are
+        ~600-byte stubs; `landing/legal/privacy_EN.md` is the real 10 KB text.
+        Today's edit had to go into the second, and nothing stops the next one from
+        going into the first unnoticed.
+
+      Both need solving together: first name one directory the source, then
+      translate. The other order means translating a text that will drift.
+- [x] **G8. Push fully cancelled — 07.08.2026.** The decision: notifications about
+      new messages and matches exist, but **there is no push anywhere** — no Web
+      Push in the browser, no system notifications in the terminal, no `BEL`.
+
+      **The reason is metadata.** A push is impossible without an intermediary: a
+      service worker plus somebody else's delivery service (Google, Mozilla,
+      Apple), or a system bus in a terminal. Even with an opaque payload that
+      intermediary receives a durable subscription identifier and the **rhythm** —
+      when exactly somebody spoke to this person and how often. A product whose own
+      server does not keep the correspondence cannot hand its metadata to a third
+      party for convenience.
+
+      **The cost is named and accepted:** there is nothing to call a person who is
+      not in the application. A match that burned out they will not see. The system
+      works for someone who comes back on their own, regularly — and should be
+      described that way.
+
+      **The processing never ran for a day:** `vapidPublicKey` was empty on both
+      storefronts, the button hidden, no subscription endpoint appeared on the node,
+      and there is no table in the schema — not one endpoint was ever received.
+
+      **Done:** chat spec §8.12 rewritten (plus §8.14 and §12); `pwa-push_*` split —
+      the PWA shell stays, Web Push cancelled; code removed from the storefronts
+      (`index.html`, both `sw.js`, both `config.js`) and the `VAPID_PUBLIC_KEY`
+      injection from both `deploy-landing.sh`; the activity and the "browser's push
+      service" sub-processor removed from the Article 30 register with activities
+      renumbered 1–12; three promises removed from both privacy policies; the
+      roadmap, `api-platform`, `ARCHITECTURE`, `PROJECT_OVERVIEW`, `00-mechanics`,
+      `PENDING_FROM_NEIGHBRO` and the open `backend-*` items cleaned up.
+
+      **Deliberately untouched:** `review-checklist_*` and `relay/MIGRATION_PLAN_*` —
+      they record the past (an audit that happened, the state at migration time),
+      and rewriting them would lose the trail.
+
+      **The launch call** goes by waitlist email through Resend: it already works,
+      it is in the register, and a person leaves it deliberately.
+
+      **None of this exists in the code.** Today the node has neither the check
+      nor the parameter: `lib/quota.ts` counts a daily quota per key,
+      `lib/rate_limit.ts` a window per address, and nobody looks at length. With
+      no chat routes yet the item is not urgent, but it has to land together with
+      them rather than after: our client is open — the `depth` image can be
+      rebuilt by anyone, the web script edited in the debugger — and a check that
+      lives only on the client is not a defence.
+
+      There is a transport behind the limit: 256 UTF-8 characters → ~1.4 KB of
+      ciphertext with nonce, tag and base64, and that must fit inside the 8 KB
+      `NOTIFY` payload with room to spare (§8.1, §8.13). Raising it is allowed,
+      but not blindly.

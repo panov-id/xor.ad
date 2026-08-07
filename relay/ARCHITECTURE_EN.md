@@ -83,7 +83,7 @@ sudo `deploy` user, default-deny firewall).
 | Bunny proxy zones `api.dev/uat.neighbro.panov.id`, `api.neighbro.place` (→ Supabase) | ❌ deleted in Phase 4 |
 | Supabase anon key + `apikey`/`Authorization` headers on the form | ❌ not sent (relay is CORS-gated) |
 | PostgREST `/rest/v1/...` | ❌ → relay `/waitlist`, `/client-error` |
-| `push_subscriptions` (Supabase) | ❌ push is off (`vapidPublicKey:""`); the inert code and `supabaseUrl` were removed from the landings in Phase 4 |
+| `push_subscriptions` (Supabase) | ❌ push **cancelled 07.08.2026** (`docs/pwa-push_EN.md`); the inert code and `supabaseUrl` were removed from the landings in Phase 4, the remnants and `vapidPublicKey` on 07.08.2026 |
 
 ## Decision: REST through Bunny, WebSocket direct
 

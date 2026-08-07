@@ -45,7 +45,7 @@ Liking again when a chat with that person is already open creates **no new match
   - `sys` — centered, mono (system events: chat opened, game proposal, the peer changing their name or age);
   - `extra_like` — centered, a card with the quote and a number matching the one in `Liked, in order` (§8.7);
   - each bubble shows a time (`HH:MM`).
-- **Composer** (`.composer`): a `Write a message…` field (`maxlength=240`) + a send button (arrow, accent fill). Submit appends a `me` bubble and scrolls to the bottom.
+- **Composer** (`.composer`): a `Write a message…` field + a send button (arrow, accent fill). Submit appends a `me` bubble and scrolls to the bottom. The length limit **comes from the server**, 256 characters by default; the client draws the counter but does not decide it (§8.6).
 
 ## 5. Ephemerality
 
@@ -93,7 +93,7 @@ peer B ──ws── node 2 ──┘        ↓
                           node 2 finds B's socket locally and delivers
 ```
 
-`LISTEN` / `NOTIFY` fits unusually well here: it is **transit** delivery with no write — exactly what a chat without history needs. The 8 KB payload limit covers a 240-character message many times over, and if the recipient is on no node at all the message simply never arrives and the sender gets `error` — the same behaviour as an offline peer (8.8).
+`LISTEN` / `NOTIFY` fits unusually well here: it is **transit** delivery with no write — exactly what a chat without history needs. The 8 KB payload limit covers a 256-character message many times over, and if the recipient is on no node at all the message simply never arrives and the sender gets `error` — the same behaviour as an offline peer (8.8).
 
 What it buys: any participant can connect to any node, no stickiness is needed, and a node failure takes down only its own sockets — reconnecting to a neighbour resumes the same chat. Zero new dependencies: Postgres is already there, Redis is not needed.
 
@@ -103,7 +103,9 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 
 ### 8.2. Identity and sessions
 
-An identity lives **in the browser**: `identity_id` + a secret in IndexedDB, signing every request (the server stores the secret's hash). There is no recovery by construction — no email, no password, no code.
+An identity lives **on the device**: `identity_id` + a secret, signing every request (the server stores the secret's hash). Where exactly depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume, encrypted with a passphrase (below). There is no recovery by construction — no email, no recovery password, no code.
+
+**Every client starts as its own identity.** The key is born locally and nothing ties it to any other: the web on a phone, the web on a laptop and `depth` in a container are three different neighbours until the person links them. The consequence is accepted deliberately: one person on two unlinked devices appears twice in the feed and can like themselves. That is the price of refusing to recognise devices, and it is cheaper than a fingerprint (below).
 
 ```sql
 CREATE TABLE identities (
@@ -157,34 +159,67 @@ There are three kinds of key, and keeping them apart is the point:
 
 Revocation works because the first two are separate: the server stops accepting a revoked session's signature without touching anything the others hold.
 
-**Session handoff.** The parent device shows a QR code (and a link, for when there is no camera):
+**Session handoff — a code, not a link.** The device that is already signed in shows nine characters; the person types them on the new device. No link and no QR code: the handoff lives entirely inside the clients, there is no page for it and no domain is registered for it.
 
 ```
-parent    creates a one-time invite, alive for 2 minutes
-          shows the QR / link
-          the identity's long-lived key sits in the URL FRAGMENT, after #
-new       opens it, takes the long-lived key out of the fragment
-device    generates ITS OWN pairs: one for signing, one for wrapping
-          POST /sessions/claim {invite, sign_public_key, wrap_public_key, label}
-parent    "a Chrome on Android device just joined — was that you?" → yes / kill
-          and wraps for it the keys of chats opened from now on
+      K7Q - M3F - 2X9        alive for 2 minutes, applied once
 ```
 
-**The fragment, not the path.** Everything after `#` is never sent to a server at all — not in the request, not in `Referer`, not into logs. The long-lived key travels device to device past us, and that is a property of the protocol rather than a promise of ours.
+The alphabet is Crockford base32 without `I`, `L`, `O`, `U`: they get confused with one and zero. Case does not matter and the dashes are optional.
 
-**The invite is single-use and lives minutes.** Used or expired, it does nothing. The parent sees the join immediately and can kill the session with the same gesture.
+```
+device with  code = 9 random characters
+the identity material = Argon2id(code, salt "xor.ad/device-link/v1", 64 MB, t=3)
+             lookup_id  = material[0..32]    ─► goes to the server
+             secret_key = material[32..64]   ─► goes NOWHERE
+             POST /sessions/invite {lookup_id, ttl: 120s}
+new          the person types the code, the same Argon2id yields the same 64 bytes
+device       generates ITS OWN pairs: one for signing, one for wrapping
+             POST /sessions/claim {lookup_id, enc_secret(sign_pub, wrap_pub, label)}
+first        decrypted the envelope ─► so the code was typed correctly
+             puts the identity's long-lived key into the reply envelope
+             and from now on wraps the keys of new chats for the new device
+```
 
-**The session list and revocation.** Any session sees the list: label, when created, when last active, who invited it. A parent can kill its children; any session can kill itself. Revocation sets `revoked_at`, and a request signed by that session stops being accepted at once.
+**Stretching is not hardening, it is the precondition.** Nine characters are 45 bits: under a plain hash they fall in hours, and the server, which holds `lookup_id`, would derive `secret_key` itself. Argon2id makes each attempt cost about 0.1 s, turning an offline search into hundreds of thousands of years. The online one is closed by the server: **five attempts per invite**, after which it burns.
+
+**What the server sees and does not see.** It sees `lookup_id` and two opaque envelopes — enough to match the two sides, and nothing else. The identity's long-lived key passes through it encrypted.
+
+**There is no separate confirmation.** The person typed nine characters from one of their own screens onto another; a mistake shows up as an envelope that will not decrypt, and it shows up at once. A "was that you?" dialogue after that would be a ritual.
+
+**The invite is single-use and lives minutes.** Applied or expired, it does nothing.
+
+**In `depth` the code is read from standard input only** — never as a command argument and never as an environment variable: an argument is visible in `ps` to every process on the machine and settles into the shell history, and a variable is shown by `docker inspect`. The handoff screen is drawn in the terminal's alternate buffer and cleared on exit, or those nine characters would stay in the scrollback and in the multiplexer's log.
+
+**The session list and revocation.** Any session sees the list: label, when created, when last active, who invited it. **Revocation is symmetric: any live session can disconnect any other session of its identity** — parenthood stays a line in the list and decides nothing. Otherwise the ordinary case falls apart: someone was talking from the terminal, moved to their phone, and wants to close the terminal — which happens to be its parent. Revocation sets `revoked_at`, and a request signed by that session stops being accepted at once.
+
+An invite is likewise issued by any live session, so the circle closes both ways:
+
+```
+depth shows a code ─► the phone joins ─► the phone disconnects depth
+        ...later...
+the phone shows a code ─► depth returns as a NEW session with new keys
+```
+
+There is no resurrection: a revoked session is dead for good, and coming back means coming back as a new one.
+
+**Revoking the last live session is allowed, but it deletes the identity.** It sets `identities.closed_at` — otherwise the feed would keep an identity nobody will ever connect to again. The UI must say so before the tap, in the same words as "start over".
 
 **What revocation does.** A revoked session loses server access at once and — more to the point — **stops receiving keys**: its wraps are deleted and no new ones are made for it. Every future conversation is closed to it for good, not merely out of reach.
 
-What revocation cannot do is erase what is already on that device. Its local history, and the keys of chats open right now, stay there. The interface says so plainly, not in small print:
+What revocation cannot do is erase what is already on that device. But neither does the device keep following the conversations — the server accepts a revoked session's signature nowhere, delivery subscription included, so it receives no new messages **even in the chats that were open on it**. What it keeps is a snapshot taken at the moment of revocation: local history in the browser, and in `depth` only the memory of the live process, because it writes nothing to disk.
 
-> A disconnected device will not see a single new conversation. What is already open on it stays until those chats end.
+It follows that **the keys of live chats are not rotated on revocation**. Rotation protects against a participant who keeps receiving ciphertext; a revoked one receives none, so there is nobody to rotate against. This is written down here so the question does not come back.
 
-**The handoff risk is social, not cryptographic.** Nobody will break the QR code; they will ask a person to show it. Hence the defences — single use, two minutes, confirmation on the parent, a visible list and instant revocation.
+The interface says so plainly, not in small print:
 
-**What became of "a different browser is a different person".** It stands, with one caveat: a different browser is a different person **unless a live device invited it**. There is still no recovery: with no working first device there is nothing to hand off. This is passing something hand to hand, not an email and a password — which is why it opens no door through which an identity could be taken away.
+> A disconnected device stops receiving messages immediately — in new conversations and in the ones that were open on it. Only what already reached it stays, and that we cannot erase.
+
+**The handoff risk is social, not cryptographic.** Nobody will guess the code; they will ask a person to read it out. Hence the defences — two minutes, one application, five entry attempts, a visible session list and instant revocation from any device.
+
+**What became of "a different browser is a different person".** It stands, and now covers every face: **a different device is a different person**, unless a live device invited it. For `depth` it reads the same way: a different volume is a different person. There is still no recovery: with no working first device there is nothing to hand off. This is passing something hand to hand, not an email and a password — which is why it opens no door through which an identity could be taken away.
+
+**The key file in `depth` is encrypted with a passphrase**, the key derived from it by the same Argon2id at every start. A stolen or copied volume is useless without the phrase — which closes the terminal's main weakness: unlike the browser, where keys sit as non-extractable `CryptoKey` objects, here they are a file after all. The file itself is `0600`, and the client **refuses to start** if the permissions are wider, instead of a warning nobody reads. The price is stated plainly: **forget the phrase and the identity is gone**, exactly as with deleting the volume.
 
 **Changing age and the band.** Age is freely editable **within your own pool**, but the 20/21 border can only be crossed upwards:
 
@@ -206,9 +241,9 @@ Silently swapping a name mid-conversation is not allowed: the peer agreed to tal
 
 Disclaimers (both required in the UI):
 
-> Your identity lives in this browser and in the devices you connected to it yourself. In any other browser you will be someone else. Clearing browser data erases this session; if no other device is connected, the identity is gone for good — neither we nor you can bring it back.
+> Your identity lives on this device and on the ones you connected to it yourself. On any other device you will be someone else. Clearing browser data — or deleting the volume and forgetting the passphrase, if you are in the terminal — erases this session; if no other device is connected, the identity is gone for good, and neither we nor you can bring it back.
 
-> Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only in browsers, never on the server.
+> Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
 
 **Age bands.** Age is not decorative — it cuts the feed. Two worlds that never meet:
 
@@ -250,7 +285,7 @@ A phrase is tied not to a city but to **an area the person picks on a map** — 
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
-  text             text NOT NULL,                             -- ≤240
+  text             text NOT NULL,                             -- ≤128
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
@@ -460,7 +495,13 @@ CREATE TABLE chat_starters (
 
 - Access check is "is there a row": `SELECT 1 FROM chat_participants WHERE chat_id = :id AND identity = :me`.
 - `chat_starters` stores a **copy** of the text rather than a reference to `feed_messages`: the phrase lives N hours, the chat lives by its own clock, and the header must not empty out mid-conversation. `feed_message_id` is deliberately not stored — the link "this phrase → this chat" is better off not existing in the database at all.
-- Opening a chat returns: `idle_ttl_minutes`, `last_activity_at`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
+- Opening a chat returns: `idle_ttl_minutes`, `last_activity_at`, `max_message_length`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
+
+**Message length is a server parameter, not a client constant.** `max_message_length` arrives when the chat opens, defaults to **256 characters**, and changes without shipping a client. The client draws the counter and will not let you send more — but that is a convenience, not a limit: **the node decides**, and a message longer than the limit is refused with `error`, delivered to nobody.
+
+The separation is not pedantry. Our client is **open**: the `depth` image can be rebuilt by anyone, and the web script is edited in the debugger in a minute. Any check that lives only on the client is a hint to its author, not a rule of the system. Treating it as a defence would be self-deception, so the limit is enforced where it cannot be rewritten.
+
+The limit is not cosmetic — it holds up the arithmetic in §8.1 and §8.13. 256 characters of UTF-8 come to ~1 KB, the ciphertext with nonce, tag and base64 to about 1.4 KB, and all of it must fit inside the 8 KB `NOTIFY` payload with room to spare. Raising the value is allowed, but not blindly: there is a transport behind it.
 
 **One chat per pair.** The unique `pair_key` means that while a chat lives there will be no second one:
 
@@ -650,9 +691,9 @@ So over a long conversation a peer will accumulate a set of one author's phrases
 
 What a traffic observer sees: uuids, feed phrase texts (public anyway), and the **ciphertext** of a conversation. What they do not see: what was said, who wrote what, who liked what, or whether two phrases belong to one person.
 
-### 8.12. Notifications: inbox and push
+### 8.12. Notifications: the inbox only
 
-Two layers answering different questions. The **inbox** says "what happened while I was away"; **push** says "come now, it is ticking". The first works always and costs almost nothing; the second is needed because everything in this model lives in minutes.
+There is one layer. The **inbox** answers "what happened while I was away", works always and costs almost nothing. The second layer — the one that pulls at a person from outside — does not exist in this system, and that is a decision rather than an omission (see "There is no push" below).
 
 #### Inbox
 
@@ -687,62 +728,27 @@ In the UI this is the counters on the `Chats N` / `Matches N` tabs (§3) and hig
 
 **A burnt-out match will not appear in the inbox.** The `matches` row is deleted on expiry, so there is nothing to show — and that is for the better: instead of a graveyard ("you had three matches, all dead") a person sees only what is alive. The price is honest and worth knowing: **what was missed disappears silently and for good**.
 
-#### Push
+#### There is no push — in any face
 
-Push is not decoration but **load-bearing structure**. Everything in this model lives in minutes and demands a response: a match dies with the first phrase and waits for **two** presses, a chat dies of silence, a message to an offline peer never arrives at all. Someone who is not in the app right now will simply never learn that anyone tried to talk to them. Without notifications the whole scheme degrades into "lucky to be online at the right minute".
+No Web Push in the browser, no system notifications in the terminal, no `BEL`. The decision is taken for the whole platform, which is why it is recorded here rather than in one face's document.
 
-The inbox does not close that hole: it only shows what survived until the app was opened. A match that burnt out an hour before the visit is seen by nobody. So the layers complement each other — push calls you in, the inbox picks up what was missed — and both carry the same events.
+**The reason is metadata, not difficulty.** A push is impossible without an intermediary: in a browser that is a service worker plus somebody else's delivery service (Google, Mozilla, Apple), in a terminal a system bus. Even with a fully opaque payload, that intermediary receives what we hand to nobody: a durable subscription identifier tied to an identity, and the **rhythm** — when exactly somebody spoke to this person, how often, at what hours. The whole of §8 is built on the fact that not even our own server keeps the correspondence; handing its metadata to a third party for convenience is a contradiction with nothing to justify it.
 
-The transport is standard Web Push (VAPID) through a service worker. A subscription belongs to a browser exactly as an identity does (8.2), so there is precisely one row per identity:
+A good deal disappears along with it: VAPID keys and their rotation, the subscription table and the sweeping of dead rows, a separate sub-processor in the Article 30 register, a dependency on Apple's and Google's policies, and a different set of capabilities on every platform.
 
-```sql
-CREATE TABLE push_subscriptions (
-  identity      uuid PRIMARY KEY REFERENCES identities(id) ON DELETE CASCADE,
-  endpoint      text NOT NULL,
-  p256dh        text NOT NULL,          -- payload encryption keys
-  auth          text NOT NULL,
-  created_at    timestamptz NOT NULL DEFAULT now(),
-  failed_count  integer NOT NULL DEFAULT 0
-);
-```
+**What it costs, stated plainly, because the cost is real.** Everything in this model lives in minutes and needs an answering action: a match fades and waits for **two** taps, a chat dies of silence, a message to an offline peer is not stored (8.8). There is **nothing** with which to call a person who is not in the application right now. They learn about all of it only when they open the client themselves, and a match that burned out they will never see — the inbox shows only what survived until the opening.
 
-A `404`/`410` from the push service means a dead subscription — the row is deleted at once, so nothing piles up. Closing an identity takes its subscription with it.
+The direct consequence: **this system works for someone who comes back on their own, regularly**, and does not work for someone waiting to be called. That is how it should be described — to people, too, and not only in the spec.
 
-**What we send:**
+What is left in place of a push:
 
-| Event | To whom | Why |
-|---|---|---|
-| `match` | both | A match exists and is already ticking — the single most important push here |
-| `match_waiting` | the other one | One side accepted; it is on you now |
-| `chat_open` | both | Both accepted, the chat is open |
-| `message` | the recipient | Someone is talking to you |
-| `extra_like` | the phrase's author | They liked one more of your phrases |
-| `fading` | both | The chat is about to die of silence — last chance |
+| Layer | When it works |
+|---|---|
+| The live connection (8.1) | the client is open — events arrive instantly |
+| The inbox | the client was opened again — everything that survived is visible |
+| — | the client is closed — nothing arrives |
 
-**The payload is opaque.** A push service is someone else's infrastructure (Google, Mozilla, Apple), and putting text into it is out of the question: the whole of §8 rests on the conversation not even being kept by our own server.
-
-```json
-{ "kind": "message", "chat_id": "…" }        // and nothing more
-```
-
-No text, no name, no age. The woken client fetches the details itself and gets exactly what it is entitled to see anyway. The notification title is impersonal: "new message", not "Anya: let's go to the embankment".
-
-**A push about a message is an alarm clock, not a delivery.** A message to an offline peer is not stored (8.8): the sender gets `error` and a "send again" button with a growing pause. Push closes the loop:
-
-```
-A sends    → B offline → A gets ack error, B gets a push "someone is talking to you"
-B opens the app
-A presses "send again"
-           → delivered
-```
-
-For a chat without history this is honest mechanics: the push calls a person into the conversation, and a live connection carries the text. The flip side is that a first message may take two attempts, and the UI has to make that look normal rather than broken.
-
-**Limits to keep in mind:**
-
-- **iOS**: Web Push only works for a PWA added to the home screen; there is no push for a plain site in mobile Safari. So installing the PWA has to be offered explicitly, or matches will burn out silently for a share of iPhone users.
-- **Permission** is requested not on the first screen but when it makes sense — at the first match, or on the first consent to a chat. A refusal does not break the app, but the person should be told plainly: without notifications they will miss matches.
-- **Quiet hours** and coalescing several events into one notification are a settings question — but `match` cannot be silenced: it will not survive until morning.
+**A missed message** is recovered indirectly through `last_activity_at`, and the mechanism is described above in this same section. The sender gets an `error` and a retry button; the loop is closed not by a notification but by the other person opening their client one day.
 
 ### 8.13. End-to-end encryption
 
@@ -778,9 +784,11 @@ CREATE TABLE chat_key_wraps (
 
 **Forward secrecy holds.** The ephemeral keys and `K` are wiped when the chat dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
 
-**A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away. There is one deliberate exception — the long-lived key during a session handoff (§8.2), made extractable for exactly as long as the transfer takes.
+**A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away.
 
-**Size.** The ciphertext of a 240-character phrase is up to ~1 KB with nonce, tag and base64. The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
+**There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a handoff (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a handoff. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. `depth` does not have this hole: there the keys are a file anyway, and what protects them is the passphrase rather than a property of the store.
+
+**Size.** The ciphertext of a 256-character phrase is up to ~1 KB with nonce, tag and base64. The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
 
 **What it does not give — and this must be said plainly.**
 
@@ -799,8 +807,10 @@ CREATE TABLE chat_key_wraps (
 - Anti-flood on the rate of likes and phrases (messages already have a pause, but a client-side one).
 - Picking the local moderation model and its weight: languages, RAM, quality on mixed languages (§8.3).
 - How often to re-ask for age, and what to do when someone ignores the question.
-- Offline delivery: a message to an offline peer is currently lost, and is handled by push plus a manual retry (8.12); whether to auto-retry when the peer returns is undecided.
-- Notification settings: what may be silenced, and how a burst of events is coalesced.
+- Offline delivery: a message to an offline peer is lost, and there is nothing left to call them with (8.12). What remains is a manual retry once they come back on their own; whether to auto-retry on their return is undecided, and that question now weighs more than it did when there was a push.
+- The match window (§8.5) was chosen when there was something to call a person
+  with. There is no push any more and nothing compensates for it — whether to
+  lengthen the window is undecided.
 - What to show when the band and filter come up empty — the teenage sandbox will be sparse at launch.
 
 ## 9. UI states and breakpoints
@@ -831,7 +841,7 @@ What is settled moved into §8; what remains here is UI and product.
 
 - Behavior at the expiry moment (hide instantly / show "expired").
 - Right-side tabs: only "Chats" or sub-sections (matches / active / fading).
-- Notifications are designed in §8.12 (including why the scheme fails without them); what remains here is their UI: settings, quiet hours, coalescing a burst of events. Transport — `pwa-push_EN.md`.
+- Notifications are designed in §8.12 (including why there is no push and what that costs). There will be no settings, no quiet hours and no coalescing: there is nothing to silence and nothing leaves the device. What remains is the inbox UI — tab counters and thread highlighting.
 - The open list for data and moderation lives in §8.14.
 
 ## 13. Build order
@@ -841,8 +851,42 @@ order is not a matter of taste. Without an identity there is no feed, without a
 feed no like, without a like no match, and without a match nobody to open a chat
 with. Starting "with the chat" is physically impossible.
 
+There are two orders here and they are perpendicular. The first is by data: it
+is the numbered list below and it does not depend on the face. The second is by
+face, and it is decided separately: **the terminal goes first**.
+
+**The core first, the faces after.** Protocol, cryptography and state live in a
+shared module — **with no DOM and no Ink**. Two thin rendering layers sit on
+top: one draws into a terminal, the other into a browser.
+
+```
+        ┌──────────────────────────────────────────────┐
+        │  core: protocol, crypto, state               │
+        │  not one reference to the DOM or to Ink      │
+        └──────────────────────────────────────────────┘
+                   ▲                        ▲
+        ┌──────────┴─────────┐   ┌──────────┴─────────┐
+        │  depth: Ink layer  │   │  web: DOM layer    │
+        └────────────────────┘   └────────────────────┘
+```
+
+Without that split the client doubles whole rather than only in its screens:
+Argon2id twice, key wrapping twice, two implementations of the code handoff —
+and two chances to diverge in behaviour where divergence means incompatibility
+rather than cosmetics.
+
+**The terminal first — a choice, not a convenience.** The reason is that it
+makes the protocol checkable. While there is one face and it is ours, "client"
+and "server" quietly grow together: whatever suits a particular page seeps into
+the API. A terminal client draws the same thing with no DOM, no cookies and no
+browser storage — and everything that was implicitly propping up the web client
+surfaces at once.
+
+The web follows it over a protocol that is by then already proven. The reverse
+order would produce an API the terminal would have to be bent to fit.
+
 1. **Identity and sessions** (§8.2) — `identities`, `sessions`, request
-   signing, the QR handoff. Everything else rests on "who is this".
+   signing, the code handoff. Everything else rests on "who is this".
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
    age bands, synchronous moderation before publication. The first screen on
    which the product does anything at all.
@@ -858,24 +902,36 @@ with. Starting "with the chat" is physically impossible.
 7. **Blocks and hiding** (§8.9), **cleanup and `alive`** (§8.10).
 8. **Notifications** (§8.12) and **games** (§6) last: the scheme works without
    them, only worse.
+9. **The web face** last, over the protocol the terminal has proven by then.
+   Steps 1–8 are done in `depth`.
 
 Steps 1–4 are not worth queueing behind one another: each adds a working
-screen, and each is a place one can stop.
+screen, and each is a place one can stop. That screen is a terminal one — the
+web catches up in a single step at the end.
 
 ## 14. Acceptance criteria
 
 What "the chat is done" means, checkable rather than eyeballed:
 
-- Two browsers on **different nodes** hold a conversation. That tests the bus,
-  not a room living in one process's memory.
+- Two clients on **different nodes** hold a conversation, and in at least one
+  pair one of them is `depth`. That tests the bus, not a room living in one
+  process's memory — and along with it, that the face does not affect the
+  protocol.
 - A node falling over breaks the socket but **not the conversation**: on
   reconnecting to a neighbour, the person continues the same chat with the same
   history.
 - A second device connected **before** the chat opened sees the same messages;
   one connected **after** starts on an empty screen, and that is not a defect
   (§8.13).
-- A revoked session receives no keys for new chats. Tested by revoking during a
-  live chat and opening the next one.
+- A revoked session stops receiving messages **immediately**, including in the
+  chat that was open on it, and receives no keys for new chats. Tested by
+  revoking during a live conversation.
+- The code handoff works across faces: a code shown in `depth` and typed in the
+  web, and the other way round. An expired or already-applied code does
+  nothing, and a sixth entry attempt burns the invite.
+- A message longer than `max_message_length` is refused by the **node**, not
+  merely by the counter in the client. Tested with a request that bypasses the
+  client.
 - An expired chat disappears **for both**, together with the game board and the
   local history, on the first `alive` sweep.
 - A message to an offline peer yields `error` and a retry button rather than

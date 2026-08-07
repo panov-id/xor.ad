@@ -585,6 +585,51 @@ accepted the previous edition.
 eight items in §8.14 need measurement, the storefronts carry no security headers
 at all, and the secret rotation plan lives in `secret-rotation_EN.md`.
 
+## L. Backups and production data — 2026-08-07
+
+Found during the restore drill on 2026-08-07: a production dump came up in a
+throwaway `postgres:16-alpine` with **not one error**, all nine tables and five
+migrations intact. The backup itself works — a nightly timer, a fortnight of
+retention, cleanup only after a successful upload. But the drill showed two
+things nobody had seen before it.
+
+### L1. The waitlist is not in the backup — open
+
+There is no `waitlist` table: signups are written **to Bunny Storage**
+(`relay/node/src/routes/waitlist.ts`, the zone from `BUNNY_STORAGE_ZONE`), while
+`backup-postgres.sh` copies Postgres only. So the backup covers control state —
+keys, brands, quotas, Article 16 notices — and does **not cover the only
+accumulated user data** we currently hold.
+
+What to do about it:
+
+- back up the storage as well, as another step of the same nightly timer;
+- or move the waitlist into Postgres, where the existing backup already reaches;
+- either way — **prove it by restoring**, not by declaring it done.
+
+The other half of the same problem sits beside it: the dumps land in the
+`sosed-waitlist-dev` zone together with 269 storefront files. No pull zone
+points at it today (verified 2026-08-07), but the protection rests on nobody
+attaching one. A dedicated `relay-backups` zone belongs to the same item.
+
+### L2. Test notices in the production register — closed 2026-08-07
+
+`dsa_notices` on production held **five rows** created on 2026-08-05 while
+checking the move behind the CDN, the Caddy lock and Shield: "Lock check: a real
+report still goes through the front door" and the like. None had been decided;
+all had `target_kind = other`. Deleted by explicit id in a single transaction;
+the register is empty.
+
+**The rule from here on:** exercise end-to-end paths against **staging**, not
+production. The Article 16 register is a document that may one day be shown to a
+supervisory authority, and test entries in it would have to be explained. Where
+a production check is unavoidable, the row is removed the same hour, not two
+days later.
+
+**Residual trace:** the nightly backups for 5–7 August contain those five rows
+and will until the fortnight expires, around 2026-08-21. That is expected and
+matches the declared retention.
+
 ## G. Deliberately deferred
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.

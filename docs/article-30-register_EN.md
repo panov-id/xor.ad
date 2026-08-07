@@ -158,7 +158,8 @@ processing is identical and only the storefront differs, so the record is shared
 - **Data.** IP, timestamp, user agent; a technical error report.
 - **Rule.** **Personal data is not written to logs** — not an email address, not
   the text of a message, not an identifier.
-- **Retention.** Server logs and client errors 30 days. Backups 7 days.
+- **Retention.** Server logs and client errors 30 days. Backups 14 days
+  (`relay/wizard/backup-postgres.sh`, `keep_days`).
 
 ### 13. Administering the panel
 
@@ -194,7 +195,7 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 - Role separation in the panel, an audit log, keys with narrow scopes.
 - Node hardening: closed ports, hardened SSH, secret rotation —
   [`../relay/HARDENING_EN.md`](../relay/HARDENING_EN.md).
-- Backups live 7 days, so anything deleted leaves them within a week.
+- Backups live 14 days, so anything deleted leaves them within a fortnight.
 
 ## Open items in this record
 

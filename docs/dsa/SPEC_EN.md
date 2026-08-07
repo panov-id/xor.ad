@@ -99,7 +99,8 @@ enforcement under Art. 18.
 
 ### 5.2. A notice about chat content
 
-A chat is not stored on the server and is not moderated — there is nothing to
+A chat is not stored on the server, is not moderated and is **encrypted** with a key
+we do not hold (`chat_EN.md` §8.13) — there is nothing to
 execute a removal against. The reply to the notifier says so plainly: chat
 content is unreachable for us, so we cannot examine it. What we do instead:
 
@@ -110,6 +111,35 @@ content is unreachable for us, so we cannot examine it. What we do instead:
 - act under Art. 18 where life is threatened, regardless of our inability to check.
 
 Refusing to examine without an explanation is forbidden: a reply is always owed.
+
+### 5.3. Protection of minors (Article 28)
+
+The platform is accessible to children, so an Article 28 measure is required. We
+claim exactly what we do, with no promises we do not keep:
+
+- **Age bands.** Age is asked before the feed and cuts what the feed returns. An
+  adult is never shown anyone under 18; for a minor the top of the range stays
+  narrow and never reaches adults. The rule is symmetric: if I cannot see you,
+  you cannot see me.
+- **No profiling for what is shown.** Article 28(2) forbids advertising based on
+  profiling a minor. We do no profiling at all: both the feed and the offers are
+  decided by place rather than behaviour — the prohibition is met by the absence
+  of the mechanism, not by a setting.
+- **Explicit content is refused for everyone.** No switch turns it on, so there
+  is nothing to circumvent.
+- **The door to a conversation opens only on mutuality.** A stranger cannot
+  write first: it takes a mutual like and both people's consent.
+
+**What we do not do, and why.** Age is self-declared: we ask for no documents,
+scan no faces, query no databases. Article 28(3) says plainly that the measure
+need not require additional personal data — and verifying age would mean
+collecting documents from children in order to protect them. For a service
+without accounts that is a losing trade, and it is named here rather than
+hidden.
+
+Hence the honest wording: the bands separate teenagers from adults as far as it
+is possible **without documents**. Self-declaration can be circumvented, and we
+know it.
 
 ## 6. The reply to the notifier (Art. 16(5))
 

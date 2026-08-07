@@ -54,7 +54,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [ ] Push-notification languages (see `docs/pwa-push`).
 
 ## 5. Sosed (mirroring)
-- [ ] Port the updates to **sosed.place** (red accent, Soviet aesthetic; no LGBT features — by decision).
+- [ ] Port the updates to **sosed.place** (red accent, Soviet aesthetic).
 - [ ] Sync the READMEs of all three repos (project rule).
 
 ## 6. Backend / data / deploy

@@ -576,7 +576,7 @@ The effect applies at all three levels at once: phrases are hidden from both sid
 
 **The limit, plainly.** A block holds until the person makes a new identity — which takes ten seconds (§8.2). They will be back in the feed, and that is true. But getting back to **you** takes more than returning: it takes a fresh mutual like on live phrases and your consent to open a chat. Blocking does not guard the door to a conversation — the entry model does.
 
-**Hiding a phrase is not blocking a person.** The community guidelines promise it outright: you can personally block such messages for yourself. That is a third action, with consequences of its own:
+**Hiding a phrase is not blocking a person.** The community guidelines promise it outright: blocking a message hides it for you only, not for everyone. That is a third action, with consequences of its own:
 
 ```sql
 CREATE TABLE hidden_messages (
@@ -615,6 +615,25 @@ Anything missing from `alive` is deleted from IndexedDB along with its messages.
 **A pair can match again.** `pair_key` is freed when the `chats` row is deleted, so after a chat dies a new match is possible — but only under the usual rules: both phrases must be alive, and both people must consent again. That is intended, not a side effect.
 
 **A report carries its own copy.** There is no text on the server, so reporting "a message" is technically only possible by attaching a local copy from the reporter's device. Which means a report is one side's word, and should be treated accordingly: as a signal, not as evidence.
+
+**What it looks like.** Reporting a conversation is its own path in the form,
+because the copy has to come from the reporter:
+
+```
+"report" inside the chat
+  → the client takes the last N messages around the disputed one from local history
+  → shows them to the reporter BEFORE sending: "this is what goes, trim what you want"
+  → sends {kind: chat, chat_id, the attached copy, reason, good faith}
+```
+
+The reporter sees and edits what they send: otherwise a report about one line
+drags half a private conversation along, including their own words.
+
+**In the panel it is marked as one side's word.** The copy came from the
+reporter and we have nothing to check it against — no original, no second
+version. The moderator sees that mark beside the text rather than inferring it.
+A decision leans on it as a **signal**, not as evidence: measures against an
+identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
 ### 8.11. What is visible from outside
 
@@ -813,5 +832,54 @@ What is settled moved into §8; what remains here is UI and product.
 - Behavior at the expiry moment (hide instantly / show "expired").
 - Right-side tabs: only "Chats" or sub-sections (matches / active / fading).
 - Notifications are designed in §8.12 (including why the scheme fails without them); what remains here is their UI: settings, quiet hours, coalescing a burst of events. Transport — `pwa-push_EN.md`.
-- Reporting: the interface, and what exactly the client attaches (§8.10 — a report carries its local copy).
 - The open list for data and moderation lives in §8.14.
+
+## 13. Build order
+
+The spec describes **what** gets built; this is the order, because here the
+order is not a matter of taste. Without an identity there is no feed, without a
+feed no like, without a like no match, and without a match nobody to open a chat
+with. Starting "with the chat" is physically impossible.
+
+1. **Identity and sessions** (§8.2) — `identities`, `sessions`, request
+   signing, the QR handoff. Everything else rests on "who is this".
+2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
+   age bands, synchronous moderation before publication. The first screen on
+   which the product does anything at all.
+3. **Likes** (§8.4) — `likes`, `identity_stats`, the count on a phrase.
+4. **Match and double consent** (§8.5) — `matches`, `match_participants`; the
+   chat's ephemeral keys are born here.
+5. **Chat: transport** (§8.1, §8.6, §8.8) — rooms by `chat_id`, the
+   `LISTEN`/`NOTIFY` bus, delivery and acknowledgements. The largest part, and
+   it depends on none of the open questions.
+6. **Encryption** (§8.13) — the ephemeral exchange, `chat_key_wraps`,
+   unwrapping on a second device. A separate step after transport: first let
+   messages travel, then let them travel encrypted.
+7. **Blocks and hiding** (§8.9), **cleanup and `alive`** (§8.10).
+8. **Notifications** (§8.12) and **games** (§6) last: the scheme works without
+   them, only worse.
+
+Steps 1–4 are not worth queueing behind one another: each adds a working
+screen, and each is a place one can stop.
+
+## 14. Acceptance criteria
+
+What "the chat is done" means, checkable rather than eyeballed:
+
+- Two browsers on **different nodes** hold a conversation. That tests the bus,
+  not a room living in one process's memory.
+- A node falling over breaks the socket but **not the conversation**: on
+  reconnecting to a neighbour, the person continues the same chat with the same
+  history.
+- A second device connected **before** the chat opened sees the same messages;
+  one connected **after** starts on an empty screen, and that is not a defect
+  (§8.13).
+- A revoked session receives no keys for new chats. Tested by revoking during a
+  live chat and opening the next one.
+- An expired chat disappears **for both**, together with the game board and the
+  local history, on the first `alive` sweep.
+- A message to an offline peer yields `error` and a retry button rather than
+  vanishing quietly.
+- After all of the above the database holds **not one message**. Verified by
+  querying it, not by trusting the schema.
+

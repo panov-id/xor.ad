@@ -550,6 +550,41 @@ pass opened and did not close.
       `dev → main` merge produces a tag an image is built for, and from then on
       staging and prod can be pinned to a release as intended.
 
+## K. Chat decisions — 2026-08-07
+
+Taken in one day and linked: each became possible because of the one before it.
+Written down here so that nobody has to work it out again in six months.
+
+1. **A chat is not moderated.** The spec moderated one; the privacy policy, the
+   Article 30 register and the chat-screen notes all denied it. The documents
+   were right: the feed is public, while two people talking by mutual consent is
+   not publication. The spec was the straggler and was brought into line.
+2. **End-to-end encryption.** It became possible precisely because the chat
+   stopped being read: you cannot see text and be blind to it at once. The key
+   belongs to **the conversation**, is derived from both sides' ephemeral pairs,
+   and dies with the chat.
+3. **The browser fingerprint is gone entirely.** It was built from the
+   connection, and the connection now arrives from the delivery network: two of
+   its four inputs became identical for everyone. It also hit the wrong
+   person — the neighbour behind one router — while costing ten seconds to shed.
+4. **Sessions in its place.** One identity, several devices, joined by QR, with
+   the key travelling in the URL fragment past the server. Revocation is real: a
+   revoked session receives no keys for future chats.
+5. **Hiding a phrase personally.** The community guidelines promised this in
+   public and the design provided nothing. Added in §8.9.
+6. **Explicit content is fully prohibited** (a parallel session's decision).
+   Screen 11 and the email consent are cancelled, and the screen's spec deleted.
+
+**What follows in terms of dates.** The privacy policy became edition
+`2026-08-07`: the fingerprint, the consent for the wider fingerprint and the
+consent for explicit content were all removed — three items, every one of them
+in the person's favour. The acceptance notice will fire for everyone who
+accepted the previous edition.
+
+**What is still open:** the chat itself is unbuilt (not one table from §8),
+eight items in §8.14 need measurement, the storefronts carry no security headers
+at all, and the secret rotation plan lives in `secret-rotation_EN.md`.
+
 ## G. Deliberately deferred
 
 From `review-checklist_EN.md`. Not forgotten, not in progress either.

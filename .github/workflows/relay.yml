@@ -112,14 +112,34 @@ jobs:
 
   build-push:
     needs: [test, database]
-    if: github.event_name == 'push' || github.event_name == 'workflow_call'
+    # Only the refs that get deployed need an image: dev, a release tag, and the
+    # release path on main (which reaches us as a call). Day branches run the
+    # tests above and stop there — nothing deploys from them, and a third run in
+    # the concurrency group below would cancel whichever run is waiting in it.
+    #
+    # The call is recognised by `inputs.release_tag`, not by the event name: a
+    # reusable workflow sees the CALLER's `github` context, so on a call from
+    # deploy-uat `github.event_name` reads "push" and `github.ref` reads main.
+    # Inputs exist only on a call, which makes them the honest signal.
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_call')
+      && (inputs.release_tag != ''
+          || github.ref == 'refs/heads/dev'
+          || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     # One commit, one image — however many refs it lands on. In the ordinary flow
     # a commit reaches dayN, then dev, then main, and each landing used to start
     # its own build: three images for one commit, each overwriting the sha tag the
     # previous had written. Runs for the same sha now queue instead of racing, and
-    # the ones behind find the image already there (see "already built?" below).
+    # the one behind finds the image already there (see "already built?" below).
     # Without the queue both would look, both would see nothing, and both build.
+    #
+    # Two runs at most may enter this group — the dev push and the release call —
+    # and that ceiling is the point of the job condition above. `cancel-in-progress:
+    # false` protects the run that is executing, never the one that waits: GitHub
+    # keeps a single pending run per group and cancels it when a third arrives. A
+    # third arrival would therefore cancel the release call, and UAT would deploy a
+    # tag that has no image.
     concurrency:
       group: relay-build-${{ github.sha }}-${{ matrix.image }}
       cancel-in-progress: false

@@ -967,3 +967,35 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
         first built.
 
       This also closes the manual release tag recorded as unresolved above.
+
+      **Third iteration, 2026-08-07: the queue created a risk of its own.** The
+      first run with `concurrency` showed `relay · day25` as **cancelled**. The
+      cause is behaviour I had not accounted for: `cancel-in-progress: false`
+      protects the run that is **executing**, not the one that waits. GitHub keeps
+      exactly one pending run per group and cancels it when a third arrives.
+
+      Here it was harmless — `dev` was building the image and `day25` would only
+      have added a branch tag. But the scenario inverts: **had the pending run been
+      the one from `Deploy UAT`, that is what would have been cancelled**, the
+      release tag would never have been attached, and `_deploy.yml` would have gone
+      on to deploy UAT from a tag with no image. Exactly the breakage J11 cured,
+      approached from the other side.
+
+      **The cure is a ceiling of two runs per commit** rather than protecting the
+      queue: only refs that get deployed need an image. The condition moved from
+      the trigger onto the `build-push` job — an important difference, because
+      `branches: [dev]` on the trigger would have disabled the workflow on day
+      branches **together with the tests**:
+
+      ```
+      push day25   → test ✓  build-push ✗     tests run, no image needed
+      push dev     → test ✓  build-push ✓     builds
+      push main    → workflow never starts    (branches-ignore)
+      Deploy UAT   → call:   build-push ✓     tags dev's image
+      tag vX.Y.Z   → test ✓  build-push ✓
+      ```
+
+      The call is recognised by `inputs.release_tag`, **not** by the event name: a
+      called workflow sees the **caller's** context, so on a call from `deploy-uat`
+      `github.event_name` reads `push` and `github.ref` reads `main`. Inputs exist
+      only on a call, which makes them the only honest signal.

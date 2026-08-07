@@ -30,13 +30,17 @@ processing is identical and only the storefront differs, so the record is shared
 - **Purpose.** Let people use the feed and chat without creating an account.
 - **Basis.** Performance of a contract — Art. 6(1)(b).
 - **Data subjects.** Visitors to the storefronts.
-- **Data.** An encrypted device identifier (year of birth + name + browser
-  fingerprint), display name, age band, settings.
-- **The wider fingerprint** (WebGL renderer, processor cores, memory size, pixel
-  density) — **only if the box is ticked**, Art. 6(1)(a), unticked by default.
+- **Data.** The identity's identifier and public key, display name, age,
+  settings. **There is no browser fingerprint** — neither the basic one nor the
+  wider one: the mechanism was removed entirely, along with the consent for it.
+- **Sessions.** For each connected device: a public signing key, a label such as
+  "Chrome, Android", creation and last-seen times, and a reference to the
+  session that invited it. They exist so a person can see their own devices and
+  disconnect any of them.
 - **Recipients.** None: it lives in the browser and in our own database beside
   the node.
-- **Retention.** For as long as the person uses the service in that browser.
+- **Retention.** For as long as the person uses the service; a session lives
+  until it is revoked or the identity is closed.
 
 ### 2. Area of visibility
 
@@ -64,7 +68,13 @@ processing is identical and only the storefront differs, so the record is shared
 
 - **Purpose.** Carry a conversation from one device to another.
 - **Basis.** Performance of a contract.
-- **Data.** The text of the conversation.
+- **Data.** The **ciphertext** of the conversation: it is encrypted on the
+  participants' devices (`chat_EN.md` §8.13); the node holds no keys and never
+  sees plaintext. What the node does hold is metadata — who a chat is between,
+  when something moved, and how long the messages were.
+- **Key wraps.** Each chat's key is stored wrapped under the person's own
+  devices' keys — opaque bytes the node cannot unwrap. They are deleted with
+  the chat, or with a disconnected device.
 - **Recipients.** None.
 - **Retention.** **Not stored on the servers** — only carried until delivered. On
   the device it lives in IndexedDB, encrypted with Web Crypto, for the shorter of

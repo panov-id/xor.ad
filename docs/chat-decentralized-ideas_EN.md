@@ -5,12 +5,13 @@
 > Bunny + Resend). This is about the future chat — which will live in its **own
 > repository**.
 
-> ⚠️ **v1 went a different way.** `chat_EN.md` §8 settles it: **there is no
-> end-to-end encryption**; the node sees plaintext and runs it through AI
-> moderation. Privacy rests on the server **writing nothing** — no conversation
-> history exists there at all. Everything below about E2E and untrusted
-> community nodes is an **alternative branch for the future**, incompatible with
-> v1: you cannot moderate text and be blind to it at the same time.
+> ⚠️ **The encryption landed in v1, the community nodes did not.** `chat_EN.md`
+> §8.13 settles it: the chat is end-to-end encrypted, the node carries
+> ciphertext and holds no keys. That became possible exactly when the chat
+> stopped being moderated — you cannot read text and be blind to it at the same
+> time. Only the **encryption** was taken from this document. Everything about
+> untrusted community nodes stays a future branch, and its central question —
+> why a stranger would run a node — is still unanswered (see "Incentives").
 
 ## The idea in a sentence
 

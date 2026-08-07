@@ -49,7 +49,7 @@ Liking again when a chat with that person is already open creates **no new match
 
 ## 5. Ephemerality
 
-- A chat's TTL is **sliding**: it lives no longer than the chosen span **after the last activity**. Activity means a delivered message or a move in a game; a message rejected by moderation does not move the clock.
+- A chat's TTL is **sliding**: it lives no longer than the chosen span **after the last activity**. Activity means a delivered message or a move in a game.
 - **Each person picks the span** when consenting to the chat ("delete after N hours if we don't talk"), and the **smaller of the two** applies: one person's caution is not overridden by the other's generosity. The value is visible to both; who set it is not. It cannot be changed inside an open chat.
 - **The silence counter** appears not immediately but after `min(20 minutes, span / 3)` of silence, and counts down to the chat's disappearance. Any message or move resets it.
 - As expiry approaches — visual **fading**; on expiry the chat **disappears for both** with all its content (messages, liked phrases, game board).
@@ -101,49 +101,90 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 - **No RLS needed**: the client never talks to Postgres directly, a handler always sits in between. "Participants only" is a plain check in code.
 - **Geo without PostGIS**: circles are computed from `lat`/`lon` + haversine (see 8.3). PostGIS is only needed once arbitrary polygons replace circles.
 
-### 8.2. Identity and fingerprint
+### 8.2. Identity and sessions
 
-An identity lives **in the browser**: `identity_id` + a secret in IndexedDB, signing every request (the server stores the secret's hash). There is no recovery by construction — no email, no password, no code. A different browser or device is a different person, from scratch.
+An identity lives **in the browser**: `identity_id` + a secret in IndexedDB, signing every request (the server stores the secret's hash). There is no recovery by construction — no email, no password, no code.
 
 ```sql
 CREATE TABLE identities (
-  id           uuid PRIMARY KEY,
-  fingerprint  text NOT NULL,          -- outlives the identity's deletion
-  name         text NOT NULL,
-  age          integer NOT NULL,
-  created_at   timestamptz NOT NULL DEFAULT now(),
-  closed_at    timestamptz             -- NULL = live
+  id               uuid PRIMARY KEY,
+  name             text NOT NULL,
+  age              integer NOT NULL,
+  identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  closed_at        timestamptz          -- NULL = live
 );
-
--- at most one live identity per fingerprint; closed ones unlimited
-CREATE UNIQUE INDEX identities_one_live
-  ON identities (fingerprint) WHERE closed_at IS NULL;
 ```
 
-- **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age is needed before anything else, because the feed itself depends on it (see "Age bands"). Hence both columns are `NOT NULL` from the start.
-- **Name and age can be changed** without losing the identity or its chats. A deliberate trade: "registration data" stops being immutable, but nobody has to erase themselves over a typo in a name or a birthday that came around. Every few months the app asks again: "still 38?".
-- **Replacing the identity** stays a separate action — "start over": the old one is stamped `closed_at` and everything is lost. One transaction: `UPDATE ... SET closed_at = now() WHERE fingerprint = :fp AND closed_at IS NULL` → `INSERT`.
-- **`fingerprint` is never exposed.** It links different identities of one device — precisely what the model hides. It exists for two things: "one live identity per device" and "a block outlives an identity change" (8.9). It never restores or authenticates an identity.
+- **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
+- **Name and age can be changed** without losing the identity or its chats. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  Every few months the app re-asks: "still 38?".
+- **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
-**The fingerprint is computed by the server, not the client.** This is decisive: a string sent by the browser is forged with one line in a console, and then `identities_one_live`, the moderation auto-block (8.8) and `blocks` (8.9) protect nothing — the bypass takes ten seconds.
+**There is no browser fingerprint — by decision, not by omission.** It used to be here: computed on the server from the IP subnet, the connection's TLS fingerprint and the header order, holding up the "one live identity per device" rule and a block that survived a new identity. It was removed for two reasons.
+
+First, it stopped working. Everything it was built from came **from the connection itself** — and the application's traffic goes through the CDN, so what reaches the node is the CDN's connection, not a person's. The TLS fingerprint and header order became identical for everyone arriving through the same edge. Two of four inputs survived.
+
+Second, it misled. The spec itself called it "a barrier, not a guarantee", yet it closed other people's identities and blocked neighbours behind one home NAT: the cost of a mistake fell on the uninvolved, while shedding it took ten seconds of clearing site data. A mechanism that fails to stop the person it aims at, and hits the person it does not, is worse than no mechanism.
+
+What replaces it is what actually works and already exists: **per-address rate limiting**, **synchronous feed moderation before publication** (§8.3) — which cuts the text, not the author — and **a chat door that opens only on a mutual like with double consent**.
+
+**Sessions.** One identity, several devices; each with its own key pair for signing requests:
+
+```sql
+CREATE TABLE sessions (
+  id              uuid PRIMARY KEY,
+  identity        uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  sign_public_key text NOT NULL,       -- request signing; one per session
+  wrap_public_key text NOT NULL,       -- chat keys are wrapped to it (§8.13)
+  parent_session  uuid REFERENCES sessions(id),
+  label           text,                -- "Chrome, Android" — for the list
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  last_seen_at    timestamptz NOT NULL DEFAULT now(),
+  revoked_at      timestamptz
+);
+CREATE INDEX ON sessions (identity) WHERE revoked_at IS NULL;
+```
+
+The first device creates the identity and the **parent** session. The rest are born of a handoff and remember who invited them.
+
+There are three kinds of key, and keeping them apart is the point:
+
+| Key | Whose | For what |
+|---|---|---|
+| The identity's long-lived key | one per identity, held by all its devices | proving to a peer that this is the same identity |
+| A session's signing key | one per device | signing requests; revocation strikes here |
+| A chat key | one per conversation | encrypting the talk; dies with the chat (§8.13) |
+
+Revocation works because the first two are separate: the server stops accepting a revoked session's signature without touching anything the others hold.
+
+**Session handoff.** The parent device shows a QR code (and a link, for when there is no camera):
 
 ```
-fingerprint = hash(
-  IP subnet (/24 for v4, /64 for v6),   -- server-side, the client cannot influence it
-  TLS fingerprint of the connection,     -- server-side
-  set and order of HTTP headers,         -- server-side
-  User-Agent (family and major version)
-)
+parent    creates a one-time invite, alive for 2 minutes
+          shows the QR / link
+          the identity's long-lived key sits in the URL FRAGMENT, after #
+new       opens it, takes the long-lived key out of the fragment
+device    generates ITS OWN pairs: one for signing, one for wrapping
+          POST /sessions/claim {invite, sign_public_key, wrap_public_key, label}
+parent    "a Chrome on Android device just joined — was that you?" → yes / kill
+          and wraps for it the keys of chats opened from now on
 ```
 
-Everything in the fingerprint is taken **from the connection itself**. A client-side signal (canvas, fonts, resolution) may refine it, but must not be its basis: it is controlled by exactly the person we are defending against.
+**The fragment, not the path.** Everything after `#` is never sent to a server at all — not in the request, not in `Referer`, not into logs. The long-lived key travels device to device past us, and that is a property of the protocol rather than a promise of ours.
 
-The price is precision. A subnet means several people behind one home NAT or in a café get near-identical fingerprints, and "one live identity per device" would hit a neighbour. Hence:
+**The invite is single-use and lives minutes.** Used or expired, it does nothing. The parent sees the join immediately and can kill the session with the same gesture.
 
-- a fingerprint match **never blocks**, it only closes the previous identity — a tolerable error;
-- blocks (8.9) match on **identity OR fingerprint**, and it is that pairing which saves a single coordinate from misfiring.
+**The session list and revocation.** Any session sees the list: label, when created, when last active, who invited it. A parent can kill its children; any session can kill itself. Revocation sets `revoked_at`, and a request signed by that session stops being accepted at once.
 
-The caveat from 8.9 applies here too: a barrier, not a guarantee. Changing networks changes the fingerprint, and it will not stop a determined person.
+**What revocation does.** A revoked session loses server access at once and — more to the point — **stops receiving keys**: its wraps are deleted and no new ones are made for it. Every future conversation is closed to it for good, not merely out of reach.
+
+What revocation cannot do is erase what is already on that device. Its local history, and the keys of chats open right now, stay there. The interface says so plainly, not in small print:
+
+> A disconnected device will not see a single new conversation. What is already open on it stays until those chats end.
+
+**The handoff risk is social, not cryptographic.** Nobody will break the QR code; they will ask a person to show it. Hence the defences — single use, two minutes, confirmation on the parent, a visible list and instant revocation.
+
+**What became of "a different browser is a different person".** It stands, with one caveat: a different browser is a different person **unless a live device invited it**. There is still no recovery: with no working first device there is nothing to hand off. This is passing something hand to hand, not an email and a password — which is why it opens no door through which an identity could be taken away.
 
 **Changing age and the band.** Age is freely editable **within your own pool**, but the 20/21 border can only be crossed upwards:
 
@@ -165,7 +206,7 @@ Silently swapping a name mid-conversation is not allowed: the peer agreed to tal
 
 Disclaimers (both required in the UI):
 
-> Your identity lives in this browser only. In another browser or on another device you will be someone else. Clearing browser data erases the identity for good: it cannot be restored, by us or by you.
+> Your identity lives in this browser and in the devices you connected to it yourself. In any other browser you will be someone else. Clearing browser data erases this session; if no other device is connected, the identity is gone for good — neither we nor you can bring it back.
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only in browsers, never on the server.
 
@@ -233,7 +274,25 @@ POST /feed  → moderation → passed   → INSERT feed_messages, the phrase is 
 
 Synchronous rather than after the fact: an asynchronous check means a window in which the phrase is already visible to everyone, and "taking it down quickly" does not undo the people who read it. A couple of seconds on submitting a phrase is tolerable — this is not a conversation where pace matters.
 
-A refusal here feeds the same counter as in chat (`rejected_count`, 8.8): it makes no difference to a person which surface they tried to push text through, so the threshold should be shared.
+**A rejection has consequences.** Otherwise moderation can be hammered endlessly and for free:
+
+```sql
+ALTER TABLE identity_stats ADD COLUMN rejected_count integer NOT NULL DEFAULT 0;
+```
+
+The counter grows on every `rejected`. After N rejections — a **temporary sending block** on that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+
+The block used to hang on the browser fingerprint so that a new identity would not lift it. There is no fingerprint any more (§8.2), and there is no point pretending: an identity takes ten seconds to make, and an address changes by switching to mobile data. This is **a speed bump, not a wall**. The feed's real defence is the synchronous check itself: refused text is never published, however many identities are created.
+
+The counter is fed **by the feed alone**: a chat is not moderated (§8.8), so there is nothing there to refuse. This is the only place where the server remembers something bad about a person, and what it remembers is a number, not a text: the rejected message itself is never written anywhere.
+
+**What does the moderating.** Calling an external model on every phrase costs both money and latency. So it goes as a ladder, cheapest first:
+
+1. **Rules** — length, links, contact details, stop-word lists. Instant, free, and it catches the bulk of crude abuse and spam.
+2. **A local model on the node** — a small toxicity classifier running on the node itself. No per-call charge at all, tens of milliseconds of latency, and better privacy: the text never leaves our infrastructure. The price is the node's memory and CPU, and lower quality than a large model — especially on sarcasm, context and mixed languages.
+3. **An external model** — only for what the first two steps found borderline. That is a small share of the flow, hence a small bill.
+
+"Free" for the local model means no per-call charge; it does consume node resources, and for the pool in §8.1 that has to be budgeted into machine size. No specific model is fixed here: the choice depends on the languages and on how much RAM we are willing to give up — that is a measurement, not a decision on paper.
 
 Visibility is **circle intersection** plus the age band (8.2): if I can see you, you can see me.
 
@@ -334,12 +393,29 @@ Flow:
 ```
 mutual like     → INSERT matches + two match_participants rows
                   both see: "match — open chat?" + peer's phrase and mode
-one presses     → the idle_ttl choice
-                  → UPDATE match_participants SET accepted_at = now(), idle_ttl_minutes = :n
+one presses     → the "not checked" disclaimer + the idle_ttl choice
+                  → generates an EPHEMERAL pair for this chat (§8.13)
+                  → UPDATE match_participants SET accepted_at = now(),
+                      idle_ttl_minutes = :n, ephemeral_public_key = :epk
 both press      → INSERT chats + chat_participants + chat_starters, matches.chat_id = <new>
                   both get chat_id and the system line "you both liked this — chat is open"
 expired         → the match quietly disappears; there was no chat
 ```
+
+**The disclaimer at consent.** Right here, beside the choice of span, a person reads what they are stepping into:
+
+```
+This chat is not checked. Nobody reads what you write here —
+not us, not a filter.
+
+It is encrypted on your devices: our server carries it and
+cannot read it.
+
+If someone behaves badly, block them and report them, attaching
+a copy from your own device.
+```
+
+This is **not** another consent or a checkbox: the text sits on the same screen as the span choice, and "open chat" stays the single press. It is said here because this is the last moment at which nothing has been opened yet.
 
 - **Match TTL** = `least()` of both phrases' `expires_at`, with no safety floor. Either phrase dies and the match dies with it, even if one side already accepted; a new mutual like does **not** extend it. The consequence is accepted deliberately: a match born on a dying phrase may leave a pair only minutes for two presses, and then burn out. The rule matters more than the match count — the reason died, so the invitation dies too.
 - **The text snapshot is taken at match time**, not at opening: otherwise a phrase can expire between "match" and "both pressed", and someone would consent without seeing why.
@@ -391,7 +467,7 @@ CREATE TABLE chat_starters (
 - **a chat already exists** → no match is created; a special message lands in the chat and the phrase is appended to `chat_starters` (8.7);
 - **an unclosed match is pending** → no second match; the phrase is appended to the card.
 
-**A sliding TTL, measured from the last activity.** On every **delivered** message and every **move in a game**: `UPDATE chats SET last_activity_at = now()`. A message rejected by moderation does not move the clock — it never arrived, so no conversation happened. This is the only thing the server learns about a conversation: **when** something moved, with no text, author or count.
+**A sliding TTL, measured from the last activity.** On every **delivered** message and every **move in a game**: `UPDATE chats SET last_activity_at = now()`. This is the only thing the server learns about a conversation: **when** something moved, with no text, author or count.
 
 Moves count deliberately: a game (§6) is an ice-breaker where staying silent in words is the point, and it would be absurd for the chat to die under the hands of two people happily pushing checkers around. Activity is any shared action, not text alone.
 
@@ -436,87 +512,90 @@ Rendered as a centred card (like `sys`) holding the quote and a number matching 
 
 ### 8.8. Messages: not in the database
 
-**There is no `messages` table.** A message passes **through** the node: membership check → AI moderation → realtime delivery → **history is stored only in the participants' browsers**.
+**There is no `messages` table.** A message passes **through** the node encrypted: membership check → realtime delivery → **history is stored only in the participants' browsers**. The node does not look into the text — not because it promised, but because it cannot: it holds no keys (§8.13).
 
 ```
 client: local record {local_id, text, status: pending}
+        encrypts with the chat key (§8.13)
    → server: membership in chat_id  [the only database read]
-   → AI moderation
-        ↓ rejected → ack {local_id, rejected, reason}
-        ↓ passed   → realtime to the peer + UPDATE chats.last_activity_at
-              ↓ accepted     → ack {local_id, delivered}
-              ↓ none/timeout → ack {local_id, error}
-client: updates its record by local_id
+   → realtime to the peer + UPDATE chats.last_activity_at
+        ↓ accepted     → ack {local_id, delivered}
+        ↓ none/timeout → ack {local_id, error}
+client: updates its record by local_id; decrypts what arrives
 ```
 
 Statuses are state **on the sender's client**, not a database row:
 
 ```
-pending    — sent, no verdict yet
-rejected   — moderation refused it; reason shown to the sender only; retrying is pointless
+pending    — sent, no acknowledgement yet
 delivered  — the peer accepted it
 error      — not delivered (offline, drop, timeout) → a "send again" button
 ```
 
 `local_id` is generated by the sender; the server echoes it back and stores it nowhere.
 
-**Resending** is always available on `error`, regardless of whether the peer is online. The pause grows geometrically (×3): immediately, 5 s, 15 s, 45 s, 135 s, capped around 10 min. The counter belongs to a specific `local_id` rather than the chat, and lives on the sender. A retry reuses the same `local_id` so the recipient can drop the duplicate; moderation runs again.
+**Resending** is always available on `error`, regardless of whether the peer is online. The pause grows geometrically (×3): immediately, 5 s, 15 s, 45 s, 135 s, capped around 10 min. The counter belongs to a specific `local_id` rather than the chat, and lives on the sender. A retry reuses the same `local_id` so the recipient can drop the duplicate.
 
-**Moderation sees plaintext.** That is a deliberate trade: there is no end-to-end encryption in v1, and privacy rests on the server writing nothing (see `chat-decentralized-ideas_EN.md`, where the E2E branch is kept as a future alternative).
+**A chat is not moderated.** That is the whole project's position, not this document's decision: the privacy policy of both faces says chats are not checked, the same is written in the Article 30 register and in the chat-screen notes. The reasoning is simple. The feed is public — anyone within the radius sees it, and unchecked text there is a shop window. A chat is two people talking, opened by mutual consent, and that is not publication; a platform is under no duty to watch private correspondence.
 
-**A rejection has consequences.** Otherwise moderation can be hammered endlessly and for free:
+**What protects a chat instead of moderation** — four things, working together:
 
-```sql
-ALTER TABLE identity_stats ADD COLUMN rejected_count integer NOT NULL DEFAULT 0;
-```
+- **the door** — a chat opens only on a mutual like and double consent: you cannot write to a stranger;
+- **blocking** (§8.9) — killing phrases, the match and the shared chat;
+- **reporting** (§8.10) — carrying a copy from the reporter's own device, because the server has none and can have none;
+- **ephemerality** — a conversation does not accumulate, and disappears for both.
 
-The counter grows on every `rejected`. After N rejections — a **temporary sending block, by fingerprint** rather than by identity: otherwise it is lifted by creating a new identity in ten seconds. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+The refusal counter and the moderation ladder moved to §8.3: they belong to the feed, and the chat no longer has anything to feed them with.
 
-This is the only place where the server remembers something bad about a person, and what it remembers is a number, not a text: the rejected message itself is never written anywhere. The counter is **shared** between chat and feed (8.3) — it makes no difference to a person which surface they were pushing text through.
-
-**What does the moderating.** Calling an external model on every message costs both money and latency, exactly where conversational pace matters. So it goes as a ladder, cheapest first:
-
-1. **Rules** — length, links, contact details, stop-word lists. Instant, free, and it catches the bulk of crude abuse and spam.
-2. **A local model on the node** — a small toxicity classifier running on the node itself. No per-call charge at all, tens of milliseconds of latency, and better privacy: the text never leaves our infrastructure. The price is the node's memory and CPU, and lower quality than a large model — especially on sarcasm, context and mixed languages.
-3. **An external model** — only for what the first two steps found borderline. That is a small share of the flow, hence a small bill.
-
-"Free" for the local model means no per-call charge; it does consume node resources, and for the pool in 8.1 that has to be budgeted into machine size. No specific model is fixed here: the choice depends on the languages and on how much RAM we are willing to give up — that is a measurement, not a decision on paper.
-
-**The game board** (`game_sessions` from §6) is synced as transient chat state and disappears with the chat; nothing is written to the database.
+**The game board** (`game_sessions` from §6) is synced as transient chat state, encrypted with the same key, and disappears with the chat; nothing is written to the database.
 
 ### 8.9. Blocks
 
-Recorded **by identity and by fingerprint** on both sides:
+Recorded by identity, on both sides:
 
 ```sql
 CREATE TABLE blocks (
-  blocker_identity     uuid NOT NULL,
-  blocker_fingerprint  text NOT NULL,
-  blocked_identity     uuid NOT NULL,
-  blocked_fingerprint  text NOT NULL,
-  created_at           timestamptz NOT NULL DEFAULT now(),
+  blocker_identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  blocked_identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  created_at        timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (blocker_identity, blocked_identity)
 );
-CREATE INDEX ON blocks (blocked_fingerprint);
-CREATE INDEX ON blocks (blocker_fingerprint);
+CREATE INDEX ON blocks (blocked_identity);
 ```
 
-The check matches on either coordinate on each side:
+The check is symmetric — one row either way is enough:
 
 ```sql
-SELECT 1 FROM blocks b
-JOIN identities me    ON me.id    = :me
-JOIN identities other ON other.id = :other
-WHERE (b.blocker_identity = me.id    OR b.blocker_fingerprint = me.fingerprint)
-  AND (b.blocked_identity = other.id OR b.blocked_fingerprint = other.fingerprint)
+SELECT 1 FROM blocks
+WHERE (blocker_identity = :me    AND blocked_identity = :other)
+   OR (blocker_identity = :other AND blocked_identity = :me)
 LIMIT 1
 ```
 
-Why both: **identity** is precise (it hits this person even if the fingerprint drifts), **fingerprint** is durable (a block is not reset by a new identity — neither the blocked person's nor the blocker's). Together they cover each other's misses.
+The effect applies at all three levels at once: phrases are hidden from both sides; a like produces no match; a shared chat is closed.
 
-The effect applies at all three levels at once: phrases are hidden from both sides; a like produces no match; a shared chat is closed. The check is symmetric, so one row is enough.
+**The limit, plainly.** A block holds until the person makes a new identity — which takes ten seconds (§8.2). They will be back in the feed, and that is true. But getting back to **you** takes more than returning: it takes a fresh mutual like on live phrases and your consent to open a chat. Blocking does not guard the door to a conversation — the entry model does.
 
-**Caveat:** a browser fingerprint is unreliable — it changes with device, browser or private mode, and it can be forged. Blocking by fingerprint is **a barrier, not a guarantee**: it stops an ordinary person, not a determined one.
+**Hiding a phrase is not blocking a person.** The community guidelines promise it outright: you can personally block such messages for yourself. That is a third action, with consequences of its own:
+
+```sql
+CREATE TABLE hidden_messages (
+  identity         uuid NOT NULL REFERENCES identities(id),
+  feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (identity, feed_message_id)
+);
+```
+
+The feed query (§8.3) gains `AND NOT EXISTS (SELECT 1 FROM hidden_messages h WHERE h.identity = :me AND h.feed_message_id = f.id)`.
+
+| Action | What it covers | Who learns of it | How long it lasts |
+|---|---|---|---|
+| Hide a phrase | one phrase, for me only | nobody | until the phrase dies (`CASCADE`) |
+| Block a person | all their phrases, the match and the shared chat, both ways | nobody | until lifted |
+| Report | nothing immediately — it is a signal to us | a moderator | per the procedure (§8.10) |
+
+Hiding is **silent and one-way**: the author is not told, their feed does not change, the like count is untouched. It is a viewer's filter, not a sanction, and it must not be confused with reporting — otherwise someone who simply does not want to see a thing ends up in the moderation queue.
 
 ### 8.10. Ephemerality and cleanup
 
@@ -544,13 +623,13 @@ Anything missing from `alive` is deleted from IndexedDB along with its messages.
 | Feed | `feed_message.id`, text, `mode`, circle (centre + radius), `like_count`, time |
 | Match | `match_id`, peer's phrase + `mode`, name, age, timer |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
-| Never | anyone else's `identity_id`, `fingerprint`, **authorship of feed phrases**, who liked, chat counts, conversation text |
+| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text |
 
 **The line runs at the chat, not at the phrase.** In the feed the author is never shown — that is the core rule. But once a chat is open, authorship inside it is known by construction: the peer sees a name and age and knows whose phrases sit in `chat_starters`. Every `extra_like` (8.7) adds one more phrase by the same person to that list.
 
 So over a long conversation a peer will accumulate a set of one author's phrases with a name and age — and that is not a leak but the very point of an open chat: these people chose to meet. What matters is the other half — **that set never leaves the chat**: it is not published, not handed to third parties, and it dies with the chat.
 
-What a traffic observer sees: uuids, feed phrase texts (public anyway), and conversation text. What they do not see: who wrote what, who liked what, or whether two phrases belong to one person.
+What a traffic observer sees: uuids, feed phrase texts (public anyway), and the **ciphertext** of a conversation. What they do not see: what was said, who wrote what, who liked what, or whether two phrases belong to one person.
 
 ### 8.12. Notifications: inbox and push
 
@@ -646,12 +725,60 @@ For a chat without history this is honest mechanics: the push calls a person int
 - **Permission** is requested not on the first screen but when it makes sense — at the first match, or on the first consent to a chat. A refusal does not break the app, but the person should be told plainly: without notifications they will miss matches.
 - **Quiet hours** and coalescing several events into one notification are a settings question — but `match` cannot be silenced: it will not survive until morning.
 
-### 8.13. Open
+### 8.13. End-to-end encryption
+
+A chat is encrypted on the devices: the node carries ciphertext and holds no keys. This became possible exactly when the chat stopped being moderated — you cannot read text and be blind to it at the same time.
+
+**A key per conversation, not per person.** It is born when two people consent and dies with the chat. The identity's long-lived key (§8.2) takes no part in the encryption at all: it only vouches that a public half belongs to that identity. Losing the long-lived key exposes no conversation — it lets someone impersonate a person, not read them.
+
+```
+consent      each side generates an EPHEMERAL pair for this chat
+             and publishes its half, signed with the long-lived key
+opening      K = HKDF( ECDH(my ephemeral, their ephemeral), salt = chat_id )
+message      AES-GCM(K, nonce, text) → node → the peer decrypts
+chat death   K and the ephemeral keys are wiped, the wraps are deleted
+             ─► old ciphertext can no longer be opened, by anyone
+```
+
+**How the key reaches my other devices.** Whoever consented wraps `K` for each of their own live sessions under its `wrap_public_key` (§8.2) and puts the wraps on the server. The server cannot unwrap them — it stores opaque bytes.
+
+```sql
+CREATE TABLE chat_key_wraps (
+  chat_id     uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+  session_id  uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  wrapped_key bytea NOT NULL,        -- K under this session's key
+  PRIMARY KEY (chat_id, session_id)
+);
+```
+
+`ON DELETE CASCADE` carries meaning here rather than hygiene: the chat dies and its wraps go; a session is revoked and its wraps go with it.
+
+**Revocation becomes real.** With a single long-lived key a revoked device would lose only access while keeping the ability to decrypt for ever. With wraps it loses the ability itself: nobody will wrap a future chat's key for it. This is not cosmetic — sessions without working revocation would be a feature that looks like protection without being one.
+
+**A device that joins later starts on an empty screen.** The keys of chats opened before it appeared had nobody to be wrapped for, and we will not backfill them. The rule is simple and honest, and ephemerality makes it nearly invisible: conversations live hours.
+
+**Forward secrecy holds.** The ephemeral keys and `K` are wiped when the chat dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
+
+**A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away. There is one deliberate exception — the long-lived key during a session handoff (§8.2), made extractable for exactly as long as the transfer takes.
+
+**Size.** The ciphertext of a 240-character phrase is up to ~1 KB with nonce, tag and base64. The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
+
+**What it does not give — and this must be said plainly.**
+
+- **We serve the very script that encrypts.** That is the ceiling of any web application: a person trusts not the mathematics but our not swapping the code tomorrow. It is why Signal is an app rather than a page. The honest wording: **the server cannot read a conversation after the fact** — not through a breach, not through a seized database, not on request. That is a great deal, but it is not "we are physically incapable", and it must not be sold that way.
+- **Metadata remains.** The node knows `chat_id`, both participants, when something moved and how long the messages were. What is encrypted is the content, not the fact of the conversation.
+- **Encryption does not protect you from the person you are talking to.** They have the plaintext on their screen: they can keep it and attach it to a report. That is by design (§8.10) — otherwise there would be nothing to report with.
+
+**Us substituting a key.** The public halves are handed out by our server, so in theory we could slip in our own and read a conversation live. Cryptography does not stop that; comparison does: a **safety code** derived from both identities' long-lived keys and shown in the chat header, which two people can check in person or over a call. Using it is optional, but without it one has to trust us regardless.
+
+**Edge cases.** The peer closed their identity — the chat is killed like an expired one. Reconnecting to a different node does not touch the keys: they live on the clients, and the node holds only public halves and wraps, from which nothing can be derived.
+
+### 8.14. Open
 
 - The value of N for the feed TTL, and the set of `idle_ttl_minutes` options offered.
-- The auto-block threshold: how many `rejected` in a row, and for how long sending is blocked.
+- The feed's auto-block threshold: how many `rejected` in a row, and for how long sending is blocked.
 - Anti-flood on the rate of likes and phrases (messages already have a pause, but a client-side one).
-- Picking the local moderation model and its weight: languages, RAM, quality on mixed languages (8.8).
+- Picking the local moderation model and its weight: languages, RAM, quality on mixed languages (§8.3).
 - How often to re-ask for age, and what to do when someone ignores the question.
 - Offline delivery: a message to an offline peer is currently lost, and is handled by push plus a manual retry (8.12); whether to auto-retry when the peer returns is undecided.
 - Notification settings: what may be silenced, and how a burst of events is coalesced.
@@ -687,4 +814,4 @@ What is settled moved into §8; what remains here is UI and product.
 - Right-side tabs: only "Chats" or sub-sections (matches / active / fading).
 - Notifications are designed in §8.12 (including why the scheme fails without them); what remains here is their UI: settings, quiet hours, coalescing a burst of events. Transport — `pwa-push_EN.md`.
 - Reporting: the interface, and what exactly the client attaches (§8.10 — a report carries its local copy).
-- The open list for data and moderation lives in §8.13.
+- The open list for data and moderation lives in §8.14.

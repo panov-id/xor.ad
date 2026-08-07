@@ -4,11 +4,26 @@ name: relay
 # tags: branch sha (dev iteration) and semver on a vX.Y.Z tag (release). No :latest.
 on:
   push:
-    branches: ["**"]
+    # Everything but main. On main the release path owns the build: deploy-uat.yml
+    # creates the tag and calls this workflow. A branch trigger here would start a
+    # second run for the same commit — a different image, and an overwrite of the
+    # sha tag the first run had just written. That is how one commit came to have
+    # two relay-caddy digests on 2026-08-07.
+    branches-ignore: [main]
     tags: ["v*"]
-    paths: ["relay/**", ".github/workflows/relay.yml"]
+    # Repeated below rather than anchored: GitHub Actions does not support YAML
+    # anchors, and a workflow that fails to parse fails silently.
+    paths:
+      - "relay/**"
+      # Documentation inside relay/ is not code. One edit to ARCHITECTURE_RU.md
+      # was starting two multi-arch builds with arm64 emulation.
+      - "!relay/**.md"
+      - ".github/workflows/relay.yml"
   pull_request:
-    paths: ["relay/**", ".github/workflows/relay.yml"]
+    paths:
+      - "relay/**"
+      - "!relay/**.md"
+      - ".github/workflows/relay.yml"
   # Called by deploy-uat.yml right after it creates the release tag. A tag pushed
   # from a workflow carries GITHUB_TOKEN, and GitHub deliberately does not start
   # a new run for those — so the release tag never triggered this build on its

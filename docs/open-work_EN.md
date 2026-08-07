@@ -905,3 +905,35 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       principle in §8 of the chat spec) and becoming that operator's processor:
       Article 28, sub-processors, data-subject requests, a split of DSA roles.
       Revisit only if concrete demand appears.
+- [x] **J13. One commit, two different images. Found and fixed 2026-08-07.**
+      Surfaced while verifying J11: under the tag `v2026.8.7-g3fbd1e1` and under
+      `sha-3fbd1e1`, `relay-caddy` had **different digests** (`2af974ef…` and
+      `599c5d9d…`). `relay-node` matched by luck — its build happened to be
+      reproducible, which is why the defect went unnoticed.
+
+      **The cause was a redundant trigger.** `relay.yml` fired on a push to any
+      branch, `main` included, while `deploy-uat.yml` also called it through
+      `workflow_call` to attach the release tag. A push to `main` therefore
+      started two independent runs, each with its own `type=sha`: the second
+      overwrote the `sha-…` tag the first had just written, and the release tag
+      pointed at the second build — not at the one whose tests had passed.
+
+      Two written rules broke at once: **immutable tags** (the sha was
+      overwritten) and **build once, promote the same image** (A2's claim of a
+      "byte-identical, already-exercised build" stopped being a guarantee).
+
+      **Fixed** in `relay.yml`: `branches: ["**"]` → `branches-ignore: [main]`. On
+      `main` the release path owns the build, one run remains, and the sha and
+      release tags land on the same digest. `deploy-uat.yml` was not touched.
+
+      **The path filter was narrowed too:** `!relay/**.md`. A single edit to
+      `relay/ARCHITECTURE_RU.md` was starting two multi-arch builds with arm64
+      emulation — which is exactly how today's run appeared. The negation pattern
+      is **untested on a live run**: the next documentation edit inside `relay/`
+      will confirm it — if no build starts, it works.
+
+      **Still open:** a manual `vX.Y.Z` release tag placed by a person on an
+      already-built commit still triggers a rebuild through `tags: ["v*"]`. The
+      same defect, only rarer. It is fixed either by promoting the digest
+      (`docker buildx imagetools create --tag`) or accepted deliberately — not
+      decided.

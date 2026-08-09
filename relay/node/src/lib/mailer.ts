@@ -5,7 +5,7 @@
 
 import { brandByKey, config } from "../config.ts";
 import { resolveBrand, welcomeEmail } from "./welcome.ts";
-import { type Block, letter } from "./email_shell.ts";
+import { type Block, letter, PLATFORM } from "./email_shell.ts";
 import { sendSmtp } from "./smtp.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
@@ -70,7 +70,11 @@ export async function sendPanelLink(to: string, link: string): Promise<void> {
   // The panel belongs to the platform rather than to a storefront, so it wears
   // the primary brand's face — the same one its own header shows.
   const { html, text } = letter({
-    brand: config.brands[0],
+    // The panel's own identity, not the first storefront in the registry — which
+    // is what this reached for, and it sent a sign-in link dressed as СОСЕД
+    // pointing at xor.panov.id. On a letter that hands over access, a face
+    // borrowed from somebody else teaches the reader that the face means nothing.
+    brand: PLATFORM,
     title: "Sign in to the panel",
     blocks: [
       { kind: "text", value: "Open this link to sign in:" },
@@ -100,7 +104,7 @@ export async function sendPanelInvite(
   const scope = brand ? `the ${brand} panel` : "the xor panel";
   const subject = `You have been invited to ${scope}`;
   const { html, text } = letter({
-    brand: config.brands[0],
+    brand: PLATFORM,
     title: `You have been invited to ${scope}`,
     blocks: [
       { kind: "text", value: `You have been given access to ${scope}.` },

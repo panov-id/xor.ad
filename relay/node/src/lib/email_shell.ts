@@ -70,6 +70,39 @@ export const STYLES: Record<string, BrandStyle> = {
   },
 };
 
+// The panel is not a storefront and must not borrow one's face. A sign-in letter
+// wearing СОСЕД while pointing at xor.panov.id is a letter from the wrong sender,
+// and on a link that hands over access that is worse than ugly — it teaches
+// people that the branding on such a letter means nothing.
+//
+// The palette is the panel's own, read from panel/src/App.css: its dark theme and
+// its blue accent, so the letter and the page it opens look like one thing.
+export const PLATFORM: PlatformBrand = {
+  key: "xor",
+  name: "xor",
+  upper: "XOR",
+  domain: "xor.panov.id",
+  from: "",
+};
+
+export type PlatformBrand = {
+  key: string;
+  name: string;
+  upper: string;
+  domain: string;
+  from: string;
+};
+
+STYLES.xor = {
+  accents: { blue: { accent: "#7d9bff", ink: "#0d0d0c" } },
+  defaultAccent: "blue",
+  dark: { bg: "#0d0d0c", panel: "#16161a", border: "#2e2e34", fg: "#f2f2ee", muted: "#a0a09a" },
+  light: { bg: "#f2f2f0", panel: "#ffffff", border: "#d9d9d4", fg: "#14140f", muted: "#5b5b55" },
+  radius: "0",
+  borderWidth: "2px",
+  heroPath: "",
+};
+
 export function brandStyle(key: string): BrandStyle {
   return STYLES[key] ?? Object.values(STYLES)[0];
 }
@@ -92,7 +125,7 @@ const escape = (value: string) =>
   value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export function letter(opts: {
-  brand: Brand;
+  brand: Brand | PlatformBrand;
   title: string;
   blocks: Block[];
   footnote?: string;
@@ -112,10 +145,18 @@ export function letter(opts: {
         return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td style="border-left:3px solid ${accent};padding:6px 0 6px 14px;font-family:${SANS};font-size:15px;line-height:1.5;color:${colors.fg};">${
           escape(block.value)
         }</td></tr></table>`;
-      case "reference":
-        return `<p style="margin:0 0 16px;font-family:${MONO};font-size:13px;letter-spacing:.5px;color:${colors.muted};">${
-          escape(block.value)
-        }</p>`;
+      case "reference": {
+        // A sign-in letter whose link is not a link is a letter that does not
+        // work. Gmail autolinks a bare URL and most clients do, but "most" is not
+        // a thing to rely on when the alternative is one anchor tag.
+        const isUrl = /^https?:\/\//.test(block.value);
+        const inner = isUrl
+          ? `<a href="${escape(block.value)}" style="color:${accent};text-decoration:underline;">${
+            escape(block.value)
+          }</a>`
+          : escape(block.value);
+        return `<p style="margin:0 0 16px;font-family:${MONO};font-size:13px;letter-spacing:.5px;word-break:break-all;color:${colors.muted};">${inner}</p>`;
+      }
       default:
         return `<p style="margin:0 0 16px;font-family:${SANS};font-size:16px;line-height:1.55;color:${colors.fg};">${
           escape(block.value)

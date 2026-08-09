@@ -9,7 +9,7 @@
 
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import { whatWasRestricted } from "../src/lib/mailer.ts";
-import { letter } from "../src/lib/email_shell.ts";
+import { letter, PLATFORM } from "../src/lib/email_shell.ts";
 import { config } from "../src/config.ts";
 
 Deno.test("quotes the author's own words, with when they posted them", () => {
@@ -92,4 +92,46 @@ Deno.test("a letter cannot be made to carry markup", () => {
   });
   assert(!html.includes("<img"), "content must not become markup");
   assertStringIncludes(html, "&lt;img");
+});
+
+// A sign-in link went out wearing СОСЕД and pointing at xor.panov.id, because the
+// panel letters reached for config.brands[0] — "the first brand" — which is a
+// storefront. On a letter that hands over access, branding that belongs to
+// somebody else is not a cosmetic fault: it teaches the reader that the face on
+// such a letter means nothing.
+Deno.test("a panel letter wears the platform, never a storefront", () => {
+  const { html, text } = letter({
+    brand: PLATFORM,
+    title: "Sign in to the panel",
+    blocks: [{ kind: "reference", value: "https://xor.panov.id/auth/callback?token=x" }],
+  });
+
+  assertStringIncludes(html, "XOR");
+  assertStringIncludes(html, "xor.panov.id");
+  assertStringIncludes(html, "#7d9bff"); // the panel's own accent
+  assertStringIncludes(text, "xor.panov.id");
+
+  for (const storefront of ["СОСЕД", "sosed.place", "NEIGHBRO", "neighbro.place"]) {
+    assert(!html.includes(storefront), `a panel letter must not wear ${storefront}`);
+    assert(!text.includes(storefront), `a panel letter must not wear ${storefront}`);
+  }
+});
+
+// The sign-in letter is the one where a link that is not a link makes the letter
+// useless. Some clients autolink a bare URL; that is not a thing to depend on.
+Deno.test("a url in a reference block is an actual link", () => {
+  const { html, text } = letter({
+    brand: PLATFORM,
+    title: "Sign in to the panel",
+    blocks: [
+      { kind: "reference", value: "https://xor.panov.id/auth/callback?token=x" },
+      { kind: "reference", value: "Reference: 27c2a4f5" },
+    ],
+  });
+
+  assertStringIncludes(html, '<a href="https://xor.panov.id/auth/callback?token=x"');
+  // A plain reference stays plain — it is an id, not somewhere to go.
+  assert(!html.includes('<a href="Reference'), "a reference id must not become a link");
+  // And the plain-text part keeps the url readable either way.
+  assertStringIncludes(text, "https://xor.panov.id/auth/callback?token=x");
 });

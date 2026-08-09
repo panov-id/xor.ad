@@ -999,3 +999,33 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       called workflow sees the **caller's** context, so on a call from `deploy-uat`
       `github.event_name` reads `push` and `github.ref` reads `main`. Inputs exist
       only on a call, which makes them the only honest signal.
+- [x] **D8. Search Console: three reasons for non-indexing — worked out 2026-08-09.**
+      The notice for `neighbro.place`: "page with redirect" — 2, "alternate page
+      with proper canonical tag" — 1, "discovered, currently not indexed" — 5.
+      Checked against the live site rather than assumed.
+
+      **The first two are evidence the setup works, not that it is broken.** The
+      redirects are `https://www.neighbro.place/` and `http://neighbro.place/`,
+      both 301 to the canonical address; neither is listed in the sitemap — Google
+      found them by itself. The canonical variant is `/index.html`, which answered
+      200 while declaring the root as canonical.
+
+      All 12 sitemap URLs answer 200, each declares itself canonical and carries 11
+      hreflang alternates. There is no "sitemap says one thing, the page says
+      another" anywhere — that alone would have been a real fault.
+
+      **Done:** `deploy/bunny-seo-index-redirect.sh` — an edge rule on both
+      production zones, `/index.html` → 301 → `/`. Verified against the live sites.
+      The `ActionType=1` action was taken from the working "seo: www to apex" rule
+      in the same zone rather than from an assumption about API constants.
+
+      **Deliberately left:** every language's `/xx/index.html` answers 200 too. One
+      rule cannot fix them — the redirect target is a literal string, `{{path}}`
+      substitutes the whole path, and nothing strips a suffix. Twenty-two rules for
+      URLs nothing links to and no sitemap lists is a poor trade; their canonical
+      already resolves them correctly.
+
+      **"Discovered, currently not indexed", 5 pages** — not our misconfiguration:
+      the console names Google's own systems as the source. The URLs are known, the
+      crawl is deferred. Ordinary for a young domain whose pages differ mainly by
+      language. Cured by time and distinctness, not by code.

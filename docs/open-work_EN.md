@@ -1138,3 +1138,29 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       Section 3 (internal complaints, out-of-court settlement), and scope and
       duration are qualified as "where relevant". It is the class of detail that
       is cheaper to record now than to discover on the first real complaint.
+- [ ] **J17. A chat report: the notifier is never told to bring the copy.**
+      Raised 2026-08-09.
+
+      **What happens today.** Conversations are stored nowhere — encrypted on the
+      devices, passed through the node in transit — so `captureTarget` returns
+      `not_accessible` for a chat without looking anywhere. The moderator sees the
+      "why this is illegal" field and nothing else. Neither we nor they will see
+      what was complained about.
+
+      This is not a defect: "not even our own server keeps the correspondence" has
+      no exception for complaints, or it stops being a promise. The chat spec says
+      as much — a complaint travels **with a copy from the complainant's device**.
+
+      **What is missing.** The intake accepts only `reason_text`, and nothing tells
+      a person that the quote is theirs to provide. They will describe the
+      situation in their own words and leave nothing to examine — while Article 16
+      obliges us to examine it and answer with reasons.
+
+      **To do:** in `report.html`, show a hint when "chat" is chosen — we do not
+      keep conversations, paste the quote here — and repeat it in the field's
+      description. A change at the form level; the model stays as it is.
+
+      **Check while there:** whether the examination card says the copy is missing
+      *for this reason* rather than another. The `Copy` column now distinguishes
+      "gone before we looked" from "never held" (see migration `006`), but the text
+      inside the card does not lean on it.

@@ -749,10 +749,25 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       than somebody who wants volume.
 
       **Left, in this order:**
-      - [ ] **ship an image containing this code to prod.** The node runs `v0.8.0`:
-        the variable is delivered, but the limit and the token check are not in
-        that image. Until a release, the protection does not run and the edge rule
-        merely adds a header nobody reads;
+      - [x] **ship an image containing this code to prod — done 2026-08-09.** The
+        node was rolled onto release `v2026.8.9-ge4ce220`, the same image exercised
+        on staging beforehand. `/health` answers on both hostnames and the limit was
+        verified against the live node: `429` from the twentieth request.
+
+        **The wording above was wrong, and that matters more than the deploy.** It
+        claimed the node had no limiter. Measurement showed the opposite: the
+        protection was running before the deploy. The error was method — the
+        threshold was taken as "5 an hour" from older text, while the code says
+        `max: 20` plus 60 a day, so a six-attempt probe could never reach it.
+
+        The deploy was still needed, for a different reason: `environments.toml`
+        promised `v2026.8.5-gfd6587a` while nobody knew what the box actually ran —
+        the wizard had never been run against that tag. Pin and box now agree.
+
+        Two things surfaced on the way: publishing a GitHub Release is the wizard's
+        precondition for a public environment and the only approval a production
+        deploy has; and recreating the container **resets the rate-limit counters**,
+        because the window lives in the node's memory;
       - [ ] repoint `api.relay.panov.id` at the zone (traffic then goes through the
         CDN and carries the header);
       - [x] the `X-Origin-Token` check in Caddy — on since 2026-08-05;

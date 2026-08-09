@@ -78,9 +78,32 @@ are gone and what follows is only what is genuinely unbuilt.
       built" true on paper and false in practice.
 
       Three remarks on the statement's content are in J16.
-- [ ] **Notification of material changes** to the documents, Art. 14(6). The Terms
-      and the Policy promise to be "signposted in the Service" themselves. The one
-      genuinely unbuilt part.
+- [x] **Notification of material changes** to the documents, Art. 14(6) — done
+      2026-08-09. More of it existed than the record showed: the bar's markup, the
+      translations (10 locales on neighbro, 17 on sosed), the display logic and the
+      storage keys (`nb-legal` / `ss-legal`) were already on both storefronts. A
+      first visit stores the current edition silently — using the Service is
+      acceptance, per the Terms — and the bar appears only for a genuinely older
+      one.
+
+      **What was weak, and what was fixed:** the edition was kept by hand
+      (`EDITION = "2026-08-07"`) in two HTML files — a fourth copy of a date, bound
+      to drift from the documents on the first edit. It now comes from the
+      documents themselves: the deploy reads `Last updated` out of `terms_EN.md`
+      and `privacy_EN.md`, takes the later, and puts it in `config.js`. An empty
+      value is an early return, so a local copy announces nothing. The deploy
+      **fails** if the date cannot be parsed: shipping an empty revision quietly
+      would restore the dead bar.
+
+      **The button is now neutral** in every locale on both storefronts: "Got it",
+      "Понятно", "Verstanden" instead of "Accept". We inform rather than collect
+      consent, and the label must not promise what we do not keep. The
+      `legalAccept` key stays — renaming it would cost 27 edits for a name nobody
+      sees.
+
+      **The panel gets no such mechanism.** Art. 14(6) addresses recipients of the
+      service; the panel is a tool for operators, bound by a different
+      relationship. A bar there would be noise, not compliance.
 
       **Decided 2026-08-09:** a bar on the storefronts and a screen on entering the
       panel; **inform rather than require acceptance** — the article asks for

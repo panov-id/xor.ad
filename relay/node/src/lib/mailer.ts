@@ -203,6 +203,42 @@ export async function sendNoticeDecision(
 // Article 17: whoever's content was restricted is owed the reasons. The
 // notifier's identity is never in here — that rule is stricter than the article
 // allows, and it is the one the offers spec already sets for complaints.
+// Which of the author's posts this is about, in their own words. The snapshot
+// was taken when the notice arrived precisely so this sentence can exist after
+// the content itself has expired; leaving it out made the letter open with
+// "something you posted" and never say which.
+export function whatWasRestricted(
+  targetKind: string | undefined,
+  snapshot: unknown,
+  snapshotState: string | undefined,
+): string[] {
+  const row = (snapshot as { row?: Record<string, unknown> } | null)?.row;
+  const quote = typeof row?.body === "string"
+    ? row.body
+    : typeof row?.offer_text === "string"
+    ? row.offer_text
+    : null;
+  const posted = typeof row?.created_at === "string" ? row.created_at.slice(0, 16).replace("T", " ") : null;
+
+  if (quote) {
+    return [
+      posted ? `What it was, posted ${posted}:` : "What it was:",
+      `  ${quote}`,
+      "",
+    ];
+  }
+  // No copy — and the three reasons are not interchangeable. Telling somebody
+  // "it had expired" when nobody ever looked would be a lie in the one letter
+  // that must not contain any.
+  if (snapshotState === "target_gone") {
+    return ["It had already expired by the time the report was examined, so there is no copy to show you.", ""];
+  }
+  if (snapshotState === "not_accessible") {
+    return ["We hold no copy of it: this kind of content is not stored where we could take one.", ""];
+  }
+  return [];
+}
+
 export async function sendStatementOfReasons(
   to: string,
   opts: {
@@ -211,6 +247,9 @@ export async function sendStatementOfReasons(
     facts: string;
     groundKind: "legal" | "contractual";
     groundText: string;
+    targetKind?: string;
+    snapshot?: unknown;
+    snapshotState?: string;
   },
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
@@ -220,7 +259,13 @@ export async function sendStatementOfReasons(
     "Something you posted has been restricted, and here is why.",
     "",
     `What was done: ${opts.restriction.replace(/_/g, " ")}.`,
+    // Article 17(3)(a) asks for territorial scope and duration "where relevant".
+    // Ours are always both: one feed, no regional moderation, and nothing lifts a
+    // restriction later. Stated rather than left to be assumed — and it becomes a
+    // field on the form the day either can differ.
+    "It applies everywhere the Service is available, and it is not time-limited.",
     "",
+    ...whatWasRestricted(opts.targetKind, opts.snapshot, opts.snapshotState),
     "Facts and circumstances:",
     opts.facts,
     "",
@@ -234,10 +279,13 @@ export async function sendStatementOfReasons(
     "Automated systems screen what is published; this decision was taken by a",
     "person.",
     "",
+    // Word for word what the notifier is told. Two descriptions of one fact read
+    // as two different procedures, and the author's version, lacking the last
+    // sentence, promised a formal appeal that does not exist.
     "If you disagree: reply to this email and a person will look again. You may",
     "also complain to the Digital Services Coordinator of your country or of",
     "Cyprus — the Radiotelevision and Digital Services Authority, rtdsa.org.cy —",
-    "or go to court.",
+    "or go to court. We do not operate a formal internal appeals body.",
   ];
   return await deliver(brand, to, `${brand.name}: why your content was restricted`, lines);
 }

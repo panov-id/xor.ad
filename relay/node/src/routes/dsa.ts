@@ -89,7 +89,11 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     // decided_at has to be selected, or the guard below reads undefined and a
     // notice can be decided twice — which sends a second pair of letters and
     // silently replaces the first decision. Found by deciding one twice on dev.
-    `SELECT id, brand, target_id, notifier_email, status, decided_at
+    // target_kind and the snapshot come along so the author can be told which of
+    // their posts this is about. Without them the letter opens with "something
+    // you posted has been restricted" and never says which — useless to anybody
+    // with more than one.
+    `SELECT id, brand, target_kind, target_id, snapshot, notifier_email, status, decided_at
        FROM dsa_notices WHERE id = $1`,
     [params.id],
   );
@@ -140,6 +144,9 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       facts,
       groundKind,
       groundText,
+      targetKind: notice.target_kind,
+      snapshot: notice.snapshot,
+      snapshotState: notice.status,
     });
     if (delivered && statementId) {
       await queryOrThrow(`UPDATE dsa_statements SET delivered_at = now() WHERE id = $1`, [statementId]);

@@ -64,12 +64,20 @@ are gone and what follows is only what is genuinely unbuilt.
       accept a status — it accepts the reasoning and writes the status from it;
       an upheld notice requires the restriction, the ground and the addressee, or
       the Art. 17 statement would be blank.
-- [ ] **An end-to-end check on staging.** The parts are built and were each
-      checked on their own, but the chain has never been walked whole: submit a
-      real notice through the form → the receipt (Art. 16(4)) → the panel queue →
-      a decision with reasons → the reply to the notifier (Art. 16(5)) and the
-      statement of reasons to the author (Art. 17(3)) → delete the test record.
-      Until then "the mechanism works" is a claim, not a fact.
+- [x] **An end-to-end check on staging — walked 2026-08-09.** The notice was
+      filed through the API, the Art. 16(4) receipt arrived, the record joined the
+      queue, an `upheld` decision was taken from the panel, and both letters — the
+      Art. 16(5) reply to the notifier and the Art. 17(3) statement to the author —
+      were delivered. The notifier's identity was not disclosed to the author. The
+      test record is deleted; `dsa_notices` on staging is empty.
+
+      **The check cost two findings, without which the mechanism did not really
+      exist:** the examination screen opened for nobody (the resource was missing
+      from the panel's permission map — fixed), and staging had no panel account at
+      all, so there was nobody to sign in (J14). Together they made "the screen is
+      built" true on paper and false in practice.
+
+      Three remarks on the statement's content are in J16.
 - [ ] **Notification of material changes** to the documents, Art. 14(6). The Terms
       and the Policy promise to be "signposted in the Service" themselves. The one
       genuinely unbuilt part.

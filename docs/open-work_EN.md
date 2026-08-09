@@ -1110,3 +1110,31 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       it is a trap: under Art. 16(4) the confirmation is an obligation, and a field
       with that name reads as a report that it was met. Either rename it to
       something honest (`will_acknowledge`) or return the actual send result.
+- [ ] **J16. The Art. 17(3) statement: three gaps, found by the end-to-end check
+      on 2026-08-09.** The chain ran whole — notice, receipt, queue, an `upheld`
+      decision, both letters delivered. The notifier's identity is **not disclosed**
+      to the author, the use of automation is named in both letters, and the ground
+      and the redress routes are there. Three things remain.
+
+      **1. No territorial scope and no duration.** Art. 17(3)(a) asks for them
+      "where relevant"; the template carries only `What was done: removed.` and the
+      panel form has no field at all. While every restriction is global and
+      permanent the caveat covers it. The moment one is temporary or regional,
+      there is nowhere to say so.
+
+      **2. The author is never told what was restricted.** The letter opens with
+      "Something you posted has been restricted" — no quote, no timestamp, no
+      reference. The snapshot was taken and sits in `dsa_notices.snapshot`, and
+      never reaches the letter. To somebody with several posts in the feed that
+      letter says nothing.
+
+      **3. The two letters describe redress differently.** To the notifier: "We do
+      not operate a formal internal appeals body". To the author: "reply to this
+      email and a person will look again" — without that caveat, which makes it
+      read as a promise of a procedure that does not exist. One fact, two
+      wordings.
+
+      **None of this blocks launch:** Art. 19 exempts a micro-enterprise from
+      Section 3 (internal complaints, out-of-court settlement), and scope and
+      duration are qualified as "where relevant". It is the class of detail that
+      is cheaper to record now than to discover on the first real complaint.

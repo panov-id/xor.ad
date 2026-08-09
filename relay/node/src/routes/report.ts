@@ -106,10 +106,15 @@ export async function report(req: Request): Promise<Response> {
   const { snapshot, status } = await captureTarget(kind, targetId, tenant.brand.key);
 
   const rows = await query<{ id: string }>(
+    // The capture outcome goes in its own column. It used to be written into
+    // `status`, and since the moderator's queue is `status IN ('received',
+    // 'in_review')`, every notice we could not copy — every chat report, and any
+    // feed message that had already expired — landed outside the queue and was
+    // never examined. See db/006.
     `INSERT INTO dsa_notices
        (brand, target_kind, target_id, snapshot, reason_text,
-        notifier_name, notifier_email, bona_fide, status, acknowledged_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8, now())
+        notifier_name, notifier_email, bona_fide, status, snapshot_state, acknowledged_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, now())
      RETURNING id`,
     [
       tenant.brand.key,

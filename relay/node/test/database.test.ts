@@ -566,6 +566,69 @@ Deno.test({
   },
 });
 
+Deno.test({
+  // The failure this guards was invisible from every direction: the notice was
+  // stored, acknowledged under Article 16(4), and absent from the only screen a
+  // moderator has. It happened because the snapshot outcome was written into
+  // `status`, and the queue is `status IN ('received','in_review')` — so every
+  // report about a chat, and every feed message that expired before anyone
+  // looked, waited where nobody could see it. See db/006.
+  name: "a notice we could not copy still reaches the moderator's queue",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const marker = `queue-test-${Date.now()}`;
+    const inserted = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, target_kind, target_id, reason_text, bona_fide,
+          status, snapshot_state, acknowledged_at)
+       VALUES ('neighbro', 'chat', null, $1, true, 'received', 'not_accessible', now())
+       RETURNING id`,
+      [marker],
+    );
+    const id = inserted[0].id;
+
+    // Exactly the query the queue route runs.
+    const open = await database.queryOrThrow<{ id: string }>(
+      `SELECT id FROM dsa_notices
+        WHERE status = ANY($1) AND id = $2`,
+      [["received", "in_review"], id],
+    );
+    assertEquals(
+      open.length,
+      1,
+      "a report about a chat can never be copied, and must still be examined",
+    );
+
+    // And the reason it could not be copied is kept, because the letter to the
+    // author has to say which of the two it was.
+    const stored = await database.queryOrThrow<{ snapshot_state: string }>(
+      `SELECT snapshot_state FROM dsa_notices WHERE id = $1`,
+      [id],
+    );
+    assertEquals(stored[0].snapshot_state, "not_accessible");
+
+    // And the shape that caused it is now unrepresentable: the column that decides
+    // the queue no longer accepts a snapshot outcome. A widened constraint would
+    // bring the whole failure back, silently, so it is asserted rather than
+    // trusted to a comment.
+    let rejected = false;
+    try {
+      await database.queryOrThrow(
+        `INSERT INTO dsa_notices
+           (brand, target_kind, reason_text, bona_fide, status, acknowledged_at)
+         VALUES ('neighbro', 'chat', $1, true, 'not_accessible', now())`,
+        [`${marker}-old-shape`],
+      );
+    } catch {
+      rejected = true;
+    }
+    assertEquals(rejected, true, "status must not accept a snapshot outcome again");
+
+    await database.queryOrThrow(`DELETE FROM dsa_notices WHERE id = $1`, [id]);
+  },
+});
+
 // The pool holds connections open, and nothing else in a test process will close
 // them.
 addEventListener("unload", () => void database.closePool());

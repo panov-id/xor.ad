@@ -23,6 +23,7 @@ type Notice = {
   notifier_name: string | null;
   notifier_email: string | null;
   status: string;
+  snapshot_state: string;
   created_at: string;
   decided_at: string | null;
 };
@@ -42,8 +43,14 @@ const STATUS_LABEL: Record<string, string> = {
   in_review: "In review",
   upheld: "Upheld",
   rejected: "Rejected",
-  target_gone: "Content already gone",
-  not_accessible: "Not reachable by us",
+};
+
+// Whether a copy exists, and when it does not, why — the two reasons are not
+// interchangeable and decide what can be examined at all. They used to live in
+// `status`, which kept such notices out of the queue entirely (see db/006).
+const COPY_LABEL: Record<string, string> = {
+  target_gone: "gone before we looked",
+  not_accessible: "never held",
 };
 
 export const DsaNoticesList = () => {
@@ -91,8 +98,10 @@ export const DsaNoticesList = () => {
             label: "Copy",
             // Whether we hold the content the report is about decides whether it
             // can be examined at all, so it belongs in the list rather than
-            // three clicks away.
-            render: (row) => (row.snapshot ? "yes" : "—"),
+            // three clicks away — and "no copy" is worth its reason: content that
+            // expired before anyone looked is a different problem from content we
+            // could never have copied.
+            render: (row) => (row.snapshot ? "yes" : COPY_LABEL[row.snapshot_state] ?? "—"),
           },
           {
             key: "id",

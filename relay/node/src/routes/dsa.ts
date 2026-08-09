@@ -29,6 +29,7 @@ interface NoticeRow {
   notifier_name: string | null;
   notifier_email: string | null;
   status: string;
+  snapshot_state: string;
   created_at: string;
   decided_at: string | null;
 }
@@ -42,7 +43,7 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
 
   const open = url.searchParams.get("state") !== "all";
   const rows = await query<NoticeRow>(
-    `SELECT id, brand, target_kind, target_id, snapshot, reason_text,
+    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, reason_text,
             notifier_name, notifier_email, status, created_at, decided_at
        FROM dsa_notices
       ${open ? "WHERE status = ANY($1)" : ""}
@@ -93,7 +94,8 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     // their posts this is about. Without them the letter opens with "something
     // you posted has been restricted" and never says which — useless to anybody
     // with more than one.
-    `SELECT id, brand, target_kind, target_id, snapshot, notifier_email, status, decided_at
+    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state,
+            notifier_email, status, decided_at
        FROM dsa_notices WHERE id = $1`,
     [params.id],
   );
@@ -146,7 +148,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       groundText,
       targetKind: notice.target_kind,
       snapshot: notice.snapshot,
-      snapshotState: notice.status,
+      snapshotState: notice.snapshot_state,
     });
     if (delivered && statementId) {
       await queryOrThrow(`UPDATE dsa_statements SET delivered_at = now() WHERE id = $1`, [statementId]);

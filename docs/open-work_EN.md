@@ -85,7 +85,7 @@ landing, the migration always before the flag.
       `uat.xor.panov.id` bundle — it carries the server-log page, the
       `tenant_admin` role and the `unattributed` scope.
 
-- [ ] **A11. day16's tail reached dev, not main.** On 2026-07-29 `dev` was
+- [x] **A11. day16's tail reached dev, not main — closed 2026-08-09** by the `dev` → `main` merge; both branches sit at `e4ce220`, and production runs the release cut from it.** On 2026-07-29 `dev` was
       fast-forwarded to `6785bd1`, so the quotas (`6bf6f9e`), the key's limit in
       the panel (`945d246`), the relay typecheck in CI (`52a8582`) and day17's
       work all shipped to the **dev environment**. `origin/main` still sits at
@@ -537,7 +537,7 @@ pass opened and did not close.
       changes. We accepted it on specific grounds — region `DE`, no replicas,
       chat and feed never go there — and those grounds would need revisiting.
 
-- [ ] **J11. The UAT auto-tag builds no image.** Merging `dev → main` tags the
+- [x] **J11. The UAT auto-tag builds no image — closed 2026-08-09.** Verified in the registry: both `relay-node` and `relay-caddy` exist under `v2026.8.9-ge4ce220`.** Merging `dev → main` tags the
       commit `v2026.08.05-<sha>`, but no image exists under it: `type=semver` in
       `.github/workflows/relay.yml` only emits a tag for a valid semantic
       version, and `2026.08.05-…` with its leading zero is not one. Checked in the

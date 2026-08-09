@@ -8,6 +8,7 @@
 // All 16 landing languages are covered; any unknown code falls back to en.
 
 import { config, type Brand } from "../config.ts";
+import { brandStyle, MONO, SANS } from "./email_shell.ts";
 
 type Lang =
   | "en" | "ru" | "fr" | "de" | "es" | "el" | "uk" | "be" | "kk" | "ka"
@@ -203,62 +204,9 @@ const T: Record<Lang, {
   },
 };
 
-// Per-brand visual identity, mirroring each landing's palette and shape
-// language: neighbro is brutalist (sharp corners, thick borders), sosed is warm
-// and rounded (radius, thin borders). Keyed by brand key; unknown brands fall
-// back to the first entry's style via brandStyle().
-type Accent = { accent: string; ink: string };
-type ModeColors = { bg: string; panel: string; border: string; fg: string; muted: string };
-type BrandStyle = {
-  accents: Record<string, Accent>;
-  defaultAccent: string;
-  dark: ModeColors;
-  light: ModeColors;
-  radius: string;       // border-radius for the outer card
-  borderWidth: string;  // card border thickness
-  heroPath: string;     // header image path on the brand's landing CDN
-};
-
-const STYLES: Record<string, BrandStyle> = {
-  neighbro: {
-    accents: {
-      gold: { accent: "#c6a24e", ink: "#1a1509" },
-      crimson: { accent: "#e0342b", ink: "#fdeceb" },
-      teal: { accent: "#1fb39a", ink: "#04201c" },
-      azure: { accent: "#3d84d6", ink: "#eaf2ff" },
-      violet: { accent: "#9b5de5", ink: "#f3ecfd" },
-    },
-    defaultAccent: "gold",
-    dark: { bg: "#0c0b09", panel: "#14120e", border: "#3a331f", fg: "#ede8dd", muted: "#8a8172" },
-    light: { bg: "#e9e6dd", panel: "#f4f1e8", border: "#1e1b14", fg: "#181510", muted: "#5f5a4e" },
-    radius: "0",
-    borderWidth: "2px",
-    heroPath: "img/hero.jpg",
-  },
-  sosed: {
-    accents: {
-      terra: { accent: "#d6552f", ink: "#fff6f0" },
-      amber: { accent: "#d68a1f", ink: "#241206" },
-      teal: { accent: "#1fa99a", ink: "#04231f" },
-      azure: { accent: "#3d84d6", ink: "#eaf2ff" },
-      violet: { accent: "#9b5de5", ink: "#f3ecfd" },
-      crimson: { accent: "#e0342b", ink: "#fdeceb" },
-    },
-    defaultAccent: "terra",
-    dark: { bg: "#0d0b0a", panel: "#17130f", border: "#3a2e20", fg: "#f0e7dc", muted: "#9a8d7c" },
-    light: { bg: "#ece4d8", panel: "#f5efe4", border: "#221a12", fg: "#1c140d", muted: "#6b5f4c" },
-    radius: "14px",
-    borderWidth: "1px",
-    heroPath: "img/splash.jpg",  // evening courtyard — warmer than the flat facade
-  },
-};
-
-function brandStyle(key: string): BrandStyle {
-  return STYLES[key] ?? Object.values(STYLES)[0];
-}
-
-const SANS = "'Helvetica Neue',Helvetica,Arial,sans-serif";
-const MONO = "'SF Mono',ui-monospace,Menlo,Consolas,monospace";
+// The palette, the type and the card shape live in email_shell.ts: this letter
+// is not the only one wearing them, and while they lived here the operational
+// letters had nothing to wear at all.
 
 const LANGS: Lang[] = [
   "en", "ru", "fr", "de", "es", "el", "uk", "be", "kk", "ka",

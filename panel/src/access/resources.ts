@@ -25,6 +25,11 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   "secret_keys.create": "api_keys.write",
   "brands.list": "brands.read",
   "brands.create": "brands.write",
+  // Registered late, and the page was unreachable until it was: App.tsx routed
+  // dsa_notices and wrapped it in Gated, but with no pair here deny-by-default
+  // refused every role, admin included. The screen existed and nobody could open
+  // it. The test below now walks App.tsx so the next omission fails in CI.
+  "dsa_notices.list": "dsa_notices.read",
 };
 
 export function requiredPermission(resource: string, action: string): Permission | undefined {

@@ -25,6 +25,27 @@ describe("resource map", () => {
     expect(requiredPermission("invented", "list")).toBeUndefined();
   });
 
+  // The omission this file's header promised to catch, and did not. Validating
+  // the entries that exist says nothing about the page that was never entered:
+  // dsa_notices was routed, gated and shipped with no pair here, so every role
+  // was refused and the screen sat unreachable. Read the app's own resource list
+  // instead of trusting that somebody remembered both files.
+  it("maps every resource the app registers", async () => {
+    const source = await readFile(new URL("../App.tsx", import.meta.url), "utf8");
+    const registered = [...source.matchAll(/name:\s*"([^"]+)"[\s\S]{0,200}?list:\s*"/g)]
+      .map((match) => match[1]);
+
+    expect(registered.length, "found no resources in App.tsx — did the shape change?")
+      .toBeGreaterThan(0);
+
+    for (const resource of registered) {
+      expect(
+        requiredPermission(resource, "list"),
+        `${resource} has a list route in App.tsx and no permission here, so nobody can open it`,
+      ).toBeDefined();
+    }
+  });
+
   it("gives every list page a read permission and every write a write one", () => {
     for (const [pair, permission] of Object.entries(PERMISSION_BY_RESOURCE_ACTION)) {
       const action = pair.split(".").pop();

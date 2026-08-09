@@ -35,21 +35,11 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
 
 ## Before launch — what is left
 
-- [ ] **The `report.html` form** on both faces: the fields from SPEC §3, plus the
-      separate path without name and email for the §5.1 case. Without it the
-      endpoint exists but nobody can reach it — which is the Art. 16(1)
-      "easy to access" requirement. **Decide when starting:** the form's language.
-      The legal pages are EN-only by decision; the form is an interface, so either
-      repeat EN-only or translate into 17 and 10 locales.
-- [ ] **A link to the form** in the footer and on the legal pages of both faces
-- [ ] **An examination screen in the panel**: a queue over
-      `status IN ('received','in_review')`, the snapshot, the decision, the
-      dispatch of both letters. The `dsa_notices_queue` index is already shaped
-      for it.
-- [ ] **Templates for the two letters**: the reply to the notifier (Art. 16(5) —
-      what was decided, why, whether automation took part, the redress routes) and
-      the statement of reasons to the author (Art. 17(3) — seven elements, and the
-      notifier's identity **never** disclosed)
+The form, the links, the examination screen and the letters were listed here as
+open while being ticked as done further down — the file contradicted itself.
+Sorted out on 2026-08-09 by checking the live sites and the code; the duplicates
+are gone and what follows is only what is genuinely unbuilt.
+
 - [x] **Access control — 2026-08-05.** The RLS line came from the spec rather than
       from this codebase: there is no row-level security here at all, and access
       is a permission plus a scope. Two permissions now exist — `dsa_notices.read`
@@ -74,15 +64,31 @@ The reasoning is in [README_EN.md](./README_EN.md), the mechanic in
       accept a status — it accepts the reasoning and writes the status from it;
       an upheld notice requires the restriction, the ground and the addressee, or
       the Art. 17 statement would be blank.
-- [ ] **A link to the form** in the footer and on the legal pages of both faces —
-      the mechanism must be "easy to access" (Art. 16(1))
-- [ ] **Letter templates**: confirmation of receipt, reply to the notifier,
-      statement of reasons to the author, refusal of a service-quality complaint.
-      Each carrying the mandatory elements from SPEC §6 and §7
-- [ ] **Notification of material changes** to the documents. The Terms and the
-      policy promise it themselves ("signposted in the Service"), and Art. 14(6)
-      requires it. No mechanism exists: a banner or a screen on first entry after
-      an edit is needed
+- [ ] **An end-to-end check on staging.** The parts are built and were each
+      checked on their own, but the chain has never been walked whole: submit a
+      real notice through the form → the receipt (Art. 16(4)) → the panel queue →
+      a decision with reasons → the reply to the notifier (Art. 16(5)) and the
+      statement of reasons to the author (Art. 17(3)) → delete the test record.
+      Until then "the mechanism works" is a claim, not a fact.
+- [ ] **Notification of material changes** to the documents, Art. 14(6). The Terms
+      and the Policy promise to be "signposted in the Service" themselves. The one
+      genuinely unbuilt part.
+
+      **Decided 2026-08-09:** a bar on the storefronts and a screen on entering the
+      panel; **inform rather than require acceptance** — the article asks for
+      information, and there is nobody to collect consent from: a storefront has no
+      identity, only a browser. Acceptance moves to the identity once one exists
+      (§8.2 of the chat spec), and only then does it become acceptance.
+
+      **The version comes from the documents themselves** rather than being kept by
+      hand: the deploy reads `Last updated` from `terms_EN.md` and `privacy_EN.md`,
+      takes the later of the two, and puts it in `config.js` beside the other
+      flags. A fourth place for a revision number would drift from the documents on
+      the first edit.
+
+      **The change has already happened:** on 2026-08-07 the push-notification
+      promises were removed from the Policy and its date moved — with nothing to
+      announce it.
 
 ## After launch
 

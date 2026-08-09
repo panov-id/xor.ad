@@ -462,19 +462,37 @@ From the legal pass of 2026-08-05. Payments were taken out of the service, offer
 were written into the Terms, and the DSA was worked through. Below is what that
 pass opened and did not close.
 
-- [ ] **J4. Art. 16 notice mechanism — the server side landed 2026-08-05, no
-      interface yet.** Built: the tables, the public `POST /report`, the snapshot
-      with its three states, the receipt, the yearly sweep. Left: the
-      **`report.html` form** (without it there is no way to reach the endpoint),
-      the links to it, the examination screen in the panel, the two letter
-      templates, RLS. File names and detail —
-      [`dsa/CHECKLIST_EN.md`](./dsa/CHECKLIST_EN.md).
+- [ ] **J4. Art. 16 notice mechanism — built; what remains is a live check and
+      Art. 14(6).** "No interface yet" is out of date: verified 2026-08-09 against
+      the live sites and the code.
 
-      **Why it is urgent:** both storefronts' Terms **already** promise that
-      illegal content can be reported, that receipt is confirmed and that a
-      reasoned answer follows. No mechanism exists. Harmless while there are no
-      users; on launch day it is an unkept promise in a contract and a hole in
-      the Art. 6 shield.
+      **Present and working:** the tables, the public `POST /report` (answers both
+      through the CDN on production and on staging; an incomplete notice is refused
+      before anything is stored), the snapshot with its three states, the receipt,
+      the yearly sweep, the `report.html` form on both storefronts (200), a footer
+      link on both, the examination screen `panel/src/pages/dsa-notices`, the routes
+      in `routes/dsa.ts`, both letter templates in `lib/mailer.ts`, and the
+      `dsa_notices.read` / `dsa_notices.decide` permissions.
+
+      **Remaining:**
+      - [ ] **an end-to-end check on staging** — a real notice, the receipt, the
+        panel queue, a decision, both letters (Art. 16(5) and 17(3)), then delete
+        the test record. The chain has never been walked whole;
+      - [ ] **notice of a new revision of the documents, Art. 14(6)** — the one
+        genuinely unbuilt part. The Terms and the Policy promise to be "signposted
+        in the Service" themselves. Decided 2026-08-09: a bar on the storefronts
+        and a screen on entering the panel, **informing rather than requiring
+        acceptance** — Art. 14(6) asks for information, and there is nobody to
+        collect consent from: a storefront has no identity, only a browser. The
+        version is derived from the documents themselves (`Last updated` in
+        `terms_EN.md` and `privacy_EN.md`, the later of the two) rather than kept
+        by hand in a fourth place, which would drift on the first edit.
+
+      **This is not hypothetical: the change has already happened.** On 2026-08-07
+      the push-notification promises were removed from the Policy and its revision
+      date moved — with nothing to announce it.
+
+      File names and detail — [`dsa/CHECKLIST_EN.md`](./dsa/CHECKLIST_EN.md).
 
 - [x] **J5. The point-of-contact languages are named — 2026-08-05.** In both
       storefronts' Terms: English and Greek, answered in the language of the

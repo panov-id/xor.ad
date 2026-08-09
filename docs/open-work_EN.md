@@ -768,8 +768,16 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
         precondition for a public environment and the only approval a production
         deploy has; and recreating the container **resets the rate-limit counters**,
         because the window lives in the node's memory;
-      - [ ] repoint `api.relay.panov.id` at the zone (traffic then goes through the
-        CDN and carries the header);
+      - [x] **repoint `api.relay.panov.id` at the zone — already done, verified
+        2026-08-09.** The name resolves to the same address as
+        `xorad-api-prod.b-cdn.net`, so traffic goes through the CDN and carries the
+        header. The item had stayed open out of inertia.
+
+        The lock was checked along all three paths at once: through the CDN — `200`;
+        the same name forced past the CDN (`--resolve` to the box's address) —
+        **`403`**; the direct name `p1-prod.relay.panov.id`, left open on purpose —
+        `200`. That is what proves the defence refuses a bypass rather than merely
+        existing;
       - [x] the `X-Origin-Token` check in Caddy — on since 2026-08-05;
       - [x] **the Bunny-edge firewall — deliberately NOT built, 2026-08-05.**
         The list holds 582 IPv4 and 320 IPv6 addresses: nearly a thousand rules,
@@ -780,8 +788,14 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
         of it for. In exchange we would take on a risk: Bunny's list changes, and a
         stale one means the prod API refusing everything with no bug anywhere.
         Revisit if a flood ever reaches the node;
-      - [ ] **turn on Shield Basic** — in the dashboard, the Bunny Shield tab of
-        the `xorad-api-prod` zone. Take a general profile rather than "WordPress":
+      - [ ] **turn on Shield Basic — confirmed 2026-08-09 that it is OFF.** The
+        `xorad-api-prod` zone (id 6278420) reports `ShieldDDosProtectionEnabled =
+        False`. This is the last open step of the chain: the image, the cutover to
+        the zone and the Caddy lock are all done and verified.
+
+        Not switched on here: it changes both the plan and the behaviour of a
+        production zone, and that is not done in passing. It is done in the
+        dashboard, the Bunny Shield tab of the `xorad-api-prod` zone. Take a general profile rather than "WordPress":
         behind this zone is an API with JSON bodies, and a site profile treats
         `POST` as suspicious. Do not leave Learning Mode until a real
         `POST /report` has gone through the zone.

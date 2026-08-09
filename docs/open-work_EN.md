@@ -1076,3 +1076,37 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       the console names Google's own systems as the source. The URLs are known, the
       crawl is deferred. Ordinary for a young domain whose pages differ mainly by
       language. Cured by time and distinctness, not by code.
+- [ ] **J14. Nothing can create the first panel administrator in a fresh
+      environment.** Found 2026-08-09, when signing in to the UAT panel was needed
+      for the end-to-end DSA check.
+
+      `panel/staging/users/` was **empty**: not one account, so nobody could sign
+      in to the UAT panel and the notice-examination screen there had never been
+      reachable. Production has exactly one account, created 2026-07-09.
+
+      **The circle:** `/admin/panel-users` needs a session (`requirePermission` →
+      `authed`), a session comes from a magic link, and `requestMagicLink` returns
+      silently when the user object is missing (`auth.ts:53`, "invite-only: never
+      reveal membership"). There is no environment variable and no wizard command
+      for the first administrator.
+
+      **The workaround used:** the object was written to storage directly —
+      `panel/<env>/users/<sha256 of the address>.json`, body
+      `{"email", "role": "admin", "created_at"}`, mirroring production's. It works,
+      but it requires knowing the storage layout: a fresh environment cannot be
+      brought up with a working panel by following the documentation.
+
+      **How to close it:** a wizard mode such as `wizard --env staging seed-admin
+      <address>` beside `configure`, or a one-shot bootstrap from an environment
+      variable. The first is the more honest: the wizard already owns both the
+      environment and the storage keys.
+- [ ] **J15. The `acknowledged` field in the `POST /report` response misleads.**
+      Found 2026-08-09 during the end-to-end check. It is returned as
+      `Boolean(email)` — it means "a notifier address was supplied", not
+      "the receipt was sent". The letter itself goes out best-effort and its fate
+      is never surfaced.
+
+      For our own form the difference does not matter; for somebody else's client
+      it is a trap: under Art. 16(4) the confirmation is an obligation, and a field
+      with that name reads as a report that it was met. Either rename it to
+      something honest (`will_acknowledge`) or return the actual send result.

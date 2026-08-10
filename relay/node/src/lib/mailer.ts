@@ -3,7 +3,13 @@
 // configured transport: resend (real) or smtp (Mailpit on dev/local). Best-effort
 // — a mail failure never fails the signup.
 
-import { brandByKey, config } from "../config.ts";
+// From the registry, not from config.ts — which exports a function of the same
+// name that reads the seed baked into the image. Importing that one meant a
+// brand edited through the panel kept sending letters under its old identity:
+// the registry was the door onboarding writes through, and the letters were not
+// reading it. Found when a rename landed in the database and the mail ignored it.
+import { config } from "../config.ts";
+import { brandByKey } from "./brand_registry.ts";
 import { resolveBrand, welcomeEmail } from "./welcome.ts";
 import { type Block, letter, PLATFORM } from "./email_shell.ts";
 import { sendSmtp } from "./smtp.ts";
@@ -127,7 +133,8 @@ export async function sendWelcome(
   opts: { lang?: string; accent?: string; mode?: string; source?: string | null; brand?: string },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
-  const brand = (opts.brand && brandByKey(opts.brand)) || resolveBrand(opts.source ?? null);
+  const brand = (opts.brand ? await brandByKey(opts.brand) : undefined) ??
+    resolveBrand(opts.source ?? null);
   const { subject, from, html, text } = welcomeEmail(opts.lang, {
     accent: opts.accent,
     mode: opts.mode,
@@ -154,7 +161,7 @@ export async function sendNoticeReceipt(
   opts: { id: string | null; brand?: string; lang?: string },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
-  const brand = (opts.brand && brandByKey(opts.brand)) || resolveBrand(null);
+  const brand = (opts.brand ? await brandByKey(opts.brand) : undefined) ?? resolveBrand(null);
   const reference = opts.id ? opts.id.slice(0, 8) : "—";
   const subject = `${brand.name}: your report has been received`;
   const blocks: Block[] = [
@@ -197,7 +204,7 @@ export async function sendNoticeDecision(
   opts: { id: string; brand: string; decision: "upheld" | "rejected"; facts: string },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
-  const brand = brandByKey(opts.brand) || resolveBrand(null);
+  const brand = (await brandByKey(opts.brand)) ?? resolveBrand(null);
   const outcome = opts.decision === "upheld"
     ? "We agreed with your report, and the content has been restricted."
     : "We did not agree with your report, and the content stays.";
@@ -289,7 +296,7 @@ export async function sendStatementOfReasons(
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
   if (!to.includes("@")) return false; // an identity, not an address — nothing to send to
-  const brand = brandByKey(opts.brand) || resolveBrand(null);
+  const brand = (await brandByKey(opts.brand)) ?? resolveBrand(null);
   const blocks: Block[] = [
     { kind: "text", value: `What was done: ${opts.restriction.replace(/_/g, " ")}.` },
     // Article 17(3)(a) asks for territorial scope and duration "where relevant".

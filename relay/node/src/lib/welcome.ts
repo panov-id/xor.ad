@@ -208,6 +208,13 @@ const T: Record<Lang, {
 // is not the only one wearing them, and while they lived here the operational
 // letters had nothing to wear at all.
 
+// How a brand writes its name in a given language. Russian is the only rendering
+// we actually have for sosed — it is the word the landing uses. The others fall
+// back to the English name rather than to a guess at how the word inflects.
+const LOCAL_BRAND_NAMES: Record<string, Partial<Record<Lang, string>>> = {
+  sosed: { ru: "сосед" },
+};
+
 const LANGS: Lang[] = [
   "en", "ru", "fr", "de", "es", "el", "uk", "be", "kk", "ka",
   "hy", "az", "uz", "ky", "tg", "ro",
@@ -219,7 +226,11 @@ export function welcomeEmail(
 ): { subject: string; from: string; html: string; text: string } {
   const lang: Lang = (LANGS.includes((langRaw ?? "") as Lang) ? langRaw : "en") as Lang;
   const B = opts.brand;
-  const rep = (s: string) => s.replaceAll("Neighbro.place", B.domain).replaceAll("Neighbro", B.name);
+  // A brand is named in English; some languages write it in their own script, and
+  // that rendering is a translation like any other word here. Anything not listed
+  // keeps the English name — a brand name is not something to invent a form for.
+  const localName = LOCAL_BRAND_NAMES[B.key]?.[lang] ?? B.name;
+  const rep = (s: string) => s.replaceAll("Neighbro.place", B.domain).replaceAll("Neighbro", localName);
   const raw = T[lang];
   const t = {
     subject: rep(raw.subject), preheader: rep(raw.preheader), hi: rep(raw.hi),

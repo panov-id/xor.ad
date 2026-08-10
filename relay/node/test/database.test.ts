@@ -629,6 +629,40 @@ Deno.test({
   },
 });
 
+Deno.test({
+  // Two functions were named brandByKey: one in config.ts reading the seed baked
+  // into the image, one in the registry reading the database. The mail imported
+  // the first, so a brand renamed through the panel kept signing its letters with
+  // the old identity — and the rename looked like it had simply not worked.
+  name: "a brand renamed in the registry is the one the letters use",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const key = "sosed";
+    const before = await database.queryOrThrow<{ name: string; upper: string }>(
+      `SELECT name, upper FROM brands WHERE key = $1`,
+      [key],
+    );
+    if (before.length === 0) return; // no registry row here: nothing this can prove
+
+    await database.queryOrThrow(
+      `UPDATE brands SET name = 'RegistryName', upper = 'REGISTRYNAME' WHERE key = $1`,
+      [key],
+    );
+    try {
+      const { brandByKey } = await import("../src/lib/brand_registry.ts");
+      const brand = await brandByKey(key);
+      assertEquals(brand?.name, "RegistryName", "the registry row is what a letter must read");
+      assertEquals(brand?.upper, "REGISTRYNAME");
+    } finally {
+      await database.queryOrThrow(
+        `UPDATE brands SET name = $2, upper = $3 WHERE key = $1`,
+        [key, before[0].name, before[0].upper],
+      );
+    }
+  },
+});
+
 // The pool holds connections open, and nothing else in a test process will close
 // them.
 addEventListener("unload", () => void database.closePool());

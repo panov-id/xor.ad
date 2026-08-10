@@ -17,9 +17,14 @@ export interface Brand {
   match: string[]; // substrings in source/host that map to this brand
 }
 
+// A brand's name is its English one. Everything here is written in English first
+// and translated after, so "сосед" is the Russian rendering of this brand rather
+// than the brand — it belongs with the other translations, in welcome.ts, and not
+// in the identity every letter reads. It leaked out of place the day an English
+// letter arrived headed СОСЕД.
 const DEFAULT_BRANDS: Brand[] = [
-  { key: "sosed", name: "сосед", upper: "СОСЕД", domain: "sosed.place",
-    from: "сосед <hey@sosed.place>", match: ["sosed"] },
+  { key: "sosed", name: "Sosed", upper: "SOSED", domain: "sosed.place",
+    from: "Sosed <hey@sosed.place>", match: ["sosed"] },
   { key: "neighbro", name: "Neighbro", upper: "NEIGHBRO", domain: "neighbro.place",
     from: "Neighbro <hello@neighbro.place>", match: ["neighbro"] },
 ];

@@ -170,7 +170,7 @@ export function letter(opts: {
 <body style="margin:0;padding:0;background:${colors.bg};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${colors.bg};">
  <tr><td align="center" style="padding:32px 16px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${colors.panel};border:${style.borderWidth} solid ${colors.border};border-radius:${style.radius};overflow:hidden;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:${colors.panel};border:${style.borderWidth} solid ${colors.border};border-radius:${style.radius};overflow:hidden;">
    <tr><td style="padding:22px 30px;border-bottom:3px solid ${accent};">
      <span style="font-family:${SANS};font-weight:800;font-size:18px;letter-spacing:1px;color:${colors.fg};">${
     escape(opts.brand.upper)

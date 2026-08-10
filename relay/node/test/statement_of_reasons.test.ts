@@ -135,3 +135,34 @@ Deno.test("a url in a reference block is an actual link", () => {
   // And the plain-text part keeps the url readable either way.
   assertStringIncludes(text, "https://xor.panov.id/auth/callback?token=x");
 });
+
+// An English letter arrived headed СОСЕД, because the brand's identity carried a
+// Russian name. Everything here is written in English first; a rendering in
+// another script is a translation, and translations belong with the other
+// translations rather than in the identity every letter reads.
+Deno.test("an operational letter is English, wordmark included", async () => {
+  const { config } = await import("../src/config.ts");
+  const sosed = config.brands.find((b) => b.key === "sosed")!;
+
+  const { html, text } = letter({
+    brand: sosed,
+    title: "Your report has been received",
+    blocks: [{ kind: "text", value: "We received your report." }],
+  });
+
+  assertStringIncludes(html, "SOSED");
+  // No Cyrillic anywhere in a letter whose every sentence is English.
+  assert(!/[А-Яа-яЁё]/.test(html), "an English letter must not be headed in Cyrillic");
+  assert(!/[А-Яа-яЁё]/.test(text), "the plain part must match");
+});
+
+Deno.test("the Russian welcome still says сосед", async () => {
+  const { welcomeEmail } = await import("../src/lib/welcome.ts");
+  const { config } = await import("../src/config.ts");
+  const sosed = config.brands.find((b) => b.key === "sosed")!;
+
+  // Moving the name out of the identity must not take it out of the language it
+  // belongs to: the landing greets Russian readers as сосед, and so does this.
+  assertStringIncludes(welcomeEmail("ru", { brand: sosed }).html, "сосед");
+  assertStringIncludes(welcomeEmail("en", { brand: sosed }).html, "Sosed");
+});

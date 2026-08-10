@@ -20,34 +20,69 @@ Key takeaways: minimalism and fewer metrics per screen, dark theme by default, c
 
 ## Stack
 
-- **[Refine](https://refine.dev/)** — a React framework for admin panels: a ready-made data provider and auth provider for Supabase, a growing plugin ecosystem — fits the fact that this panel will keep growing.
-- **Supabase** — the same shared backend the app uses (Postgres + Auth + Realtime), no separate backend for the panel.
-- Lives at `xor.ad/panel/` as a separate app within the gateway's repository.
+- **[Refine](https://refine.dev/)** — a React framework for admin panels. It came
+  from the first version and has earned its place: the panel grew from four
+  screens to nine.
+- **Our own node (relay), not Supabase.** The panel talks to the same Deno node
+  as the storefronts and uses its authorisation and its permissions
+  (`relay/node/src/access/`). The panel has no backend of its own.
+- Lives in `xor.ad/panel/` as a separate application inside the gateway
+  repository.
 
-## Authentication
+**Supabase was removed from this document on 2026-08-10.** It left the stack back
+in July, yet the spec kept describing its Auth, its Edge Functions and its RLS —
+three mechanisms that do not exist in this codebase.
 
-Passwordless, but two different mechanisms for two different situations — deliberately not merged into one, because doing that for self-service login would be a security hole (see below):
+## Authorisation
 
-- **Self-service sign-in** (an existing panel user) — a real **Supabase Auth Magic Link** by email: the link is emailed, and only whoever controls that inbox can use it. That's the only thing that actually proves "it's you" without a password. Requires a real SMTP provider — currently a placeholder in `.env`, no emails go out yet (see `scripts/setup-supabase.sh`).
-- **Inviting a new user** — an admin calls the `invite-panel-user` Edge Function, which creates a link via the Admin API and returns it in the response; the admin copies it and sends it to the invitee through whatever channel they trust (Telegram, a DM, etc.).
+Passwordless, magic-link, entirely on our own node
+(`relay/node/src/lib/auth.ts`):
 
-Important: an earlier version of this had self-service login also just handing the link back in an HTTP response for whatever email was typed in — with no check that the requester actually controlled that email. That effectively disabled authentication entirely (anyone who knew someone's email could sign in as them). That Edge Function (`request-login-link`) was removed. It's fine for invites, because the admin is the trust anchor there and picks the delivery channel themselves; self-service login has no such anchor — only real delivery to an owned inbox works.
+- **Signing in yourself** — a link to a confirmed address, alive for **15
+  minutes**, extinguished on first use.
+- **An invitation** — a link alive for **7 days**, also single-use, issued by
+  whoever holds `panel_users.write`.
+- **The session** — 7 days, in a cookie.
+
+Half the secret stays in the requesting browser, so a letter that fell into the
+wrong hands grants no entry by itself. The answer to a link request is always the
+same — `204` — and never says whether such an address exists.
 
 ## Roles
 
-- **admin** — full access, including adding new panel users (admin or moderator).
-- **moderator** — restricted rights: can see the waitlist/reports/bans, but can't add new panel users.
+Four, in a flat list with no inheritance — `relay/node/src/access/roles.ts` — and
+that is the only place where "what may this role do" is written:
 
-The role is stored in Postgres (a panel users table) and enforced through Supabase RLS policies — i.e., access is restricted at the database level, not just in the UI.
+| Role | What it may do |
+|---|---|
+| `admin` | everything, including permissions added later (`*`) |
+| `moderator` | waitlist, logs, **and Article 16 notices: read and decide** |
+| `viewer` | the waitlist only |
+| `tenant_admin` | everything inside their own brand: panel users, keys, logs. Deliberately not `*` |
 
-## MVP screens
+Permissions are checked **in the node's code** (`lib/access_guard.ts`), not by
+row-level protection in the database: there is no RLS anywhere in this codebase.
+The permission dictionaries of the panel and the node match line for line, and a
+test holds them there (`panel/src/access/access.test.ts`).
 
-1. **Sign-in** — email field → magic link.
-2. **Waitlist** — list of landing-page signups (email, source face, date). Both faces in one table.
-3. **Reports and bans** — view reports on messages/users, ban by UID.
-4. **Panel users** — list of admins/moderators, a form to invite a new panel user by email (admin-only).
+## Screens
 
-Quotas, support tickets, and the sticker catalog are the next stage, not part of this MVP.
+| Screen | What it does |
+|---|---|
+| Sign-in | email → magic link |
+| Waitlist | requests from both storefronts |
+| Article 16 notices | the queue, examination, a decision with its reasons |
+| Page views | our own counter, without IP or user agent |
+| Brands | the registry of faces: name, sender, palette |
+| Publishable keys | storefront keys and their allowed origins |
+| Secret keys | server-side keys, **including the daily quota** |
+| Logs | the panel audit log and client errors |
+| Panel users | the list and the invitation |
+
+**There is no bans screen, and no ban mechanism exists** — no route, no column.
+An earlier version of this document promised "ban by UID"; what the product has
+instead is hiding by complaints, blocking between people (`chat_EN.md` §8.9) and
+the Article 16 decision.
 
 ## Visual style
 
@@ -55,6 +90,10 @@ The same neo-brutalism as the landing pages (hard borders, sharp corners, un-blu
 
 ## Open questions
 
-- The exact SMTP provider for the magic link is not chosen yet.
-- The exact neutral accent color for the panel is not finalized.
-- The UI for managing quotas, support tickets, and the sticker catalog is not designed yet — will be added as the panel grows.
+- The exact neutral accent colour for the panel is not finalised.
+- The UI for support tickets and the sticker catalogue is not designed yet — it
+  will be added as the panel grows.
+
+Closed along the way: the mail sender is **Resend** (`docs/vendors-dpa_EN.md`),
+and invitations go through it too; **the quota UI is built** — the daily quota is
+edited on the secret keys screen.

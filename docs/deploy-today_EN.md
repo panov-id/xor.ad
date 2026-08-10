@@ -6,14 +6,20 @@
 > Bunny Storage, control state in a Postgres beside the node.
 > Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
 
+> **Checkboxes removed on 2026-08-10.** There were 12 of them here, all
+> describing work on a stack that no longer exists. An open checkbox is a promise
+> to do something; there is nothing to promise here, so the items stay as text
+> rather than tasks. The document is kept as the history of a decision, not as a
+> to-do list.
+
 A quick checklist to bring up **dev** and **uat** in one pass. Prod is separate, later.
 Full architecture is in `deployment_EN.md`. dev+uat share **one** Supabase project.
 
 ## 0. Create first (manual — accounts/keys only)
-- [ ] **Bunny.net** — Account API Key (Dashboard → Account → API Key).
-- [ ] **Supabase Cloud** — one project (shared dev+uat); **Management token** (Account → Access Tokens) and **project ref** (Settings → API).
-- [ ] **GitHub PAT** — Environments + Secrets (write) on `panov-id/{sosed.place, neighbro.place, xor.ad}`.
-- [ ] **Namecheap** — Profile → Tools → **enable API Access**; whitelist the host's egress IP (find it: `curl https://api.ipify.org`).
+- **Bunny.net** — Account API Key (Dashboard → Account → API Key).
+- **Supabase Cloud** — one project (shared dev+uat); **Management token** (Account → Access Tokens) and **project ref** (Settings → API).
+- **GitHub PAT** — Environments + Secrets (write) on `panov-id/{sosed.place, neighbro.place, xor.ad}`.
+- **Namecheap** — Profile → Tools → **enable API Access**; whitelist the host's egress IP (find it: `curl https://api.ipify.org`).
 
 ## 1. Config `deploy/.env.deploy` (gitignored)
 ```bash
@@ -55,9 +61,9 @@ dev.xor.panov.id          → panel-dev.b-cdn.net
 ```
 
 ## 4. Manual in Bunny (not cleanly covered by the API)
-- [ ] Enable **SSL** (Let's Encrypt) on every custom hostname (site, api.*, panel).
-- [ ] For `api.*` proxy zones: **disable caching**, **Origin Host Header = `<ref>.supabase.co`**, enable **WebSockets** (Pull Zone → General) — for Supabase Realtime.
-- [ ] Panel: **SMTP** in Supabase Auth for magic-link (otherwise sign-in only via a bootstrap link; on dev use `deploy/bootstrap-admin-cloud.sh`).
+- Enable **SSL** (Let's Encrypt) on every custom hostname (site, api.*, panel).
+- For `api.*` proxy zones: **disable caching**, **Origin Host Header = `<ref>.supabase.co`**, enable **WebSockets** (Pull Zone → General) — for Supabase Realtime.
+- Panel: **SMTP** in Supabase Auth for magic-link (otherwise sign-in only via a bootstrap link; on dev use `deploy/bootstrap-admin-cloud.sh`).
 
 ## 5. Deploy the files
 CI uploads on push to the environment branch (secrets are already set by the wizard):
@@ -69,11 +75,11 @@ UAT: merge `dev → main` → auto-tag → `Deploy UAT`.
 (No-CI alternative: `deploy/deploy-cdn.sh <sosed|neighbro|panel>` with zone names/keys filled in `.env.deploy`.)
 
 ## 6. Verify
-- [ ] `getent hosts dev.neighbro.panov.id` — resolves to b-cdn.net.
-- [ ] `https://dev.neighbro.panov.id` and `https://dev.sosed.panov.id` load (green TLS).
-- [ ] Waitlist: submit an email → success; row appears in Supabase (`waitlist`).
-- [ ] `https://dev.xor.panov.id` — panel loads; sign in via magic-link/bootstrap.
-- [ ] Repeat for `uat.*`.
+- `getent hosts dev.neighbro.panov.id` — resolves to b-cdn.net.
+- `https://dev.neighbro.panov.id` and `https://dev.sosed.panov.id` load (green TLS).
+- Waitlist: submit an email → success; row appears in Supabase (`waitlist`).
+- `https://dev.xor.panov.id` — panel loads; sign in via magic-link/bootstrap.
+- Repeat for `uat.*`.
 
 ## Notes
 - Everything is idempotent — re-running the wizard is safe.

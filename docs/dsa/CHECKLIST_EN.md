@@ -59,8 +59,8 @@ are gone and what follows is only what is genuinely unbuilt.
       `sendStatementOfReasons` (Art. 17(3)) in `lib/mailer.ts`. The notifier's
       identity is never disclosed to the author; the redress routes are named,
       including the fact that we run no formal internal appeal.
-- [x] **Panel routes** — `routes/dsa.ts`: the queue `GET /admin/dsa/notices` and
-      the decision `POST /admin/dsa/notices/:id/decide`. The decision does not
+- [x] **Panel routes** — `routes/dsa.ts`: the queue `GET /admin/dsa-notices` and
+      the decision `POST /admin/dsa-notices/:id/decide`. The decision does not
       accept a status — it accepts the reasoning and writes the status from it;
       an upheld notice requires the restriction, the ground and the addressee, or
       the Art. 17 statement would be blank.

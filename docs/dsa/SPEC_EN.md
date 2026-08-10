@@ -41,8 +41,8 @@ Mandatory (Art. 16(2)):
 | `target_kind` | enum | `feed_message` \| `offer` \| `chat` \| `other` |
 | `target_id` | string | pre-filled when opened from a card |
 | `reason_text` | text | **the reasoning** why the notifier believes the content is illegal |
-| `notifier_name` | string | **except** for the case in §5.1 |
-| `notifier_email` | string | **except** for the case in §5.1 |
+| `notifier_name` | string | asked for, not required — see below |
+| `notifier_email` | string | asked for, not required — see below |
 | `bona_fide` | checkbox | "the information is accurate and complete to the best of my knowledge" |
 
 There are no further free fields. The notifier does not pick an offence category
@@ -56,8 +56,16 @@ under Art. 16(3) and gives nothing to examine. The form does not submit without 
 
 On **creation** of a notice, before any examination:
 
-    if the target still exists → store a snapshot: text, zone, created_at, author_identity_id
-    if the target already expired → snapshot = null, status = target_gone
+    if the target still exists → store a snapshot: text, mode, lat, lon, area_radius,
+                                 created_at, author_identity  (names per chat_EN.md §8.3)
+    if the target already expired → snapshot = null, snapshot_state = target_gone
+
+The state of the snapshot lives in **its own column**, not in `status`. This is
+what migration `006` fixed: while "there is no snapshot" was a status value, such
+notices never reached the moderator's queue (`WHERE status IN
+('received','in_review')`) and were never examined at all — contrary to Art. 16.
+`status` answers "what did we decide", `snapshot_state` answers "did we manage to
+take a copy", and the two must not be mixed.
 
 The snapshot is held inside the notice record. There is no separate table of
 "retained messages": a snapshot does not outlive its notice and is used for
@@ -70,9 +78,9 @@ consent. Retention: one year, together with the notice.
 
     received → confirmation to the notifier (automatic, immediate)
         │
-        ├─ target_gone ──────► reply: the content is already gone ──► closed
-        │
-        ├─ chat ─────────────► reply: the content is unreachable, see §5.2 ──► closed
+        ├─ snapshot_state = target_gone ───┐  no copy, but the notice stays
+        │                                  ├─ in the queue and is examined
+        ├─ snapshot_state = not_accessible ┘  by a human all the same
         │
         └─ examined by a human
                │
@@ -93,8 +101,19 @@ deadline that one person cannot hold through a holiday is worse than no deadline
 ### 5.1. The exception for offences against children
 
 Where a notice concerns child sexual exploitation, the notifier's name and email
-are **not requested** (Art. 16(2)(c)). The form offers a separate path without
-those fields. Such a notice jumps the queue and is accompanied by a report to law
+are **not required** (Art. 16(2)(c)).
+
+This is implemented not as a separate form but by leaving those fields optional
+**for everyone**, with a line beside them: "if your report concerns the sexual
+abuse of children, leave the name and email empty". The node never requires them
+under any circumstance (`routes/report.ts`).
+
+That is deliberate. A separate path would have a person label their own notice
+"this is about children" before writing a word, choosing it on the screen where
+mistakes are easiest. And refusing a notice over a missing name is precisely what
+Art. 16(2)(c) does not allow — so nothing is mandatory anywhere, ordinary cases
+included. The price is stated plainly: some notices arrive with no return
+address, and there is nobody to answer under Art. 16(4). Such a notice jumps the queue and is accompanied by a report to law
 enforcement under Art. 18.
 
 ### 5.2. A notice about chat content
@@ -193,7 +212,9 @@ the feed mechanic.
         notifier_name           # null for the §5.1 case
         notifier_email          # null for the §5.1 case
         bona_fide               # boolean, must be true
-        status                  # received | in_review | upheld | rejected | target_gone | not_accessible
+        status                  # received | in_review | upheld | rejected
+        snapshot_state          # received | target_gone | not_accessible
+        brand                   # which face it came through
         automated_used          # boolean, for the Art. 16(6) reply
         created_at
         acknowledged_at
@@ -203,7 +224,7 @@ the feed mechanic.
         id
         notice_id               # null where the restriction was on our own initiative
         target_id
-        recipient_identity_id
+        recipient_identity
         restriction             # removed | hidden | offer_taken_down | access_restricted
         facts
         ground_kind             # legal | contractual

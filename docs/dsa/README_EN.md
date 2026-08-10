@@ -253,9 +253,16 @@ The Terms now name the authority outright; the generic wording is gone.
 
 ## 8. What remains to be done
 
-The full list is in [CHECKLIST_EN.md](./CHECKLIST_EN.md). In short: the product
-has **no** Art. 16 notice mechanism. There is a complaint on the card that counts
-votes against showing something — not the same thing: it accepts no reasoning,
-confirms no receipt and answers no notifier. Until the mechanism is built, the
-Art. 16 duty is covered only by the support address, which has no procedure
-attached to it.
+The full list is in [CHECKLIST_EN.md](./CHECKLIST_EN.md). In short: the Art. 16
+notice mechanism **is built and in service** — a form on both storefronts,
+intake in `routes/report.ts`, a queue and a decision in the panel, an
+acknowledgement of receipt and a statement of reasons by email. The end-to-end
+run on staging passed on 2026-08-09 (CHECKLIST, "Verification").
+
+The complaint on the card that counts votes against showing something is still
+there and is still a different mechanism: it accepts no reasoning, confirms no
+receipt and answers no notifier. The two must not be mixed (§6).
+
+What does remain: the gaps in the Art. 17(3) statement of reasons, and the path
+for showing that statement to an author with no email — both are in the
+open-work list.

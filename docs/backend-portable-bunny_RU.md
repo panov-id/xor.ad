@@ -6,6 +6,11 @@
 > Bunny Storage, управляющее состояние в Postgres рядом с узлом.
 > Действующее решение и его основания: `state-decision_RU.md`.
 
+> **Галочки сняты 10.08.2026.** В этом файле их было 38, и все они описывали
+> работу по стеку, которого нет. Открытая галочка — это обещание сделать; здесь
+> обещать нечего, поэтому пункты остались текстом, а не задачами. Документ
+> сохранён как история решения, а не как список дел.
+
 Направление: **свои Docker-контейнеры, которые не зависят от того, где стоят.**
 Сегодня — на Bunny Magic Containers, завтра — на Hetzner/Fly/Railway/любом
 `docker run`, без переписывания. Никакого Supabase-стека и никакой
@@ -126,68 +131,68 @@ persistent volume под данные. Всё на Bunny, один вендор.
 поднимаем на Bunny. Так портируемость проверяется с первого дня.
 
 ### Фаза 0 — решения (перед стартом)
-- [ ] Выбрать стек контейнера: Deno+Hono / Node+Fastify / Go
-- [ ] Выбрать БД: **Вариант 1 (Neon managed)** vs Вариант 2 (PG в pod'е)
-- [ ] Подтвердить у Bunny support неописанное: scale-to-zero, лимиты WS
+- Выбрать стек контейнера: Deno+Hono / Node+Fastify / Go
+- Выбрать БД: **Вариант 1 (Neon managed)** vs Вариант 2 (PG в pod'е)
+- Подтвердить у Bunny support неописанное: scale-to-zero, лимиты WS
       (concurrency/sticky), min CPU/RAM контейнера
-- [ ] Зафиксировать список эндпоинтов API (из текущих лендинга/панели/функций)
+- Зафиксировать список эндпоинтов API (из текущих лендинга/панели/функций)
 
 ### Фаза 1 — скелет бэкенда (локально)
-- [ ] Репозиторий бэкенда + Dockerfile (один образ)
-- [ ] Конфиг только через env: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
+- Репозиторий бэкенда + Dockerfile (один образ)
+- Конфиг только через env: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
       `VAPID_*`, `BUNNY_STORAGE_*`, `PORT`
-- [ ] Health-эндпоинты: startup / readiness / liveness
-- [ ] `docker-compose.yml` (api + postgres:16) для локальной разработки
-- [ ] CORS под домены лендингов/панели
+- Health-эндпоинты: startup / readiness / liveness
+- `docker-compose.yml` (api + postgres:16) для локальной разработки
+- CORS под домены лендингов/панели
 
 ### Фаза 2 — БД и миграции
-- [ ] Схема: 5 текущих таблиц + `posts` (лента) + `messages` (чат, `expires_at`)
-- [ ] Перенести `db/migrations/*` (адаптировать `deploy/apply-migrations-cloud.sh`
+- Схема: 5 текущих таблиц + `posts` (лента) + `messages` (чат, `expires_at`)
+- Перенести `db/migrations/*` (адаптировать `deploy/apply-migrations-cloud.sh`
       под новый `DATABASE_URL`)
-- [ ] **Вариант 1:** Neon-проект + 3 ветки dev/UAT/prod, прогнать миграции
-- [ ] **Вариант 2:** том в pod'е, `pg_dump`-cron → Bunny Storage + тест
+- **Вариант 1:** Neon-проект + 3 ветки dev/UAT/prod, прогнать миграции
+- **Вариант 2:** том в pod'е, `pg_dump`-cron → Bunny Storage + тест
       восстановления
-- [ ] Авторизация вместо RLS: правила в коде роутов (или включить Postgres RLS)
+- Авторизация вместо RLS: правила в коде роутов (или включить Postgres RLS)
 
 ### Фаза 3 — портировать существующее
-- [ ] `invite-panel-user` → роут
-- [ ] `send-waitlist-welcome` → роут (Resend уже настроен)
-- [ ] JWT-gateway → middleware проверки сессии
-- [ ] magic-link: выпуск токена + письмо (Resend) + верификация → session JWT
-- [x] ~~web-push (VAPID)~~ — отменён 07.08.2026, см. `pwa-push_RU.md`
+- `invite-panel-user` → роут
+- `send-waitlist-welcome` → роут (Resend уже настроен)
+- JWT-gateway → middleware проверки сессии
+- magic-link: выпуск токена + письмо (Resend) + верификация → session JWT
+- ~~web-push (VAPID)~~ — отменён 07.08.2026, см. `pwa-push_RU.md`
 
 ### Фаза 4 — realtime
-- [ ] WS-сервер в контейнере: лента + исчезающий чат
-- [ ] TTL эфемерки: ленивый фильтр `WHERE expires_at > now()` + периодическая
+- WS-сервер в контейнере: лента + исчезающий чат
+- TTL эфемерки: ленивый фильтр `WHERE expires_at > now()` + периодическая
       чистка (cron/интервал в контейнере — своего cron у Bunny нет)
-- [ ] На альфе — 1 реплика WS (без sticky-роутинга)
-- [ ] Нагрузку/лимиты вынести в отдельную задачу перед публичным запуском
+- На альфе — 1 реплика WS (без sticky-роутинга)
+- Нагрузку/лимиты вынести в отдельную задачу перед публичным запуском
 
 ### Фаза 5 — деплой на Bunny
-- [ ] Собрать образ → container registry
-- [ ] Magic Containers app на каждое env (Terraform
+- Собрать образ → container registry
+- Magic Containers app на каждое env (Terraform
       `bunnynet_compute_container_app`), min=max=1 на альфе
-- [ ] Anycast IP (для WS), env-секреты, health-checks
-- [ ] (Вариант 2) Postgres — контейнером в том же pod'е, persistent volume, том
+- Anycast IP (для WS), env-секреты, health-checks
+- (Вариант 2) Postgres — контейнером в том же pod'е, persistent volume, том
       пиннится к региону
 
 ### Фаза 6 — cutover
-- [ ] Переключить `api.*` proxy-зоны / конфиг лендингов и панели: dev → uat → prod
-- [ ] Прогнать e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
-- [ ] Смоук: вейтлист-сабмит, вход в панель по magic-link, web-push
-- [ ] Свернуть Supabase-проекты после подтверждения
+- Переключить `api.*` proxy-зоны / конфиг лендингов и панели: dev → uat → prod
+- Прогнать e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
+- Смоук: вейтлист-сабмит, вход в панель по magic-link, web-push
+- Свернуть Supabase-проекты после подтверждения
 
 ### Чеклист портируемости (инвариант — не нарушать)
-- [ ] Никакой Bunny-специфики в несущем пути (не тащить Edge Scripting/libSQL как
+- Никакой Bunny-специфики в несущем пути (не тащить Edge Scripting/libSQL как
       обязательные — только Docker + Postgres-wire)
-- [ ] Всё поднимается локально одним `docker compose up`
-- [ ] Переезд с Bunny = сменить хост образа и/или `DATABASE_URL`, без правок кода
-- [ ] Storage за абстракцией (Bunny Storage ↔ R2/B2 меняются конфигом)
+- Всё поднимается локально одним `docker compose up`
+- Переезд с Bunny = сменить хост образа и/или `DATABASE_URL`, без правок кода
+- Storage за абстракцией (Bunny Storage ↔ R2/B2 меняются конфигом)
 
 ### Чеклист бэкапов/durability (обязательно до прода)
-- [ ] Вариант 1: проверить, что Neon PITR/бэкапы включены на prod-ветке
-- [ ] Вариант 2: `pg_dump` по cron → Bunny Storage + **проверенное** восстановление
-- [ ] Прод-данные изолированы (отдельная БД/ветка/бокс), не делят с dev/uat
+- Вариант 1: проверить, что Neon PITR/бэкапы включены на prod-ветке
+- Вариант 2: `pg_dump` по cron → Bunny Storage + **проверенное** восстановление
+- Прод-данные изолированы (отдельная БД/ветка/бокс), не делят с dev/uat
 
 ## Итог
 

@@ -102,7 +102,7 @@
 - [x] CSP добавлен в `neighbro.place/landing/index.html` и `legal.html` (`<meta http-equiv>`): same-origin only + Google Fonts; `connect-src 'self'` (Supabase через gateway).
 - [x] RLS-аудит: `waitlist` гранты ужаты (anon только INSERT, authenticated только SELECT); создана недостающая таблица `push_subscriptions` (`db/migrations/0003_push_subscriptions.sql`) с тем же RLS-паттерном (anon insert-only, панель select) и ужатыми грантами. Тесты в `panel/tests/e2e/anon-writes-rls.spec.ts`.
 - [x] `unique(waitlist.email)` добавлен (`db/migrations/0004_waitlist_unique_email.sql`, с дедупом существующих) — 409 из №12 теперь реален, дубли невозможны.
-- [ ] Rate-limit на anon-inserts: **не в нашем слое** — прод = Supabase Cloud + CDN, своего nginx в проде нет (единственный `nginx.conf` — локальный dev-стенд). Оставлено как зона Supabase Cloud / edge, в dev-заглушку не добавляю (сломало бы e2e без прод-пользы).
+- [x] Rate-limit на anon-inserts — **сделан 05.08.2026, в своём слое.** Запись выше была неверна дважды: Supabase из тракта вынесен, а слой у нас теперь свой. Лимит живёт в `relay/node/src/lib/rate_limit.ts` вместе с `lib/client_ip.ts` и honeypot-полем; см. `open-work_RU.md` G4.
 - **Проблема:** нет CSP при инлайн-скриптах и внешних Google Fonts; клиент теоретически может слать произвольные поля в insert (`early_access` и др.).
 - **Решение:** добавить CSP (`script-src 'self' 'unsafe-inline'` или хеши, `connect-src` для Supabase, `font-src`/`style-src` для Google Fonts); подтвердить жёсткие RLS-политики по колонкам + rate-limit на `waitlist`/`push_subscriptions`.
 - **Критерий готовности:** CSP активен; вставка произвольных полей отклоняется на стороне БД.
@@ -138,7 +138,7 @@
 - [x] `panel/src/providers/auth.ts` — `onError` инициирует logout+redirect на 401/403. ✅
 - [x] `panel/tests/report/**` — в git не трекается (0 файлов); добавил `tests/report`/`tests/results` в `panel/.gitignore` как подстраховку. ✅
 - [x] `panel/src/providers/constants.ts` — fallback на localhost/демо-anon оставлен только в dev (`import.meta.env.DEV`); в prod-сборке отсутствие `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` бросает ошибку (проверено: throw в прод-бандле). `tests/helpers/env.ts` — тест-инфра, fallback оставлен намеренно. ✅ (`panel/.env` удалён ранее в №9)
-- [ ] Нет юнит-тестов, только e2e. Не покрыто: logout, orphan-откат invite, copy-link, повторный invite, дубликат email. Добить сценарии.
+- [x] Юнит-тесты панели — **есть с 05.08.2026** (vitest, отдельный прогон `.github/workflows/panel.yml`); см. `open-work_RU.md` G1. Перечисленные сценарии всё ещё не покрыты — это остаток, а не отсутствие тестов.
 - [x] `panel/src/App.css` — self-host шрифтов: woff2 в `panel/public/fonts/`, `@import "./fonts.css"`, preload в `panel/index.html`. Убран Google CDN `@import`. ✅ (переход на единый variable-шрифт — отдельная дизайн-задача)
 
 ### Лендинг
@@ -151,11 +151,11 @@
 - [x] `index.html`/`legal.html` — self-host шрифтов: 15 woff2-сабсетов в `landing/fonts/` + `fonts.css`, preload latin-фейсов, `fonts.css` в SW precache. Google preconnect/link убраны, **CSP ужат до `font-src 'self'`**. Скрипт `scripts/fetch-fonts.sh`. ✅
 - [x] `index.html` — email-инпут получает `aria-label` из i18n (в `applyLang`). ✅
 - [x] `index.html` — оба `.status` получили `role="status" aria-live="polite"`. ✅
-- [ ] `index.html` — тексты в мокапах захардкожены по-английски. **Отложено:** мокапы декоративные (в основном под `aria-hidden`); вынос в i18n — объёмная задача, низкий приоритет.
+- [ ] `index.html` — тексты в мокапах захардкожены по-английски. **Отложено**, ведётся как `open-work_RU.md` G3 — здесь дубль, решение там.
 - [x] `index.html` — мёртвый i18n-ключ `sayPh` удалён из всех 6 языков. ✅
 - [x] `sw.js` — offline-fallback для навигаций (`mode:navigate` → кэшированный `/`). ✅
 - [x] `sw.js` — дубль `/`+`/index.html` в precache убран (оставлен `/`). ✅
-- [ ] `manifest.json` — `lang:"en"`. **Не меняю:** метаданные установленного PWA с брендовым (языконезависимым) именем; валидно как есть.
+- [x] `manifest.json` — `lang:"en"`: **won't-fix**, метаданные установленного PWA с брендовым именем валидны как есть. Дубль `open-work_RU.md` G5, решение там.
 
 ---
 

@@ -72,13 +72,24 @@ in a way that suggests we wrote it or vouch for it. Say plainly that it is yours
 
 ## The client key
 
-A client identifies itself to the node with its own key (`docs/depth-client_EN.md`
-§2.5). Ask us for one; we issue it, and **we can revoke it**. Revocation is what
-"we may cut you off" means in practice, and it is the only enforcement mechanism
-here — there is no penalty, no claim and no procedure beyond it.
+A client identifies itself to the node with a key. Ask us for one.
 
-We will say why, and where the abuse is not deliberate we will say so before
-revoking rather than after.
+**This is not the key baked into the `depth` image.** That one is the brand's,
+shared by every container in the world, and it is deliberately not revocable —
+`docs/depth-client_EN.md` §2.5 replaces revocation with overlap there, because
+pulling it would break every pinned digest running anywhere at once. A key issued
+to you is yours alone, and it **can** be revoked without touching anyone else.
+
+Revocation is what "we may cut you off" means in practice, and it is the only
+enforcement mechanism here — there is no penalty, no claim and no procedure
+beyond it. We will say why, and where the abuse is not deliberate we will say so
+before revoking rather than after.
+
+**Not built yet.** Per-author keys do not exist in the node's code today; the key
+type they need is an open item (`docs/open-work_EN.md` G9). Until it lands there
+is nothing to issue and nothing to revoke, and the only limits in force are the
+ones per address and per identity. These terms are written ahead of the mechanism
+on purpose, so that the mechanism is built to them.
 
 ## What we do not offer
 

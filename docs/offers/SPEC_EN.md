@@ -301,7 +301,7 @@ Field rules:
 | `AUTOHIDE_COMPLAINTS` | 3 | Complaints from **different** users |
 | `COMPLAINT_MONTHLY_LIMIT` | 5 | Per user |
 | `ACTIVATION_CODE_TTL` | 30 days | The lifetime of the code from the letter |
-| `COMPLAINT_RETENTION` | 1 year | After that, an anonymised aggregate only |
+| ~~`COMPLAINT_RETENTION`~~ | — | Removed 2026-08-10: complaints have no period of their own, they share the profile's (§13) |
 | `PRIVATE_ACTIVE_OFFERS` | 1 | Live offers per identity at a time |
 | `COMPLAINT_EXAMINATION_HOURS` | 24 | The examination period for a hidden offer |
 | `SUSPEND_RESOLVED_COUNT` | 3 | Justified complaints on different offers before suspension |

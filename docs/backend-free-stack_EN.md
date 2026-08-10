@@ -12,6 +12,12 @@ with no rewrite).
 
 > Build on the current Deno Deploy platform (console.deno.com) — figures below are for it.
 
+> **Checkboxes removed on 2026-08-10.** There were 34 of them here, all
+> describing work on a stack that no longer exists. An open checkbox is a promise
+> to do something; there is nothing to promise here, so the items stay as text
+> rather than tasks. The document is kept as the history of a decision, not as a
+> to-do list.
+
 ## Why this fits "no more paying"
 
 - **An always-on Bunny container would burn credit 24/7** (RAM + Anycast IP ≈
@@ -165,61 +171,61 @@ realtime WS + cron, all 3 envs in one place.
 ## Phased plan + checklists
 
 ### Phase 0 — decisions
-- [ ] Hosting: **free managed** (Neon+Deno) vs **cheap VPS** vs **hybrid**
+- Hosting: **free managed** (Neon+Deno) vs **cheap VPS** vs **hybrid**
       (VPS + Neon) — see the comparison section above
-- [ ] Accounts: Neon, Deno Deploy (console.deno.com), Resend (have it)
-- [ ] Neon: 1 project + `dev`/`uat`/`prod` branches (within the 10-branch limit)
+- Accounts: Neon, Deno Deploy (console.deno.com), Resend (have it)
+- Neon: 1 project + `dev`/`uat`/`prod` branches (within the 10-branch limit)
       **or** 3 projects
-- [ ] Freeze the API endpoint list (from landing/panel/functions)
+- Freeze the API endpoint list (from landing/panel/functions)
 
 ### Phase 1 — backend skeleton (local, Deno)
-- [ ] Deno project: router (Hono/oak), `deno.json`, `dev`/`deploy` tasks
-- [ ] Config via env only: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
+- Deno project: router (Hono/oak), `deno.json`, `dev`/`deploy` tasks
+- Config via env only: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
       `VAPID_*`, `BUNNY_STORAGE_*`
-- [ ] DB driver: **`@neondatabase/serverless`** (HTTP, cold-start-friendly) or
+- DB driver: **`@neondatabase/serverless`** (HTTP, cold-start-friendly) or
       pooled string (`-pooler`)
-- [ ] CORS for landing/panel domains; health endpoint
-- [ ] `docker-compose`/`deno task dev` + local Postgres for offline dev
+- CORS for landing/panel domains; health endpoint
+- `docker-compose`/`deno task dev` + local Postgres for offline dev
 
 ### Phase 2 — DB and migrations
-- [ ] Schema: the 5 current tables + `posts` (feed) + `messages` (chat, `expires_at`)
-- [ ] Run `db/migrations/*` on dev/uat/prod branches (adapt
+- Schema: the 5 current tables + `posts` (feed) + `messages` (chat, `expires_at`)
+- Run `db/migrations/*` on dev/uat/prod branches (adapt
       `deploy/apply-migrations-cloud.sh` to the Neon URL)
-- [ ] Authorization instead of RLS: checks in route code (or enable Postgres RLS —
+- Authorization instead of RLS: checks in route code (or enable Postgres RLS —
       Neon supports it)
-- [ ] Connect via the **pooled** endpoint (serverless churn)
+- Connect via the **pooled** endpoint (serverless churn)
 
 ### Phase 3 — port the existing pieces
-- [ ] `invite-panel-user` → route
-- [ ] `send-waitlist-welcome` → route (Resend)
-- [ ] JWT gateway → session middleware (WebCrypto ES256/HS256)
-- [ ] magic-link: issue token + email (Resend) + verify → session JWT
-- [x] ~~web-push (VAPID)~~ — cancelled 07.08.2026, see `pwa-push_EN.md`
+- `invite-panel-user` → route
+- `send-waitlist-welcome` → route (Resend)
+- JWT gateway → session middleware (WebCrypto ES256/HS256)
+- magic-link: issue token + email (Resend) + verify → session JWT
+- ~~web-push (VAPID)~~ — cancelled 07.08.2026, see `pwa-push_EN.md`
 
 ### Phase 4 — ephemera and realtime
-- [ ] `Deno.cron` (hourly): `DELETE ... WHERE expires_at < now()` + lazy read filter
-- [ ] Feed via a polling endpoint (cheap on CPU/requests)
-- [ ] Chat via `Deno.upgradeWebSocket`; client auto-reconnect; state in Neon
-- [ ] Watch Deno CPU-hours and Neon CU-hours (metrics)
+- `Deno.cron` (hourly): `DELETE ... WHERE expires_at < now()` + lazy read filter
+- Feed via a polling endpoint (cheap on CPU/requests)
+- Chat via `Deno.upgradeWebSocket`; client auto-reconnect; state in Neon
+- Watch Deno CPU-hours and Neon CU-hours (metrics)
 
 ### Phase 5 — deploy and cutover
-- [ ] Deno Deploy: dev/uat/prod projects/envs, secrets, custom domains (`api.*`)
-- [ ] Repoint `api.*`/landing + panel config: dev → uat → prod
-- [ ] e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
-- [ ] Smoke: waitlist submit, panel magic-link login, web-push
-- [ ] Tear down Supabase projects after confirmation
+- Deno Deploy: dev/uat/prod projects/envs, secrets, custom domains (`api.*`)
+- Repoint `api.*`/landing + panel config: dev → uat → prod
+- e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
+- Smoke: waitlist submit, panel magic-link login, web-push
+- Tear down Supabase projects after confirmation
 
 ### "Stay at €0" checklist
-- [ ] Neon: data < 0.5 GB/project; compute < 100 CU-hrs (don't over-run cron/WS)
-- [ ] Deno: < 1M requests, **< 15 CPU-hours**, < 20 GB egress/mo
-- [ ] `Deno.cron` no more than hourly; enable WS deliberately and monitor CPU
-- [ ] Bunny: add no new products; watch remaining credit (CDN/Storage traffic)
-- [ ] Set alerts on Neon/Deno limits before you hit paid
+- Neon: data < 0.5 GB/project; compute < 100 CU-hrs (don't over-run cron/WS)
+- Deno: < 1M requests, **< 15 CPU-hours**, < 20 GB egress/mo
+- `Deno.cron` no more than hourly; enable WS deliberately and monitor CPU
+- Bunny: add no new products; watch remaining credit (CDN/Storage traffic)
+- Set alerts on Neon/Deno limits before you hit paid
 
 ### Backups checklist
-- [ ] Neon PITR (6 h) on for the prod branch; periodic `pg_dump` to Bunny Storage
+- Neon PITR (6 h) on for the prod branch; periodic `pg_dump` to Bunny Storage
       as a safety net + a tested restore
-- [ ] Prod data isolated (own branch/project), not shared with dev/uat
+- Prod data isolated (own branch/project), not shared with dev/uat
 
 ## Bottom line
 

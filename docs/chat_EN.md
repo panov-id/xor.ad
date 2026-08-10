@@ -1071,9 +1071,11 @@ What "the chat is done" means, checkable rather than eyeballed:
   reconnecting to a neighbour, the person continues the same chat with the same
   history.
 - An identity transferred to a second device shows **the same chats and empty
-  windows** there; the previous device freezes and, once the identity comes
-  back, shows its entire history again. An empty window on the new device is not
-  a defect (§8.13).
+  windows** there; the previous device freezes and, once the identity comes back,
+  shows its entire history again — **in a browser**. `depth` has nothing to bring
+  back: it writes nothing to disk but keys, so its windows are as empty after a
+  return as they are on a new device. An empty window is not a defect in either
+  case (§8.13).
 - Ten wrong PINs burn the share, and the local database then **opens with
   nothing** — tested against a live node, not by reasoning.
 - A frozen session stops receiving messages **immediately**, including in the

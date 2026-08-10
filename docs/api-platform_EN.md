@@ -1,14 +1,24 @@
 # API platform: public API, webhooks, notifications, queues
 
-A draft for discussion. Nothing is built — this is the map of the forks and what each
-one costs. The decisions come before the code because one of them changes the node's
-architecture outright (see "The central tension").
+The map of the forks and what each one costs. The decisions come before the code
+because one of them changes the node's architecture outright (see "The central
+tension").
+
+**Part of this document has stopped being a draft** (updated 2026-08-10). Until
+10 August it said "nothing is built", while these were built and running: `/v1`
+(`routes/v1.ts`), secret keys with quotas (`db/002`, `db/004`, `lib/quota.ts`),
+idempotency on `/v1/waitlist` (`lib/idempotency.ts`), the job queue (`db/001`,
+`lib/jobs.ts`) and Postgres beside the node. What remains a draft is everything
+below about webhooks and notifications.
 
 ## What exists today
 
 | Piece | State |
 | --- | --- |
-| HTTP node | Deno, own router, `POST /waitlist`, `POST /client-error`, `GET /health`, `GET /metrics` |
+| HTTP node | Deno, own router: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /metrics` |
+| Public API | `/v1/waitlist`, `/v1/pageview`, `/v1/client-error` under a secret key |
+| Admin routes | `/admin/*`: brands, keys, quotas, logs, Article 16 notices |
+| Article 16 notices | intake, queue, decision, letters — built (`docs/dsa/`) |
 | Chat | stub slot `GET /chat` → 501 |
 | Storage | an "object per record" abstraction: Bunny Storage on the pool, `fs` on the local stand |
 | Mail | Resend (per brand) / SMTP on the stand |
@@ -258,7 +268,7 @@ event gets fanned out to channels by hand all over again.
 ```ts
 interface Job {
   id: string;
-  kind: string;            // "webhook.deliver" | "email.send" | "push.send"
+  kind: string;            // "webhook.deliver" | "email.send"
   payload: unknown;
   run_at: string;          // delayed start and backoff
   attempts: number;

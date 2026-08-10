@@ -335,13 +335,16 @@ reference), counted over a given user's feed. Systemic, not configurable.
 
 **Moderation cannot keep up with a post's life.** An offer lives hours; manual moderation
 within a day means it dies unseen.
-*Answer:* the first 2–3 offers of a new business go through pre-moderation, after which a
-`verified` venue publishes instantly with post-moderation.
+*Answer:* publication is immediate for everyone, and what compensates for it is the automatic
+checks at publication, the interstitial, and the moderator's "hide now" button (`SPEC_EN.md` §6,
+§6.1, §15). Pre-moderating the first offers was considered and rejected: the queue eats exactly
+the hours the offer lives for.
 
 **An offer as a pretext for a link.** A token discount for the sake of a channel.
-*Answer:* pre-moderation of the first offers — a person decides by eye, with no threshold.
-Checking the domain against phishing lists is mandatory: `verified` does not guarantee a safe
-link.
+*Answer:* checking the domain against reputation lists is mandatory and automatic — `verified`
+does not guarantee a safe link — plus the interstitial with the full domain and a report button.
+Two complaints from different people are enough for the link to be extinguished by itself
+(`SPEC_EN.md` §10.1).
 
 **The promo code stopped working.** The limit on the business's side ran out, the code was
 cancelled.
@@ -353,7 +356,10 @@ business is advised to cap redemptions in its own system rather than rely on luc
 it writes "say that you are a neighbour". Not a line of code.
 
 **The same thing every day.** An identical daily offer becomes wallpaper.
-*Answer:* a rate limit per business, 2–3 times a week as a reference.
+*Answer:* the feed quota rather than a limit on the author. `FEED_OFFER_QUOTA` holds the share
+of offers in each person's delivery, so an identical daily offer does not become wallpaper even
+if the business keeps publishing it. A business's publication rate is deliberately unlimited
+(`SPEC_EN.md` §4); the limit belongs to private authors — `PRIVATE_ACTIVE_OFFERS`.
 
 ### Legal
 

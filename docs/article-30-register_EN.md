@@ -33,14 +33,16 @@ processing is identical and only the storefront differs, so the record is shared
 - **Data.** The identity's identifier and public key, display name, age,
   settings. **There is no browser fingerprint** — neither the basic one nor the
   wider one: the mechanism was removed entirely, along with the consent for it.
-- **Sessions.** For each connected device: a public signing key, a label such as
-  "Chrome, Android", creation and last-seen times, and a reference to the
-  session that invited it. They exist so a person can see their own devices and
-  disconnect any of them.
+- **Session.** An identity has exactly **one live session** (`chat_EN.md` §8.2):
+  a public signing key, a label such as "Chrome, Android" as the device sent it,
+  and creation and last-seen times. Moving an identity to another device freezes
+  the previous session rather than disconnecting it: `frozen_at`. There are no
+  separate "connected devices" and no reference to an inviting session.
 - **Recipients.** None: it lives in the browser and in our own database beside
   the node.
-- **Retention.** For as long as the person uses the service; a session lives
-  until it is revoked or the identity is closed.
+- **Retention.** For as long as the person uses the service. A frozen session is
+  kept while the identity can still return to it; one unseen for a year is
+  cleaned up together with its key share (see "Chat").
 
 ### 2. Area of visibility
 
@@ -213,11 +215,22 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 
 - [x] **The Bunny DPA is concluded** — the signed v1 of 2022-12-17 was received on
       2026-08-05. Art. 28 is closed.
-- [x] **Bunny transfers — decided 2026-08-05.** The agreement carries no SCCs, but
-      every storage zone sits in region `DE` with no replication, and neither chat
-      nor the feed goes there. What crosses the border is the edge log alone (IP and
-      page address) — accepted as a residual risk, see
-      [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md).
+- [x] **Bunny transfers — revisited 2026-08-10.** The decision stands (accepted as
+      a residual risk), but the reasoning recorded on 2026-08-05 rested on a false
+      premise and has been corrected.
+
+      It said: "neither chat nor the feed goes there, the edge log alone crosses a
+      border". That much is true of chat and the feed — chat is not stored on the
+      server at all, and the feed lives in its own Postgres. But **waitlist email
+      addresses sit in exactly that object storage** (`routes/waitlist.ts`, one
+      object per address), and they are the only personal data accumulated so far.
+      So the residual risk covers more than the edge log.
+
+      What still holds and carries the decision: the agreement carries no SCCs, the
+      zones are region `DE` with no replication, and the volume is small and limited
+      to an address plus the styling of the letter. See
+      [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md). Revisit if
+      the waitlist grows or anything beyond it lands in that storage.
 - [x] **Push notifications cancelled — 07.08.2026.** The activity and the
       "browser's push service" sub-processor are removed from this record. The
       processing **never ran for a day**: the VAPID public key was empty on both

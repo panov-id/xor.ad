@@ -6,14 +6,19 @@
 > состояние в Postgres рядом с узлом.
 > Актуальное: `relay/ARCHITECTURE_RU.md`, `state-decision_RU.md`, `open-work_RU.md`.
 
+> **Галочки сняты 10.08.2026.** В этом файле их было 12, и все они описывали
+> работу по стеку, которого нет. Открытая галочка — это обещание сделать; здесь
+> обещать нечего, поэтому пункты остались текстом, а не задачами. Документ
+> сохранён как история решения, а не как список дел.
+
 Быстрый чеклист, чтобы поднять **dev** и **uat** за один заход. Прод — отдельно, позже.
 Общая архитектура и детали — в `deployment_RU.md`. dev+uat делят **один** Supabase-проект.
 
 ## 0. Что должно быть создано (только вручную — аккаунты/ключи)
-- [ ] **Bunny.net** — Account API Key (Dashboard → Account → API Key).
-- [ ] **Supabase Cloud** — один проект (общий dev+uat); **Management token** (Account → Access Tokens) и **project ref** (Settings → API).
-- [ ] **GitHub PAT** — Environments + Secrets (write) на `panov-id/{sosed.place, neighbro.place, xor.ad}`.
-- [ ] **Namecheap** — Profile → Tools → **API Access: включить**; в whitelist добавить egress-IP хоста (узнать: `curl https://api.ipify.org`).
+- **Bunny.net** — Account API Key (Dashboard → Account → API Key).
+- **Supabase Cloud** — один проект (общий dev+uat); **Management token** (Account → Access Tokens) и **project ref** (Settings → API).
+- **GitHub PAT** — Environments + Secrets (write) на `panov-id/{sosed.place, neighbro.place, xor.ad}`.
+- **Namecheap** — Profile → Tools → **API Access: включить**; в whitelist добавить egress-IP хоста (узнать: `curl https://api.ipify.org`).
 
 ## 1. Конфиг `deploy/.env.deploy` (gitignored)
 ```bash
@@ -55,9 +60,9 @@ dev.xor.panov.id          → panel-dev.b-cdn.net
 ```
 
 ## 4. Руками в Bunny (API не покрывает красиво)
-- [ ] Включить **SSL** (Let's Encrypt) на каждом custom-хостнейме (сайт, api.*, панель).
-- [ ] Для `api.*`-прокси зон: **выключить кэш**, **Origin Host Header = `<ref>.supabase.co`**, включить **WebSockets** (Pull Zone → General) — для Supabase Realtime.
-- [ ] Панель: **SMTP** в Supabase Auth для magic-link (иначе вход только через bootstrap-ссылку; на dev можно `deploy/bootstrap-admin-cloud.sh`).
+- Включить **SSL** (Let's Encrypt) на каждом custom-хостнейме (сайт, api.*, панель).
+- Для `api.*`-прокси зон: **выключить кэш**, **Origin Host Header = `<ref>.supabase.co`**, включить **WebSockets** (Pull Zone → General) — для Supabase Realtime.
+- Панель: **SMTP** в Supabase Auth для magic-link (иначе вход только через bootstrap-ссылку; на dev можно `deploy/bootstrap-admin-cloud.sh`).
 
 ## 5. Деплой файлов
 CI зальёт по пушу в ветку окружения (секреты уже проставлены визардом):
@@ -69,11 +74,11 @@ UAT: мерж `dev → main` → авто-тег → `Deploy UAT`.
 (Альтернатива без CI: `deploy/deploy-cdn.sh <sosed|neighbro|panel>` с заполненными в `.env.deploy` именами/ключами зон.)
 
 ## 6. Проверка
-- [ ] `getent hosts dev.neighbro.panov.id` — резолвится на b-cdn.net.
-- [ ] Открывается `https://dev.neighbro.panov.id` и `https://dev.sosed.panov.id` (TLS зелёный).
-- [ ] Вейтлист: отправка email → успех; строка появилась в Supabase (`waitlist`).
-- [ ] `https://dev.xor.panov.id` — панель грузится; вход через magic-link/bootstrap.
-- [ ] Повторить для `uat.*`.
+- `getent hosts dev.neighbro.panov.id` — резолвится на b-cdn.net.
+- Открывается `https://dev.neighbro.panov.id` и `https://dev.sosed.panov.id` (TLS зелёный).
+- Вейтлист: отправка email → успех; строка появилась в Supabase (`waitlist`).
+- `https://dev.xor.panov.id` — панель грузится; вход через magic-link/bootstrap.
+- Повторить для `uat.*`.
 
 ## Заметки
 - Всё идемпотентно — повторный прогон визарда безопасен.

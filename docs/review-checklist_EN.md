@@ -102,7 +102,7 @@ Highlights: `check()` authz hole + `shouldCreateUser:false`; invite function (ro
 - [x] CSP added to `neighbro.place/landing/index.html` and `legal.html` (`<meta http-equiv>`): same-origin only + Google Fonts; `connect-src 'self'` (Supabase via the gateway).
 - [x] RLS audit: `waitlist` grants narrowed (anon INSERT-only, authenticated SELECT-only); the missing `push_subscriptions` table was created (`db/migrations/0003_push_subscriptions.sql`) with the same RLS pattern (anon insert-only, panel select) and narrowed grants. Tests in `panel/tests/e2e/anon-writes-rls.spec.ts`.
 - [x] `unique(waitlist.email)` added (`db/migrations/0004_waitlist_unique_email.sql`, dedupes existing rows first) — the №12 409 is now real and duplicates are impossible.
-- [ ] Rate limiting on anon inserts: **not our layer** — prod is Supabase Cloud + CDN, there is no self-managed nginx in prod (the only `nginx.conf` is the local-dev stand-in). Left to Supabase Cloud / edge; not added to the dev stand-in (would break e2e with no prod benefit).
+- [x] Rate limiting on anon inserts — **built on 2026-08-05, in our own layer.** The line above was wrong twice over: Supabase has left the stack, and the layer is ours now. The limit lives in `relay/node/src/lib/rate_limit.ts` together with `lib/client_ip.ts` and a honeypot field; see `open-work_EN.md` G4.
 - **Problem:** no CSP with inline scripts and external Google Fonts; the client could theoretically send arbitrary fields in the insert (`early_access`, etc.).
 - **Fix:** add a CSP (`script-src 'self' 'unsafe-inline'` or hashes, `connect-src` for Supabase, `font-src`/`style-src` for Google Fonts); confirm strict column-level RLS + rate limiting on `waitlist`/`push_subscriptions`.
 - **Done when:** CSP is active; inserting arbitrary fields is rejected at the DB.
@@ -138,7 +138,7 @@ Highlights: `check()` authz hole + `shouldCreateUser:false`; invite function (ro
 - [x] `panel/src/providers/auth.ts` — `onError` triggers logout+redirect on 401/403. ✅
 - [x] `panel/tests/report/**` — not tracked in git (0 files); added `tests/report`/`tests/results` to `panel/.gitignore` as a safeguard. ✅
 - [x] `panel/src/providers/constants.ts` — the localhost/demo-anon fallback is kept only in dev (`import.meta.env.DEV`); a production build throws when `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are missing (verified: throw present in the prod bundle). `tests/helpers/env.ts` — test infra, fallback kept on purpose. ✅ (`panel/.env` removed earlier in #9)
-- [ ] No unit tests, only e2e. Uncovered: logout, invite orphan rollback, copy-link, re-invite, duplicate email. Add these scenarios.
+- [x] Panel unit tests — **in place since 2026-08-05** (vitest, its own run in `.github/workflows/panel.yml`); see `open-work_EN.md` G1. The scenarios listed are still uncovered — that is a remainder, not an absence of tests.
 - [x] `panel/src/App.css` — fonts self-hosted: woff2 in `panel/public/fonts/`, `@import "./fonts.css"`, preload in `panel/index.html`. Google CDN `@import` removed. ✅ (moving to a single variable font is a separate design task)
 
 ### Landing
@@ -151,11 +151,11 @@ Highlights: `check()` authz hole + `shouldCreateUser:false`; invite function (ro
 - [x] `index.html`/`legal.html` — fonts self-hosted: 15 woff2 subsets in `landing/fonts/` + `fonts.css`, latin faces preloaded, `fonts.css` in the SW precache. Google preconnect/link removed, **CSP tightened to `font-src 'self'`**. Script `scripts/fetch-fonts.sh`. ✅
 - [x] `index.html` — email input gets an `aria-label` from i18n (in `applyLang`). ✅
 - [x] `index.html` — both `.status` regions got `role="status" aria-live="polite"`. ✅
-- [ ] `index.html` — mockup texts hardcoded in English. **Deferred:** mockups are decorative (mostly `aria-hidden`); moving them to i18n is a larger, low-priority task.
+- [ ] `index.html` — mockup texts hardcoded in English. **Deferred**, tracked as `open-work_EN.md` G3 — this is a duplicate, the decision lives there.
 - [x] `index.html` — dead i18n key `sayPh` removed from all 6 languages. ✅
 - [x] `sw.js` — offline fallback for navigations (`mode:navigate` → the cached `/`). ✅
 - [x] `sw.js` — `'/'`+`'/index.html'` precache duplicate removed (kept `/`). ✅
-- [ ] `manifest.json` — `lang:"en"`. **Won't change:** installed-PWA metadata with a brand (language-neutral) name; valid as is.
+- [x] `manifest.json` — `lang:"en"`: **won't-fix**, installed-PWA metadata with a brand name is valid as is. Duplicate of `open-work_EN.md` G5, the decision lives there.
 
 ---
 

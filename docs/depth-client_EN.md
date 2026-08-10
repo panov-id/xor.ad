@@ -120,9 +120,14 @@ open at all** — no share, no key.
 
 The price is stated plainly, before the identity is created rather than after:
 
-> Forget the PIN and you lose this device's conversations: ten wrong attempts
-> burn the share. The paper code brings the identity back; the conversations do
-> not come back.
+> Forget the PIN and you lose access to this volume: ten wrong attempts burn the
+> share, and nothing is left to decrypt the keys in the file with. The paper code
+> brings the identity back on any device.
+
+No conversations are lost in the terminal — there were none there to lose:
+nothing but the keys and the accepted revision of the Terms ever reaches the disk
+(§6). The terminal is stricter than the browser, and the price of a PIN is a
+different one here.
 
 ### 2.4. First run
 
@@ -524,11 +529,12 @@ terms revision with its date.
 **Not in the volume:** conversations, feed, matches, game boards, logs. None of it
 reaches the disk.
 
-Hence the consequence for revocation (§8.2): a disconnected `depth` retains
+Hence the consequence for freezing (§8.2): a frozen `depth` retains
 **nothing** beyond what was in the live process's memory before it exited. A
 browser keeps local history at this point — the terminal is stricter here.
 
-A forgotten phrase equals a deleted volume. That is said twice: when the identity
+A forgotten PIN equals a deleted volume — but not a lost identity: the paper code
+raises it again (§2.3). That is said twice: when the identity
 is created, and in the device list.
 
 ---

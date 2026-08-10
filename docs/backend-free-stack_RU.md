@@ -12,6 +12,11 @@ Deno/Web-API — съезд куда угодно без переписыван�
 
 > Строим на текущей платформе Deno Deploy (console.deno.com) — цифры ниже под неё.
 
+> **Галочки сняты 10.08.2026.** В этом файле их было 34, и все они описывали
+> работу по стеку, которого нет. Открытая галочка — это обещание сделать; здесь
+> обещать нечего, поэтому пункты остались текстом, а не задачами. Документ
+> сохранён как история решения, а не как список дел.
+
 ## Почему именно это под «не платить больше»
 
 - **Always-on контейнер на Bunny жёг бы кредит 24/7** (RAM + Anycast IP ≈ $3/мес/env).
@@ -176,63 +181,63 @@ Postgres + realtime-WS + cron, все 3 окружения в одном мес�
 ## План по фазам + чеклисты
 
 ### Фаза 0 — решения
-- [ ] Хостинг: **free managed** (Neon+Deno) vs **дешёвый VPS** vs **гибрид**
+- Хостинг: **free managed** (Neon+Deno) vs **дешёвый VPS** vs **гибрид**
       (VPS + Neon) — см. раздел сравнения выше
-- [ ] Аккаунты: Neon, Deno Deploy (console.deno.com), Resend (есть)
-- [ ] Neon: 1 проект + ветки `dev`/`uat`/`prod` (в лимите 10 веток) **или** 3 проекта
-- [ ] Зафиксировать список API-эндпоинтов (из лендинга/панели/функций)
+- Аккаунты: Neon, Deno Deploy (console.deno.com), Resend (есть)
+- Neon: 1 проект + ветки `dev`/`uat`/`prod` (в лимите 10 веток) **или** 3 проекта
+- Зафиксировать список API-эндпоинтов (из лендинга/панели/функций)
 
 ### Фаза 1 — скелет бэкенда (локально, Deno)
-- [ ] Deno-проект: роутер (Hono/oak), `deno.json`, задачи `dev`/`deploy`
-- [ ] Конфиг только через env: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
+- Deno-проект: роутер (Hono/oak), `deno.json`, задачи `dev`/`deploy`
+- Конфиг только через env: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
       `VAPID_*`, `BUNNY_STORAGE_*`
-- [ ] Драйвер БД: **`@neondatabase/serverless`** (HTTP, cold-start-friendly) или
+- Драйвер БД: **`@neondatabase/serverless`** (HTTP, cold-start-friendly) или
       pooled-строка (`-pooler`)
-- [ ] CORS под домены лендингов/панели; health-эндпоинт
-- [ ] `docker-compose`/`deno task dev` + локальный Postgres для оффлайн-разработки
+- CORS под домены лендингов/панели; health-эндпоинт
+- `docker-compose`/`deno task dev` + локальный Postgres для оффлайн-разработки
 
 ### Фаза 2 — БД и миграции
-- [ ] Схема: 5 текущих таблиц + `posts` (лента) + `messages` (чат, `expires_at`)
-- [ ] Прогнать `db/migrations/*` на ветки dev/uat/prod (адаптировать
+- Схема: 5 текущих таблиц + `posts` (лента) + `messages` (чат, `expires_at`)
+- Прогнать `db/migrations/*` на ветки dev/uat/prod (адаптировать
       `deploy/apply-migrations-cloud.sh` под Neon-URL)
-- [ ] Авторизация вместо RLS: проверки в коде роутов (или включить Postgres RLS —
+- Авторизация вместо RLS: проверки в коде роутов (или включить Postgres RLS —
       Neon это умеет)
-- [ ] Подключение через **pooled**-эндпоинт (serverless-churn)
+- Подключение через **pooled**-эндпоинт (serverless-churn)
 
 ### Фаза 3 — портировать существующее
-- [ ] `invite-panel-user` → роут
-- [ ] `send-waitlist-welcome` → роут (Resend)
-- [ ] JWT-gateway → middleware сессии (WebCrypto ES256/HS256)
-- [ ] magic-link: выпуск токена + письмо (Resend) + верификация → session JWT
-- [x] ~~web-push (VAPID)~~ — отменён 07.08.2026, см. `pwa-push_RU.md`
+- `invite-panel-user` → роут
+- `send-waitlist-welcome` → роут (Resend)
+- JWT-gateway → middleware сессии (WebCrypto ES256/HS256)
+- magic-link: выпуск токена + письмо (Resend) + верификация → session JWT
+- ~~web-push (VAPID)~~ — отменён 07.08.2026, см. `pwa-push_RU.md`
 
 ### Фаза 4 — эфемерка и realtime
-- [ ] `Deno.cron` (раз в час): `DELETE ... WHERE expires_at < now()` + ленивый
+- `Deno.cron` (раз в час): `DELETE ... WHERE expires_at < now()` + ленивый
       фильтр на чтении
-- [ ] Лента — polling эндпоинт (дёшево по CPU/запросам)
-- [ ] Чат — `Deno.upgradeWebSocket`; авто-реконнект на клиенте; состояние в Neon
-- [ ] Следить за CPU-часами Deno и CU-часами Neon (метрики)
+- Лента — polling эндпоинт (дёшево по CPU/запросам)
+- Чат — `Deno.upgradeWebSocket`; авто-реконнект на клиенте; состояние в Neon
+- Следить за CPU-часами Deno и CU-часами Neon (метрики)
 
 ### Фаза 5 — деплой и cutover
-- [ ] Deno Deploy: проекты/окружения dev/uat/prod, секреты, кастомные домены
+- Deno Deploy: проекты/окружения dev/uat/prod, секреты, кастомные домены
       (`api.*`)
-- [ ] Переключить `api.*`/конфиг лендингов и панели: dev → uat → prod
-- [ ] e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
-- [ ] Смоук: вейтлист-сабмит, вход в панель по magic-link, web-push
-- [ ] Свернуть Supabase-проекты после подтверждения
+- Переключить `api.*`/конфиг лендингов и панели: dev → uat → prod
+- e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
+- Смоук: вейтлист-сабмит, вход в панель по magic-link, web-push
+- Свернуть Supabase-проекты после подтверждения
 
 ### Чеклист «остаться в €0»
-- [ ] Neon: данные < 0.5 ГБ/проект; compute < 100 CU-ч (не частить cron/WS)
-- [ ] Deno: < 1M запросов, **< 15 CPU-часов**, < 20 ГБ egress/мес
-- [ ] `Deno.cron` — не чаще часа; WS включаем осознанно и мониторим CPU
-- [ ] Bunny: не заводить новых продуктов; следить за остатком кредита (CDN/Storage
+- Neon: данные < 0.5 ГБ/проект; compute < 100 CU-ч (не частить cron/WS)
+- Deno: < 1M запросов, **< 15 CPU-часов**, < 20 ГБ egress/мес
+- `Deno.cron` — не чаще часа; WS включаем осознанно и мониторим CPU
+- Bunny: не заводить новых продуктов; следить за остатком кредита (CDN/Storage
       трафик)
-- [ ] Настроить алерты по лимитам Neon/Deno, пока не уткнулись в платно
+- Настроить алерты по лимитам Neon/Deno, пока не уткнулись в платно
 
 ### Чеклист бэкапов
-- [ ] Neon PITR (6 ч) активен на prod-ветке; периодический `pg_dump` в Bunny
+- Neon PITR (6 ч) активен на prod-ветке; периодический `pg_dump` в Bunny
       Storage как страховка + тест восстановления
-- [ ] Прод-данные изолированы (отдельная ветка/проект), не делят с dev/uat
+- Прод-данные изолированы (отдельная ветка/проект), не делят с dev/uat
 
 ## Итог
 

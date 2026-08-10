@@ -462,8 +462,12 @@ From the legal pass of 2026-08-05. Payments were taken out of the service, offer
 were written into the Terms, and the DSA was worked through. Below is what that
 pass opened and did not close.
 
-- [ ] **J4. Art. 16 notice mechanism — built; what remains is a live check and
-      Art. 14(6).** "No interface yet" is out of date: verified 2026-08-09 against
+- [x] **J4. Art. 16 notice mechanism — closed 2026-08-10.** Both remaining
+      sub-items were done on 2026-08-09 and recorded in `dsa/CHECKLIST_EN.md`;
+      this list never heard about it.
+
+      **The earlier wording**, "built; what remains is a live check and
+      Art. 14(6)": "No interface yet" is out of date: verified 2026-08-09 against
       the live sites and the code.
 
       **Present and working:** the tables, the public `POST /report` (answers both
@@ -475,10 +479,14 @@ pass opened and did not close.
       `dsa_notices.read` / `dsa_notices.decide` permissions.
 
       **Remaining:**
-      - [ ] **an end-to-end check on staging** — a real notice, the receipt, the
+      - [x] **an end-to-end check on staging** — passed 2026-08-09, the test row
+        deleted (`dsa/CHECKLIST_EN.md`, "Verification"). Earlier text: — a real notice, the receipt, the
         panel queue, a decision, both letters (Art. 16(5) and 17(3)), then delete
         the test record. The chain has never been walked whole;
-      - [ ] **notice of a new revision of the documents, Art. 14(6)** — the one
+      - [x] **notice of a new revision of the documents, Art. 14(6)** — done
+        2026-08-09: a bar on the storefronts, the revision derived from the
+        documents' own `Last updated`, and the deploy gated on a check. Earlier
+        text: — the one
         genuinely unbuilt part. The Terms and the Policy promise to be "signposted
         in the Service" themselves. Decided 2026-08-09: a bar on the storefronts
         and a screen on entering the panel, **informing rather than requiring
@@ -831,7 +839,10 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       valid token, then the per-IP limit and the honeypot, and only then repoint
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
-- [ ] **G5. `manifest lang`** — marked won't-fix.
+- [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
+      taken long ago; the checkbox stayed open and counted as work for months. An
+      installed PWA's metadata carries a brand name, whose language does not
+      change.
 - [ ] **G6. Message length limit — enforcement on the node.** Decided 07.08.2026
       and written into the chat spec (§4, §8.6): `max_message_length` is returned
       when a chat opens, defaults to **256 characters**, and is checked **on the
@@ -962,6 +973,17 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       Not done: links to `CLIENT_TERMS.md` from both storefronts' READMEs and from
       the image's description in the registry — those go up on the day the image is
       published.
+## M. Found in August — not deferred, in hand
+
+Items J13–J21 and D8 physically sat inside "G. Deliberately deferred" and were
+therefore counted as deliberate deferral. This section was created on 2026-08-10
+so that fresh findings do not read as a decision not to do them.
+
+**J8 is missing.** The number is skipped and there is no trace of it in the
+document; J2 was withdrawn deliberately and explained inside J3, while nothing is
+said about J8 anywhere. Not reconstructing it — recording it so the gap is not
+mistaken for a loss.
+
 - [x] **J13. One commit, two different images. Found and fixed 2026-08-07.**
       Surfaced while verifying J11: under the tag `v2026.8.7-g3fbd1e1` and under
       `sha-3fbd1e1`, `relay-caddy` had **different digests** (`2af974ef…` and

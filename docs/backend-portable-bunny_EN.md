@@ -6,6 +6,12 @@
 > data in Bunny Storage, control state in a Postgres beside the node.
 > The decision in force, with its reasoning: `state-decision_EN.md`.
 
+> **Checkboxes removed on 2026-08-10.** There were 38 of them here, all
+> describing work on a stack that no longer exists. An open checkbox is a promise
+> to do something; there is nothing to promise here, so the items stay as text
+> rather than tasks. The document is kept as the history of a decision, not as a
+> to-do list.
+
 Direction: **your own Docker containers that don't depend on where they run.**
 Today on Bunny Magic Containers, tomorrow on Hetzner/Fly/Railway/any `docker run`,
 with no rewrite. No Supabase stack and no Bunny-specific primitives (Edge
@@ -125,67 +131,67 @@ Order: get the backend working locally (docker-compose) first, then put it on
 Bunny. That way portability is proven from day one.
 
 ### Phase 0 — decisions (before start)
-- [ ] Pick container stack: Deno+Hono / Node+Fastify / Go
-- [ ] Pick DB: **Option 1 (Neon managed)** vs Option 2 (PG in pod)
-- [ ] Confirm undocumented bits with Bunny support: scale-to-zero, WS limits
+- Pick container stack: Deno+Hono / Node+Fastify / Go
+- Pick DB: **Option 1 (Neon managed)** vs Option 2 (PG in pod)
+- Confirm undocumented bits with Bunny support: scale-to-zero, WS limits
       (concurrency/sticky), min container CPU/RAM
-- [ ] Freeze the API endpoint list (from current landing/panel/functions)
+- Freeze the API endpoint list (from current landing/panel/functions)
 
 ### Phase 1 — backend skeleton (local)
-- [ ] Backend repo + Dockerfile (single image)
-- [ ] Config via env only: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
+- Backend repo + Dockerfile (single image)
+- Config via env only: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`,
       `VAPID_*`, `BUNNY_STORAGE_*`, `PORT`
-- [ ] Health endpoints: startup / readiness / liveness
-- [ ] `docker-compose.yml` (api + postgres:16) for local dev
-- [ ] CORS for the landing/panel domains
+- Health endpoints: startup / readiness / liveness
+- `docker-compose.yml` (api + postgres:16) for local dev
+- CORS for the landing/panel domains
 
 ### Phase 2 — DB and migrations
-- [ ] Schema: the 5 current tables + `posts` (feed) + `messages` (chat, `expires_at`)
-- [ ] Port `db/migrations/*` (adapt `deploy/apply-migrations-cloud.sh` to the new
+- Schema: the 5 current tables + `posts` (feed) + `messages` (chat, `expires_at`)
+- Port `db/migrations/*` (adapt `deploy/apply-migrations-cloud.sh` to the new
       `DATABASE_URL`)
-- [ ] **Option 1:** Neon project + 3 branches dev/UAT/prod, run migrations
-- [ ] **Option 2:** volume in the pod, `pg_dump` cron → Bunny Storage + restore test
-- [ ] Authorization instead of RLS: rules in route code (or enable Postgres RLS)
+- **Option 1:** Neon project + 3 branches dev/UAT/prod, run migrations
+- **Option 2:** volume in the pod, `pg_dump` cron → Bunny Storage + restore test
+- Authorization instead of RLS: rules in route code (or enable Postgres RLS)
 
 ### Phase 3 — port the existing pieces
-- [ ] `invite-panel-user` → route
-- [ ] `send-waitlist-welcome` → route (Resend already configured)
-- [ ] JWT gateway → session-verify middleware
-- [ ] magic-link: issue token + email (Resend) + verify → session JWT
-- [x] ~~web-push (VAPID)~~ — cancelled 07.08.2026, see `pwa-push_EN.md`
+- `invite-panel-user` → route
+- `send-waitlist-welcome` → route (Resend already configured)
+- JWT gateway → session-verify middleware
+- magic-link: issue token + email (Resend) + verify → session JWT
+- ~~web-push (VAPID)~~ — cancelled 07.08.2026, see `pwa-push_EN.md`
 
 ### Phase 4 — realtime
-- [ ] WS server in the container: feed + disappearing chat
-- [ ] Ephemera TTL: lazy `WHERE expires_at > now()` filter + periodic cleanup
+- WS server in the container: feed + disappearing chat
+- Ephemera TTL: lazy `WHERE expires_at > now()` filter + periodic cleanup
       (cron/interval in the container — Bunny has no native cron)
-- [ ] At alpha — 1 WS replica (no sticky routing)
-- [ ] Load/limits as a separate task before public launch
+- At alpha — 1 WS replica (no sticky routing)
+- Load/limits as a separate task before public launch
 
 ### Phase 5 — deploy to Bunny
-- [ ] Build image → container registry
-- [ ] Magic Containers app per env (Terraform `bunnynet_compute_container_app`),
+- Build image → container registry
+- Magic Containers app per env (Terraform `bunnynet_compute_container_app`),
       min=max=1 at alpha
-- [ ] Anycast IP (for WS), env secrets, health checks
-- [ ] (Option 2) Postgres as a container in the same pod, persistent volume,
+- Anycast IP (for WS), env secrets, health checks
+- (Option 2) Postgres as a container in the same pod, persistent volume,
       volume pinned to a region
 
 ### Phase 6 — cutover
-- [ ] Repoint `api.*` proxy zones / landing + panel config: dev → uat → prod
-- [ ] Run e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
-- [ ] Smoke: waitlist submit, panel magic-link login, web-push
-- [ ] Tear down Supabase projects after confirmation
+- Repoint `api.*` proxy zones / landing + panel config: dev → uat → prod
+- Run e2e: `run-landing-tests.sh`, `run-panel-tests.sh`
+- Smoke: waitlist submit, panel magic-link login, web-push
+- Tear down Supabase projects after confirmation
 
 ### Portability checklist (invariant — never break)
-- [ ] No Bunny-specific pieces in the load-bearing path (don't make Edge
+- No Bunny-specific pieces in the load-bearing path (don't make Edge
       Scripting/libSQL mandatory — only Docker + Postgres wire)
-- [ ] Everything comes up locally with a single `docker compose up`
-- [ ] Leaving Bunny = change image host and/or `DATABASE_URL`, no code changes
-- [ ] Storage behind an abstraction (Bunny Storage ↔ R2/B2 swap by config)
+- Everything comes up locally with a single `docker compose up`
+- Leaving Bunny = change image host and/or `DATABASE_URL`, no code changes
+- Storage behind an abstraction (Bunny Storage ↔ R2/B2 swap by config)
 
 ### Backups/durability checklist (mandatory before prod)
-- [ ] Option 1: confirm Neon PITR/backups are on for the prod branch
-- [ ] Option 2: cron `pg_dump` → Bunny Storage + a **tested** restore
-- [ ] Prod data isolated (own DB/branch/box), not shared with dev/uat
+- Option 1: confirm Neon PITR/backups are on for the prod branch
+- Option 2: cron `pg_dump` → Bunny Storage + a **tested** restore
+- Prod data isolated (own DB/branch/box), not shared with dev/uat
 
 ## Bottom line
 

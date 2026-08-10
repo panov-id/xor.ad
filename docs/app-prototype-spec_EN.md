@@ -116,3 +116,23 @@ Color tokens (recolor everything at once):
 
 ## Out of scope (next screens)
 Onboarding (birth year + name), Say screen (post), match moment, Me/profile, game screen (board), session freeze. See `app-ui-notes_EN.md`, `backlog_EN.md`.
+
+## Divergences from the chat spec (recorded 2026-08-10)
+
+This document describes **the prototype as built**, not the intent. The chat spec
+has moved on since, and where the two disagree **`chat_EN.md` wins** — the
+prototype is brought to it, not the other way round. The list is kept here so that
+a divergence is not mistaken for a decision:
+
+| In the prototype | In the spec (`chat_EN.md`) |
+|---|---|
+| the name is optional | name and age are `NOT NULL`, asked before the feed (§8.2) |
+| onboarding: age, name, consent | plus the **paper recovery code** and the **PIN**, both mandatory (§8.2, §13) |
+| filter `≥21`: lower slider `21…your age` | the band is `[min(21, A−2), ∞)` — a 21-year-old sees from 19 (§8.2) |
+| tabs `Chats` / `Requests` | `Chats` / `Matches` (§3) |
+| the like is a "plus" button | the like is a tap on the logo button on a phrase (§2) |
+| "location blur radius" in the composer | there is no blur: the area is chosen on a map and does not reveal where a person is (§8.3) |
+| "Not included: onboarding (year of birth + name)" | onboarding **is** in the prototype — the line contradicts §2 of this same file |
+
+None of these is a defect of the prototype: it was built earlier. Carrying any of
+them into the application would be.

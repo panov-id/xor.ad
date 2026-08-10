@@ -14,7 +14,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] Neighbro landing (dark/gold, 6-language i18n, waitlist, PWA, icons, config.js).
 - [x] Interactive **app prototype** (single-file): splash `by PSYTICAN`, age-gate onboarding with consent, 3-column workspace with collapsible rails, live feed (refresh/auto), plus/minus swipe, chat with liked phrases, profile popup (name/age/age-filter/language/appearance/documents), 11 accents, light/dark.
 - [x] Prototype spec `docs/app-prototype-spec_RU/EN.md`.
-- [x] **Terms & Conditions** `neighbro.place/legal/terms_RU/EN.md` (operator PSYTICAN & PEJEDED, Cyprus, 13+).
+- [x] **Terms & Conditions** `neighbro.place/landing/legal/terms_EN.md` (operator PSYTICAN & PEJEDED, Cyprus, 13+). English only — a decision, see `open-work_EN.md` G7.
 - [x] Deploy infra (3 envs dev/UAT/prod), local Supabase+nginx, tests (E2E/visual).
 
 ## 1. Update the neighbro landing (next)
@@ -27,13 +27,13 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] Embed **live app mockups** in device frames (phone + wide frame), using the landing fonts; recolor with the theme.
 - [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
 - [x] **Feature copy**: "Why it feels different" section (by area / join-skip / why you matched / rule-free games), localized in 6 languages. Say/Match/Fade story kept.
-- [x] **HTML `legal.html`** (Terms/Privacy tabs, EN/RU, markdown rendering, brutalist style, inherits theme) + localized footer links.
+- [x] **HTML `legal.html`** (Terms/Privacy tabs, markdown rendering, brutalist style, inherits theme) + localized footer links. The documents themselves are English; only the interface labels are localized.
 - [x] Checks: `overflow=0` (desktop/mobile), i18n of new strings, **E2E 6/6 passed** (waitlist sosed+neighbro).
 - [x] Splash loader on the landing (like the prototype): main-color circle, house logo, `NEIGHBRO` / `by PSYTICAN`.
 - [x] Align the mockups section (balanced centered composition: wide frame left, phone right).
 
 ## 2. Legal / compliance
-- [x] **Privacy Policy** `neighbro.place/legal/privacy_RU/EN.md` (GDPR-style; served copies in `landing/legal/`).
+- [x] **Privacy Policy** `neighbro.place/landing/legal/privacy_EN.md` (GDPR-style). There is one source, `landing/legal/`; the top-level `legal/` holds pointers.
 - [x] **Removed the ARC number** from all documents, the prototype, and memory.
 - [x] **Conduct rules**: ban harassment/bullying/shaming/anti-social behavior; ban selling goods/services — promotion only via offers. In **Terms §8** and **Community Guidelines**; **Rules** tab in legal.html + footer link (6 languages).
 - [x] Reconciled `legal/` duplicates: kept `terms_/privacy_/community-guidelines_`; deleted old `terms-of-service_/privacy-policy_`.
@@ -42,7 +42,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [ ] Screen/page to view accepted documents (already in the app profile).
 
 ## 3. App screens (next)
-- [ ] **Say** screen (post): ≤128 chars, "how many of us", location blur radius.
+- [ ] **Say** screen (post): ≤128 chars, "how many of us", **an area on a map** — there is no location blur, the point does not reveal where a person is (`chat_EN.md` §8.3).
 - [ ] **Match moment** (mutual plus → "matched" animation → chat opens).
 - [ ] **Set location** screen (map/area search instead of the placeholder).
 - [ ] **Rule-free games** (dominoes/checkers/chess, request-based start, realtime).

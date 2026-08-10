@@ -50,11 +50,11 @@ Liking again when a chat with that person is already open creates **no new match
 ## 5. Ephemerality
 
 - A chat's TTL is **sliding**: it lives no longer than the chosen span **after the last activity**. Activity means a delivered message or a move in a game.
-- **Each person picks the span** when consenting to the chat ("delete after N hours if we don't talk"), and the **smaller of the two** applies: one person's caution is not overridden by the other's generosity. The value is visible to both; who set it is not. It cannot be changed inside an open chat.
+- **Each person picks the span** when consenting to the chat — **20 minutes, 1 hour or 4:20** of silence — and the **smaller of the two** applies: one person's caution is not overridden by the other's generosity. The value is visible to both; who set it is not. It cannot be changed inside an open chat.
 - **The silence counter** appears not immediately but after `min(20 minutes, span / 3)` of silence, and counts down to the chat's disappearance. Any message or move resets it.
 - As expiry approaches — visual **fading**; on expiry the chat **disappears for both** with all its content (messages, liked phrases, game board).
 - The span and last-activity time are stored on the server; the conversation itself lives only in browsers (§8.8), and the client sweeps it via `POST /chats/alive` (§8.10).
-- The **feed** has its own span — a phrase lives N hours; a **match** has its own — until the first of the two phrases dies. Three different timers for three different reasons.
+- The **feed** has its own span — a phrase lives **4 hours 20 minutes**; a **match** has its own — until the first of the two phrases dies. Three different timers for three different reasons.
 - Open questions: the set of spans offered; behavior at the exact expiry moment (hide instantly / show "expired").
 
 ## 6. Rules-free shared games
@@ -137,8 +137,23 @@ CREATE TABLE identities (
 ```
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
-- **Name and age can be changed** without losing the identity or its chats. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  Every few months the app re-asks: "still 38?".
+- **Name and age can be changed** without losing the identity or its chats. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
+
+**Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
+
+**A name goes through the same check as a phrase.** It is published text: the
+other person sees it on the match card and in an open chat, so anything forbidden
+in a phrase can be said in a name. The check runs the same path and the same
+queue — at registration and on every change.
+
+There is one difference, and it comes from a name not being disposable: a
+rejected name is **not saved**, and the previous one stays in force. For a phrase
+a refusal means it does not exist; for a name it means the person stays who they
+were. On the first visit, when there is no previous name, the feed does not open:
+a name is mandatory (§8.2 above).
+
+An age needs no such check — it is a number, not text.
 
 **There is no browser fingerprint — by decision, not by omission.** It used to be here: computed on the server from the IP subnet, the connection's TLS fingerprint and the header order, holding up the "one live identity per device" rule and a block that survived a new identity. It was removed for two reasons.
 
@@ -146,7 +161,7 @@ First, it stopped working. Everything it was built from came **from the connecti
 
 Second, it misled. The spec itself called it "a barrier, not a guarantee", yet it closed other people's identities and blocked neighbours behind one home NAT: the cost of a mistake fell on the uninvolved, while shedding it took ten seconds of clearing site data. A mechanism that fails to stop the person it aims at, and hits the person it does not, is worse than no mechanism.
 
-What replaces it is what actually works and already exists: **per-address rate limiting**, **synchronous feed moderation before publication** (§8.3) — which cuts the text, not the author — and **a chat door that opens only on a mutual like with double consent**.
+What replaces it is what actually works and already exists: **per-address rate limiting**, **feed moderation before publication** (§8.3), now through a queue — which cuts the text, not the author — and **a chat door that opens only on a mutual like with double consent**.
 
 **One live session per identity.** At any moment an identity exists on one device. Moving to another is not an addition but a **transfer**: the new one comes alive, the previous one freezes.
 
@@ -400,7 +415,7 @@ CREATE TABLE feed_messages (
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
   created_at       timestamptz NOT NULL DEFAULT now(),
-  expires_at       timestamptz NOT NULL                       -- now() + N hours
+  expires_at       timestamptz NOT NULL                       -- now() + 4:20
 );
 ```
 
@@ -414,14 +429,31 @@ What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 
-**A phrase is moderated before publication.** The priority here is higher than in chat: the feed is public, anyone in range sees it, and unchecked text there is a shop window. The check is **synchronous**, on submit:
+**A phrase is moderated before publication — but not inside the request.** The priority here is higher than in chat: the feed is public, anyone in range sees it, and unchecked text there is a shop window. But holding the model inside the HTTP request means paying its weight on every submission, so the check moved **into a queue**:
 
 ```
-POST /feed  → moderation → passed   → INSERT feed_messages, the phrase is live
-                         → rejected → refusal + reason, nothing reaches the database
+POST /feed  → INSERT feed_messages (visible_at = NULL) → 202, answered at once
+                 │
+                 └─ queue → passed   → visible_at = now(), the phrase is live
+                          → rejected → the row is deleted, the author gets the reason
 ```
 
-Synchronous rather than after the fact: an asynchronous check means a window in which the phrase is already visible to everyone, and "taking it down quickly" does not undo the people who read it. A couple of seconds on submitting a phrase is tolerable — this is not a conversation where pace matters.
+**"Before publication" stays true, and that is not a formality.** While
+`visible_at` is empty the phrase is in nobody's delivery except its own author's,
+who sees it marked as being checked. That is what the storefront policy says
+("checked before it is published") and what the Art. 28 position in `dsa/` rests
+on; "publish now, take down later" would make both statements false, and "taking
+it down quickly" does not undo the people who read it.
+
+Two consequences of the queue, settled together with it:
+
+- **4:20 counts from `visible_at`, not from submission.** Otherwise the queue eats
+  somebody else's life: an hour of backlog and the phrase lives three twenty.
+- **A failing queue closes rather than opens.** If there is nothing to check with
+  — the model did not come up, the queue stalled — the phrase **waits** rather
+  than publishing. Fail-open here is exactly the trick already rejected for links
+  in offers ("not reviewed within two hours, publish"): it is what gets exploited,
+  and it gets exploited at night.
 
 **A rejection has consequences.** Otherwise moderation can be hammered endlessly and for free:
 
@@ -429,7 +461,9 @@ Synchronous rather than after the fact: an asynchronous check means a window in 
 ALTER TABLE identity_stats ADD COLUMN rejected_count integer NOT NULL DEFAULT 0;
 ```
 
-The counter grows on every `rejected`. After N rejections — a **temporary sending block** on that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+The counter grows on every `rejected` and **resets on the first successful publication**. Five refusals in a row — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+
+**Five and fifteen are deliberately mild.** A refusal from the model is not proof of ill intent: mixed languages, a rare word, quoting somebody else's text — it makes mistakes, and the first person to hit the threshold will not be a troll but someone who was misunderstood. The threshold exists to **break the rhythm of hunting for a wording that gets through**, not to punish; anyone hunting in earnest hits it five times in a row, while anyone merely misunderstood does not lose an evening over fifteen minutes. Resetting on the first successful publication matters as much as the number: without it the counter accrues for months and one day fires out of nowhere.
 
 The block used to hang on the browser fingerprint so that a new identity would not lift it. There is no fingerprint any more (§8.2), and there is no point pretending: an identity takes ten seconds to make, and an address changes by switching to mobile data. This is **a speed bump, not a wall**. The feed's real defence is the synchronous check itself: refused text is never published, however many identities are created.
 
@@ -465,6 +499,106 @@ ORDER BY f.created_at DESC
 `:deg = (viewer_radius + 10000) / 111320` — the maximum phrase radius is known up front (10 km), so the box needs no data. Index: a plain `btree (lat, lon)`.
 
 The area is modelled as an object, not a pair of numbers: a circle today, an arbitrary polygon tomorrow — storage and the intersection test change, the API and UI do not.
+
+**Anti-flood is counted by the node, not the client.** A pause in the interface
+is a hint to its author; someone else's client will not draw it, so both limits
+live on the node and are tied to an identity rather than an address (the
+per-address limit works alongside, separately).
+
+```
+likes     64 per 32 minutes
+phrases   at most 4 live at a time
+          and at most 8 published per 64 minutes
+```
+
+**Why phrases have two numbers instead of one.** The main one is "four live": it
+is the natural limit, because a phrase occupies space in the neighbours' feed and
+a person sees their four rather than counting minutes. But a phrase lives 4:20
+while the ceiling's window is 64 minutes: none would expire by itself in that
+time, so the second number would never fire. It exists for exactly one case —
+when a person **takes their own phrase down** to free a slot, and repeats that in
+a loop.
+
+Hence a consequence worth naming outright: **a phrase can be taken down by its
+author**. The spec did not describe this before — a phrase only expired. A phrase
+taken down disappears exactly as an expired one does (§8.10): the text is
+deleted, the likes cascade away, `chat_starters` survive as copies. The slot frees
+immediately; the 64-minute ceiling does not.
+
+Likes are counted with room to spare: 64 in half an hour is one every thirty
+seconds without a break. No living person keeps that up, while automation hits it
+at once. The number matters more than it looks: a like on a phrase with a
+discount **creates a match immediately** (§8.5), so a stream of likes is a stream
+of conversation requests aimed at living people.
+
+A private author may have at most one live phrase **with a discount** at a time
+(`offers/SPEC_EN.md` §4, `PRIVATE_ACTIVE_OFFERS`): the limit of four is about
+phrases in general, the limit of one about the commercial ones among them.
+
+**When the band and the radius come up empty, the feed widens the radius — and
+only the radius.** An empty screen says nothing: broken, nobody here, or a
+delivery the person narrowed themselves — indistinguishable. So on an empty
+result the radius grows in steps up to **10 km**, the same ceiling a person could
+have set for themselves (§8.3).
+
+**The band is never widened.** It separates teenagers from adults, and touching
+it to fill a feed is exactly the door it exists to close. A sparse sandbox at
+launch is an accepted price, not a problem to be fixed with age.
+
+**The widening is visible and does not change the setting.** Every such card is
+marked "further than you asked", and the person's own radius stays where they
+left it: this is a temporary answer to an empty result, not a quiet edit of their
+preferences. If 10 km is empty too, we say so: "nobody here yet. Write first — a
+phrase lives 4:20", with the number of people in range beside it.
+
+**A consequence worth knowing up front: a like across a widened radius often will
+not become a match.** Mutuality requires the other person to see your phrase in
+**their** circle, and they did not widen theirs. So such a like travels one way
+and fades — except on a phrase with a discount, where the match is born one-sided
+(§8.5) and the distance is the offer author's call.
+
+#### The frame for the moderation model
+
+No specific model is named here, and that is a decision rather than an omission:
+once the check moved into a queue the choice became **reversible** — same input,
+same output, a swap touches neither the schema nor the clients. So there is no
+reason to choose blind today; what is fixed instead is the frame, and the model
+itself is the result of a measurement on the day the queue exists.
+
+**Where it runs.** On the node, in the queue. The text of a phrase **does not
+leave the node** — that is recorded in the processing register and promised in the
+storefront policy, so an external moderation service is excluded regardless of its
+quality.
+
+**Memory.** The node is a `cpx22` — 4 GB for everything, Postgres, Caddy and Deno
+included. The model's budget is at most **1.5 GB** resident, and it may not push
+Postgres out of memory: the database comes first here, the model second.
+
+**Throughput matters more than the speed of one check.** A person no longer sees
+the latency, but when the queue falls behind the phrases **wait** (fail-closed
+above) — that is, the feed empties. The target is to hold the publication peak
+without the queue growing; the number comes from a measurement, not from thin air.
+
+**Languages that must work:** the storefronts' six — English, Russian, French,
+German, Spanish, Greek. And above all: **a mixed phrase is the norm, not an edge
+case.** On Cyprus one sentence carries Cyrillic, Latin and Greek side by side,
+plus transliteration. A model excellent in English and blind in Greek skews
+exactly where our people live.
+
+**What it catches:** the forbidden categories and plain harm (§12 of the Terms,
+the offers stop-list). **What it does not do:** judge tone, judge the author, or
+**use membership of a group as a signal** — in either direction.
+
+**How it is chosen.** By measurement on **our own** set of phrases, not from
+published tables. The set is assembled in advance and deliberately includes the
+hard cases: mixed alphabets inside one sentence, transliteration, quoting someone
+else's forbidden text, sarcasm, discussing a subject versus calling for it.
+
+**The two errors are counted separately, because they cost differently.** A false
+refusal hits an innocent person and **feeds the auto-block counter** (§8.3 above)
+— someone who was misunderstood gets fifteen minutes of silence. A false pass puts
+something illegal into a public feed. Thresholds are set per direction; a single
+"accuracy" figure hides precisely what matters here.
 
 ### 8.4. Likes and counters
 
@@ -596,6 +730,21 @@ The `TTL` is taken from the single live phrase, the offer: the offer dies and th
 This cannot be used to spam beyond the usual: `pair_key` is unique, so a second like from the same pair creates no new match, and a private author has at most `PRIVATE_ACTIVE_OFFERS` live offers at a time (`offers/SPEC_EN.md` §4).
 
 **Business** offers carry no like at all, so this path does not reach them either.
+
+**The match window is left as it is — revisited 2026-08-10.** The question came up
+because the span was chosen when a person could be called by push; they cannot be
+now, and some matches will burn out unread. We weighed it and kept `least()`.
+
+The reason is that widening the window treats the wrong illness. A match is an
+offer to talk **about a particular phrase**, and the card shows that phrase.
+Widen the window and a person opens an offer about an occasion that no longer
+exists: the phrase has expired, the other side has long since moved on, and the
+consent still waits for two taps. The freshness of the occasion is the substance
+of a match here, not its packaging.
+
+The price is accepted and written down: **a match that burned out is never seen** —
+the inbox shows only what survived. That follows directly from dropping push
+(§8.12), and we will not compensate for it by stretching deadlines.
 
 **Edge cases** — all three are real, and staying quiet about them is not an option:
 
@@ -877,6 +1026,19 @@ No Web Push in the browser, no system notifications in the terminal, no `BEL`. T
 
 A good deal disappears along with it: VAPID keys and their rotation, the subscription table and the sweeping of dead rows, a separate sub-processor in the Article 30 register, a dependency on Apple's and Google's policies, and a different set of capabilities on every platform.
 
+**There will be no automatic resend when the other person returns — decided
+2026-08-10.** The question existed because offline used to be covered by push,
+and now there is nothing to call with. The answer is still no, for one reason:
+any "later" delivery requires the message to sit somewhere — and the whole of §8,
+along with a plain sentence in the storefront policy, rests on the server not
+keeping conversations. That is not tradeable for the convenience of one case,
+especially when the case is solved by a person: undelivered is visible at once,
+with "send again" right there.
+
+The price is accepted and stated: a conversation with someone who left resumes
+only when they come back themselves, and it is resumed by a person, not by the
+system.
+
 **What it costs, stated plainly, because the cost is real.** Everything in this model lives in minutes and needs an answering action: a match fades and waits for **two** taps, a chat dies of silence, a message to an offline peer is not stored (8.8). There is **nothing** with which to call a person who is not in the application right now. They learn about all of it only when they open the client themselves, and a match that burned out they will never see — the inbox shows only what survived until the opening.
 
 The direct consequence: **this system works for someone who comes back on their own, regularly**, and does not work for someone waiting to be called. That is how it should be described — to people, too, and not only in the spec.
@@ -943,16 +1105,7 @@ CREATE TABLE chat_key_wraps (
 
 ### 8.14. Open
 
-- The value of N for the feed TTL, and the set of `idle_ttl_minutes` options offered.
-- The feed's auto-block threshold: how many `rejected` in a row, and for how long sending is blocked.
-- Anti-flood on the rate of likes and phrases (messages already have a pause, but a client-side one).
-- Picking the local moderation model and its weight: languages, RAM, quality on mixed languages (§8.3).
-- How often to re-ask for age, and what to do when someone ignores the question.
-- Offline delivery: a message to an offline peer is lost, and there is nothing left to call them with (8.12). What remains is a manual retry once they come back on their own; whether to auto-retry on their return is undecided, and that question now weighs more than it did when there was a push.
-- The match window (§8.5) was chosen when there was something to call a person
-  with. There is no push any more and nothing compensates for it — whether to
-  lengthen the window is undecided.
-- What to show when the band and filter come up empty — the teenage sandbox will be sparse at launch.
+- Which moderation model exactly — **a measurement, not an argument**: the frame is fixed in §8.3, and the numbers are run against our own phrase set on the day the queue exists.
 
 ## 9. UI states and breakpoints
 
@@ -1034,7 +1187,7 @@ order would produce an API the terminal would have to be bent to fit.
    first lost device is irreversible, and without the share the local database
    sits unencrypted. Everything else rests on "who is this".
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
-   age bands, synchronous moderation before publication. **With this step, not
+   age bands, moderation before publication through a queue. **With this step, not
    after it:** the Article 17 statement screen for an author with no email
    (`dsa/SPEC_EN.md` §7). We never ask for an address, so an author usually has
    none, and without that screen the first restriction is a silent removal. The

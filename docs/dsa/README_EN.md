@@ -110,7 +110,7 @@ remuneration** for that promotion. An offer is free: the platform takes neither
 money nor barter. On the letter of the definition an offer is **not an
 advertisement**, and Art. 26 does not reach it. Even if it did, Art. 19 lifts it.
 
-`offers/SPEC.md` took a stricter line: "an offer is a commercial communication,
+`offers/SPEC_EN.md` took a stricter line: "an offer is a commercial communication,
 and being free does not exempt it". That is more cautious than the letter and
 does not contradict it.
 
@@ -121,10 +121,47 @@ it as voluntary transparency rather than as an admission of a duty. That wording
 creates no obligation where none exists, and leaves no question where one could
 be asked.
 
-There is deliberately no separate "ad" label on the card (`offers/SPEC.md`,
+There is deliberately no separate "ad" label on the card (`offers/SPEC_EN.md`,
 §11.1): recognisability comes from the shape of the card, the name of the
 business and the size of the discount. An inspection will ask about exactly this;
 the answer is above.
+
+### The adjacent question: the section on traders
+
+Nobody has asked this yet, because "business" was not a separate role. Now it is
+— with an email, a contact and an address confirmed by an envelope — so it is
+worth settling before anyone does.
+
+Section 4 of Chapter III (Arts 29–32) — traceability of traders, compliance by
+design, the right to information — addresses platforms **allowing consumers to
+conclude distance contracts with traders**. We are not such a platform, on two
+independent grounds.
+
+**First: no contract is concluded here.** An offer is an invitation to come by.
+There is no basket, no payment, no order and no booking confirmation: a person
+reads "second coffee free" and walks to the counter, and the deal arises there,
+between them and the business, with no part for us. An external link leads to the
+business's own site — if a contract is concluded anywhere, it is on someone
+else's platform, and we are not an intermediary in it. This is the same ground
+§6 stands on: we answer for the truth of the announcement, the business for what
+stands behind it.
+
+**Second: status.** Even if the first ground fell away, being a micro-enterprise
+lifts Section 4 exactly as it lifted Section 3 (§3 above).
+
+The first ground matters more than the second: status changes as one grows, the
+shape of the product does not — as long as no deal is closed inside it.
+
+**What we do anyway, with no duty to.** A name, a contact and an address
+confirmed by an envelope are all collected — in substance, that is traceability.
+But they are collected for our own reason: protecting a business's name from
+somebody else publishing under it. It must not be recorded as compliance with
+Art. 30 — there is no duty, and announcing compliance with a duty that does not
+exist takes that duty on.
+
+**The line at which to come back here:** an order, a payment, a booking —
+anything after which the deal counts as concluded with us. Until then the section
+does not apply.
 
 ## 5. The arguable part: ephemerality against the duty to look into it
 

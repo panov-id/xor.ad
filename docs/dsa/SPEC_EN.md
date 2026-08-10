@@ -15,7 +15,7 @@ Russian version: [SPEC_RU.md](./SPEC_RU.md).
 | **Addressee of a restriction** | the author whose content was restricted |
 
 A complaint about a message and a complaint about an offer are **different
-entities**, described in `../offers/SPEC.md` and in the feed mechanic. This
+entities**, described in `../offers/SPEC_EN.md` and in the feed mechanic. This
 document covers notices only.
 
 ## 2. Where it is submitted
@@ -170,7 +170,7 @@ Mandatory elements (Art. 17(3)):
 | Contractual ground | if the Terms were breached: which clause, and why |
 | Redress | reply to us, the Coordinator, the courts |
 
-**A note on identity.** `offers/SPEC.md` forbids disclosing the identity of
+**A note on identity.** `offers/SPEC_EN.md` forbids disclosing the identity of
 someone complaining about an offer under any circumstances. Art. 17(3)(b) permits
 disclosure "where strictly necessary". There is no conflict: the product's rule
 is stricter than the law, and we keep the stricter one — a notifier's identity is
@@ -221,7 +221,7 @@ the feed mechanic.
 | Notifier's name and email | with the notice | deleted |
 
 The year is not arbitrary: complaints about offers live exactly as long
-(`offers/SPEC.md`, §13), and keeping two different periods for records of the
+(`offers/SPEC_EN.md`, §13), and keeping two different periods for records of the
 same kind serves nothing. Beyond a year the record is needed neither to establish
 a pattern nor to defend the decision.
 

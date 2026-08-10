@@ -118,9 +118,9 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 
 ### 8.2. Identity and sessions
 
-An identity lives **on the device**: `identity_id` + a secret, signing every request (the server stores the secret's hash). Where exactly depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume, encrypted with a passphrase (below). There is no recovery by construction — no email, no recovery password, no code.
+An identity lives **on the device**: `identity_id` + a secret, signing every request (the server stores the secret's hash). Where exactly depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, handed to the person at registration, which we can neither look up nor reset.
 
-**Every client starts as its own identity.** The key is born locally and nothing ties it to any other: the web on a phone, the web on a laptop and `depth` in a container are three different neighbours until the person links them. The consequence is accepted deliberately: one person on two unlinked devices appears twice in the feed and can like themselves. That is the price of refusing to recognise devices, and it is cheaper than a fingerprint (below).
+**Every client starts as its own identity.** The key is born locally and nothing ties it to any other: the web on a phone, the web on a laptop and `depth` in a container are three different neighbours until the person transfers an identity there. The consequence is accepted deliberately: one person holding two separate identities appears twice in the feed and can like themselves. That is the price of refusing to recognise devices, and it is cheaper than a fingerprint (below).
 
 ```sql
 CREATE TABLE identities (
@@ -128,6 +128,9 @@ CREATE TABLE identities (
   name             text NOT NULL,
   age              integer NOT NULL,
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
+  recovery_auth_hash  text NOT NULL,    -- hash of half the paper code: how the node finds the identity
+  recovery_wrapped_key bytea NOT NULL,  -- the long-lived key under the other half; the node cannot open it
+  recovery_attempts_left smallint NOT NULL DEFAULT 10,
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
 );
@@ -145,36 +148,42 @@ Second, it misled. The spec itself called it "a barrier, not a guarantee", yet i
 
 What replaces it is what actually works and already exists: **per-address rate limiting**, **synchronous feed moderation before publication** (§8.3) — which cuts the text, not the author — and **a chat door that opens only on a mutual like with double consent**.
 
-**Sessions.** One identity, several devices; each with its own key pair for signing requests:
+**One live session per identity.** At any moment an identity exists on one device. Moving to another is not an addition but a **transfer**: the new one comes alive, the previous one freezes.
 
 ```sql
 CREATE TABLE sessions (
   id              uuid PRIMARY KEY,
   identity        uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-  sign_public_key text NOT NULL,       -- request signing; one per session
+  sign_public_key text NOT NULL,       -- request signing; one per device
   wrap_public_key text NOT NULL,       -- chat keys are wrapped to it (§8.13)
-  parent_session  uuid REFERENCES sessions(id),
-  label           text,                -- "Chrome, Android" — for the list
+  label           text,                -- "Chrome, Android" — what the device called itself
   created_at      timestamptz NOT NULL DEFAULT now(),
   last_seen_at    timestamptz NOT NULL DEFAULT now(),
-  revoked_at      timestamptz
+  frozen_at       timestamptz          -- NULL = live; set on transfer
 );
-CREATE INDEX ON sessions (identity) WHERE revoked_at IS NULL;
+CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
 ```
 
-The first device creates the identity and the **parent** session. The rest are born of a handoff and remember who invited them.
+The partial unique index is the rule itself: the database will not accept a second live session, and no code path can work around it.
 
-There are three kinds of key, and keeping them apart is the point:
+**Why one and not several.** The earlier design had many devices and symmetric revocation: any of them could disconnect any other. That had a hole no rule could close. Whoever talked a person out of their linking code could disconnect every device the owner had, leaving nowhere to come back to — and that is indistinguishable from the legitimate case ("was talking from the terminal, moved to the phone, killing the terminal"): to the node both are the same picture, a fresh session ending an old one. A rule like "younger than a day cannot revoke" broke exactly the case we needed, not the attack.
+
+With one session that action does not exist. Transfer is the only mechanism, and it is performed by whoever is holding the device.
+
+The price is stated plainly: **a phone and a laptop do not work at the same time**. There is no reading from two screens; there is only transferring back and forth, and transfers are cheap.
+
+There are four kinds of key, and keeping them apart is the point:
 
 | Key | Whose | For what |
 |---|---|---|
-| The identity's long-lived key | one per identity, held by all its devices | proving to a peer that this is the same identity |
-| A session's signing key | one per device | signing requests; revocation strikes here |
+| The identity's long-lived key | one per identity, travels with it | proving to a peer that this is the same identity |
+| A session's signing key | one per device | signing requests; freezing strikes here |
 | A chat key | one per conversation | encrypting the talk; dies with the chat (§8.13) |
+| A vault key | one per device, from the PIN and the node's share | encrypting what sits on disk (below) |
 
-Revocation works because the first two are separate: the server stops accepting a revoked session's signature without touching anything the others hold.
+Freezing works because the first two are separate: the server stops accepting a frozen session's signature, while the identity travels on with its long-lived key.
 
-**Session handoff — a code, not a link.** The device that is already signed in shows nine characters; the person types them on the new device. No link and no QR code: the handoff lives entirely inside the clients, there is no page for it and no domain is registered for it.
+**Identity transfer — a code, not a link.** The device that is already signed in shows nine characters; the person types them on the new device. No link and no QR code: the transfer lives entirely inside the clients, there is no page for it and no domain is registered for it.
 
 ```
       K7Q - M3F - 2X9        alive for 2 minutes, applied once
@@ -192,49 +201,131 @@ new          the person types the code, the same Argon2id yields the same 64 byt
 device       generates ITS OWN pairs: one for signing, one for wrapping
              POST /sessions/claim {lookup_id, enc_secret(sign_pub, wrap_pub, label)}
 first        decrypted the envelope ─► so the code was typed correctly
+             ASKS THE PERSON (below) ─► only after "that's me":
              puts the identity's long-lived key into the reply envelope
-             and from now on wraps the keys of new chats for the new device
+             and sets its own frozen_at — the identity has left
 ```
 
 **Stretching is not hardening, it is the precondition.** Nine characters are 45 bits: under a plain hash they fall in hours, and the server, which holds `lookup_id`, would derive `secret_key` itself. Argon2id makes each attempt cost about 0.1 s, turning an offline search into hundreds of thousands of years. The online one is closed by the server: **five attempts per invite**, after which it burns.
 
 **What the server sees and does not see.** It sees `lookup_id` and two opaque envelopes — enough to match the two sides, and nothing else. The identity's long-lived key passes through it encrypted.
 
-**There is no separate confirmation.** The person typed nine characters from one of their own screens onto another; a mistake shows up as an envelope that will not decrypt, and it shows up at once. A "was that you?" dialogue after that would be a ritual.
+**Confirmation with context is a required step.** Decrypting the envelope proves the code was typed correctly, and that is enough against a typo. But a typo threatens nobody: the person at risk here is the one who read the code out over the phone, and they make no mistakes. So the old device stops and shows what it knows:
+
+```
+  a device is asking to take the identity
+
+  called itself   Chrome, Android
+  network         different from this device's
+  when            just now
+
+  Nobody from support will ever ask for this code.
+
+  [ that's me ]                        [ decline ]
+```
+
+Three lines, chosen because each can be substantiated and none pretends to be more than it is.
+
+**"Called itself", not "device".** The label is sent by the other side, is backed by nothing, and can say anything. Presenting it as fact would be lying on the very screen built against deception.
+
+**"Network"** compares the addresses of both sides, both of which the node sees. No geo database and no new dependency. It is the most useful signal there is: a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another. And it is **a hint, not a verdict**: a phone on mobile data next to you also reads "different", so the text reports an observation rather than passing judgement.
+
+Until "that's me" is pressed, the other side receives nothing. Silence or a closed tab means the code expired in two minutes and no transfer happened.
+
+What this step does not do: if the person has been talked into pressing it, it will not save them. It provides a pause and a fact — the decision stays with the person.
 
 **The invite is single-use and lives minutes.** Applied or expired, it does nothing.
 
-**In `depth` the code is read from standard input only** — never as a command argument and never as an environment variable: an argument is visible in `ps` to every process on the machine and settles into the shell history, and a variable is shown by `docker inspect`. The handoff screen is drawn in the terminal's alternate buffer and cleared on exit, or those nine characters would stay in the scrollback and in the multiplexer's log.
+**In `depth` the code is read from standard input only** — never as a command argument and never as an environment variable: an argument is visible in `ps` to every process on the machine and settles into the shell history, and a variable is shown by `docker inspect`. The transfer screen is drawn in the terminal's alternate buffer and cleared on exit, or those nine characters would stay in the scrollback and in the multiplexer's log.
 
-**The session list and revocation.** Any session sees the list: label, when created, when last active, who invited it. **Revocation is symmetric: any live session can disconnect any other session of its identity** — parenthood stays a line in the list and decides nothing. Otherwise the ordinary case falls apart: someone was talking from the terminal, moved to their phone, and wants to close the terminal — which happens to be its parent. Revocation sets `revoked_at`, and a request signed by that session stops being accepted at once.
+**What freezing does.** A frozen device loses node access at once: its signature is accepted nowhere, delivery subscription included, so it receives no new messages **even in the chats that were open on it**. Nor are the keys of new conversations wrapped for it.
 
-An invite is likewise issued by any live session, so the circle closes both ways:
+What freezing does **not** do is wipe the disk. The local database stays where it is, encrypted with that device's vault key (below), and that is deliberate: bringing the identity back brings the whole conversation history back with it.
 
 ```
-depth shows a code ─► the phone joins ─► the phone disconnects depth
+laptop is talking ─► transfer to the phone ─► laptop frozen, disk intact
         ...later...
-the phone shows a code ─► depth returns as a NEW session with new keys
+the phone shows a code ─► the laptop wakes and asks for ITS old PIN
+                          ─► the history is all there
 ```
 
-There is no resurrection: a revoked session is dead for good, and coming back means coming back as a new one.
+On the phone the chats are the same and the windows are empty: the new device has no history and no way to get any — messages are not in the database (§8.8), there is nothing to download. That is not a loss but "nothing here yet", and it should be said that way.
 
-**Revoking the last live session is allowed, but it deletes the identity.** It sets `identities.closed_at` — otherwise the feed would keep an identity nobody will ever connect to again. The UI must say so before the tap, in the same words as "start over".
-
-**What revocation does.** A revoked session loses server access at once and — more to the point — **stops receiving keys**: its wraps are deleted and no new ones are made for it. Every future conversation is closed to it for good, not merely out of reach.
-
-What revocation cannot do is erase what is already on that device. But neither does the device keep following the conversations — the server accepts a revoked session's signature nowhere, delivery subscription included, so it receives no new messages **even in the chats that were open on it**. What it keeps is a snapshot taken at the moment of revocation: local history in the browser, and in `depth` only the memory of the live process, because it writes nothing to disk.
-
-It follows that **the keys of live chats are not rotated on revocation**. Rotation protects against a participant who keeps receiving ciphertext; a revoked one receives none, so there is nobody to rotate against. This is written down here so the question does not come back.
+**The keys of live chats are not rotated on transfer.** Rotation protects against a participant who keeps receiving ciphertext; a frozen one receives none, so there is nobody to rotate against. Written down here so the question does not come back.
 
 The interface says so plainly, not in small print:
 
-> A disconnected device stops receiving messages immediately — in new conversations and in the ones that were open on it. Only what already reached it stays, and that we cannot erase.
+> The identity has moved to another device. Here it is frozen: new messages will stop arriving, and the conversations stay on disk encrypted — they come back if you bring the identity back.
 
-**The handoff risk is social, not cryptographic.** Nobody will guess the code; they will ask a person to read it out. Hence the defences — two minutes, one application, five entry attempts, a visible session list and instant revocation from any device.
+**A delayed freeze was considered and rejected.** The idea was to keep the previous device alive for a day and show "you are being disconnected — [that's not me]" on it the whole time. Against identity theft that works, but it breaks the main legitimate case: someone talked from a borrowed laptop, walked away, and the laptop stays live for another day — where whoever sits down at that desk can cancel the disconnection. Leaving means closing the door now. The paper code (below) serves as the insurance instead: being locked out for good is not possible anyway.
 
-**What became of "a different browser is a different person".** It stands, and now covers every face: **a different device is a different person**, unless a live device invited it. For `depth` it reads the same way: a different volume is a different person. There is still no recovery: with no working first device there is nothing to hand off. This is passing something hand to hand, not an email and a password — which is why it opens no door through which an identity could be taken away.
+**The transfer risk is social, not cryptographic.** Nobody will guess the code; they will ask a person to read it out. Hence the defences — two minutes, one application, five entry attempts, confirmation with context, and the paper code as the owner's last word.
 
-**The key file in `depth` is encrypted with a passphrase**, the key derived from it by the same Argon2id at every start. A stolen or copied volume is useless without the phrase — which closes the terminal's main weakness: unlike the browser, where keys sit as non-extractable `CryptoKey` objects, here they are a file after all. The file itself is `0600`, and the client **refuses to start** if the permissions are wider, instead of a warning nobody reads. The price is stated plainly: **forget the phrase and the identity is gone**, exactly as with deleting the volume.
+**What became of "a different browser is a different person".** It stands, and now covers every face: **a different device is a different person**, unless the identity was transferred there deliberately. For `depth` it reads the same way: a different volume is a different person.
+
+#### The PIN and local storage
+
+**A PIN is mandatory and asked at registration** — six digits, twice. It does two things at once: it locks an open tab against whoever picks the device up, and it takes part in encrypting everything on disk.
+
+Six digits are a million combinations, and on their own they are not protection: whoever copies the profile brute-forces them at home in minutes. So the vault key **cannot be assembled from the disk alone**: half of it comes from the node.
+
+```
+device  material = Argon2id(pin, device salt, 64 MB, t=3)
+        auth  = material[0..32]   ─► goes to the node
+        local = material[32..64]  ─► goes NOWHERE
+node    compares the hash of auth; match ─► hands over the share, resets the counter
+                                  no    ─► counter minus one
+device  vault key = HKDF(local ‖ share)
+```
+
+**The node checks the PIN, not the device.** This is the easy thing to get wrong: hand the share to anyone who asks and an attacker takes it once, then brute-forces a million combinations offline, and the whole scheme collapses. Proof of knowing the PIN comes **before** the share is released, and the node keeps the attempt counter.
+
+```sql
+CREATE TABLE vault_shares (
+  session       uuid PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
+  auth_hash     text NOT NULL,       -- hash of half the material; the PIN itself is unknown to the node
+  share         bytea NOT NULL,      -- 32 random bytes, meaningless to the node
+  attempts_left smallint NOT NULL DEFAULT 10,
+  burned_at     timestamptz,
+  last_used_at  timestamptz NOT NULL DEFAULT now()
+);
+```
+
+**A share belongs to a device, not to an identity.** Otherwise changing the PIN on a new device would break the previous device's database, and whoever took the identity and set their own PIN would read someone else's old conversations. So each device has its own share, its own PIN and its own counter, and nothing reaches another device's share — including a live session of the same identity.
+
+**The tenth wrong attempt burns the share, and that device's conversations are gone for good** — there is nothing left to decrypt them with. The identity itself is unharmed. Burning someone's conversations silently is not acceptable, so from the seventh attempt the screen says it outright:
+
+> 3 attempts left. After that the conversations on this device are gone — neither we nor you can bring them back.
+
+Two prices are stated plainly. **Without a network the chat does not open at all**: no share, no key, nothing old to read and nothing new to see. And **the node now holds the thing without which people lose their conversations**: losing the share table means everyone loses their history at once, so its backups deserve stricter handling than the rest.
+
+A share lives as long as its session. A session unseen for a year is cleaned up together with its share — otherwise the node accumulates an endless list of dead devices; the period belongs in the retention policy.
+
+#### The paper recovery code
+
+**Shown exactly once at registration, and mandatory.** With a single live session, losing the device is the end of the identity, and the piece of paper is the only way out; it cannot be made optional.
+
+```
+      RTQ4 - 8FMK - 2PZN - XW9D
+      → "written down" is confirmed by typing two of the four groups back
+```
+
+The same two-halves trick: `Argon2id(code)` yields one half by which the node **finds** the identity, and one half that **wraps the long-lived key**. The node stores the wrapped key and cannot open it.
+
+```
+recovery  code typed on a clean device
+          ─► the node found the identity, returned the wrapped long-lived key
+          ─► the device unwrapped it, created a new session,
+             a new PIN and a new share
+          ─► the previous session is frozen (the one-live rule)
+          ─► the chats are there, the history is not
+```
+
+**The paper code can only be replaced by presenting the current paper code.** Without that rule, whoever takes an identity issues themselves a new one first and locks the owner out for good — the insurance would vanish exactly when it is needed.
+
+Entry attempts are counted as they are for the PIN: the code is long-lived, so there is plenty of time to guess at it.
+
+**The key file in `depth` is encrypted with the same vault key** — the PIN plus the node's share, with no exception for the terminal. A stolen or copied volume is useless: half the key is not in it, and getting that half means proving knowledge of the PIN to the node, which counts the attempts. This closes the terminal's main weakness: unlike the browser, where keys sit as non-extractable `CryptoKey` objects, here they are a file after all. The file itself is `0600`, and the client **refuses to start** if the permissions are wider, instead of a warning nobody reads. The price is the same as everywhere: **forget the PIN and that device's conversations are gone**, while the identity comes back with the paper code.
 
 **Changing age and the band.** Age is freely editable **within your own pool**, but the 20/21 border can only be crossed upwards:
 
@@ -256,7 +347,7 @@ Silently swapping a name mid-conversation is not allowed: the peer agreed to tal
 
 Disclaimers (both required in the UI):
 
-> Your identity lives on this device and on the ones you connected to it yourself. On any other device you will be someone else. Clearing browser data — or deleting the volume and forgetting the passphrase, if you are in the terminal — erases this session; if no other device is connected, the identity is gone for good, and neither we nor you can bring it back.
+> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
 
@@ -306,10 +397,18 @@ CREATE TABLE feed_messages (
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL,                          -- metres, 100 .. 10000
   like_count       integer NOT NULL DEFAULT 0,
+  discount_value   text,                                      -- NULL = an ordinary phrase
+  conditions       text,                                      -- limits on the discount
   created_at       timestamptz NOT NULL DEFAULT now(),
   expires_at       timestamptz NOT NULL                       -- now() + N hours
 );
 ```
+
+**A private offer is a phrase with a discount, not a separate entity.** The neighbour giving away two stools writes the same phrase into the same feed; a non-empty `discount_value` is what makes it an offer. Everything else — geography, lifetime, likes, matching, chat — works without a single new line, because it is a post. What a private author may put in an offer (text, discount, conditions — and nothing else: no link, no promo code) is decided in `offers/SPEC_EN.md` §2.
+
+**A business offer does not live in this table.** There is no identity behind it, and `author_identity` is `NOT NULL`. It stays a separate object (`offers/SPEC_EN.md` §3) and joins the feed when the delivery is assembled, by its venue's coordinates. It carries no like by construction: a like leads to a match, a match to a conversation, and there is nobody to converse with.
+
+The quota counts **both** kinds of commercial card together — phrases with a discount and business offers alike: no more than one per ten ordinary phrases in a given person's feed. Otherwise "selling a stool" walks around the very limit the quota exists for.
 
 What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}` — **a circle, not a point**, and nothing about the author. The client draws an area, not a pin.
 
@@ -470,6 +569,33 @@ This is **not** another consent or a checkbox: the text sits on the same screen 
 - **Match TTL** = `least()` of both phrases' `expires_at`, with no safety floor. Either phrase dies and the match dies with it, even if one side already accepted; a new mutual like does **not** extend it. The consequence is accepted deliberately: a match born on a dying phrase may leave a pair only minutes for two presses, and then burn out. The rule matters more than the match count — the reason died, so the invitation dies too.
 - **The text snapshot is taken at match time**, not at opening: otherwise a phrase can expire between "match" and "both pressed", and someone would consent without seeing why.
 - The card shows a `match expires · Nh Nm` timer; once one accepts, the other sees "waiting for you".
+
+**A match born from an offer is one-sided.** A like on a phrase with a discount creates the match immediately, without waiting for one back.
+
+The ordinary rule breaks against its own meaning here: to collect the stools you would have to wait for the neighbour giving them away to like some phrase of yours. A mutual like checks that two people's moods coincided; an offer has a different occasion — it is stated in the announcement itself, and there is nothing to coincide with.
+
+```
+ordinary phrase        I liked theirs → they liked mine → match
+phrase with a discount I liked theirs → match
+```
+
+From there the machinery is unchanged: two `match_participants` rows, the disclaimer, the `idle_ttl` choice, double consent. The author of the offer may decline, and then there is no chat, exactly as in any other match.
+
+One schema change follows: whoever came to the offer has no phrase of their own.
+
+```sql
+ALTER TABLE match_participants
+  ALTER COLUMN message_id    DROP NOT NULL,   -- NULL for whoever came to an offer
+  ALTER COLUMN text_snapshot DROP NOT NULL;
+```
+
+The occasion in such a match is **one for both** — the offer itself, shown to both on the card. The author sees not the other side's phrase, which does not exist, but their own announcement and "is interested in your offer", plus a name and an age — exactly the same disclosure as in an ordinary match.
+
+The `TTL` is taken from the single live phrase, the offer: the offer dies and the match goes with it.
+
+This cannot be used to spam beyond the usual: `pair_key` is unique, so a second like from the same pair creates no new match, and a private author has at most `PRIVATE_ACTIVE_OFFERS` live offers at a time (`offers/SPEC_EN.md` §4).
+
+**Business** offers carry no like at all, so this path does not reach them either.
 
 **Edge cases** — all three are real, and staying quiet about them is not an option:
 
@@ -780,7 +906,7 @@ chat death   K and the ephemeral keys are wiped, the wraps are deleted
              ─► old ciphertext can no longer be opened, by anyone
 ```
 
-**How the key reaches my other devices.** Whoever consented wraps `K` for each of their own live sessions under its `wrap_public_key` (§8.2) and puts the wraps on the server. The server cannot unwrap them — it stores opaque bytes.
+**How the key survives an identity transfer.** Whoever consented wraps `K` under their live session's `wrap_public_key` (§8.2) and puts the wrap on the server. The server cannot unwrap it — it stores opaque bytes. There is one live session, so there is one wrap; on transfer the new session gets the wraps of new chats, while the old ones stay with the frozen session and come back with it.
 
 ```sql
 CREATE TABLE chat_key_wraps (
@@ -791,9 +917,9 @@ CREATE TABLE chat_key_wraps (
 );
 ```
 
-`ON DELETE CASCADE` carries meaning here rather than hygiene: the chat dies and its wraps go; a session is revoked and its wraps go with it.
+`ON DELETE CASCADE` carries meaning here rather than hygiene: the chat dies and its wraps go; a session is deleted and its wraps go with it.
 
-**Revocation becomes real.** With a single long-lived key a revoked device would lose only access while keeping the ability to decrypt for ever. With wraps it loses the ability itself: nobody will wrap a future chat's key for it. This is not cosmetic — sessions without working revocation would be a feature that looks like protection without being one.
+**Freezing becomes real.** With a single long-lived key a frozen device would lose only access while keeping the ability to decrypt for ever. With wraps it loses the ability itself: nobody will wrap a future chat's key for it. This is not cosmetic — transfer without this would be a feature that looks like protection without being one.
 
 **A device that joins later starts on an empty screen.** The keys of chats opened before it appeared had nobody to be wrapped for, and we will not backfill them. The rule is simple and honest, and ephemerality makes it nearly invisible: conversations live hours.
 
@@ -801,7 +927,7 @@ CREATE TABLE chat_key_wraps (
 
 **A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away.
 
-**There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a handoff (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a handoff. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. `depth` does not have this hole: there the keys are a file anyway, and what protects them is the passphrase rather than a property of the store.
+**There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a transfer. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. `depth` does not have this hole: there the keys are a file anyway, and what protects them is the vault key — the PIN with the node's share — rather than a property of the browser's store.
 
 **Size.** The ciphertext of a 256-character phrase is up to ~1 KB with nonce, tag and base64. The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
 
@@ -886,7 +1012,7 @@ top: one draws into a terminal, the other into a browser.
 ```
 
 Without that split the client doubles whole rather than only in its screens:
-Argon2id twice, key wrapping twice, two implementations of the code handoff —
+Argon2id twice, key wrapping twice, two implementations of the code transfer —
 and two chances to diverge in behaviour where divergence means incompatibility
 rather than cosmetics.
 
@@ -900,8 +1026,13 @@ surfaces at once.
 The web follows it over a protocol that is by then already proven. The reverse
 order would produce an API the terminal would have to be bent to fit.
 
-1. **Identity and sessions** (§8.2) — `identities`, `sessions`, request
-   signing, the code handoff. Everything else rests on "who is this".
+1. **Identity and session** (§8.2) — `identities`, `sessions`, `vault_shares`,
+   request signing, the code transfer with confirmation. Registration is longer
+   here than it looks: name and age, then the paper recovery code with a
+   write-down check, then the PIN and the exchange with the node for a share.
+   All three are mandatory and none can be deferred — without the paper code the
+   first lost device is irreversible, and without the share the local database
+   sits unencrypted. Everything else rests on "who is this".
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
    age bands, synchronous moderation before publication. **With this step, not
    after it:** the Article 17 statement screen for an author with no email
@@ -939,15 +1070,22 @@ What "the chat is done" means, checkable rather than eyeballed:
 - A node falling over breaks the socket but **not the conversation**: on
   reconnecting to a neighbour, the person continues the same chat with the same
   history.
-- A second device connected **before** the chat opened sees the same messages;
-  one connected **after** starts on an empty screen, and that is not a defect
-  (§8.13).
-- A revoked session stops receiving messages **immediately**, including in the
+- An identity transferred to a second device shows **the same chats and empty
+  windows** there; the previous device freezes and, once the identity comes
+  back, shows its entire history again. An empty window on the new device is not
+  a defect (§8.13).
+- Ten wrong PINs burn the share, and the local database then **opens with
+  nothing** — tested against a live node, not by reasoning.
+- A frozen session stops receiving messages **immediately**, including in the
   chat that was open on it, and receives no keys for new chats. Tested by
-  revoking during a live conversation.
-- The code handoff works across faces: a code shown in `depth` and typed in the
+  transferring during a live conversation.
+- The code transfer works across faces: a code shown in `depth` and typed in the
   web, and the other way round. An expired or already-applied code does
-  nothing, and a sixth entry attempt burns the invite.
+  nothing, a sixth entry attempt burns the invite, and without "that's me" on
+  the old device no transfer happens at all.
+- The paper code restores the identity on a clean device when no live session is
+  left, and the previous session is frozen afterwards. Tested on an identity
+  whose browser was wiped.
 - A message longer than `max_message_length` is refused by the **node**, not
   merely by the counter in the client. Tested with a request that bypasses the
   client.

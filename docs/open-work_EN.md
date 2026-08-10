@@ -1186,3 +1186,33 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
 
       Worth checking whether the same applies to `relay-node`: its context changes
       often, but no layer cache is carried between runs at all.
+
+- [ ] **J19. The identity model has been rewritten in the spec and does not exist
+      in code.** Decided 2026-08-10: one live session per identity, a mandatory
+      paper recovery code, a mandatory six-digit PIN, and half the vault key held
+      by the node (`chat_EN.md` §8.2).
+
+      Not a line of it is built — `identities` and `sessions` are not in the
+      database either, the chat still lives entirely in the spec. This item exists
+      not as a task for tomorrow but so that the gap between "the spec describes
+      it" and "there is no code" is written down.
+
+      **What will have to be built when its turn comes:**
+
+      - `identities` with `recovery_auth_hash`, `recovery_wrapped_key` and an
+        attempt counter; `sessions` with `frozen_at` and a **partial unique
+        index** — that index, not a check in code, is what holds the one-session
+        rule;
+      - `vault_shares`: the PIN verified **on the node** before the share is
+        released, with the counter there too. Hand the share out unverified and the
+        whole scheme collapses — an attacker takes it once and brute-forces six
+        digits offline;
+      - the transfer confirmation screen with context: what the device called
+        itself, same network or not, when. An address comparison, no geo database;
+      - cleanup of shares whose session has been unseen for a year, and that period
+        stated in the retention policy.
+
+      **What to test once it is built** (§14 of the spec): ten wrong PINs really do
+      burn the share and the database then opens with **nothing**; the paper code
+      raises the identity on a clean device; without "that's me" no transfer
+      happens.

@@ -90,7 +90,7 @@ identity's state lives there and nowhere else.
 
 ```
 /data
-├── identity.age      keys, encrypted with the passphrase
+├── identity.age      keys, encrypted with the vault key (PIN + node share)
 └── accepted.json     the accepted terms revision and its date
 ```
 
@@ -103,19 +103,26 @@ printing a warning nobody reads:
   fix the permissions and run again.
 ```
 
-### 2.3. The passphrase
+### 2.3. The PIN
 
-Asked at **every start**. Argon2id derives from it the key that decrypts
-`identity.age`.
+Asked at **every start** — six digits, the same as in the web (§8.2 of the chat
+spec). Half the key is derived from the PIN with Argon2id; the node hands over
+the other half, and only after the device has proven it knows the PIN. The
+assembled key decrypts `identity.age`.
 
-A stolen or copied volume is useless without the phrase. This closes the
-terminal's main weakness: in a browser the keys sit as non-extractable
+A stolen or copied volume is useless: half the key is not in it, and getting
+that half means going through the node, which counts the attempts. This closes
+the terminal's main weakness: in a browser the keys sit as non-extractable
 `CryptoKey` objects, whereas here they are a file after all.
+
+Hence a consequence worth knowing up front: **without a network `depth` does not
+open at all** — no share, no key.
 
 The price is stated plainly, before the identity is created rather than after:
 
-> Forget the phrase and you lose the identity. There is no recovery, not by us
-> and not by you. It is the same as deleting the volume.
+> Forget the PIN and you lose this device's conversations: ten wrong attempts
+> burn the share. The paper code brings the identity back; the conversations do
+> not come back.
 
 ### 2.4. First run
 
@@ -127,9 +134,10 @@ $ depth
   ─────────────────────────────────────────────
    there is no identity on this device.
 
-   depth new     create one
-   depth join    connect this device
-                 to an identity that already exists
+   depth new      create one
+   depth move     move an identity here from the
+                  device it is on now
+   depth restore  raise an identity with the paper code
   ─────────────────────────────────────────────
 ```
 
@@ -174,8 +182,9 @@ recorded as a separate principle in §8 of the chat spec.
 |---|---|
 | `depth` | sign in; with no identity, the prompt above |
 | `depth new` | create an identity on this device |
-| `depth join` | connect this device to an existing identity |
-| `depth devices` | the session list, and disconnecting |
+| `depth move` | move the identity here from the device it is on now |
+| `depth restore` | raise an identity with the paper recovery code |
+| `depth device` | this session, and the code to move it |
 | `depth report` | a notice of illegal content (DSA Article 16) |
 
 Everything except `depth` is also reachable from inside the running client: the
@@ -183,45 +192,71 @@ commands are a door for whoever arrived from a shell, not a second interface.
 
 ### 3.1. `depth new`
 
-Passphrase, name, age, area — and the person is in the feed. The order is
-mandatory: age is asked before the feed because it decides what the feed hands
-out (§8.2, age bands).
-
-### 3.2. `depth join`
+Name, age, paper recovery code, PIN, area — and the person is in the feed. The
+order is mandatory: age is asked before the feed because it decides what the feed
+hands out (§8.2, age bands), and the paper code comes before the PIN because
+without it the first lost volume is irreversible.
 
 ```
-$ depth join
-  the code from the device that is already signed in:
+  write this code down. we will not show it again.
+
+      RTQ4 - 8FMK - 2PZN - XW9D
+
+  type the second and fourth groups back: ›
+```
+
+### 3.2. `depth move`
+
+An identity lives on one device (§8.2). The command does not "add another one",
+it **moves** it: alive here, frozen there.
+
+```
+$ depth move
+  the code from the device the identity is on now:
   › K7Q-M3F-2X9▋
 ```
 
 Nine characters, Crockford base32 without `I`, `L`, `O`, `U`. Case does not
 matter and the dashes are optional. The code lives two minutes, applies once, and
-a sixth entry attempt burns the invite. The whole mechanism is in §8.2 of the
-spec.
+a sixth entry attempt burns the invite. Until "that's me" is pressed on the other
+device, nothing happens here. The whole mechanism is in §8.2 of the spec.
 
-After linking, the line without which a person will assume their chats are gone:
-
-```
-  linked. current conversations stay on the device where
-  they began — only new ones will appear here.
-```
-
-### 3.3. `depth devices`
+After the move, the line without which a person will assume their chats are gone:
 
 ```
-  devices
-
-   ●  depth, this terminal          connected now
-   ○  Firefox, Linux                active 12 minutes ago
-   ○  Safari, iPhone                active 3 hours ago
-
-  [enter] show a code for a new one   [x] disconnect   [q] back
+  moved. the conversations are here, the history is not:
+  it stayed on the previous device and comes back with the
+  identity if you bring it back.
 ```
 
-Revocation is **symmetric**: any live session disconnects any other. Parenthood
-is a label, not a right. Disconnecting the last session deletes the identity, and
-the client says so before the keypress, in the same words as "start over".
+The other side, when this terminal is the one showing the code:
+
+```
+  a device is asking to take the identity
+
+  called itself   Chrome, Android
+  network         different from this terminal's
+  when            just now
+
+  nobody from support will ever ask for this code.
+
+  [y] that's me    [n] decline
+```
+
+### 3.3. `depth device`
+
+```
+  this device
+
+   ●  depth, this terminal          identity here since 9 August
+      last activity                 now
+
+  [enter] show a code to move it      [q] back
+```
+
+There is no list of other devices, because there are none: one live session.
+The screen shows this one and offers the single action — hand the identity to
+another device.
 
 ### 3.4. `depth report`
 
@@ -234,19 +269,19 @@ cannot have one (§8.8).
 
 ### 3.5. What is **not** a command
 
-The link code is neither an argument nor an environment variable. Never:
+The transfer code is neither an argument nor an environment variable. Never:
 
 ```
-depth join K7Q-M3F-2X9        ✗ an argument is visible in `ps` to everyone
+depth move K7Q-M3F-2X9        ✗ an argument is visible in `ps` to everyone
                                 on the machine and lands in shell history
 DEPTH_CODE=K7Q-M3F-2X9        ✗ `docker inspect` shows the variable
 ```
 
-Standard input only. The linking screen is drawn in the terminal's **alternate
+Standard input only. The transfer screen is drawn in the terminal's **alternate
 buffer** and cleared on exit — otherwise those nine characters stay in the
 scrollback and in the multiplexer's log.
 
-The passphrase follows the same rules, and is never echoed.
+The PIN and the paper code follow the same rules, and are never echoed.
 
 ---
 
@@ -475,7 +510,7 @@ memory, gone with the chat, never written to the database (§8.8).
 
 ### 5.4. No links, no QR, no clipboard — by construction
 
-Linking is a nine-character code (§8.2). No links are needed, so no separate
+A transfer is a nine-character code (§8.2). No links are needed, so no separate
 domain, no page and no `#` handling are needed either. The QR existed for the
 sake of a long link, and left with it.
 
@@ -483,7 +518,7 @@ sake of a long link, and left with it.
 
 ## 6. Storage
 
-**In the volume:** keys (`identity.age`, under the passphrase) and the accepted
+**In the volume:** keys (`identity.age`, under the vault key) and the accepted
 terms revision with its date.
 
 **Not in the volume:** conversations, feed, matches, game boards, logs. None of it
@@ -584,9 +619,10 @@ such a contract.
 - **Narrow terminals.** What exactly breaks at 60 columns, and what to show.
 - **Accessibility.** Behaviour under a screen reader in a terminal has not been
   studied.
-- **Argon2id parameters** for the passphrase: 64 MB / t=3 were taken by analogy
-  with the link code (§8.2), but a phrase has a different threat model — a human
-  types it and it survives restarts.
+- **Argon2id parameters** for the PIN: 64 MB / t=3 were taken by analogy with
+  the transfer code (§8.2), but a PIN has a different threat model — six digits,
+  typed at every start, and what guards it against guessing is the node's
+  counter rather than the cost of the hash.
 - **The image support window** (8.2): how many versions back the node must accept.
 - **Re-asking for age** (§8.2 re-asks every few months) — what that looks like in
   a terminal is undecided.

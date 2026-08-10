@@ -7,7 +7,7 @@ supervisory authority on request. Russian version:
 
 **Compiled 2026-08-05.** Update it on every change: a new kind of data, a new
 recipient, a new period. The facts come from both storefronts' privacy policies,
-the product's `00-mechanics`, `dsa/SPEC`, `offers/SPEC` and `vendors-dpa`.
+the product's `00-mechanics`, `dsa/SPEC`, `offers/SPEC_EN` and `vendors-dpa`.
 
 ## Controller
 
@@ -72,13 +72,24 @@ processing is identical and only the storefront differs, so the record is shared
   participants' devices (`chat_EN.md` §8.13); the node holds no keys and never
   sees plaintext. What the node does hold is metadata — who a chat is between,
   when something moved, and how long the messages were.
-- **Key wraps.** Each chat's key is stored wrapped under the person's own
-  devices' keys — opaque bytes the node cannot unwrap. They are deleted with
-  the chat, or with a disconnected device.
+- **Key wraps.** Each chat's key is stored wrapped under the person's live
+  session key — opaque bytes the node cannot unwrap. They are deleted with the
+  chat, or with a deleted session.
+- **Vault key share.** The local database on a device is encrypted with a key
+  assembled from the person's PIN and **a share held by the node** (`chat_EN.md`
+  §8.2). The node stores the share itself — 32 random bytes, meaningless to it —
+  a hash of half the material derived from the PIN, and a counter of wrong
+  attempts. The node does not know the PIN and cannot recover it from the hash,
+  and the share alone opens nothing. It is tied to a session; a session unseen
+  for a year is cleaned up together with its share.
+- **Recovery code.** An identity stores a hash of half the paper code and its
+  long-lived key wrapped under the other half. We do not know the code and can
+  neither look it up nor reset it.
 - **Recipients.** None.
-- **Retention.** **Not stored on the servers** — only carried until delivered. On
-  the device it lives in IndexedDB, encrypted with Web Crypto, for the shorter of
-  the two chosen times.
+- **Retention.** The conversation is **not stored on the servers** — only carried
+  until delivered. On the device it lives in IndexedDB, encrypted with the vault
+  key, for the shorter of the two chosen times. The share and the hashes live as
+  long as the session or the identity does.
 
 ### 5. Waitlist
 
@@ -114,15 +125,22 @@ processing is identical and only the storefront differs, so the record is shared
 
 ### 8. Advertisers and complaints about offers
 
-- **Purpose.** Keep the profile of a business publishing offers, and examine
-  complaints that a promised discount was refused.
+- **Purpose.** Keep an owner's account and the venues that publish offers, and
+  examine complaints that a promised discount was refused.
 - **Basis.** Performance of a contract with the business; legitimate interests for
   the complaints.
-- **Data.** Name, contact, address (confirmed by letter), verification status; the
-  text and date of a complaint, the business's reply.
-- **Recipients.** None.
-- **Retention.** Profile and complaints — **one year from the last offer**, then
-  deletion.
+- **Data.**
+  - **Account:** an **email address** — the single place in the product where we
+    know a person's email, and the only way into the cabinet is a link sent to
+    it; the contact person's name.
+  - **Venues:** one owner may hold several, each with its own name, its own
+    postal address (confirmed by an envelope sent to that address) and its own
+    verification status.
+  - **Complaints:** the text and date, and the business's reply.
+- **Recipients.** The email goes out through the mail sender — see "Recipients and
+  contracts".
+- **Retention.** Account, venues and complaints — **one year from the last
+  offer**, then deletion.
 
 ### 9. Storefront analytics
 

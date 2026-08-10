@@ -1164,3 +1164,25 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       *for this reason* rather than another. The `Copy` column now distinguishes
       "gone before we looked" from "never held" (see migration `006`), but the text
       inside the card does not lean on it.
+- [ ] **J18. The `caddy` image is rebuilt on every commit, and has not changed in
+      78 of them.** Noticed 2026-08-09, after four edit-and-roll cycles in a row
+      each waited twenty minutes on it.
+
+      `relay/caddy/` holds **one Dockerfile**, last touched in `51bbcbf` — a
+      directory rename. Since then 78 commits have touched `relay/**`, and every
+      one of them built that image again for two architectures, arm64 under QEMU
+      emulation. That is the part of the run everyone waits for.
+
+      **Why the guard from the `006` era does not help.** The "already built?" step
+      looks for `sha-<commit>`: a new commit has none, so the build proceeds even
+      when not a byte of the context changed. The key is tied to the commit when it
+      should be tied to the content.
+
+      **How to close it:** tag the image by a hash of its context rather than the
+      commit — `content-<sha256 of relay/caddy/>`, say. "Already built?" then finds
+      it and attaches the commit and release tags to what exists, exactly as it
+      already does for a repeat run. Twenty minutes off every roll, and they are
+      the twenty minutes that hurt when something urgent is being fixed.
+
+      Worth checking whether the same applies to `relay-node`: its context changes
+      often, but no layer cache is carried between runs at all.

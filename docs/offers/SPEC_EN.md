@@ -279,6 +279,7 @@ Field rules:
     id
     offer_id
     user_id                 who complained
+    notifier_email          string, required — the only way to reply (10.2)
     text                    string, nullable
     status                  enum: pending | resolved | rejected
     counts_towards_autohide bool — false if the user is over the monthly limit
@@ -302,6 +303,9 @@ Field rules:
 | `ACTIVATION_CODE_TTL` | 30 days | The lifetime of the code from the letter |
 | `COMPLAINT_RETENTION` | 1 year | After that, an anonymised aggregate only |
 | `PRIVATE_ACTIVE_OFFERS` | 1 | Live offers per identity at a time |
+| `COMPLAINT_EXAMINATION_HOURS` | 24 | The examination period for a hidden offer |
+| `SUSPEND_RESOLVED_COUNT` | 3 | Justified complaints on different offers before suspension |
+| `SUSPEND_WINDOW_DAYS` | 90 | The window they are counted in |
 
 A business's publication rate is **not limited** — an offer is published like an ordinary post,
 and `FEED_OFFER_QUOTA` is what regulates the load on the feed.
@@ -488,10 +492,69 @@ The dispute:
 
 - `resolved` — the complaint was found justified
 - `rejected` — the complaint was dismissed and does not count in the author's statistics
-- systematic justified complaints → `verification_status: suspended`, set by a moderator by hand
+- systematic justified complaints → `verification_status: suspended`, set by a moderator by
+  hand (the threshold and window are in 10.2)
 
 **Forbidden:** publishing complaints, letting the author delete complaints, disclosing the
 complainant's identity.
+
+### 10.2. Who settles a dispute, and by what rule
+
+**The operator decides** — the same person who examines Article 16 notices. There is **no**
+second instance inside the product, and that is said plainly, in the same words as in the DSA
+letters: a venue that disagrees goes to a court or to a consumer regulator, not back to us. A
+hidden "appeal" staffed by the same person is worse than an honest "there is one instance".
+
+**Two kinds of complaint are settled differently, and that is the heart of the rule.**
+
+| What the complainant says | What settles it |
+|---|---|
+| "the conditions were hidden", "there was no such discount", "new customers only in small print" | **reading the announcement** — we published the text, no witnesses needed |
+| "I came and they refused me" | **nothing** — neither side has proof and neither will |
+
+The first kind is entirely our responsibility: we answer for the truth of the announcement
+(section 10). Here the operator really does establish a fact, because the fact is in the text.
+
+The second kind is not settled by truth, and pretending an arbiter can judge who lied would be
+dishonest. So the decision is taken **about the announcement, not about people**: one such
+complaint is a signal to the venue and nothing more; `AUTOHIDE_COMPLAINTS` of them from
+different people hide the offer. Nobody is declared a liar, and the reasons say so.
+
+**The deadline is `COMPLAINT_EXAMINATION_HOURS`, and it is important to see what it does not
+buy.** An offer lives hours while the examination takes a day: by the time a decision is made
+the offer is almost always `expired`. So the examination exists for **the record and the
+consequences**, not to rescue the offer. Returning to `active` is a rare side case rather than
+the point of the mechanism, and no interface should be built around it.
+
+**The complainant's email is mandatory — for a discount complaint.** Without it the complaint
+does not send, and the form says why: a neighbour lives without an email, we have no separate
+channel for telling a person something inside the application, and without an address there is
+physically nothing to reply with. This is no retreat from the promise: an email is not needed to
+use the product; it is needed to receive an answer to a request that expects one.
+
+There is no exception here, because there is no law forbidding us to ask for an address: this is
+a dispute about a discount, not an Article 16 notice.
+
+**A complaint about a link carries no email at all** (10.1). It is not a request but a signal:
+it is not shown to the author, expects no reply and works by a threshold. An input field would
+turn the cheapest source of phishing signals we have into a form that few people fill in.
+
+**What each side gets:**
+
+```
+venue         the complaint's text and date, without the identity and without the time
+              the right to reply privately
+              the decision with its reason
+
+complainant   by email to the address given: the decision and its reason,
+              with nothing about the venue beyond what the offer already says
+```
+
+**Systematic behaviour.** `SUSPEND_RESOLVED_COUNT` `resolved` decisions on **different** offers
+within `SUSPEND_WINDOW_DAYS` → `verification_status: suspended` for the venue, set by a
+moderator by hand. The window keeps a seasonal venue from accumulating sins for years; the count
+keeps one failure from closing a working place. The "this is not us" button (section 11) is a
+separate and instant path and has nothing to do with this counter.
 
 ### 10.1. A complaint about a link
 
@@ -627,5 +690,4 @@ Values to be confirmed in practice:
 
 - `OFFER_LIFETIME` — tie it to an ordinary post's lifetime, a product-level value
 - `FEED_OFFER_QUOTA` = 1 in 10 — check against a real feed
-- The examination period for a hidden offer: a day — is one person fast enough
-- Who arbitrates a dispute, and by what rule they decide
+- `COMPLAINT_EXAMINATION_HOURS` = 24 — check in practice whether one person keeps up

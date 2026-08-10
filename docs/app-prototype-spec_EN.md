@@ -13,7 +13,7 @@ Source: `neighbro.place/prototype/neighbro-app-proto.html` (single-file, no exte
   - Optional name.
   - **Consent to the documents:** a checkbox "I agree to the Terms & Conditions and Privacy Policy" with links opening a modal with condensed text (full text at `neighbro.place/legal/*`). Operator in the documents is **PSYTICAN & PEJEDED (Evgenii Panov)**.
   - **Enter Neighbro** enabled only with a valid age (13–119) and consent checked. Completion stored in `localStorage` (`nb-onboarded`).
-- Legal documents: `neighbro.place/legal/terms_RU.md` / `terms_EN.md` (Privacy — planned).
+- Legal documents: `neighbro.place/landing/legal/terms_EN.md` and `privacy_EN.md` — both written and served by the documents page. English only, by decision (`open-work_EN.md` G7). `neighbro.place/legal/` holds pointers to them, not texts.
 
 ## 1. Aesthetic & tokens
 

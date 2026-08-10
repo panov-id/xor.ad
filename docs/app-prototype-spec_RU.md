@@ -13,7 +13,7 @@
   - Необязательное имя.
   - **Согласие с файлами:** чекбокс «I agree to the Terms & Conditions and Privacy Policy» со ссылками, открывающими модалку с кратким текстом документов (полный текст — `neighbro.place/legal/*`). Оператор в документах — **PSYTICAN & PEJEDED (Evgenii Panov)**.
   - Кнопка **Enter Neighbro** активна только при валидном возрасте (13–119) и отмеченном согласии. Факт прохождения — в `localStorage` (`nb-onboarded`).
-- Юридические документы: `neighbro.place/legal/terms_RU.md` / `terms_EN.md` (Privacy — планируется).
+- Юридические документы: `neighbro.place/landing/legal/terms_EN.md` и `privacy_EN.md` — оба написаны и отдаются страницей документов. Только по-английски, и это решение (`open-work_RU.md` G7). В `neighbro.place/legal/` лежат указатели на них, а не тексты.
 
 ## 1. Эстетика и токены
 

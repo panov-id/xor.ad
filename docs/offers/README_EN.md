@@ -256,6 +256,37 @@ and a handful of planted complaints do not kill a business outright.
 **The complainant's anonymity.** The business sees the text and the date, without the identity
 and without the time.
 
+**Who decides, and what can be decided at all.** The operator decides — the same person who
+examines Article 16 notices. There is no second instance inside the product, and we say so
+plainly: a hidden "appeal" staffed by the same person is worse than an honest "there is one
+instance".
+
+What matters more is the split between what can and cannot be examined:
+
+    "the conditions were hidden"   → settled by reading the announcement
+    "there was no such discount"     we published the text, no witnesses needed
+
+    "I came and they refused me"   → settled by nothing
+                                     neither side has proof
+
+The first is entirely our territory. The second is not settled by truth, and an arbiter
+pretending to have judged who lied is worse than no arbiter. So there the decision is taken
+**about the announcement, not about people**: one complaint is a signal, three from different
+people hide the offer, and nobody is called a liar.
+
+**The examination does not rescue the offer, and that has to be understood.** An offer lives
+hours while the examination takes a day: by the time of the decision the offer has almost always
+expired. The mechanism exists for the record and the consequences; a return to the feed is a
+rare side case, not the goal.
+
+**Why a discount complaint requires an email.** A neighbour lives without one, we have no
+separate channel for telling a person something inside the application, and without an address
+there is physically nothing to reply with — the complaint would vanish into silence. This is no
+retreat from the promise: an email is not needed to use the product, it is needed to receive an
+answer to a request that expects one. A complaint about a link carries no email: it is a signal
+rather than a request, and an input field would kill the cheapest source of phishing
+intelligence we have.
+
 **Dispute.** The business replies privately, the moderator decides: `resolved` or `rejected`.
 
     User → complaint (private) → moderator
@@ -347,13 +378,17 @@ duties do not apply to micro and small enterprises — check the status before l
 
 ## 10. Open questions
 
-- Who arbitrates "complaint against the business's reply", and by what rule
-- The monthly complaint limit per user
-- How many complaints about one offer trigger automatic hiding
 - Whether to keep the list of copied promo codes locally on the device
 
-Closed along the way: private authors **do** get offers, but without a link and without a promo
-code, and no more than `PRIVATE_ACTIVE_OFFERS` live at a time (section 2.5).
+Closed along the way:
+
+- private authors **do** get offers, but without a link and without a promo code, and no more
+  than `PRIVATE_ACTIVE_OFFERS` live at a time (section 2.5)
+- the arbiter is the operator and there is no second instance; the whole rule is in
+  `SPEC_EN.md` §10.2
+- the monthly complaint limit and the automatic-hiding threshold are set as constants in
+  `SPEC_EN.md` §4 (`COMPLAINT_MONTHLY_LIMIT` = 5, `AUTOHIDE_COMPLAINTS` = 3) — they were listed
+  here as open long after they had been decided
 
 ## Status
 

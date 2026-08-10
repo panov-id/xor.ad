@@ -837,20 +837,24 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       when a chat opens, defaults to **256 characters**, and is checked **on the
       node** — anything longer is refused with `error`. The feed stays at **128**;
       that is a different limit and the two should not be merged.
-- [ ] **G7. Storefront privacy policies — two gaps.** Found 07.08.2026 while
-      removing the push promises.
+- [x] **G7. Storefront privacy policies — closed 2026-08-10.** Filed 2026-08-07 as
+      two gaps; on inspection the first no longer existed and the second was closed
+      by a decision rather than by work.
 
-      - **Only the English version is published.** `landing/legal/` holds
-        `privacy_EN.md` and no Russian one — while `community-guidelines` are
-        translated into ten languages and the storefront UI speaks six. Someone
-        reading the site in Russian gets the main document in a foreign language.
-      - **Two sources of truth have diverged.** `legal/privacy_{RU,EN}.md` are
-        ~600-byte stubs; `landing/legal/privacy_EN.md` is the real 10 KB text.
-        Today's edit had to go into the second, and nothing stops the next one from
-        going into the first unnoticed.
+      **"Two sources of truth have diverged" was out of date.** `legal/*.md` in both
+      storefronts are no longer copies but pointers: "the text in force lives in
+      `landing/legal/`, a legal text must not have two sources". The source is
+      `landing/legal/`, and that is where the real texts sit (privacy 10 KB, terms
+      15 KB). The item described a state that was gone by the time it was re-read.
 
-      Both need solving together: first name one directory the source, then
-      translate. The other order means translating a text that will drift.
+      **"Only the English version is published" — the decision is that it stays.**
+      The storefront speaks six languages and the community guidelines are
+      translated into more than ten, so the question was put directly. The answer: a
+      translated legal text is a second edition, and on the day one of them is
+      edited they start saying different things — quietly, and where being wrong is
+      expensive. Whoever needs it in their own language can translate it. The
+      decision is recorded in the pointer files themselves, so that in six months it
+      is not mistaken for a forgotten translation.
 - [x] **G8. Push fully cancelled — 07.08.2026.** The decision: notifications about
       new messages and matches exist, but **there is no push anywhere** — no Web
       Push in the browser, no system notifications in the terminal, no `BEL`.
@@ -933,25 +937,31 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       feed is shared across all faces — §8 of the chat spec, second principle. A
       brand decides texts, emails, where leads land and who sees them in the panel;
       it does not decide who is visible in the feed.
-- [ ] **G10. Terms for client authors — before the image is published.** Decided
-      07.08.2026. They are needed on the day the `depth` image goes public,
-      because an open client plus a documented protocol is an invitation to write
-      another one.
+- [x] **G10. Terms for client authors — written 2026-08-10.** They live in
+      `CLIENT_TERMS.md` at the repository root, next to the README, where whoever
+      came for the image will find them.
 
-      Contents: what the node guarantees and what it does not, a ban on collecting
-      our people's data with somebody else's client, the obligation to show the
-      terms and the Article 16 path, and the platform's right to cut off a client
-      that abuses this. Spelled out in `depth-client_EN.md` §8.3.
+      What went in: what the node guarantees (rights, limits, moderation before
+      publication, age bands) and what it does not (counters, showing the Terms,
+      erasing local history — those are on the client's author); the author's
+      duties — show the Terms and the Article 16 path, do not collect our people's
+      data, **do not hold other people's identity keys centrally**, do not pass your
+      client off as ours; the client key as the only enforcement mechanism — we
+      issue it and we can revoke it.
 
-      **No DPA is being prepared and hosting other people's networks is not on
-      offer** — a decision, not a deferral. To someone who wants their own network
-      the answer is: run your own node. The protocol is documented, the client is
-      open, the node's sources are in this repository — they are their own
-      operator and we are not a party. Hosting someone else's network here would
-      mean bringing a brand boundary back into the feed (forbidden by the second
-      principle in §8 of the chat spec) and becoming that operator's processor:
-      Article 28, sub-processors, data-subject requests, a split of DSA roles.
-      Revisit only if concrete demand appears.
+      **No DPA and no hosting of other people's networks** — recorded there with the
+      reason: there is no service to cover, and hosting a separate world would put a
+      brand boundary back into the feed and make us a processor for someone else's
+      operator.
+
+      **English only**, like the other published legal texts (the decision is in G7).
+
+      **Dependency:** the document describes a client key that does not exist in the
+      node's code — see G9. Until it does, there is nothing to revoke.
+
+      Not done: links to `CLIENT_TERMS.md` from both storefronts' READMEs and from
+      the image's description in the registry — those go up on the day the image is
+      published.
 - [x] **J13. One commit, two different images. Found and fixed 2026-08-07.**
       Surfaced while verifying J11: under the tag `v2026.8.7-g3fbd1e1` and under
       `sha-3fbd1e1`, `relay-caddy` had **different digests** (`2af974ef…` and
@@ -1216,3 +1226,50 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       burn the share and the database then opens with **nothing**; the paper code
       raises the identity on a clean device; without "that's me" no transfer
       happens.
+
+- [ ] **J20. The Article 16 spec describes a mandatory field and a separate path,
+      neither of which exists.** Found 2026-08-10 while deciding whether to require
+      an email on an offer complaint.
+
+      `dsa/SPEC_EN.md` §2 marks `notifier_name` and `notifier_email` in the field
+      table as required "except for the cases in §5.1", and §5.1 promises that "the
+      form shows a separate path without those fields".
+
+      **Neither is true.** In `report.html` both fields lack `required`, and instead
+      of a separate path there is a note: "if your report concerns the sexual abuse
+      of children, leave the name and email empty". The node never requires the
+      email:
+
+          const email = isEmail(body.notifier_email) ? body.notifier_email : null;
+
+      **It is the spec that diverges, not the behaviour.** Right beside that line in
+      `routes/report.ts` sits a comment explaining why it must be so: refusing a
+      report about child sexual abuse over a missing name is exactly what Art.
+      16(2)(c) forbids. The argument is right, and changing the code would be a
+      mistake.
+
+      **What to fix:** the field table — "asked for but not required, and here is
+      why" — and §5.1, either describing the single form with its note as it stands
+      or genuinely splitting the two paths. The first is more honest: two paths mean
+      a person labels their own report "this is about children" before writing a
+      word.
+
+- [ ] **J21. The community guidelines are translated and carry no precedence
+      clause.** Noticed 2026-08-10, while deciding not to translate the policy and
+      the Terms.
+
+      The argument against translating ran: a second edition quietly starts saying
+      something else. But `landing/legal/community-guidelines_*.md` already exist in
+      ten languages for neighbro and seventeen for sosed — under the same risk, and
+      with no line saying which version governs.
+
+      This is not a detail, for exactly one reason: an Article 17 statement of
+      reasons must name **the rule that was broken** (`dsa/SPEC_EN.md` §7). The
+      moderator will quote the English wording while the person read the Kazakh one
+      — and if the two have drifted, the dispute becomes about what the rule even
+      was.
+
+      **What to do:** one line in each translation — "the English version governs;
+      the translation is provided for convenience" — and the same thought in the
+      English one. Or argue why the guidelines carry a different risk from the
+      Terms, and write that down.

@@ -7,8 +7,11 @@ Rationale: [README_EN.md](README_EN.md).
 
 ## 1. Rules and documents — before a line of code
 
-- [ ] 1.1. The rule for settling "complaint against the business's reply": who decides, on
-      what basis, within what time. Written **before the first conflict**
+- [x] 1.1. **2026-08-10.** The dispute rule is written: `SPEC_EN.md` §10.2. The operator
+      decides and there is no second instance; only what is visible in the announcement's text
+      is examined, while "I came and they refused me" is settled by a threshold about the
+      announcement rather than about people. The deadline is `COMPLAINT_EXAMINATION_HOURS`, and
+      suspension follows `SUSPEND_RESOLVED_COUNT` within `SUSPEND_WINDOW_DAYS`
 - [ ] 1.2. The rule "complaints are never deleted" — put in writing, so that the decision is
       not taken at the moment the best business threatens to leave
 - [ ] 1.3. The stop-list of categories: alcohol, tobacco, gambling, financial services,
@@ -109,7 +112,7 @@ Rationale: [README_EN.md](README_EN.md).
 ## 6. Launch gate
 
 - [ ] 6.1. The offer quota in the feed is on (2.4)
-- [ ] 6.2. The dispute rule is written (1.1)
+- [x] 6.2. **2026-08-10.** The dispute rule is written (1.1)
 - [ ] 6.3. Verification works: the code from the letter activates a **venue**, and a second
       venue of the same owner cannot publish without its own envelope — tested by trying
 

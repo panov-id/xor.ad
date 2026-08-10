@@ -136,7 +136,10 @@ processing is identical and only the storefront differs, so the record is shared
   - **Venues:** one owner may hold several, each with its own name, its own
     postal address (confirmed by an envelope sent to that address) and its own
     verification status.
-  - **Complaints:** the text and date, and the business's reply.
+  - **Complaints:** the text and date, the business's reply, and the **complainant's
+    email address** — mandatory on a discount complaint and the only way to tell the
+    person the decision (`offers/SPEC_EN.md` §10.2). A complaint about a link carries no
+    email: it expects no reply.
 - **Recipients.** The email goes out through the mail sender — see "Recipients and
   contracts".
 - **Retention.** Account, venues and complaints — **one year from the last

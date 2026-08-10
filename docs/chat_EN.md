@@ -903,7 +903,11 @@ order would produce an API the terminal would have to be bent to fit.
 1. **Identity and sessions** (§8.2) — `identities`, `sessions`, request
    signing, the code handoff. Everything else rests on "who is this".
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
-   age bands, synchronous moderation before publication. The first screen on
+   age bands, synchronous moderation before publication. **With this step, not
+   after it:** the Article 17 statement screen for an author with no email
+   (`dsa/SPEC_EN.md` §7). We never ask for an address, so an author usually has
+   none, and without that screen the first restriction is a silent removal. The
+   first screen on
    which the product does anything at all.
 3. **Likes** (§8.4) — `likes`, `identity_stats`, the count on a phrase.
 4. **Match and double consent** (§8.5) — `matches`, `match_participants`; the

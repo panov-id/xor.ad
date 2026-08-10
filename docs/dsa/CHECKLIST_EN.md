@@ -127,7 +127,19 @@ are gone and what follows is only what is genuinely unbuilt.
       location pre-filled — today it is the vote-complaint, which is a different
       thing
 - [ ] The same item on an offer card, next to the complaint about the discount
-- [ ] Showing the statement of reasons in the app where the author has no email
+- [ ] **Showing the statement of reasons in the app where the author has no
+      email (SPEC §7) — must ship WITH the feed, not after it.** We never ask for
+      an address: an identity is a key pair, and an author usually has no
+      electronic contact at all. Art. 17(2) requires no letter in that case, but
+      the spec requires more — show it on their next visit, because a silent
+      removal contradicts "a refusal is explained".
+
+      Today, with no address, the statement **is written and goes nowhere**:
+      `sendStatementOfReasons` returns `false` when the recipient is not an
+      address, and `delivered_at` stays null — the row honestly separates "written"
+      from "delivered", and that is all. While there is no feed there is nothing to
+      restrict and no harm. The day a feed ships without that screen, the first
+      restriction becomes exactly that silent removal.
       (SPEC §7)
 - [ ] The wording of refusal reasons — shared with the feed mechanic
 

@@ -557,6 +557,52 @@ not become a match.** Mutuality requires the other person to see your phrase in
 and fades — except on a phrase with a discount, where the match is born one-sided
 (§8.5) and the distance is the offer author's call.
 
+#### Stop categories: one list, two regimes
+
+The list is one for the whole product, and it lives here. It used to sit in the
+offers spec while the chat spec pointed at "§12 of the Terms" — two homes for one
+rule, and they would have drifted apart the way other documents already have.
+
+```
+alcohol
+tobacco, vapes, nicotine in any form
+gambling and betting
+financial services: credit, investment, cryptocurrency
+medicines, supplements, and services promising a therapeutic effect
+weapons
+```
+
+**The regimes differ, and the difference is the point.**
+
+| | Feed | Offer |
+|---|---|---|
+| what is forbidden | only what is illegal | **promoting** the category |
+| "let's have a beer in the yard" | allowed | — |
+| "second glass free" | — | forbidden |
+| "−€5 on dinner" from a taverna | — | allowed |
+
+In the feed people are talking, and forbidding a mention means cutting the
+conversation: a neighbour inviting you for a beer is not an advertiser. The model
+catches what is illegal here, not words from a list.
+
+In an offer, what is forbidden is the category being the **subject of the
+discount**. The venue is not cut out of the product for it: a taverna cannot
+discount a glass but can discount dinner; a kiosk cannot discount cigarettes but
+can discount coffee. A ban by type of venue was rejected — on Cyprus it would have
+removed half the neighbourhood places at a stroke.
+
+**For medicine the line is drawn at the promise, not the signboard.** Medicines,
+supplements and services that promise a therapeutic effect are forbidden: we
+cannot check the promise, and a discount pushes a decision that should not be made
+in haste. A dentist discounting a check-up does not belong here — no result is
+being promised.
+
+**There will be no age filtering for offers.** Age is self-declared (§8.2), and a
+gate on it would be pretence: we would be acting as if we verified. It is the same
+mistake rejected in the Art. 28 position, where the ban is enforced by the
+**absence of a mechanism** rather than by a setting. The category is forbidden to
+everyone at once — there is nothing to circumvent.
+
 #### The frame for the moderation model
 
 No specific model is named here, and that is a decision rather than an omission:
@@ -585,8 +631,9 @@ case.** On Cyprus one sentence carries Cyrillic, Latin and Greek side by side,
 plus transliteration. A model excellent in English and blind in Greek skews
 exactly where our people live.
 
-**What it catches:** the forbidden categories and plain harm (§12 of the Terms,
-the offers stop-list). **What it does not do:** judge tone, judge the author, or
+**What it catches:** what is illegal and plain harm. The stop categories are above
+in this same section; in the feed only the illegal part of them is forbidden, while
+promotion is cut in offers. **What it does not do:** judge tone, judge the author, or
 **use membership of a group as a signal** — in either direction.
 
 **How it is chosen.** By measurement on **our own** set of phrases, not from

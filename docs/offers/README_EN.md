@@ -147,6 +147,21 @@ dispute is settled by what is written there.
 This moves the mechanics of limits out of the code and into the business's responsibility.
 Empty means an unconditional discount that cannot be refused.
 
+**Availability is a condition too**, and that is the least obvious consequence of the rule. A
+bakery posts a croissant for a euro; by seven in the evening the croissants are gone — a breach,
+unless "while stocks last" was written. Strict, but otherwise the whole point is lost: a person
+must learn about a limit **before setting off**, and "we ran out" with no such line is a
+universal excuse that cannot be checked at all. A venue is burned by this once and writes it
+thereafter.
+
+**Conditions are 128 characters**, the same as a phrase in the feed. This is not about space in
+a database: a wall of fine print is the "deceiving announcement" section 7 was written against.
+If it does not fit on one line, it is not a discount for neighbours.
+
+**A published offer is not edited.** Otherwise a venue that receives a complaint adds a
+condition after the fact and the complaint stops being justified. Changes go through "Show
+again" as a new offer; the old one stays as people read it.
+
 ## 4. Repeat placement — by hand, always
 
 An offer disappears together with the post. To show it again the business presses **"Show
@@ -373,8 +388,13 @@ discount itself.
 **Stop categories.** Alcohol, tobacco, gambling, financial services, medicine and supplements,
 weapons.
 
-**Discrimination.** "Discount for women only" breaks EU anti-discrimination law. A discount may
-depend on place, never on a person's characteristics.
+**Discrimination.** The rule is a product rule and **stricter than the law**: a condition may
+tell apart an action — time, place, order size — but never a person. Age is forbidden outright,
+familiar pensioner and student discounts included, and that is a trade worth understanding:
+telling them from "under thirty only" takes a judgement about motive, and one person examines
+offers within a day. A rule demanding that motives be read becomes a lottery at that scale, and
+it lands on whoever phrased it badly rather than on whoever was screening people. The details,
+and the "may anyone buy it" test, are in `SPEC_EN.md` §12.1.
 
 **GDPR.** Complaints contain text and are tied to a user. Answer: complaints are kept for a
 year, after which an anonymised aggregate remains.

@@ -251,7 +251,7 @@ different objects for the sake of a row half of whose columns are always empty.
     venue_id                the venue it is published on behalf of
     offer_text              string, required
     discount_value          string, required — free text: "−20%", "1+1", "second coffee free"
-    conditions              string, nullable — "first 10 to sign up", "until Friday"
+    conditions              string, nullable, ≤128 — "first 10 to sign up", "while stocks last"
     promo_code              string, nullable — an external system's code, not ours
     external_url            url, nullable — never shown to people, see 6.2
     redirect_code           string — what is visible in the feed: <storefront domain>/o/<code>
@@ -273,6 +273,38 @@ Field rules:
   means anything
 - a private author fills in exactly the text, `discount_value` and `conditions` — their phrase
   in the feed simply has no other fields
+
+### 3.1. Conditions: the only place a discount is limited
+
+**Everything that limits a discount lives in `conditions`.** Not in the offer's
+text, not in the staff's heads, not in code. This rule replaces any limit
+mechanics — redemption counters, quotas, reservations, statuses — and that is
+exactly why none of them appear in §14.
+
+**Empty means unlimited, and it cannot be refused.** The absence of conditions is
+a statement, not a silence.
+
+**Availability is a condition too.** If you expect to run out, write "while
+stocks last". If you did not, you promised everyone who comes within the offer's
+4:20. The rule is deliberately strict: a person must learn about a limit **before
+setting off**, not at the counter. A venue is burned by this once and writes it
+thereafter.
+
+**Conditions are 128 characters**, the same as a phrase in the feed. The limit is
+not about space in a database: a wall of fine print is precisely the "deceiving
+announcement" section 10 was written against. If the limits do not fit on one
+line, this is not a discount for neighbours.
+
+**A published offer is not editable.** Not the text, not the discount, not the
+conditions. Otherwise a venue that receives a complaint adds a condition after
+the fact — the complaint stops being justified and the examination turns into an
+argument about what was there yesterday. To change anything, press "Show again"
+(section 8): a **new** offer is created and the old one stays exactly as people
+read it.
+
+Hence a rule of examination that extends 10.2: **the announcement is read as
+published**, empty conditions included. "What we meant" carries no weight — what
+was meant is what was written.
 
 ### offer_complaint
 
@@ -572,6 +604,33 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
   nothing is repaired by an examination, a deceived neighbour is repaired by nothing
 - it is not shown to the author
 
+### 10.3. Complaints are not deleted on request — only by time
+
+**Nobody can have a complaint removed: not the venue, not the moderator, not us.**
+The only thing that removes a complaint is retention running out: a year from the
+last offer, together with the account and its venues (section 13).
+
+The rule is written **before the first conflict**, and that is its main property.
+The moment it will be tempting to break is known in advance: the district's best
+venue — the first one, brought in by hand — says "take this down or we leave".
+Deciding then means deciding under pressure and in our own favour rather than by a
+rule. So it is decided now, while nobody is pushing.
+
+**What a venue can do instead of deletion:** reply privately, dispute it, and get
+a decision (10.2). The reply lives beside the complaint and is seen there — that
+is the provided way of not being left with someone else's word as the last one.
+
+**A rejected complaint is not deleted either.** `rejected` means "examined and not
+upheld", not "it never happened": the record stays, it simply stops counting in
+the venue's statistics. Otherwise examination becomes erasure, and we lose the one
+thing complaints are kept for at all — the ability to see a pattern.
+
+**One exception, and it is about content rather than removal.** A complaint is
+written by a stranger, and its text may contain a third party's personal data or
+something outright illegal. The moderator then **redacts the passage** rather than
+deleting the record, and the fact of redaction is stored with its date. That way
+the data-protection duty is met and history is not rewritten after the fact.
+
 ## 11. Verifying a venue
 
 It is the **venue** that is verified, not the account: one owner has several, and each goes
@@ -612,13 +671,52 @@ than the thing is.
 An offer is refused, or hidden by a moderator, if it:
 
 - has no `discount_value`
-- falls into a stop category: alcohol, tobacco, gambling, financial services, medicine and
-  supplements, weapons
-- contains discriminatory conditions: a discount may depend on place, never on a person's
-  characteristics (sex, age, origin and the like)
+- promotes a stop category: the list is one for the whole product and lives in `chat_EN.md`
+  §8.3. In an offer what is forbidden is the category being the **subject of the discount** —
+  the venue itself is not cut out: a taverna cannot discount a glass but can discount dinner.
+  There is deliberately no copy of the list here: two homes for one rule drift apart
+- carries a condition that tells apart a person rather than an action (12.1)
 - has an `external_url` leading to a phishing or knowingly malicious domain
 
 There is no minimum discount. Whether an offer is token is judged by a moderator.
+
+### 12.1. A condition may depend on what a person does — never on who they are
+
+The rule in one line, checked with one question: **does the discount tell apart an
+action or a person?**
+
+```
+allowed     time, day, place, order size, "the first ten",
+            "arrived from the app", "new guests", "while stocks last"
+forbidden   sex, age, origin, language, religion, health,
+            family status and the like
+```
+
+**Age is forbidden outright, familiar discounts included.** A bakery may not
+discount for pensioners, a coffee shop may not discount for students. That is
+worth saying plainly, because such discounts are lawful, ordinary and humanly
+understandable, and we still do not allow them.
+
+The reason is what we have to work with. Telling "for pensioners, because they
+have less money" from "under thirty only, because we want a younger crowd"
+requires a judgement about motive, and offers are examined by one person within a
+day (§10.2). A rule that demands reading motives becomes a lottery at that scale —
+and the first to be hit is whoever phrased it badly, not whoever was screening
+people. A simple checkable line is stricter than the law and cheaper than an
+argument; this is a deliberate trade, not strictness for its own sake.
+
+**Language is the same.** "We speak Russian, neighbours get a discount" sounds
+friendly and works as a marker of origin. Writing the announcement itself in
+Russian is fine and expected — the storefronts speak six languages; **making
+language a condition of the discount is not.**
+
+**A product aimed at someone is not a condition.** A children's portion, a student
+set, a Sunday breakfast are menu items, and anyone may buy them. There is one
+test: **if only someone matching a characteristic can buy it, it is a condition**,
+and it is forbidden.
+
+Legal classification is left to a lawyer: the rule is written to be stricter than
+any applicable law rather than to interpret it.
 
 ## 13. Privacy and retention
 

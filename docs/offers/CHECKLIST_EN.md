@@ -12,15 +12,30 @@ Rationale: [README_EN.md](README_EN.md).
       is examined, while "I came and they refused me" is settled by a threshold about the
       announcement rather than about people. The deadline is `COMPLAINT_EXAMINATION_HOURS`, and
       suspension follows `SUSPEND_RESOLVED_COUNT` within `SUSPEND_WINDOW_DAYS`
-- [ ] 1.2. The rule "complaints are never deleted" — put in writing, so that the decision is
-      not taken at the moment the best business threatens to leave
-- [ ] 1.3. The stop-list of categories: alcohol, tobacco, gambling, financial services,
-      medicine and supplements, weapons
-- [ ] 1.4. A ban on discriminatory conditions: a discount depends on place, never on a
-      person's characteristics
-- [ ] 1.5. The rule "everything that limits a discount lives in the `conditions` field" — it
-      replaces any limits in code. An empty field means an unconditional discount that
-      cannot be refused
+- [x] 1.2. **2026-08-11.** Written: `SPEC_EN.md` §10.3 — and the wording corrected. "Never"
+      contradicted the retention already published in the storefront policy, so the rule
+      forbids deletion **on request**: not by the venue, not by the moderator, not by us. Only
+      retention running out removes a complaint — a year from the last offer. A rejected one
+      is not deleted either. There is one exception, and it is about content: a third party's
+      personal data is **redacted**, the record stays
+- [x] 1.3. **2026-08-11.** The stop-list is written as **one list for the whole product**:
+      `../chat_EN.md` §8.3. Two regimes: in the feed only what is illegal is forbidden (a
+      neighbour may invite you for a beer), in an offer it is the category being the
+      **subject of the discount**. A ban by type of venue was rejected; for medicine the line
+      is the promise of a therapeutic effect rather than the signboard; there will be no age
+      filtering — age is self-declared
+- [x] 1.4. **2026-08-11.** Written: `SPEC_EN.md` §12.1. A condition tells apart **an action,
+      not a person**. Age is forbidden outright, pensioner and student discounts included —
+      not because they are bad, but because telling them from "under thirty only" takes a
+      judgement about motive, and one person examines offers within a day. Language cannot be
+      a condition (an announcement in any language can). A product aimed at someone is not a
+      condition: the test is **whether anyone may buy it**
+- [x] 1.5. **2026-08-11.** The rule is written: `SPEC_EN.md` §3.1. Everything that limits a
+      discount lives in `conditions`; empty means unlimited and cannot be refused;
+      **availability is a condition too** ("while stocks last" must be written, or it was
+      promised to everyone); the field is ≤128 characters; **a published offer is not
+      edited** — changes go through "Show again" as a new one. The announcement is read as
+      published
 - [x] 1.6. **2026-08-05.** Terms of use: an offer is the business's proposal, the contract
       arises between the user and the business, the platform is not a party
 - [x] 1.7. **2026-08-05.** Retention policy: complaints and the advertiser's profile — one

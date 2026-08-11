@@ -1359,3 +1359,27 @@ mistaken for a loss.
       **And a gap of my own:** `visible_at`, introduced yesterday with the
       moderation queue, was described in prose but missing from `CREATE TABLE
       feed_messages`. Added, together with `expires_at` counting from it.
+
+- [x] **A5. The Article 16 queue was not bounded by brand — found and fixed
+      2026-08-11.**
+
+      `routes/dsa.ts` ran a bare `SELECT ... FROM dsa_notices`, and the decision
+      route fetched a row by id alone. Permissions were checked; ownership was
+      not. Today's roles do not reach it: `tenant_admin` lacks
+      `dsa_notices.read`. They reach it **in one step**: a tenant admin may give
+      the `moderator` role to somebody under their own brand
+      (`panel/src/pages/panel-users`), and that role carries both read and
+      decide. Which means the names and emails of **every** brand's notifiers,
+      plus the power to decide their notices.
+
+      **Fixed:** the query gained a condition on the reader's brand, and the
+      decision route an ownership check answering `404` (not `403`: whether
+      another brand has such a notice is not this brand's business — the rule the
+      operator list already follows). Unattributed rows (`brand IS NULL`,
+      migration `007`) stay with the platform: the notice arrived without a usable
+      key, so which face it concerns is exactly what nobody knows.
+
+      **Verified against a real database** (`test/database.test.ts`, run through
+      `scripts/run-relay-database-tests.sh`): before the fix the test failed with
+      "a tenant is reading another tenant's notice". After it, 26/26 in that suite
+      and 69/69 in the ordinary one.

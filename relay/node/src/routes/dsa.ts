@@ -41,15 +41,36 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
   const access = await requirePermission(req, "dsa_notices.read");
   if (isDenied(access)) return access.response;
 
+  // A tenant reads its own notices and nothing else. The permission alone was
+  // the whole check here, and a notice carries the notifier's name and email —
+  // so every reader who had `dsa_notices.read` was reading every tenant's. Not
+  // reachable through today's roles, since `tenant_admin` lacks the permission;
+  // reachable in one step, because a tenant admin may hand somebody under their
+  // own brand the `moderator` role, which carries read and decide both.
+  //
+  // An unattributed notice (brand IS NULL, see db/007) stays with the platform.
+  // It arrived without a usable key, so which tenant it concerns is precisely
+  // what nobody knows, and handing it to a guess would be worse than holding it.
+  const mine = access.user.brand;
   const open = url.searchParams.get("state") !== "all";
+  const conditions: string[] = [];
+  const args: unknown[] = [];
+  if (open) {
+    args.push(OPEN);
+    conditions.push(`status = ANY($${args.length})`);
+  }
+  if (mine) {
+    args.push(mine);
+    conditions.push(`brand = $${args.length}`);
+  }
   const rows = await query<NoticeRow>(
     `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, reason_text,
             notifier_name, notifier_email, status, created_at, decided_at
        FROM dsa_notices
-      ${open ? "WHERE status = ANY($1)" : ""}
+      ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
       ORDER BY created_at ASC
       LIMIT 200`,
-    open ? [OPEN] : [],
+    args,
   );
   if (rows === null) return json({ error: "database unavailable" }, 503);
 
@@ -102,6 +123,13 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
   if (rows === null) return json({ error: "database unavailable" }, 503);
   const notice = rows[0];
   if (!notice) return json({ error: "no such notice" }, 404);
+  // Owned by somebody else — answered as if it did not exist. 404 rather than
+  // 403 for the same reason the operator list uses: whether another tenant has a
+  // notice with this id is not this tenant's business. An unattributed notice is
+  // the platform's, so a tenant never decides one either.
+  if (access.user.brand && notice.brand !== access.user.brand) {
+    return json({ error: "no such notice" }, 404);
+  }
   if (notice.decided_at) return json({ error: "already decided" }, 409);
 
   let statementId: string | null = null;

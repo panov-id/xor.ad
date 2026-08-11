@@ -190,6 +190,15 @@ Hence the honest wording: the bands separate teenagers from adults as far as it
 is possible **without documents**. Self-declaration can be circumvented, and we
 know it.
 
+**The queue is bounded by the reader's brand.** A tenant's operator sees the
+notices of their own face and no others; the platform sees all of them. Deciding
+a notice checks the same thing: somebody else's answers `404` rather than `403` —
+whether another brand has a notice with this id is not this brand's business.
+
+**An unattributed notice (`brand IS NULL`) stays with the platform.** It arrived
+without a usable key, so which face it concerns is precisely what nobody knows,
+and handing it over on a guess would be worse than holding it.
+
 ## 6. The reply to the notifier (Art. 16(5))
 
 Contains:

@@ -54,6 +54,7 @@ const aggregate = await import("../src/lib/pageview_daily.ts");
 const jobs = await import("../src/lib/jobs.ts");
 await import("../src/routes/admin.ts"); // registers the routes as a side effect
 await import("../src/routes/v1.ts"); // the public API, on the same router
+await import("../src/routes/dsa.ts"); // the moderator's queue and decision
 
 // deno-lint-ignore no-explicit-any
 type Body = any;
@@ -666,3 +667,73 @@ Deno.test({
 // The pool holds connections open, and nothing else in a test process will close
 // them.
 addEventListener("unload", () => void database.closePool());
+
+// --- article 16 queue: a tenant reads its own notices and no one else's -------
+
+// A notice carries the notifier's name and email, and deciding one restricts a
+// stranger's content. The queue had no brand condition at all — every reader
+// with `dsa_notices.read` saw every tenant's notices, and the decision route
+// fetched by id alone. It is not reachable through the roles as they stand,
+// because `tenant_admin` lacks the permission; it is reachable in one step,
+// because a tenant admin may give a `moderator` role to somebody under their own
+// brand, and `moderator` carries both read and decide.
+const MODERATOR_ALPHA = { role: "moderator", brand: "alpha" } as const;
+
+async function seedNotice(brand: string | null, reason: string): Promise<string> {
+  const rows = await database.queryOrThrow<{ id: string }>(
+    `INSERT INTO dsa_notices
+       (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state, acknowledged_at)
+     VALUES ($1, 'feed_message', NULL, $2, true, 'received', 'received', now())
+     RETURNING id`,
+    [brand, reason],
+  );
+  return rows[0].id;
+}
+
+Deno.test({
+  name: "the article 16 queue shows a tenant its own notices only",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const mine = await seedNotice("alpha", `alpha notice ${uniqueId()}`);
+    const theirs = await seedNotice("beta", `beta notice ${uniqueId()}`);
+    const nobodys = await seedNotice(null, `unattributed notice ${uniqueId()}`);
+
+    const seen = await callAs(MODERATOR_ALPHA, "GET", "/admin/dsa-notices");
+    assertEquals(seen.status, 200);
+    const ids = seen.body.map((row: Body) => row.id);
+    assert(ids.includes(mine), "a tenant cannot see its own notice");
+    assert(!ids.includes(theirs), "a tenant is reading another tenant's notice");
+    // Unattributed notices belong to the platform: the key was missing or spent,
+    // and which tenant the content belonged to is exactly what nobody knows.
+    assert(!ids.includes(nobodys), "a tenant is reading an unattributed notice");
+
+    const all = await callAs(PLATFORM, "GET", "/admin/dsa-notices");
+    const allIds = all.body.map((row: Body) => row.id);
+    for (const id of [mine, theirs, nobodys]) {
+      assert(allIds.includes(id), "the platform cannot see every notice");
+    }
+  },
+});
+
+Deno.test({
+  name: "a tenant cannot decide another tenant's notice",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const theirs = await seedNotice("beta", `beta notice ${uniqueId()}`);
+    const decision = await callAs(MODERATOR_ALPHA, "POST", `/admin/dsa-notices/${theirs}/decide`, {
+      decision: "rejected",
+      facts: "Not illegal in my reading of it.",
+    });
+    // 404 rather than 403: whether another tenant has a notice with this id is
+    // not this tenant's business — the same rule the operator list follows.
+    assertEquals(decision.status, 404);
+
+    const still = await database.queryOrThrow<{ decided_at: string | null }>(
+      "SELECT decided_at FROM dsa_notices WHERE id = $1",
+      [theirs],
+    );
+    assertEquals(still[0].decided_at, null, "the notice was decided by a stranger");
+  },
+});

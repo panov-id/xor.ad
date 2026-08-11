@@ -1449,3 +1449,41 @@ mistaken for a loss.
       Its absence was the cause: the list lived in a docstring, named half of
       them, and the omitted half held the one without which production refuses
       for the wrong reason.
+
+- [x] **J18. An image is built by its content rather than by the commit — done
+      2026-08-11.**
+
+      The "already built?" key was `sha-<commit>`: a new commit has no such tag,
+      so a build always ran — even when not a byte of the context had changed.
+      `relay/caddy` went 78 commits that way, rebuilt each time for two
+      architectures, arm64 under emulation.
+
+      **The key is now the directory's tree hash** — `git rev-parse
+      HEAD:relay/<image>`. Nothing had to be invented: git already
+      content-addresses a directory, and the hash changes if and only if a byte
+      in the context changes. Checked across the last eight commits: `caddy`'s
+      hash **never changed**, `node`'s changed exactly when the code did and
+      matched twice between neighbouring commits. In a depth-1 clone — which is
+      what `actions/checkout` makes — it computes and gives the same values.
+
+      The content check **subsumes** the old one: the same commit is the same
+      content. `sha-<commit>` is still applied to every commit, so nothing that
+      refers to it breaks.
+
+      **What changes in how an image reads:** a reused image keeps the label of
+      the build that made it, so `org.opencontainers.image.revision` names the
+      commit that **produced** those bytes. The tags say which commits an image
+      serves; the label says which one built it. Written into the workflow so it
+      does not look like a mistake.
+
+      **The residual gap is named there too.** `concurrency` is evaluated before
+      any step and cannot see a step's output, so the group stays keyed by the
+      commit. Two **different** commits with identical context could therefore
+      overlap and both build. That is narrower than what it replaced (one commit,
+      two digests, now impossible) and needs two dev pushes inside one build
+      window.
+
+      **Not verified:** no live Actions run — the change goes out on a branch, and
+      the first real measurement is the next deploy. What could be checked
+      locally was: the tree hash, its behaviour across history, its availability
+      in a shallow clone, and that the YAML still parses.

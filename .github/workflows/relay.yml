@@ -140,6 +140,16 @@ jobs:
     # keeps a single pending run per group and cancels it when a third arrives. A
     # third arrival would therefore cancel the release call, and UAT would deploy a
     # tag that has no image.
+    #
+    # The group stays keyed by the commit even though the lookup is now keyed by
+    # the content, because `concurrency` is evaluated before any step runs and
+    # cannot see a step's output. The gap that leaves: two *different* commits
+    # whose context is identical could overlap, both find nothing, and both push
+    # the same content tag — one digest overwriting the other. It is narrower
+    # than what it replaced (one commit, two digests, which is now impossible)
+    # and it needs two dev pushes inside one build window. If it ever shows up,
+    # the fix is a content-keyed group, which means computing the key in a job
+    # that runs before this one.
     concurrency:
       group: relay-build-${{ github.sha }}-${{ matrix.image }}
       cancel-in-progress: false
@@ -160,6 +170,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # The identity of an image is its context, not the commit that happened to
+      # carry it. git already content-addresses a directory, so the tree object of
+      # relay/<image> is exactly the key: it changes when a byte in the context
+      # changes and not otherwise. relay/caddy went 78 commits without changing
+      # and was rebuilt for every one of them — twice per commit, since arm64 is
+      # emulated, which is the part of the run everyone waits on.
+      - name: content key
+        id: content
+        run: echo "key=content-$(git rev-parse "HEAD:relay/${{ matrix.image }}" | cut -c1-12)" >> "$GITHUB_OUTPUT"
+
       - name: image tags
         id: meta
         uses: docker/metadata-action@v5
@@ -172,15 +192,18 @@ jobs:
             # The release tag as given. Not type=semver: that reads the ref, and
             # on a call the ref is the branch, not the tag.
             type=raw,value=${{ inputs.release_tag }},enable=${{ inputs.release_tag != '' }}
-      # The sha tag is the identity of a commit's image. If it is already in the
-      # registry this commit was built by an earlier run, and building again would
-      # produce a *different* image for the same source — multi-arch builds are not
+            # The content key travels with the image so the next run can find it.
+            type=raw,value=${{ steps.content.outputs.key }}
+      # If this context has been built before, build it again and you get a
+      # *different* image from the same source: multi-arch builds are not
       # bit-reproducible, and relay-caddy proved it on 2026-08-07 with two digests
-      # for one commit.
+      # for one commit. Asking by content rather than by commit subsumes that
+      # check — the same commit is the same content — and additionally spares
+      # every commit that did not touch the context at all.
       - name: already built?
         id: existing
         run: |
-          reference="ghcr.io/panov-id/relay-${{ matrix.image }}:sha-${GITHUB_SHA::7}"
+          reference="ghcr.io/panov-id/relay-${{ matrix.image }}:${{ steps.content.outputs.key }}"
           if docker buildx imagetools inspect "$reference" >/dev/null 2>&1; then
             echo "found=true" >> "$GITHUB_OUTPUT"
             echo "уже собран: $reference"
@@ -190,8 +213,15 @@ jobs:
           fi
 
       # Label the manifest that exists rather than making a new one. Every tag the
-      # metadata step would have applied is applied here, so a release tag and a
-      # branch tag still land — on the bytes that were tested, not on a rebuild.
+      # metadata step would have applied is applied here — the sha of *this*
+      # commit included, so `sha-<commit>` still resolves for every commit even
+      # when its bytes were built by an earlier one. A release tag and a branch
+      # tag land the same way: on the bytes that were tested, not on a rebuild.
+      #
+      # What the reused image keeps is the label of the build that made it, so
+      # org.opencontainers.image.revision names the commit that first produced
+      # these bytes. That is the honest reading: the tags say which commits an
+      # image serves, the label says which one built it.
       - name: tag the image that already exists
         if: steps.existing.outputs.found == 'true'
         run: |
@@ -200,7 +230,7 @@ jobs:
             [ -n "$tag" ] && arguments+=(--tag "$tag")
           done <<< "${{ steps.meta.outputs.tags }}"
           docker buildx imagetools create "${arguments[@]}" \
-            "ghcr.io/panov-id/relay-${{ matrix.image }}:sha-${GITHUB_SHA::7}"
+            "ghcr.io/panov-id/relay-${{ matrix.image }}:${{ steps.content.outputs.key }}"
 
       - name: build + push (multi-arch)
         id: build

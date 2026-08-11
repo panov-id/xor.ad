@@ -135,6 +135,38 @@ flags shows the plan, then `--apply`). Otherwise the panel reports more objects
 stored than views counted. It rebuilds whole days, so a second run converges
 rather than doubling.
 
+### The wizard's secrets: the whole list
+
+`run.sh` passes `secrets.env` as a whole, and the list in the wizard's help and
+in `inventory.example.toml` is now **complete**. A partial list is how
+`GITHUB_TOKEN` went missing and made production refuse for the wrong reason.
+
+About that one specifically: **`GITHUB_TOKEN` is needed only to deploy a public
+environment.** The repository is private, so an unauthenticated release check
+gets a 404 and cannot tell "no such release" from "not allowed to look". The
+wizard used to say "publish the release first" about a release that was already
+published; it now says it could not check, and names why — no token, expired
+token, GitHub unreachable.
+
+The token already lives in `deploy/.env.deploy`; it has to be added to the
+wizard's `secrets.env` separately — different files for different tools.
+
+A template with every name and no values: `relay/wizard/secrets.env.example`. An
+empty value counts as absent — the wizard will say it could not check.
+
+### `pool` requires confirmation
+
+Steering the live DNS record is the one operation that puts a box into the record
+**real traffic follows**. It used to be the only production command **without** a
+confirmation, while `deploy` — which changes less — always had one:
+
+```bash
+relay/wizard/run.sh --node p1 --confirm-prod pool
+```
+
+The release gate does not apply here (no image is involved); the confirmation
+does.
+
 ### The first administrator of a new environment
 
 A new environment is empty, and nobody can sign in to its panel: the operators

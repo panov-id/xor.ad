@@ -1409,3 +1409,43 @@ mistaken for a loss.
       `{email, role: "admin", brand: null, created_at}` — the same shape the panel
       writes. A second run refused with exit code `2` and no second object
       appeared. Not yet run against a live box over SSH: that is the next deploy.
+
+- [x] **J23. The wizard refused production for the wrong reason, and `pool` asked
+      nothing at all — fixed 2026-08-11.**
+
+      **First.** `github.is_published_release` reads `GITHUB_TOKEN`, and the
+      wizard's `secrets.env` does not carry it (it lives in `deploy/.env.deploy` —
+      a different file for a different tool). The repository is private, so an
+      unauthenticated request gets a **404**, the function returned `False`, and
+      the wizard said: "tag is not a published GitHub Release — publish the
+      release first". It sent whoever was deploying to publish something already
+      published, at the exact moment of a production deploy.
+
+      Fixed by separating them: "no such release" and "could not check" are
+      different outcomes. No token, a rejected token (401/403), GitHub
+      unreachable — all `CannotCheck` with the reason, and production stops with
+      an honest message. The secret lists in the wizard's help and in
+      `inventory.example.toml` are now complete: a partial list is how the token
+      went missing in the first place.
+
+      **Second.** `pool` — steering the live DNS record — was the only production
+      operation **without** `--confirm-prod`, while `deploy`, which changes less,
+      required it. It requires it now. The release gate does not apply: no image
+      is involved.
+
+      **Verified by running it:** with no token, "GITHUB_TOKEN is not set…"; with
+      a deliberately invalid token (a live call to api.github.com), "GitHub
+      rejected the token (401)"; `pool` against a minimal inventory with a public
+      box, "pool steers LIVE traffic to … — pass --confirm-prod". Not run with
+      --confirm-prod: that is a real DNS cutover.
+
+      **The token was added by a person on 2026-08-11**, and the check was run
+      against the live API: the repository is visible (5 published releases), the
+      real tags `v2026.8.9-g4c8229c` and `v2026.8.5-gfd6587a` return `True`, and
+      the invented `v9999.1.1-gdeadbee` returns `False` rather than an error. All
+      three outcomes are now distinct: it exists, it does not, we could not look.
+
+      A `relay/wizard/secrets.env.example` was added too — every name, no values.
+      Its absence was the cause: the list lived in a docstring, named half of
+      them, and the omitted half held the one without which production refuses
+      for the wrong reason.

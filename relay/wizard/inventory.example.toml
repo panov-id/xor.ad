@@ -13,8 +13,15 @@
 # gets a hostname "<box>-<env>.<dns_zone>" and its own node container; one shared
 # Caddy per box terminates TLS (DNS-01 via Bunny) and routes by hostname.
 #
-# Secrets in secrets.env (SECRETS_ENV): HETZNER_TOKEN, BUNNY_API_KEY,
-# BUNNY_STORAGE_ZONE/KEY, RESEND_API_KEY, SSH_PUBLIC_KEY.
+# Secrets in secrets.env (SECRETS_ENV) — the whole list, because a partial one is
+# how GITHUB_TOKEN went missing and made prod refuse with the wrong reason:
+#   HETZNER_TOKEN, BUNNY_API_KEY, BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY,
+#   BUNNY_STORAGE_HOST?, RESEND_API_KEY, RESEND_KEYS?, WELCOME_FROM?,
+#   PANEL_SENDER?, SSH_PUBLIC_KEY, SESSION_SECRET, POSTGRES_PASSWORD,
+#   ORIGIN_TOKEN, GHCR_USER, GHCR_TOKEN,
+#   GITHUB_TOKEN  — needed only to deploy a public env: the release check reads
+#                   it, and without it a private repo answers 404 and the tag
+#                   looks unpublished when it is not.
 
 [pool]
 dns_zone = "relay.panov.id"          # Bunny DNS zone that holds the node records

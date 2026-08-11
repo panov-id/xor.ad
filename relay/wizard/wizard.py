@@ -16,9 +16,22 @@ Runs in the launchpad Docker image (run.sh) — nothing on the host. Commands:
   pool       [--node id] CUTOVER: add public-env nodes to the geo-steered record
   up         [--node id] provision -> dns -> configure
 
-Secrets from the wizard env (run.sh passes secrets.env): BUNNY_STORAGE_ZONE/KEY,
-BUNNY_STORAGE_HOST?, RESEND_API_KEY, WELCOME_FROM?, BUNNY_API_KEY (dns),
-provider tokens, SSH_PUBLIC_KEY. Idempotent.
+Secrets from the wizard env (run.sh passes secrets.env). The list is the whole
+list on purpose: it used to name half of them, and the half it left out included
+the one whose absence makes a prod deploy fail with the wrong explanation.
+
+  storage    BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY, BUNNY_STORAGE_HOST?
+  mail       RESEND_API_KEY, RESEND_KEYS?, WELCOME_FROM?, PANEL_SENDER?
+  dns        BUNNY_API_KEY
+  provider   HETZNER_TOKEN (or the provider in use)
+  ssh        SSH_PUBLIC_KEY
+  node       SESSION_SECRET, POSTGRES_PASSWORD, ORIGIN_TOKEN
+  images     GHCR_USER, GHCR_TOKEN
+  prod gate  GITHUB_TOKEN — read access to the release repo. Without it the
+             release check cannot tell "no such release" from "private repo,
+             not allowed to look", and prod refuses for the wrong reason.
+
+Idempotent.
 """
 from __future__ import annotations
 
@@ -95,7 +108,14 @@ def _guard_prod(inv: dict, box: dict) -> None:
         if not re.match(r"^v\d+\.\d+\.\d+", tag):
             raise RuntimeError(f"{box['id']}/{env}: image_tag '{tag}' is not a release version "
                                f"(vX.Y.Z) — bump it to the release before deploying prod")
-        if not github.is_published_release(repo, tag):
+        try:
+            published = github.is_published_release(repo, tag)
+        except github.CannotCheck as e:
+            # Not "the release is missing" — "we could not look". Saying the
+            # former sends whoever is deploying to publish something that is
+            # already published, at the worst possible moment to be misdirected.
+            raise RuntimeError(f"{box['id']}/{env}: cannot verify {tag} — {e}")
+        if not published:
             raise RuntimeError(f"{box['id']}/{env}: {tag} is not a published GitHub Release of "
                                f"{repo} — publish the release first (that's the approval)")
 
@@ -609,6 +629,14 @@ def pool(box: dict, inv: dict) -> None:
     if not public_envs:
         print(f"  · {box['id']}: no public env on this box — skip pool (cutover is prod-only)")
         return
+    # This is the cutover: it puts a box into the record real traffic follows.
+    # It was the one production action with no confirmation, while `deploy` —
+    # which changes less — has had one all along. The release gate does not apply
+    # (no image is involved), the confirmation does.
+    if not CONFIRM_PROD:
+        raise RuntimeError(
+            f"{box['id']}: pool steers LIVE traffic to {ip} — pass --confirm-prod"
+        )
     for env in public_envs:
         ph = inv["env"][env].get("pool_hostname")
         if not ph:

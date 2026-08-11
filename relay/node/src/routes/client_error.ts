@@ -5,7 +5,7 @@ import { config } from "../config.ts";
 import { json, readJson } from "../lib/http.ts";
 import { storageEnabled } from "../lib/storage.ts";
 import { scopedForBrand } from "../lib/scoped_storage.ts";
-import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
+import { resolveTenantSoft } from "../lib/tenant.ts";
 import { log } from "../lib/log.ts";
 
 function cap(value: unknown, max: number): string | null {
@@ -22,9 +22,14 @@ export async function clientError(req: Request): Promise<Response> {
   // silence exactly the report that says the key is stale. The record is kept,
   // unattributed, in the platform's own space, where it is visible as a problem
   // instead of as an absence.
-  const tenant = await resolveTenant(req, cap(body.source, 120));
-  const brand = isTenantDenied(tenant) ? null : tenant.brand.key;
-  return accept(brand, body);
+  //
+  // The shared helper does that downgrade, and it also stops this route from
+  // spending the key's daily allowance: a page reporting that it is broken
+  // should not be competing for budget with the page views it is failing to
+  // send. The route that must never be refused was /report — this one had the
+  // same shape and was quietly paying for it.
+  const brand = await resolveTenantSoft(req, cap(body.source, 120));
+  return accept(brand?.key ?? null, body);
 }
 
 // Storing a report once the tenant is known. Split from the route so the public

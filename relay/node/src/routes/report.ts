@@ -9,7 +9,7 @@
 
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { query } from "../lib/db.ts";
-import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
+import { resolveTenantSoft } from "../lib/tenant.ts";
 import { sendNoticeReceipt } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -89,12 +89,16 @@ export async function report(req: Request): Promise<Response> {
   const name = text(body.notifier_name, 200);
   const email = isEmail(body.notifier_email) ? body.notifier_email : null;
 
+  // The key says which face this came through, and that is all it says here: a
+  // notice is never refused for it. It used to be — an unknown, revoked or
+  // out-of-quota key answered 401 or 429 before the snapshot was taken and
+  // before anything was written, so the notice simply did not exist and nobody
+  // could be told. Since the daily allowance is shared with page views, a
+  // storefront passed around in a chat could stop accepting reports of illegal
+  // content for the rest of the day. See lib/tenant.ts.
   const source = text(body.source, 120);
-  const tenant = await resolveTenant(req, source);
-  if (isTenantDenied(tenant)) {
-    inc("relay_report_total", { result: "no_tenant" });
-    return tenant.response;
-  }
+  const brand = await resolveTenantSoft(req, source);
+  if (!brand) inc("relay_report_total", { result: "unattributed" });
 
   const targetId = text(body.target_id, 200);
 
@@ -103,7 +107,7 @@ export async function report(req: Request): Promise<Response> {
   // would otherwise be examined against nothing. The capture reports which of
   // three things happened — copied, expired, or never reachable — because
   // telling a notifier "it expired" when we simply never looked would be a lie.
-  const { snapshot, status } = await captureTarget(kind, targetId, tenant.brand.key);
+  const { snapshot, status } = await captureTarget(kind, targetId, brand?.key ?? null);
 
   const rows = await query<{ id: string }>(
     // The capture outcome goes in its own column. It used to be written into
@@ -117,7 +121,7 @@ export async function report(req: Request): Promise<Response> {
      VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, now())
      RETURNING id`,
     [
-      tenant.brand.key,
+      brand?.key ?? null,
       kind,
       targetId,
       snapshot ? JSON.stringify(snapshot) : null,
@@ -132,18 +136,21 @@ export async function report(req: Request): Promise<Response> {
     // The database is the record of the obligation. Losing a notice silently is
     // the one outcome that must not look like success.
     inc("relay_report_total", { result: "storage_failed" });
-    log("error", "notice not stored", { kind, brand: tenant.brand.key });
+    log("error", "notice not stored", { kind, brand: brand?.key ?? null });
     return json({ error: "could not store the notice" }, 503);
   }
 
   const id = rows[0]?.id ?? null;
   inc("relay_report_total", { result: "accepted", kind });
-  log("info", "notice accepted", { id, kind, brand: tenant.brand.key, snapshot: snapshot !== null });
+  log("info", "notice accepted", { id, kind, brand: brand?.key ?? null, snapshot: snapshot !== null });
 
   // Article 16(4): confirmation without undue delay, when we have somewhere to
   // send it. Best-effort — a mail failure must not lose the notice itself.
   if (email) {
-    await sendNoticeReceipt(email, { id, brand: tenant.brand.key, lang: text(body.lang, 8) ?? undefined });
+    // Without a brand the letter goes out in the platform's own face rather than
+    // not at all: Article 16(4) asks for a confirmation of receipt, not for a
+    // confirmation in the right colours.
+    await sendNoticeReceipt(email, { id, brand: brand?.key, lang: text(body.lang, 8) ?? undefined });
   }
 
   return json({ ok: true, id, acknowledged: Boolean(email) }, 202);

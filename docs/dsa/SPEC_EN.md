@@ -29,6 +29,23 @@ Two channels, both obliged to accept the same thing:
    A letter without the form's fields is accepted: whatever is missing is
    requested in reply.
 
+**The `POST /report` route refuses a notice under no key-related circumstance
+whatsoever.** A storefront's publishable key answers only "which face did this
+come through", and if it is unknown, revoked, called from an unexpected origin or
+out of its daily quota, the notice is accepted **unattributed** rather than
+rejected. In the database that is `brand = NULL` (migration `007`).
+
+This is a correction, not a flourish: until 2026-08-11 the refusal happened
+**before** the content snapshot and **before** the insert, so the notice simply
+did not exist — no Article 16(4) acknowledgement went out, nothing reached the
+queue, and the only trace was a counter. The daily quota is spent by page views
+as well: a storefront passed around in chats would have been enough to stop
+accepting reports of illegal content for the rest of the day.
+
+The quota is neither checked nor charged on this route: an obligation is not
+metered. What guards it against a flood is its own per-address limit (10 an hour,
+40 a day) — a bound on volume rather than on who may speak.
+
 Art. 16(1) requires the mechanism to be **easy to access, user-friendly and
 exclusively electronic**. Telephone and paper are deliberately absent.
 

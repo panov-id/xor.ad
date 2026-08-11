@@ -28,6 +28,40 @@ function noteKeyless(brand: string, origin: string | null): void {
   log("warn", "keyless public request, brand resolved by hint", { brand, origin });
 }
 
+// Some routes may not be refused, and for them the key answers "through which
+// face" and nothing else. A notice under Article 16 is the clearest case: losing
+// one because a storefront's key was unknown, revoked, called from an unexpected
+// origin or out of daily allowance would be trading a legal obligation for an
+// accounting rule. Such a request is **downgraded to unattributed**, never
+// rejected.
+//
+// The quota is deliberately neither checked nor charged here. It is a limit on
+// what a key may spend, and an obligation is not spending: the counter is shared
+// across every public route, so a storefront that got passed around in a chat
+// could otherwise burn its allowance on page views and stop accepting reports of
+// illegal content for the rest of the day. What protects this route from a flood
+// is its own per-address limit (`REPORT_LIMITS`), which is a bound on volume
+// rather than a bound on who may speak.
+export async function resolveTenantSoft(
+  req: Request,
+  hint?: string | null,
+): Promise<Brand | null> {
+  const id = req.headers.get("x-api-key");
+  if (!id) {
+    // With keys required, an unkeyed caller is unattributed rather than turned
+    // away. Without them, the transitional host/source fallback still applies.
+    if (config.requireApiKey) return null;
+    const brand = resolveBrand(hint ?? req.headers.get("origin"));
+    noteKeyless(brand.key, req.headers.get("origin"));
+    return brand;
+  }
+
+  const key = await findPublishableKey(id);
+  if (!key) return null;
+  if (!originAllowed(key, req.headers.get("origin"))) return null;
+  return (await brandByKey(key.brand)) ?? null;
+}
+
 export type TenantResult = { brand: Brand } | { response: Response };
 
 export function isTenantDenied(result: TenantResult): result is { response: Response } {

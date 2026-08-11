@@ -45,7 +45,10 @@ async function tableExists(name: string): Promise<boolean> {
 export async function captureTarget(
   kind: string,
   targetId: string | null,
-  brand: string,
+  // Only ever a log field: the copy is found by id, not by tenant. Nullable
+  // because a notice may arrive unattributed (lib/tenant.ts) and losing it over
+  // a missing brand would be the defect this parameter cannot cause.
+  brand: string | null,
 ): Promise<Capture> {
   // A chat is carried, never stored: there is nothing on our side to copy, and
   // saying so plainly is the answer the notifier gets.

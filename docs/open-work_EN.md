@@ -1295,3 +1295,35 @@ mistaken for a loss.
       the translation is provided for convenience" — and the same thought in the
       English one. Or argue why the guidelines carry a different risk from the
       Terms, and write that down.
+
+- [x] **J22. An Article 16 notice was refused when the key ran out of quota —
+      found and fixed 2026-08-11.** Found by the independent "spec against code"
+      pass; fixed the same day.
+
+      **What it was.** `resolveTenant` answered 401 or 429 — unknown key, revoked,
+      unexpected origin, daily quota spent — and that refusal sat in
+      `routes/report.ts` **before** the content snapshot and **before** the
+      `INSERT`. So the notice did not exist: no Article 16(4) acknowledgement went
+      out, nothing reached the moderator's queue, and the only trace was a
+      Prometheus counter. The same daily quota is spent by `/pageview` and
+      `/waitlist`: a storefront passed around in chats would have been enough to
+      stop accepting reports of illegal content for the rest of the day.
+
+      The route's own limit (10 an hour per address) sat **earlier** in the code
+      and let an honest notifier through — who then hit somebody else's quota.
+
+      **How it was fixed.** `lib/tenant.ts` gained `resolveTenantSoft`: the key
+      answers only "through which face", and everything else downgrades the
+      request to unattributed. The quota is neither checked nor charged there — an
+      obligation is not metered. Migration `007` dropped `NOT NULL` from
+      `dsa_notices.brand`, or the loss would simply have moved one step later. The
+      pattern was already written next door, in `routes/client_error.ts`.
+
+      **Verified:** `test/report_never_refused.test.ts` — against the old code both
+      assertions failed with `401 {"error":"invalid api key"}` and
+      `401 {"error":"missing x-api-key"}`; green after the fix, with the whole
+      suite at 67/67.
+
+      **While there:** `client_error.ts` moved to the same helper and stopped
+      spending the key's quota — a page reporting that it is broken should not
+      compete for budget with what it failed to send.

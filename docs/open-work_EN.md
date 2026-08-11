@@ -1142,34 +1142,23 @@ mistaken for a loss.
       it is a trap: under Art. 16(4) the confirmation is an obligation, and a field
       with that name reads as a report that it was met. Either rename it to
       something honest (`will_acknowledge`) or return the actual send result.
-- [ ] **J16. The Art. 17(3) statement: three gaps, found by the end-to-end check
-      on 2026-08-09.** The chain ran whole — notice, receipt, queue, an `upheld`
-      decision, both letters delivered. The notifier's identity is **not disclosed**
-      to the author, the use of automation is named in both letters, and the ground
-      and the redress routes are there. Three things remain.
+- [x] **J16. The Article 17(3) statement of reasons — closed 2026-08-11 as
+      already done.** All three gaps were closed on 2026-08-09/10 while the
+      letters were being given a common shape, and this list never heard about
+      it. Verified in the code rather than from memory:
 
-      **1. No territorial scope and no duration.** Art. 17(3)(a) asks for them
-      "where relevant"; the template carries only `What was done: removed.` and the
-      panel form has no field at all. While every restriction is global and
-      permanent the caveat covers it. The moment one is temporary or regional,
-      there is nowhere to say so.
+      - **scope and duration** — `lib/mailer.ts`: "It applies everywhere the
+        Service is available, and it is not time-limited", with a comment saying
+        it becomes a form field the day either can differ;
+      - **which content was restricted** — `whatWasRestricted()` quotes the
+        snapshot, and where there is none it tells "expired" from "we never
+        looked" instead of passing one off as the other;
+      - **two descriptions of appeal** — reconciled. Compared by parsing the file
+        rather than by eye: both strings match **word for word**, including "We
+        do not operate a formal internal appeals body", which the author's letter
+        had lacked.
 
-      **2. The author is never told what was restricted.** The letter opens with
-      "Something you posted has been restricted" — no quote, no timestamp, no
-      reference. The snapshot was taken and sits in `dsa_notices.snapshot`, and
-      never reaches the letter. To somebody with several posts in the feed that
-      letter says nothing.
-
-      **3. The two letters describe redress differently.** To the notifier: "We do
-      not operate a formal internal appeals body". To the author: "reply to this
-      email and a person will look again" — without that caveat, which makes it
-      read as a promise of a procedure that does not exist. One fact, two
-      wordings.
-
-      **None of this blocks launch:** Art. 19 exempts a micro-enterprise from
-      Section 3 (internal complaints, out-of-court settlement), and scope and
-      duration are qualified as "where relevant". It is the class of detail that
-      is cheaper to record now than to discover on the first real complaint.
+      Nothing was changed: the item described a state that no longer exists.
 - [ ] **J17. A chat report: the notifier is never told to bring the copy.**
       Raised 2026-08-09.
 
@@ -1276,26 +1265,24 @@ mistaken for a loss.
       a person labels their own report "this is about children" before writing a
       word.
 
-- [ ] **J21. The community guidelines are translated and carry no precedence
-      clause.** Noticed 2026-08-10, while deciding not to translate the policy and
-      the Terms.
+- [x] **J21. Every translation of the rules now carries the precedence clause —
+      done 2026-08-11.** 27 files: 10 for neighbro, 17 for sosed.
 
-      The argument against translating ran: a second edition quietly starts saying
-      something else. But `landing/legal/community-guidelines_*.md` already exist in
-      ten languages for neighbro and seventeen for sosed — under the same risk, and
-      with no line saying which version governs.
+      The clause is written **in the language of the document**, with the English
+      sentence beside it. Putting it in English alone inside a Kazakh file is
+      pointless: the person it is written for cannot read it. The English line
+      beside it insures the opposite case — if a local wording turns out clumsy,
+      the governing version is still named unambiguously.
 
-      This is not a detail, for exactly one reason: an Article 17 statement of
-      reasons must name **the rule that was broken** (`dsa/SPEC_EN.md` §7). The
-      moderator will quote the English wording while the person read the Kazakh one
-      — and if the two have drifted, the dispute becomes about what the rule even
-      was.
+      **Verified by rendering rather than by the line existing.** The rules page
+      fetches the markdown, so a line in a file proves nothing. Static servers for
+      both storefronts inside a container, then Playwright over four languages —
+      en, ru, kk, el: both sentences on screen every time.
 
-      **What to do:** one line in each translation — "the English version governs;
-      the translation is provided for convenience" — and the same thought in the
-      English one. Or argue why the guidelines carry a different risk from the
-      Terms, and write that down.
-
+      **What I cannot vouch for:** the quality of seventeen translations. Russian,
+      English, German, French, Spanish, Polish and Ukrainian I stand behind;
+      Kazakh, Kyrgyz, Uzbek, Azerbaijani, Armenian, Georgian and Tajik I do not.
+      The sentence is short and uniform, but a native speaker should look.
 - [x] **J22. An Article 16 notice was refused when the key ran out of quota —
       found and fixed 2026-08-11.** Found by the independent "spec against code"
       pass; fixed the same day.

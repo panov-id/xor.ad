@@ -627,6 +627,41 @@ def status(inv: dict) -> None:
               f"{b.get('mode','?'):9} envs={','.join(b.get('envs', []))}")
 
 
+def seed_admin(box: dict, inv: dict, env: str, email: str) -> None:
+    """Create the first platform administrator of an environment.
+
+    A fresh environment has nobody in it and no way to get anybody in: the panel
+    user route needs a session, a session needs a magic link, and a magic link is
+    only sent to somebody who is already a member. Until this existed the way out
+    was writing the object into storage by hand, which means a new environment
+    could not be brought up from the documentation alone.
+
+    The node does the writing, not the wizard: it already knows its storage
+    transport, its environment name and how a user object is keyed, and teaching
+    the wizard any of that would move the same problem rather than solve it. The
+    refusal to seed a non-empty environment lives there too (tools/seed_admin.ts)
+    — this command cannot add a second administrator even if asked twice.
+    """
+    if env not in box["envs"]:
+        return
+    # Deploying prod needs a published release; seeding does not touch the image,
+    # so requiring one here would be a gate that means nothing. The confirmation
+    # still applies: this is a door into a live panel.
+    if box_public(inv, box) and not CONFIRM_PROD:
+        raise RuntimeError(f"{box['id']} hosts a PUBLIC (prod) env — pass --confirm-prod")
+    print(f"  · {box['id']}/{env}: seed admin {email}")
+    client, user = ssh_connect(box)
+    sudo = user != "root"
+    try:
+        sh(client,
+           f"cd {REMOTE_ROOT}/compose && docker compose run --rm --entrypoint deno "
+           f"node-{env} run --allow-env --allow-net --allow-read --allow-write "
+           f"tools/seed_admin.ts {shlex.quote(email)}",
+           sudo=sudo)
+    finally:
+        client.close()
+
+
 # --- cli --------------------------------------------------------------------
 
 def run_each(inv: dict, only: str | None, fn) -> None:
@@ -649,6 +684,9 @@ def main() -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("status", "provision", "configure", "dns", "pool", "deploy", "up"):
         sub.add_parser(name)
+    seed = sub.add_parser("seed-admin", help="create the first panel administrator of an env")
+    seed.add_argument("--env", required=True, help="environment name, as in inventory")
+    seed.add_argument("email", help="the address that will receive the sign-in link")
 
     args = p.parse_args()
     global CONFIRM_PROD
@@ -668,6 +706,8 @@ def main() -> None:
         run_each(inv, args.box, lambda b: pool(b, inv))
     elif args.cmd == "deploy":
         run_each(inv, args.box, lambda b: deploy(b, inv))
+    elif args.cmd == "seed-admin":
+        run_each(inv, args.box, lambda b: seed_admin(b, inv, args.env, args.email))
     elif args.cmd == "up":
         # dns before configure so DNS-01 can validate the hostnames.
         for b in boxes(inv, args.box):

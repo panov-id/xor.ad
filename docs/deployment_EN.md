@@ -111,7 +111,7 @@ relay/wizard/run.sh --node p1 --confirm-prod deploy   # prod
 
 `--node` and `--confirm-prod` are global flags, so they come **before** the
 subcommand. Subcommands: `status`, `provision`, `configure`, `dns`, `pool`,
-`deploy`, `up`.
+`deploy`, `up`, `seed-admin` (below).
 
 The production gate: `--confirm-prod` **and** the environment's `image_tag` must
 be a published GitHub Release — the wizard checks through the API. Migrations
@@ -134,6 +134,31 @@ daily rows once before the first prune: `tools/backfill_pageview_daily.ts` (no
 flags shows the plan, then `--apply`). Otherwise the panel reports more objects
 stored than views counted. It rebuilds whole days, so a second run converges
 rather than doubling.
+
+### The first administrator of a new environment
+
+A new environment is empty, and nobody can sign in to its panel: the operators
+route needs a session, a session comes from a magic link, and the link is only
+sent to somebody already registered. One command breaks the circle:
+
+```bash
+relay/wizard/run.sh --node n1 seed-admin --env staging you@example.com
+relay/wizard/run.sh --node p1 --confirm-prod seed-admin --env prod you@example.com
+```
+
+The writing is done by the node, not the wizard (`tools/seed_admin.ts`): it
+already knows its storage transport, its environment name and how an operator
+object is keyed — teaching the wizard any of that would move the problem rather
+than solve it.
+
+**The command only works on an empty environment.** If a single operator exists
+it refuses with exit code `2` and says why; a second administrator cannot be made
+this way, and the panel — where the act is authorised and audited — is where that
+belongs. Which is why the command is safe to keep in the image.
+
+A production environment requires `--confirm-prod`, but **not** a published
+release, unlike `deploy`: seeding an operator does not change the image, and a
+release gate here would mean nothing.
 
 ## SPA fallback for the panel
 

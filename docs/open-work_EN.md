@@ -1383,3 +1383,29 @@ mistaken for a loss.
       `scripts/run-relay-database-tests.sh`): before the fix the test failed with
       "a tenant is reading another tenant's notice". After it, 26/26 in that suite
       and 69/69 in the ordinary one.
+
+- [x] **J14. The first administrator of a new environment is now seeded by the
+      wizard — done 2026-08-11.**
+
+      `wizard seed-admin --env <env> <address>`, alongside `deploy`. The writing
+      is done by **the node, not the wizard** (`tools/seed_admin.ts`, run through
+      `docker compose run --rm`): it already knows the storage transport, the
+      environment name and how an operator object is keyed. Teaching the wizard
+      any of that would have moved the problem — which is exactly what the manual
+      workaround was.
+
+      **It seeds only into an empty environment.** One operator existing means a
+      refusal with exit code `2`. That is what makes the command safe to keep in
+      the image: it is not a way to add an administrator but a way to have a first
+      one; the second is added from the panel, where the act is authorised and
+      audited.
+
+      A production environment needs `--confirm-prod` but **not** a published
+      release, unlike `deploy`: seeding an operator does not change the image, and
+      a release gate would mean nothing here.
+
+      **Verified by running it**, not by reading: on file storage in a container
+      the command wrote `panel/probe/users/<sha256>.json` holding
+      `{email, role: "admin", brand: null, created_at}` — the same shape the panel
+      writes. A second run refused with exit code `2` and no second object
+      appeared. Not yet run against a live box over SSH: that is the next deploy.

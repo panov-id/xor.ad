@@ -170,9 +170,18 @@ processing is identical and only the storefront differs, so the record is shared
 
 - **Purpose.** Security and reliability.
 - **Basis.** Legitimate interests.
-- **Data.** IP, timestamp, user agent; a technical error report.
+- **Data.** A timestamp, a user agent and a technical error report: the kind of
+  error, its message, the stack, **the page address without its query string**,
+  the source, and a small flat set of markers from the page (up to 12 pairs of
+  name and short string). The relay does not store an IP: it lives only in the
+  in-memory rate limiter (`lib/client_ip.ts`). The CDN's edge logs are a separate
+  matter and sit with Bunny (see "Recipients").
 - **Rule.** **Personal data is not written to logs** — not an email address, not
-  the text of a message, not an identifier.
+  the text of a message, not an identifier. The rule is held up by the shape of
+  the record rather than by a promise: the address is cut to its path, because a
+  query string can carry anything, and the markers field accepts only flat short
+  values — nested objects are dropped rather than serialised
+  (`routes/client_error.ts`, 2026-08-11).
 - **Retention.** Server logs and client errors 30 days. Backups 14 days
   (`relay/wizard/backup-postgres.sh`, `keep_days`).
 

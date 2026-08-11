@@ -12,6 +12,49 @@ function cap(value: unknown, max: number): string | null {
   return typeof value === "string" ? value.slice(0, max) : null;
 }
 
+// The path, without the query or the fragment. The page counter already drops
+// them because "one could carry anything", and the same is true of an error
+// report — more so, since an error happens on the page a person is actually on,
+// with whatever they typed still in the address. The register promises that no
+// personal data is written to logs, and a full URL is the easiest way to break
+// that promise by accident.
+export function pagePath(value: unknown): string | null {
+  const raw = cap(value, 500);
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    return `${url.origin}${url.pathname}`.slice(0, 300);
+  } catch {
+    // Not a URL — keep the path portion of whatever it is, still without a query.
+    return raw.split(/[?#]/)[0].slice(0, 300);
+  }
+}
+
+// `extra` used to be stored as it arrived: whatever JSON a public caller chose
+// to send, of any shape and any size, into a collection the register describes
+// as carrying no personal data. The landings use it for one small thing — which
+// environment the page thought it was — and that use survives; the freedom to
+// post an object of arbitrary depth does not.
+//
+// Flat, string-valued, bounded on every axis. Anything else is dropped rather
+// than coerced: a value we cannot describe is a value we should not keep.
+const EXTRA_KEYS = 12;
+const EXTRA_KEY_MAX = 40;
+const EXTRA_VALUE_MAX = 200;
+
+export function extraFields(value: unknown): Record<string, string> | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const out: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (Object.keys(out).length >= EXTRA_KEYS) break;
+    if (key.length > EXTRA_KEY_MAX) continue;
+    if (typeof raw === "string") out[key] = raw.slice(0, EXTRA_VALUE_MAX);
+    else if (typeof raw === "number" || typeof raw === "boolean") out[key] = String(raw);
+    // objects, arrays, null: dropped
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 export async function clientError(req: Request): Promise<Response> {
   const body = await readJson<Record<string, unknown>>(req);
   if (!body) return json({ ok: true }); // never argue with a logger
@@ -45,11 +88,11 @@ function accept(brand: string | null, body: Record<string, unknown>): Response {
     kind: cap(body.kind, 64),
     message: cap(body.message, 1000),
     stack: cap(body.stack, 2000),
-    page_url: cap(body.page_url, 500),
+    page_url: pagePath(body.page_url),
     user_agent: cap(body.user_agent, 300),
     source: cap(body.source, 120),
     brand,
-    extra: body.extra ?? null,
+    extra: extraFields(body.extra),
     node: config.nodeId,
     env: config.envName,
     received_at: new Date().toISOString(),

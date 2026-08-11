@@ -737,3 +737,42 @@ Deno.test({
     assertEquals(still[0].decided_at, null, "the notice was decided by a stranger");
   },
 });
+
+// --- article 16(4): acknowledged is a fact, not an intention -------------------
+
+Deno.test({
+  name: "a notice nobody can be acknowledged to is not recorded as acknowledged",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { report } = await import("../src/routes/report.ts");
+    const marker = `no-address-${uniqueId()}`;
+    const response = await report(
+      new Request("https://relay.test/report", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          target_kind: "other",
+          reason_text: `[${marker}] no address supplied, so nothing can be sent`,
+          bona_fide: true,
+        }),
+      }),
+    );
+    const body = await response.json();
+    assertEquals(response.status, 202);
+    // The flag used to be Boolean(email) under a name that reads as "the
+    // Article 16(4) confirmation went out".
+    assertEquals(body.acknowledged, false);
+
+    const rows = await database.queryOrThrow<{ acknowledged_at: string | null }>(
+      "SELECT acknowledged_at FROM dsa_notices WHERE id = $1",
+      [body.id],
+    );
+    // And the column, which used to be set to now() by the INSERT itself — so
+    // every notice claimed an acknowledgement, including the ones with nobody to
+    // acknowledge to.
+    assertEquals(rows[0].acknowledged_at, null);
+
+    await database.queryOrThrow("DELETE FROM dsa_notices WHERE id = $1", [body.id]);
+  },
+});

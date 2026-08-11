@@ -69,6 +69,19 @@ the examination more than its absence would.
 **The reasoning is mandatory.** An empty notice creates no "actual knowledge"
 under Art. 16(3) and gives nothing to examine. The form does not submit without it.
 
+**The form says something about chat specifically, and it is not decoration.**
+Choosing "in a chat" reveals a warning: a conversation is stored nowhere, us
+included, so a description in one's own words will not be enough — **the quote
+has to be pasted from your own device**, and it will be the only copy.
+
+A permanent notice would be wrong here: a warning shown to everyone about a case
+that applies to one kind in four stops being read. It appears with the choice and
+goes away when the choice changes.
+
+Without it there was a quiet trap: a person describes the situation and there is
+nothing to examine — while Article 16 still obliges us to examine it and answer
+with reasons.
+
 ## 4. The snapshot
 
 On **creation** of a notice, before any examination:
@@ -198,6 +211,19 @@ whether another brand has a notice with this id is not this brand's business.
 **An unattributed notice (`brand IS NULL`) stays with the platform.** It arrived
 without a usable key, so which face it concerns is precisely what nobody knows,
 and handing it over on a guess would be worse than holding it.
+
+**`acknowledged_at` is written only when a letter actually left.** Not on insert.
+It used to be set unconditionally, so every notice claimed that the Article 16(4)
+confirmation had been sent — including the ones with no address to send it to. In
+the `POST /report` response, `acknowledged` meant `Boolean(email)` — "an address
+was supplied" — under a name that reads as "the duty was discharged". For our own
+form the difference never showed; for anyone else's client it is a trap, and for
+an inspector reading the row it was simply untrue.
+
+Both now state the fact: a letter went, the mark is there; it did not, and it is
+not. An empty `acknowledged_at` next to a non-empty address reads as **an
+outstanding duty**, which is correct — nothing retries the send, so such rows
+should be visible rather than painted over.
 
 ## 6. The reply to the notifier (Art. 16(5))
 

@@ -156,11 +156,15 @@ export async function sendWelcome(
 // Article 16(4) DSA: a notice gets a confirmation of receipt without undue delay,
 // whenever the notifier left an address. Deliberately plain — it confirms, states
 // what happens next, and promises no deadline the operator cannot hold.
+// Returns whether a letter actually left. The caller records the Article 16(4)
+// acknowledgement from this and from nothing else: a node configured without
+// mail returns early here, and calling that "acknowledged" would be the same
+// kind of untruth the flag used to carry when it meant "an address was given".
 export async function sendNoticeReceipt(
   to: string,
   opts: { id: string | null; brand?: string; lang?: string },
-): Promise<void> {
-  if (config.mail.transport === "none") return;
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
   const brand = (opts.brand ? await brandByKey(opts.brand) : undefined) ?? resolveBrand(null);
   const reference = opts.id ? opts.id.slice(0, 8) : "—";
   const subject = `${brand.name}: your report has been received`;
@@ -193,6 +197,7 @@ export async function sendNoticeReceipt(
     result: sent ? "sent" : "failed",
     kind: "notice_receipt",
   });
+  return sent;
 }
 
 // Article 16(5): the notifier learns what was decided, why, whether a machine

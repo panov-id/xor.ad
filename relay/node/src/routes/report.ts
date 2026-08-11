@@ -117,8 +117,8 @@ export async function report(req: Request): Promise<Response> {
     // never examined. See db/006.
     `INSERT INTO dsa_notices
        (brand, target_kind, target_id, snapshot, reason_text,
-        notifier_name, notifier_email, bona_fide, status, snapshot_state, acknowledged_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, now())
+        notifier_name, notifier_email, bona_fide, status, snapshot_state)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8)
      RETURNING id`,
     [
       brand?.key ?? null,
@@ -145,13 +145,38 @@ export async function report(req: Request): Promise<Response> {
   log("info", "notice accepted", { id, kind, brand: brand?.key ?? null, snapshot: snapshot !== null });
 
   // Article 16(4): confirmation without undue delay, when we have somewhere to
-  // send it. Best-effort — a mail failure must not lose the notice itself.
+  // send it. Best-effort — a mail failure must not lose the notice itself, which
+  // is why this is caught rather than allowed to answer 500 over a notice that
+  // is already stored.
+  //
+  // `acknowledged` is the fact, not the intention. It used to be Boolean(email)
+  // — "an address was supplied" — under a name that reads as "the confirmation
+  // required by Article 16(4) was sent". For our own form the difference never
+  // showed; for anyone else's client it is a trap, and for a regulator reading
+  // the row it was simply untrue.
+  let acknowledged = false;
   if (email) {
-    // Without a brand the letter goes out in the platform's own face rather than
-    // not at all: Article 16(4) asks for a confirmation of receipt, not for a
-    // confirmation in the right colours.
-    await sendNoticeReceipt(email, { id, brand: brand?.key, lang: text(body.lang, 8) ?? undefined });
+    try {
+      // Without a brand the letter goes out in the platform's own face rather
+      // than not at all: Article 16(4) asks for a confirmation of receipt, not
+      // for a confirmation in the right colours.
+      acknowledged = await sendNoticeReceipt(email, {
+        id,
+        brand: brand?.key,
+        lang: text(body.lang, 8) ?? undefined,
+      });
+    } catch (error) {
+      log("error", "notice receipt not sent", { id, error: String(error) });
+    }
   }
 
-  return json({ ok: true, id, acknowledged: Boolean(email) }, 202);
+  // The column follows the same rule: it used to be set to now() by the INSERT
+  // itself, so every notice claimed an acknowledgement — including the ones with
+  // nobody to acknowledge to. Now it is written when, and only when, a letter
+  // actually left.
+  if (acknowledged) {
+    await query("UPDATE dsa_notices SET acknowledged_at = now() WHERE id = $1", [id]);
+  }
+
+  return json({ ok: true, id, acknowledged }, 202);
 }

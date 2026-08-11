@@ -1,0 +1,70 @@
+// The copy a notice is examined against is taken with a hand-written column
+// list, and nothing checks it against the schema those columns belong to.
+//
+// That is worse than an ordinary typo, because of how the failure lands. The
+// surfaces are not built yet, so today the capture stops at "no such table" and
+// nobody notices. On the day they are built the SELECT starts failing instead —
+// and a failed query is indistinguishable from an empty database inside
+// `query()`, so the notice would be filed as "no copy was needed" and examined
+// against nothing, silently. That is the same class of defect migration 006 was
+// written to end.
+//
+// So the specs are the check: the columns must exist in the tables the specs
+// define. This test reads them the way the panel's access test reads App.tsx —
+// the document is the source, not a second copy of it.
+
+import { assert } from "jsr:@std/assert@1";
+import { SNAPSHOTTABLE } from "../src/lib/dsa_snapshot.ts";
+
+const read = (path: string) => Deno.readTextFileSync(new URL(path, import.meta.url));
+
+// `CREATE TABLE feed_messages ( id uuid ..., text text ..., )` → the leading
+// identifier of every line inside the block.
+function columnsOfCreateTable(sql: string, table: string): Set<string> {
+  const block = sql.match(new RegExp(`CREATE TABLE ${table} \\(([^;]*?)\\n\\);`, "s"));
+  assert(block, `no CREATE TABLE ${table} in the spec`);
+  const names = new Set<string>();
+  for (const line of block[1].split("\n")) {
+    const found = line.match(/^\s{2}([a-z_]+)\s+\S/);
+    if (found) names.add(found[1]);
+  }
+  return names;
+}
+
+// The offers spec lists fields as an indented block rather than as SQL.
+function fieldsOfBlock(text: string, heading: string): Set<string> {
+  const start = text.indexOf(heading);
+  assert(start >= 0, `no "${heading}" in the offers spec`);
+  const names = new Set<string>();
+  for (const line of text.slice(start).split("\n").slice(1)) {
+    if (line.startsWith("## ") || line.startsWith("### ")) break;
+    const found = line.match(/^\s{4}([a-z_]+)(\s|$)/);
+    if (found) names.add(found[1]);
+  }
+  return names;
+}
+
+const listed = (kind: string) =>
+  SNAPSHOTTABLE[kind].columns.split(",").map((column) => column.trim());
+
+Deno.test("every feed column copied into a snapshot exists in the feed's schema", () => {
+  const schema = columnsOfCreateTable(read("../../../docs/chat_EN.md"), "feed_messages");
+  for (const column of listed("feed_message")) {
+    assert(
+      schema.has(column),
+      `dsa_snapshot copies feed_messages.${column}, which the chat spec does not define. ` +
+        `The spec has: ${[...schema].join(", ")}`,
+    );
+  }
+});
+
+Deno.test("every offer column copied into a snapshot exists in the offer's fields", () => {
+  const fields = fieldsOfBlock(read("../../../docs/offers/SPEC_EN.md"), "### offer\n");
+  for (const column of listed("offer")) {
+    assert(
+      fields.has(column),
+      `dsa_snapshot copies offers.${column}, which the offers spec does not define. ` +
+        `The spec has: ${[...fields].join(", ")}`,
+    );
+  }
+});

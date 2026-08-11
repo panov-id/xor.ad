@@ -29,9 +29,26 @@ export interface Capture {
 // Surfaces whose content lives in the database and can therefore be copied.
 // A surface missing from here is not an oversight to fix silently — it means the
 // product has not built it yet, and the notice needs a human either way.
-const SNAPSHOTTABLE: Record<string, { table: string; columns: string }> = {
-  feed_message: { table: "feed_messages", columns: "id, body, zone, created_at, identity_id" },
-  offer: { table: "offers", columns: "id, offer_text, discount_value, conditions, created_at, business_profile_id" },
+// The column names are the ones the specs define, and a test holds them there
+// (test/dsa_snapshot_columns.test.ts). They had drifted into `body`, `zone`,
+// `identity_id` and `business_profile_id` — none of which exist anywhere — and
+// the drift was invisible because the surfaces are not built yet.
+//
+// The area is deliberately not copied. A notice asks whether a text is illegal,
+// and the text is what answers it; where the phrase was shown says nothing about
+// that, while a snapshot is kept for a year. Copying coordinates would keep a
+// year of locations for no examining value.
+export const SNAPSHOTTABLE: Record<string, { table: string; columns: string; posted: string }> = {
+  feed_message: {
+    table: "feed_messages",
+    columns: "id, text, mode, created_at, author_identity",
+    posted: "created_at",
+  },
+  offer: {
+    table: "offers",
+    columns: "id, offer_text, discount_value, conditions, published_at, venue_id",
+    posted: "published_at",
+  },
 };
 
 async function tableExists(name: string): Promise<boolean> {
@@ -68,7 +85,19 @@ export async function captureTarget(
     `SELECT ${columns} FROM ${table} WHERE id = $1 LIMIT 1`,
     [targetId],
   );
-  if (rows === null) return { snapshot: null, status: "received" };
+  // `query` answers null both for "no database" and for "the query failed", but
+  // the table check above has already ruled out the first. So this is a broken
+  // query — a wrong column, a renamed table — and calling it "received" would
+  // file the notice as "no copy was needed" and examine it against nothing. It
+  // is a failure to look, which is exactly what not_accessible means.
+  if (rows === null) {
+    log("error", "snapshot query failed — the notice will say we could not look", {
+      kind,
+      table,
+      columns,
+    });
+    return { snapshot: null, status: "not_accessible" };
+  }
   if (rows.length === 0) return { snapshot: null, status: "target_gone" };
 
   return { snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] }, status: "received" };

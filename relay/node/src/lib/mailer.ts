@@ -249,13 +249,22 @@ export function whatWasRestricted(
   snapshot: unknown,
   snapshotState: string | undefined,
 ): Block[] {
+  // The column names are the specs' own: a phrase carries `text`, an offer
+  // carries `offer_text`, and they are posted at `created_at` and `published_at`
+  // respectively. This used to read `body`, which exists in neither — so every
+  // letter would have opened with "something you posted" and never said which.
   const row = (snapshot as { row?: Record<string, unknown> } | null)?.row;
-  const quote = typeof row?.body === "string"
-    ? row.body
+  const quote = typeof row?.text === "string"
+    ? row.text
     : typeof row?.offer_text === "string"
     ? row.offer_text
     : null;
-  const posted = typeof row?.created_at === "string" ? row.created_at.slice(0, 16).replace("T", " ") : null;
+  const stamp = typeof row?.created_at === "string"
+    ? row.created_at
+    : typeof row?.published_at === "string"
+    ? row.published_at
+    : null;
+  const posted = stamp ? stamp.slice(0, 16).replace("T", " ") : null;
 
   if (quote) {
     return [

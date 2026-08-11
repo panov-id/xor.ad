@@ -73,8 +73,10 @@ under Art. 16(3) and gives nothing to examine. The form does not submit without 
 
 On **creation** of a notice, before any examination:
 
-    if the target still exists → store a snapshot: text, mode, lat, lon, area_radius,
-                                 created_at, author_identity  (names per chat_EN.md §8.3)
+    if the target still exists → store a snapshot:
+        phrase  id, text, mode, created_at, author_identity
+        offer   id, offer_text, discount_value, conditions, published_at, venue_id
+        (names per chat_EN.md §8.3 and offers/SPEC_EN.md §3; a test holds them there)
     if the target already expired → snapshot = null, snapshot_state = target_gone
 
 The state of the snapshot lives in **its own column**, not in `status`. This is
@@ -83,6 +85,17 @@ notices never reached the moderator's queue (`WHERE status IN
 ('received','in_review')`) and were never examined at all — contrary to Art. 16.
 `status` answers "what did we decide", `snapshot_state` answers "did we manage to
 take a copy", and the two must not be mixed.
+
+**The area is not copied into a snapshot.** A notice asks whether a text is
+illegal, and the text is what answers; where the phrase was shown has no bearing
+on that, while a snapshot is kept for a year. Copying coordinates would mean
+keeping a year of people's locations for nothing.
+
+**A failed query is `not_accessible`, not "no copy was needed".** If the table
+exists but the `SELECT` breaks — a renamed column, a changed schema — the old code
+returned `received` with an empty snapshot, filing the notice as though a copy had
+never been required. That case now logs an error and tells the notifier plainly
+that we could not look.
 
 The snapshot is held inside the notice record. There is no separate table of
 "retained messages": a snapshot does not outlive its notice and is used for

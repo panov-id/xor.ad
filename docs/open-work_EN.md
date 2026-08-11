@@ -1327,3 +1327,35 @@ mistaken for a loss.
       **While there:** `client_error.ts` moved to the same helper and stopped
       spending the key's quota — a page reporting that it is broken should not
       compete for budget with what it failed to send.
+
+- [x] **A4. The content snapshot selected columns that exist in no schema — found
+      and fixed 2026-08-11.**
+
+      `dsa_snapshot.ts` took `body`, `zone`, `identity_id` from the feed and
+      `business_profile_id`, `created_at` from offers. None of those names exist:
+      the feed spec has `text` and `author_identity`, an offer has `venue_id` and
+      `published_at`. `mailer.ts` read `row.body` from it — so the letter to an
+      author would have opened with "something you posted" and **never said
+      which**.
+
+      **Why it would have failed silently.** `query()` returns `null` both for "no
+      database" and for "the query failed", and the table check above had already
+      ruled out the first. So a broken `SELECT` returned `received` with an empty
+      snapshot — the notice filed as "no copy was needed" and examined against
+      nothing. The same class of defect migration `006` was written for. It is now
+      `not_accessible`, with an error in the log.
+
+      **What holds it in future.** `test/dsa_snapshot_columns.test.ts` reads
+      `docs/chat_EN.md` and `docs/offers/SPEC_EN.md` and checks the column list
+      against them — the way the panel's access test reads `App.tsx`. Against the
+      old code it failed with "dsa_snapshot copies feed_messages.body, which the
+      chat spec does not define", listing what the spec does have.
+
+      **Decided while there:** the area (`lat`, `lon`, `area_radius`) is **not**
+      copied into a snapshot. A notice asks whether a text is illegal and the text
+      answers; a snapshot is kept for a year, and copying coordinates would keep a
+      year of people's locations for nothing.
+
+      **And a gap of my own:** `visible_at`, introduced yesterday with the
+      moderation queue, was described in prose but missing from `CREATE TABLE
+      feed_messages`. Added, together with `expires_at` counting from it.

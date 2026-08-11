@@ -414,8 +414,9 @@ CREATE TABLE feed_messages (
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
-  created_at       timestamptz NOT NULL DEFAULT now(),
-  expires_at       timestamptz NOT NULL                       -- now() + 4:20
+  created_at       timestamptz NOT NULL DEFAULT now(),       -- when it was submitted
+  visible_at       timestamptz,                              -- NULL = waiting on the moderation queue
+  expires_at       timestamptz NOT NULL                       -- visible_at + 4:20
 );
 ```
 

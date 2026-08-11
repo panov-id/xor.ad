@@ -16,7 +16,7 @@ Deno.test("quotes the author's own words, with when they posted them", () => {
   const lines = whatWasRestricted("feed_message", {
     table: "feed_messages",
     captured_at: "2026-08-09T11:00:00.000Z",
-    row: { body: "две табуретки, двор дома 14", created_at: "2026-08-09T09:41:07.000Z" },
+    row: { text: "две табуретки, двор дома 14", created_at: "2026-08-09T09:41:07.000Z" },
   }, "received");
 
   assertEquals(lines[0].kind, "heading");

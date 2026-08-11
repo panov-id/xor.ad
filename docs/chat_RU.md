@@ -413,8 +413,9 @@ CREATE TABLE feed_messages (
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = обычная фраза
   conditions       text,                                      -- ограничения скидки
-  created_at       timestamptz NOT NULL DEFAULT now(),
-  expires_at       timestamptz NOT NULL                       -- now() + 4:20
+  created_at       timestamptz NOT NULL DEFAULT now(),       -- когда отправлена
+  visible_at       timestamptz,                              -- NULL = ждёт очередь модерации
+  expires_at       timestamptz NOT NULL                       -- visible_at + 4:20
 );
 ```
 

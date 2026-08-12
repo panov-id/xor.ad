@@ -1111,40 +1111,18 @@ mistaken for a loss.
       the console names Google's own systems as the source. The URLs are known, the
       crawl is deferred. Ordinary for a young domain whose pages differ mainly by
       language. Cured by time and distinctness, not by code.
-- [ ] **J14. Nothing can create the first panel administrator in a fresh
-      environment.** Found 2026-08-09, when signing in to the UAT panel was needed
-      for the end-to-end DSA check.
+- [x] **J15. `acknowledged` became a fact rather than an intention — 2026-08-11.**
+      The field returned `Boolean(email)` — "an address was supplied" — under a
+      name that reads as "the Article 16(4) confirmation was sent". The database
+      was worse: `acknowledged_at` was set **unconditionally on insert**, so every
+      notice claimed a discharged duty, including those with no address at all.
 
-      `panel/staging/users/` was **empty**: not one account, so nobody could sign
-      in to the UAT panel and the notice-examination screen there had never been
-      reachable. Production has exactly one account, created 2026-07-09.
-
-      **The circle:** `/admin/panel-users` needs a session (`requirePermission` →
-      `authed`), a session comes from a magic link, and `requestMagicLink` returns
-      silently when the user object is missing (`auth.ts:53`, "invite-only: never
-      reveal membership"). There is no environment variable and no wizard command
-      for the first administrator.
-
-      **The workaround used:** the object was written to storage directly —
-      `panel/<env>/users/<sha256 of the address>.json`, body
-      `{"email", "role": "admin", "created_at"}`, mirroring production's. It works,
-      but it requires knowing the storage layout: a fresh environment cannot be
-      brought up with a working panel by following the documentation.
-
-      **How to close it:** a wizard mode such as `wizard --env staging seed-admin
-      <address>` beside `configure`, or a one-shot bootstrap from an environment
-      variable. The first is the more honest: the wizard already owns both the
-      environment and the storage keys.
-- [ ] **J15. The `acknowledged` field in the `POST /report` response misleads.**
-      Found 2026-08-09 during the end-to-end check. It is returned as
-      `Boolean(email)` — it means "a notifier address was supplied", not
-      "the receipt was sent". The letter itself goes out best-effort and its fate
-      is never surfaced.
-
-      For our own form the difference does not matter; for somebody else's client
-      it is a trap: under Art. 16(4) the confirmation is an obligation, and a field
-      with that name reads as a report that it was met. Either rename it to
-      something honest (`will_acknowledge`) or return the actual send result.
+      Both now state the fact, and `sendNoticeReceipt` returns whether a letter
+      left instead of `void` — a node with mail switched off returned silently and
+      would have produced the same untruth by another route. An empty
+      `acknowledged_at` beside a real address reads as an outstanding duty:
+      nothing retries the send, so those rows must stay visible. Verified against
+      a real database; the test went red on the old insert.
 - [x] **J16. The Article 17(3) statement of reasons — closed 2026-08-11 as
       already done.** All three gaps were closed on 2026-08-09/10 while the
       letters were being given a common shape, and this list never heard about
@@ -1162,55 +1140,14 @@ mistaken for a loss.
         had lacked.
 
       Nothing was changed: the item described a state that no longer exists.
-- [ ] **J17. A chat report: the notifier is never told to bring the copy.**
-      Raised 2026-08-09.
+- [x] **J17. The form speaks about chat separately — 2026-08-11.** Choosing "in a
+      chat" reveals a warning: a conversation is stored nowhere, us included, so
+      the quote has to be pasted from your own device and will be the only copy.
 
-      **What happens today.** Conversations are stored nowhere — encrypted on the
-      devices, passed through the node in transit — so `captureTarget` returns
-      `not_accessible` for a chat without looking anywhere. The moderator sees the
-      "why this is illegal" field and nothing else. Neither we nor they will see
-      what was complained about.
-
-      This is not a defect: "not even our own server keeps the correspondence" has
-      no exception for complaints, or it stops being a promise. The chat spec says
-      as much — a complaint travels **with a copy from the complainant's device**.
-
-      **What is missing.** The intake accepts only `reason_text`, and nothing tells
-      a person that the quote is theirs to provide. They will describe the
-      situation in their own words and leave nothing to examine — while Article 16
-      obliges us to examine it and answer with reasons.
-
-      **To do:** in `report.html`, show a hint when "chat" is chosen — we do not
-      keep conversations, paste the quote here — and repeat it in the field's
-      description. A change at the form level; the model stays as it is.
-
-      **Check while there:** whether the examination card says the copy is missing
-      *for this reason* rather than another. The `Copy` column now distinguishes
-      "gone before we looked" from "never held" (see migration `006`), but the text
-      inside the card does not lean on it.
-- [ ] **J18. The `caddy` image is rebuilt on every commit, and has not changed in
-      78 of them.** Noticed 2026-08-09, after four edit-and-roll cycles in a row
-      each waited twenty minutes on it.
-
-      `relay/caddy/` holds **one Dockerfile**, last touched in `51bbcbf` — a
-      directory rename. Since then 78 commits have touched `relay/**`, and every
-      one of them built that image again for two architectures, arm64 under QEMU
-      emulation. That is the part of the run everyone waits for.
-
-      **Why the guard from the `006` era does not help.** The "already built?" step
-      looks for `sha-<commit>`: a new commit has none, so the build proceeds even
-      when not a byte of the context changed. The key is tied to the commit when it
-      should be tied to the content.
-
-      **How to close it:** tag the image by a hash of its context rather than the
-      commit — `content-<sha256 of relay/caddy/>`, say. "Already built?" then finds
-      it and attaches the commit and release tags to what exists, exactly as it
-      already does for a repeat run. Twenty minutes off every roll, and they are
-      the twenty minutes that hurt when something urgent is being fixed.
-
-      Worth checking whether the same applies to `relay-node`: its context changes
-      often, but no layer cache is carried between runs at all.
-
+      A permanent notice would be wrong: a warning shown to everyone about a case
+      that applies to one kind in four stops being read. Verified in a browser on
+      both storefronts — hidden, shown, hidden again — and broken on purpose to
+      check the assertion catches it.
 - [ ] **J19. The identity model has been rewritten in the spec and does not exist
       in code.** Decided 2026-08-10: one live session per identity, a mandatory
       paper recovery code, a mandatory six-digit PIN, and half the vault key held
@@ -1241,33 +1178,16 @@ mistaken for a loss.
       raises the identity on a clean device; without "that's me" no transfer
       happens.
 
-- [ ] **J20. The Article 16 spec describes a mandatory field and a separate path,
-      neither of which exists.** Found 2026-08-10 while deciding whether to require
-      an email on an offer complaint.
+- [x] **J20. The Article 16 spec now matches how the form works — 2026-08-11.**
+      The field table marked name and email required "except for §5.1", and §5.1
+      promised a separate path in the form. Neither exists, and neither should:
+      the fields are optional for everyone, a line beside them addresses reports
+      about child abuse, and the node never requires them.
 
-      `dsa/SPEC_EN.md` §2 marks `notifier_name` and `notifier_email` in the field
-      table as required "except for the cases in §5.1", and §5.1 promises that "the
-      form shows a separate path without those fields".
-
-      **Neither is true.** In `report.html` both fields lack `required`, and instead
-      of a separate path there is a note: "if your report concerns the sexual abuse
-      of children, leave the name and email empty". The node never requires the
-      email:
-
-          const email = isEmail(body.notifier_email) ? body.notifier_email : null;
-
-      **It is the spec that diverges, not the behaviour.** Right beside that line in
-      `routes/report.ts` sits a comment explaining why it must be so: refusing a
-      report about child sexual abuse over a missing name is exactly what Art.
-      16(2)(c) forbids. The argument is right, and changing the code would be a
-      mistake.
-
-      **What to fix:** the field table — "asked for but not required, and here is
-      why" — and §5.1, either describing the single form with its note as it stands
-      or genuinely splitting the two paths. The first is more honest: two paths mean
-      a person labels their own report "this is about children" before writing a
-      word.
-
+      Written down with the reason: a separate path would have a person label
+      their own notice before writing a word, and refusing over a missing name is
+      exactly what Art. 16(2)(c) forbids. The price is stated: some notices arrive
+      with no return address and there is nobody to answer.
 - [x] **J21. Every translation of the rules now carries the precedence clause —
       done 2026-08-11.** 27 files: 10 for neighbro, 17 for sosed.
 
@@ -1318,7 +1238,7 @@ mistaken for a loss.
       spending the key's quota — a page reporting that it is broken should not
       compete for budget with what it failed to send.
 
-- [x] **A4. The content snapshot selected columns that exist in no schema — found
+- [x] **M1. The content snapshot selected columns that exist in no schema — found
       and fixed 2026-08-11.**
 
       `dsa_snapshot.ts` took `body`, `zone`, `identity_id` from the feed and
@@ -1350,7 +1270,7 @@ mistaken for a loss.
       moderation queue, was described in prose but missing from `CREATE TABLE
       feed_messages`. Added, together with `expires_at` counting from it.
 
-- [x] **A5. The Article 16 queue was not bounded by brand — found and fixed
+- [x] **M2. The Article 16 queue was not bounded by brand — found and fixed
       2026-08-11.**
 
       `routes/dsa.ts` ran a bare `SELECT ... FROM dsa_notices`, and the decision

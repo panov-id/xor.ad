@@ -19,9 +19,18 @@ export interface PublishableKey {
   created_at: string;
   revoked_at: string | null;
   // Daily allowance for public requests made with this key. null = unlimited,
-  // which is what a key has until someone sets one.
+  // which is what a key has until someone sets one. Ignored for a native key —
+  // see below.
   quota_events_per_day?: number | null;
+  // What kind of client this key speaks for. A browser key is protected by the
+  // Origin allowlist; a native one has no Origin to check, so the difference is
+  // written down rather than inferred from an empty list (db/008).
+  client_type?: ClientType;
 }
+
+export type ClientType = "browser" | "native";
+
+export const isNative = (key: PublishableKey): boolean => key.client_type === "native";
 
 export const keysDir = (): string => `platform/${config.envName}/publishable-keys`;
 
@@ -49,7 +58,8 @@ export async function findPublishableKey(id: string): Promise<PublishableKey | n
   // most of why keys moved here.
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
-      `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int
+      `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int,
+              client_type
          FROM api_keys WHERE id = $1 AND revoked_at IS NULL`,
       [id],
     );
@@ -70,6 +80,11 @@ export async function findPublishableKey(id: string): Promise<PublishableKey | n
 // An empty allowlist accepts any origin — used by the local stand and by
 // server-side callers that send no Origin at all.
 export function originAllowed(key: PublishableKey, origin: string | null): boolean {
+  // A native client sends no Origin, because there is no page it came from. The
+  // allowlist is therefore not a weaker check for it but a meaningless one, and
+  // the key says so itself rather than leaving it to be read out of an empty
+  // list — a browser key saved without origins would look identical.
+  if (isNative(key)) return true;
   if (key.origins.length === 0) return true;
   return origin !== null && key.origins.includes(origin);
 }
@@ -83,7 +98,8 @@ export function originAllowed(key: PublishableKey, origin: string | null): boole
 export async function listPublishableKeys(): Promise<PublishableKey[]> {
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
-      `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int
+      `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int,
+              client_type
          FROM api_keys ORDER BY created_at DESC`,
     );
     if (rows !== null) return rows;
@@ -98,7 +114,15 @@ export async function listPublishableKeys(): Promise<PublishableKey[]> {
 export async function createPublishableKey(
   brand: string,
   origins: readonly string[],
+  clientType: ClientType = "browser",
 ): Promise<PublishableKey> {
+  // A native key carries no origins, and storing some would invite a later
+  // reader to believe they mean something. The caller is not corrected quietly:
+  // asking for both is a contradiction, and it is better heard now than found
+  // when a key stops working for a reason nobody wrote down.
+  if (clientType === "native" && origins.length > 0) {
+    throw new Error("a native key has no Origin to allow — do not give it origins");
+  }
   const key: PublishableKey = {
     // Hex from a UUID: publishable, so there is nothing to hide and no reason to
     // reach for anything cleverer.
@@ -107,12 +131,13 @@ export async function createPublishableKey(
     origins: [...origins],
     created_at: new Date().toISOString(),
     revoked_at: null,
+    client_type: clientType,
   };
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
-      `INSERT INTO api_keys (id, brand, origins) VALUES ($1, $2, $3)
-       RETURNING id, brand, origins, created_at, revoked_at`,
-      [key.id, brand, [...origins]],
+      `INSERT INTO api_keys (id, brand, origins, client_type) VALUES ($1, $2, $3, $4)
+       RETURNING id, brand, origins, created_at, revoked_at, client_type`,
+      [key.id, brand, [...origins], clientType],
     );
     if (rows !== null && rows[0]) return rows[0];
     // Falling through on failure would mint a key the database does not know

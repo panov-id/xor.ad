@@ -17,6 +17,9 @@ type ApiKeyRow = {
   origins: string[];
   created_at: string;
   revoked_at: string | null;
+  // browser = protected by the Origin allowlist; native = a client with no page
+  // behind it, so there is no Origin to check and no per-key allowance to spend.
+  client_type: "browser" | "native";
   // null = unlimited, which is what a key has until someone sets an allowance.
   quota_events_per_day: number | null;
   used_today: number;
@@ -37,6 +40,7 @@ export const ApiKeysList = () => {
 
   const [brand, setBrand] = useState("");
   const [origins, setOrigins] = useState("");
+  const [clientType, setClientType] = useState<"browser" | "native">("browser");
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [minted, setMinted] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,7 +57,12 @@ export const ApiKeysList = () => {
         // One per line is how origins are read and how they will be re-read in
         // six months; commas invite "https://a.test, https://b.test" with a
         // space that silently becomes part of the value.
-        origins: origins.split("\n").map((line) => line.trim()).filter(Boolean),
+        client_type: clientType,
+        // A native client has no page and therefore no Origin; sending origins
+        // with it is refused by the relay rather than quietly ignored.
+        origins: clientType === "native"
+          ? []
+          : origins.split("\n").map((line) => line.trim()).filter(Boolean),
       }),
     });
     const body = await response.json().catch(() => ({}));
@@ -64,6 +73,7 @@ export const ApiKeysList = () => {
     }
     setMinted(body.id);
     setOrigins("");
+    setClientType("browser");
     setStatus({ kind: "ok", text: "Key minted. Put it in the landing's RELAY_PUBLISHABLE_KEY secret." });
     void query.refetch();
   };
@@ -126,6 +136,22 @@ export const ApiKeysList = () => {
           </div>
         )}
         <div className="field">
+          <label className="field-label" htmlFor="key-client-type">Client</label>
+          <select
+            id="key-client-type"
+            value={clientType}
+            onChange={(event) => setClientType(event.target.value as "browser" | "native")}
+          >
+            <option value="browser">Browser — a page, protected by its origins</option>
+            <option value="native">Native — a terminal or app, no Origin exists</option>
+          </select>
+          <p className="field-hint">
+            Native keys ship inside a client everyone can download, so they carry no
+            origins and no per-key daily limit: one counter for everybody would let a
+            single script lock the client out for all of them.
+          </p>
+        </div>
+        <div className="field" hidden={clientType === "native"}>
           <label className="field-label" htmlFor="key-origins">Allowed origins</label>
           <textarea
             id="key-origins"
@@ -175,7 +201,15 @@ export const ApiKeysList = () => {
           {
             key: "origins",
             label: "Origins",
-            render: (row) => row.origins.length ? row.origins.join(" · ") : "any site",
+            // "any site" and "no site to speak of" look the same in an empty
+            // list, which is the confusion the type exists to end — so a native
+            // key says what it is instead of showing an emptiness.
+            render: (row) =>
+              row.client_type === "native"
+                ? <Badge>native client</Badge>
+                : row.origins.length
+                ? row.origins.join(" · ")
+                : "any site",
           },
           {
             key: "quota_events_per_day",
@@ -184,7 +218,9 @@ export const ApiKeysList = () => {
               <span className="quota-cell">
                 <span className="quota-used">{row.used_today ?? 0}</span>
                 <span className="quota-slash">/</span>
-                {isPlatform && !row.revoked_at
+                {row.client_type === "native"
+                  ? <span title="a native key is not metered per key">—</span>
+                  : isPlatform && !row.revoked_at
                   ? (
                     <input
                       type="number"

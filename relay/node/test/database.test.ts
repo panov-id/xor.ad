@@ -776,3 +776,73 @@ Deno.test({
     await database.queryOrThrow("DELETE FROM dsa_notices WHERE id = $1", [body.id]);
   },
 });
+
+// --- a native key is a different kind of key ----------------------------------
+//
+// The terminal client ships one publishable key inside its image, shared by every
+// container in the world. Two things follow that a browser key does not need, and
+// both used to be absent: it has no Origin, because there is no page it came
+// from; and a per-key daily counter would be one bucket for everyone, so a single
+// script could lock the client out for the rest of the day for people who did
+// nothing. Recorded in depth-client §2.5 before it was built.
+
+Deno.test({
+  name: "a native key carries no origins and is refused if given any",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const refused = await callAs(PLATFORM, "POST", "/admin/api-keys", {
+      brand: "alpha",
+      client_type: "native",
+      origins: ["https://example.test"],
+    });
+    assertEquals(refused.status, 422, JSON.stringify(refused.body));
+
+    const made = await callAs(PLATFORM, "POST", "/admin/api-keys", {
+      brand: "alpha",
+      client_type: "native",
+    });
+    assertEquals(made.status, 201, JSON.stringify(made.body));
+    assertEquals(made.body.client_type, "native");
+    assertEquals(made.body.origins.length, 0);
+  },
+});
+
+Deno.test({
+  name: "a native key is not metered per key, a browser key is",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const tenant = await import("../src/lib/tenant.ts");
+    const apiKey = await import("../src/lib/api_key.ts");
+
+    const native = await apiKey.createPublishableKey("alpha", [], "native");
+    const browser = await apiKey.createPublishableKey("alpha", ["https://alpha.test"]);
+    // One request each is all the allowance either of them gets.
+    await database.queryOrThrow(
+      "UPDATE api_keys SET quota_events_per_day = 1 WHERE id = ANY($1)",
+      [[native.id, browser.id]],
+    );
+
+    const ask = async (id: string, origin: string | null) => {
+      const headers: Record<string, string> = { "x-api-key": id };
+      if (origin) headers.origin = origin;
+      const result = await tenant.resolveTenant(
+        new Request("https://relay.test/pageview", { method: "POST", headers }),
+      );
+      return tenant.isTenantDenied(result) ? result.response.status : 200;
+    };
+
+    // The browser key spends its allowance and is then refused — unchanged.
+    assertEquals(await ask(browser.id, "https://alpha.test"), 200);
+    await quota.flush();
+    assertEquals(await ask(browser.id, "https://alpha.test"), 429);
+
+    // The native key sends no Origin at all, and its allowance is never spent:
+    // the same three calls that would have exhausted a browser key change
+    // nothing.
+    for (let i = 0; i < 3; i++) assertEquals(await ask(native.id, null), 200);
+    await quota.flush();
+    assertEquals(await ask(native.id, null), 200);
+  },
+});

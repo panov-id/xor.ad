@@ -915,39 +915,42 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       ciphertext with nonce, tag and base64, and that must fit inside the 8 KB
       `NOTIFY` payload with room to spare (§8.1, §8.13). Raising it is allowed,
       but not blindly.
-- [ ] **G9. A key for the native client — none of this is in the node.** Decided
-      07.08.2026 along with the `depth` spec (`depth-client_EN.md` §2.5) and the
-      second principle in §8 of the chat spec.
+- [ ] **G9. The native client key — two of five sub-items done 2026-08-12, three
+      waiting for their occasion.**
 
-      Verified against the code on 07.08.2026:
-      - `lib/tenant.ts` — the brand comes from `x-api-key` and from nowhere else;
-      - `lib/api_key.ts:72` — `originAllowed()` admits everyone on an empty origin
-        list, but such a key cannot be minted: an empty list is refused where the
-        environment requires keys (B1);
-      - `lib/tenant.ts:66` — the daily quota is counted **per key**;
-      - there is no `client_type` field, neither in `api_keys` nor in the panel
-        form.
+      **Done:**
+      - [x] **`client_type` (`browser` | `native`)** — migration `008`, the field
+        on the key, on minting, in the listing, in the panel form and in the tool
+        (`--native`). The decision now lives in the data: "nativeness" used to be
+        read out of an empty Origin list, and a browser key saved without origins
+        looked exactly the same. A native key given origins is refused — in the
+        API and in the tool — because that is a contradiction rather than a
+        detail;
+      - [x] **the per-key daily quota does not apply to `native` and is not
+        spent.** The key is shared by every copy of the client: a per-key counter
+        would let one script lock everybody else out within a minute.
 
-      **To do, in this order:**
-      - [ ] a `client_type` field (`browser` | `native`) in `api_keys`, in the
-        minting form and in the list. For `native` no origin list is created or
-        checked — the decision written into the data rather than inferred from an
-        empty list;
-      - [ ] forbid a per-key daily quota for `native`: the key is shared by every
-        container, and a per-key counter means one script locks `depth` for
-        everyone. The same defect as G4 on `/waitlist`, only wider;
-      - [ ] per-identity limits on top of the per-address one (`lib/rate_limit.ts`):
-        for a native client the address is currently the only thing holding it
-        back;
-      - [ ] the `depth` brand in the brand registry, and its first `native` key;
-      - [ ] rotation by overlap: several keys live at once, the old one fading on
-        an announced window. A plain revocation breaks every digest-pinned image,
-        including the ones that will never update.
+      **Verified against a real database** (`test/database.test.ts`): a native key
+      mints without origins and is refused with them; a browser key with a limit
+      of 1 hits 429 on its second request while a native key with the same limit
+      passes four in a row. Broke `isNative` — the test went red — and restored.
 
-      **What not to do:** a `brand` column in `identities` or `feed_messages`. The
-      feed is shared across all faces — §8 of the chat spec, second principle. A
-      brand decides texts, emails, where leads land and who sees them in the panel;
-      it does not decide who is visible in the feed.
+      **Waiting for its occasion, which is not an excuse:**
+      - [ ] **per-identity limits** — there are no `identities` and no sessions in
+        the code yet (J19). There is nothing for a per-identity limit to hang on
+        today; it arrives with the identity and not before;
+      - [ ] **the `depth` brand and its first `native` key** — there is no `depth`
+        image yet, so there is nothing to publish. The key is one command on the
+        day there is;
+      - [ ] **rotation by overlap** — the mechanism exists already: a brand may
+        hold any number of live keys, and revocation stamps rather than deletes.
+        What is missing is not code but an announced window and a procedure, and
+        writing those before the first image exists would mean inventing the
+        window out of nothing.
+
+      **What must not be done:** a `brand` column on `identities` or
+      `feed_messages`. The feed is shared across faces — §8 of the chat spec,
+      second principle.
 - [x] **G10. Terms for client authors — written 2026-08-10.** They live in
       `CLIENT_TERMS.md` at the repository root, next to the README, where whoever
       came for the image will find them.

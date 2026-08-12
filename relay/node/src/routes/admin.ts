@@ -466,7 +466,7 @@ route("POST", "/admin/api-keys", async ({ req }) => {
   const access = await requirePermission(req, "api_keys.write");
   if (isDenied(access)) return access.response;
 
-  const body = await readJson<{ brand?: unknown; origins?: unknown }>(req);
+  const body = await readJson<{ brand?: unknown; origins?: unknown; client_type?: unknown }>(req);
   if (!body) return json({ error: "invalid body" }, 422);
 
   // A tenant may only mint for itself, whatever the body says — the same rule
@@ -478,19 +478,34 @@ route("POST", "/admin/api-keys", async ({ req }) => {
   }
   if (!(await brandByKey(brand))) return json({ error: "unknown brand" }, 404);
 
+  // A native client has no Origin — a terminal is not a page — so for such a key
+  // the allowlist is not a weaker protection but an absent concept, and saying so
+  // in the key is what keeps "empty list" from having two meanings.
+  const clientType = body.client_type === "native" ? "native" : "browser";
+
   const origins = Array.isArray(body.origins) ? body.origins.map(String).filter(Boolean) : [];
   const bad = origins.filter((origin) => !isOrigin(origin));
   if (bad.length) {
     return json({ error: `not an origin: ${bad.join(", ")} — expected https://example.com` }, 422);
   }
+  if (clientType === "native" && origins.length > 0) {
+    return json({ error: "a native key has no Origin to allow — leave origins empty" }, 422);
+  }
   // An empty allowlist accepts any site. Fine on a stand, not on an environment
-  // whose landings are public, so it is refused where it would matter.
-  if (origins.length === 0 && config.requireApiKey) {
+  // whose landings are public, so it is refused where it would matter — except
+  // for a native key, where there is nothing to list and the type already says
+  // why.
+  if (origins.length === 0 && config.requireApiKey && clientType !== "native") {
     return json({ error: "at least one origin is required in this environment" }, 422);
   }
 
-  const key = await createPublishableKey(brand, origins);
-  recordAuditEvent({ actor: access.user, action: "api_keys.create", target: key.id });
+  const key = await createPublishableKey(brand, origins, clientType);
+  recordAuditEvent({
+    actor: access.user,
+    action: "api_keys.create",
+    target: key.id,
+    after: { brand, client_type: clientType, origins },
+  });
   return json(key, 201);
 });
 

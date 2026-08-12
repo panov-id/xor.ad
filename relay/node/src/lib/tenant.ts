@@ -4,7 +4,7 @@
 
 import { type Brand, config } from "../config.ts";
 import { brandByKey } from "./brand_registry.ts";
-import { findPublishableKey, originAllowed } from "./api_key.ts";
+import { findPublishableKey, isNative, originAllowed } from "./api_key.ts";
 import { EVENTS, exceeded, record, secondsUntilReset } from "./quota.ts";
 import { resolveBrand } from "./welcome.ts";
 import { json } from "./http.ts";
@@ -99,7 +99,14 @@ export async function resolveTenant(req: Request, hint?: string | null): Promise
   // work succeeds: a request that was served is a request that was served, and a
   // caller retrying a failure of ours should not be charged twice — which is why
   // this counts requests admitted, not rows written.
-  if (await exceeded(key.id, key.quota_events_per_day ?? null)) {
+  // A native key is shared by every copy of the client in the world, so a
+  // per-key counter is one bucket for everyone: a single script would burn it in
+  // a minute and lock the terminal out for the rest of the day, for people who
+  // did nothing. The limits that apply to it are per address, and — once
+  // identities exist — per identity. Recorded in depth-client §2.5 before it was
+  // built; this is the code catching up.
+  const metered = !isNative(key);
+  if (metered && await exceeded(key.id, key.quota_events_per_day ?? null)) {
     const retryAfter = secondsUntilReset();
     return {
       response: json(
@@ -113,7 +120,7 @@ export async function resolveTenant(req: Request, hint?: string | null): Promise
       ),
     };
   }
-  record(key.id, EVENTS);
+  if (metered) record(key.id, EVENTS);
 
   return { brand };
 }

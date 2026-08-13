@@ -174,10 +174,18 @@ export async function revokePublishableKey(id: string): Promise<PublishableKey |
       // COALESCE keeps a second revoke from moving the timestamp: when we
       // stopped trusting a key is a fact, and it happened once.
       `UPDATE api_keys SET revoked_at = COALESCE(revoked_at, now()) WHERE id = $1
-       RETURNING id, brand, origins, created_at, revoked_at`,
+       RETURNING id, brand, origins, created_at, revoked_at, quota_events_per_day::int,
+                 quota_pageviews_per_day::int, client_type`,
       [id],
     );
-    if (rows !== null) return rows[0] ?? null;
+    if (rows !== null) {
+      // The storage cache is only read when the database is unreachable — but
+      // that is exactly the moment a key revoked a minute ago must not come back
+      // to life for the rest of the cache's lifetime. The file branch below
+      // already did this; the database branch forgot.
+      invalidatePublishableKeys();
+      return rows[0] ?? null;
+    }
   }
   if (!storageEnabled()) return null;
   const stored = await get<PublishableKey>(`${keysDir()}/${id}.json`);

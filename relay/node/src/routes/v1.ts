@@ -11,7 +11,6 @@
 // call the API as that tenant.
 
 import { route } from "../lib/router.ts";
-import { readJson } from "../lib/http.ts";
 import { can } from "../access/index.ts";
 import { resolveSecretKey, type SecretKey } from "../lib/secret_key.ts";
 import { recall, remember } from "../lib/idempotency.ts";

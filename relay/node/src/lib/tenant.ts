@@ -18,13 +18,32 @@ import { inc } from "./metrics.ts";
 // line per caller per hour says everything and the counter carries the volume.
 const KEYLESS_NOTICE_INTERVAL_MS = 3_600_000;
 const keylessNoticedAt = new Map<string, number>();
+// The key is partly the caller's own Origin header, so the number of distinct
+// callers is whatever a caller decides to send. Entries were never removed:
+// cycling the header grew the map without bound and — because a first sighting
+// is always "an hour since never" — wrote a warn line, and a stored object, on
+// every request. That is precisely what the interval above exists to prevent.
+const KEYLESS_CALLERS_MAX = 1000;
 
 function noteKeyless(brand: string, origin: string | null): void {
   inc("relay_keyless_requests_total", { brand });
   const caller = `${brand}|${origin ?? "-"}`;
+  const now = Date.now();
   const last = keylessNoticedAt.get(caller) ?? 0;
-  if (Date.now() - last < KEYLESS_NOTICE_INTERVAL_MS) return;
-  keylessNoticedAt.set(caller, Date.now());
+  if (now - last < KEYLESS_NOTICE_INTERVAL_MS) return;
+
+  // An entry older than the interval can no longer suppress anything, so it is
+  // only occupying memory. Swept on the way past rather than on a timer: this is
+  // the only thing that writes here, and a timer would keep the process alive.
+  for (const [seen, at] of keylessNoticedAt) {
+    if (now - at >= KEYLESS_NOTICE_INTERVAL_MS) keylessNoticedAt.delete(seen);
+  }
+  // And a hard ceiling, because a fast enough caller can outrun the sweep. The
+  // cost of forgetting a live entry is one extra line in an hour; the cost of
+  // not having a ceiling is the whole map.
+  if (keylessNoticedAt.size >= KEYLESS_CALLERS_MAX) keylessNoticedAt.clear();
+
+  keylessNoticedAt.set(caller, now);
   log("warn", "keyless public request, brand resolved by hint", { brand, origin });
 }
 

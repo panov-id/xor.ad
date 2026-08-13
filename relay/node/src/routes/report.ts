@@ -100,7 +100,13 @@ export async function report(req: Request): Promise<Response> {
   const brand = await resolveTenantSoft(req, source);
   if (!brand) inc("relay_report_total", { result: "unattributed" });
 
-  const targetId = text(body.target_id, 200);
+  // Not truncated. A cut identifier finds nothing, and "found nothing" is
+  // recorded as target_gone — telling a notifier their report died of old age
+  // when in fact they sent something that was never an identifier. Over the
+  // limit it is kept out of the lookup entirely, so the notice reads as
+  // free-form, which is what it is.
+  const rawTargetId = text(body.target_id, 400);
+  const targetId = rawTargetId && rawTargetId.length <= 200 ? rawTargetId : null;
 
   // The copy is taken now, before anything else: the feed deletes a message four
   // hours and twenty minutes after it was posted, and a notice examined tomorrow
@@ -140,7 +146,16 @@ export async function report(req: Request): Promise<Response> {
     return json({ error: "could not store the notice" }, 503);
   }
 
+  // An INSERT … RETURNING with no row means nothing was stored, whatever the
+  // absence of an error suggests. It used to fall through to a receipt carrying
+  // `id: null` and a 202, telling the notifier their report was accepted and
+  // giving them nothing to quote back.
   const id = rows[0]?.id ?? null;
+  if (!id) {
+    inc("relay_report_total", { result: "storage_failed" });
+    log("error", "notice insert returned no row", { kind, brand: brand?.key ?? null });
+    return json({ error: "could not store the notice" }, 503);
+  }
   inc("relay_report_total", { result: "accepted", kind });
   log("info", "notice accepted", { id, kind, brand: brand?.key ?? null, snapshot: snapshot !== null });
 

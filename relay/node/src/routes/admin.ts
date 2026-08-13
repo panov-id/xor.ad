@@ -520,22 +520,39 @@ const setQuota: Handler = async ({ req, params }) => {
   // a quota in name only.
   if (access.user.brand !== null) return json({ error: "forbidden" }, 403);
 
-  const body = await readJson<{ quota_events_per_day?: unknown }>(req);
+  const body = await readJson<
+    { quota_events_per_day?: unknown; quota_pageviews_per_day?: unknown }
+  >(req);
   if (!body) return json({ error: "invalid body" }, 422);
-  const raw = body.quota_events_per_day;
+  // Two allowances now, one field each: page views count in their own cell so
+  // that spending them cannot close the forms, and an allowance that could not
+  // be set would be no allowance at all. Naming both in one request is refused
+  // rather than half-applied — there is no ordering that is obviously right.
+  const named = (["quota_events_per_day", "quota_pageviews_per_day"] as const)
+    .filter((field) => field in body);
+  if (named.length !== 1) {
+    return json({
+      error: "name exactly one of quota_events_per_day, quota_pageviews_per_day",
+    }, 422);
+  }
+  const field = named[0];
+  const family = field === "quota_pageviews_per_day" ? "pageviews" : "events";
+  const raw = body[field];
   // null clears the limit back to unlimited, which has to stay expressible.
   const limit = raw === null ? null : Number(raw);
   if (limit !== null && (!Number.isFinite(limit) || limit < 1)) {
-    return json({ error: "quota_events_per_day must be a positive number or null" }, 422);
+    return json({ error: `${field} must be a positive number or null` }, 422);
   }
 
-  const updated = await setKeyQuota(params.id, limit);
+  const updated = await setKeyQuota(params.id, limit, family);
   if (!updated) return json({ error: "not found" }, 404);
   recordAuditEvent({
     actor: access.user,
     action: "api_keys.quota",
     target: params.id,
-    reason: limit === null ? "unlimited" : `${limit}/day`,
+    // The family is part of what happened: "40/day" alone no longer says which
+    // allowance somebody changed.
+    reason: `${family}: ${limit === null ? "unlimited" : `${limit}/day`}`,
   });
   return json(updated);
 };

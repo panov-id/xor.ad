@@ -7,6 +7,8 @@ import { storageEnabled } from "../lib/storage.ts";
 import { scopedForBrand } from "../lib/scoped_storage.ts";
 import { resolveTenantSoft } from "../lib/tenant.ts";
 import { log } from "../lib/log.ts";
+import { callerBucket } from "../lib/client_ip.ts";
+import { CLIENT_ERROR_LIMITS, checkAll } from "../lib/rate_limit.ts";
 
 function cap(value: unknown, max: number): string | null {
   return typeof value === "string" ? value.slice(0, max) : null;
@@ -56,6 +58,14 @@ export function extraFields(value: unknown): Record<string, string> | null {
 }
 
 export async function clientError(req: Request): Promise<Response> {
+  // Before the body is even read. This route needs no key at all, which made it
+  // the cheapest way to fill somebody's storage: one POST, one object. The
+  // answer is unchanged — a logger is never argued with — and only whether the
+  // report is kept depends on this.
+  if (!checkAll(CLIENT_ERROR_LIMITS, callerBucket(req)).allowed) {
+    return json({ ok: true });
+  }
+
   const body = await readJson<Record<string, unknown>>(req);
   if (!body) return json({ ok: true }); // never argue with a logger
 

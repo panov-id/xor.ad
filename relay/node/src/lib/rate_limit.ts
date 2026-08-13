@@ -54,6 +54,28 @@ export const REPORT_LIMITS: Limit[] = [
   { name: "report-day", max: 40, windowMs: DAY },
 ];
 
+// The two routes that answer 200 whatever happens had no per-address limit at
+// all, which made them the cheapest way to spend somebody else's storage: no
+// key needed on one of them, and on the other a key anyone can read out of a
+// landing page. The limit does not change the answer — both routes still say
+// "fine" — it decides whether the record is kept.
+//
+// Counted per address AND key, so a noisy visitor on one storefront cannot mute
+// that same address for another. The numbers are generous on purpose: a session
+// browsing a few pages is nowhere near them, and behind carrier-grade NAT one
+// address can be a whole neighbourhood.
+export const PAGEVIEW_LIMITS: Limit[] = [
+  { name: "pageview", max: 600, windowMs: HOUR },
+  { name: "pageview-day", max: 3000, windowMs: DAY },
+];
+
+// Lower, because an honest page reports an error rarely and a broken one
+// reports the same error in a loop.
+export const CLIENT_ERROR_LIMITS: Limit[] = [
+  { name: "client-error", max: 60, windowMs: HOUR },
+  { name: "client-error-day", max: 300, windowMs: DAY },
+];
+
 export interface Verdict {
   allowed: boolean;
   remaining: number;

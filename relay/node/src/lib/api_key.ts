@@ -1,8 +1,18 @@
 // Publishable API keys — the only thing that says which tenant a public request
 // belongs to. Publishable, not secret: the key ships inside a landing page's
-// JavaScript, so it is an identifier, not a credential. What protects it is the
-// Origin allowlist below — a stolen key is useless from another site, and the
-// worst it buys on its own site is what the site could already do.
+// JavaScript, so it is an identifier, not a credential.
+//
+// The Origin allowlist below is not what protects it. Origin is a header a
+// browser sets and refuses to let a page forge; outside a browser it is a
+// string anyone can type, so `curl -H 'Origin: https://theirsite'` passes it
+// wearing somebody else's key. This file used to claim a stolen key was useless
+// from another site, which read as a boundary and was not one.
+//
+// What actually bounds a stolen key is what it can spend: a per-address rate
+// limit on every public route, and a daily allowance counted per family — forms,
+// page views, client errors — so exhausting one cannot close the others. The
+// allowlist stays because it does stop the ordinary browser case, which is most
+// of them; it just is not a wall.
 //
 // Secret keys (server-to-server, hashed, scoped) are a separate type and come
 // with the public API — see docs/api-platform_*.md, section 1.
@@ -21,7 +31,10 @@ export interface PublishableKey {
   // Daily allowance for public requests made with this key. null = unlimited,
   // which is what a key has until someone sets one. Ignored for a native key —
   // see below.
+  // NULL means no limit, on each independently. One number used to cover every
+  // metered route, which is what let one route close the other.
   quota_events_per_day?: number | null;
+  quota_pageviews_per_day?: number | null;
   // What kind of client this key speaks for. A browser key is protected by the
   // Origin allowlist; a native one has no Origin to check, so the difference is
   // written down rather than inferred from an empty list (db/008).
@@ -59,6 +72,7 @@ export async function findPublishableKey(id: string): Promise<PublishableKey | n
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
       `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int,
+              quota_pageviews_per_day::int,
               client_type
          FROM api_keys WHERE id = $1 AND revoked_at IS NULL`,
       [id],
@@ -99,6 +113,7 @@ export async function listPublishableKeys(): Promise<PublishableKey[]> {
   if (databaseEnabled()) {
     const rows = await query<PublishableKey>(
       `SELECT id, brand, origins, created_at, revoked_at, quota_events_per_day::int,
+              quota_pageviews_per_day::int,
               client_type
          FROM api_keys ORDER BY created_at DESC`,
     );
@@ -192,14 +207,30 @@ export function isOrigin(value: string): boolean {
 // Both kinds of key, on purpose: the allowance is a column of `api_keys` and
 // applies to whoever holds the key, and refusing a secret key here would leave
 // /v1 enforcing a limit that nothing could set.
+export const QUOTA_COLUMNS = {
+  events: "quota_events_per_day",
+  pageviews: "quota_pageviews_per_day",
+} as const;
+
+export type QuotaFamily = keyof typeof QUOTA_COLUMNS;
+
 export async function setKeyQuota(
   id: string,
   limit: number | null,
+  // Which allowance. Defaulted, because every existing caller means this one and
+  // a required argument would have been a silent change of meaning at each.
+  family: QuotaFamily = "events",
 ): Promise<PublishableKey | null> {
   if (!(ID_PATTERN.test(id) || isSecretKeyId(id)) || !databaseEnabled()) return null;
+  // From a fixed table, never from the caller: this is the one place a column
+  // name is chosen at runtime, and QUOTA_COLUMNS is what keeps it a name we
+  // wrote rather than one somebody sent.
+  const column = QUOTA_COLUMNS[family];
+  if (!column) return null;
   const rows = await query<PublishableKey>(
-    `UPDATE api_keys SET quota_events_per_day = $2 WHERE id = $1
-     RETURNING id, brand, origins, created_at, revoked_at, quota_events_per_day::int`,
+    `UPDATE api_keys SET ${column} = $2 WHERE id = $1
+     RETURNING id, brand, origins, created_at, revoked_at, quota_events_per_day::int,
+               quota_pageviews_per_day::int`,
     [id, limit],
   );
   return rows?.[0] ?? null;

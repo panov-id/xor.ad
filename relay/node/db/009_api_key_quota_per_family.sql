@@ -1,0 +1,15 @@
+-- One daily counter served every metered public route, so spending it on one
+-- closed the others. A publishable key ships inside a landing page and the
+-- Origin allowlist beside it is a hint to browsers rather than a check, so
+-- anyone could take another tenant's key, spend the whole allowance on
+-- /pageview, and leave that tenant's sign-up form answering 429 until midnight.
+--
+-- Two families, because two routes are metered by key: forms and page views.
+-- /client-error and /report deliberately spend nothing — a page reporting that
+-- it is broken must not compete for budget with what it failed to send, and a
+-- notice of illegal content must never be refused — so a column for them would
+-- be one nothing reads.
+--
+-- NULL keeps meaning "no limit", which is what every existing key has, so this
+-- changes nothing until a number is set.
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS quota_pageviews_per_day integer;

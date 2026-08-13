@@ -15,6 +15,9 @@ import { storageEnabled } from "../lib/storage.ts";
 import { scopedForBrand } from "../lib/scoped_storage.ts";
 import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
 import { inc } from "../lib/metrics.ts";
+import { callerBucket } from "../lib/client_ip.ts";
+import { checkAll } from "../lib/rate_limit.ts";
+import { PAGEVIEW_LIMITS } from "../lib/rate_limit.ts";
 import { record as countDaily } from "../lib/pageview_daily.ts";
 import { log } from "../lib/log.ts";
 
@@ -53,7 +56,15 @@ export async function pageview(req: Request): Promise<Response> {
   // counts. Every path below answers 200.
   if (!body) return json({ ok: true });
 
-  const tenant = await resolveTenant(req, cap(body.source, 120));
+  // Before any work, and without changing the answer: a counter never argues
+  // with the page it counts. What the limit decides is whether this view is
+  // stored, not what the page is told.
+  if (!checkAll(PAGEVIEW_LIMITS, callerBucket(req)).allowed) {
+    inc("relay_pageviews_total", { brand: "unknown", result: "rate_limited" });
+    return json({ ok: true });
+  }
+
+  const tenant = await resolveTenant(req, cap(body.source, 120), "pageviews");
   if (isTenantDenied(tenant)) {
     inc("relay_pageviews_total", { brand: "unknown", result: "no_tenant" });
     return json({ ok: true });

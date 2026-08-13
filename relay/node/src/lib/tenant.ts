@@ -5,7 +5,7 @@
 import { type Brand, config } from "../config.ts";
 import { brandByKey } from "./brand_registry.ts";
 import { findPublishableKey, isNative, originAllowed } from "./api_key.ts";
-import { EVENTS, exceeded, record, secondsUntilReset } from "./quota.ts";
+import { EVENTS, exceeded, PAGEVIEWS, record, secondsUntilReset } from "./quota.ts";
 import { resolveBrand } from "./welcome.ts";
 import { json } from "./http.ts";
 import { log } from "./log.ts";
@@ -70,7 +70,17 @@ export function isTenantDenied(result: TenantResult): result is { response: Resp
 
 // `hint` is the caller's own source string (the landings send one); it is only
 // consulted by the transitional fallback below, never when a key is present.
-export async function resolveTenant(req: Request, hint?: string | null): Promise<TenantResult> {
+// Which allowance this route spends. Defaulted to the forms one, because that
+// is what every caller meant when there was only one — and because a new route
+// that forgets to say should land on the smaller, older budget rather than
+// quietly inventing itself an unmetered one.
+export type QuotaFamily = "events" | "pageviews";
+
+export async function resolveTenant(
+  req: Request,
+  hint?: string | null,
+  family: QuotaFamily = "events",
+): Promise<TenantResult> {
   const id = req.headers.get("x-api-key");
   if (!id) {
     if (config.requireApiKey) return { response: json({ error: "missing x-api-key" }, 401) };
@@ -106,13 +116,17 @@ export async function resolveTenant(req: Request, hint?: string | null): Promise
   // identities exist — per identity. Recorded in depth-client §2.5 before it was
   // built; this is the code catching up.
   const metered = !isNative(key);
-  if (metered && await exceeded(key.id, key.quota_events_per_day ?? null)) {
+  const counter = family === "pageviews" ? PAGEVIEWS : EVENTS;
+  const limit = family === "pageviews"
+    ? key.quota_pageviews_per_day ?? null
+    : key.quota_events_per_day ?? null;
+  if (metered && await exceeded(key.id, limit, counter)) {
     const retryAfter = secondsUntilReset();
     return {
       response: json(
         {
           error: "daily quota exceeded",
-          limit: key.quota_events_per_day,
+          limit,
           resets_in_seconds: retryAfter,
         },
         429,
@@ -120,7 +134,7 @@ export async function resolveTenant(req: Request, hint?: string | null): Promise
       ),
     };
   }
-  if (metered) record(key.id, EVENTS);
+  if (metered) record(key.id, counter);
 
   return { brand };
 }

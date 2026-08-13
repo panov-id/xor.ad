@@ -87,3 +87,12 @@ export function cameThroughEdge(req: Request): boolean {
   const token = config.originToken;
   return Boolean(token) && req.headers.get("x-origin-token") === token;
 }
+
+// The bucket a per-address limit counts in on the public routes: the address and
+// the key together. One tenant's noisy visitor must not silence that address for
+// another tenant, and the key is right there in the header the caller already
+// sent. A caller with no key at all shares one bucket, which is the correct
+// answer for traffic that named nobody.
+export function callerBucket(req: Request): string {
+  return `${clientAddress(req).ip}|${req.headers.get("x-api-key") ?? "keyless"}`;
+}

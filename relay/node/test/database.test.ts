@@ -718,6 +718,74 @@ Deno.test({
   },
 });
 
+// Nothing walked the upheld path — the word did not appear in this directory at
+// all — and it was broken at the one place a test would have caught for free:
+// dsa_statements.brand was still NOT NULL while a notice's brand had been made
+// nullable one migration earlier. Deciding an unattributed notice in the
+// notifier's favour threw on the insert, after the point of no return: no
+// statement, no decided_at, no letter, and a 500 handed to an operator who had
+// in fact decided it.
+Deno.test({
+  name: "the platform can uphold a notice that names no storefront",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const nobodys = await seedNotice(null, `unattributed notice ${uniqueId()}`);
+
+    const decision = await callAs(PLATFORM, "POST", `/admin/dsa-notices/${nobodys}/decide`, {
+      decision: "upheld",
+      facts: "The phrase names a person and tells others where to find them.",
+      restriction: "removed",
+      ground_kind: "legal",
+      ground_text: "Article 16 notice, unlawful under national law.",
+      recipient_identity: "someone@example.test",
+    });
+    assertEquals(decision.status, 200, JSON.stringify(decision.body));
+    assert(decision.body.statement_id, "no statement of reasons was written");
+
+    // Decided means decided: the row has to say so, or the queue keeps handing
+    // the same notice back and the notifier is owed an answer that never comes.
+    const after = await callAs(PLATFORM, "GET", "/admin/dsa-notices?state=all");
+    const row = after.body.find((entry: Body) => entry.id === nobodys);
+    assert(row, "an upheld notice is missing from its own status listing");
+    assert(row.decided_at, "the notice was answered but never marked decided");
+
+    // And the statement carries no storefront, rather than a label that would sit
+    // in the column the panel filters tenants by.
+    const statements = await database.query<{ brand: string | null }>(
+      "SELECT brand FROM dsa_statements WHERE notice_id = $1",
+      [nobodys],
+    );
+    assertEquals(statements?.length, 1);
+    assertEquals(statements?.[0].brand, null);
+  },
+});
+
+// The ordinary case, which was equally untested: a notice that does name a
+// storefront keeps naming it on the statement.
+Deno.test({
+  name: "an upheld notice passes its storefront to the statement",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const mine = await seedNotice("alpha", `alpha notice ${uniqueId()}`);
+    const decision = await callAs(PLATFORM, "POST", `/admin/dsa-notices/${mine}/decide`, {
+      decision: "upheld",
+      facts: "Removed on the ground given.",
+      restriction: "hidden",
+      ground_kind: "contractual",
+      ground_text: "Clause 4 of the Terms.",
+      recipient_identity: "author@example.test",
+    });
+    assertEquals(decision.status, 200, JSON.stringify(decision.body));
+    const statements = await database.query<{ brand: string | null }>(
+      "SELECT brand FROM dsa_statements WHERE notice_id = $1",
+      [mine],
+    );
+    assertEquals(statements?.[0].brand, "alpha");
+  },
+});
+
 Deno.test({
   name: "a tenant cannot decide another tenant's notice",
   sanitizeOps: false,

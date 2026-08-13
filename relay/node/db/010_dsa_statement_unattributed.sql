@@ -1,0 +1,17 @@
+-- Migration 007 let a notice arrive without a storefront: an authority or a
+-- lawyer writing to the API directly names no tenant, and refusing the notice
+-- would be refusing the obligation. What it did not do was follow that through
+-- to the statement of reasons.
+--
+-- So deciding such a notice in the notifier's favour threw on this column, and
+-- threw after the point of no return: no statement was written, decided_at was
+-- never set, the notifier was never told, and the operator saw a 500 over a
+-- notice they had in fact decided. The one path that could reach it — a platform
+-- operator, since a tenant cannot see an unattributed notice at all — was also
+-- the one path no test walked.
+--
+-- NULL here means what it means one table over: no storefront, the platform's
+-- own. Not a label like 'platform', which would put a non-tenant into the column
+-- the panel filters tenants by, and would start leaking statements to whoever
+-- registered a storefront under that key.
+ALTER TABLE dsa_statements ALTER COLUMN brand DROP NOT NULL;

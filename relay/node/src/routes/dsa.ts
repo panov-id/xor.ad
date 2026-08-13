@@ -21,7 +21,10 @@ import { log } from "../lib/log.ts";
 
 interface NoticeRow {
   id: string;
-  brand: string;
+  // Nullable since migration 007: a notice can arrive naming no storefront.
+  // The type said `string` and the compiler believed it, which is why the
+  // statement insert below was written as if a brand were always there.
+  brand: string | null;
   target_kind: string;
   target_id: string | null;
   snapshot: unknown;

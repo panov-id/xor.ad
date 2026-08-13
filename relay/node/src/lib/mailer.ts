@@ -206,10 +206,13 @@ export async function sendNoticeReceipt(
 // under Article 20) is not claimed.
 export async function sendNoticeDecision(
   to: string,
-  opts: { id: string; brand: string; decision: "upheld" | "rejected"; facts: string },
+  // Nullable: a notice can arrive naming no storefront (migration 007), and the
+  // letter still has to go out. Falls back to the default face below, which is
+  // what the receipt for that same notice already did.
+  opts: { id: string; brand: string | null; decision: "upheld" | "rejected"; facts: string },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
-  const brand = (await brandByKey(opts.brand)) ?? resolveBrand(null);
+  const brand = (opts.brand ? await brandByKey(opts.brand) : null) ?? resolveBrand(null);
   const outcome = opts.decision === "upheld"
     ? "We agreed with your report, and the content has been restricted."
     : "We did not agree with your report, and the content stays.";
@@ -298,7 +301,8 @@ export function whatWasRestricted(
 export async function sendStatementOfReasons(
   to: string,
   opts: {
-    brand: string;
+    // Nullable for the same reason as the decision letter above.
+    brand: string | null;
     restriction: string;
     facts: string;
     groundKind: "legal" | "contractual";
@@ -310,7 +314,7 @@ export async function sendStatementOfReasons(
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
   if (!to.includes("@")) return false; // an identity, not an address — nothing to send to
-  const brand = (await brandByKey(opts.brand)) ?? resolveBrand(null);
+  const brand = (opts.brand ? await brandByKey(opts.brand) : null) ?? resolveBrand(null);
   const blocks: Block[] = [
     { kind: "text", value: `What was done: ${opts.restriction.replace(/_/g, " ")}.` },
     // Article 17(3)(a) asks for territorial scope and duration "where relevant".

@@ -13,6 +13,7 @@ import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
 import { pageview } from "./routes/pageview.ts";
 import { report } from "./routes/report.ts";
+import { cspReport } from "./routes/csp_report.ts";
 import { rememberRemote } from "./lib/client_ip.ts";
 // Registers its own routes on import, like the admin module does.
 import "./routes/dsa.ts";
@@ -35,6 +36,11 @@ const routes: Record<string, Handler> = {
   // unauthenticated by design — an authority or a stranger must be able to
   // reach it without an account.
   "POST /report": (req) => report(req),
+  // Where a browser says the content policy blocked something. Public and
+  // unauthenticated by necessity: a violation report carries none of our
+  // headers, and a report that needed a key would be silenced by exactly the
+  // kind of policy error it exists to describe.
+  "POST /csp-report": (req) => cspReport(req),
   "GET /chat": (req) => relayUpgrade(req), // placeholder, returns 501
 };
 

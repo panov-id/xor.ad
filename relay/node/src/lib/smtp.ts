@@ -25,6 +25,10 @@ function b64(bytes: Uint8Array): string {
 }
 // RFC 2047 encoded-word for non-ASCII header text.
 function mimeWord(s: string): string {
+  // The class is the point: anything outside plain ASCII has to be encoded, and
+  // "outside ASCII" is written as the complement of the ASCII range. The lint
+  // rule sees \x00 and assumes a control character slipped in by accident.
+  // deno-lint-ignore no-control-regex
   return /[^\x00-\x7F]/.test(s) ? `=?UTF-8?B?${b64(new TextEncoder().encode(s))}?=` : s;
 }
 

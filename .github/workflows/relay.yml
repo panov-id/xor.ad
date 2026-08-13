@@ -54,17 +54,24 @@ jobs:
       # The database suite is excluded here and runs in the `database` job below:
       # this job has no Postgres, and that is deliberate — a node without
       # DATABASE_URL is a supported configuration.
+      # One run, and the same one `deno task test` performs. The tenancy suite
+      # used to need a process of its own — it rewrites BRANDS and
+      # SESSION_SECRET, and config.ts captured those at import, so sharing a
+      # process leaked them into everyone else's configuration. Each suite now
+      # states the configuration it needs (test/support/config_env.ts), so the
+      # split is no longer papering over anything.
+      #
+      # Loopback net only: the invitation tests hand the letter to a fake SMTP
+      # server in-process, so the suite reads what the recipient would.
       - name: unit tests
         working-directory: relay/node
-        run: deno test --allow-env --allow-read --allow-write --ignore=test/tenancy.test.ts,test/database.test.ts
-      # In a process of its own: it rewrites BRANDS/SESSION_SECRET, and config.ts
-      # captures those at import, so sharing a process would leak them into
-      # everyone else's configuration.
-      - name: tenancy test
+        run: deno task test
+      # It found nine problems and nobody saw them, because it was never run
+      # here: seven were one malformed ignore comment, and deno reads whatever
+      # follows a rule name as more rule names.
+      - name: lint
         working-directory: relay/node
-        # Loopback only: the invitation tests hand the letter to a fake SMTP
-        # server in-process, so the suite reads what the recipient would.
-        run: deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 test/tenancy.test.ts
+        run: deno lint
       # Not just main.ts: the tools are the migration and the key minting, and a
       # broken one is only discovered when it is needed most.
       - name: type check

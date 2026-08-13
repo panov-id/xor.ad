@@ -14,7 +14,7 @@
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
-import { query, queryOrThrow } from "../lib/db.ts";
+import { query, queryOrThrow, transaction } from "../lib/db.ts";
 import { recordAuditEvent } from "../lib/audit.ts";
 import { sendNoticeDecision, sendStatementOfReasons } from "../lib/mailer.ts";
 import { log } from "../lib/log.ts";
@@ -157,16 +157,44 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       return json({ error: "recipient_identity is required — a statement of reasons has an addressee" }, 422);
     }
 
-    const created = await queryOrThrow<{ id: string }>(
-      `INSERT INTO dsa_statements
-         (brand, notice_id, target_id, recipient_identity, restriction,
-          facts, ground_kind, ground_text)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING id`,
-      [notice.brand, notice.id, notice.target_id ?? "", recipient, restriction,
-       facts, groundKind, groundText],
-    );
-    statementId = created[0]?.id ?? null;
+    // One transaction: the statement and the decision are one fact. They had
+    // been two writes with letters in between, so a failure after the first left
+    // a statement attached to a notice the queue still offered — and two
+    // operators pressing at once wrote two statements and two pairs of letters.
+    //
+    // The row is claimed with FOR UPDATE and re-read inside, because the check
+    // near the top of this handler ran before anything was locked: both callers
+    // passed it, and the second UPDATE silently replaced the first decision.
+    const claimed = await transaction(async (tx) => {
+      const rows = await tx<{ decided_at: string | null }>(
+        `SELECT decided_at FROM dsa_notices WHERE id = $1 FOR UPDATE`,
+        [notice.id],
+      );
+      if (!rows[0]) return { ok: false as const, reason: "gone" as const };
+      if (rows[0].decided_at) return { ok: false as const, reason: "already" as const };
+
+      const created = await tx<{ id: string }>(
+        `INSERT INTO dsa_statements
+           (brand, notice_id, target_id, recipient_identity, restriction,
+            facts, ground_kind, ground_text)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id`,
+        [notice.brand, notice.id, notice.target_id ?? "", recipient, restriction,
+         facts, groundKind, groundText],
+      );
+      await tx(
+        `UPDATE dsa_notices SET status = $1, decided_at = now() WHERE id = $2`,
+        [decision, notice.id],
+      );
+      return { ok: true as const, id: created[0]?.id ?? null };
+    });
+
+    if (!claimed.ok) {
+      return claimed.reason === "gone"
+        ? json({ error: "no such notice" }, 404)
+        : json({ error: "already decided" }, 409);
+    }
+    statementId = claimed.id;
 
     // Delivery is attempted, and the row records whether it happened. A
     // statement written and never delivered discharges nothing, so the two are
@@ -184,12 +212,17 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     if (delivered && statementId) {
       await queryOrThrow(`UPDATE dsa_statements SET delivered_at = now() WHERE id = $1`, [statementId]);
     }
+  } else {
+    // A rejection writes no statement, so its only write is the decision — and
+    // it needs the same claim, or two rejections send the notifier two letters.
+    const claimed = await queryOrThrow<{ id: string }>(
+      `UPDATE dsa_notices SET status = $1, decided_at = now()
+        WHERE id = $2 AND decided_at IS NULL
+        RETURNING id`,
+      [decision, notice.id],
+    );
+    if (!claimed[0]) return json({ error: "already decided" }, 409);
   }
-
-  await queryOrThrow(
-    `UPDATE dsa_notices SET status = $1, decided_at = now() WHERE id = $2`,
-    [decision, notice.id],
-  );
 
   // Article 16(5): the notifier is told what was decided and how to contest it.
   if (notice.notifier_email) {
@@ -198,6 +231,9 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       brand: notice.brand,
       decision,
       facts,
+      // Article 16(5) asks what was decided, and "we disagreed" is the wrong
+      // answer when the content had expired before anyone looked.
+      snapshotState: notice.snapshot_state,
     });
   }
 

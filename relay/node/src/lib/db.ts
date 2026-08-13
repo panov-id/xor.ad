@@ -64,6 +64,43 @@ export async function queryOrThrow<T>(text: string, args: unknown[] = []): Promi
   }
 }
 
+// One connection, one transaction, for the few places where two writes have to
+// be one fact. Everything else here is a single statement and needs none of it.
+//
+// The queue is why this exists. Deciding a notice writes a statement of reasons
+// and then marks the notice decided, and those had been two independent writes:
+// a failure between them left a statement attached to a notice the queue still
+// offered, and two operators pressing at once wrote two statements and two
+// letters for one notice.
+//
+// The callback gets a `query` of the same shape as the module's, bound to the
+// one connection — a caller reaching for the module's own would silently be on a
+// different connection, outside the transaction, which is the classic way to
+// write a transaction that is not one.
+export async function transaction<T>(
+  run: (query: <R>(text: string, args?: unknown[]) => Promise<R[]>) => Promise<T>,
+): Promise<T> {
+  if (!enabled()) throw new Error("DATABASE_URL is not set");
+  const client = await ensurePool().connect();
+  const scoped = async <R>(text: string, args: unknown[] = []): Promise<R[]> =>
+    (await client.queryObject<R>(text, args)).rows;
+  try {
+    await scoped("BEGIN");
+    const result = await run(scoped);
+    await scoped("COMMIT");
+    return result;
+  } catch (error) {
+    // Rolling back can itself fail — a dropped connection, for one — and the
+    // error worth reporting is the first one, not the tidy-up.
+    await scoped("ROLLBACK").catch((rollbackError) =>
+      log("error", "rollback failed", { error: String(rollbackError) })
+    );
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function closePool(): Promise<void> {
   await pool?.end();
   pool = null;

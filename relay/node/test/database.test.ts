@@ -786,6 +786,61 @@ Deno.test({
   },
 });
 
+// Two operators pressing at once. The guard near the top of the handler read
+// decided_at before anything was locked, and the write did not repeat the
+// condition — so both callers passed, both wrote a statement, both sent a pair
+// of letters, and the second decision silently replaced the first. The comment
+// above that guard said this was fixed; only the sequential case was.
+Deno.test({
+  name: "two simultaneous decisions produce one decision",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const id = await seedNotice("alpha", `race notice ${uniqueId()}`);
+    const decide = (facts: string) =>
+      callAs(PLATFORM, "POST", `/admin/dsa-notices/${id}/decide`, {
+        decision: "upheld",
+        facts,
+        restriction: "removed",
+        ground_kind: "legal",
+        ground_text: "Unlawful.",
+        recipient_identity: "author@example.test",
+      });
+
+    const [first, second] = await Promise.all([decide("first reading"), decide("second reading")]);
+    const codes = [first.status, second.status].sort();
+    assertEquals(codes, [200, 409], JSON.stringify([first.body, second.body]));
+
+    // One notice, one statement of reasons — and therefore one letter to the
+    // author, which is the part a person would have noticed.
+    // count(*) arrives as a BigInt from this driver, so it is normalised rather
+    // than compared to a string that would never match.
+    const statements = await database.query<{ count: bigint }>(
+      "SELECT count(*) AS count FROM dsa_statements WHERE notice_id = $1",
+      [id],
+    );
+    assertEquals(Number(statements?.[0].count), 1);
+  },
+});
+
+// A rejection writes no statement, so its only write is the decision — and it
+// needed the same claim, or the notifier gets two letters saying the same thing.
+Deno.test({
+  name: "two simultaneous rejections produce one decision",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const id = await seedNotice("alpha", `race rejection ${uniqueId()}`);
+    const reject = () =>
+      callAs(PLATFORM, "POST", `/admin/dsa-notices/${id}/decide`, {
+        decision: "rejected",
+        facts: "Not unlawful in our reading.",
+      });
+    const [first, second] = await Promise.all([reject(), reject()]);
+    assertEquals([first.status, second.status].sort(), [200, 409]);
+  },
+});
+
 Deno.test({
   name: "a tenant cannot decide another tenant's notice",
   sanitizeOps: false,

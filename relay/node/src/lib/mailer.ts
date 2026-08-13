@@ -10,6 +10,7 @@
 // reading it. Found when a rename landed in the database and the mail ignored it.
 import { config } from "../config.ts";
 import { brandByKey } from "./brand_registry.ts";
+import { SNAPSHOTTABLE } from "./dsa_snapshot.ts";
 import { resolveBrand, welcomeEmail } from "./welcome.ts";
 import { type Block, letter, PLATFORM } from "./email_shell.ts";
 import { sendSmtp } from "./smtp.ts";
@@ -204,18 +205,55 @@ export async function sendNoticeReceipt(
 // took part, and where to go if they disagree. The redress routes are named
 // rather than gestured at — and the one we do not have (a formal internal appeal
 // under Article 20) is not claimed.
+// The specification names four outcomes for this letter: removed, kept, the
+// content was already gone, unreachable. Two follow from the decision; the other
+// two are facts about the content that hold whichever way the decision went, so
+// they are said first.
+//
+// It had two sentences for the four, so a report about a phrase that had already
+// expired came back as "we did not agree with your report" — which is not what
+// happened, and is the exact untruth the snapshot states were introduced to keep
+// out of the file.
+//
+// Its own function so it can be read and tested without sending anything.
+export function decisionOutcome(
+  decision: "upheld" | "rejected",
+  snapshotState?: string,
+): string {
+  if (snapshotState === "target_gone") {
+    return "The content was already gone by the time we looked, so there was nothing " +
+      "left to restrict. Your report was still examined and recorded.";
+  }
+  if (snapshotState === "not_accessible") {
+    return "We could not reach the content to examine it — it is not something we " +
+      "hold. Your report was still recorded, and what we could check, we did.";
+  }
+  return decision === "upheld"
+    ? "We agreed with your report, and the content has been restricted."
+    : "We did not agree with your report, and the content stays.";
+}
+
 export async function sendNoticeDecision(
   to: string,
   // Nullable: a notice can arrive naming no storefront (migration 007), and the
   // letter still has to go out. Falls back to the default face below, which is
   // what the receipt for that same notice already did.
-  opts: { id: string; brand: string | null; decision: "upheld" | "rejected"; facts: string },
+  opts: {
+    id: string;
+    brand: string | null;
+    decision: "upheld" | "rejected";
+    facts: string;
+    // What we found when we went to look. Without it this letter had two
+    // sentences for four outcomes, so a report about a phrase that had already
+    // expired came back as "we did not agree with your report" — which is not
+    // what happened, and is the exact untruth dsa_snapshot.ts was written to
+    // avoid filing.
+    snapshotState?: string;
+  },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
   const brand = (opts.brand ? await brandByKey(opts.brand) : null) ?? resolveBrand(null);
-  const outcome = opts.decision === "upheld"
-    ? "We agreed with your report, and the content has been restricted."
-    : "We did not agree with your report, and the content stays.";
+  const outcome = decisionOutcome(opts.decision, opts.snapshotState);
   const blocks: Block[] = [
     { kind: "reference", value: `Report ${opts.id.slice(0, 8)}` },
     { kind: "text", value: outcome },
@@ -257,21 +295,17 @@ export function whatWasRestricted(
   snapshot: unknown,
   snapshotState: string | undefined,
 ): Block[] {
-  // The column names are the specs' own: a phrase carries `text`, an offer
-  // carries `offer_text`, and they are posted at `created_at` and `published_at`
-  // respectively. This used to read `body`, which exists in neither — so every
-  // letter would have opened with "something you posted" and never said which.
+  // Which columns hold the content is a property of the surface, and the surface
+  // is what `targetKind` names — so it is looked up rather than guessed. It used
+  // to be guessed: whichever of `text` or `offer_text` happened to be present
+  // won, the argument was ignored entirely, and the two tests that were supposed
+  // to tell a phrase from an offer differed only by that ignored argument.
+  const surface = targetKind ? SNAPSHOTTABLE[targetKind] : undefined;
   const row = (snapshot as { row?: Record<string, unknown> } | null)?.row;
-  const quote = typeof row?.text === "string"
-    ? row.text
-    : typeof row?.offer_text === "string"
-    ? row.offer_text
-    : null;
-  const stamp = typeof row?.created_at === "string"
-    ? row.created_at
-    : typeof row?.published_at === "string"
-    ? row.published_at
-    : null;
+  const value = (column: string | undefined) =>
+    column && typeof row?.[column] === "string" ? row[column] as string : null;
+  const quote = value(surface?.quote);
+  const stamp = value(surface?.posted);
   const posted = stamp ? stamp.slice(0, 16).replace("T", " ") : null;
 
   if (quote) {

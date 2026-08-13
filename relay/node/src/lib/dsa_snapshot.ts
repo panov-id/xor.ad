@@ -48,19 +48,21 @@ export interface Capture {
 // safe: it would have opened silently on the day they were created.
 export const SNAPSHOTTABLE: Record<
   string,
-  { table: string; columns: string; posted: string; tenant: string }
+  { table: string; columns: string; posted: string; tenant: string; quote: string }
 > = {
   feed_message: {
     table: "feed_messages",
     columns: "id, text, mode, created_at, author_identity",
     posted: "created_at",
     tenant: "brand",
+    quote: "text",
   },
   offer: {
     table: "offers",
     columns: "id, offer_text, discount_value, conditions, published_at, venue_id",
     posted: "published_at",
     tenant: "brand",
+    quote: "offer_text",
   },
 };
 
@@ -86,10 +88,18 @@ export async function captureTarget(
 
   // Free-form reports carry no identifier. Nothing to copy, and nothing wrong
   // with that — a person still gets an answer.
+  if (!targetId) return { snapshot: null, status: "received" };
+
   // Object.hasOwn rather than `in`: "constructor" is in every object, and the
   // only thing keeping that unreachable is the KINDS list one file away.
-  if (!targetId || !Object.hasOwn(SNAPSHOTTABLE, kind)) {
-    return { snapshot: null, status: "received" };
+  //
+  // A kind we do not know is not "no copy was needed" — it is a surface nobody
+  // taught this file about, which is a failure to look. Saying "received" would
+  // file such a notice as examined against nothing, silently, on the day a fifth
+  // kind is added to KINDS without a line here.
+  if (!Object.hasOwn(SNAPSHOTTABLE, kind)) {
+    log("info", "notice about a kind with no snapshot rule", { kind });
+    return { snapshot: null, status: "not_accessible" };
   }
 
   const { table, columns, tenant } = SNAPSHOTTABLE[kind];

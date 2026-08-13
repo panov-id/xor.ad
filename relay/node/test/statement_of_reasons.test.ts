@@ -25,13 +25,43 @@ Deno.test("quotes the author's own words, with when they posted them", () => {
   assertStringIncludes(lines[1].value, "две табуретки");
 });
 
-Deno.test("an offer is quoted from its own column", () => {
+// This differed from the case above only by an argument the function ignored,
+// and its fixture named a column a real offer snapshot does not carry — so the
+// branch that runs in production was covered by nothing. Both are fixed here:
+// the columns are the offer's own, and the date is asserted, which is what makes
+// the two cases actually different.
+Deno.test("an offer is quoted from its own columns", () => {
   const lines = whatWasRestricted("offer", {
     table: "offers",
-    row: { offer_text: "кофе за полцены до полудня", created_at: "2026-08-09T08:00:00.000Z" },
+    row: { offer_text: "кофе за полцены до полудня", published_at: "2026-08-09T08:00:00.000Z" },
   }, "received");
 
+  assertEquals(lines[0].kind, "heading");
+  assertStringIncludes(lines[0].value, "2026-08-09 08:00");
   assertStringIncludes(lines[1].value, "кофе за полцены");
+});
+
+// The kind decides which columns are read, so a row carrying the other
+// surface's columns yields no quote rather than the wrong one. Before, whichever
+// column happened to be present won, and the kind was not consulted at all.
+Deno.test("the kind decides which columns are read", () => {
+  const asOffer = whatWasRestricted("offer", {
+    table: "offers",
+    row: { text: "это фраза, а не оффер", created_at: "2026-08-09T08:00:00.000Z" },
+  }, "received");
+  assert(
+    !asOffer.some((line) => line.value.includes("это фраза")),
+    "a feed message's columns were read for an offer",
+  );
+
+  const asFeed = whatWasRestricted("feed_message", {
+    table: "feed_messages",
+    row: { offer_text: "это оффер, а не фраза", published_at: "2026-08-09T08:00:00.000Z" },
+  }, "received");
+  assert(
+    !asFeed.some((line) => line.value.includes("это оффер")),
+    "an offer's columns were read for a feed message",
+  );
 });
 
 Deno.test("an expired target says so, and does not pretend to a copy", () => {
@@ -165,4 +195,39 @@ Deno.test("the Russian welcome still says сосед", async () => {
   // belongs to: the landing greets Russian readers as сосед, and so does this.
   assertStringIncludes(welcomeEmail("ru", { brand: sosed }).html, "сосед");
   assertStringIncludes(welcomeEmail("en", { brand: sosed }).html, "Sosed");
+});
+
+// Article 16(5) asks what was decided, and the specification names four
+// answers: removed, kept, the content was already gone, unreachable. The letter
+// had two sentences for the four, so the two facts about the content — that it
+// had expired, or that we never held it — were both reported as "we did not
+// agree with your report". That is not a wording problem: it tells a notifier
+// their report was dismissed on the merits when nobody ever looked at anything.
+Deno.test("the notifier is told which of the four outcomes happened", async () => {
+  const { decisionOutcome } = await import("../src/lib/mailer.ts");
+
+  assertStringIncludes(decisionOutcome("upheld", "received"), "has been restricted");
+  assertStringIncludes(decisionOutcome("rejected", "received"), "the content stays");
+
+  // These two hold whichever way the decision went, so they are said instead of
+  // the decision — and neither may read as a disagreement.
+  for (const decision of ["upheld", "rejected"] as const) {
+    const gone = decisionOutcome(decision, "target_gone");
+    assertStringIncludes(gone, "already gone");
+    assert(!gone.includes("did not agree"), "an expired target is reported as a disagreement");
+
+    const unreachable = decisionOutcome(decision, "not_accessible");
+    assertStringIncludes(unreachable, "could not reach");
+    assert(
+      !unreachable.includes("did not agree"),
+      "content we never held is reported as a disagreement",
+    );
+    // And the two must not read alike: "expired" and "we never had it" are
+    // different answers, and the second is the one that must not sound like age.
+    assert(gone !== unreachable);
+  }
+
+  // No state at all — an older notice, or a kind that never had one — falls back
+  // to the decision rather than inventing a fact about the content.
+  assertStringIncludes(decisionOutcome("upheld"), "has been restricted");
 });

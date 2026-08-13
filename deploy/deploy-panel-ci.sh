@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# CI panel deploy: upload a prebuilt panel/dist to a Bunny Storage Zone and
-# purge its Pull Zone. The Vite build (with VITE_RELAY_API_URL env) runs in the
-# workflow before this. Reads plain env vars, no .env.deploy needed.
+# CI panel deploy: upload a prebuilt panel/dist to a Bunny Storage Zone, put the
+# security headers on its Pull Zone and purge it. The Vite build (with
+# VITE_RELAY_API_URL env) runs in the workflow before this. Reads plain env
+# vars, no .env.deploy needed.
 #
-# Required env: BUNNY_STORAGE_ZONE, BUNNY_STORAGE_API_KEY
-# Optional env: BUNNY_PULL_ZONE_ID, BUNNY_API_KEY
+# Required env: BUNNY_STORAGE_ZONE, BUNNY_STORAGE_API_KEY, VITE_RELAY_API_URL,
+#               BUNNY_PULL_ZONE_ID, BUNNY_API_KEY
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -12,10 +13,20 @@ DIST="$ROOT_DIR/panel/dist"
 
 : "${BUNNY_STORAGE_ZONE:?}"
 : "${BUNNY_STORAGE_API_KEY:?}"
+# Checked here rather than where it is used: the security policy names the one
+# host the panel may talk to, and the value is baked into the bundle at build
+# time, so the deploy has to be told it too. Failing before the first upload
+# leaves the zone as it was instead of half-deployed.
+: "${VITE_RELAY_API_URL:?}"
+# An unset secret in Actions expands to an empty string rather than an error, so
+# without these two the deploy used to ship a panel carrying no policy at all
+# and purge the cache with a key that cannot purge — and report success either
+# way. Checked up front for the same reason as the line above.
+: "${BUNNY_PULL_ZONE_ID:?}"
+: "${BUNNY_API_KEY:?}"
 [ -d "$DIST" ] || { echo "panel/dist not found — build the panel first." >&2; exit 1; }
 
 BASE_URL="https://storage.bunnycdn.com/${BUNNY_STORAGE_ZONE}"
-PURGE_KEY="${BUNNY_API_KEY:-$BUNNY_STORAGE_API_KEY}"
 
 mime_type() {
   case "$1" in
@@ -32,21 +43,57 @@ mime_type() {
 }
 
 echo "Deploying panel dist → Bunny zone '${BUNNY_STORAGE_ZONE}'"
-( cd "$DIST" && find . -type f -print0 | while IFS= read -r -d '' f; do
-    rel="${f#./}"
-    echo "  → /${rel}"
-    curl -sS -X PUT \
+# curl without --fail returns 0 on 401, 403 and 507, so the loop that used to be
+# here reported a finished deploy over a zone that had not changed. That is
+# worse for the panel than for a landing: the SPA fallback serves a missing
+# /assets/*.js as index.html with a 200, so a half-finished upload is a blank
+# screen rather than an error anyone can see.
+#
+# The failures are counted and reported once at the end, so the log names every
+# file that did not land rather than only the first. The loop is fed by process
+# substitution rather than a pipe, or the counter would live in a subshell of
+# its own and come back zero.
+( cd "$DIST"
+  failed=0
+  while IFS= read -r -d '' file; do
+    rel="${file#./}"
+    code="$(curl -sS -o /dev/null -w '%{http_code}' -X PUT \
       -H "AccessKey: ${BUNNY_STORAGE_API_KEY}" \
-      -H "Content-Type: $(mime_type "$f")" \
-      --data-binary "@${f}" \
-      "${BASE_URL}/${rel}" >/dev/null
-  done )
+      -H "Content-Type: $(mime_type "$file")" \
+      --data-binary "@${file}" \
+      "${BASE_URL}/${rel}" || true)"
+    case "$code" in
+      2*) echo "  → /${rel}" ;;
+      *)  echo "  ✗ /${rel} — HTTP ${code:-no response}"; failed=$((failed + 1)) ;;
+    esac
+  done < <(find . -type f -print0)
+  [ "$failed" -eq 0 ] || {
+    echo "${failed} file(s) did not upload — the zone is now half-updated." >&2
+    exit 1
+  }
+)
 
-if [ -n "${BUNNY_PULL_ZONE_ID:-}" ]; then
-  echo "Purging pull zone ${BUNNY_PULL_ZONE_ID}…"
-  curl -sS -X POST -H "AccessKey: ${PURGE_KEY}" \
-    "https://api.bunny.net/pullzone/${BUNNY_PULL_ZONE_ID}/purgeCache" >/dev/null
-  echo "  cache purged."
-fi
+# The header lives at the CDN edge, so a wrong hash is a page that does nothing
+# in production and works everywhere else. It is computed from the dist that was
+# just uploaded, and applied before the purge so the first request after the
+# purge already gets the policy that matches those bytes.
+echo "Building the security headers from the built panel…"
+HEADERS_JSON="$(node "$ROOT_DIR/deploy/panel-security-headers.mjs" "$DIST")"
+# Through the environment rather than argv: a key on the command line is visible
+# in ps to every local account, and is the first thing to end up in a traceback.
+export HEADERS_JSON BUNNY_API_KEY
+python3 "$ROOT_DIR/deploy/apply-edge-headers.py" "$BUNNY_PULL_ZONE_ID"
+
+echo "Purging pull zone ${BUNNY_PULL_ZONE_ID}…"
+# A purge that 401s leaves the edge serving the previous files under the policy
+# just computed for the new ones — the hashes do not match and the panel does
+# not load. Printing "cache purged" without looking is how that stayed invisible.
+purge_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+  -H "AccessKey: ${BUNNY_API_KEY}" \
+  "https://api.bunny.net/pullzone/${BUNNY_PULL_ZONE_ID}/purgeCache" || true)"
+case "$purge_code" in
+  2*) echo "  cache purged." ;;
+  *)  echo "  cache NOT purged — HTTP ${purge_code:-no response}" >&2; exit 1 ;;
+esac
 
 echo "Panel deployed."

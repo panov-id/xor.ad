@@ -10,3 +10,5 @@
 /deploy/github-secrets.json
 # Runtime artifact of deploy/setup-sosed-email.sh (Resend domain DNS payload)
 /deploy/.sosed-resend-domain.json
+# Byte-code left behind whenever a deploy helper is run or syntax-checked
+__pycache__/

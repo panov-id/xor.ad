@@ -1,0 +1,39 @@
+name: deploy scripts
+
+# The deploy scripts had no CI: they were exercised for the first time by a
+# deploy, which is the worst place to learn that a key is read from the wrong
+# place or that a rejected upload reports success. These tests reach no network —
+# curl and the Bunny API are stubbed — so they cost seconds and can run on
+# every push that touches the directory.
+#
+# Its own workflow rather than a step in panel.yml, whose path filter is
+# panel/** — a step there would never fire on a change to deploy/, which is the
+# only change that could break these.
+on:
+  push:
+    branches: ["**"]
+    paths: ["deploy/**", ".github/workflows/deploy-scripts.yml"]
+  pull_request:
+    paths: ["deploy/**", ".github/workflows/deploy-scripts.yml"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shell syntax
+        run: |
+          for script in deploy/*.sh; do
+            bash -n "$script" || exit 1
+          done
+          echo "all deploy shell scripts parse"
+
+      - name: edge rule logic
+        run: python3 deploy/test_apply_edge_headers.py
+
+      - name: the panel's policy
+        run: bash deploy/test_panel_security_headers.sh
+
+      - name: panel deploy against a stubbed curl
+        run: bash deploy/test_deploy_panel_ci.sh

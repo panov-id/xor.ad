@@ -41,4 +41,8 @@ jobs:
           BUNNY_STORAGE_API_KEY: ${{ secrets.BUNNY_PANEL_STORAGE_API_KEY }}
           BUNNY_PULL_ZONE_ID: ${{ secrets.BUNNY_PANEL_PULL_ZONE_ID }}
           BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
+          # Not only for the build: the security policy names this host as the
+          # single one the panel may connect to, and the deploy cannot read it
+          # back out of the minified bundle.
+          VITE_RELAY_API_URL: ${{ secrets.VITE_RELAY_API_URL }}
         run: bash deploy/deploy-panel-ci.sh

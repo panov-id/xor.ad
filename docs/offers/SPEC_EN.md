@@ -248,6 +248,7 @@ free. A second table for it would mean teaching likes, matching and complaints t
 different objects for the sake of a row half of whose columns are always empty.
 
     id
+    brand                   whose storefront — every lookup is scoped by it
     venue_id                the venue it is published on behalf of
     offer_text              string, required
     discount_value          string, required — free text: "−20%", "1+1", "second coffee free"

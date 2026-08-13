@@ -441,6 +441,7 @@ A phrase is tied not to a city but to **an area the person picks on a map** — 
 ```sql
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- whose storefront — every lookup is scoped by it
   author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
   text             text NOT NULL,                             -- ≤128
   mode             text NOT NULL,                             -- alone | company | party

@@ -38,16 +38,29 @@ export interface Capture {
 // and the text is what answers it; where the phrase was shown says nothing about
 // that, while a snapshot is kept for a year. Copying coordinates would keep a
 // year of locations for no examining value.
-export const SNAPSHOTTABLE: Record<string, { table: string; columns: string; posted: string }> = {
+//
+// `tenant` is the column that says whose row it is, and every lookup is scoped
+// by it. Without that, a notice naming another tenant's identifier copied their
+// row into the reporter's notice, where the reporter's own moderator could read
+// it — the notice is filed under the brand that sent it, so the usual brand
+// filter was already pointing at the wrong tenant by the time it ran. It never
+// fired only because these tables do not exist yet, which is the worst kind of
+// safe: it would have opened silently on the day they were created.
+export const SNAPSHOTTABLE: Record<
+  string,
+  { table: string; columns: string; posted: string; tenant: string }
+> = {
   feed_message: {
     table: "feed_messages",
     columns: "id, text, mode, created_at, author_identity",
     posted: "created_at",
+    tenant: "brand",
   },
   offer: {
     table: "offers",
     columns: "id, offer_text, discount_value, conditions, published_at, venue_id",
     posted: "published_at",
+    tenant: "brand",
   },
 };
 
@@ -62,9 +75,9 @@ async function tableExists(name: string): Promise<boolean> {
 export async function captureTarget(
   kind: string,
   targetId: string | null,
-  // Only ever a log field: the copy is found by id, not by tenant. Nullable
-  // because a notice may arrive unattributed (lib/tenant.ts) and losing it over
-  // a missing brand would be the defect this parameter cannot cause.
+  // What the copy is scoped to, not a log field. Nullable because a notice may
+  // arrive unattributed (lib/tenant.ts) — and an unattributed notice names no
+  // tenant, so there is no scope to look within and nothing is copied.
   brand: string | null,
 ): Promise<Capture> {
   // A chat is carried, never stored: there is nothing on our side to copy, and
@@ -73,17 +86,29 @@ export async function captureTarget(
 
   // Free-form reports carry no identifier. Nothing to copy, and nothing wrong
   // with that — a person still gets an answer.
-  if (!targetId || !(kind in SNAPSHOTTABLE)) return { snapshot: null, status: "received" };
+  // Object.hasOwn rather than `in`: "constructor" is in every object, and the
+  // only thing keeping that unreachable is the KINDS list one file away.
+  if (!targetId || !Object.hasOwn(SNAPSHOTTABLE, kind)) {
+    return { snapshot: null, status: "received" };
+  }
 
-  const { table, columns } = SNAPSHOTTABLE[kind];
+  const { table, columns, tenant } = SNAPSHOTTABLE[kind];
   if (!(await tableExists(table))) {
     log("info", "notice about a surface that is not built yet", { kind, table, brand });
     return { snapshot: null, status: "not_accessible" };
   }
 
+  // An unattributed notice belongs to no tenant, so there is no scope to look
+  // within. Looking anyway — which is what an unscoped lookup did — would copy
+  // whichever tenant's row happened to carry that identifier.
+  if (!brand) {
+    log("info", "unattributed notice: no tenant to scope the copy to", { kind, table });
+    return { snapshot: null, status: "not_accessible" };
+  }
+
   const rows = await query<Record<string, unknown>>(
-    `SELECT ${columns} FROM ${table} WHERE id = $1 LIMIT 1`,
-    [targetId],
+    `SELECT ${columns} FROM ${table} WHERE id = $1 AND ${tenant} = $2 LIMIT 1`,
+    [targetId, brand],
   );
   // `query` answers null both for "no database" and for "the query failed", but
   // the table check above has already ruled out the first. So this is a broken

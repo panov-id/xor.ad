@@ -439,6 +439,7 @@ ALTER TABLE identities
 ```sql
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- чья витрина — по ней ограничен любой поиск
   author_identity  uuid NOT NULL REFERENCES identities(id),   -- наружу никогда
   text             text NOT NULL,                             -- ≤128
   mode             text NOT NULL,                             -- alone | company | party

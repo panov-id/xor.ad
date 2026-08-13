@@ -68,3 +68,39 @@ Deno.test("every offer column copied into a snapshot exists in the offer's field
     );
   }
 });
+
+// The column the lookup is scoped by has to exist too, and for the same reason
+// as the rest: it is named here by hand, and the table is not built yet, so a
+// wrong name would surface as a failing query on the day the surface ships —
+// which `query()` cannot tell from an empty database, so the notice would be
+// filed as "no copy was needed" and examined against nothing.
+//
+// It matters more than the others. A snapshot taken without it is a snapshot
+// taken across tenants.
+Deno.test("the column a snapshot is scoped by exists in both specs", () => {
+  const feed = columnsOfCreateTable(read("../../../docs/chat_EN.md"), "feed_messages");
+  assert(
+    feed.has(SNAPSHOTTABLE.feed_message.tenant),
+    `dsa_snapshot scopes feed_messages by ${SNAPSHOTTABLE.feed_message.tenant}, ` +
+      `which the chat spec does not define. The spec has: ${[...feed].join(", ")}`,
+  );
+
+  const offer = fieldsOfBlock(read("../../../docs/offers/SPEC_EN.md"), "### offer\n");
+  assert(
+    offer.has(SNAPSHOTTABLE.offer.tenant),
+    `dsa_snapshot scopes offers by ${SNAPSHOTTABLE.offer.tenant}, ` +
+      `which the offers spec does not define. The spec has: ${[...offer].join(", ")}`,
+  );
+});
+
+// Every surface must name one. A new entry added without it would compile —
+// `tenant` would be undefined and the SQL would read `WHERE id = $1 AND
+// undefined = $2` — and fail only against a real table.
+Deno.test("every snapshottable surface names a tenant column", () => {
+  for (const [kind, surface] of Object.entries(SNAPSHOTTABLE)) {
+    assert(
+      typeof surface.tenant === "string" && surface.tenant.length > 0,
+      `${kind} has no tenant column, so its snapshot would not be scoped to anyone`,
+    );
+  }
+});

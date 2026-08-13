@@ -25,7 +25,8 @@ the one whose absence makes a prod deploy fail with the wrong explanation.
   dns        BUNNY_API_KEY
   provider   HETZNER_TOKEN (or the provider in use)
   ssh        SSH_PUBLIC_KEY
-  node       SESSION_SECRET, POSTGRES_PASSWORD, ORIGIN_TOKEN
+  node       SESSION_SECRET_DEV / _STAGING / _PROD (one per environment,
+             never shared), POSTGRES_PASSWORD, ORIGIN_TOKEN
   images     GHCR_USER, GHCR_TOKEN
   prod gate  GITHUB_TOKEN — read access to the release repo. Without it the
              release check cannot tell "no such release" from "private repo,
@@ -137,7 +138,10 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "WELCOME_FROM": os.environ.get("WELCOME_FROM", ""),
         # Panel control plane: shared signing secret + per-env panel URL for the
         # magic-link email; PANEL_SENDER is the (panov.id-verified) from address.
-        "SESSION_SECRET": os.environ.get("SESSION_SECRET", ""),
+        # Per environment, never shared. One secret across dev, staging and
+        # prod meant a token minted by the dev node verified on prod byte for
+        # byte — and dev is the environment with the weaker way in.
+        "SESSION_SECRET": require_secret(f"SESSION_SECRET_{env.upper()}", env),
         "PANEL_URL": e.get("panel_url", ""),
         "PANEL_SENDER": os.environ.get("PANEL_SENDER", ""),
         # Whether a public request must name its tenant with a key. Per env, in
@@ -376,9 +380,28 @@ def _sftp_put_tree(sftp, local: Path, remote: str) -> None:
             sftp.put(str(item), rpath)
 
 
-def _write_remote(sftp, path: str, content: str) -> None:
+def _write_remote(sftp, path: str, content: str, mode: int | None = None) -> None:
+    # The mode is set on the empty file, before the content lands. Writing first
+    # and fixing permissions afterwards leaves a window in which the secrets are
+    # world-readable, and that window is all anyone needs.
+    #
+    # Not applied to everything: a compose file, a Caddyfile and a systemd unit
+    # are read by other users and 0600 would break them. Only the files carrying
+    # secrets ask for it, and each call site says so. This script already knew
+    # how — authorized_keys gets 600 and the sudoers drop-in 440 — and the
+    # environment files were simply missed.
     with sftp.file(path, "w") as fh:
+        if mode is not None:
+            sftp.chmod(path, mode)
         fh.write(content)
+
+
+def require_secret(name: str, env: str) -> str:
+    """A secret with no value deploys a node that fails silently later."""
+    value = os.environ.get(name, "")
+    if not value:
+        raise SystemExit(f"{name} is not set — {env} would have no session secret to sign with")
+    return value
 
 
 def _verify_health(client, host: str, sudo: bool) -> None:
@@ -469,9 +492,11 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                       # Caddy compares the header against this; empty means the
                       # guard is not rendered at all, which is the right default
                       # for a node that is not behind the CDN.
-                      f"ORIGIN_TOKEN={os.environ.get('ORIGIN_TOKEN', '')}\n")
+                      f"ORIGIN_TOKEN={os.environ.get('ORIGIN_TOKEN', '')}\n",
+                      mode=0o600)
         for env in box["envs"]:
-            _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env))
+            _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env),
+                          mode=0o600)
         if uses_database(inv, box):
             # A backup that only happens when somebody remembers is not a backup,
             # so the box runs it: script, its own env file, and a nightly timer.
@@ -485,7 +510,7 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                           f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
                           # Quoted: the file is sourced by bash, and a bare
                           # "relay_dev relay_staging" would run the second word.
-                          f'DATABASES="{databases}"\n')
+                          f'DATABASES="{databases}"\n', mode=0o600)
             _write_remote(sftp, "/tmp/relay-backup.service",
                           "[Unit]\nDescription=Dump relay control state into Bunny Storage\n\n"
                           "[Service]\nType=oneshot\nExecStart=/opt/relay/backup-postgres.sh\n")
@@ -503,7 +528,7 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/postgres.env",
                           f"POSTGRES_USER=relay\n"
                           f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
-                          f"POSTGRES_DB=relay\n")
+                          f"POSTGRES_DB=relay\n", mode=0o600)
             databases = "\n".join(
                 f"SELECT 'CREATE DATABASE relay_{env}' WHERE NOT EXISTS "
                 f"(SELECT FROM pg_database WHERE datname = 'relay_{env}')\\gexec"

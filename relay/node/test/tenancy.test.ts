@@ -57,6 +57,7 @@ Deno.env.set(
   ]),
 );
 
+const { config } = await import("../src/config.ts");
 const { match } = await import("../src/lib/router.ts");
 const { sign } = await import("../src/lib/jwt.ts");
 const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
@@ -134,6 +135,7 @@ async function callAs(
     sub: `boss@${subject.brand ?? "platform"}.test`,
     role: subject.role,
     brand: subject.brand,
+    env: config.envName,
     exp: Math.floor(Date.now() / 1000) + 3600,
   }, SECRET);
   const url = new URL(`https://relay.test${path}`);

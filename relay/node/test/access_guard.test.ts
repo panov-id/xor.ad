@@ -8,6 +8,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 const SECRET = "guard-test-secret";
 Deno.env.set("SESSION_SECRET", SECRET);
 
+const { config } = await import("../src/config.ts");
 const { isDenied, requirePermission } = await import("../src/lib/access_guard.ts");
 const { sign } = await import("../src/lib/jwt.ts");
 
@@ -15,13 +16,15 @@ const HOUR_FROM_NOW = () => Math.floor(Date.now() / 1000) + 3600;
 
 async function requestAs(
   role: string,
-  options: { secret?: string; exp?: number; email?: string; brand?: string | null } = {},
+  options: { secret?: string; exp?: number; email?: string; brand?: string | null; env?: string } = {},
 ): Promise<Request> {
   const token = await sign(
     {
       sub: options.email ?? `${role}@example.com`,
       role,
       brand: options.brand ?? null, // default: a platform operator, as before tenancy
+      // The environment that minted it; authed() refuses a token from another.
+      env: options.env ?? config.envName,
       exp: options.exp ?? HOUR_FROM_NOW(),
     },
     options.secret ?? SECRET,
@@ -72,4 +75,33 @@ Deno.test("guard answers 401 for anything it cannot trust", async () => {
   // not silently downgraded to "no permissions".
   const removedRole = await requestAs("superuser");
   assertEquals(await status(removedRole, "waitlist.read"), 401);
+});
+
+// Every environment used to sign with the same secret, so a token minted by the
+// dev node — the environment with the weaker way in — verified on prod byte for
+// byte. The secrets are separate now; this is what makes a mix-up a refusal
+// rather than a working session on the wrong node.
+Deno.test("guard answers 401 to a session from another environment", async () => {
+  const elsewhere = await requestAs("admin", { env: "prod" });
+  assertEquals(await status(elsewhere, "waitlist.read"), 401);
+
+  const local = await requestAs("admin", { env: config.envName });
+  assertEquals(await status(local, "waitlist.read"), 200);
+});
+
+// Sessions minted before the claim existed carry no environment at all. They
+// were signed with the shared secret being retired, so they are not grandfathered
+// in: a transition window here would be the very hole this closes.
+Deno.test("guard answers 401 to a session predating the environment claim", async () => {
+  const { sign } = await import("../src/lib/jwt.ts");
+  const legacy = await sign(
+    // deno-lint-ignore no-explicit-any — deliberately the old shape, which the
+    // type no longer admits and a real old token still has.
+    { sub: "a@example.com", role: "admin", brand: null, exp: HOUR_FROM_NOW() } as any,
+    SECRET,
+  );
+  const request = new Request("https://relay.test/admin/panel-users", {
+    headers: { authorization: `Bearer ${legacy}` },
+  });
+  assertEquals(await status(request, "waitlist.read"), 401);
 });

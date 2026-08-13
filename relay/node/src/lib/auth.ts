@@ -91,6 +91,11 @@ export async function redeem(token: string): Promise<string | null> {
       // moving one is rare and the session is short; if that stops being true,
       // this is the line to revisit.
       brand: user.brand ?? null,
+      // Named in the token, so a session cannot travel between environments
+      // even if their secrets ever coincide again. Belt beside the braces: the
+      // secrets are separate now, and this turns a mix-up into a refusal rather
+      // than into a working session on the wrong node.
+      env: config.envName,
       exp: Math.floor(Date.now() / 1000) + SESSION_TTL_S,
     },
     config.session.secret,
@@ -108,6 +113,11 @@ export async function authed(req: Request): Promise<PanelUser | null> {
   // A session carrying a role that no longer exists is rejected at the door
   // rather than trusted through an unchecked cast.
   if (!isRole(claims.role)) return null;
+  // A token from another environment is not a token from here. Sessions minted
+  // before this claim existed carry nothing and fail on the same line, which is
+  // intended: they were signed with the secret every environment shared, and
+  // that secret is exactly what is being retired.
+  if (claims.env !== config.envName) return null;
   return {
     email: claims.sub,
     role: claims.role,

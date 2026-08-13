@@ -29,6 +29,7 @@ export interface Claims {
   sub: string;
   role: string;
   brand: string | null; // the tenant the session acts within; null = platform
+  env: string; // the environment that minted it — see authed()
   exp: number; // unix seconds
   [k: string]: unknown;
 }

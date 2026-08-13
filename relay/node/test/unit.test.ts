@@ -127,7 +127,7 @@ Deno.test("quota: no limit and no database mean no refusal", async () => {
 Deno.test("jwt: sign/verify round-trip", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
   const exp = Math.floor(Date.now() / 1000) + 3600;
-  const token = await sign({ sub: "a@b.com", role: "admin", brand: null, exp }, "s3cret");
+  const token = await sign({ sub: "a@b.com", role: "admin", brand: null, env: "dev", exp }, "s3cret");
   const claims = await verify(token, "s3cret");
   assertEquals(claims?.sub, "a@b.com");
   assertEquals(claims?.role, "admin");
@@ -175,9 +175,9 @@ Deno.test("prune: only dated entries older than the cutoff are selected", async 
 
 Deno.test("jwt: rejects wrong secret and expired token", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
-  const good = await sign({ sub: "a@b.com", role: "admin", brand: null, exp: Math.floor(Date.now()/1000)+60 }, "k1");
+  const good = await sign({ sub: "a@b.com", role: "admin", brand: null, env: "dev", exp: Math.floor(Date.now()/1000)+60 }, "k1");
   assertEquals(await verify(good, "k2"), null);                       // wrong key
-  const expired = await sign({ sub: "a@b.com", role: "admin", brand: null, exp: 1 }, "k1");
+  const expired = await sign({ sub: "a@b.com", role: "admin", brand: null, env: "dev", exp: 1 }, "k1");
   assertEquals(await verify(expired, "k1"), null);                    // past exp
   assertEquals(await verify("not.a.jwt", "k1"), null);               // malformed
 });

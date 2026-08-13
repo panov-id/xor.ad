@@ -25,13 +25,19 @@ TOKEN="$(grep '^ORIGIN_TOKEN=' "$SECRETS" | cut -d= -f2-)"
 
 ZONE_NAME="xorad-api-prod"
 
-python3 - "$ZONE_NAME" "$TOKEN" "$BUNNY_API_KEY" "$apply" <<'PY'
+# Both secrets through the environment, not argv: an argument is visible
+# in ps to every local account for the life of the call.
+BUNNY_API_KEY="$BUNNY_API_KEY" ORIGIN_TOKEN="$TOKEN" \
+python3 - "$ZONE_NAME" "$apply" <<'PY'
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 
-zone_name, token, api_key, apply = sys.argv[1:5]
+zone_name, apply = sys.argv[1:3]
+token = os.environ["ORIGIN_TOKEN"]
+api_key = os.environ["BUNNY_API_KEY"]
 BASE = "https://api.bunny.net"
 SET_REQUEST_HEADER = 6
 

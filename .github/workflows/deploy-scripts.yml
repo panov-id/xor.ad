@@ -12,9 +12,9 @@ name: deploy scripts
 on:
   push:
     branches: ["**"]
-    paths: ["deploy/**", ".github/workflows/deploy-scripts.yml"]
+    paths: ["deploy/**", "relay/wizard/**", ".github/workflows/deploy-scripts.yml"]
   pull_request:
-    paths: ["deploy/**", ".github/workflows/deploy-scripts.yml"]
+    paths: ["deploy/**", "relay/wizard/**", ".github/workflows/deploy-scripts.yml"]
 
 jobs:
   check:
@@ -37,3 +37,11 @@ jobs:
 
       - name: panel deploy against a stubbed curl
         run: bash deploy/test_deploy_panel_ci.sh
+
+      - name: no secret on a command line
+        run: python3 deploy/test_no_secrets_in_argv.py
+
+      # The wizard is a deploy script too: it decides what permissions the
+      # secrets land with on a node, and which secret signs that node's sessions.
+      - name: what the wizard writes to a node
+        run: python3 relay/wizard/test_wizard.py

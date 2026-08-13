@@ -27,12 +27,17 @@ for entry in "${ZONES[@]}"; do
   host="${entry#*:}"
   echo "== $host (zone $zone)"
 
-  python3 - "$zone" "$host" "$BUNNY_API_KEY" "$apply" <<'PY'
+  # Through the environment, not argv: an argument is visible in ps to
+  # every local account for the life of the call.
+  BUNNY_API_KEY="$BUNNY_API_KEY" \
+  python3 - "$zone" "$host" "$apply" <<'PY'
 import json
+import os
 import sys
 import urllib.request
 
-zone, host, api_key, apply = sys.argv[1:5]
+zone, host, apply = sys.argv[1:4]
+api_key = os.environ["BUNNY_API_KEY"]
 base = "https://api.bunny.net"
 
 

@@ -24,13 +24,18 @@ DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
 set -a; . "$DEPLOY_DIR/.env.deploy"; set +a
 apply="${1:-}"
 
-python3 - "$BUNNY_API_KEY" "$apply" <<'PY'
+# Through the environment, not argv: an argument is visible in ps to
+# every local account for the life of the call.
+BUNNY_API_KEY="$BUNNY_API_KEY" \
+python3 - "$apply" <<'PY'
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 
-api_key, apply = sys.argv[1:3]
+apply = sys.argv[1]
+api_key = os.environ["BUNNY_API_KEY"]
 BASE = "https://api.bunny.net"
 REDIRECT = 1          # confirmed from the live "seo: www to apex" rule, not guessed
 DESCRIPTION = "seo: index.html to /"

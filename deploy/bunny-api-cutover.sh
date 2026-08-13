@@ -24,13 +24,18 @@ HOSTNAME="api.relay.panov.id"
 DNS_ZONE="relay.panov.id"
 NODE_IP="178.105.61.14"   # p1-prod, what the record points at today
 
-python3 - "$ZONE_NAME" "$HOSTNAME" "$DNS_ZONE" "$NODE_IP" "$BUNNY_API_KEY" "$action" <<'PY'
+# Through the environment, not argv: an argument is visible in ps to
+# every local account for the life of the call.
+BUNNY_API_KEY="$BUNNY_API_KEY" \
+python3 - "$ZONE_NAME" "$HOSTNAME" "$DNS_ZONE" "$NODE_IP" "$action" <<'PY'
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 
-zone_name, hostname, dns_zone, node_ip, api_key, action = sys.argv[1:7]
+zone_name, hostname, dns_zone, node_ip, action = sys.argv[1:6]
+api_key = os.environ["BUNNY_API_KEY"]
 BASE = "https://api.bunny.net"
 
 

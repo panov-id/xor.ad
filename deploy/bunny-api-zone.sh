@@ -22,13 +22,18 @@ apply="${1:-}"
 ZONE_NAME="xorad-api-prod"   # *.b-cdn.net names are globally unique
 ORIGIN="https://p1-prod.relay.panov.id"
 
-python3 - "$ZONE_NAME" "$ORIGIN" "$BUNNY_API_KEY" "$apply" <<'PY'
+# Through the environment, not argv: an argument is visible in ps to
+# every local account for the life of the call.
+BUNNY_API_KEY="$BUNNY_API_KEY" \
+python3 - "$ZONE_NAME" "$ORIGIN" "$apply" <<'PY'
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 
-zone_name, origin, api_key, apply = sys.argv[1:5]
+zone_name, origin, apply = sys.argv[1:4]
+api_key = os.environ["BUNNY_API_KEY"]
 BASE = "https://api.bunny.net"
 
 

@@ -118,7 +118,9 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 
 ### 8.2. Identity and sessions
 
-An identity lives **on the device**: `identity_id` + a secret, signing every request (the server stores the secret's hash). Where exactly depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, handed to the person at registration, which we can neither look up nor reset.
+An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, handed to the person at registration, which we can neither look up nor reset.
+
+This used to read "a secret, and the server stores the secret's hash" — a leftover from an earlier design, incompatible with the rest of §8: a public key has no hash, and a shared secret would mean the node can sign as the person. Corrected 2026-08-12, before it reached any code.
 
 **Every client starts as its own identity.** The key is born locally and nothing ties it to any other: the web on a phone, the web on a laptop and `depth` in a container are three different neighbours until the person transfers an identity there. The consequence is accepted deliberately: one person holding two separate identities appears twice in the feed and can like themselves. That is the price of refusing to recognise devices, and it is cheaper than a fingerprint (below).
 
@@ -162,6 +164,40 @@ First, it stopped working. Everything it was built from came **from the connecti
 Second, it misled. The spec itself called it "a barrier, not a guarantee", yet it closed other people's identities and blocked neighbours behind one home NAT: the cost of a mistake fell on the uninvolved, while shedding it took ten seconds of clearing site data. A mechanism that fails to stop the person it aims at, and hits the person it does not, is worse than no mechanism.
 
 What replaces it is what actually works and already exists: **per-address rate limiting**, **feed moderation before publication** (§8.3), now through a queue — which cuts the text, not the author — and **a chat door that opens only on a mutual like with double consent**.
+
+#### What exactly a request is signed with
+
+The spec said "signed" without saying with what — which is precisely where an
+implementation makes a decision quietly and lives with it for years.
+
+**Ed25519.** Shorter keys and signatures, faster verification, and no parameters
+that can be chosen badly.
+
+```
+signed over   <method>\n<path>\n<sha256 of body>\n<unix time>
+headers       x-identity-session   the live session's uuid
+              x-identity-time      the same time as in the string
+              x-identity-sign      the signature, base64url
+window        ±5 minutes
+```
+
+**The body enters as a hash rather than whole** — otherwise the signature would
+have to be computed over a stream, and a large request would cost twice. The path
+enters without its query string for the same reason the page counter drops it:
+anything can be in there, and a signature has to be reproducible.
+
+**A window instead of a nonce, and that is a trade.** Five minutes with no state
+on the node means whoever intercepts a whole request can replay it inside the
+window. A nonce would close that completely but would need shared memory: nodes
+are interchangeable (§8.1), each has its own, and a shared one is a database write
+per request. With ephemerality measured in hours, five minutes of replayability is
+cheaper than a permanent write.
+
+**To check before implementing:** Ed25519 arrived in WebCrypto recently and older
+browsers may not know it. That has to be measured against real browsers — and if a
+noticeable share cannot, the choice becomes ECDSA P-256, supported everywhere and
+for years. Recorded here so that changing it is a decision rather than someone
+else's default found in the code.
 
 **One live session per identity.** At any moment an identity exists on one device. Moving to another is not an addition but a **transfer**: the new one comes alive, the previous one freezes.
 
@@ -1234,6 +1270,26 @@ order would produce an API the terminal would have to be bent to fit.
    All three are mandatory and none can be deferred — without the paper code the
    first lost device is irreversible, and without the share the local database
    sits unencrypted. Everything else rests on "who is this".
+**Step 1 cannot satisfy its own rule, and that is worth knowing in advance.** A
+name goes through the same moderation queue as a phrase (§8.2) — and the queue
+only arrives at step 2. So there is a window in which a name is accepted
+unchecked.
+
+There are two options, and the choice has to be made on the day step 1 is
+written:
+
+```
+accept the name unchecked      the identity exists at once, the name is checked
+                               after the fact once the queue exists
+defer registration to step 2   the order stays clean, but the product's first
+                               screen does not exist for longer
+```
+
+The first is cheaper and more honest provided the window is written down as a gap
+rather than forgotten: an unchecked name is seen by another person only from the
+first match onwards, which is after step 4 — by which point this order already
+has the queue.
+
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
    age bands, moderation before publication through a queue. **With this step, not
    after it:** the Article 17 statement screen for an author with no email

@@ -16,6 +16,11 @@
 import { assert } from "jsr:@std/assert@1";
 import { SNAPSHOTTABLE } from "../src/lib/dsa_snapshot.ts";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 const read = (path: string) => Deno.readTextFileSync(new URL(path, import.meta.url));
 
 // `CREATE TABLE feed_messages ( id uuid ..., text text ..., )` → the leading
@@ -47,7 +52,7 @@ function fieldsOfBlock(text: string, heading: string): Set<string> {
 const listed = (kind: string) =>
   SNAPSHOTTABLE[kind].columns.split(",").map((column) => column.trim());
 
-Deno.test("every feed column copied into a snapshot exists in the feed's schema", () => {
+configured("every feed column copied into a snapshot exists in the feed's schema", () => {
   const schema = columnsOfCreateTable(read("../../../docs/chat_EN.md"), "feed_messages");
   for (const column of listed("feed_message")) {
     assert(
@@ -58,7 +63,7 @@ Deno.test("every feed column copied into a snapshot exists in the feed's schema"
   }
 });
 
-Deno.test("every offer column copied into a snapshot exists in the offer's fields", () => {
+configured("every offer column copied into a snapshot exists in the offer's fields", () => {
   const fields = fieldsOfBlock(read("../../../docs/offers/SPEC_EN.md"), "### offer\n");
   for (const column of listed("offer")) {
     assert(
@@ -77,7 +82,7 @@ Deno.test("every offer column copied into a snapshot exists in the offer's field
 //
 // It matters more than the others. A snapshot taken without it is a snapshot
 // taken across tenants.
-Deno.test("the column a snapshot is scoped by exists in both specs", () => {
+configured("the column a snapshot is scoped by exists in both specs", () => {
   const feed = columnsOfCreateTable(read("../../../docs/chat_EN.md"), "feed_messages");
   assert(
     feed.has(SNAPSHOTTABLE.feed_message.tenant),
@@ -96,7 +101,7 @@ Deno.test("the column a snapshot is scoped by exists in both specs", () => {
 // Every surface must name one. A new entry added without it would compile —
 // `tenant` would be undefined and the SQL would read `WHERE id = $1 AND
 // undefined = $2` — and fail only against a real table.
-Deno.test("every snapshottable surface names a tenant column", () => {
+configured("every snapshottable surface names a tenant column", () => {
   for (const [kind, surface] of Object.entries(SNAPSHOTTABLE)) {
     assert(
       typeof surface.tenant === "string" && surface.tenant.length > 0,

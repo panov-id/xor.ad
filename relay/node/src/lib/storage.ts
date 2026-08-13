@@ -4,27 +4,30 @@
 
 import { config } from "../config.ts";
 
-const s = config.storage;
+// Read through `config` at every use rather than captured once: reloadConfig()
+// replaces the nested object, and a captured reference would keep pointing at
+// the configuration the process started with.
+const s = () => config.storage;
 
 export function storageEnabled(): boolean {
-  return s.transport === "fs" || Boolean(s.zone && s.key);
+  return s().transport === "fs" || Boolean(s().zone && s().key);
 }
 
 // --- fs ---
 function fsPath(path: string): string {
-  return `${s.dir}/${path}`;
+  return `${s().dir}/${path}`;
 }
 
 // --- bunny ---
 function bunnyUrl(path: string): string {
-  return `https://${s.host}/${s.zone}/${path}`;
+  return `https://${s().host}/${s().zone}/${path}`;
 }
 function bunnyHeaders(): HeadersInit {
-  return { AccessKey: s.key, "content-type": "application/json" };
+  return { AccessKey: s().key, "content-type": "application/json" };
 }
 
 export async function exists(path: string): Promise<boolean> {
-  if (s.transport === "fs") {
+  if (s().transport === "fs") {
     try {
       await Deno.stat(fsPath(path));
       return true;
@@ -38,7 +41,7 @@ export async function exists(path: string): Promise<boolean> {
 }
 
 export async function put(path: string, body: unknown): Promise<void> {
-  if (s.transport === "fs") {
+  if (s().transport === "fs") {
     const file = fsPath(path);
     await Deno.mkdir(file.slice(0, file.lastIndexOf("/")), { recursive: true });
     await Deno.writeTextFile(file, JSON.stringify(body, null, 2));
@@ -54,7 +57,7 @@ export async function put(path: string, body: unknown): Promise<void> {
 }
 
 export async function get<T = unknown>(path: string): Promise<T | null> {
-  if (s.transport === "fs") {
+  if (s().transport === "fs") {
     try {
       return JSON.parse(await Deno.readTextFile(fsPath(path))) as T;
     } catch {
@@ -70,7 +73,7 @@ export async function get<T = unknown>(path: string): Promise<T | null> {
 }
 
 export async function del(path: string): Promise<void> {
-  if (s.transport === "fs") {
+  if (s().transport === "fs") {
     try {
       await Deno.remove(fsPath(path));
     } catch { /* already gone */ }
@@ -83,7 +86,7 @@ export async function del(path: string): Promise<void> {
 // List object file names (not sub-dirs) under a prefix. Bunny returns a JSON
 // directory listing for a path ending in "/"; fs reads the directory.
 export async function list(prefix: string): Promise<string[]> {
-  if (s.transport === "fs") {
+  if (s().transport === "fs") {
     try {
       return [...Deno.readDirSync(fsPath(prefix))].filter((e) => e.isFile).map((e) => e.name);
     } catch {
@@ -120,7 +123,7 @@ export function canonicalTimestamp(raw: string | undefined): string {
 // Lets a caller take the newest N objects — or a time window — without reading
 // every object first: collection keys are random UUIDs, so names carry no order.
 export async function listDetailed(prefix: string): Promise<StorageEntry[]> {
-  if (s.transport === "fs") {
+  if (s().transport === "fs") {
     try {
       const entries: StorageEntry[] = [];
       for (const entry of Deno.readDirSync(fsPath(prefix))) {

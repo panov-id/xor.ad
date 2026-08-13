@@ -18,18 +18,23 @@ import {
   type UserSubject,
 } from "../src/access/index.ts";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 // The tenant is irrelevant to these tests: can() decides on the role alone, and
 // spelling `brand: null` at every call site would suggest otherwise.
 const subject = (role: Role): UserSubject => ({ role, brand: null });
 
-Deno.test("admin holds every permission in the catalogue", () => {
+configured("admin holds every permission in the catalogue", () => {
   assertEquals([...permissionsOf("admin")], [...PERMISSIONS]);
   for (const permission of PERMISSIONS) {
     assert(can(subject("admin"), permission), `admin missing ${permission}`);
   }
 });
 
-Deno.test("moderator reads the panel and its logs but writes no users", () => {
+configured("moderator reads the panel and its logs but writes no users", () => {
   const moderator = subject("moderator");
   assert(can(moderator, "waitlist.read"));
   assert(can(moderator, "panel_users.read"));
@@ -39,7 +44,7 @@ Deno.test("moderator reads the panel and its logs but writes no users", () => {
   assert(!can(moderator, "logs.server.read"));
 });
 
-Deno.test("viewer sees the waitlist only — no logs, no users", () => {
+configured("viewer sees the waitlist only — no logs, no users", () => {
   const viewer = subject("viewer");
   assertEquals([...permissionsOf("viewer")], ["waitlist.read"]);
   assert(!can(viewer, "logs.client_errors.read"));
@@ -48,7 +53,7 @@ Deno.test("viewer sees the waitlist only — no logs, no users", () => {
   assert(!can(viewer, "panel_users.read"));
 });
 
-Deno.test("tenant_admin owns its brand and nothing of the platform", () => {
+configured("tenant_admin owns its brand and nothing of the platform", () => {
   const tenant = subject("tenant_admin");
   assert(can(tenant, "panel_users.write"));
   assert(can(tenant, "api_keys.write"));
@@ -58,7 +63,7 @@ Deno.test("tenant_admin owns its brand and nothing of the platform", () => {
   assert(!can(tenant, "brands.write"));
 });
 
-Deno.test("access fails closed: no subject, unknown role, unknown permission", () => {
+configured("access fails closed: no subject, unknown role, unknown permission", () => {
   assert(!can(null, "waitlist.read"));
   assert(!can(undefined, "waitlist.read"));
   // An unrecognised role is denied, not defaulted — a stale session carrying a
@@ -67,7 +72,7 @@ Deno.test("access fails closed: no subject, unknown role, unknown permission", (
   assertEquals([...permissionsOf("root" as unknown as "admin")], []);
 });
 
-Deno.test("canAll requires every permission", () => {
+configured("canAll requires every permission", () => {
   assert(canAll(subject("admin"), ["panel_users.write", "logs.server.read"]));
   assert(canAll(subject("moderator"), ["waitlist.read", "panel_users.read"]));
   assert(!canAll(subject("moderator"), ["panel_users.read", "panel_users.write"]));
@@ -75,7 +80,7 @@ Deno.test("canAll requires every permission", () => {
   assert(!canAll(null, ["waitlist.read"]));
 });
 
-Deno.test("catalogue integrity: unique, non-wildcard, every role defined", () => {
+configured("catalogue integrity: unique, non-wildcard, every role defined", () => {
   assertEquals(new Set(PERMISSIONS).size, PERMISSIONS.length, "duplicate permission");
   assert(!(PERMISSIONS as readonly string[]).includes(ALL_PERMISSIONS));
 
@@ -96,7 +101,7 @@ Deno.test("catalogue integrity: unique, non-wildcard, every role defined", () =>
   }
 });
 
-Deno.test("guards recognise their own values", () => {
+configured("guards recognise their own values", () => {
   assert(isRole("admin"));
   assert(isRole("viewer"));
   assert(!isRole("superuser"));
@@ -113,14 +118,14 @@ Deno.test("guards recognise their own values", () => {
 // is that `can()` stays the one place the question is answered — the core never
 // learns whether it is talking about a person or a machine.
 
-Deno.test("a key holds exactly its scopes and nothing adjacent", () => {
+configured("a key holds exactly its scopes and nothing adjacent", () => {
   const key = { scopes: ["waitlist.write"] as const, brand: "sosed" };
   assert(can(key, "waitlist.write"));
   assert(!can(key, "waitlist.read"), "write must not imply read");
   assert(!can(key, "panel_users.write"));
 });
 
-Deno.test("a key has no wildcard — there is no admin among machines", () => {
+configured("a key has no wildcard — there is no admin among machines", () => {
   // "*" is a role construct. Handed to a key as a scope it is simply a string
   // that matches no permission, which is the safe way for it to be meaningless.
   const key = { scopes: [ALL_PERMISSIONS] as unknown as typeof PERMISSIONS, brand: null };
@@ -129,7 +134,7 @@ Deno.test("a key has no wildcard — there is no admin among machines", () => {
   }
 });
 
-Deno.test("an empty key is denied everything, like a null subject", () => {
+configured("an empty key is denied everything, like a null subject", () => {
   const key = { scopes: [], brand: "sosed" };
   for (const permission of PERMISSIONS) assert(!can(key, permission));
   assert(!canAll(key, ["waitlist.read"]));
@@ -139,7 +144,7 @@ Deno.test("an empty key is denied everything, like a null subject", () => {
 // scopes are held by nobody, so "you cannot grant what you do not hold" would
 // forbid everyone. If a role ever picks one up, the rule and the exception start
 // disagreeing about the same scope — and only one of them is checked per request.
-Deno.test("the key-only scopes are held by no role, wildcard aside", () => {
+configured("the key-only scopes are held by no role, wildcard aside", () => {
   for (const scope of KEY_ONLY_SCOPES) {
     assert(isPermission(scope), `${scope} is not in the catalogue`);
     assert(isKeyOnlyScope(scope));
@@ -153,7 +158,7 @@ Deno.test("the key-only scopes are held by no role, wildcard aside", () => {
   }
 });
 
-Deno.test("a scope a person can perform is not key-only", () => {
+configured("a scope a person can perform is not key-only", () => {
   for (const permission of PERMISSIONS) {
     if (isKeyOnlyScope(permission)) continue;
     assert(!KEY_ONLY_SCOPES.includes(permission));
@@ -162,7 +167,7 @@ Deno.test("a scope a person can perform is not key-only", () => {
   assertEquals(KEY_ONLY_SCOPES.length, PERMISSIONS.filter(isKeyOnlyScope).length);
 });
 
-Deno.test("waitlist.write exists for keys, and no role but admin holds it", () => {
+configured("waitlist.write exists for keys, and no role but admin holds it", () => {
   assert(isPermission("waitlist.write"));
   for (const role of ROLES) {
     const holds = permissionsOf(role).includes("waitlist.write");

@@ -13,7 +13,12 @@
 import { assertEquals } from "jsr:@std/assert@1";
 import { extraFields, pagePath } from "../src/routes/client_error.ts";
 
-Deno.test("the page address keeps the path and drops the query", () => {
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
+configured("the page address keeps the path and drops the query", () => {
   assertEquals(
     pagePath("https://neighbro.place/legal?email=someone%40example.com&token=abc"),
     "https://neighbro.place/legal",
@@ -24,7 +29,7 @@ Deno.test("the page address keeps the path and drops the query", () => {
   assertEquals(pagePath(undefined), null);
 });
 
-Deno.test("extra is flattened, bounded, and refuses what it cannot describe", () => {
+configured("extra is flattened, bounded, and refuses what it cannot describe", () => {
   assertEquals(extraFields({ env: "dev", attempt: 3, ok: true }), {
     env: "dev",
     attempt: "3",

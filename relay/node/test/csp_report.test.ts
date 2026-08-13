@@ -2,6 +2,11 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { CSP_REPORT_LIMITS, cspReport, normalise, worthKeeping } from "../src/routes/csp_report.ts";
 import { reset } from "../src/lib/rate_limit.ts";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 // The Reporting API's shape: an array, camelCase, the violation under `body`.
 const REPORTING_API = [{
   type: "csp-violation",
@@ -32,21 +37,21 @@ const REPORT_URI = {
   },
 };
 
-Deno.test("csp: the Reporting API shape is read", () => {
+configured("csp: the Reporting API shape is read", () => {
   const [violation] = normalise(REPORTING_API);
   assertEquals(violation.effective_directive, "script-src-elem");
   assertEquals(violation.line_number, 12);
   assertEquals(violation.blocked_path, "https://evil.example/x.js");
 });
 
-Deno.test("csp: the report-uri shape is read", () => {
+configured("csp: the report-uri shape is read", () => {
   const [violation] = normalise(REPORT_URI);
   assertEquals(violation.effective_directive, "style-src-attr");
   assertEquals(violation.violated_directive, "style-src-attr");
   assertEquals(violation.line_number, 4);
 });
 
-Deno.test("csp: a keyword blocked-uri survives as itself", () => {
+configured("csp: a keyword blocked-uri survives as itself", () => {
   const [violation] = normalise(REPORT_URI);
   // "inline" is not a URL and must not be mangled into one.
   assertEquals(violation.blocked_path, "inline");
@@ -55,7 +60,7 @@ Deno.test("csp: a keyword blocked-uri survives as itself", () => {
 // The register promises that no personal data reaches the logs, and a document
 // URL is the easiest way to break that by accident — a person is on the page
 // with whatever they typed still in the address.
-Deno.test("csp: queries are dropped from every path", () => {
+configured("csp: queries are dropped from every path", () => {
   const [fromApi] = normalise(REPORTING_API);
   assertEquals(fromApi.document_path, "https://panel.example/dashboard");
   assertEquals(fromApi.source_file, "https://panel.example/assets/index.js");
@@ -63,7 +68,7 @@ Deno.test("csp: queries are dropped from every path", () => {
   assertEquals(fromUri.document_path, "https://neighbro.example/rules.html");
 });
 
-Deno.test("csp: fields are bounded", () => {
+configured("csp: fields are bounded", () => {
   const [violation] = normalise({
     "csp-report": {
       "effective-directive": "d".repeat(500),
@@ -76,7 +81,7 @@ Deno.test("csp: fields are bounded", () => {
   assert(violation.disposition!.length <= 20);
 });
 
-Deno.test("csp: rubbish yields nothing rather than a record of nothing", () => {
+configured("csp: rubbish yields nothing rather than a record of nothing", () => {
   assertEquals(normalise(null), []);
   assertEquals(normalise("a string"), []);
   assertEquals(normalise([]), []);
@@ -88,7 +93,7 @@ Deno.test("csp: rubbish yields nothing rather than a record of nothing", () => {
   assertEquals(violation.line_number, null);
 });
 
-Deno.test("csp: an empty violation is not worth keeping", () => {
+configured("csp: an empty violation is not worth keeping", () => {
   assertEquals(worthKeeping(normalise({ "csp-report": {} })[0]), false);
   assertEquals(worthKeeping(normalise(REPORT_URI)[0]), true);
 });
@@ -101,7 +106,7 @@ function post(body: unknown, address: string): Request {
   });
 }
 
-Deno.test("csp: the answer is always 204, whatever arrives", async () => {
+configured("csp: the answer is always 204, whatever arrives", async () => {
   reset();
   assertEquals((await cspReport(post(REPORT_URI, "10.0.0.1"))).status, 204);
   assertEquals((await cspReport(post({ nope: 1 }, "10.0.0.1"))).status, 204);
@@ -113,7 +118,7 @@ Deno.test("csp: the answer is always 204, whatever arrives", async () => {
   assertEquals((await cspReport(broken)).status, 204);
 });
 
-Deno.test("csp: past the limit the answer does not change", async () => {
+configured("csp: past the limit the answer does not change", async () => {
   reset();
   const hourly = CSP_REPORT_LIMITS[0].max;
   for (let i = 0; i < hourly + 5; i++) {

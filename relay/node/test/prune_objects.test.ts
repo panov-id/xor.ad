@@ -4,7 +4,12 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { COLLECTIONS } from "../tools/prune_objects.ts";
 
-Deno.test("every collection with a promised window has a row", () => {
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
+configured("every collection with a promised window has a row", () => {
   const named = COLLECTIONS.map((collection) => collection.directory).sort();
   assertEquals(named, [
     "audit",
@@ -15,7 +20,7 @@ Deno.test("every collection with a promised window has a row", () => {
   ].sort());
 });
 
-Deno.test("the windows are the ones the policy states", () => {
+configured("the windows are the ones the policy states", () => {
   const days = Object.fromEntries(COLLECTIONS.map((c) => [c.directory, c.days]));
   assertEquals(days["audit"], 365, "the audit trail is kept a year");
   assertEquals(days["server-logs"], 30);
@@ -26,7 +31,7 @@ Deno.test("the windows are the ones the policy states", () => {
   assertEquals(days["waitlist"], null, "the waitlist window arrives with the launch date");
 });
 
-Deno.test("every row says why, so a number cannot be changed silently", () => {
+configured("every row says why, so a number cannot be changed silently", () => {
   for (const collection of COLLECTIONS) {
     assert(collection.because.length > 20, `${collection.directory} has no reason`);
   }

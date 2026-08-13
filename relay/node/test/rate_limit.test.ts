@@ -6,9 +6,14 @@
 import { assertEquals } from "jsr:@std/assert@1";
 import { check, checkAll, type Limit, reset } from "../src/lib/rate_limit.ts";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 const LIMIT: Limit = { name: "test", max: 3, windowMs: 60_000 };
 
-Deno.test("allows up to the limit and then refuses", () => {
+configured("allows up to the limit and then refuses", () => {
   reset();
   const now = 1_000_000;
   assertEquals(check(LIMIT, "1.1.1.1", now).allowed, true);
@@ -19,7 +24,7 @@ Deno.test("allows up to the limit and then refuses", () => {
   assertEquals(fourth.remaining, 0);
 });
 
-Deno.test("one address does not spend another's allowance", () => {
+configured("one address does not spend another's allowance", () => {
   reset();
   const now = 1_000_000;
   for (let i = 0; i < 3; i++) check(LIMIT, "1.1.1.1", now);
@@ -29,7 +34,7 @@ Deno.test("one address does not spend another's allowance", () => {
   assertEquals(check(LIMIT, "2.2.2.2", now).allowed, true);
 });
 
-Deno.test("the window slides — an old hit stops counting", () => {
+configured("the window slides — an old hit stops counting", () => {
   reset();
   const now = 1_000_000;
   for (let i = 0; i < 3; i++) check(LIMIT, "1.1.1.1", now);
@@ -38,7 +43,7 @@ Deno.test("the window slides — an old hit stops counting", () => {
   assertEquals(check(LIMIT, "1.1.1.1", now + 61_000).allowed, true);
 });
 
-Deno.test("retry-after points at when the oldest hit expires", () => {
+configured("retry-after points at when the oldest hit expires", () => {
   reset();
   const now = 1_000_000;
   for (let i = 0; i < 3; i++) check(LIMIT, "1.1.1.1", now);
@@ -54,7 +59,7 @@ Deno.test("retry-after points at when the oldest hit expires", () => {
 const HOURLY: Limit = { name: "two-hourly", max: 3, windowMs: 60_000 };
 const DAILY: Limit = { name: "two-daily", max: 5, windowMs: 600_000 };
 
-Deno.test("the daily window catches what the hourly one lets through", () => {
+configured("the daily window catches what the hourly one lets through", () => {
   reset();
   let now = 1_000_000;
   // Three per short window, refilling each time: the hourly limit never fires.
@@ -72,7 +77,7 @@ Deno.test("the daily window catches what the hourly one lets through", () => {
   }
 });
 
-Deno.test("the refusal reported is the window that has to be waited out", () => {
+configured("the refusal reported is the window that has to be waited out", () => {
   reset();
   const now = 2_000_000;
   for (let i = 0; i < 3; i++) checkAll([HOURLY, DAILY], "9.9.9.9", now);

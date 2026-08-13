@@ -14,12 +14,17 @@
 
 import { assert } from "jsr:@std/assert@1";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 const read = (path: string) => Deno.readTextFileSync(new URL(path, import.meta.url));
 
 const stub = read("../src/chat/relay.ts");
 const spec = read("../../../docs/chat_EN.md");
 
-Deno.test("the specification still says the chat is encrypted and unmoderated", () => {
+configured("the specification still says the chat is encrypted and unmoderated", () => {
   // If this fails the product changed, and the stub is not the file to fix
   // first — this test is here to make that a decision rather than a drift.
   assert(
@@ -32,7 +37,7 @@ Deno.test("the specification still says the chat is encrypted and unmoderated", 
   );
 });
 
-Deno.test("the chat stub does not describe the abandoned design", () => {
+configured("the chat stub does not describe the abandoned design", () => {
   // Each of these was in the file, and each reverses the decision in §8.13.
   const reversals: [RegExp, string][] = [
     [/moderation in plaintext/i, "moderation of plaintext in the relay"],
@@ -53,7 +58,7 @@ Deno.test("the chat stub does not describe the abandoned design", () => {
   }
 });
 
-Deno.test("the chat stub says what the node actually carries", () => {
+configured("the chat stub says what the node actually carries", () => {
   assert(/ciphertext/i.test(stub), "the stub does not say the node carries ciphertext");
   assert(/holds no keys/i.test(stub), "the stub does not say the node holds no keys");
 });

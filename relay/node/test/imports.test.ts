@@ -6,6 +6,11 @@
 // that touches nothing, and type-only imports carry no behaviour.
 import { assert } from "jsr:@std/assert@1";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 const DATA_FUNCTIONS = ["put", "get", "del", "list", "listDetailed", "exists"];
 
 // Modules that legitimately reach storage directly:
@@ -31,7 +36,7 @@ function* sourceFiles(dir: string): Generator<string> {
   }
 }
 
-Deno.test("nothing outside the allowlist imports storage data functions", () => {
+configured("nothing outside the allowlist imports storage data functions", () => {
   const offenders: string[] = [];
   for (const path of sourceFiles("src")) {
     if (ALLOWED.has(path)) continue;

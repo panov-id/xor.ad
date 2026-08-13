@@ -14,6 +14,11 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({ NODE_ENV_NAME: "test", MAIL_TRANSPORT: "none", REQUIRE_API_KEY: "true" });
+
 // Env before the first import: config.ts captures it at module load.
 Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
@@ -38,7 +43,7 @@ const notice = (headers: Record<string, string> = {}) =>
 // since the per-address limit is far from reached by a single request.
 const refusedForTheKey = (status: number) => status === 401 || status === 403 || status === 429;
 
-Deno.test("a notice with no api key is not refused, even when keys are required", async () => {
+configured("a notice with no api key is not refused, even when keys are required", async () => {
   const response = await report(notice());
   const body = await response.json();
   assert(
@@ -47,7 +52,7 @@ Deno.test("a notice with no api key is not refused, even when keys are required"
   );
 });
 
-Deno.test("a notice with an unknown api key is not refused", async () => {
+configured("a notice with an unknown api key is not refused", async () => {
   const response = await report(notice({ "x-api-key": "pk_no_such_key_at_all" }));
   const body = await response.json();
   assert(

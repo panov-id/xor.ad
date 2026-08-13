@@ -12,7 +12,12 @@ import { whatWasRestricted } from "../src/lib/mailer.ts";
 import { letter, PLATFORM } from "../src/lib/email_shell.ts";
 import { config } from "../src/config.ts";
 
-Deno.test("quotes the author's own words, with when they posted them", () => {
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
+configured("quotes the author's own words, with when they posted them", () => {
   const lines = whatWasRestricted("feed_message", {
     table: "feed_messages",
     captured_at: "2026-08-09T11:00:00.000Z",
@@ -30,7 +35,7 @@ Deno.test("quotes the author's own words, with when they posted them", () => {
 // branch that runs in production was covered by nothing. Both are fixed here:
 // the columns are the offer's own, and the date is asserted, which is what makes
 // the two cases actually different.
-Deno.test("an offer is quoted from its own columns", () => {
+configured("an offer is quoted from its own columns", () => {
   const lines = whatWasRestricted("offer", {
     table: "offers",
     row: { offer_text: "кофе за полцены до полудня", published_at: "2026-08-09T08:00:00.000Z" },
@@ -44,7 +49,7 @@ Deno.test("an offer is quoted from its own columns", () => {
 // The kind decides which columns are read, so a row carrying the other
 // surface's columns yields no quote rather than the wrong one. Before, whichever
 // column happened to be present won, and the kind was not consulted at all.
-Deno.test("the kind decides which columns are read", () => {
+configured("the kind decides which columns are read", () => {
   const asOffer = whatWasRestricted("offer", {
     table: "offers",
     row: { text: "это фраза, а не оффер", created_at: "2026-08-09T08:00:00.000Z" },
@@ -64,19 +69,19 @@ Deno.test("the kind decides which columns are read", () => {
   );
 });
 
-Deno.test("an expired target says so, and does not pretend to a copy", () => {
+configured("an expired target says so, and does not pretend to a copy", () => {
   const lines = whatWasRestricted("feed_message", null, "target_gone");
   assertStringIncludes(lines[0].value, "expired");
 });
 
-Deno.test("an unsnapshottable target says we never held a copy", () => {
+configured("an unsnapshottable target says we never held a copy", () => {
   const lines = whatWasRestricted("chat", null, "not_accessible");
   assertStringIncludes(lines[0].value, "no copy");
   // The distinction is the whole point: this must not read as an expiry.
   assertEquals(lines[0].value.includes("expired"), false);
 });
 
-Deno.test("nothing to say stays silent rather than guessing", () => {
+configured("nothing to say stays silent rather than guessing", () => {
   // A snapshot that came back empty for a reason we do not model: better an
   // opening paragraph that omits the content than one that invents its fate.
   assertEquals(whatWasRestricted("other", null, "received"), []);
@@ -86,7 +91,7 @@ Deno.test("nothing to say stays silent rather than guessing", () => {
 // were right and it read like a pasted note. What must not regress is that the
 // styled and the plain versions carry the same content: the text part is what a
 // stripped-down client shows, and under Article 17(3) it has to stand alone.
-Deno.test("the shell dresses a letter without losing its plain version", () => {
+configured("the shell dresses a letter without losing its plain version", () => {
   const brand = config.brands[0];
   const { html, text } = letter({
     brand,
@@ -112,7 +117,7 @@ Deno.test("the shell dresses a letter without losing its plain version", () => {
   assertStringIncludes(text, "FACTS AND CIRCUMSTANCES");
 });
 
-Deno.test("a letter cannot be made to carry markup", () => {
+configured("a letter cannot be made to carry markup", () => {
   // The quote block prints somebody's own words — a notifier's reason, an
   // author's post. Those arrive from a form.
   const { html } = letter({
@@ -129,7 +134,7 @@ Deno.test("a letter cannot be made to carry markup", () => {
 // storefront. On a letter that hands over access, branding that belongs to
 // somebody else is not a cosmetic fault: it teaches the reader that the face on
 // such a letter means nothing.
-Deno.test("a panel letter wears the platform, never a storefront", () => {
+configured("a panel letter wears the platform, never a storefront", () => {
   const { html, text } = letter({
     brand: PLATFORM,
     title: "Sign in to the panel",
@@ -149,7 +154,7 @@ Deno.test("a panel letter wears the platform, never a storefront", () => {
 
 // The sign-in letter is the one where a link that is not a link makes the letter
 // useless. Some clients autolink a bare URL; that is not a thing to depend on.
-Deno.test("a url in a reference block is an actual link", () => {
+configured("a url in a reference block is an actual link", () => {
   const { html, text } = letter({
     brand: PLATFORM,
     title: "Sign in to the panel",
@@ -170,7 +175,7 @@ Deno.test("a url in a reference block is an actual link", () => {
 // Russian name. Everything here is written in English first; a rendering in
 // another script is a translation, and translations belong with the other
 // translations rather than in the identity every letter reads.
-Deno.test("an operational letter is English, wordmark included", async () => {
+configured("an operational letter is English, wordmark included", async () => {
   const { config } = await import("../src/config.ts");
   const sosed = config.brands.find((b) => b.key === "sosed")!;
 
@@ -186,7 +191,7 @@ Deno.test("an operational letter is English, wordmark included", async () => {
   assert(!/[А-Яа-яЁё]/.test(text), "the plain part must match");
 });
 
-Deno.test("the Russian welcome still says сосед", async () => {
+configured("the Russian welcome still says сосед", async () => {
   const { welcomeEmail } = await import("../src/lib/welcome.ts");
   const { config } = await import("../src/config.ts");
   const sosed = config.brands.find((b) => b.key === "sosed")!;
@@ -203,7 +208,7 @@ Deno.test("the Russian welcome still says сосед", async () => {
 // had expired, or that we never held it — were both reported as "we did not
 // agree with your report". That is not a wording problem: it tells a notifier
 // their report was dismissed on the merits when nobody ever looked at anything.
-Deno.test("the notifier is told which of the four outcomes happened", async () => {
+configured("the notifier is told which of the four outcomes happened", async () => {
   const { decisionOutcome } = await import("../src/lib/mailer.ts");
 
   assertStringIncludes(decisionOutcome("upheld", "received"), "has been restricted");

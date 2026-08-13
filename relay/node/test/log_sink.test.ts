@@ -5,7 +5,12 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { log, shouldPersist } from "../src/lib/log.ts";
 
-Deno.test("only the noteworthy levels are kept", () => {
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
+configured("only the noteworthy levels are kept", () => {
   assert(shouldPersist("error"));
   assert(shouldPersist("warn"));
   // info is one line per request: keeping it would mean an object per request,
@@ -18,7 +23,7 @@ Deno.test("only the noteworthy levels are kept", () => {
 // line explaining why a job failed was replaced by a TypeError, and the retry
 // path raised instead of returning. Whatever a caller hands over, this must
 // produce a line.
-Deno.test("a bigint field is logged, not thrown over", () => {
+configured("a bigint field is logged, not thrown over", () => {
   const printed: string[] = [];
   const original = console.log;
   console.log = (line: string) => printed.push(line);

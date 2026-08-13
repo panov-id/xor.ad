@@ -49,15 +49,29 @@ const smtpServer = Deno.listen({ hostname: "127.0.0.1", port: 0 });
 Deno.env.set("MAIL_TRANSPORT", "smtp");
 Deno.env.set("MAIL_SMTP_HOST", "127.0.0.1");
 Deno.env.set("MAIL_SMTP_PORT", String((smtpServer.addr as Deno.NetAddr).port));
-Deno.env.set(
-  "BRANDS",
-  JSON.stringify([
+const BRANDS_JSON = JSON.stringify([
     { key: "alpha", name: "Alpha", domain: "alpha.test", from: "a <a@alpha.test>" },
-    { key: "beta", name: "Beta", domain: "beta.test", from: "b <b@beta.test>" },
-  ]),
-);
+  { key: "beta", name: "Beta", domain: "beta.test", from: "b <b@beta.test>" },
+]);
+Deno.env.set("BRANDS", BRANDS_JSON);
 
 const { config } = await import("../src/config.ts");
+const { suite } = await import("./support/config_env.ts");
+
+// This suite needs its own brands, its own secret, a temp storage dir and the
+// stand-in SMTP server — and it needs them per test, because another file
+// stating its configuration would otherwise take them away halfway through.
+// The port is only known at runtime, hence the function form.
+const configured = suite(() => ({
+  NODE_ENV_NAME: ENV_NAME,
+  SESSION_SECRET: SECRET,
+  STORAGE_TRANSPORT: "fs",
+  STORAGE_DIR: storageDir,
+  MAIL_TRANSPORT: "smtp",
+  MAIL_SMTP_HOST: "127.0.0.1",
+  MAIL_SMTP_PORT: String((smtpServer.addr as Deno.NetAddr).port),
+  BRANDS: BRANDS_JSON,
+}));
 const { match } = await import("../src/lib/router.ts");
 const { sign } = await import("../src/lib/jwt.ts");
 const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
@@ -160,29 +174,29 @@ const ALPHA = { role: "tenant_admin", brand: "alpha" } as const;
 const BETA = { role: "tenant_admin", brand: "beta" } as const;
 const PLATFORM = { role: "admin", brand: null } as const;
 
-Deno.test("a tenant sees its own leads and no one else's", async () => {
+configured("a tenant sees its own leads and no one else's", async () => {
   const { status, body } = await callAs(ALPHA, "GET", "/admin/waitlist");
   assertEquals(status, 200);
   assertEquals(body.map((row: { email: string }) => row.email), ["lead@alpha.test"]);
 });
 
-Deno.test("the platform sees every tenant's leads, each labelled", async () => {
+configured("the platform sees every tenant's leads, each labelled", async () => {
   const { body } = await callAs(PLATFORM, "GET", "/admin/waitlist");
   const brands = body.map((row: { brand: string }) => row.brand).sort();
   assertEquals(brands, ["alpha", "beta"]);
 });
 
-Deno.test("a tenant cannot read another tenant's log by asking for it", async () => {
+configured("a tenant cannot read another tenant's log by asking for it", async () => {
   const { status } = await callAs(ALPHA, "GET", "/admin/logs-client-errors?brand=beta");
   assertEquals(status, 403);
 });
 
-Deno.test("a tenant sees only its own operators", async () => {
+configured("a tenant sees only its own operators", async () => {
   const { body } = await callAs(ALPHA, "GET", "/admin/panel-users");
   assertEquals(body.map((row: { email: string }) => row.email), ["boss@alpha.test"]);
 });
 
-Deno.test("the platform reads every tenant at once, each row saying whose it is", async () => {
+configured("the platform reads every tenant at once, each row saying whose it is", async () => {
   const { status, body } = await callAs(PLATFORM, "GET", "/admin/logs-pageviews");
   assertEquals(status, 200);
   // Both tenants' views, merged and labelled — the default that stopped the panel
@@ -195,7 +209,7 @@ Deno.test("the platform reads every tenant at once, each row saying whose it is"
   );
 });
 
-Deno.test("the pre-migration archive is a scope you ask for by name", async () => {
+configured("the pre-migration archive is a scope you ask for by name", async () => {
   const { status, body } = await callAs(PLATFORM, "GET", "/admin/logs-pageviews?brand=platform");
   assertEquals(status, 200);
   assertEquals(body.scope.mode, "one");
@@ -204,7 +218,7 @@ Deno.test("the pre-migration archive is a scope you ask for by name", async () =
   assertEquals(body.rows[0].scope, "platform");
 });
 
-Deno.test("page views are a tenant's own traffic, not everyone's", async () => {
+configured("page views are a tenant's own traffic, not everyone's", async () => {
   const own = await callAs(ALPHA, "GET", "/admin/logs-pageviews");
   assertEquals(own.status, 200);
   assertEquals(own.body.rows.map((row: { brand: string }) => row.brand), ["alpha"]);
@@ -213,7 +227,7 @@ Deno.test("page views are a tenant's own traffic, not everyone's", async () => {
   assertEquals(foreign.status, 403);
 });
 
-Deno.test("a tenant reads only its own entries in the shared audit trail", async () => {
+configured("a tenant reads only its own entries in the shared audit trail", async () => {
   const { status, body } = await callAs(ALPHA, "GET", "/admin/logs-audit");
   assertEquals(status, 200);
   assertEquals(
@@ -226,7 +240,7 @@ Deno.test("a tenant reads only its own entries in the shared audit trail", async
   assertEquals(body.matched, 1);
 });
 
-Deno.test("the platform reads the whole audit trail", async () => {
+configured("the platform reads the whole audit trail", async () => {
   const { body } = await callAs(PLATFORM, "GET", "/admin/logs-audit");
   assertEquals(body.rows.length, 3);
 });
@@ -236,7 +250,7 @@ Deno.test("the platform reads the whole audit trail", async () => {
 // over a tenant's traffic, not merely show it.
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-Deno.test({
+configured({
   name: "a tenant mints keys only for itself",
   sanitizeOps: false,
   async fn() {
@@ -251,7 +265,7 @@ Deno.test({
 
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-Deno.test({
+configured({
   name: "a tenant sees only its own keys",
   sanitizeOps: false,
   async fn() {
@@ -264,7 +278,7 @@ Deno.test({
 
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-Deno.test({
+configured({
   name: "a tenant cannot revoke a key it cannot see",
   sanitizeOps: false,
   async fn() {
@@ -274,7 +288,7 @@ Deno.test({
   },
 });
 
-Deno.test("an origin has to be an origin", async () => {
+configured("an origin has to be an origin", async () => {
   const { status, body } = await callAs(ALPHA, "POST", "/admin/api-keys", {
     origins: ["alpha.test/path"],
   });
@@ -282,7 +296,7 @@ Deno.test("an origin has to be an origin", async () => {
   assert(String(body.error).includes("not an origin"));
 });
 
-Deno.test("a tenant cannot write the brand registry", async () => {
+configured("a tenant cannot write the brand registry", async () => {
   const { status } = await callAs(ALPHA, "POST", "/admin/brands", {
     key: "gamma",
     name: "Gamma",
@@ -292,7 +306,7 @@ Deno.test("a tenant cannot write the brand registry", async () => {
   assertEquals(status, 403);
 });
 
-Deno.test("a seeded brand is not editable through the registry", async () => {
+configured("a seeded brand is not editable through the registry", async () => {
   const { status, body } = await callAs(PLATFORM, "POST", "/admin/brands", {
     key: "alpha", // seeded from BRANDS in this test's environment
     name: "Alpha renamed",
@@ -305,7 +319,7 @@ Deno.test("a seeded brand is not editable through the registry", async () => {
 
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-Deno.test({
+configured({
   name: "the platform onboards a brand by writing it",
   sanitizeOps: false,
   async fn() {
@@ -325,7 +339,7 @@ Deno.test({
 
 // Onboarding ends at the brand unless the platform can also create that brand's
 // first administrator — nobody inside the tenant exists yet to do it.
-Deno.test({
+configured({
   name: "the platform creates a tenant's first administrator",
   sanitizeOps: false,
   async fn() {
@@ -344,7 +358,7 @@ Deno.test({
   },
 });
 
-Deno.test("the platform role cannot be handed to a tenant's operator", async () => {
+configured("the platform role cannot be handed to a tenant's operator", async () => {
   const { status } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
     email: "wildcard@beta.test",
     role: "admin",
@@ -356,7 +370,7 @@ Deno.test("the platform role cannot be handed to a tenant's operator", async () 
 // The last-admin guard keeps a scope reachable. Whether it should bind depends
 // on who is asking: a tenant removing its own last operator locks the tenant out,
 // the platform removing it does not — the platform is the way back in.
-Deno.test({
+configured({
   name: "a tenant cannot remove its own last administrator",
   sanitizeOps: false,
   async fn() {
@@ -365,7 +379,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+configured({
   name: "the platform can remove a tenant's last administrator",
   sanitizeOps: false,
   async fn() {
@@ -386,7 +400,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+configured({
   name: "the platform still cannot remove its own last administrator",
   sanitizeOps: false,
   async fn() {
@@ -395,7 +409,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+configured({
   name: "a tenant cannot touch an operator it cannot see",
   // The preceding delete writes its audit entry after answering; that write lands
   // in whichever test runs next.
@@ -442,7 +456,7 @@ async function letterContaining(fragment: string, timeoutMs = 2000): Promise<str
   return "";
 }
 
-Deno.test({
+configured({
   name: "the platform onboarding a tenant's operator invites them for a week",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -471,7 +485,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+configured({
   name: "a sign-in link is the short-lived one, and stays that way",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -499,7 +513,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+configured({
   name: "a tenant adding its own operator sends nothing — those people it tells itself",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -513,7 +527,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+configured({
   name: "a tenant cannot re-invite an operator of a brand it cannot see",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -526,7 +540,7 @@ Deno.test({
 // Last on purpose: it takes the mail server away, and nothing after it could
 // send. What it guards is that a letter which never went out leaves no key
 // behind — an unused week-long way in that nobody was ever told about.
-Deno.test({
+configured({
   name: "an invitation that could not be sent leaves no token behind",
   sanitizeOps: false,
   sanitizeResources: false,

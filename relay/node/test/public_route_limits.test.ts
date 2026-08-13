@@ -23,6 +23,11 @@ import { callerBucket } from "../src/lib/client_ip.ts";
 import { EVENTS, PAGEVIEWS } from "../src/lib/quota.ts";
 import { QUOTA_COLUMNS } from "../src/lib/api_key.ts";
 
+import { suite } from "./support/config_env.ts";
+
+// This suite states its own configuration; see test/support/config_env.ts.
+const configured = suite({});
+
 const request = (address: string, key: string | null) =>
   new Request("https://relay.test/pageview", {
     method: "POST",
@@ -32,7 +37,7 @@ const request = (address: string, key: string | null) =>
     },
   });
 
-Deno.test("the two silent routes have a limit at all", () => {
+configured("the two silent routes have a limit at all", () => {
   // They had none. Everything else here depends on that not being true again.
   assert(PAGEVIEW_LIMITS.length > 0, "/pageview has no rate limit");
   assert(CLIENT_ERROR_LIMITS.length > 0, "/client-error has no rate limit");
@@ -41,7 +46,7 @@ Deno.test("the two silent routes have a limit at all", () => {
   }
 });
 
-Deno.test("the bucket is the address and the key together", () => {
+configured("the bucket is the address and the key together", () => {
   const address = "203.0.113.7";
   assert(callerBucket(request(address, "ak_pub_aaa")) !== callerBucket(request(address, "ak_pub_bbb")));
   assertEquals(callerBucket(request(address, "ak_pub_aaa")), callerBucket(request(address, "ak_pub_aaa")));
@@ -50,7 +55,7 @@ Deno.test("the bucket is the address and the key together", () => {
   assertEquals(callerBucket(request(address, null)), `${address}|keyless`);
 });
 
-Deno.test("one tenant's noisy visitor does not silence that address for another", () => {
+configured("one tenant's noisy visitor does not silence that address for another", () => {
   reset();
   const address = "203.0.113.8";
   const hourly = PAGEVIEW_LIMITS[0].max;
@@ -63,7 +68,7 @@ Deno.test("one tenant's noisy visitor does not silence that address for another"
   assertEquals(checkAll(PAGEVIEW_LIMITS, other).allowed, true);
 });
 
-Deno.test("running out of page views leaves the sign-up form alone", () => {
+configured("running out of page views leaves the sign-up form alone", () => {
   reset();
   const bucket = callerBucket(request("203.0.113.9", "ak_pub_x"));
   for (let i = 0; i < PAGEVIEW_LIMITS[0].max; i++) checkAll(PAGEVIEW_LIMITS, bucket);
@@ -72,7 +77,7 @@ Deno.test("running out of page views leaves the sign-up form alone", () => {
   assertEquals(checkAll(WAITLIST_LIMITS, bucket).allowed, true);
 });
 
-Deno.test("the two families count in different cells and against different columns", () => {
+configured("the two families count in different cells and against different columns", () => {
   // The whole point of the split: had these stayed one name, the fix would be
   // cosmetic — the same counter row, the same allowance, the same denial.
   //

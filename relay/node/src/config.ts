@@ -66,66 +66,86 @@ function parseBrands(): Brand[] {
   }
 }
 
-export const config = {
-  envName: env("NODE_ENV_NAME", "dev"), // dev | staging | prod | local
-  nodeId: env("NODE_ID", "n0"),
-  region: env("NODE_REGION", "unknown"),
-  port: Number(env("PORT", "8080")),
+function read() {
+  return {
+    envName: env("NODE_ENV_NAME", "dev"), // dev | staging | prod | local
+    nodeId: env("NODE_ID", "n0"),
+    region: env("NODE_REGION", "unknown"),
+    port: Number(env("PORT", "8080")),
 
-  // Public routes accept an x-api-key that names the tenant. Until every landing
-  // sends one (docs/api-platform_*.md, block E), a keyless request still resolves
-  // its brand from host/source and says so in the log. Flip to "true" per env
-  // once the landings are updated; the fallback goes away with the flag.
-  requireApiKey: env("REQUIRE_API_KEY") === "true",
+    // Public routes accept an x-api-key that names the tenant. Until every landing
+    // sends one (docs/api-platform_*.md, block E), a keyless request still resolves
+    // its brand from host/source and says so in the log. Flip to "true" per env
+    // once the landings are updated; the fallback goes away with the flag.
+    requireApiKey: env("REQUIRE_API_KEY") === "true",
 
-  // The secret Bunny adds by an edge rule. Its presence is what makes an
-  // X-Real-IP header worth believing; without it the node counts by the address
-  // the connection actually came from. Empty on a node that is not behind the
-  // CDN, which is every node today.
-  originToken: env("ORIGIN_TOKEN"),
+    // The secret Bunny adds by an edge rule. Its presence is what makes an
+    // X-Real-IP header worth believing; without it the node counts by the address
+    // the connection actually came from. Empty on a node that is not behind the
+    // CDN, which is every node today.
+    originToken: env("ORIGIN_TOKEN"),
 
-  allowedOrigins: env("ALLOWED_ORIGINS")
-    .split(",").map((s) => s.trim()).filter(Boolean),
+    allowedOrigins: env("ALLOWED_ORIGINS")
+      .split(",").map((s) => s.trim()).filter(Boolean),
 
-  brands: parseBrands(),
+    brands: parseBrands(),
 
-  // Control state: keys, brands, quotas, the queue. Unset means the node keeps
-  // its storage-only behaviour — which is what a stand without Postgres gets,
-  // and what every environment gets until the database is wired up.
-  databaseUrl: env("DATABASE_URL"),
+    // Control state: keys, brands, quotas, the queue. Unset means the node keeps
+    // its storage-only behaviour — which is what a stand without Postgres gets,
+    // and what every environment gets until the database is wired up.
+    databaseUrl: env("DATABASE_URL"),
 
-  // Store: bunny (prod/dev on the pool) or fs (local — objects on a mounted dir).
-  storage: {
-    transport: env("STORAGE_TRANSPORT", "bunny"), // bunny | fs
-    dir: env("STORAGE_DIR", "/data"),
-    host: env("BUNNY_STORAGE_HOST", "storage.bunnycdn.com"),
-    zone: env("BUNNY_STORAGE_ZONE"),
-    key: env("BUNNY_STORAGE_KEY"),
-  },
+    // Store: bunny (prod/dev on the pool) or fs (local — objects on a mounted dir).
+    storage: {
+      transport: env("STORAGE_TRANSPORT", "bunny"), // bunny | fs
+      dir: env("STORAGE_DIR", "/data"),
+      host: env("BUNNY_STORAGE_HOST", "storage.bunnycdn.com"),
+      zone: env("BUNNY_STORAGE_ZONE"),
+      key: env("BUNNY_STORAGE_KEY"),
+    },
 
-  // Mail: resend (real send) or smtp (Mailpit on dev/local) or none.
-  mail: {
-    transport: env("MAIL_TRANSPORT", "resend"), // resend | smtp | none
-    smtp: { host: env("MAIL_SMTP_HOST", "mailpit"), port: Number(env("MAIL_SMTP_PORT", "1025")) },
-  },
-  resend: {
-    key: env("RESEND_API_KEY"), // default/fallback account key
-    // Per-brand account keys (Resend free tier = 1 verified domain per account,
-    // so each brand sends from its own domain via its own account). JSON map
-    // {brandKey: apiKey}; a brand not listed falls back to `key`.
-    keysByBrand: parseResendKeys(),
-    fromOverride: env("WELCOME_FROM"), // emergency global sender override (default: per-brand)
-  },
+    // Mail: resend (real send) or smtp (Mailpit on dev/local) or none.
+    mail: {
+      transport: env("MAIL_TRANSPORT", "resend"), // resend | smtp | none
+      smtp: { host: env("MAIL_SMTP_HOST", "mailpit"), port: Number(env("MAIL_SMTP_PORT", "1025")) },
+    },
+    resend: {
+      key: env("RESEND_API_KEY"), // default/fallback account key
+      // Per-brand account keys (Resend free tier = 1 verified domain per account,
+      // so each brand sends from its own domain via its own account). JSON map
+      // {brandKey: apiKey}; a brand not listed falls back to `key`.
+      keysByBrand: parseResendKeys(),
+      fromOverride: env("WELCOME_FROM"), // emergency global sender override (default: per-brand)
+    },
 
-  // Panel control plane: magic-link sessions signed with SESSION_SECRET; the
-  // login email links back to PANEL_URL. panelSender = the from for that email
-  // (a verified panov.id address, sent via the default Resend key).
-  session: { secret: env("SESSION_SECRET") },
-  panel: {
-    url: env("PANEL_URL"), // e.g. https://xor.panov.id — where the magic link lands
-    sender: env("PANEL_SENDER", "xor.panov.id <panel@panov.id>"),
-  },
-} as const;
+    // Panel control plane: magic-link sessions signed with SESSION_SECRET; the
+    // login email links back to PANEL_URL. panelSender = the from for that email
+    // (a verified panov.id address, sent via the default Resend key).
+    session: { secret: env("SESSION_SECRET") },
+    panel: {
+      url: env("PANEL_URL"), // e.g. https://xor.panov.id — where the magic link lands
+      sender: env("PANEL_SENDER", "xor.panov.id <panel@panov.id>"),
+    },
+  } as const;
+}
+
+// Read once at import, as before — every caller keeps the same object.
+export const config = read();
+
+// Read again. Tests are why this exists: config.ts captured the environment at
+// import, so a suite that set BRANDS or SESSION_SECRET before importing changed
+// it for every other suite in the process. The symptom was three welcome tests
+// failing with a TypeError in welcome.ts, which looks nothing like "another file
+// set an environment variable". CI worked around it by running that suite in a
+// process of its own; this removes the reason for the workaround.
+//
+// The object identity is kept — callers hold this exact reference — so the cast
+// is what lets a frozen-by-`as const` shape be refilled. Nothing in the node
+// calls this; it is for tests, and for a future reload signal if one is ever
+// wanted.
+export function reloadConfig(): void {
+  Object.assign(config as Record<string, unknown>, read());
+}
 
 function parseResendKeys(): Record<string, string> {
   const raw = env("RESEND_KEYS"); // JSON: {"neighbro":"re_…","sosed":"re_…"}

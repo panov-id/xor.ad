@@ -8,6 +8,12 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 const SECRET = "guard-test-secret";
 Deno.env.set("SESSION_SECRET", SECRET);
 
+import { suite } from "./support/config_env.ts";
+
+// The guard reads config.session.secret, so this suite names it rather than
+// hoping the process still holds it.
+const configured = suite({ SESSION_SECRET: SECRET });
+
 const { config } = await import("../src/config.ts");
 const { isDenied, requirePermission } = await import("../src/lib/access_guard.ts");
 const { sign } = await import("../src/lib/jwt.ts");
@@ -39,7 +45,7 @@ const status = async (request: Request, permission: Parameters<typeof requirePer
   return isDenied(result) ? result.response.status : 200;
 };
 
-Deno.test("guard admits a permitted caller and hands back the actor", async () => {
+configured("guard admits a permitted caller and hands back the actor", async () => {
   const result = await requirePermission(await requestAs("admin"), "panel_users.write");
   assert(!isDenied(result));
   if (isDenied(result)) return;
@@ -47,7 +53,7 @@ Deno.test("guard admits a permitted caller and hands back the actor", async () =
   assertEquals(result.user.role, "admin");
 });
 
-Deno.test("guard answers 403 when authenticated but under-privileged", async () => {
+configured("guard answers 403 when authenticated but under-privileged", async () => {
   assertEquals(await status(await requestAs("moderator"), "panel_users.write"), 403);
   assertEquals(await status(await requestAs("moderator"), "logs.server.read"), 403);
   assertEquals(await status(await requestAs("viewer"), "logs.client_errors.read"), 403);
@@ -56,7 +62,7 @@ Deno.test("guard answers 403 when authenticated but under-privileged", async () 
   assertEquals(await status(await requestAs("viewer"), "waitlist.read"), 200);
 });
 
-Deno.test("guard answers 401 for anything it cannot trust", async () => {
+configured("guard answers 401 for anything it cannot trust", async () => {
   const bare = new Request("https://relay.test/admin/panel-users");
   assertEquals(await status(bare, "waitlist.read"), 401);
 
@@ -81,7 +87,7 @@ Deno.test("guard answers 401 for anything it cannot trust", async () => {
 // dev node — the environment with the weaker way in — verified on prod byte for
 // byte. The secrets are separate now; this is what makes a mix-up a refusal
 // rather than a working session on the wrong node.
-Deno.test("guard answers 401 to a session from another environment", async () => {
+configured("guard answers 401 to a session from another environment", async () => {
   const elsewhere = await requestAs("admin", { env: "prod" });
   assertEquals(await status(elsewhere, "waitlist.read"), 401);
 
@@ -92,11 +98,14 @@ Deno.test("guard answers 401 to a session from another environment", async () =>
 // Sessions minted before the claim existed carry no environment at all. They
 // were signed with the shared secret being retired, so they are not grandfathered
 // in: a transition window here would be the very hole this closes.
-Deno.test("guard answers 401 to a session predating the environment claim", async () => {
+configured("guard answers 401 to a session predating the environment claim", async () => {
   const { sign } = await import("../src/lib/jwt.ts");
   const legacy = await sign(
-    // deno-lint-ignore no-explicit-any — deliberately the old shape, which the
-    // type no longer admits and a real old token still has.
+    // Deliberately the old shape: the type no longer admits it, and a real old
+    // token still has it. The ignore has to be the last thing on its own line —
+    // deno reads whatever follows the rule name as more rule names, which is how
+    // one comment turned into seven lint errors.
+    // deno-lint-ignore no-explicit-any
     { sub: "a@example.com", role: "admin", brand: null, exp: HOUR_FROM_NOW() } as any,
     SECRET,
   );

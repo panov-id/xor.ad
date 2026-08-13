@@ -6,10 +6,20 @@ import { resolveBrand, welcomeEmail } from "../src/lib/welcome.ts";
 import { brandByKey } from "../src/config.ts";
 import { inc, render } from "../src/lib/metrics.ts";
 
-const sosed = brandByKey("sosed")!;
-const neighbro = brandByKey("neighbro")!;
+import { suite } from "./support/config_env.ts";
 
-Deno.test("isEmail accepts/rejects", () => {
+// The defaults: no BRANDS, so config.ts builds the two brands it ships with.
+const configured = suite({});
+
+
+// Looked up inside a test, not at import: at import the process may still be
+// holding another file's BRANDS, and `!` turns the resulting undefined into a
+// TypeError deep inside welcome.ts — which is exactly the failure that hid the
+// leak for so long.
+const sosed = () => brandByKey("sosed")!;
+const neighbro = () => brandByKey("neighbro")!;
+
+configured("isEmail accepts/rejects", () => {
   assert(isEmail("me@example.com"));
   assert(isEmail("a.b+c@sub.example.co"));
   assert(!isEmail("nope"));
@@ -18,7 +28,7 @@ Deno.test("isEmail accepts/rejects", () => {
   assert(!isEmail("a@b." + "x".repeat(300))); // too long
 });
 
-Deno.test("sha256hex is stable and 64 hex chars (dedup key)", async () => {
+configured("sha256hex is stable and 64 hex chars (dedup key)", async () => {
   const h = await sha256hex("me@example.com");
   assertEquals(h.length, 64);
   assert(/^[0-9a-f]+$/.test(h));
@@ -26,7 +36,7 @@ Deno.test("sha256hex is stable and 64 hex chars (dedup key)", async () => {
   assert(h !== await sha256hex("other@example.com"));
 });
 
-Deno.test("resolveBrand maps source/host to a brand, defaults to primary", () => {
+configured("resolveBrand maps source/host to a brand, defaults to primary", () => {
   assertEquals(resolveBrand("neighbro-landing").key, "neighbro");
   assertEquals(resolveBrand("https://api.neighbro.place").key, "neighbro");
   assertEquals(resolveBrand("sosed.place-landing").key, "sosed");
@@ -34,61 +44,61 @@ Deno.test("resolveBrand maps source/host to a brand, defaults to primary", () =>
   assertEquals(resolveBrand(null).key, "sosed");
 });
 
-Deno.test("welcome: localized + per-brand identity", () => {
-  const ru = welcomeEmail("ru", { brand: sosed });
+configured("welcome: localized + per-brand identity", () => {
+  const ru = welcomeEmail("ru", { brand: sosed() });
   assert(ru.subject.includes("сосед"));
   assert(!ru.subject.includes("Neighbro"));
   assert(ru.from.includes("sosed.place"));
 
-  const en = welcomeEmail("en", { brand: neighbro });
+  const en = welcomeEmail("en", { brand: neighbro() });
   assert(en.subject.includes("Neighbro"));
   assert(en.from.includes("neighbro.place"));
   assert(en.html.includes("PSYTICAN"));
   assert(en.html.includes("NEIGHBRO")); // header wordmark
 });
 
-Deno.test("welcome: per-brand palette, accent and shape", () => {
+configured("welcome: per-brand palette, accent and shape", () => {
   // sosed: terra default accent, rounded card, sosed dark background
-  const s = welcomeEmail("ru", { brand: sosed });
+  const s = welcomeEmail("ru", { brand: sosed() });
   assert(s.html.includes("#d6552f")); // terra
   assert(s.html.includes("border-radius:14px"));
   assert(s.html.includes("background:#0d0b0a")); // sosed dark bg
   assert(s.html.includes("img/splash.jpg")); // warm courtyard hero
 
   // sosed light mode + explicit accent
-  const sl = welcomeEmail("ru", { brand: sosed, accent: "amber", mode: "light" });
+  const sl = welcomeEmail("ru", { brand: sosed(), accent: "amber", mode: "light" });
   assert(sl.html.includes("#d68a1f")); // amber
   assert(sl.html.includes("background:#ece4d8")); // sosed light bg
 
   // sosed teal uses the sosed hex, not the neighbro one
-  const st = welcomeEmail("ru", { brand: sosed, accent: "teal" });
+  const st = welcomeEmail("ru", { brand: sosed(), accent: "teal" });
   assert(st.html.includes("#1fa99a"));
   assert(!st.html.includes("#1fb39a"));
 
   // neighbro: gold default (empty accent from the landing), brutalist card
-  const n = welcomeEmail("en", { brand: neighbro, accent: "" });
+  const n = welcomeEmail("en", { brand: neighbro(), accent: "" });
   assert(n.html.includes("#c6a24e")); // gold
   assert(n.html.includes("border-radius:0"));
   assert(n.html.includes("background:#0c0b09")); // neighbro dark bg
   assert(n.html.includes("img/hero.jpg")); // neighbro keeps the facade hero
 
   // unknown accent falls back to the brand default
-  const u = welcomeEmail("en", { brand: sosed, accent: "nope" });
+  const u = welcomeEmail("en", { brand: sosed(), accent: "nope" });
   assert(u.html.includes("#d6552f"));
 });
 
-Deno.test("welcome: all 16 languages have their own subject", () => {
+configured("welcome: all 16 languages have their own subject", () => {
   const langs = ["en","ru","fr","de","es","el","uk","be","kk","ka","hy","az","uz","ky","tg","ro"];
-  const subjects = new Set(langs.map((l) => welcomeEmail(l, { brand: sosed }).subject));
+  const subjects = new Set(langs.map((l) => welcomeEmail(l, { brand: sosed() }).subject));
   assertEquals(subjects.size, langs.length);
 });
 
-Deno.test("welcome: unknown language falls back to en copy", () => {
-  const unknown = welcomeEmail("zz", { brand: sosed });
-  assertEquals(unknown.subject, welcomeEmail("en", { brand: sosed }).subject);
+configured("welcome: unknown language falls back to en copy", () => {
+  const unknown = welcomeEmail("zz", { brand: sosed() });
+  assertEquals(unknown.subject, welcomeEmail("en", { brand: sosed() }).subject);
 });
 
-Deno.test("metrics render Prometheus counters with labels", () => {
+configured("metrics render Prometheus counters with labels", () => {
   inc("relay_ut_total", { result: "ok" });
   inc("relay_ut_total", { result: "ok" });
   inc("relay_ut_total", { result: "fail" });
@@ -100,7 +110,7 @@ Deno.test("metrics render Prometheus counters with labels", () => {
 
 // The quota's arithmetic, without a database: what "today" means and what a
 // caller who ran out is told to do about it.
-Deno.test("quota: the day is UTC, not the node's timezone", async () => {
+configured("quota: the day is UTC, not the node's timezone", async () => {
   const { utcDay } = await import("../src/lib/quota.ts");
   // A pool spans regions; a per-node local day would let a key spend its
   // allowance twice by crossing midnight in two places.
@@ -108,7 +118,7 @@ Deno.test("quota: the day is UTC, not the node's timezone", async () => {
   assertEquals(utcDay(new Date("2026-07-29T00:00:01Z")), "2026-07-29");
 });
 
-Deno.test("quota: the reset is a number of seconds, never zero", async () => {
+configured("quota: the reset is a number of seconds, never zero", async () => {
   const { secondsUntilReset } = await import("../src/lib/quota.ts");
   assertEquals(secondsUntilReset(new Date("2026-07-28T00:00:00Z")), 86400);
   assertEquals(secondsUntilReset(new Date("2026-07-28T23:59:30Z")), 30);
@@ -116,7 +126,7 @@ Deno.test("quota: the reset is a number of seconds, never zero", async () => {
   assert(secondsUntilReset(new Date("2026-07-28T23:59:59.900Z")) >= 1);
 });
 
-Deno.test("quota: no limit and no database mean no refusal", async () => {
+configured("quota: no limit and no database mean no refusal", async () => {
   const { exceeded } = await import("../src/lib/quota.ts");
   // null is what every key has until someone sets an allowance, and the tests
   // run without DATABASE_URL — both paths must let traffic through.
@@ -124,7 +134,7 @@ Deno.test("quota: no limit and no database mean no refusal", async () => {
   assertEquals(await exceeded("ak_pub_whatever", 1), false);
 });
 
-Deno.test("jwt: sign/verify round-trip", async () => {
+configured("jwt: sign/verify round-trip", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const token = await sign({ sub: "a@b.com", role: "admin", brand: null, env: "dev", exp }, "s3cret");
@@ -135,7 +145,7 @@ Deno.test("jwt: sign/verify round-trip", async () => {
 
 // The counter's privacy is these two functions: everything a visitor's browser
 // offers that could identify them is reduced here, before anything is stored.
-Deno.test("pageview: the referrer is reduced to its host", async () => {
+configured("pageview: the referrer is reduced to its host", async () => {
   const { referrerHost } = await import("../src/routes/pageview.ts");
   // A search query lives in the referrer's query string — the reason only the
   // host is kept.
@@ -149,7 +159,7 @@ Deno.test("pageview: the referrer is reduced to its host", async () => {
   assertEquals(referrerHost(42), null);
 });
 
-Deno.test("pageview: the viewport becomes a bucket, not a measurement", async () => {
+configured("pageview: the viewport becomes a bucket, not a measurement", async () => {
   const { viewport } = await import("../src/routes/pageview.ts");
   assertEquals(viewport(390), "mobile");
   assertEquals(viewport(834), "tablet");
@@ -161,7 +171,7 @@ Deno.test("pageview: the viewport becomes a bucket, not a measurement", async ()
 
 // The prune deletes without reading, so what it selects is the whole safety
 // argument: an entry the transport could not date must survive.
-Deno.test("prune: only dated entries older than the cutoff are selected", async () => {
+configured("prune: only dated entries older than the cutoff are selected", async () => {
   const { expiredEntries } = await import("../tools/prune_pageviews.ts");
   const entries = [
     { name: "old.json", createdAt: "2026-01-01T00:00:00.000Z", size: 1 },
@@ -173,7 +183,7 @@ Deno.test("prune: only dated entries older than the cutoff are selected", async 
   assertEquals(expired.map((entry) => entry.name), ["old.json"]);
 });
 
-Deno.test("jwt: rejects wrong secret and expired token", async () => {
+configured("jwt: rejects wrong secret and expired token", async () => {
   const { sign, verify } = await import("../src/lib/jwt.ts");
   const good = await sign({ sub: "a@b.com", role: "admin", brand: null, env: "dev", exp: Math.floor(Date.now()/1000)+60 }, "k1");
   assertEquals(await verify(good, "k2"), null);                       // wrong key
@@ -184,7 +194,7 @@ Deno.test("jwt: rejects wrong secret and expired token", async () => {
 
 // The page-view counter without a database: `record` must be a no-op rather than
 // a throw, because the request it runs inside is one a visitor is waiting on.
-Deno.test("pageview counts: no database, no counting, no complaint", async () => {
+configured("pageview counts: no database, no counting, no complaint", async () => {
   const { record, flush, utcDay } = await import("../src/lib/pageview_daily.ts");
   // DATABASE_URL is unset in this suite, so the module is disabled.
   record("sosed", "/", "ru", true);
@@ -195,7 +205,7 @@ Deno.test("pageview counts: no database, no counting, no complaint", async () =>
   assertEquals(utcDay(new Date("2026-07-30T00:00:00.000Z")), "2026-07-30");
 });
 
-Deno.test("prune: the default window is the one the objects are kept for", async () => {
+configured("prune: the default window is the one the objects are kept for", async () => {
   const source = await Deno.readTextFile(
     new URL("../tools/prune_pageviews.ts", import.meta.url),
   );

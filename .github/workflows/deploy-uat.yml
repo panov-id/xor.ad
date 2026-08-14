@@ -37,8 +37,13 @@ jobs:
           # a leading zero either, and a sha of all digits starting with one would
           # break the same way, rarely and unforgettably.
           TAG="v$(date +%Y.%-m.%-d)-g${GITHUB_SHA::7}"
-          git tag "$TAG"
-          git push origin "$TAG"
+          # Idempotent: a re-run of the same commit must not fail on an existing
+          # tag. It did, and the failure had the worst shape — `release` went red
+          # and everything depending on it was skipped, so re-running, which is
+          # the first thing a person reaches for after a bad deploy, could not
+          # work. sosed.place already did this; these two had not.
+          git tag "$TAG" 2>/dev/null || echo "tag $TAG already exists locally"
+          git push origin "$TAG" 2>/dev/null || echo "tag $TAG already on remote"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Created release $TAG"
 

@@ -41,6 +41,9 @@ jobs:
       - name: no secret on a command line
         run: python3 deploy/test_no_secrets_in_argv.py
 
+      - name: the release tag survives a re-run
+        run: python3 deploy/test_release_tag.py
+
       # The wizard is a deploy script too: it decides what permissions the
       # secrets land with on a node, and which secret signs that node's sessions.
       - name: what the wizard writes to a node

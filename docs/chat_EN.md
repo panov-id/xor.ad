@@ -750,6 +750,7 @@ CREATE TABLE match_participants (
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
   idle_ttl_minutes  integer,            -- chosen chat lifetime
+  ephemeral_public_key text,            -- this chat's key, wrapped to the other side (8.13)
   PRIMARY KEY (match_id, identity)
 );
 ```
@@ -1026,7 +1027,9 @@ POST /chats/alive  { ids: [uuid, ...] }  →  { alive: [uuid, ...] }
 
 Anything missing from `alive` is deleted from IndexedDB along with its messages. This covers, in one move: an expired TTL, a peer's closed identity, a block, and "hasn't opened the app in a month" — the very next session sweeps the dead away.
 
-**Local history is encrypted with the identity's secret.** Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations. The key is derived from the same secret that signs requests (`identity_id` + secret, 8.2), so erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
+**Local history is encrypted with the vault key of §8.6** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
+
+This paragraph used to say the key came from "the same secret that signs requests", which stopped being true when §8.2 replaced that secret with a key pair — there is no secret to derive from, only a public half the node keeps. Three sections gave three answers to one question; this is the one that holds.
 
 **A pair can match again.** `pair_key` is freed when the `chats` row is deleted, so after a chat dies a new match is possible — but only under the usual rules: both phrases must be alive, and both people must consent again. That is intended, not a side effect.
 

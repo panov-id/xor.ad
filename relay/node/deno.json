@@ -3,8 +3,8 @@
     "dev": "deno run --watch --allow-net --allow-env src/main.ts",
     "start": "deno run --allow-net --allow-env src/main.ts",
     "check": "deno check src/main.ts",
-    "//test": "Everything but the database suite, which needs Postgres and refuses to run without it (scripts/run-relay-database-tests.sh brings its own). One process: the suites no longer leak configuration into each other, so the --ignore that used to be needed for tenancy is gone.",
-    "test": "deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 --ignore=test/database.test.ts",
+    "//test": "Everything but the database suite, which needs Postgres and refuses to run without it (scripts/run-relay-database-tests.sh brings its own). One process: the suites no longer leak configuration into each other, so the --ignore that used to be needed for tenancy is gone. --shuffle because they used to depend on each other's order — a shared storage directory, caches that outlived it, and one test that closed the mail server and was marked 'last on purpose'. Deno prints the seed it chose, so a red run is reproducible with --shuffle=<seed>.",
+    "test": "deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 --ignore=test/database.test.ts --shuffle",
     "test:db": "bash ../../scripts/run-relay-database-tests.sh",
     "fmt": "deno fmt",
     "lint": "deno lint"

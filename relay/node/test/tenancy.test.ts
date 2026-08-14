@@ -5,7 +5,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 const SECRET = "tenancy-test-secret";
 const ENV_NAME = "test";
-const storageDir = await Deno.makeTempDir();
+let storageDir = await Deno.makeTempDir();
 
 // Env before the first import: config.ts captures it at module load.
 Deno.env.set("STORAGE_TRANSPORT", "fs");
@@ -56,26 +56,41 @@ const BRANDS_JSON = JSON.stringify([
 Deno.env.set("BRANDS", BRANDS_JSON);
 
 const { config } = await import("../src/config.ts");
-const { suite } = await import("./support/config_env.ts");
+const { suite, useEnvironment } = await import("./support/config_env.ts");
 
 // This suite needs its own brands, its own secret, a temp storage dir and the
 // stand-in SMTP server — and it needs them per test, because another file
 // stating its configuration would otherwise take them away halfway through.
 // The port is only known at runtime, hence the function form.
-const configured = suite(() => ({
-  NODE_ENV_NAME: ENV_NAME,
-  SESSION_SECRET: SECRET,
-  STORAGE_TRANSPORT: "fs",
-  STORAGE_DIR: storageDir,
-  MAIL_TRANSPORT: "smtp",
-  MAIL_SMTP_HOST: "127.0.0.1",
-  MAIL_SMTP_PORT: String((smtpServer.addr as Deno.NetAddr).port),
-  BRANDS: BRANDS_JSON,
-}));
+function environment(overrides: Record<string, string> = {}): Record<string, string> {
+  storageDir = Deno.makeTempDirSync();
+  return {
+    NODE_ENV_NAME: ENV_NAME,
+    SESSION_SECRET: SECRET,
+    STORAGE_TRANSPORT: "fs",
+    STORAGE_DIR: storageDir,
+    MAIL_TRANSPORT: "smtp",
+    MAIL_SMTP_HOST: "127.0.0.1",
+    MAIL_SMTP_PORT: String((smtpServer.addr as Deno.NetAddr).port),
+    BRANDS: BRANDS_JSON,
+    ...overrides,
+  };
+}
+
+const configured = suite(() => {
+  // A fresh directory per test, not per file. These tests write: they create
+  // operators, mint keys, revoke them, delete the last administrator. Sharing
+  // one directory meant each test ran against whatever the previous ones had
+  // left, which held together only in the order they happen to be written in —
+  // under --shuffle nine of the twenty-seven failed.
+  return environment();
+});
 const { match } = await import("../src/lib/router.ts");
 const { sign } = await import("../src/lib/jwt.ts");
 const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
 const { sha256hex } = await import("../src/lib/hash.ts");
+const { invalidateBrands } = await import("../src/lib/brand_registry.ts");
+const { invalidatePublishableKeys } = await import("../src/lib/api_key.ts");
 await import("../src/routes/admin.ts"); // registers the routes as a side effect
 
 async function seed(): Promise<void> {
@@ -134,7 +149,66 @@ async function seed(): Promise<void> {
     });
   }
 }
-await seed();
+
+// Seeded before each test rather than once for the file, for the same reason the
+// directory is fresh: a test that reads the fixture must not be reading what an
+// earlier test did to it. The mailbox is emptied too — it is a module-level
+// array, and letter counts were being compared against everyone else's letters.
+function tenancy(name: string, body: () => unknown | Promise<unknown>): void;
+function tenancy(definition: Deno.TestDefinition): void;
+function tenancy(
+  first: string | Deno.TestDefinition,
+  body?: () => unknown | Promise<unknown>,
+): void {
+  // Audit entries are written fire-and-forget by design, and the invitation
+  // tests talk to a stand-in SMTP server. Both finish after the test that
+  // started them returns, so each test waits at its own end — that keeps its
+  // stragglers in its own directory rather than in the next test's. Settling at
+  // the start instead was tried and is worse: the wait then happens after this
+  // test has already taken a fresh directory, which is exactly where the
+  // stragglers must not land.
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 30));
+
+  // Two caches live in module state and outlast the storage directory, so a
+  // brand or a key created by one test was still remembered by the next — which
+  // is how "gamma" turned up in a listing that had only ever seeded alpha and
+  // beta.
+  const forget = () => {
+    invalidateBrands();
+    invalidatePublishableKeys();
+  };
+
+  // The sanitizers are relaxed for every test here, not for the handful that
+  // happen to write. The code under test writes audit entries fire-and-forget by
+  // design, so a write started by one test completes during another — and once
+  // the order stopped being fixed, "another" became any of them. Deno reports
+  // that as a leak in whichever test was unlucky, which says nothing about that
+  // test. The individual sanitizeOps flags this file already carried were the
+  // same admission, one test at a time.
+  if (typeof first === "string") {
+    configured({ name: first, sanitizeOps: false, sanitizeResources: false, fn: async () => {
+      mailbox.length = 0;
+      forget();
+      await seed();
+      await body!();
+      await settle();
+    } });
+    return;
+  }
+  const { fn, ...rest } = first;
+  configured({
+    sanitizeOps: false,
+    sanitizeResources: false,
+    ...rest,
+    async fn(context) {
+      mailbox.length = 0;
+      forget();
+      await seed();
+      await fn(context);
+      await settle();
+    },
+  });
+}
 
 // deno-lint-ignore no-explicit-any
 type Body = any;
@@ -174,29 +248,29 @@ const ALPHA = { role: "tenant_admin", brand: "alpha" } as const;
 const BETA = { role: "tenant_admin", brand: "beta" } as const;
 const PLATFORM = { role: "admin", brand: null } as const;
 
-configured("a tenant sees its own leads and no one else's", async () => {
+tenancy("a tenant sees its own leads and no one else's", async () => {
   const { status, body } = await callAs(ALPHA, "GET", "/admin/waitlist");
   assertEquals(status, 200);
   assertEquals(body.map((row: { email: string }) => row.email), ["lead@alpha.test"]);
 });
 
-configured("the platform sees every tenant's leads, each labelled", async () => {
+tenancy("the platform sees every tenant's leads, each labelled", async () => {
   const { body } = await callAs(PLATFORM, "GET", "/admin/waitlist");
   const brands = body.map((row: { brand: string }) => row.brand).sort();
   assertEquals(brands, ["alpha", "beta"]);
 });
 
-configured("a tenant cannot read another tenant's log by asking for it", async () => {
+tenancy("a tenant cannot read another tenant's log by asking for it", async () => {
   const { status } = await callAs(ALPHA, "GET", "/admin/logs-client-errors?brand=beta");
   assertEquals(status, 403);
 });
 
-configured("a tenant sees only its own operators", async () => {
+tenancy("a tenant sees only its own operators", async () => {
   const { body } = await callAs(ALPHA, "GET", "/admin/panel-users");
   assertEquals(body.map((row: { email: string }) => row.email), ["boss@alpha.test"]);
 });
 
-configured("the platform reads every tenant at once, each row saying whose it is", async () => {
+tenancy("the platform reads every tenant at once, each row saying whose it is", async () => {
   const { status, body } = await callAs(PLATFORM, "GET", "/admin/logs-pageviews");
   assertEquals(status, 200);
   // Both tenants' views, merged and labelled — the default that stopped the panel
@@ -209,7 +283,7 @@ configured("the platform reads every tenant at once, each row saying whose it is
   );
 });
 
-configured("the pre-migration archive is a scope you ask for by name", async () => {
+tenancy("the pre-migration archive is a scope you ask for by name", async () => {
   const { status, body } = await callAs(PLATFORM, "GET", "/admin/logs-pageviews?brand=platform");
   assertEquals(status, 200);
   assertEquals(body.scope.mode, "one");
@@ -218,7 +292,7 @@ configured("the pre-migration archive is a scope you ask for by name", async () 
   assertEquals(body.rows[0].scope, "platform");
 });
 
-configured("page views are a tenant's own traffic, not everyone's", async () => {
+tenancy("page views are a tenant's own traffic, not everyone's", async () => {
   const own = await callAs(ALPHA, "GET", "/admin/logs-pageviews");
   assertEquals(own.status, 200);
   assertEquals(own.body.rows.map((row: { brand: string }) => row.brand), ["alpha"]);
@@ -227,7 +301,7 @@ configured("page views are a tenant's own traffic, not everyone's", async () => 
   assertEquals(foreign.status, 403);
 });
 
-configured("a tenant reads only its own entries in the shared audit trail", async () => {
+tenancy("a tenant reads only its own entries in the shared audit trail", async () => {
   const { status, body } = await callAs(ALPHA, "GET", "/admin/logs-audit");
   assertEquals(status, 200);
   assertEquals(
@@ -240,9 +314,18 @@ configured("a tenant reads only its own entries in the shared audit trail", asyn
   assertEquals(body.matched, 1);
 });
 
-configured("the platform reads the whole audit trail", async () => {
+tenancy("the platform reads the whole audit trail", async () => {
   const { body } = await callAs(PLATFORM, "GET", "/admin/logs-audit");
-  assertEquals(body.rows.length, 3);
+  // The three seeded entries by name rather than a bare count of three: a count
+  // also fails when an unrelated test's fire-and-forget audit write lands here,
+  // which says nothing about whether the platform can read every tenant's trail.
+  const targets = body.rows.map((row: { target: string }) => row.target);
+  for (const brand of ["alpha", "beta", "platform"]) {
+    assert(
+      targets.includes(`new@${brand}.test`),
+      `the platform cannot see ${brand}'s entry — it reads ${targets.join(", ")}`,
+    );
+  }
 });
 
 // Keys name a tenant, so who may mint and see one is the same boundary as the
@@ -250,7 +333,7 @@ configured("the platform reads the whole audit trail", async () => {
 // over a tenant's traffic, not merely show it.
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-configured({
+tenancy({
   name: "a tenant mints keys only for itself",
   sanitizeOps: false,
   async fn() {
@@ -265,20 +348,25 @@ configured({
 
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-configured({
+tenancy({
   name: "a tenant sees only its own keys",
   sanitizeOps: false,
   async fn() {
+  // Both keys are minted here. This test used to mint beta's and assert alpha
+  // had one, which was true only because an earlier test had left it — the
+  // dependency that made the file order-bound.
+  await callAs(ALPHA, "POST", "/admin/api-keys", { origins: ["https://alpha.test"] });
   await callAs(BETA, "POST", "/admin/api-keys", { origins: ["https://beta.test"] });
+
   const { body } = await callAs(ALPHA, "GET", "/admin/api-keys");
-  assert(body.length > 0);
+  assert(body.length > 0, "the tenant cannot see the key it just minted");
   assert(body.every((key: { brand: string }) => key.brand === "alpha"));
   },
 });
 
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-configured({
+tenancy({
   name: "a tenant cannot revoke a key it cannot see",
   sanitizeOps: false,
   async fn() {
@@ -288,7 +376,7 @@ configured({
   },
 });
 
-configured("an origin has to be an origin", async () => {
+tenancy("an origin has to be an origin", async () => {
   const { status, body } = await callAs(ALPHA, "POST", "/admin/api-keys", {
     origins: ["alpha.test/path"],
   });
@@ -296,7 +384,7 @@ configured("an origin has to be an origin", async () => {
   assert(String(body.error).includes("not an origin"));
 });
 
-configured("a tenant cannot write the brand registry", async () => {
+tenancy("a tenant cannot write the brand registry", async () => {
   const { status } = await callAs(ALPHA, "POST", "/admin/brands", {
     key: "gamma",
     name: "Gamma",
@@ -306,7 +394,7 @@ configured("a tenant cannot write the brand registry", async () => {
   assertEquals(status, 403);
 });
 
-configured("a seeded brand is not editable through the registry", async () => {
+tenancy("a seeded brand is not editable through the registry", async () => {
   const { status, body } = await callAs(PLATFORM, "POST", "/admin/brands", {
     key: "alpha", // seeded from BRANDS in this test's environment
     name: "Alpha renamed",
@@ -319,7 +407,7 @@ configured("a seeded brand is not editable through the registry", async () => {
 
 // Writes audit entries, which are fire-and-forget by design: the op sanitizer
 // would otherwise attribute that write to whichever test runs next.
-configured({
+tenancy({
   name: "the platform onboards a brand by writing it",
   sanitizeOps: false,
   async fn() {
@@ -339,7 +427,7 @@ configured({
 
 // Onboarding ends at the brand unless the platform can also create that brand's
 // first administrator — nobody inside the tenant exists yet to do it.
-configured({
+tenancy({
   name: "the platform creates a tenant's first administrator",
   sanitizeOps: false,
   async fn() {
@@ -358,7 +446,7 @@ configured({
   },
 });
 
-configured("the platform role cannot be handed to a tenant's operator", async () => {
+tenancy("the platform role cannot be handed to a tenant's operator", async () => {
   const { status } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
     email: "wildcard@beta.test",
     role: "admin",
@@ -370,7 +458,7 @@ configured("the platform role cannot be handed to a tenant's operator", async ()
 // The last-admin guard keeps a scope reachable. Whether it should bind depends
 // on who is asking: a tenant removing its own last operator locks the tenant out,
 // the platform removing it does not — the platform is the way back in.
-configured({
+tenancy({
   name: "a tenant cannot remove its own last administrator",
   sanitizeOps: false,
   async fn() {
@@ -379,7 +467,7 @@ configured({
   },
 });
 
-configured({
+tenancy({
   name: "the platform can remove a tenant's last administrator",
   sanitizeOps: false,
   async fn() {
@@ -400,7 +488,7 @@ configured({
   },
 });
 
-configured({
+tenancy({
   name: "the platform still cannot remove its own last administrator",
   sanitizeOps: false,
   async fn() {
@@ -409,7 +497,7 @@ configured({
   },
 });
 
-configured({
+tenancy({
   name: "a tenant cannot touch an operator it cannot see",
   // The preceding delete writes its audit entry after answering; that write lands
   // in whichever test runs next.
@@ -456,7 +544,7 @@ async function letterContaining(fragment: string, timeoutMs = 2000): Promise<str
   return "";
 }
 
-configured({
+tenancy({
   name: "the platform onboarding a tenant's operator invites them for a week",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -485,7 +573,7 @@ configured({
   },
 });
 
-configured({
+tenancy({
   name: "a sign-in link is the short-lived one, and stays that way",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -513,7 +601,7 @@ configured({
   },
 });
 
-configured({
+tenancy({
   name: "a tenant adding its own operator sends nothing — those people it tells itself",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -527,7 +615,7 @@ configured({
   },
 });
 
-configured({
+tenancy({
   name: "a tenant cannot re-invite an operator of a brand it cannot see",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -537,15 +625,24 @@ configured({
   },
 });
 
-// Last on purpose: it takes the mail server away, and nothing after it could
-// send. What it guards is that a letter which never went out leaves no key
-// behind — an unused week-long way in that nobody was ever told about.
-configured({
+// What it guards is that a letter which never went out leaves no key behind — an
+// unused week-long way in that nobody was ever told about.
+//
+// It used to close the shared mail server, and was marked "last on purpose"
+// because of it. That is the whole of the ordering problem in one test: run it
+// anywhere but last and every invitation after it failed with a connection
+// refused. It points the configuration at a port of its own instead — opened to
+// learn a free number, closed immediately so nothing is listening on it.
+tenancy({
   name: "an invitation that could not be sent leaves no token behind",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    smtpServer.close();
+    const probe = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+    const deadPort = String((probe.addr as Deno.NetAddr).port);
+    probe.close();
+    useEnvironment(environment({ MAIL_SMTP_PORT: deadPort }));
+
     const { status, body } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
       email: "unreachable@beta.test",
       role: "tenant_admin",

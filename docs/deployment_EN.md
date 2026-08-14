@@ -228,6 +228,21 @@ Items 3–4 are automated in `relay/test/smoke.sh`.
 - **Landings and panel:** Bunny keeps only the last uploaded set, so a rollback
   is running `Deploy prod` with the previous tag.
 - **Node:** deploy the previous `:vX.Y.Z` on the affected environment.
+- **The security policy at the edge.** Deploying an older tag recomputes the
+  headers from that build, which is the rollback when the policy is wrong *for
+  these bytes*. It is not the rollback when the builder itself is wrong — every
+  version then produces the same broken policy, and the symptom is a page that
+  is blank in production and fine everywhere else. Two ways out, in this order:
+
+      # take the policy off the zone now, and purge so it is visible immediately
+      BUNNY_API_KEY=… python3 deploy/apply-edge-headers.py --remove <pull-zone-id>
+
+      # and deploy without touching the rule until the builder is fixed
+      SKIP_SECURITY_HEADERS=1 bash deploy/deploy-panel-ci.sh     # or deploy-landing.sh
+
+  `--remove` deletes only the rule the deploy owns, matched by its exact
+  description, and leaves anything else on the zone alone.
+
 - **Database:** migrations go forward only; a rollback needs a reverse migration
   or a restore from the nightly dump.
 

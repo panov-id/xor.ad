@@ -66,12 +66,44 @@ def sets_one_of(rule, names):
     )
 
 
+def remove(zone):
+    """Take the policy off a zone, now, without a deploy.
+
+    Rolling back by code works when the policy is wrong for these bytes: deploy
+    an older tag and the headers are recomputed from it. It does not work when
+    the builder itself is wrong, because every version then produces the same
+    broken policy — and the page is blank in production while it is fine
+    everywhere else, which is the worst position to be reading documentation in.
+
+    This is the way out. It removes only the rule this deploy owns, by exact
+    description, and purges so the change is visible immediately rather than at
+    the end of a cache lifetime.
+    """
+    existing = call("GET", f"/pullzone/{zone}")
+    ours = [item for item in (existing.get("EdgeRules") or [])
+            if (item.get("Description") or "") == DESCRIPTION]
+    if not ours:
+        print(f"  zone {zone} carries no rule described {DESCRIPTION!r} — nothing to remove")
+        return
+    for item in ours:
+        call("DELETE", f"/pullzone/{zone}/edgerules/{item['Guid']}")
+        print(f"  removed the rule from zone {zone}")
+    call("POST", f"/pullzone/{zone}/purgeCache")
+    print("  cache purged — the pages are served without the policy from now on")
+
+
 def main():
-    if len(sys.argv) != 2:
-        sys.exit("usage: BUNNY_API_KEY=… apply-edge-headers.py <pull-zone-id>")
-    zone = sys.argv[1]
+    arguments = [value for value in sys.argv[1:] if value != "--remove"]
+    removing = "--remove" in sys.argv[1:]
+    if len(arguments) != 1:
+        sys.exit("usage: BUNNY_API_KEY=… apply-edge-headers.py [--remove] <pull-zone-id>")
+    zone = arguments[0]
     if not KEY:
         sys.exit("BUNNY_API_KEY is not set")
+
+    if removing:
+        remove(zone)
+        return
 
     payload = os.environ.get("HEADERS_JSON")
     if not payload:

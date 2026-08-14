@@ -77,12 +77,22 @@ echo "Deploying panel dist → Bunny zone '${BUNNY_STORAGE_ZONE}'"
 # in production and works everywhere else. It is computed from the dist that was
 # just uploaded, and applied before the purge so the first request after the
 # purge already gets the policy that matches those bytes.
+# A way out when the header builder itself is wrong. Rolling back by code fixes a
+# policy that is wrong for these bytes; it does nothing when every version
+# computes the same broken policy, and the page is blank in production and fine
+# everywhere else. Set SKIP_SECURITY_HEADERS=1 to ship the files and purge
+# without touching the rule. The rule already on the zone stays as it is — use
+# apply-edge-headers.py --remove to take it off.
+if [ "${SKIP_SECURITY_HEADERS:-}" = "1" ]; then
+  echo "SKIP_SECURITY_HEADERS=1 — the policy is left exactly as it is on the zone." >&2
+else
 echo "Building the security headers from the built panel…"
 HEADERS_JSON="$(node "$ROOT_DIR/deploy/panel-security-headers.mjs" "$DIST")"
 # Through the environment rather than argv: a key on the command line is visible
 # in ps to every local account, and is the first thing to end up in a traceback.
 export HEADERS_JSON BUNNY_API_KEY
 python3 "$ROOT_DIR/deploy/apply-edge-headers.py" "$BUNNY_PULL_ZONE_ID"
+fi
 
 echo "Purging pull zone ${BUNNY_PULL_ZONE_ID}…"
 # A purge that 401s leaves the edge serving the previous files under the policy

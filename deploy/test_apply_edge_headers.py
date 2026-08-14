@@ -39,6 +39,32 @@ HEADERS = {
 }
 
 
+def run_remove(zone):
+    """Run main() in --remove mode, returning (exit code, output, calls made)."""
+    calls = []
+
+    def stub(method, path, body=None):
+        calls.append((method, path))
+        return zone if method == "GET" else {}
+
+    module.call = stub
+    module.KEY = "test-key"
+    os.environ["BUNNY_API_KEY"] = "test-key"
+    os.environ["HEADERS_JSON"] = json.dumps(HEADERS)
+    sys.argv = ["apply-edge-headers.py", "--remove", "42"]
+
+    output = io.StringIO()
+    code = 0
+    with contextlib.redirect_stdout(output):
+        try:
+            module.main()
+        except SystemExit as exit_signal:
+            code = exit_signal.code if exit_signal.code is not None else 0
+        except Exception as error:  # noqa: BLE001
+            code = f"EXCEPTION {type(error).__name__}: {error}"
+    return code, output.getvalue(), calls
+
+
 def run(zone, headers_json=None):
     """Run main() over a canned zone. Returns (exit code, output, posted bodies)."""
     posted = []
@@ -153,6 +179,31 @@ check("an unrelated rule does not block us", code == 0 and len(posted) == 1, rep
 code, out, posted = run({"EdgeRules": []}, headers_json='{"nope": 1}')
 check("malformed HEADERS_JSON is refused legibly",
       refused(code, "not what this expects"), repr(code))
+
+# --- taking the policy off -----------------------------------------------------
+#
+# Rolling back by code recomputes the headers from an older dist, which fixes a
+# policy that is wrong for those bytes. It fixes nothing when the builder itself
+# is wrong: every version then produces the same broken policy, and the page is
+# blank in production and fine everywhere else. There was no way out of that at
+# all — no delete, no disable, no flag — so the only move was the Bunny console,
+# and the next deploy put the rule back.
+
+code, out, calls = run_remove({"EdgeRules": [
+    {"Guid": "abc", "Description": OURS},
+    {"Guid": "other", "Description": "somebody else's rule"},
+]})
+check("--remove deletes our rule", ("DELETE", "/pullzone/42/edgerules/abc") in calls, str(calls))
+check("--remove leaves other rules alone",
+      not any(path.endswith("/other") for _, path in calls), str(calls))
+check("--remove purges, so the change is visible now",
+      ("POST", "/pullzone/42/purgeCache") in calls, str(calls))
+check("--remove writes no rule", not any("addOrUpdate" in path for _, path in calls), str(calls))
+check("--remove exits cleanly", code == 0, repr(code))
+
+code, out, calls = run_remove({"EdgeRules": []})
+check("--remove on a zone without our rule says so and stops",
+      code == 0 and "nothing to remove" in out and not calls[1:], out.strip())
 
 print()
 if failed:

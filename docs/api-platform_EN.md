@@ -16,7 +16,7 @@ below about webhooks and notifications.
 | Piece | State |
 | --- | --- |
 | HTTP node | Deno, own router: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /metrics` |
-| Public API | `/v1/waitlist`, `/v1/pageview`, `/v1/client-error` under a secret key |
+| Public API | `/v1/waitlist`, `/v1/pageview`, `/v1/client-error`, `/v1/me` under a secret key |
 | Admin routes | `/admin/*`: brands, keys, quotas, logs, Article 16 notices |
 | Article 16 notices | intake, queue, decision, letters — built (`docs/dsa/`) |
 | Chat | stub slot `GET /chat` → 501 |
@@ -165,6 +165,21 @@ the shape comes before the content.
 **Versioning.** A `/v1/…` prefix. The existing `POST /waitlist` and
 `POST /client-error` stay as they are (the landings call them) and are aliased under
 `/v1`.
+
+**`GET /v1/me`** — what this key is. It answers with the key's own id, the brand
+it speaks for, its name and its scopes:
+
+```json
+{ "id": "ak_live_7f3c…", "brand": "neighbro", "name": "sosed.place landing", "scopes": ["waitlist.write"] }
+```
+
+It exists because the alternative is guessing. A caller holding a key that has
+been revoked, rotated or issued for the wrong brand otherwise learns that from a
+401 on the request that mattered; this is the one call that answers "is this key
+alive, and what may it do" without side effects. It reveals nothing the holder
+of the key does not already have — it is the key describing itself — and it was
+in the code for months before it was written down here, which is how this entry
+came to be added.
 
 **Authentication.** The panel JWT is for humans. Machines get keys:
 

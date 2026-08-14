@@ -109,3 +109,31 @@ configured("every snapshottable surface names a tenant column", () => {
     );
   }
 });
+
+// The limits live in the code and the document, and only one of them is read by
+// whoever builds a form against this API. They were in neither for months: six
+// numbers that silently cut a notifier's reasoning in half.
+configured("every length limit the code enforces is written down", () => {
+  const spec = read("../../../docs/dsa/SPEC_EN.md");
+  const report = Deno.readTextFileSync(new URL("../src/routes/report.ts", import.meta.url));
+  const decide = Deno.readTextFileSync(new URL("../src/routes/dsa.ts", import.meta.url));
+
+  const enforced: [string, number][] = [
+    ["reason_text", Number(report.match(/REASON_MAX = (\d+)/)![1])],
+    ["notifier_name", Number(report.match(/text\(body\.notifier_name, (\d+)\)/)![1])],
+    ["source", Number(report.match(/text\(body\.source, (\d+)\)/)![1])],
+    // Anchored on the call, not on the word: `.*?` across lines found a 422 in an
+    // error response and reported the code as capping the field at 422.
+    ["facts", Number(decide.match(/trimmed\(body\.facts, (\d+)\)/)![1])],
+    ["ground_text", Number(decide.match(/trimmed\(body\.ground_text, (\d+)\)/)![1])],
+  ];
+
+  for (const [field, limit] of enforced) {
+    const row = spec.split("\n").find((line) => line.includes(`\`${field}\``) && line.includes("|"));
+    assert(row, `the spec does not mention ${field} in a table`);
+    assert(
+      new RegExp(String(limit)).test(spec.split("\n").filter((l) => l.includes(`\`${field}\``)).join(" ")),
+      `the code caps ${field} at ${limit}, and the spec does not say so`,
+    );
+  }
+});

@@ -62,6 +62,31 @@ Mandatory (Art. 16(2)):
 | `notifier_email` | string | asked for, not required — see below |
 | `bona_fide` | checkbox | "the information is accurate and complete to the best of my knowledge" |
 
+Three fields the form sends that are not the notifier's to fill in, and are
+therefore not in the table above:
+
+| Field | Type | Note |
+|---|---|---|
+| `source` | string, ≤120 | which page the notice came from, for the server log |
+| `lang` | string, ≤8 | the language the acknowledgement letter is written in |
+
+`brand` used to be sent as well. It named the storefront, and it stopped
+deciding anything the day the tenant came from the key instead — it is no longer
+sent and no longer read.
+
+**Every text field is bounded, and the bound is a refusal rather than a trim** —
+except where a trim is harmless. The numbers, so that a form built against this
+document does not discover them by having its text cut in half:
+
+| Field | Limit |
+|---|---|
+| `reason_text` | 4000 |
+| `notifier_name` | 200 |
+| `target_id` | 400 accepted, and anything over 200 is not used to look the content up — a truncated identifier finds nothing, and "found nothing" would be recorded as "the content was already gone" |
+| `facts` (Art. 17) | 4000 |
+| `ground_text` (Art. 17) | 2000 |
+| `recipient_identity` (Art. 17) | 200 |
+
 There are no further free fields. The notifier does not pick an offence category
 from a list: any list would be incomplete, and a wrongly chosen category hinders
 the examination more than its absence would.

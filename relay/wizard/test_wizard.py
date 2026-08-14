@@ -177,6 +177,42 @@ finally:
     os.environ.clear()
     os.environ.update(saved)
 
+# --- acting on one environment of a box that hosts two ------------------------
+#
+# n1 hosts dev and staging. The wizard had no way to say "just dev", so deploying
+# dev rewrote staging's environment file, migrated its database and restarted its
+# container. What it must not do instead is narrow the compose file: rendering it
+# from a filtered list would drop the other service, and `up -d` would then stop
+# a running environment. So the filter is on the actions, and box["envs"] stays
+# the box's full composition.
+
+box = {"id": "n1", "envs": ["dev", "staging"], "region": "test"}
+
+wizard.SELECTED_ENVS = None
+check("without a filter, every environment is acted on",
+      wizard.acting_envs(box) == ["dev", "staging"], str(wizard.acting_envs(box)))
+
+wizard.SELECTED_ENVS = ["dev"]
+check("with --env dev, only dev is acted on",
+      wizard.acting_envs(box) == ["dev"], str(wizard.acting_envs(box)))
+
+wizard.SELECTED_ENVS = ["prod"]
+check("an environment the box does not host yields nothing to act on",
+      wizard.acting_envs(box) == [], str(wizard.acting_envs(box)))
+
+# The compose file is rendered from the box, not from the selection: a filtered
+# render would delete the other service.
+wizard.SELECTED_ENVS = ["dev"]
+inventory = {"env": {"dev": {"database": False}, "staging": {"database": False}}}
+composed = wizard.render_compose(inventory, box)
+# The service block, not the name: "node-staging" also appears in caddy's
+# depends_on, so looking for the bare name passed even with the render filtered —
+# which is how this check first went green against a deliberately broken copy.
+services = [line for line in composed.split("\n") if line.startswith("  node-")]
+check("the compose file still defines a service for each environment",
+      services == ["  node-dev:", "  node-staging:"], str(services))
+wizard.SELECTED_ENVS = None
+
 print()
 if failed:
     print(f"FAILED: {failed}")

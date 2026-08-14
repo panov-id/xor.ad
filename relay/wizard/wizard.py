@@ -121,6 +121,22 @@ def _guard_prod(inv: dict, box: dict) -> None:
                                f"{repo} — publish the release first (that's the approval)")
 
 
+# Which of a box's environments this run acts on. `box["envs"]` stays the box's
+# full composition on purpose: the compose file and the Caddyfile are rendered
+# from it, and rendering them from a filtered list would delete the other
+# environment's service and `up -d` would then stop it. So the filter narrows the
+# actions — whose env file is rewritten, whose database is migrated, whose
+# container is restarted — and never the file's contents.
+SELECTED_ENVS: list[str] | None = None
+
+
+def acting_envs(box: dict) -> list[str]:
+    if SELECTED_ENVS is None:
+        return list(box["envs"])
+    chosen = [env for env in box["envs"] if env in SELECTED_ENVS]
+    return chosen
+
+
 def env_file(inv: dict, box: dict, env: str) -> str:
     e = inv["env"][env]
     vals = {
@@ -494,7 +510,7 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                       # for a node that is not behind the CDN.
                       f"ORIGIN_TOKEN={os.environ.get('ORIGIN_TOKEN', '')}\n",
                       mode=0o600)
-        for env in box["envs"]:
+        for env in acting_envs(box):
             _write_remote(sftp, f"{REMOTE_ROOT}/compose/{env}.env", env_file(inv, box, env),
                           mode=0o600)
         if uses_database(inv, box):
@@ -564,21 +580,26 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         # not what anyone asked for. --wait blocks until the healthcheck passes.
         print("      waiting for postgres")
         sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --wait postgres", sudo=sudo)
-        for env in box["envs"]:
+        for env in acting_envs(box):
             print(f"      migrate {env} database")
             sh(client, f"cd {REMOTE_ROOT}/compose && docker compose run --rm --entrypoint deno "
                        f"node-{env} run --allow-env --allow-net --allow-read tools/migrate_db.ts",
                sudo=sudo, check=False)
 
-    print("      docker compose pull + up -d")
-    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull && docker compose up -d", sudo=sudo)
+    # Named services when a subset was asked for: `up -d` on the whole file would
+    # also recreate the other environment if anything of its configuration had
+    # changed, and "deploy dev" must not be a way to restart staging.
+    services = " ".join(f"node-{env}" for env in acting_envs(box))
+    print(f"      docker compose pull + up -d ({services or 'all'})")
+    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull {services} "
+               f"&& docker compose up -d {services}", sudo=sudo)
     # The Caddyfile is a bind-mounted file: `up -d` does not restart caddy when only
     # its content changed, so reload it explicitly (graceful; restart as fallback).
     print("      reload caddy (pick up Caddyfile changes)")
     sh(client, f"cd {REMOTE_ROOT}/compose && docker compose exec -T caddy "
                "caddy reload --config /etc/caddy/Caddyfile || docker compose restart caddy",
                sudo=sudo, check=False)
-    for env in box["envs"]:
+    for env in acting_envs(box):
         _verify_health(client, host_for(inv, box, env), sudo)
 
 
@@ -732,6 +753,10 @@ def main() -> None:
     p = argparse.ArgumentParser(prog="wizard", description="relay pool wizard")
     p.add_argument("--inventory", type=Path, default=INVENTORY)
     p.add_argument("--node", "--box", dest="box", help="limit to a box id")
+    p.add_argument("--env", dest="envs", action="append",
+                   help="limit to an environment on that box (repeatable). Without it every "
+                        "environment the box hosts is acted on — which is how deploying dev "
+                        "also restarted staging, since n1 hosts both.")
     p.add_argument("--confirm-prod", action="store_true",
                    help="required to deploy a box that hosts a public (prod) env")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -742,9 +767,18 @@ def main() -> None:
     seed.add_argument("email", help="the address that will receive the sign-in link")
 
     args = p.parse_args()
-    global CONFIRM_PROD
+    global CONFIRM_PROD, SELECTED_ENVS
     CONFIRM_PROD = args.confirm_prod
+    SELECTED_ENVS = args.envs
     inv = load_inventory(args.inventory)
+    if SELECTED_ENVS:
+        # A name that matches nothing would act on nothing and say it succeeded,
+        # which is the shape of "deployed" that means "did not deploy".
+        known = {env for box in inv.get("box", []) for env in box["envs"]}
+        unknown = [env for env in SELECTED_ENVS if env not in known]
+        if unknown:
+            sys.exit(f"no such environment on any box: {', '.join(unknown)} "
+                     f"(known: {', '.join(sorted(known))})")
     assert_one_box_per_database(inv)
 
     if args.cmd == "status":

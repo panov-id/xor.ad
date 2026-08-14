@@ -581,10 +581,33 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         print("      waiting for postgres")
         sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --wait postgres", sudo=sudo)
         for env in acting_envs(box):
+            # The database has to exist before it can be migrated, and the init
+            # script that creates them runs only once, on an empty volume. So an
+            # environment added to a box that is already serving has no database
+            # of its own — the migration then failed with "database does not
+            # exist", that failure was swallowed, and the node came up anyway.
+            #
+            # Created here instead, idempotently: Postgres has no CREATE DATABASE
+            # IF NOT EXISTS, so the existence check comes first and the create is
+            # only issued when it is missing.
+            print(f"      ensure {env} database exists")
+            sh(client,
+               f"cd {REMOTE_ROOT}/compose && docker compose exec -T postgres "
+               f"psql -U relay -d relay -tAc "
+               f"\"SELECT 1 FROM pg_database WHERE datname = 'relay_{env}'\" | grep -q 1 "
+               f"|| docker compose exec -T postgres createdb -U relay relay_{env}",
+               sudo=sudo)
+
             print(f"      migrate {env} database")
+            # Not check=False. A failed migration used to scroll past and the
+            # next line brought the node up regardless — and it came up green,
+            # because the database is optional to the node and /health answers
+            # from storage. What that leaves is an environment running without
+            # the schema its code expects, discovered on the first attempt to
+            # mint a key or open the Article 16 queue.
             sh(client, f"cd {REMOTE_ROOT}/compose && docker compose run --rm --entrypoint deno "
                        f"node-{env} run --allow-env --allow-net --allow-read tools/migrate_db.ts",
-               sudo=sudo, check=False)
+               sudo=sudo)
 
     # Named services when a subset was asked for: `up -d` on the whole file would
     # also recreate the other environment if anything of its configuration had

@@ -213,6 +213,47 @@ check("the compose file still defines a service for each environment",
       services == ["  node-dev:", "  node-staging:"], str(services))
 wizard.SELECTED_ENVS = None
 
+# --- a failed migration must stop the deploy ---------------------------------
+#
+# It did not. `check=False` let the failure scroll past and the next line brought
+# the node up anyway — green, because the database is optional to the node and
+# /health answers from storage. The environment then ran without the schema its
+# code expects, and that surfaced at the first attempt to mint a key.
+#
+# Read from the source rather than by running a deploy: the assertion is about
+# which arguments the call carries, and that is exactly what the source says.
+
+migrate_calls = []
+create_calls = []
+for node in ast.walk(tree):
+    if not (isinstance(node, ast.Call) and getattr(node.func, "id", "") == "sh"):
+        continue
+    rendered = ast.get_source_segment(source, node) or ""
+    if "migrate_db.ts" in rendered:
+        migrate_calls.append((node, rendered))
+    if "createdb" in rendered:
+        create_calls.append((node, rendered))
+
+check("the migration is run", len(migrate_calls) == 1, f"{len(migrate_calls)} calls")
+if migrate_calls:
+    node, _ = migrate_calls[0]
+    swallowed = any(
+        keyword.arg == "check" and keyword.value.value is False for keyword in node.keywords
+    )
+    check("a failed migration stops the deploy", not swallowed,
+          "sh(..., check=False) — the failure would be swallowed again")
+
+check("the database is created if missing", len(create_calls) == 1, f"{len(create_calls)} calls")
+if create_calls and migrate_calls:
+    # Order matters: creating it after the migration would help nobody.
+    check("it is created before the migration runs",
+          create_calls[0][0].lineno < migrate_calls[0][0].lineno,
+          f"createdb at line {create_calls[0][0].lineno}, "
+          f"migrate at {migrate_calls[0][0].lineno}")
+    check("creating it is idempotent",
+          "pg_database" in create_calls[0][1],
+          "no existence check — Postgres has no CREATE DATABASE IF NOT EXISTS")
+
 print()
 if failed:
     print(f"FAILED: {failed}")

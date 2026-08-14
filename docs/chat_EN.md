@@ -74,7 +74,7 @@ Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. 
 
 ## 8. Data model
 
-Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/005_chat.sql`, applied by `tools/migrate_db.ts`).
+Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 are taken, and the runner sorts by name).
 
 **Core principle: no user identifier ever leaves the server.** A client knows exactly two kinds of UUID — a feed phrase id and a chat id. Who wrote a phrase, who liked it, who is in a chat with whom, how many chats someone has — all of it stays inside the database and never appears in an API response.
 
@@ -97,7 +97,7 @@ Technically the brand comes from the API key and from nowhere else (`lib/tenant.
 
 Our own node, not Supabase: Deno + our own Postgres (`relay/node/src/lib/db.ts`, driver `jsr:@db/postgres`).
 
-- **Realtime** — our own WebSocket: `relayUpgrade()` in `src/chat/relay.ts` terminates the room by `chat_id` and fans messages out. No table subscriptions — messages are never written to the database.
+- **Realtime** — our own WebSocket: `relayUpgrade()` in `src/chat/relay.ts` will terminate the room by `chat_id` and fan the ciphertext out. Not built: the route exists and answers 501, so the surface is reserved and nothing pretends to serve it. No table subscriptions — messages are never written to the database.
 
 **Which node it is must not matter.** If a room lives in one node's memory, both participants have to land on that same node — stickiness on the balancer — and losing the node tears down every conversation on it. Instead the nodes talk over a bus on the Postgres we already run:
 
@@ -163,7 +163,7 @@ First, it stopped working. Everything it was built from came **from the connecti
 
 Second, it misled. The spec itself called it "a barrier, not a guarantee", yet it closed other people's identities and blocked neighbours behind one home NAT: the cost of a mistake fell on the uninvolved, while shedding it took ten seconds of clearing site data. A mechanism that fails to stop the person it aims at, and hits the person it does not, is worse than no mechanism.
 
-What replaces it is what actually works and already exists: **per-address rate limiting**, **feed moderation before publication** (§8.3), now through a queue — which cuts the text, not the author — and **a chat door that opens only on a mutual like with double consent**.
+What replaces it is **per-address rate limiting**, which exists and runs today; **feed moderation before publication** (§8.3), through a queue — which cuts the text, not the author; and **a chat door that opens only on a mutual like with double consent**. Of those three only the first is built. The queue exists as a mechanism (`lib/jobs.ts`), and the three job kinds registered on it are all housekeeping — there is no `POST /feed`, no `visible_at`, no classifier. This paragraph used to say all of it "already exists", which is the kind of sentence that decides how much time somebody budgets.
 
 #### What exactly a request is signed with
 

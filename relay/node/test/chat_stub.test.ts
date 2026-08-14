@@ -62,3 +62,37 @@ configured("the chat stub says what the node actually carries", () => {
   assert(/ciphertext/i.test(stub), "the stub does not say the node carries ciphertext");
   assert(/holds no keys/i.test(stub), "the stub does not say the node holds no keys");
 });
+
+// The specification names the migration the chat will ship as. It named 005,
+// which had been taken by the DSA notices for months — the runner sorts by name
+// and applies both, so nothing would have broken loudly; the numbering would
+// just have stopped meaning anything.
+configured("the migration the spec reserves is not already taken", () => {
+  const named = [...spec.matchAll(/relay\/node\/db\/(\d{3})_([a-z_]+)\.sql/g)];
+  assert(named.length > 0, "the spec no longer names a migration file");
+
+  const onDisk = [...Deno.readDirSync(new URL("../db", import.meta.url))]
+    .map((entry) => entry.name)
+    .filter((name) => name.endsWith(".sql"));
+
+  for (const [full, number, name] of named) {
+    const collision = onDisk.find((file) => file.startsWith(`${number}_`) && file !== `${number}_${name}.sql`);
+    assert(
+      !collision,
+      `the spec reserves ${full}, but ${collision} already has that number — ` +
+        `the next free one is ${String(onDisk.length + 1).padStart(3, "0")}`,
+    );
+  }
+});
+
+// The route exists and answers 501. A specification that describes it in the
+// present tense reads as "this works", and the person planning the work budgets
+// accordingly.
+configured("the spec does not describe the unbuilt relay as working", () => {
+  const line = spec.split("\n").find((text) => text.includes("relayUpgrade()"));
+  assert(line, "the spec no longer mentions relayUpgrade()");
+  assert(
+    /501|not built/i.test(line!),
+    "the spec describes relayUpgrade() without saying it is not built — it answers 501",
+  );
+});

@@ -223,6 +223,30 @@ page itself lives for minutes, and an edge rule shortens the TTL:
 
 Items 3–4 are automated in `relay/test/smoke.sh`.
 
+### Bunny Shield
+
+Four prod zones carry it: `xorad-api-prod`, `neighbro-prod`, `sosed-prod`,
+`panel-prod`. All four have the WAF **enabled and in log-only mode**
+(`wafExecutionMode: 0`), learning until 21 August 2026.
+
+Log-only is deliberate while a zone is learning and a mistake afterwards, because
+**nothing switches it automatically** — the API zone finished learning on 12
+August and stayed logging, which nobody noticed for two days. So:
+
+    BUNNY_API_KEY=… python3 deploy/shield_state.py
+
+reports every zone and exits non-zero for any that has stopped learning and still
+cannot act. Its judgement is a pure function with an offline test
+(`deploy/test_shield_state.py`), which is what CI runs; only the fetching needs a
+key.
+
+Two things Bunny's API does not offer, checked by trying: **reading the WAF event
+log** and anything resembling it (every candidate path answers 404), and there is
+no documented switch beyond `PATCH /shield/shield-zone` with `{shieldZoneId,
+model}` — which answers `202` with a message that reads like a refusal and
+applies the change anyway. Read the log in the Bunny dashboard, and verify any
+change here by reading the state back rather than by trusting the response.
+
 ## Rollback
 
 - **Landings and panel:** Bunny keeps only the last uploaded set, so a rollback

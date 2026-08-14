@@ -41,6 +41,11 @@ jobs:
       - name: no secret on a command line
         run: python3 deploy/test_no_secrets_in_argv.py
 
+      # The judgement only, not the fetching: whether a zone that stopped
+      # learning is still merely watching is decidable without a key.
+      - name: what Bunny Shield is allowed to do
+        run: python3 deploy/test_shield_state.py
+
       - name: the release tag survives a re-run
         run: python3 deploy/test_release_tag.py
 

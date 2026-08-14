@@ -107,7 +107,18 @@ configured("the shell dresses a letter without losing its plain version", () => 
   // Dressed: the brand's own wordmark and accent, not a bare paragraph.
   assertStringIncludes(html, brand.upper);
   assertStringIncludes(html, "table");
-  assert(!html.startsWith("<p>"), "the old shape was a single paragraph");
+  // Not `!startsWith("<p>")`, which is true of anything starting with anything
+  // else. The old shape was the letter as one undifferentiated run, so what says
+  // it is gone is that the kinds of block look different from each other: a
+  // quote carries its rule down the left, a heading its letter-spacing.
+  assertStringIncludes(html, "border-left", "the quote is not set apart from the text");
+  assertStringIncludes(html, "letter-spacing", "the heading is not set apart from the text");
+
+  // And the plain version keeps the same distinctions with the only means it
+  // has, which is what makes it a version rather than a fallback: the heading
+  // uppercased, the quote indented.
+  assertStringIncludes(text, "FACTS AND CIRCUMSTANCES");
+  assertStringIncludes(text, "  the reason a person wrote");
 
   // And every block reaches both versions.
   for (const piece of ["What was done: removed.", "the reason a person wrote", "Report 27c2a4f5"]) {
@@ -175,8 +186,7 @@ configured("a url in a reference block is an actual link", () => {
 // Russian name. Everything here is written in English first; a rendering in
 // another script is a translation, and translations belong with the other
 // translations rather than in the identity every letter reads.
-configured("an operational letter is English, wordmark included", async () => {
-  const { config } = await import("../src/config.ts");
+configured("an operational letter is English, wordmark included", () => {
   const sosed = config.brands.find((b) => b.key === "sosed")!;
 
   const { html, text } = letter({
@@ -193,7 +203,6 @@ configured("an operational letter is English, wordmark included", async () => {
 
 configured("the Russian welcome still says сосед", async () => {
   const { welcomeEmail } = await import("../src/lib/welcome.ts");
-  const { config } = await import("../src/config.ts");
   const sosed = config.brands.find((b) => b.key === "sosed")!;
 
   // Moving the name out of the identity must not take it out of the language it

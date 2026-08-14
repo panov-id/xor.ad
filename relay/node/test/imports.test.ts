@@ -41,11 +41,26 @@ configured("nothing outside the allowlist imports storage data functions", () =>
   for (const path of sourceFiles("src")) {
     if (ALLOWED.has(path)) continue;
     const source = Deno.readTextFileSync(path);
-    const importLine = source.match(/import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+"[^"]*storage\.ts"/);
-    if (!importLine) continue;
-    const bound = importLine[1].split(",").map((name) => name.trim().split(/\s+/).pop());
-    const banned = bound.filter((name) => name && DATA_FUNCTIONS.includes(name));
-    if (banned.length > 0) offenders.push(`${path}: ${banned.join(", ")}`);
+    // Every import from storage.ts, not the first: a file may have two, and the
+    // second was the one nobody looked at.
+    const named = [...source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+"[^"]*storage\.ts"/g)];
+    for (const [, inside] of named) {
+      for (const clause of inside.split(",")) {
+        // `put as write` binds `write` and used to be read as importing `write`,
+        // which is in no list — so an alias walked straight through the guard.
+        // What matters is the name on the left: that is what was imported.
+        const imported = clause.trim().split(/\s+as\s+/)[0].trim();
+        if (DATA_FUNCTIONS.includes(imported)) offenders.push(`${path}: ${imported}`);
+      }
+    }
+    // The two ways to take the module whole. Neither names a function, so a
+    // check that reads names could never see them.
+    if (/import\s+\*\s+as\s+\w+\s+from\s+"[^"]*storage\.ts"/.test(source)) {
+      offenders.push(`${path}: import * as … from storage.ts`);
+    }
+    if (/await\s+import\(\s*"[^"]*storage\.ts"\s*\)/.test(source)) {
+      offenders.push(`${path}: await import("…/storage.ts")`);
+    }
   }
   assert(
     offenders.length === 0,

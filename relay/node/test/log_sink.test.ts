@@ -37,3 +37,34 @@ configured("a bigint field is logged, not thrown over", () => {
   assertEquals(entry.id, "9007199254740993");
   assertEquals(entry.attempts, 1);
 });
+
+// The assertions above mirror a three-line function, so they can only fail if
+// somebody inverts it. What is worth pinning is the consequence: a warn line
+// becomes an object in storage and an info line does not — that is the cost the
+// levels were chosen to control, and it lives in persist(), not in
+// shouldPersist().
+const storageDir = await Deno.makeTempDir();
+const stored = suite({ STORAGE_TRANSPORT: "fs", STORAGE_DIR: storageDir, NODE_ENV_NAME: "test" });
+
+function serverLogFiles(): string[] {
+  const directory = `${storageDir}/server-logs/test`;
+  try {
+    return [...Deno.readDirSync(directory)].map((entry) => entry.name);
+  } catch {
+    return [];
+  }
+}
+
+stored("a warn line is written, an info line is not", async () => {
+  const before = serverLogFiles().length;
+
+  log("info", "one line per request", { test: true });
+  // The write is fire-and-forget, so the check waits for the turn it lands on
+  // rather than assuming it already has.
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assertEquals(serverLogFiles().length, before, "an info line reached storage");
+
+  log("warn", "something worth keeping", { test: true });
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assertEquals(serverLogFiles().length, before + 1, "a warn line did not reach storage");
+});

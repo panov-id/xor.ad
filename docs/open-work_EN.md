@@ -165,7 +165,17 @@ landing, the migration always before the flag.
       does **not** refuse the request: a quota is a business limit, not a safety
       one. The panel edits the limit and shows today's spend. Verified with
       `scripts/verify-quota-local.sh`.
-- [ ] **B7. Check whether the foreign key reached production.** The `B4` bug
+- [x] **B7. It did not — checked 2026-08-17.** `GET /admin/brands` on all
+      three environments: both `sosed` and `neighbro` come back `registry`, so
+      the row in `brands` exists everywhere — the foreign key is satisfiable
+      and minting through the panel does not fail. Corroborated by the three
+      publishable keys production holds, for both brands, dated 26–28 July.
+      Checked by reading, not by minting: a live key issued to prove a point
+      would outlive the point.
+
+      What it used to say — “Check whether the foreign key reached production”:
+
+      The `B4` bug
       hits brands with no row in `brands` — which is exactly "the platform's own
       faces", the ones the schema says stay on the env seed. If production has no
       rows for `sosed` and `neighbro`, minting a key through the panel failed
@@ -232,13 +242,23 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       links.
 - [ ] **D3. Live checks F4–F5** — no request to a Google domain before consent,
       no CSP violations in the console. After the production deploy.
+
+      **Half of it closed 2026-08-14.** After the production deploy six pages
+      across both storefronts were driven in a browser: **zero** CSP violations.
+      The other half — no request to a Google domain before consent — **was not
+      measured**: what was watched was the console, not the network list. Until
+      that is done the item stays open in full; only the half that was checked is
+      proven.
 - [x] **D4. Sitemap submitted to Search Console** — 2026-07-27, both domains
       (`https://sosed.place/sitemap.xml` and
       `https://neighbro.place/sitemap.xml`). They are Domain properties, so the
       full URL is required. www was not submitted: the zones redirect it to the
       apex, so it would only duplicate.
 - [ ] **D5. Register in Bing Webmaster Tools** — a manual step; IndexNow does not
-      need it, but it brings reports.
+      need it, but it brings reports. Checked 2026-08-17: there is no verification
+      — `/BingSiteAuth.xml` is 404 on both storefronts and no `msvalidate` tag is
+      in the markup. IndexNow itself works: the key is in the deploy and it pings
+      on every one. Only a person can open the account.
 - [x] **D6. A real 404 page — accepted as it is.** Settled 2026-07-29:
       won't-fix. Bunny's `ErrorPageCustomCode` applies to origin errors, not to a
       404 from a storage zone. The page exists, is served at `/404.html`, and the
@@ -246,7 +266,10 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       on a mistyped address. An origin instead of storage would fix it and add a
       moving part where there are currently only files — dearer than the gain.
 - [ ] **D7. A per-language OG image** — the pipeline draws one for the whole
-      site; it only starts to matter with translated typography.
+      site; it only starts to matter with translated typography. Checked
+      2026-08-17: that is still the case — exactly one `/og-image.jpg` per
+      storefront, and the Russian pages point at the same image the English ones
+      do.
 
 ## D-bis. Our own page counter
 
@@ -695,9 +718,79 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       the secret-key page could not have offered the one scope the permission was
       added for. Fixed, with a test that reads the relay's file and compares the
       two lists string for string.
-- [ ] **G2. A single variable font in the panel.**
-- [ ] **G3. i18n for the decorative mockups.**
-- [ ] **G4. Public `/waitlist` protection — the node is the only place.** Checked
+- [x] **G2. Panel fonts — closed 2026-08-17, though not by the work that was
+      written down.** "Collapse to two variable files" rested on a false premise:
+      the files are **already variable**, all fifteen of them. They are cut per
+      unicode subset, and merging them is the wrong move — a Latin-only page would
+      then carry the Cyrillic glyphs. The figure "27 files" was inflated too: you
+      only reach 27 by counting the build directory as well.
+
+      **Measurement found the real defect.** `fonts.css` declared Inter at 400 and
+      500 only, both pointing at the same file. The stylesheet asks for 600 and
+      700, and the browser, finding no such face, **faked the boldness** by
+      smearing the 500 glyphs. Measured in a browser: 500, 600, 700 and 900 all
+      came out at one width, 627px — semibold and bold in the panel were
+      indistinguishable from each other. Unbounded's 600 was being served by its
+      700 the same way.
+
+      Reading cannot catch this: the declarations looked deliberate.
+
+      **Done:**
+      - `panel/src/fonts.css` — one declaration per family per subset, 29 → 12,
+        the weight declared as a range. The ranges are measured in a browser
+        (Inter is distinct at every step from 100; Unbounded's 100 and 200 are
+        identical) and **agree with what Google itself declares** — independent
+        corroboration.
+      - the file is no longer hand-written: it is regenerated by
+        `scripts/fetch-fonts.sh` and carries that command in its header. The exact
+        request had been recorded nowhere, so the file could not be reproduced.
+      - `scripts/fetch-fonts.sh` — refuses when Google returns several
+        declarations pointing at one file, which means the URL listed discrete
+        weights of a variable font. The check runs **before** anything is
+        downloaded. Exercised: against a `wght@400;500` URL the script stops
+        without fetching a single file and without writing the CSS.
+      - `panel/tests/check-font-weights.mjs` — the guard: renders the weights the
+        stylesheet asks for in a real browser and fails when two of them measure
+        the same width. The list of weights is read from `App.css` rather than
+        hardcoded. Exercised by breaking it: 6 collisions, exit 1, with the
+        measurements and the complaints on one stream so a CI log does not
+        interleave them.
+      - wired into `panel.yml`: chromium alone, installed on that step alone, so
+        the rest of the job stays browser-free. The local door to the same file is
+        `scripts/check-panel-font-weights.sh` (Docker, nothing on the host). The CI
+        path was rehearsed in a container — `npm install` in `panel/tests`, run
+        from there with no panel path set — and came out green. The
+        browser-install line itself was not rehearsed locally; the first CI run
+        proves that one.
+
+      The panel builds, and the built CSS holds 12 declarations: 7 × `100 900`
+      (Inter) and 5 × `200 900` (Unbounded). **Not deployed to any environment.**
+
+      The storefronts were checked while we were here: 39 declarations over 15
+      files, but the weights declared are exactly the ones the markup asks for
+      (Golos 400/500/600, Unbounded 600/800/900) — no faked boldness, only
+      redundancy. Left alone.
+- [ ] **G3. i18n for the decorative mockups.** Measured 2026-08-17: five SVGs
+      in `panel/public` (`app-screens`, `button-states`, `kit-full`, `kit-mockup`,
+      `reference-behaviour`) hold **zero Cyrillic characters** against 10–29
+      thousand Latin ones each. On a Russian panel every decorative string is
+      English.
+- [x] **G4. Public `/waitlist` protection — closed 2026-08-17.** The chain is
+      complete: the per-address limit in the node, the honeypot, the
+      `X-Origin-Token` lock in Caddy, the hostname moved onto the zone and, last,
+      Shield in observation mode. Checked today from the network side:
+      `api.relay.panov.id` answers with `server: BunnyCDN-CY1-1191` and
+      `via: 1.1 Caddy`, so production traffic really does pass through the edge,
+      and the prod storefront points at that very hostname.
+
+      **The first paragraph below has gone stale** — it said Shield was not in
+      front of the node and no CDN tier could help. It is now. The rest is kept as
+      written: it is the history of the decision, and it holds two mistakes worth
+      remembering.
+
+      What is left to decide lives in **G10**, deadline included.
+
+      Checked
       2026-08-05: `/waitlist` has **no protection at all**, and the old wording
       ("either quotas or Bunny Shield in front of the node") is wrong — Shield is
       not in front of the node. All nine Bunny zones serve static files from
@@ -814,7 +907,16 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
         of it for. In exchange we would take on a risk: Bunny's list changes, and a
         stale one means the prod API refusing everything with no bug anywhere.
         Revisit if a flood ever reaches the node;
-      - [ ] **turn on Shield Basic — confirmed 2026-08-09 that it is OFF.** The
+      - [x] **turn on Shield Basic — done 2026-08-16.** Shield is attached to
+        `xorad-api-prod` and to the three storefront zones as well
+        (`neighbro-prod`, `sosed-prod`, `panel-prod`), all in observation mode:
+        `wafExecutionMode = 0`, so the rules only write to the log and block
+        nothing. Learning Mode runs to 2026-08-21. State is read back by
+        `deploy/shield_state.py` — the script that exposed that a Bunny `202`
+        carrying refusal-shaped prose had in fact applied the change.
+
+        What it used to say:
+      - [x] **was: confirmed 2026-08-09 that it is OFF.** The
         `xorad-api-prod` zone (id 6278420) reports `ShieldDDosProtectionEnabled =
         False`. This is the last open step of the chain: the image, the cutover to
         the zone and the Caddy lock are all done and verified.
@@ -831,7 +933,8 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       `/waitlist` sends mail through Resend, so abuse turns us into a spam source
       and burns the domain's reputation.
 
-      **State as of 2026-08-05.** The `xorad-api-prod` pull zone is created and
+      **State as of 2026-08-05 — history; everything below has since been done,
+      the DNS move included.** The `xorad-api-prod` pull zone is created and
       verified (`deploy/bunny-api-zone.sh`; `/health` answers 200 through the CDN),
       and **DNS is deliberately not switched**. The order from here is strict:
       first the lock on the origin (`X-Origin-Token` in Caddy plus a firewall
@@ -839,6 +942,15 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       valid token, then the per-IP limit and the honeypot, and only then repoint
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
+- [ ] **G10. Decide the Shield mode before 2026-08-21.** Four production zones
+      (`xorad-api-prod`, `neighbro-prod`, `sosed-prod`, `panel-prod`) sit in
+      observation and Learning Mode ends 2026-08-21. The decision is made from the
+      WAF log, which is readable only in the Bunny dashboard — a person's step.
+      Two things to look for: whether a real `POST /report` was matched (a JSON
+      body looks suspicious to a site profile) and whether panel sign-in was.
+      Until that log is read, **blocking must not be switched on** — the first
+      thing to break would be the intake of illegal-content notices. State is read
+      by `deploy/shield_state.py`, which goes red after the 21st.
 - [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not

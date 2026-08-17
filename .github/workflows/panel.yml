@@ -40,3 +40,16 @@ jobs:
       - name: contrast
         working-directory: panel
         run: node check-contrast.mjs
+      # Font weights need a real browser, because the defect they guard is
+      # invisible in the CSS: declarations capping a variable font's weight axis
+      # look deliberate, and the browser quietly fakes the missing weights. The
+      # panel shipped 600 and 700 as smeared 500 glyphs until this was measured.
+      # Only chromium is installed, and only here — the rest of this job is node.
+      - name: install browser
+        working-directory: panel/tests
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+      - name: font weights
+        working-directory: panel/tests
+        run: node check-font-weights.mjs

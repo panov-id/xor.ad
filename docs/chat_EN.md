@@ -132,7 +132,6 @@ CREATE TABLE identities (
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text NOT NULL,    -- hash of half the paper code: how the node finds the identity
   recovery_wrapped_key bytea NOT NULL,  -- the long-lived key under the other half; the node cannot open it
-  recovery_attempts_left smallint NOT NULL DEFAULT 10,
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
 );
@@ -302,6 +301,8 @@ the phone shows a code ─► the laptop wakes and asks for ITS old PIN
 
 On the phone the chats are the same and the windows are empty: the new device has no history and no way to get any — messages are not in the database (§8.8), there is nothing to download. That is not a loss but "nothing here yet", and it should be said that way.
 
+An empty window is not the whole of it, though: the old conversations are also **mute** on the new device, because the chat key stayed on the old one. That is fixed by reissuing the key (§8.13), the same way after a transfer and after a recovery.
+
 **The keys of live chats are not rotated on transfer.** Rotation protects against a participant who keeps receiving ciphertext; a frozen one receives none, so there is nobody to rotate against. Written down here so the question does not come back.
 
 The interface says so plainly, not in small print:
@@ -368,13 +369,48 @@ recovery  code typed on a clean device
           ─► the node found the identity, returned the wrapped long-lived key
           ─► the device unwrapped it, created a new session,
              a new PIN and a new share
+          ─► THE OLD PAPER CODE IS DEAD, a new one is issued
+             and shown once, as at registration
           ─► the previous session is frozen (the one-live rule)
-          ─► the chats are there, the history is not
+          ─► the chats are there, but the old conversations stay mute
+             until the key is reissued (§8.13)
 ```
 
 **The paper code can only be replaced by presenting the current paper code.** Without that rule, whoever takes an identity issues themselves a new one first and locks the owner out for good — the insurance would vanish exactly when it is needed.
 
-Entry attempts are counted as they are for the PIN: the code is long-lived, so there is plenty of time to guess at it.
+**What the code is made of is written here rather than left to the
+implementation.** Sixteen characters of the same alphabet as the transfer code
+(Crockford base32 without `I`, `L`, `O`, `U`), the salt `xor.ad/recovery/v1`, the
+same Argon2id: 64 MB, `t=3`. That is **80 bits** — even with a million identities
+a single hit costs on the order of 10¹⁸ attempts, each a tenth of a second. The
+transfer code has its bits counted out loud; here there was only an example
+string, so the alphabet and the length would have been chosen by whoever wrote
+the code first, and we would never have known.
+
+**The attempt counter has been taken off the identity — corrected 2026-08-18.**
+`recovery_attempts_left` lived in the `identities` row and could barely ever
+decrement: both halves come out of one Argon2id, so an error in a single
+character breaks the **first** half, the node finds no identity, and there is
+nothing to decrement. It fired in exactly one case: paper damaged such that the
+first half survived and the second did not.
+
+The recovery endpoint counts instead, in two places: **per address**, like the
+node's other public endpoints (`lib/rate_limit.ts`), and **globally** — a total
+miss counter that throttles on a spike. The second is not against guessing, which
+the arithmetic already rules out, but against a flood into a public endpoint.
+
+**The old code dies the moment recovery happens.** It used to stay valid: the
+rule "replace only by presenting the current one" required no new issue, and a
+photographed sheet worked forever. But people recover precisely when something
+went wrong — including when the paper may have been seen. Leaving it valid keeps
+open the very door somebody may have come through. The price is named plainly:
+somebody who has just lost a device copies sixteen characters again, with the
+same two-group confirmation. Without it they have no insurance left.
+
+**There are no "other sessions" to stop.** The question is natural, so the answer
+lives here: an identity always has exactly one live session — the partial unique
+index will not accept a second. Recovery freezes it, and that is the whole
+list.
 
 **The key file in `depth` is encrypted with the same vault key** — the PIN plus the node's share, with no exception for the terminal. A stolen or copied volume is useless: half the key is not in it, and getting that half means proving knowledge of the PIN to the node, which counts the attempts. This closes the terminal's main weakness: unlike the browser, where keys sit as non-extractable `CryptoKey` objects, here they are a file after all. The file itself is `0600`, and the client **refuses to start** if the permissions are wider, instead of a warning nobody reads. The price is the same as everywhere: **forget the PIN and that device's conversations are gone**, while the identity comes back with the paper code.
 
@@ -503,15 +539,26 @@ The counter grows on every `rejected` and **resets on the first successful publi
 
 **Five and fifteen are deliberately mild.** A refusal from the model is not proof of ill intent: mixed languages, a rare word, quoting somebody else's text — it makes mistakes, and the first person to hit the threshold will not be a troll but someone who was misunderstood. The threshold exists to **break the rhythm of hunting for a wording that gets through**, not to punish; anyone hunting in earnest hits it five times in a row, while anyone merely misunderstood does not lose an evening over fifteen minutes. Resetting on the first successful publication matters as much as the number: without it the counter accrues for months and one day fires out of nowhere.
 
-The block used to hang on the browser fingerprint so that a new identity would not lift it. There is no fingerprint any more (§8.2), and there is no point pretending: an identity takes ten seconds to make, and an address changes by switching to mobile data. This is **a speed bump, not a wall**. The feed's real defence is the synchronous check itself: refused text is never published, however many identities are created.
+The block used to hang on the browser fingerprint so that a new identity would not lift it. There is no fingerprint any more (§8.2), and there is no point pretending: an identity takes ten seconds to make, and an address changes by switching to mobile data. This is **a speed bump, not a wall**. The feed's real defence is the check before publication: refused text is never published, however many identities are created.
 
 The counter is fed **by the feed alone**: a chat is not moderated (§8.8), so there is nothing there to refuse. This is the only place where the server remembers something bad about a person, and what it remembers is a number, not a text: the rejected message itself is never written anywhere.
 
-**What does the moderating.** Calling an external model on every phrase costs both money and latency. So it goes as a ladder, cheapest first:
+**What does the moderating.** Two steps, both on the node:
 
 1. **Rules** — length, links, contact details, stop-word lists. Instant, free, and it catches the bulk of crude abuse and spam.
 2. **A local model on the node** — a small toxicity classifier running on the node itself. No per-call charge at all, tens of milliseconds of latency, and better privacy: the text never leaves our infrastructure. The price is the node's memory and CPU, and lower quality than a large model — especially on sarcasm, context and mixed languages.
-3. **An external model** — only for what the first two steps found borderline. That is a small share of the flow, hence a small bill.
+
+**A third step — an external model for borderline text — stood here and was
+removed 2026-08-17.** It contradicted the "Bounds" further down this same
+section: the text of a phrase does not leave the node, which is what the
+processing register records and the storefront policy promises. Two paragraphs
+gave two answers to one rule, and the one that held was the wrong, convenient
+one.
+
+**Which has a consequence worth naming: borderline is no longer an outcome.**
+Doubt used to have somewhere to go; now the second step has nobody to defer to
+and its decision is final — `passed` or `rejected`. There is one threshold, and
+where it sits is the whole of the choice.
 
 "Free" for the local model means no per-call charge; it does consume node resources, and for the pool in §8.1 that has to be budgeted into machine size. No specific model is fixed here: the choice depends on the languages and on how much RAM we are willing to give up — that is a measurement, not a decision on paper.
 
@@ -678,6 +725,13 @@ promotion is cut in offers. **What it does not do:** judge tone, judge the autho
 published tables. The set is assembled in advance and deliberately includes the
 hard cases: mixed alphabets inside one sentence, transliteration, quoting someone
 else's forbidden text, sarcasm, discussing a subject versus calling for it.
+
+**One threshold, and both costs on screen.** With the external model gone, the
+band of doubt has nowhere to lead (above in this section), so the decision is
+binary. Counting the two errors apart is not a way to set two numbers but a way
+to see what each side of the chosen threshold pays: moving it cheapens one error
+by exactly as much as it makes the other dearer. Where it goes is settled by
+measurement, with both prices visible.
 
 **The two errors are counted separately, because they cost differently.** A false
 refusal hits an innocent person and **feeds the auto-block counter** (§8.3 above)
@@ -1171,7 +1225,37 @@ CREATE TABLE chat_key_wraps (
 
 **Freezing becomes real.** With a single long-lived key a frozen device would lose only access while keeping the ability to decrypt for ever. With wraps it loses the ability itself: nobody will wrap a future chat's key for it. This is not cosmetic — transfer without this would be a feature that looks like protection without being one.
 
-**A device that joins later starts on an empty screen.** The keys of chats opened before it appeared had nobody to be wrapped for, and we will not backfill them. The rule is simple and honest, and ephemerality makes it nearly invisible: conversations live hours.
+**A device that joins later starts on an empty screen.** The keys of chats opened before it appeared had nobody to be wrapped for, and we will not backfill them: a wrap is made for a live session, and that session did not exist yet.
+
+**This applies to a transfer and to a recovery alike, and it used to be a dead end.** The person sees the chat rows and can read nothing in them — new messages included: a conversation has one `K` and it stayed on the previous device. "The chats are there, the history is not" sounded milder than the truth: it is not that the old messages are gone, it is that the conversation is mute.
+
+#### Reissuing a chat key after a device change
+
+There is a way out, and it is one way for both cases — no reason to give two answers to one illness.
+
+```
+new device      signs the request with the LONG-TERM identity key
+                ─► the node passes it to the other side
+other side      verifies the signature against the long-term key it saw
+                when the chat opened ─► the same identity, not a substitution
+                ─► asks the person: "they changed device.
+                   Issue new keys? Old messages will not come back"
+both            fresh ephemeral pairs, a new K = HKDF(ECDH(...), salt = chat_id)
+                ─► wraps for the live session on each side
+the old K       cannot be recovered by anything
+```
+
+**Signed with the long-term key, not merely a chat membership.** A row in `chat_participants` is available to whoever took the identity too; the long-term key is the only thing that survives a device change and does not sit on the node in the clear. Only its holder can forge the request — that is, the identity itself. That is the whole role of the long-term key in §8.13: it encrypts nothing, it attests.
+
+**The person is asked rather than told**, for the same reason a transfer requires "that's me": a companion changing device is an event worth knowing about, particularly if the identity was taken.
+
+**The safety code does not change** — it is derived from the long-term keys, and those are the same. Two people who compared it aloud can compare it again and see the same number.
+
+**Forward secrecy is not weakened but strengthened:** the new `K` is out of reach of the previous device, and nothing written from here on can be read by it.
+
+**What this does not fix.** If the long-term key was taken along with the paper, the reissue works for the attacker just the same — but that is the theft of a whole identity, not a hole in the reissue.
+
+**A schema consequence.** The ephemeral halves need somewhere to sit between the two presses — at consent that is `match_participants.ephemeral_public_key`; a reissue has no such place, and one has to be created.
 
 **Forward secrecy holds.** The ephemeral keys and `K` are wiped when the chat dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
 
@@ -1212,9 +1296,9 @@ The logo has two clickable parts with **different** actions. The rule is identic
 
 - **House mark** — changes the theme (as now). On the landing this is the accent-color cycle (button `#logoBtn`); light/dark is a separate ☀/🌙 button. The house behavior does not change.
 - **Name text** (`SOSED` / `NEIGHBRO`) — navigates **"home"**, where "home" depends on auth:
-  - **has an identity** (`identity_id` + secret in the browser, see §8.2) → the app's **chat window**;
+  - **has an identity** (`identity_id` and the private half of the key in the browser, see §8.2) → the app's **chat window**;
   - **no identity** → the **landing**.
-- **"Has an identity" is defined** as an `identity_id` with a live secret in the browser. Until that exists there is no identity → the name text always goes to the landing.
+- **"Has an identity" is defined** as an `identity_id` plus the private half of the key that signs requests. This said "a live secret" — the model §8.2 retired on 2026-08-12 and never cleared from here; corrected 2026-08-17. Until that exists there is no identity → the name text always goes to the landing.
 - Accessibility: the name text is a semantic link/button with an `aria-label`; house and text are distinguishable by focus.
 
 ## 12. Open questions

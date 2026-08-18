@@ -1056,7 +1056,7 @@
   <g transform="translate(48,3128)">
     <rect x="0" y="0" width="1344" height="56" rx="6" fill="#f7f7f5" stroke="#d9d9d4" stroke-width="2"/>
     <text x="20" y="24" class="body">
-      panel/public/kit-full.svg — the 46 components of neobrutalism.dev, read from its repository, drawn in our geometry.
+      panel/design/kit-full.svg — the 46 components of neobrutalism.dev, read from its repository, drawn in our geometry.
     </text>
     <text x="20" y="44" class="muted">
       Not one of these is implemented by this drawing. Pick what the panel actually needs; the rest is a catalogue, not a plan.

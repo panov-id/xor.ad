@@ -796,11 +796,42 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       files, but the weights declared are exactly the ones the markup asks for
       (Golos 400/500/600, Unbounded 600/800/900) — no faked boldness, only
       redundancy. Left alone.
-- [ ] **G3. i18n for the decorative mockups.** Measured 2026-08-17: five SVGs
-      in `panel/public` (`app-screens`, `button-states`, `kit-full`, `kit-mockup`,
-      `reference-behaviour`) hold **zero Cyrillic characters** against 10–29
-      thousand Latin ones each. On a Russian panel every decorative string is
-      English.
+- [x] **G3. The mockups left the build — closed 2026-08-18. The question was the wrong one.**
+      The item asked whether to translate five decorative SVGs in `panel/public`.
+      Taking it apart showed there was nothing to translate, because they should
+      not have been published at all.
+
+      **What they actually are.** Not interface decoration but working design
+      documents: `app-screens.svg` is **eleven screens of the unbuilt chat**, drawn
+      off `docs/chat_EN.md` with references to §8.2 and §8.3; `kit-full.svg` is a
+      component inventory marked `● built` / `○ drawn`; `reference-behaviour.svg`
+      is a study of somebody else's code. **No file of code references them.**
+
+      **And all of them sat on the production panel.** Vite copies `public/` into
+      `dist/` verbatim, so five SVGs and the `app-screens.html` wrapper were served
+      from `https://xor.panov.id/<name>.svg` — checked with `curl`, all `200`,
+      236 KB. No keys and no secrets are in them, but publishing the design of an
+      unbuilt product was not a decision anybody made.
+
+      **Done:**
+      - `git mv` into `panel/design/` — outside `public/`, therefore outside the
+        build. Three font files went with them (Golos Text, JetBrains Mono), used
+        by `app-screens.svg` alone and never declared in `fonts.css`;
+      - `scripts/render-design-mockup.sh` + `scripts/render-design-mockup.mjs` keep
+        the rendering: a browser in Docker, `panel/design` served at the root, and
+        `/fonts/` answered from its own faces first and the panel's second. The
+        failure is visible: a face that does not resolve marks the mockup `✗` and
+        exits non-zero;
+      - the captions inside the mockups and the references in
+        `design-system_{RU,EN}.md` now point at the new path.
+
+      **Verified:** all five render at their true geometry with the fonts
+      resolving (the `button-states` sheet was looked at whole — Unbounded in the
+      headings, Inter in the body, mono in the annotations). The panel was rebuilt
+      from scratch: **no** SVG in `dist`, 12 font files instead of 15, 1000 KB.
+
+      **Not done, and worth knowing:** the mockups are **still live** in
+      production — they go with the next panel deploy and its cache purge.
 - [x] **G4. Public `/waitlist` protection — closed 2026-08-17.** The chain is
       complete: the per-address limit in the node, the honeypot, the
       `X-Origin-Token` lock in Caddy, the hostname moved onto the zone and, last,

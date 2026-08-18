@@ -9,7 +9,7 @@ Read alongside:
 
 - `panel/src/App.css` — the implementation. Every rule here exists there.
 - `panel/ui-kit.html` — the live kit, painted by that same stylesheet.
-- `panel/public/*.svg` — the drawings the decisions were made on.
+- `panel/design/*.svg` — the drawings the decisions were made on.
 - `docs/brutalism_EN.md` — the study of the open libraries much of this grew from.
 
 ## Sources
@@ -344,7 +344,7 @@ parts lost their own affordances, the seams were ambiguous to hit, and it is whe
 ## 8. What we took from the reference, and what we left
 
 The study is `docs/brutalism_EN.md`; the drawing is
-`panel/public/reference-behaviour.svg`.
+`panel/design/reference-behaviour.svg`.
 
 **Taken:** the hard unblurred shadow as a **distance** that a press spends; 2px
 frames everywhere; stated control heights; `inline-flex` centring and
@@ -392,4 +392,4 @@ Remaining:
   `light-dark()` is done.
 - Three classes render with no rules behind them: `row-action`, `state-loading` and
   `panel-invite-form` (the last held by the tests). Either style them or drop them.
-- 32 of the 46 components in `panel/public/kit-full.svg` are drawn only.
+- 32 of the 46 components in `panel/design/kit-full.svg` are drawn only.

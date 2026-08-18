@@ -843,7 +843,7 @@
   <g transform="translate(288,3590)">
     <rect x="0" y="0" width="1104" height="40" rx="6" fill="#f7f7f5" stroke="#d9d9d4" stroke-width="2"/>
     <text x="20" y="25" class="muted">
-      Mockup — panel/public/kit-mockup.svg. Nothing implemented yet; pick what is worth building and in what order.
+      Mockup — panel/design/kit-mockup.svg. Nothing implemented yet; pick what is worth building and in what order.
     </text>
   </g>
 </svg>

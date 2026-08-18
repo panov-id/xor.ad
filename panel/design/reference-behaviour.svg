@@ -404,7 +404,7 @@
   <g transform="translate(48,2122)">
     <rect x="0" y="0" width="1344" height="56" rx="6" fill="#f7f7f5" stroke="#d9d9d4" stroke-width="2"/>
     <text x="20" y="24" class="body">
-      panel/public/reference-behaviour.svg — their behaviour read from button.tsx, switch.tsx, tabs.tsx, accordion.tsx, checkbox.tsx, badge.tsx.
+      panel/design/reference-behaviour.svg — their behaviour read from button.tsx, switch.tsx, tabs.tsx, accordion.tsx, checkbox.tsx, badge.tsx.
     </text>
     <text x="20" y="44" class="muted">
       Purple is theirs. Nothing here is implemented; the two panels above are the proposal.

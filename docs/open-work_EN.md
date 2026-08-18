@@ -240,15 +240,41 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       three before any deploy. sosed — 17 languages, 18 alternates per page, a
       19-URL sitemap; neighbro — 10 languages, 11 alternates, 12 URLs. No dead
       links.
-- [ ] **D3. Live checks F4–F5** — no request to a Google domain before consent,
-      no CSP violations in the console. After the production deploy.
+- [x] **D3. Live checks — closed 2026-08-18, both halves measured.**
 
-      **Half of it closed 2026-08-14.** After the production deploy six pages
-      across both storefronts were driven in a browser: **zero** CSP violations.
-      The other half — no request to a Google domain before consent — **was not
-      measured**: what was watched was the console, not the network list. Until
-      that is done the item stays open in full; only the half that was checked is
-      proven.
+      **No request to a Google domain before consent.** Both production
+      storefronts were driven in a browser, five pages each: `/`, `/ru/`,
+      `/legal.html`, `/rules.html`, `/report.html`. **Every** network request was
+      recorded, not the console. Out of 5–16 requests per page, Google's share was
+      **zero** everywhere.
+
+      **The half without which the first means nothing.** "Zero requests to
+      Google" is equally true on a site with no analytics id, on a page that
+      failed to load, and with a probe watching the wrong thing. So the same run
+      carries a positive control: press "accept" and check the requests **do**
+      appear. They did on both —
+      `googletagmanager.com/gtag/js?id=G-K7EP39DDK9` and `…G-WWHXHZ5QWQ`. The
+      check can go red, which is what makes its green worth anything.
+
+      The ids are configured in production (`config.js` on both storefronts),
+      which is why production is where this had to be measured: on dev and uat
+      `analyticsId` is empty and `gtag.js` would not load regardless of consent.
+
+      **Clarified along the way.** `legal.html`, `rules.html` and `report.html`
+      show no consent banner — and should not: those pages carry no analytics code
+      at all (`consentAccept`, `loadAnalytics`, `googletagmanager` — zero matches).
+      Nothing there can fire before consent or after it; that is a property, not a
+      gap.
+
+      **The first half was closed 2026-08-14** after the production deploy: six
+      pages, zero CSP violations.
+
+      The probe now lives in the repository — `scripts/check-consent-gate.sh` and
+      `testing/consent-gate.mjs` — to be run after every production deploy of a
+      storefront. Exercised by breaking it: a copy was given consent up front, so
+      analytics loaded before any click — two failures, exit 1, with both
+      `gtag.js` and the `google-analytics.com/g/collect` request named in the
+      output.
 - [x] **D4. Sitemap submitted to Search Console** — 2026-07-27, both domains
       (`https://sosed.place/sitemap.xml` and
       `https://neighbro.place/sitemap.xml`). They are Domain properties, so the

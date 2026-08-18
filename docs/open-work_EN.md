@@ -1156,6 +1156,64 @@ document; J2 was withdrawn deliberately and explained inside J3, while nothing i
 said about J8 anywhere. Not reconstructing it — recording it so the gap is not
 mistaken for a loss.
 
+- [x] **M3. The deploy never deleted anything, and the storefronts served our own
+      tooling — closed 2026-08-18.** Two quiet holes, found because of a third
+      task: the mockups were taken out of the build, the deploy went green, and
+      the mockups stayed on the site.
+
+      **The first hole: upload without delete.** The deploy scripts uploaded every
+      file and removed none, so whatever had once been published stayed published.
+      The `panel-dev` zone held 44 files against a build of 16: sixteen superseded
+      bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the
+      point; the objects are in storage, not in the cache. The consequence is
+      wider than mockups: a file removed for any reason, a legal one included,
+      would have kept being served.
+
+      **The second hole: the storefronts published their own checks.** On
+      production `neighbro.place` and `sosed.place`, `check-contrast.mjs`,
+      `check-legal-consistency.mjs`, `find-dead-keys.mjs`, `verify-seo.mjs` and
+      `test-security-headers.sh` all answered `200`. Not secrets, but nobody
+      decided to publish the list of headers we expect or the rules we check. The
+      cause: the exclusions lived in **two places**, and the half that was a
+      hand-written list of five names had drifted while the directory grew to ten.
+
+      **Done:**
+      - `deploy/prune-storage-zone.py` — a prune with three guards: nothing happens
+        without `--apply`; a plan covering more than half the zone stops; and
+        **nothing referenced by the zone's own `index.html` is ever deleted**;
+      - wired into the panel deploy and both landing deploys, right after the
+        upload — the one place where the directory compared is the directory just
+        uploaded — and only when every file landed;
+      - the storefronts' exclusions now sit in one block, and the tooling half is a
+        rule ("no `.mjs`, no `.sh`") rather than a list: a rule does not go stale
+        when a file is added;
+      - the landings' upload loop learned to read HTTP statuses. A zone rejecting
+        every byte used to finish green. The panel deploy was fixed for this long
+        ago; the landings were not.
+
+      **Two mistakes of my own, both costly and both now written into the code:**
+
+      1. **Broke the dev panel.** Ran the prune against a locally built dist while
+         the zone held a CI build; the hashes differ, so the live bundle looked
+         stale and went. The panel was blank until the deploy was re-run. Hence
+         the third guard, tested by repeating that exact command.
+      2. **Broke the UAT deploy.** Made the prune's exit code fatal, and it runs
+         **after** the upload — so when the guard honestly refused to delete 60% of
+         the zone, the deploy stopped without recomputing the headers or purging
+         the cache. The most conservative outcome became the worst one. A refusal
+         is now a loud warning and the deploy carries on: extra files are untidy, a
+         policy that does not match the bundle is a blank screen.
+
+      **Verified on all three environments.** Panel zones: 44 → 16, 40 → 16,
+      38 → 16. Storefronts: tooling `404` everywhere, pages `200` and rendering.
+      The production panel was opened in a browser — no errors, no policy
+      violations, `Inter 500/600/700 → 627/633/640px`. Before pruning production
+      the build was **reproduced locally down to the bundle name**
+      (`index-DgdjqIRF.js`) to prove it was the deployed one.
+
+      Bunny's `FilesStored` statistic lags and still showed the old numbers after
+      the files were gone; counting means walking the listing.
+
 - [x] **J13. One commit, two different images. Found and fixed 2026-08-07.**
       Surfaced while verifying J11: under the tag `v2026.8.7-g3fbd1e1` and under
       `sha-3fbd1e1`, `relay-caddy` had **different digests** (`2af974ef…` and

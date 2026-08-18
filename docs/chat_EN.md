@@ -118,7 +118,7 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 
 ### 8.2. Identity and sessions
 
-An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, handed to the person at registration, which we can neither look up nor reset.
+An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for not at registration but when the first chat opens (below).
 
 This used to read "a secret, and the server stores the secret's hash" — a leftover from an earlier design, incompatible with the rest of §8: a public key has no hash, and a shared secret would mean the node can sign as the person. Corrected 2026-08-12, before it reached any code.
 
@@ -355,7 +355,19 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 
 #### The paper recovery code
 
-**Shown exactly once at registration, and mandatory.** With a single live session, losing the device is the end of the identity, and the piece of paper is the only way out; it cannot be made optional.
+**Shown exactly once, and mandatory.** With a single live session, losing the device is the end of the identity, and the piece of paper is the only way out; it cannot be made optional.
+
+**But not at registration — moved 2026-08-18.** It stood at the entrance and wrote the insurance before there was anything to insure: on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The only thing lost with the identity was the nameless counters in `identity_stats`. For that we asked somebody to copy sixteen characters and type them back — the one act in the physical world anywhere in the entry flow, and it stood **before** they had even seen the product.
+
+**It is now asked for the moment the first chat opens.** Both pressed "open", the room exists — and before the first message the person goes through the same screen: the code, copied down, confirmed by typing two groups of four. From that second they hold something that exists nowhere else, and the insurance arrives with it.
+
+**Why after the opening rather than before it.** A gate "before the first chat" lands on the consent screen, which already carries the notice and the span choice, with the match timer running above it — `least()` of both phrases, and in the worst case a few minutes. A first-ever match with three minutes on the clock and a request to copy sixteen characters would end either in "later" or in a lost match. After the opening the timer no longer presses: a chat lives from its last activity.
+
+**The screen cannot be skipped.** It is the same "exactly once, and mandatory", only in a different place: until the code is confirmed, nothing can be written in the chat. Otherwise moving it would amount to abolishing it.
+
+**The uninsured window is named plainly.** Between registration and the first chat a person lives without the paper, and losing the device then means losing the identity — along with the accumulated counters and the published phrases. We accept that because the price is measurable and small, but it must not go unsaid: one line on the registration screen, not a footnote.
+
+**The PIN stays at registration, and the reason is the terminal.** In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history, which does not exist on the first minute. But `depth` writes its key file immediately, and that file is encrypted with the same vault key (below). Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
 
 ```
       RTQ4 - 8FMK - 2PZN - XW9D
@@ -434,7 +446,9 @@ Silently swapping a name mid-conversation is not allowed: the peer agreed to tal
 
 Disclaimers (both required in the UI):
 
-> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
+> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down when your first chat opened. The conversations do not come back: they exist nowhere else, including with us.
+
+> Before your first chat you have no paper code yet, and there would be nothing to bring the identity back with: lose the device and you start a new one. There is nothing to lose at that point beyond a name and some counters.
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
 

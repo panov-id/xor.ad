@@ -27,10 +27,9 @@ flowchart TD
   again --> form
   mod -- "yes" --> pin["PIN: six digits, twice"]
   pin --> share["the node creates a vault share<br/>key = HKDF#40;local ‖ share#41;"]
-  share --> paper["paper recovery code<br/>shown exactly ONCE"]
-  paper --> confirm{"did they type back<br/>two groups of four?"}
-  confirm -- "no" --> paper
-  confirm -- "yes" --> feed(["the feed"])
+  share --> warn["one line: there is no insurance yet,<br/>losing the device loses the identity"]
+  warn --> feed(["the feed"])
+  feed -.-> later["the paper code is not here but<br/>when the first chat opens #40;§9#41;"]
 ```
 
 - There is no email and no password by construction. After a lost device the only
@@ -40,6 +39,14 @@ flowchart TD
 - Every client starts as a **separate** identity. Web on a phone, web on a laptop
   and `depth` in a container are three different neighbours until somebody moves
   the identity there themselves.
+- **The paper code was moved off this screen to the opening of the first chat**
+  (2026-08-18): it wrote the insurance before there was anything to insure. On the
+  first minute there is nothing to lose — no chats, no messages — and a name and an
+  age are retyped in seconds.
+- **The PIN stayed here, and the reason is the terminal.** In the web the keys are
+  non-extractable `CryptoKey` objects and the vault key is only needed for history
+  that does not exist yet. But `depth` writes its key file immediately and encrypts
+  it with that same key: deferring the PIN would leave keys in the clear on disk.
 
 ---
 
@@ -338,8 +345,20 @@ sequenceDiagram
     N->>N: matches.chat_id = the new one
     N->>A: chat_id + «you both liked this — chat is open»
     N->>B: the same
+    opt this identity's first chat
+      Note over A,B: the paper code screen: copy it down,<br/>confirm by typing two groups
+      Note over A,B: it cannot be skipped — nothing can be<br/>written in the chat until it is confirmed
+    end
   end
 ```
+
+**The paper code is asked for here, not at registration.** After the opening rather
+than before it: a gate "before the chat" would land on the consent screen, which
+already carries the notice and the span choice, with the match timer running above
+it — a few minutes in the worst case. A first-ever match with three minutes on the
+clock and a request to copy sixteen characters would end in "later" or in a lost
+match. After the opening the timer does not press: a chat lives from its last
+activity.
 
 **The match TTL** is `least()` of both phrases' `expires_at`, with no safety floor.
 Either one dies and the match goes out, even if one side has already accepted. A

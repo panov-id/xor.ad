@@ -1260,22 +1260,38 @@ mistaken for a loss.
       that applies to one kind in four stops being read. Verified in a browser on
       both storefronts — hidden, shown, hidden again — and broken on purpose to
       check the assertion catches it.
-- [ ] **J24. A simple entry: where the paper code sits in registration.** The spec
-      demands it **at registration** and explains why: there is no email and no
-      password, there is one live session, so losing the device without the paper
-      is irreversible (`chat_EN.md` §8.2). The objection raised 2026-08-17 is
-      substantive: an ordinary person should enter by a simple path, and three
-      screens before the product's first screen is not one.
+- [x] **J24. A simple entry — decided 2026-08-18: the paper code left registration.**
+      Entry is now name and age → PIN → the feed. The code is asked for when the
+      **first chat opens**, on the same "copy it down and type two groups back"
+      screen, and it cannot be skipped: nothing can be written in the chat until it
+      is confirmed.
 
-      The order of the PIN and the paper code is **not defined at all** — both are
-      merely "at registration". Diagram 1 in `chat-flows_EN.md` draws PIN → code,
-      and that was invented rather than taken from the text; it is marked as the
-      one known defect of the diagrams.
+      **Why it moved.** It wrote the insurance before there was anything to insure:
+      on the first minute there are no chats and no messages, a name and an age are
+      retyped in ten seconds, and only nameless counters were at stake. For that we
+      asked for the one act in the physical world anywhere in the entry flow, and
+      it stood before the person had seen the product.
 
-      The options are laid out and not chosen: leave it as is, defer the code until
-      the first open chat (nothing to lose yet — there are no messages), or make it
-      optional (which means rewriting §8.2, where it says plainly that it cannot be
-      made optional).
+      **Why after the chat opens rather than before.** A gate "before the chat"
+      would land on the consent screen, which already carries the notice and the
+      span choice, with the match timer above it — `least()` of both phrases, a few
+      minutes in the worst case. A first match with three minutes on the clock and a
+      request to copy sixteen characters would end in "later" or in a lost match.
+
+      **The PIN stayed at registration, and the terminal settled that.** In the web
+      the keys are non-extractable `CryptoKey` objects and the vault key is only
+      needed for history that does not exist yet — so in a browser the PIN could
+      have been deferred. But `depth` writes its key file immediately and encrypts
+      it with that same vault key: deferring would leave keys in the clear on disk.
+      The faces must not diverge — §13 puts the terminal first.
+
+      **The price is named and stated in the UI:** between registration and the
+      first chat a person lives without insurance, and losing the device then loses
+      the identity along with the counters and the published phrases. That is one
+      line on the registration screen, not a footnote.
+
+      Diagram 1 in `chat-flows_EN.md` is redrawn; the invented "PIN → code" order
+      went away with the code itself.
 
 - [ ] **J25. The chat spec's own open questions — listed so they are not lost.**
       They live in the spec but are invisible from this checklist, and they have to

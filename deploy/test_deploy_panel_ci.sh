@@ -114,10 +114,14 @@ attempt "a rejected purge fails the deploy" "200 200 403" 1 "cache NOT purged"
 # A 507 is the quota case, and the one curl is happiest to call success.
 attempt "a 507 is not success" "507" 1 "did not upload"
 
-# The prune deletes; a prune that refused or failed must stop the deploy rather
-# than let it report success over a zone still serving what was removed.
-PRUNE_CODE=2 attempt "a refused prune fails the deploy" "200" 2 "(stubbed prune)"
-PRUNE_CODE=1 attempt "a failed prune fails the deploy" "200" 1 "(stubbed prune)"
+# A prune that refuses or fails must NOT stop the deploy. It runs after the
+# upload, so a fatal refusal leaves the zone uploaded, the edge rule computed for
+# the previous bundle and the cache unpurged — which is how the UAT deploy broke
+# on 2026-08-18. Extra files are untidy; a mismatched policy is a blank panel.
+# The refusal has to be loud, though, or the zone quietly keeps its junk.
+PRUNE_CODE=2 attempt "a refused prune does not stop the deploy" "200" 0 "уборка не выполнена"
+PRUNE_CODE=1 attempt "a failed prune does not stop the deploy" "200" 0 "уборка не выполнена"
+PRUNE_CODE=2 attempt "a refused prune still reaches the purge" "200" 0 "cache purged"
 
 # And the way out, for the day the prune itself is the thing that is wrong.
 SKIP_PRUNE=1 attempt "SKIP_PRUNE leaves the zone alone" "200" 0 "SKIP_PRUNE=1"

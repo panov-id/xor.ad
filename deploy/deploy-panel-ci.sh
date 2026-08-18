@@ -89,8 +89,16 @@ if [ "${SKIP_PRUNE:-}" = "1" ]; then
   echo "SKIP_PRUNE=1 — лишние файлы в зоне остаются как есть." >&2
 else
   echo "Убираю из зоны то, чего нет в этой сборке…"
-  BUNNY_STORAGE_API_KEY="$BUNNY_STORAGE_API_KEY" \
-    python3 "$ROOT_DIR/deploy/prune-storage-zone.py" "$BUNNY_STORAGE_ZONE" "$DIST" --apply
+  # A prune that refuses or fails must not fail the deploy, and that is a lesson
+  # from 2026-08-18: it runs after the upload, so making it fatal turned a
+  # conservative refusal into a half-applied deploy — new bytes in the zone, the
+  # edge rule still computed for the previous ones, and no purge. Extra files in
+  # a zone are untidy; a policy that does not match the bundle is a blank panel.
+  # The refusal is printed loudly and the deploy carries on.
+  if ! BUNNY_STORAGE_API_KEY="$BUNNY_STORAGE_API_KEY" \
+       python3 "$ROOT_DIR/deploy/prune-storage-zone.py" "$BUNNY_STORAGE_ZONE" "$DIST" --apply; then
+    echo "  ⚠ уборка не выполнена — в зоне остаётся лишнее. Выкат продолжается." >&2
+  fi
 fi
 
 # The header lives at the CDN edge, so a wrong hash is a page that does nothing

@@ -788,7 +788,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       written: it is the history of the decision, and it holds two mistakes worth
       remembering.
 
-      What is left to decide lives in **G10**, deadline included.
+      What is left to decide lives in **G11**, deadline included.
 
       Checked
       2026-08-05: `/waitlist` has **no protection at all**, and the old wording
@@ -942,7 +942,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       valid token, then the per-IP limit and the honeypot, and only then repoint
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
-- [ ] **G10. Decide the Shield mode before 2026-08-21.** Four production zones
+- [ ] **G11. Decide the Shield mode before 2026-08-21.** Four production zones
       (`xorad-api-prod`, `neighbro-prod`, `sosed-prod`, `panel-prod`) sit in
       observation and Learning Mode ends 2026-08-21. The decision is made from the
       WAF log, which is readable only in the Bunny dashboard — a person's step.
@@ -1260,6 +1260,32 @@ mistaken for a loss.
       that applies to one kind in four stops being read. Verified in a browser on
       both storefronts — hidden, shown, hidden again — and broken on purpose to
       check the assertion catches it.
+- [ ] **J24. A simple entry: where the paper code sits in registration.** The spec
+      demands it **at registration** and explains why: there is no email and no
+      password, there is one live session, so losing the device without the paper
+      is irreversible (`chat_EN.md` §8.2). The objection raised 2026-08-17 is
+      substantive: an ordinary person should enter by a simple path, and three
+      screens before the product's first screen is not one.
+
+      The order of the PIN and the paper code is **not defined at all** — both are
+      merely "at registration". Diagram 1 in `chat-flows_EN.md` draws PIN → code,
+      and that was invented rather than taken from the text; it is marked as the
+      one known defect of the diagrams.
+
+      The options are laid out and not chosen: leave it as is, defer the code until
+      the first open chat (nothing to lose yet — there are no messages), or make it
+      optional (which means rewriting §8.2, where it says plainly that it cannot be
+      made optional).
+
+- [ ] **J25. The chat spec's own open questions — listed so they are not lost.**
+      They live in the spec but are invisible from this checklist, and they have to
+      be settled before any code: the set of chat spans and the behaviour at the
+      exact expiry moment (§5), sub-sections on the tabs (§12), which moderation
+      model — **a measurement, not an argument** (§8.14), Ed25519 support in
+      WebCrypto on real browsers, or else ECDSA P-256 (§8.2), the moderation
+      queue's throughput (§8.3), and the window in which a name is accepted
+      unchecked, because the queue only appears at step 2 (§13).
+
 - [ ] **J19. The identity model has been rewritten in the spec and does not exist
       in code.** Decided 2026-08-10: one live session per identity, a mandatory
       paper recovery code, a mandatory six-digit PIN, and half the vault key held
@@ -1272,10 +1298,16 @@ mistaken for a loss.
 
       **What will have to be built when its turn comes:**
 
-      - `identities` with `recovery_auth_hash`, `recovery_wrapped_key` and an
-        attempt counter; `sessions` with `frozen_at` and a **partial unique
-        index** — that index, not a check in code, is what holds the one-session
-        rule;
+      - `identities` with `recovery_auth_hash` and `recovery_wrapped_key` — **with
+        no attempt counter**: the column was dropped 2026-08-18 because it could
+        barely ever fire (one wrong character breaks the lookup half, the node
+        finds no identity, and there is nothing to decrement). The recovery
+        endpoint counts instead: per address plus a global miss counter;
+      - `sessions` with `frozen_at` and a **partial unique index** — that index,
+        not a check in code, is what holds the one-session rule;
+      - somewhere to hold the ephemeral halves during a **chat key reissue**: at
+        consent that is `match_participants.ephemeral_public_key`, and a reissue
+        has no such place (`chat_EN.md` §8.13, decided 2026-08-18);
       - `vault_shares`: the PIN verified **on the node** before the share is
         released, with the counter there too. Hand the share out unverified and the
         whole scheme collapses — an attacker takes it once and brute-forces six
@@ -1284,6 +1316,15 @@ mistaken for a loss.
         itself, same network or not, when. An address comparison, no geo database;
       - cleanup of shares whose session has been unseen for a year, and that period
         stated in the retention policy.
+
+      **Extended 2026-08-18, when the recovery mechanic was taken apart to the
+      end.** Written down: the paper code's entropy (sixteen Crockford base32
+      characters, salt `xor.ad/recovery/v1`, 80 bits) — only an example string
+      stood there before, and the alphabet would have been chosen by whoever wrote
+      the code first; issuing a **new** code on recovery while killing the old one;
+      and a **chat key reissue** after a device change — one mechanism for a
+      transfer and a recovery, signed with the long-term key and accepted by the
+      other side. Until then both cases left a chat listed as live and mute.
 
       **What to test once it is built** (§14 of the spec): ten wrong PINs really do
       burn the share and the database then opens with **nothing**; the paper code

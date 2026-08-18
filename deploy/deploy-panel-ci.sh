@@ -73,6 +73,26 @@ echo "Deploying panel dist → Bunny zone '${BUNNY_STORAGE_ZONE}'"
   }
 )
 
+# Uploading is only half of a deploy. Until 2026-08-18 this script never deleted
+# anything, so whatever had once been published stayed published: the dev zone
+# held sixteen superseded bundles and five design mockups that no code
+# referenced, and the mockups kept answering 200 long after the commit that
+# removed them shipped. Purging does not help — the objects are in storage.
+#
+# It runs here, and only here, because this is the one place where the directory
+# being compared is the directory that was just uploaded. Run against a locally
+# built dist it would delete the live bundle, whose hash differs; the tool now
+# refuses that, but the right place for it is still this one. It runs after the
+# upload loop, which exits above if a single file failed — a half-finished
+# upload must never be followed by a delete.
+if [ "${SKIP_PRUNE:-}" = "1" ]; then
+  echo "SKIP_PRUNE=1 — лишние файлы в зоне остаются как есть." >&2
+else
+  echo "Убираю из зоны то, чего нет в этой сборке…"
+  BUNNY_STORAGE_API_KEY="$BUNNY_STORAGE_API_KEY" \
+    python3 "$ROOT_DIR/deploy/prune-storage-zone.py" "$BUNNY_STORAGE_ZONE" "$DIST" --apply
+fi
+
 # The header lives at the CDN edge, so a wrong hash is a page that does nothing
 # in production and works everywhere else. It is computed from the dist that was
 # just uploaded, and applied before the purge so the first request after the

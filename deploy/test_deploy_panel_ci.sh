@@ -50,9 +50,20 @@ cat > "$WORK/bin/node" <<'STUB'
 echo '{"headers":[{"name":"X-Test","value":"1"}],"counted":{"pages":1}}'
 STUB
 
+# Two different python3 callers now: the edge rule and the storage prune. The
+# stub has to tell them apart, or a prune that fails would look like a deploy
+# that succeeded — which is the whole thing being tested.
 cat > "$WORK/bin/python3" <<'STUB'
 #!/usr/bin/env bash
-echo "  (stubbed edge rule)"
+case "$*" in
+  *prune-storage-zone.py*)
+    echo "  (stubbed prune)"
+    exit "${PRUNE_CODE:-0}"
+    ;;
+  *)
+    echo "  (stubbed edge rule)"
+    ;;
+esac
 STUB
 
 chmod +x "$WORK/bin/curl" "$WORK/bin/node" "$WORK/bin/python3"
@@ -65,6 +76,7 @@ attempt() {
   local output status
   output="$(cd "$WORK" && env PATH="$WORK/bin:$PATH" \
     CALL_LOG="$log" CURL_CODES="$codes" \
+    PRUNE_CODE="${PRUNE_CODE:-0}" SKIP_PRUNE="${SKIP_PRUNE:-}" \
     BUNNY_STORAGE_ZONE=zone BUNNY_STORAGE_API_KEY=skey \
     BUNNY_PULL_ZONE_ID=99 BUNNY_API_KEY=akey \
     VITE_RELAY_API_URL=https://relay.example \
@@ -101,6 +113,14 @@ attempt "a rejected purge fails the deploy" "200 200 403" 1 "cache NOT purged"
 
 # A 507 is the quota case, and the one curl is happiest to call success.
 attempt "a 507 is not success" "507" 1 "did not upload"
+
+# The prune deletes; a prune that refused or failed must stop the deploy rather
+# than let it report success over a zone still serving what was removed.
+PRUNE_CODE=2 attempt "a refused prune fails the deploy" "200" 2 "(stubbed prune)"
+PRUNE_CODE=1 attempt "a failed prune fails the deploy" "200" 1 "(stubbed prune)"
+
+# And the way out, for the day the prune itself is the thing that is wrong.
+SKIP_PRUNE=1 attempt "SKIP_PRUNE leaves the zone alone" "200" 0 "SKIP_PRUNE=1"
 
 # The stub is checked too: a test that cannot fail proves nothing, so make sure
 # a rejected upload really does stop before the purge.

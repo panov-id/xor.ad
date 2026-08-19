@@ -602,15 +602,30 @@ pass opened and did not close.
       full list of what we accepted are in
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md), and
       `vendors-dpa_EN.md` marks the two as unnamed.
-- [ ] **J12. Re-check Bunny's sub-processor list after 2026-08-19.** Once the
-      change takes effect, look at the public page and record the names in
-      `vendors-dpa_EN.md`. This is bookkeeping, not an objection — the objection
-      window will have expired by then (J10).
+- [x] **J12. Bunny's sub-processors — checked 2026-08-19, still no names.**
+      The change notified on 2026-08-05 took effect today. At
+      `bunny.net/gdpr/sub-processors/` there are **the same six** (Zendesk, Slack,
+      Google Workspace, MailChannels, OpenAI, Atlassian): no new name, no update
+      date, no mark of a new entry. `bunny.net/gdpr/` dates nothing either. There
+      is nothing to put in the register — and not for want of looking.
 
-      **One thing to watch:** should the new sub-processors sit outside the EEA
-      and touch visitor data rather than account data, the cross-border picture
-      changes. We accepted it on specific grounds — region `DE`, no replicas,
-      chat and feed never go there — and those grounds would need revisiting.
+      **Decision: treated as closed.** We are not asking for the names and not
+      setting a date for another check — the question returns with Bunny's next
+      notification. Objecting is out of time: the §3.2 window shut around
+      2026-08-10 and was let pass on purpose; the contract does not oblige Bunny to
+      name sub-processors on request, and they keep the public list as they see
+      fit. A request would at best return names we have already accepted, and would
+      change no decision of ours.
+
+      **The price is named and stays on the record:** we consented to two parties
+      we were never told the names of, and the cross-border grounds rest on the
+      letter's phrase about "account data", which there is nothing to verify
+      against. This is not a question settled on the merits — it is one we decided
+      not to spend a move on.
+
+      Recorded in `vendors-dpa_{RU,EN}.md` (the Bunny row) and
+      `legal-archive/bunny-dpa_{RU,EN}.md` ("The check on the day it took
+      effect").
 
 - [x] **J11. The UAT auto-tag builds no image — closed 2026-08-09.** Verified in the registry: both `relay-node` and `relay-caddy` exist under `v2026.8.9-ge4ce220`.** Merging `dev → main` tags the
       commit `v2026.08.05-<sha>`, but no image exists under it: `type=semver` in

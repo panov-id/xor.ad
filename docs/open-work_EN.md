@@ -1427,10 +1427,20 @@ mistaken for a loss.
       They live in the spec but are invisible from this checklist, and they have to
       be settled before any code: the set of chat spans and the behaviour at the
       exact expiry moment (§5), sub-sections on the tabs (§12), which moderation
-      model — **a measurement, not an argument** (§8.14), Ed25519 support in
-      WebCrypto on real browsers, or else ECDSA P-256 (§8.2), the moderation
-      queue's throughput (§8.3), and the window in which a name is accepted
-      unchecked, because the queue only appears at step 2 (§13).
+      model — **a measurement, not an argument** (§8.14), the moderation queue's
+      throughput (§8.3), and the window in which a name is accepted unchecked,
+      because the queue only appears at step 2 (§13).
+
+      **One of them closed 2026-08-19 — the signature algorithm.** Measured in
+      three engines rather than read from documentation: today's Chromium 151,
+      Firefox 153 and WebKit 26.5 do Ed25519 in full, `wrapKey` included. But
+      **Chromium 136 and older cannot do it at all** (the boundary lies between 136
+      and 138, roughly May 2025), and somebody on such a device would not sign a
+      single request — a locked door rather than a degradation. **ECDSA P-256** was
+      chosen: it passed everywhere, including the engines without Ed25519. The spec
+      and the diagrams are rewritten, and the probe is kept —
+      `scripts/check-webcrypto-support.sh` with `testing/webcrypto-support.mjs` —
+      so the question can be revisited by measuring when that tail dies out.
 
 - [ ] **J19. The identity model has been rewritten in the spec and does not exist
       in code.** Decided 2026-08-10: one live session per identity, a mandatory

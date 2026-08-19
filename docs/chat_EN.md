@@ -169,8 +169,18 @@ What replaces it is **per-address rate limiting**, which exists and runs today; 
 The spec said "signed" without saying with what — which is precisely where an
 implementation makes a decision quietly and lives with it for years.
 
-**Ed25519.** Shorter keys and signatures, faster verification, and no parameters
-that can be chosen badly.
+**ECDSA P-256, decided 2026-08-19 on the measurement below.** It works in every
+engine, including the ones with no Ed25519 at all.
+
+**Ed25519 stood here, and it lost to a single number.** It is shorter, faster to
+verify and has no parameters that can be chosen badly — all of which was true and
+still is. But Chromium 136 and older cannot do it at all, and somebody on such a
+device cannot sign a **single** request: that is not a degraded experience, it is
+a locked door. P-256 has no such door in any engine measured.
+
+The trade is named: longer keys and signatures, and an algorithm with parameters
+— a curve and a hash — that must match on both sides and must not change quietly.
+Everywhere it is `ECDSA` with `namedCurve: "P-256"` and `hash: "SHA-256"`.
 
 ```
 signed over   <method>\n<path>\n<sha256 of body>\n<unix time>
@@ -192,11 +202,47 @@ are interchangeable (§8.1), each has its own, and a shared one is a database wr
 per request. With ephemerality measured in hours, five minutes of replayability is
 cheaper than a permanent write.
 
-**To check before implementing:** Ed25519 arrived in WebCrypto recently and older
-browsers may not know it. That has to be measured against real browsers — and if a
-noticeable share cannot, the choice becomes ECDSA P-256, supported everywhere and
-for years. Recorded here so that changing it is a decision rather than someone
-else's default found in the code.
+**Measured against real browsers — 2026-08-19.** The "check before implementing"
+is done: every operation §8.2 and §8.13 need was actually run in each engine,
+rather than a name being looked up in documentation.
+
+```
+                        Chromium 151   Firefox 153   WebKit 26.5     ← current
+Ed25519 generate/sign/verify   ✓             ✓            ✓
+Ed25519 export raw / import spki ✓           ✓            ✓
+Ed25519 wrapKey                ✓             ✓            ✓
+X25519 deriveBits              ✓             ✓            ✓
+ECDSA P-256, ECDH P-256        ✓             ✓            ✓
+```
+
+`wrapKey` was tested on its own account, not for completeness: without it the
+long-term identity key cannot survive a device move (§8.13), so partial Ed25519
+support would be no use to us.
+
+**The age boundary was found, and all of it is in Chromium:**
+
+```
+Chromium 131  Ed25519 ✗   X25519 ✗
+Chromium 136  Ed25519 ✗   X25519 ✓
+Chromium 138  Ed25519 ✓   X25519 ✓     ← roughly May 2025
+Firefox 132   Ed25519 ✓   X25519 ✓     ← November 2024
+WebKit 18.2   Ed25519 ✓   X25519 ✗
+```
+
+So **Ed25519 fails on Chromium 136 and older** — the most common engine, whose old
+versions live on devices that stopped updating. Firefox and WebKit pose no
+problem; WebKit has a boundary of its own on X25519.
+
+**That decided it.** The tail of old Chromium is small — the browser updates
+aggressively — but for anyone in it the application does not work at all rather
+than working worse. The installed base is not visible from here: the storefronts
+have GA4, and the measurement had no access to its data. Deciding by an invisible
+share, when the cost of being wrong is a completely locked door, was not worth
+doing.
+
+What was measured were Playwright's engine builds, not shipped Chrome and Safari,
+and the installed base is not visible from here. What is certain: no Chromium
+below 137 will sign a single request.
 
 **One live session per identity.** At any moment an identity exists on one device. Moving to another is not an addition but a **transfer**: the new one comes alive, the previous one freezes.
 
@@ -1218,7 +1264,7 @@ A chat is encrypted on the devices: the node carries ciphertext and holds no key
 ```
 consent      each side generates an EPHEMERAL pair for this chat
              and publishes its half, signed with the long-lived key
-opening      K = HKDF( ECDH(my ephemeral, their ephemeral), salt = chat_id )
+opening      K = HKDF( ECDH P-256(my ephemeral, their ephemeral), salt = chat_id )
 message      AES-GCM(K, nonce, text) → node → the peer decrypts
 chat death   K and the ephemeral keys are wiped, the wraps are deleted
              ─► old ciphertext can no longer be opened, by anyone
@@ -1254,7 +1300,7 @@ other side      verifies the signature against the long-term key it saw
                 when the chat opened ─► the same identity, not a substitution
                 ─► asks the person: "they changed device.
                    Issue new keys? Old messages will not come back"
-both            fresh ephemeral pairs, a new K = HKDF(ECDH(...), salt = chat_id)
+both            fresh ephemeral pairs, a new K = HKDF(ECDH P-256(...), salt = chat_id)
                 ─► wraps for the live session on each side
 the old K       cannot be recovered by anything
 ```

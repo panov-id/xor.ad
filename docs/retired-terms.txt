@@ -1,0 +1,42 @@
+# Wordings a decision retired. If one turns up outside a passage explicitly about
+# history, the document is describing a system we no longer have.
+#
+# Checked by scripts/check-retired-terms.sh.
+#
+# Format:  <exact wording> | <files to search, glob> | <what replaced it, and when>
+#
+# Phrases, not words. The first version of this file listed «секрет» and matched
+# forty places about GitHub secrets and API secret keys — all of them correct. It
+# is the sentence that was retired, not the noun. A phrase precise enough to be
+# wrong is precise enough to search for.
+#
+# Why the file exists: reading the chat spec on 2026-08-17 turned up three
+# self-contradictions, each months old and each invisible to every check we had.
+# The moderation ladder still offered an external model while the section below
+# it excluded external moderation outright; §11 still recognised an identity by a
+# "secret" that §8.2 had replaced with a key pair and recorded as replaced; and
+# the English text still called the feed check synchronous weeks after it moved
+# into a queue. Nothing was wrong with the writing — nothing watched the wording.
+
+# --- личность опознаётся секретом, а не парой ключей ---------------------------
+живым секретом            | chat_RU.md       | закрытая половина ключа, 12.08.2026
+identity_id` + секрет     | chat_RU.md       | закрытая половина ключа, 12.08.2026
+a live secret             | chat_EN.md       | the private half of the key, 2026-08-12
+хэш секрета               | chat_RU.md       | у публичного ключа нет хэша, 12.08.2026
+
+# --- подпись запросов ----------------------------------------------------------
+**Ed25519.**              | chat_RU.md chat_EN.md | ECDSA P-256, 19.08.2026 — Chromium ≤136 не умеет Ed25519
+подпись Ed25519           | chat-flows_RU.md | ECDSA P-256, 19.08.2026
+Ed25519 signature         | chat-flows_EN.md | ECDSA P-256, 2026-08-19
+
+# --- модерация ленты ------------------------------------------------------------
+Внешняя модель**          | chat_RU.md       | две ступени на узле, 17.08.2026 — текст не покидает узел
+An external model**       | chat_EN.md       | two steps on the node, 2026-08-17
+synchronous check         | chat_EN.md       | the check before publication, 2026-08-17
+
+# --- смена имени под живым разговором ---------------------------------------------
+называет себя иначе       | chat_RU.md       | имя заморожено, пока живы посты или чаты, 20.08.2026
+they now call themselves  | chat_EN.md       | the name is frozen while posts or chats live, 2026-08-20
+
+# --- опознание устройства --------------------------------------------------------
+отпечаток браузера считается | chat_RU.md    | ограничение частоты по адресу, 05.08.2026

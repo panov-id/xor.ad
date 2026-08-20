@@ -291,11 +291,52 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       status code is right; what is lost is the look of a stranger's placeholder
       on a mistyped address. An origin instead of storage would fix it and add a
       moving part where there are currently only files — dearer than the gain.
-- [ ] **D7. A per-language OG image** — the pipeline draws one for the whole
-      site; it only starts to matter with translated typography. Checked
-      2026-08-17: that is still the case — exactly one `/og-image.jpg` per
-      storefront, and the Russian pages point at the same image the English ones
-      do.
+- [x] **D7. A social image per language — closed 2026-08-19, and on the way it
+      turned out not to be about the image.** The item said "the pipeline draws one
+      for the whole site; it only starts to matter with translated typography". The
+      typography for half the languages turned out not to exist.
+
+      **The tagline was already translated** — it sits in the storefront's own
+      dictionary under `eyebrow`, in all 10 languages for neighbro and 17 for
+      sosed, and the generator takes the caption as an argument.
+
+      **The fonts were the gap.** Both storefronts have three faces of their own and
+      none covers Georgian; sosed adds Armenian to that. So the Georgian page had
+      been drawn in whatever the reader's device happened to have, and the image
+      baked in whatever the render container happened to have — not reproducible.
+      sosed was worse: its template set the caption in a **system** monospace, with
+      no face of ours at all, so its production image could never be reproduced. In
+      my container it came out in a Chinese WenQuanYi.
+
+      **Done:**
+      - `Noto Sans Georgian` (41 KB) in both storefronts and `Noto Sans Armenian`
+        (26 KB) in sosed — one file each, their own unicode-range only, added as
+        fallbacks to the stacks: 39 in neighbro, 21 + 21 in sosed;
+      - sosed's image template moved from the system monospace to `JetBrains Mono`
+        with those two behind it;
+      - `og/render-all.mjs` + `og/docker/run-all.sh` in both: one image per
+        language, captions read **from the same dictionary** the pages are built
+        from, so editing a translation cannot leave a stale picture behind;
+      - `build-pages.mjs` gives every language page its own `og:image`,
+        `og:image:secure_url` and `twitter:image`.
+
+      **Verified by asking the browser, not by measuring a width.**
+      `CSS.getPlatformFontsForNode` names the font a node was drawn with, and the
+      guard inside the generator uses the same call: a stranger in the caption is a
+      non-zero exit — "fix the fonts, not the render".
+
+      The result: **10 images** for neighbro and **17** for sosed, every one in a
+      face of ours. The Georgian page was checked on real elements — `h1`, a
+      paragraph and a mono line — with Noto Sans Georgian on the Georgian letters
+      and the brand faces on the Latin ones.
+
+      **Three method errors, each caught by the next check:** measuring before the
+      unicode subset had loaded (six confident false negatives), measuring the
+      wrong font (the caption is mono; I was testing the display face), and
+      declaring Georgian under the brand families' own names — which looks tidier
+      and **does not work**, because Chromium settles the weight inside a family
+      before it checks who covers the character. Only a fallback family in the
+      stack works.
 
 ## D-bis. Our own page counter
 
@@ -602,15 +643,30 @@ pass opened and did not close.
       full list of what we accepted are in
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md), and
       `vendors-dpa_EN.md` marks the two as unnamed.
-- [ ] **J12. Re-check Bunny's sub-processor list after 2026-08-19.** Once the
-      change takes effect, look at the public page and record the names in
-      `vendors-dpa_EN.md`. This is bookkeeping, not an objection — the objection
-      window will have expired by then (J10).
+- [x] **J12. Bunny's sub-processors — checked 2026-08-19, still no names.**
+      The change notified on 2026-08-05 took effect today. At
+      `bunny.net/gdpr/sub-processors/` there are **the same six** (Zendesk, Slack,
+      Google Workspace, MailChannels, OpenAI, Atlassian): no new name, no update
+      date, no mark of a new entry. `bunny.net/gdpr/` dates nothing either. There
+      is nothing to put in the register — and not for want of looking.
 
-      **One thing to watch:** should the new sub-processors sit outside the EEA
-      and touch visitor data rather than account data, the cross-border picture
-      changes. We accepted it on specific grounds — region `DE`, no replicas,
-      chat and feed never go there — and those grounds would need revisiting.
+      **Decision: treated as closed.** We are not asking for the names and not
+      setting a date for another check — the question returns with Bunny's next
+      notification. Objecting is out of time: the §3.2 window shut around
+      2026-08-10 and was let pass on purpose; the contract does not oblige Bunny to
+      name sub-processors on request, and they keep the public list as they see
+      fit. A request would at best return names we have already accepted, and would
+      change no decision of ours.
+
+      **The price is named and stays on the record:** we consented to two parties
+      we were never told the names of, and the cross-border grounds rest on the
+      letter's phrase about "account data", which there is nothing to verify
+      against. This is not a question settled on the merits — it is one we decided
+      not to spend a move on.
+
+      Recorded in `vendors-dpa_{RU,EN}.md` (the Bunny row) and
+      `legal-archive/bunny-dpa_{RU,EN}.md` ("The check on the day it took
+      effect").
 
 - [x] **J11. The UAT auto-tag builds no image — closed 2026-08-09.** Verified in the registry: both `relay-node` and `relay-caddy` exist under `v2026.8.9-ge4ce220`.** Merging `dev → main` tags the
       commit `v2026.08.05-<sha>`, but no image exists under it: `type=semver` in
@@ -1410,12 +1466,67 @@ mistaken for a loss.
 
 - [ ] **J25. The chat spec's own open questions — listed so they are not lost.**
       They live in the spec but are invisible from this checklist, and they have to
-      be settled before any code: the set of chat spans and the behaviour at the
-      exact expiry moment (§5), sub-sections on the tabs (§12), which moderation
-      model — **a measurement, not an argument** (§8.14), Ed25519 support in
-      WebCrypto on real browsers, or else ECDSA P-256 (§8.2), the moderation
-      queue's throughput (§8.3), and the window in which a name is accepted
-      unchecked, because the queue only appears at step 2 (§13).
+      be settled before any code: which moderation model — **a measurement, not an
+      argument** (§8.14) — and the moderation queue's throughput (§8.3).
+
+      **One of them closed 2026-08-19 — the signature algorithm.** Measured in
+      three engines rather than read from documentation: today's Chromium 151,
+      Firefox 153 and WebKit 26.5 do Ed25519 in full, `wrapKey` included. But
+      **Chromium 136 and older cannot do it at all** (the boundary lies between 136
+      and 138, roughly May 2025), and somebody on such a device would not sign a
+      single request — a locked door rather than a degradation. **ECDSA P-256** was
+      chosen: it passed everywhere, including the engines without Ed25519. The spec
+      and the diagrams are rewritten, and the probe is kept —
+      `scripts/check-webcrypto-support.sh` with `testing/webcrypto-support.mjs` —
+      so the question can be revisited by measuring when that tail dies out.
+
+      **Another closed 2026-08-20 — the last frame of expiry.** Only the person who
+      was looking sees a headstone: a chat open on screen shows "chat expired" and a
+      "close" button, while a row in the list disappears silently. The content is
+      erased immediately in both cases, and the headstone does not return to the
+      list — otherwise the trace outlives the thing that was supposed to vanish.
+      Written into `chat_EN.md` §5 together with the reason for the difference:
+      taking the screen away from someone mid-message without a word is
+      indistinguishable from a crash or a ban.
+
+      **And a third, the same day — sub-sections on the tabs.** There will be none:
+      exactly two tabs, `Chats` and `Matches`, with "fading" left as a state of the
+      row. A "Fading" section could only be filled by moving a chat there on a
+      timer — the other person would drop out of sight in the very minute when the
+      least time is left — and it would force the inbox counters to be split three
+      ways. Written into `chat_EN.md` §3.
+
+      **And a fourth, the same day — the unchecked-name window is gone.** Closed by
+      moving the moment of the check rather than the order of the steps: the name
+      goes into the queue **at the first publication**, when the queue already
+      exists, and is checked on every change after that. Before the first post
+      there is nothing to check — the name is visible to nobody: the feed never
+      reveals an author (§8.11), and another person's eye reaches the name only
+      from the first match. A rejected name does not cancel the post, and its owner
+      is asked to fix it; **while the name stands rejected, no match opens** — a
+      consequence of §8.11, the last point at which it can still be withheld.
+
+      **From the same decision — the name is frozen while posts or chats are
+      live.** It can be changed only on a clean slate. The consequence is written
+      into §4 and §8.2: the system message "they now call themselves…" no longer
+      exists, because there is nothing to change while a chat is open. Age still
+      changes, and still only upwards. The retired wording went into
+      `docs/retired-terms.txt` so it cannot creep back; the check was broken
+      against it and repaired — the rule catches.
+
+      **And a fifth, the same day — the set of chat spans.** Three stay: 20
+      minutes, 1 hour, 4:20; there will be no fourth, neither below nor above.
+      Anything shorter than 20 minutes breaks the silence counter it comes with —
+      at `min(20 minutes, span / 3)` a five-minute chat would start counting down
+      after 1 minute 40 seconds, and since the smaller of the two applies, one
+      cautious pick would close the conversation for both. Anything longer than
+      4:20 outlives its own reason: that is exactly how long a phrase lives in the
+      feed. Written into §5.
+
+      **Two questions remain in J25, and both wait on the queue rather than on a
+      decision:** which moderation model (§8.14 — "a measurement, not an argument",
+      and the spec itself says to run it on the day the queue appears) and that
+      queue's throughput (§8.3). The bench is ready — `relay/moderation-bench`.
 
 - [ ] **J19. The identity model has been rewritten in the spec and does not exist
       in code.** Decided 2026-08-10: one live session per identity, a mandatory

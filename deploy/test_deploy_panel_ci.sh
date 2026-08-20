@@ -56,6 +56,10 @@ STUB
 cat > "$WORK/bin/python3" <<'STUB'
 #!/usr/bin/env bash
 case "$*" in
+  *check-shipped-files.py*)
+    echo "  (stubbed manifest check)"
+    exit "${MANIFEST_CODE:-0}"
+    ;;
   *prune-storage-zone.py*)
     echo "  (stubbed prune)"
     exit "${PRUNE_CODE:-0}"
@@ -77,6 +81,7 @@ attempt() {
   output="$(cd "$WORK" && env PATH="$WORK/bin:$PATH" \
     CALL_LOG="$log" CURL_CODES="$codes" \
     PRUNE_CODE="${PRUNE_CODE:-0}" SKIP_PRUNE="${SKIP_PRUNE:-}" \
+    MANIFEST_CODE="${MANIFEST_CODE:-0}" \
     BUNNY_STORAGE_ZONE=zone BUNNY_STORAGE_API_KEY=skey \
     BUNNY_PULL_ZONE_ID=99 BUNNY_API_KEY=akey \
     VITE_RELAY_API_URL=https://relay.example \
@@ -119,6 +124,11 @@ attempt "a 507 is not success" "507" 1 "did not upload"
 # the previous bundle and the cache unpurged — which is how the UAT deploy broke
 # on 2026-08-18. Extra files are untidy; a mismatched policy is a blank panel.
 # The refusal has to be loud, though, or the zone quietly keeps its junk.
+# A file nobody expected must stop the deploy before a byte goes up — the
+# opposite of the prune, which runs afterwards and may only warn. This is the
+# guard that would have kept five design mockups off the production panel.
+MANIFEST_CODE=1 attempt "an unexpected file stops the deploy" "200" 1 "(stubbed manifest check)"
+
 PRUNE_CODE=2 attempt "a refused prune does not stop the deploy" "200" 0 "уборка не выполнена"
 PRUNE_CODE=1 attempt "a failed prune does not stop the deploy" "200" 0 "уборка не выполнена"
 PRUNE_CODE=2 attempt "a refused prune still reaches the purge" "200" 0 "cache purged"

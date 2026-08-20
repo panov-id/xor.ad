@@ -134,6 +134,43 @@ after 2026-08-19**, once the change takes effect, and record the names in
 [`../vendors-dpa_EN.md`](../vendors-dpa_EN.md). That is bookkeeping, not an
 objection.
 
+## The check on the day it took effect — 2026-08-19
+
+The change was to take effect today. Checked:
+
+- `bunny.net/gdpr/sub-processors/` — **the same six**: Zendesk, Slack, Google
+  Workspace, MailChannels, OpenAI, Atlassian. Not one new name;
+- the page carries **no update date and no mark of a new entry**;
+- `bunny.net/gdpr/` dates nothing either and only links to that same list.
+
+So **there are still no names**. There is nothing to record in the register — not
+because the check was skipped, but because there is nothing to look at.
+
+**What that means in substance.** We let the objection window under §3.2 pass on
+purpose, and silence counted as consent — consent to two parties we were never
+told the names of. There is nothing to assess them by: no purpose, no country,
+and no way to tell whether they touch visitor data or only account data. The
+cross-border grounds (region `DE`, no replicas, chat and feed never go there)
+rest on the letter's phrase "part of the personal data of your **account**" — and
+there is nothing to check that phrase against.
+
+**Decision — treated as closed, 2026-08-19.** We are not asking for the names and
+not setting a date for another check: the question comes back with Bunny's next
+notification.
+
+The reason is that there is nothing left to demand. Objecting is out of time —
+the §3.2 window shut around 2026-08-10 and we let it pass on purpose; the
+contract does not oblige Bunny to name sub-processors on request, and they keep
+the public list as they see fit, with no date and no history on it. A request
+would at best return names we have already accepted, and would change none of our
+decisions.
+
+The price is named and stays on the record: **we consented to two parties we were
+never told the names of**, and the cross-border grounds rest on the letter's
+phrase about "account data", which there is nothing to verify against. This is not
+a question settled on the merits — it is a question we decided not to spend a move
+on.
+
 ## How this changes the status
 
 Before: ❌ no contract at all — the processing was unlawful under Art. 28.

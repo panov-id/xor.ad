@@ -57,7 +57,7 @@ sequenceDiagram
   participant K as client
   participant N as node
   K->>K: string = method \n path \n sha256#40;body#41; \n unix time
-  K->>K: Ed25519 signature by the session's private half
+  K->>K: ECDSA P-256 signature by the session's private half
   K->>N: x-identity-session, x-identity-time, x-identity-sign
   N->>N: is the time within ±5 minutes?
   alt outside the window, or the signature does not verify
@@ -78,8 +78,10 @@ sequenceDiagram
   replay it within five minutes. A nonce would need shared memory across nodes; at
   a lifetime measured in hours, five minutes of replay is cheaper than a database
   write per request.
-- Ed25519 arrived in WebCrypto recently: **this must be measured** against real
-  browsers before implementation, or the choice becomes ECDSA P-256.
+- **The signature is ECDSA P-256, decided 2026-08-19 on a measurement.** Ed25519
+  stood here and lost to a single number: Chromium 136 and older cannot do it at
+  all, so somebody on such a device would not sign a **single** request. P-256
+  passed in every engine measured, including those without Ed25519.
 
 ---
 
@@ -429,7 +431,7 @@ sequenceDiagram
   B->>N: public half, signed by the long-term key
   N->>A: the other's half
   N->>B: the first one's half
-  A->>A: K = HKDF#40; ECDH#40;mine, theirs#41;, salt = chat_id #41;
+  A->>A: K = HKDF#40; ECDH P-256#40;mine, theirs#41;, salt = chat_id #41;
   B->>B: the same K
   A->>A: K wrapped with its live session's wrap_public_key
   A->>N: the wrap into chat_key_wraps #40;opaque bytes#41;
@@ -481,7 +483,7 @@ sequenceDiagram
     else accepted
       A->>N: a fresh ephemeral half
       B->>N: a fresh ephemeral half
-      A->>A: new K = HKDF#40;ECDH#40;...#41;, salt = chat_id#41;
+      A->>A: new K = HKDF#40;ECDH P-256#40;...#41;, salt = chat_id#41;
       B->>B: the same new K
       Note over A,B: the old K cannot be recovered by anything
     end

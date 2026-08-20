@@ -38,6 +38,15 @@ jobs:
       - name: panel deploy against a stubbed curl
         run: bash deploy/test_deploy_panel_ci.sh
 
+      # The deploy test stubs the guard out with an exit code, which proves the
+      # deploy calls something rather than that the something works. These two
+      # exercise the logic that stands between a build and a live zone.
+      - name: a file nobody allowed stops the deploy
+        run: python3 deploy/test_check_shipped_files.py
+
+      - name: what the prune refuses to delete
+        run: python3 deploy/test_prune_storage_zone.py
+
       - name: no secret on a command line
         run: python3 deploy/test_no_secrets_in_argv.py
 

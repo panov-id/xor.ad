@@ -1,0 +1,16 @@
+# What the panel is expected to serve. Anything else stops the deploy — see
+# deploy/check-shipped-files.py for why "stop" rather than "delete".
+#
+# Five design mockups and their three fonts were served from the production
+# panel for months because public/ ships whole and nobody had a list to check
+# them against.
+index.html
+favicon.ico
+assets/index-*.js
+assets/index-*.css
+fonts/*.woff2
+#
+# Предел, названный вслух: правило выше покрывает ЛЮБОЙ шрифт, поэтому лишний
+# файл шрифта эта проверка не поймает — только лишний файл другого рода. Три
+# шрифта мокапов уехали бы через него незамеченными. Ловит их сегодня уборка
+# зоны и то, что public/fonts пополняется только руками.

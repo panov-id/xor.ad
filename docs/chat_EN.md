@@ -30,6 +30,7 @@ Liking again when a chat with that person is already open creates **no new match
 ## 3. Chat list
 
 - Tabs: **`Chats N`** / **`Matches N`** (brutalist blocks, active one has an accent fill).
+- **No sub-sections — decided 2026-08-20.** There are exactly two tabs. "Fading" is not a section but a state of the row: the timer and the fading are already described in §5 and visible in the thread itself. A "Fading" section could only be filled by moving a chat there on a timer, which means the other person would drop out of sight in the very minute when the least time is left; on top of that the inbox counters (§8.12) would have to be split three ways. The list does not grow by construction — chats live for minutes and hours, not months.
 - **Thread** (`.thread`): letter avatar, name, last-activity time, **last-message preview** (its own line), **timer** (accent, its own line), a `›` chevron as a click-affordance.
 - **`Matches`** — match cards: phrase + mode + name and age, a timer to expiry, an "open chat" button; after your own press, "waiting for you".
 - Click a thread → opens the conversation.
@@ -42,7 +43,7 @@ Liking again when a chat with that person is already open creates **no new match
 - **Bubbles:**
   - `them` — left, surface `--ink-2`, offset shadow;
   - `me` — right, accent fill `--gold` + `--gold-ink`;
-  - `sys` — centered, mono (system events: chat opened, game proposal, the peer changing their name or age);
+  - `sys` — centered, mono (system events: chat opened, game proposal, the peer changing their age; the name is frozen while a chat is open — §8.2);
   - `extra_like` — centered, a card with the quote and a number matching the one in `Liked, in order` (§8.7);
   - each bubble shows a time (`HH:MM`).
 - **Composer** (`.composer`): a `Write a message…` field + a send button (arrow, accent fill). Submit appends a `me` bubble and scrolls to the bottom. The length limit **comes from the server**, 256 characters by default; the client draws the counter but does not decide it (§8.6).
@@ -53,9 +54,10 @@ Liking again when a chat with that person is already open creates **no new match
 - **Each person picks the span** when consenting to the chat — **20 minutes, 1 hour or 4:20** of silence — and the **smaller of the two** applies: one person's caution is not overridden by the other's generosity. The value is visible to both; who set it is not. It cannot be changed inside an open chat.
 - **The silence counter** appears not immediately but after `min(20 minutes, span / 3)` of silence, and counts down to the chat's disappearance. Any message or move resets it.
 - As expiry approaches — visual **fading**; on expiry the chat **disappears for both** with all its content (messages, liked phrases, game board).
+- **The last frame — decided 2026-08-20: only the person who was looking sees a headstone.** A chat open on screen at that moment shows "chat expired" and a "close" button. A chat that was sitting in the list disappears from it silently. The content is erased immediately in both cases — the words stand over emptiness, not over a saved conversation. The difference is not politeness: taking the screen away without a word from someone mid-message is indistinguishable from a crash or a ban, while nobody has a list row under their hands at that instant. The headstone lives until it is closed and **does not return** to the list — otherwise someone who stayed away for a day comes back to a column of "there was a chat with this person here", a trace outliving the thing that was supposed to vanish (§1).
 - The span and last-activity time are stored on the server; the conversation itself lives only in browsers (§8.8), and the client sweeps it via `POST /chats/alive` (§8.10).
 - The **feed** has its own span — a phrase lives **4 hours 20 minutes**; a **match** has its own — until the first of the two phrases dies. Three different timers for three different reasons.
-- Open questions: the set of spans offered; behavior at the exact expiry moment (hide instantly / show "expired").
+- **The set of spans is settled 2026-08-20: these three stay** — 20 minutes, 1 hour, 4:20. There will be no fourth, neither below nor above. Anything shorter than 20 minutes breaks the silence counter it comes with: at `min(20 minutes, span / 3)` a five-minute chat would start counting down after 1 minute 40 seconds — sooner than a person writes a second message — and since the smaller of the two applies, one cautious pick would close the conversation for both. Anything longer than 4:20 outlives its own reason: a phrase in the feed lives exactly 4:20, and a conversation about it should not hang around longer than what started it. Free entry is not considered separately: it turns a choice between three words into a setting with numbers on the consent screen.
 
 ## 6. Rules-free shared games
 
@@ -138,7 +140,9 @@ CREATE TABLE identities (
 ```
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
-- **Name and age can be changed** without losing the identity or its chats. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
+- **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
+- **The name changes only on a clean slate — decided 2026-08-20.** While the identity has **a live phrase in the feed or an open chat**, the name is frozen; once neither remains, it becomes editable again. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
+- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. A rejected name **does not cancel the post** — they are checked separately; the author is offered to go and update the name. **A consequence derived from §8.11:** the name becomes visible to another person only from the first match, so while the name stands rejected no match opens — otherwise a rejected name would reach the peer's screen before its owner fixed it.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
@@ -481,14 +485,13 @@ list.
 
 Otherwise free age editing becomes the door into the sandbox and the whole band system is pointless. The rule is one-way and irreversible, which the UI must say before saving.
 
-When age changes, `filter_age_min/max` are re-clamped into the new band, and every open chat receives a system message — the peer sees that a name or age changed, and when:
+When age changes, `filter_age_min/max` are re-clamped into the new band, and every open chat receives a system message — the peer sees that the age changed, and when:
 
 ```
-name changed  → "they now call themselves Anya"
 age changed   → "they changed their age: 39"
 ```
 
-Silently swapping a name mid-conversation is not allowed: the peer agreed to talk to a particular person, and a traceless swap is a way to deceive, not a convenience.
+**There is no such message for a name, and there cannot be** (decided 2026-08-20): with a chat open the name is frozen (§8.2), so there is nothing to change mid-conversation. [retired] This used to carry a line reading "they now call themselves Anya" — it described a world where the swap was allowed and merely trailed by a notice. The freeze solves the same problem earlier and without a trace in the conversation: the peer agreed to talk to a particular person, and a silent swap is a way to deceive, not a convenience.
 
 Disclaimers (both required in the UI):
 
@@ -1358,15 +1361,13 @@ The logo has two clickable parts with **different** actions. The rule is identic
 - **Name text** (`SOSED` / `NEIGHBRO`) — navigates **"home"**, where "home" depends on auth:
   - **has an identity** (`identity_id` and the private half of the key in the browser, see §8.2) → the app's **chat window**;
   - **no identity** → the **landing**.
-- **"Has an identity" is defined** as an `identity_id` plus the private half of the key that signs requests. This said "a live secret" — the model §8.2 retired on 2026-08-12 and never cleared from here; corrected 2026-08-17. Until that exists there is no identity → the name text always goes to the landing.
+- **"Has an identity" is defined** as an `identity_id` plus the private half of the key that signs requests. [retired] This said "a live secret" — the model §8.2 retired on 2026-08-12 and never cleared from here; corrected 2026-08-17. Until that exists there is no identity → the name text always goes to the landing.
 - Accessibility: the name text is a semantic link/button with an `aria-label`; house and text are distinguishable by focus.
 
 ## 12. Open questions
 
 What is settled moved into §8; what remains here is UI and product.
 
-- Behavior at the expiry moment (hide instantly / show "expired").
-- Right-side tabs: only "Chats" or sub-sections (matches / active / fading).
 - Notifications are designed in §8.12 (including why there is no push and what that costs). There will be no settings, no quiet hours and no coalescing: there is nothing to silence and nothing leaves the device. What remains is the inbox UI — tab counters and thread highlighting.
 - The open list for data and moderation lives in §8.14.
 
@@ -1418,25 +1419,30 @@ order would produce an API the terminal would have to be bent to fit.
    All three are mandatory and none can be deferred — without the paper code the
    first lost device is irreversible, and without the share the local database
    sits unencrypted. Everything else rests on "who is this".
-**Step 1 cannot satisfy its own rule, and that is worth knowing in advance.** A
-name goes through the same moderation queue as a phrase (§8.2) — and the queue
-only arrives at step 2. So there is a window in which a name is accepted
-unchecked.
+**There is no unchecked-name window — decided 2026-08-20.** A gap used to stand
+here: a name goes through the same moderation queue as a phrase, the queue only
+arrives at step 2, and so between steps 1 and 2 a name was accepted unchecked.
+The gap is closed by moving the moment of the check, not the order of the steps.
 
-There are two options, and the choice has to be made on the day step 1 is
-written:
+**The name is checked at the first publication** — no queue is needed at step 1,
+because until the first post the name is visible to nobody: the feed never
+reveals an author (§8.11), and another person's eye reaches the name only from
+the first match, which is after step 4. From then on the same queue checks the
+name **on every change**.
 
 ```
-accept the name unchecked      the identity exists at once, the name is checked
-                               after the fact once the queue exists
-defer registration to step 2   the order stays clean, but the product's first
-                               screen does not exist for longer
+step 1  name accepted, seen by nobody     nothing to check and no reason to
+step 2  first post → the queue exists     the name rides into it with the phrase
+        name rejected → the post lives,   checked separately; the author is
+        the author is asked to fix it     offered to go and update the name
+step 4  first match                       the name is first seen by another
 ```
 
-The first is cheaper and more honest provided the window is written down as a gap
-rather than forgotten: an unchecked name is seen by another person only from the
-first match onwards, which is after step 4 — by which point this order already
-has the queue.
+**While the name stands rejected, no match opens.** This is a consequence of
+§8.11 rather than a separate rule: the name is visible only from a match, so the
+match is the last point at which a rejected name can still be withheld. The post
+stays alive meanwhile: it passed its own check, and there is nothing to delete it
+for over a mistake in a different field.
 
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
    age bands, moderation before publication through a queue. **With this step, not

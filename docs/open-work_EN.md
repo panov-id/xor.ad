@@ -1466,11 +1466,8 @@ mistaken for a loss.
 
 - [ ] **J25. The chat spec's own open questions — listed so they are not lost.**
       They live in the spec but are invisible from this checklist, and they have to
-      be settled before any code: the set of chat spans and the behaviour at the
-      exact expiry moment (§5), sub-sections on the tabs (§12), which moderation
-      model — **a measurement, not an argument** (§8.14), the moderation queue's
-      throughput (§8.3), and the window in which a name is accepted unchecked,
-      because the queue only appears at step 2 (§13).
+      be settled before any code: which moderation model — **a measurement, not an
+      argument** (§8.14) — and the moderation queue's throughput (§8.3).
 
       **One of them closed 2026-08-19 — the signature algorithm.** Measured in
       three engines rather than read from documentation: today's Chromium 151,
@@ -1482,6 +1479,54 @@ mistaken for a loss.
       and the diagrams are rewritten, and the probe is kept —
       `scripts/check-webcrypto-support.sh` with `testing/webcrypto-support.mjs` —
       so the question can be revisited by measuring when that tail dies out.
+
+      **Another closed 2026-08-20 — the last frame of expiry.** Only the person who
+      was looking sees a headstone: a chat open on screen shows "chat expired" and a
+      "close" button, while a row in the list disappears silently. The content is
+      erased immediately in both cases, and the headstone does not return to the
+      list — otherwise the trace outlives the thing that was supposed to vanish.
+      Written into `chat_EN.md` §5 together with the reason for the difference:
+      taking the screen away from someone mid-message without a word is
+      indistinguishable from a crash or a ban.
+
+      **And a third, the same day — sub-sections on the tabs.** There will be none:
+      exactly two tabs, `Chats` and `Matches`, with "fading" left as a state of the
+      row. A "Fading" section could only be filled by moving a chat there on a
+      timer — the other person would drop out of sight in the very minute when the
+      least time is left — and it would force the inbox counters to be split three
+      ways. Written into `chat_EN.md` §3.
+
+      **And a fourth, the same day — the unchecked-name window is gone.** Closed by
+      moving the moment of the check rather than the order of the steps: the name
+      goes into the queue **at the first publication**, when the queue already
+      exists, and is checked on every change after that. Before the first post
+      there is nothing to check — the name is visible to nobody: the feed never
+      reveals an author (§8.11), and another person's eye reaches the name only
+      from the first match. A rejected name does not cancel the post, and its owner
+      is asked to fix it; **while the name stands rejected, no match opens** — a
+      consequence of §8.11, the last point at which it can still be withheld.
+
+      **From the same decision — the name is frozen while posts or chats are
+      live.** It can be changed only on a clean slate. The consequence is written
+      into §4 and §8.2: the system message "they now call themselves…" no longer
+      exists, because there is nothing to change while a chat is open. Age still
+      changes, and still only upwards. The retired wording went into
+      `docs/retired-terms.txt` so it cannot creep back; the check was broken
+      against it and repaired — the rule catches.
+
+      **And a fifth, the same day — the set of chat spans.** Three stay: 20
+      minutes, 1 hour, 4:20; there will be no fourth, neither below nor above.
+      Anything shorter than 20 minutes breaks the silence counter it comes with —
+      at `min(20 minutes, span / 3)` a five-minute chat would start counting down
+      after 1 minute 40 seconds, and since the smaller of the two applies, one
+      cautious pick would close the conversation for both. Anything longer than
+      4:20 outlives its own reason: that is exactly how long a phrase lives in the
+      feed. Written into §5.
+
+      **Two questions remain in J25, and both wait on the queue rather than on a
+      decision:** which moderation model (§8.14 — "a measurement, not an argument",
+      and the spec itself says to run it on the day the queue appears) and that
+      queue's throughput (§8.3). The bench is ready — `relay/moderation-bench`.
 
 - [ ] **J19. The identity model has been rewritten in the spec and does not exist
       in code.** Decided 2026-08-10: one live session per identity, a mandatory

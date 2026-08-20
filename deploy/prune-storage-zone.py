@@ -98,8 +98,25 @@ def main():
     parser.add_argument("zone")
     parser.add_argument("directory")
     parser.add_argument("--apply", action="store_true", help="удалять, а не только показывать план")
-    parser.add_argument("--force", action="store_true", help="разрешить удаление больше половины зоны")
+    # --force takes the zone name rather than being a bare flag. On 2026-08-18 the
+    # dev zone was wiped with a bare --force typed out of habit, because dev felt
+    # cheap; the same care had been taken with production an hour later. Having to
+    # write the zone out again is the difference between overriding a guard and
+    # noticing that you are.
+    parser.add_argument("--force", metavar="ZONE",
+                        help="перебить порог: назовите ту же зону ещё раз")
     arguments = parser.parse_args()
+
+    # Checked before anything is read or written: a refusal that only arrives
+    # after the zone has been listed is a refusal that depends on the network
+    # working, and it crashed instead of refusing the first time it was tried.
+    if arguments.force and arguments.force != arguments.zone:
+        print(
+            f"ОТКАЗ: --force назван «{arguments.force}», а зона «{arguments.zone}».\n"
+            "Перебить порог можно только назвав ту же зону — привычка так не срабатывает.",
+            file=sys.stderr,
+        )
+        return 2
 
     key = os.environ.get("BUNNY_STORAGE_API_KEY", "")
     if not key:
@@ -148,7 +165,7 @@ def main():
     if share > REFUSE_ABOVE and not arguments.force:
         print(
             f"\nОТКАЗ: удалению подлежит {share:.0%} зоны — это больше похоже на сломанную\n"
-            f"сборку, чем на уборку. Если так и задумано, повторите с --force.",
+            f"сборку, чем на уборку. Если так и задумано, повторите с --force {arguments.zone}.",
             file=sys.stderr,
         )
         return 2
@@ -156,6 +173,17 @@ def main():
     if not arguments.apply:
         print("\nэто план. Чтобы удалить, повторите с --apply")
         return 0
+
+    # A deletion with no record of what it deleted can only be undone from memory.
+    # The plan goes to a file beside the zone name before the first DELETE, so a
+    # wrong prune can at least be described afterwards.
+    ledger = pathlib.Path(os.environ.get("PRUNE_LEDGER_DIR", ".")) / f"pruned-{arguments.zone}.txt"
+    try:
+        ledger.write_text("".join(f"{name}\t{size}\n" for name, size in stale), encoding="utf-8")
+        print(f"\nсписок удаляемого записан: {ledger}")
+    except OSError as error:
+        print(f"\nне смог записать список удаляемого ({error}) — удаление отменено", file=sys.stderr)
+        return 1
 
     failed = 0
     for name, _ in stale:

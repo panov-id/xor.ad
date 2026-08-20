@@ -291,11 +291,52 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       status code is right; what is lost is the look of a stranger's placeholder
       on a mistyped address. An origin instead of storage would fix it and add a
       moving part where there are currently only files — dearer than the gain.
-- [ ] **D7. A per-language OG image** — the pipeline draws one for the whole
-      site; it only starts to matter with translated typography. Checked
-      2026-08-17: that is still the case — exactly one `/og-image.jpg` per
-      storefront, and the Russian pages point at the same image the English ones
-      do.
+- [x] **D7. A social image per language — closed 2026-08-19, and on the way it
+      turned out not to be about the image.** The item said "the pipeline draws one
+      for the whole site; it only starts to matter with translated typography". The
+      typography for half the languages turned out not to exist.
+
+      **The tagline was already translated** — it sits in the storefront's own
+      dictionary under `eyebrow`, in all 10 languages for neighbro and 17 for
+      sosed, and the generator takes the caption as an argument.
+
+      **The fonts were the gap.** Both storefronts have three faces of their own and
+      none covers Georgian; sosed adds Armenian to that. So the Georgian page had
+      been drawn in whatever the reader's device happened to have, and the image
+      baked in whatever the render container happened to have — not reproducible.
+      sosed was worse: its template set the caption in a **system** monospace, with
+      no face of ours at all, so its production image could never be reproduced. In
+      my container it came out in a Chinese WenQuanYi.
+
+      **Done:**
+      - `Noto Sans Georgian` (41 KB) in both storefronts and `Noto Sans Armenian`
+        (26 KB) in sosed — one file each, their own unicode-range only, added as
+        fallbacks to the stacks: 39 in neighbro, 21 + 21 in sosed;
+      - sosed's image template moved from the system monospace to `JetBrains Mono`
+        with those two behind it;
+      - `og/render-all.mjs` + `og/docker/run-all.sh` in both: one image per
+        language, captions read **from the same dictionary** the pages are built
+        from, so editing a translation cannot leave a stale picture behind;
+      - `build-pages.mjs` gives every language page its own `og:image`,
+        `og:image:secure_url` and `twitter:image`.
+
+      **Verified by asking the browser, not by measuring a width.**
+      `CSS.getPlatformFontsForNode` names the font a node was drawn with, and the
+      guard inside the generator uses the same call: a stranger in the caption is a
+      non-zero exit — "fix the fonts, not the render".
+
+      The result: **10 images** for neighbro and **17** for sosed, every one in a
+      face of ours. The Georgian page was checked on real elements — `h1`, a
+      paragraph and a mono line — with Noto Sans Georgian on the Georgian letters
+      and the brand faces on the Latin ones.
+
+      **Three method errors, each caught by the next check:** measuring before the
+      unicode subset had loaded (six confident false negatives), measuring the
+      wrong font (the caption is mono; I was testing the display face), and
+      declaring Georgian under the brand families' own names — which looks tidier
+      and **does not work**, because Chromium settles the weight inside a family
+      before it checks who covers the character. Only a fallback family in the
+      stack works.
 
 ## D-bis. Our own page counter
 

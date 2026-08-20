@@ -42,6 +42,13 @@ mime_type() {
   esac
 }
 
+# Before a single byte goes up: does the build contain only what we meant to
+# publish? The prune that runs later removes what the build dropped and never
+# questions what it kept — which is how five design sheets and three fonts came
+# to be served from the production panel. A stranger stops the deploy here, where
+# it costs nothing, instead of being discovered by a curl months later.
+python3 "$ROOT_DIR/deploy/check-shipped-files.py" "$DIST" "$ROOT_DIR/deploy/panel-shipped.manifest"
+
 echo "Deploying panel dist → Bunny zone '${BUNNY_STORAGE_ZONE}'"
 # curl without --fail returns 0 on 401, 403 and 507, so the loop that used to be
 # here reported a finished deploy over a zone that had not changed. That is

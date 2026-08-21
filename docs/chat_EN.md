@@ -73,6 +73,8 @@ Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. 
 
 - Message exchange, game-board state, and game requests go through **our own WebSocket** on the relay node (`src/chat/relay.ts`), over the **api proxy** (same-origin, via the gateway). Not Supabase — see §8.1.
 - New messages arrive without a reload; the city feed refreshes separately (`Refresh` / `Auto` ~6s).
+- **The socket is authorised by a ticket, not by the request signature — decided 2026-08-21 from the review.** Measured on a live Chromium 151: a browser `new WebSocket()` sets no arbitrary headers at all — not one of `x-identity-sign`, `x-identity-session`, `x-identity-time` reaches the node — and cookies are abolished in this design (§8.2). So the socket had no authentication whatsoever, while the whole chat hangs on it. The order is: a signed `POST /chats/:id/ticket` returns a one-shot, short-lived ticket; the client passes it in `Sec-WebSocket-Protocol` (not in the query string — that is not signed and stays in logs); the node exchanges the ticket for a socket bound to the session and burns it.
+- **Freezing a session tears down its sockets.** The signature is checked on an HTTP request, while a socket lives on by itself once checked, so "loses access immediately, including the delivery subscription" (§8.2) meant "until the TCP connection drops" without a separate signal. `NOTIFY session_frozen, '<session_id>'` in the same transaction that sets `frozen_at`; the node closes its sockets for that session.
 
 ## 8. Data model
 
@@ -115,6 +117,13 @@ peer B ──ws── node 2 ──┘        ↓
 What it buys: any participant can connect to any node, no stickiness is needed, and a node failure takes down only its own sockets — reconnecting to a neighbour resumes the same chat. Zero new dependencies: Postgres is already there, Redis is not needed.
 
 The limit to remember: the bus works within one database. The node pool in 8.1 assumes a shared Postgres; geographically separate independent databases would need something else — but that is a conversation for `chat-decentralized-ideas_EN.md`, not for v1.
+
+**Two nodes per environment do not exist today, and that is checked in code rather than remembered (2026-08-21).** `relay/wizard/wizard.py` carries `assert_one_box_per_database` — the deploy **refuses** to bring up a second box for an environment that has a database, because each box gets its own Postgres and the state would drift apart in silence. So the picture above describes an architecture with nowhere to exist, while the acceptance criteria in §14 demand that very picture be shown. While that holds, the truth is:
+
+- **v1: one node per environment.** The room lives on it, and no stickiness is required for the same reason no choice is required: there is one node. `NOTIFY` is still needed — it connects handlers inside the node rather than nodes to each other, and it survives a worker restart.
+- **The pool is a precondition, not a consequence.** Before §14 can check "reconnecting to a neighbour", the environment needs a shared networked Postgres (TLS, firewall, a connection budget = pool size × node count) and `assert_one_box_per_database` lifted. That is separate work, and it must not be discovered at step 5.
+
+**Today's driver does not deliver asynchronous notifications at all.** The node talks to Postgres through `jsr:@db/postgres@0.19`, which has no `LISTEN/NOTIFY` support implemented. So the bus needs either a different client or a dedicated long-lived connection **outside the pool** — plus a described behaviour on a dropped `LISTEN`: reconnect, and an admission that whatever was delivered during the gap is lost. That, too, is a precondition of step 5 rather than an implementation detail.
 - **No RLS needed**: the client never talks to Postgres directly, a handler always sits in between. "Participants only" is a plain check in code.
 - **Geo without PostGIS**: circles are computed from `lat`/`lon` + haversine (see 8.3). PostGIS is only needed once arbitrary polygons replace circles.
 
@@ -132,16 +141,24 @@ CREATE TABLE identities (
   name             text NOT NULL,
   age              integer NOT NULL,
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
-  recovery_auth_hash  text NOT NULL,    -- hash of half the paper code: how the node finds the identity
-  recovery_wrapped_key bytea NOT NULL,  -- the long-lived key under the other half; the node cannot open it
+  recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
+  recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
+                                        -- both NULL until the first chat opens — the code is issued there (§8.2)
+  name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
 );
+-- the public recovery endpoint finds an identity by this hash: without an index
+-- every miss scans the whole table, and misses are the bulk of that traffic
+CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
+  WHERE recovery_auth_hash IS NOT NULL AND closed_at IS NULL;
 ```
+
+**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns became nullable: the code is issued when the first chat opens, and `NOT NULL` made it impossible to create an identity at all. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
 - **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
-- **The name changes only on a clean slate — decided 2026-08-20.** While the identity has **a live phrase in the feed or an open chat**, the name is frozen; once neither remains, it becomes editable again. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
+- **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name the queue rejected: that one is always editable.** Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
 - **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. A rejected name **does not cancel the post** — they are checked separately; the author is offered to go and update the name. **A consequence derived from §8.11:** the name becomes visible to another person only from the first match, so while the name stands rejected no match opens — otherwise a rejected name would reach the peer's screen before its owner fixed it.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
@@ -150,13 +167,33 @@ CREATE TABLE identities (
 **A name goes through the same check as a phrase.** It is published text: the
 other person sees it on the match card and in an open chat, so anything forbidden
 in a phrase can be said in a name. The check runs the same path and the same
-queue — at registration and on every change.
+queue — **at the first publication and on every change** (decided 2026-08-20;
+this used to read "at registration", but step 1 has no queue yet and the name is
+visible to nobody).
 
 There is one difference, and it comes from a name not being disposable: a
 rejected name is **not saved**, and the previous one stays in force. For a phrase
 a refusal means it does not exist; for a name it means the person stays who they
-were. On the first visit, when there is no previous name, the feed does not open:
-a name is mandatory (§8.2 above).
+were.
+
+**The case with no previous name is treated separately (2026-08-21).** On the
+first visit the name is accepted unchecked — and it is exactly that name which
+goes into the queue with the first phrase. There is nothing to fall back to, so:
+
+- while there is no verdict the name in force is the one that exists, and it
+  **still does not go out**: the feed never reveals an author, and another
+  person's eye reaches the name only from a match (§8.11);
+- if the queue rejected it, the identity is marked "name rejected", no match
+  opens, and a **permanent line with the reason and an edit button** stays on
+  screen — restricting in silence is not allowed, as promised in §7 of
+  `dsa/SPEC_EN.md`;
+- a rejected name is editable regardless of live phrases and open chats (above).
+
+**The other person pays too.** While the name stands rejected a mutual like does
+not become a match, and whoever liked will never know — likes are never reported
+back here. That is accepted deliberately: showing a rejected name on somebody
+else's screen is worse than withholding a match — but the cost lands on someone
+uninvolved, and staying quiet about it is not an option.
 
 An age needs no such check — it is a number, not text.
 
@@ -386,12 +423,16 @@ device  vault key = HKDF(local ‖ share)
 CREATE TABLE vault_shares (
   session       uuid PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
   auth_hash     text NOT NULL,       -- hash of half the material; the PIN itself is unknown to the node
-  share         bytea NOT NULL,      -- 32 random bytes, meaningless to the node
+  share_enc     bytea NOT NULL,      -- 32 random bytes UNDER the node's key, not as they are
   attempts_left smallint NOT NULL DEFAULT 10,
   burned_at     timestamptz,
   last_used_at  timestamptz NOT NULL DEFAULT now()
 );
 ```
+
+**The share is stored encrypted under the node's key — decided 2026-08-21 from the review, and it is not a detail.** This used to read `share bytea NOT NULL`, commented "meaningless to the node". They are meaningless only while there is no device. Put a database dump (a backup, an injection, a contractor, a seizure) together with one copied browser profile and `HKDF(Argon2id(pin, device salt) ‖ share)` can be computed offline for each of a million PINs. Neither `auth_hash` nor `attempts_left` takes part: they live on the node, and the node is out of the loop in that scenario. In other words **the whole design collapsed by exactly the route the paragraph above calls inadmissible**, only through a dump rather than through the endpoint.
+
+The key comes from the node's existing mechanism (`relay/node/db/004_secret_keys.sql`) and does not travel in a database dump. Burning a share writes `share_enc = NULL` rather than only a date; otherwise the bytes stay. The price is stated plainly: **losing the node's key equals losing every local history at once** — the same price as losing the share table, and it must be handled the same way.
 
 **A share belongs to a device, not to an identity.** Otherwise changing the PIN on a new device would break the previous device's database, and whoever took the identity and set their own PIN would read someone else's old conversations. So each device has its own share, its own PIN and its own counter, and nothing reaches another device's share — including a live session of the same identity.
 
@@ -540,7 +581,6 @@ A phrase is tied not to a city but to **an area the person picks on a map** — 
 ```sql
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
-  brand            text NOT NULL,                             -- whose storefront — every lookup is scoped by it
   author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
   text             text NOT NULL,                             -- ≤128
   mode             text NOT NULL,                             -- alone | company | party
@@ -550,10 +590,23 @@ CREATE TABLE feed_messages (
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
-  created_at       timestamptz NOT NULL DEFAULT now(),       -- when it was submitted
-  visible_at       timestamptz,                              -- NULL = waiting on the moderation queue
-  expires_at       timestamptz NOT NULL                       -- visible_at + 4:20
+  created_at       timestamptz NOT NULL DEFAULT now(),        -- when it was submitted
+  visible_at       timestamptz,                               -- NULL = waiting on the moderation queue
+  expires_at       timestamptz,                               -- set together with visible_at, same UPDATE
+  CONSTRAINT feed_published CHECK ((visible_at IS NULL) = (expires_at IS NULL))
 );
+CREATE INDEX feed_expiry ON feed_messages (expires_at) WHERE visible_at IS NOT NULL;
+```
+
+**Neither `brand` nor a `NOT NULL` on `expires_at` — both edits made 2026-08-21, both from the review.** The `brand` column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The attribution "which face did this person arrive through" lives outside `feed_messages` and takes part in no `WHERE` of the feed query.
+
+`expires_at` was declared `NOT NULL` while being derived from `visible_at`, which is empty at insert. Checked by experiment in a container: `INSERT ... visible_at = NULL` fails the constraint, and `GENERATED ALWAYS AS (visible_at + interval '4:20') STORED` is rejected by Postgres — the expression is not `IMMUTABLE`. So the column is empty until the verdict and is filled by one `UPDATE` together with `visible_at`; the `CHECK` keeps them in step so that "published" and "has a deadline" cannot drift apart.
+
+```sql
+-- verdict passed, in a single statement:
+UPDATE feed_messages
+   SET visible_at = now(), expires_at = now() + interval '4 hours 20 minutes'
+ WHERE id = :id AND visible_at IS NULL;
 ```
 
 **A private offer is a phrase with a discount, not a separate entity.** The neighbour giving away two stools writes the same phrase into the same feed; a non-empty `discount_value` is what makes it an offer. Everything else — geography, lifetime, likes, matching, chat — works without a single new line, because it is a post. What a private author may put in an offer (text, discount, conditions — and nothing else: no link, no promo code) is decided in `offers/SPEC_EN.md` §2.
@@ -609,7 +662,23 @@ The counter is fed **by the feed alone**: a chat is not moderated (§8.8), so th
 **What does the moderating.** Two steps, both on the node:
 
 1. **Rules** — length, links, contact details, stop-word lists. Instant, free, and it catches the bulk of crude abuse and spam.
-2. **A local model on the node** — a small toxicity classifier running on the node itself. No per-call charge at all, tens of milliseconds of latency, and better privacy: the text never leaves our infrastructure. The price is the node's memory and CPU, and lower quality than a large model — especially on sarcasm, context and mixed languages.
+2. **A local model on the node** — a small toxicity classifier running on the node itself. No per-call charge at all, and better privacy: the text never leaves our infrastructure. The price is the node's memory and CPU, and lower quality than a large model — especially on sarcasm, context and mixed languages.
+
+**The latency is measured, and it is not "tens of milliseconds" — which is what stood here until 2026-08-21.** The `relay/moderation-bench` rig on production-class hardware, 41 phrases:
+
+```
+translate   median 1624 ms   max  8174
+guard       median 1083 ms   max  3376
+total       median 2789 ms   max 11948
+```
+
+The gap from the old wording is two orders of magnitude, and it changes the construction rather than the phrasing. With a worker taking jobs one at a time the node's ceiling is about **20 phrases a minute**; an evening surge of 60 submissions a minute grows the queue linearly, and the author sees "being checked" throughout. Hence three obligations without which step 2 of §13 must not be written:
+
+- **inference out of the node's event loop** — 2.8 seconds of CPU in the same process that holds the sockets means message delivery measured in seconds;
+- **queue depth and the age of the oldest unchecked phrase exposed as metrics**, otherwise a backlog is visible only through complaints; today the node's metrics module can only count, and these two are gauges;
+- **a waiting limit named as a number**, past which a phrase does not hang forever: the author is told the check did not happen — `fail-closed` without a deadline turns into a leak of rows that never expire.
+
+The limit itself and the acceptable waiting time are the open question in §8.14: it closes by measurement on the day the queue exists, not by argument now.
 
 **A third step — an external model for borderline text — stood here and was
 removed 2026-08-17.** It contradicted the "Bounds" further down this same
@@ -631,7 +700,9 @@ Visibility is **circle intersection** plus the age band (8.2): if I can see you,
 SELECT f.id, f.text, f.mode, f.lat, f.lon, f.area_radius, f.like_count, f.created_at
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
-WHERE f.expires_at > now()
+WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text
+  AND f.expires_at > now()
+  AND author.closed_at IS NULL                                      -- a closed identity leaves the feed
   AND f.lat BETWEEN :lat - :deg AND :lat + :deg                     -- cheap index prefilter
   AND f.lon BETWEEN :lon - :deg / cos(radians(:lat))
                 AND :lon + :deg / cos(radians(:lat))
@@ -641,8 +712,10 @@ WHERE f.expires_at > now()
   AND author.age BETWEEN :filter_age_min AND :filter_age_max        -- the viewer's filter
   AND f.author_identity <> :me                                      -- no liking your own
   AND NOT EXISTS (SELECT 1 FROM blocks b WHERE ...)                 -- 8.9
-ORDER BY f.created_at DESC
+ORDER BY f.visible_at DESC
 ```
+
+**Ordered by `visible_at`, not by `created_at` (edit of 2026-08-21).** A phrase held up by the queue gets its full 4:20 from the moment of publication — that is settled above — but sorting by submission time would drop it straight into the depths of the feed. The queue would be eating its life a second way, and the storefront's promise of a chronological feed would not mean what a person sees.
 
 `:deg = (viewer_radius + 10000) / 111320` — the maximum phrase radius is known up front (10 km), so the box needs no data. Index: a plain `btree (lat, lon)`.
 
@@ -829,7 +902,27 @@ In the same transaction as the like: `INSERT ... ON CONFLICT DO NOTHING` (a doub
 - **`like_count` is visible to everyone** — it is an aggregate, it gives nobody away, and it makes the feed feel alive.
 - **`identity_stats` outlives the feed**: phrases expire, likes are deleted, the numbers remain. It is the only "history" the server keeps about a person, and it is nameless — how many, never with whom or for what. A new identity starts from zero — whatever was accumulated dies with the old one, and that is accepted deliberately.
 - The client sends only `feed_message_id` and gets back `{state: 'liked'}` or `{state: 'matched', match_id}` — never who was liked.
-- **Self-likes are forbidden**: a handler-level check, `feed_messages.author_identity <> :liker`. Otherwise both `like_count` and `likes_received` can be inflated at will.
+- **Self-likes are forbidden**: not by a `CHECK` (it cannot look into another table) but inside the insert itself — the like is written by `INSERT ... SELECT` from `feed_messages` under conditions, and an empty `RETURNING` means neither the counters nor `identity_stats` are touched. Otherwise both `like_count` and `likes_received` can be inflated at will.
+- **The band and visibility are re-checked on the like, not only in the feed query — decided 2026-08-21 from the review.** The age band used to live in exactly one place: the feed `SELECT`. Yet §8.6 says itself that our client is open and "any check that lives only on the client is a hint to the author, not a rule of the system"; a filter in the query is a check of that same kind — it decides what a person **sees**, not what the node **accepts**. The reachable bypass went like this: a 19-year-old and a 17-year-old see each other and like; the 19-year-old edits their age to 22 (allowed, and one-way — existing likes are not revisited); likes back — and a match is born between a 22-year-old and a 17-year-old, with the match card showing name and age. That is precisely what `dsa/SPEC_EN.md` promises will not happen.
+
+```sql
+INSERT INTO likes (liker_identity, feed_message_id)
+SELECT :me, f.id
+  FROM feed_messages f
+  JOIN identities author ON author.id = f.author_identity
+ WHERE f.id = :feed_message_id
+   AND f.author_identity <> :me                                   -- self-like
+   AND f.visible_at IS NOT NULL AND f.expires_at > now()          -- published and alive only
+   AND author.closed_at IS NULL
+   AND author.age BETWEEN band_low(:my_age) AND band_high(:my_age)   -- the viewer's band
+   AND :my_age BETWEEN band_low(author.age) AND band_high(author.age) -- and symmetrically
+   AND NOT EXISTS (SELECT 1 FROM blocks b
+                    WHERE (b.blocker, b.blocked) IN ((:me, author.id), (author.id, :me)))
+ON CONFLICT DO NOTHING
+RETURNING feed_message_id;
+```
+
+The reply on an empty `RETURNING` is the same one a successful like gets: `{state: 'liked'}`. Different replies here would be an oracle — they would tell a block apart from an expiry, and §8.9 promises that nobody learns about a block.
 
 ### 8.5. Match: mutuality in a live window, and double consent
 
@@ -840,13 +933,20 @@ SELECT their_msg.id, my_msg.id
 FROM feed_messages their_msg                       -- the phrase I just liked
 JOIN likes his_like ON his_like.liker_identity = their_msg.author_identity
 JOIN feed_messages my_msg ON my_msg.id = his_like.feed_message_id
+JOIN identities them ON them.id = their_msg.author_identity
+JOIN identities me   ON me.id   = :me
 WHERE their_msg.id = :liked_now
   AND my_msg.author_identity = :me
-  AND their_msg.expires_at > now()
-  AND my_msg.expires_at > now()                    -- this is the "while alive" part
+  AND their_msg.visible_at IS NOT NULL AND their_msg.expires_at > now()
+  AND my_msg.visible_at   IS NOT NULL AND my_msg.expires_at   > now()   -- this is the "while alive" part
+  AND them.closed_at IS NULL AND me.closed_at IS NULL
+  AND them.age BETWEEN band_low(me.age)   AND band_high(me.age)          -- the band as of the match,
+  AND me.age   BETWEEN band_low(them.age) AND band_high(them.age)        -- not as of the like
 ORDER BY his_like.created_at DESC
 LIMIT 1
 ```
+
+**The band is computed here afresh, from both current ages (edit of 2026-08-21).** A like lives for hours, and an age can change in that time — it changes always and only upwards. Checking as of the like left a hole: having stepped over the 20/21 boundary after somebody else's like, a person would get a match with someone their own feed no longer shows. The price is stated plainly: **a like placed before an age edit may not fire after it** — and the person who placed it will never know, because likes are never reported back here.
 
 A match is **not a chat**: it is an invitation to talk that both must accept.
 
@@ -1017,7 +1117,7 @@ silence ≥ threshold   → counter: chat deletes in Nm
 last_activity + ttl   → the chat disappears for both
 ```
 
-20 minutes is a **display** threshold, not a deadline — and it is not taken literally, but against the chosen TTL: at `ttl = 30 min` a fixed twenty would light the counter almost immediately and keep it up for two thirds of the chat's life. A third of the span feels the same on an hour-long chat and on a half-hour one.
+20 minutes is a **display** threshold, not a deadline — and it is not taken literally, but against the chosen TTL: at `ttl = 20 min` a fixed twenty would light the counter only as the chat died, which is to say never show it at all. A third of the span feels the same on an hour-long chat and on a twenty-minute one: the counter appears after 6 minutes 40 seconds of silence. The example used to be written on `ttl = 30 min` — a span that does not exist since the set was closed (§5).
 
 Any delivered message resets both the counter and the countdown. The server pushes nothing: the client knows `last_activity_at` and `idle_ttl_minutes` and computes the rest.
 
@@ -1144,7 +1244,11 @@ POST /chats/alive  { ids: [uuid, ...] }  →  { alive: [uuid, ...] }
 
 Anything missing from `alive` is deleted from IndexedDB along with its messages. This covers, in one move: an expired TTL, a peer's closed identity, a block, and "hasn't opened the app in a month" — the very next session sweeps the dead away.
 
-**Local history is encrypted with the vault key of §8.6** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
+**Three rules for this endpoint, all from 2026-08-21 — it is the only destruction command the system has.** The reply contains only those `id`s for which a `chat_participants` row exists with the caller: other people's and non-existent ones are silently absent and therefore indistinguishable from dead. The array length is capped. And above all: **the list of the living is valid only on a confirmed read of the database** — on error the node answers 503, not an empty list. The node's policy of "the query failed, carry on without an answer" would mean here that five minutes of unavailable Postgres wipe the conversations of everyone who opened the app in those minutes.
+
+**The client does not delete what its own clock still calls alive.** If a chat has not expired by `last_activity_at + idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
+
+**Local history is encrypted with the vault key of §8.2** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
 
 This paragraph used to say the key came from "the same secret that signs requests", which stopped being true when §8.2 replaced that secret with a key pair — there is no secret to derive from, only a public half the node keeps. Three sections gave three answers to one question; this is the one that holds.
 
@@ -1267,11 +1371,20 @@ A chat is encrypted on the devices: the node carries ciphertext and holds no key
 ```
 consent      each side generates an EPHEMERAL pair for this chat
              and publishes its half, signed with the long-lived key
-opening      K = HKDF( ECDH P-256(my ephemeral, their ephemeral), salt = chat_id )
-message      AES-GCM(K, nonce, text) → node → the peer decrypts
-chat death   K and the ephemeral keys are wiped, the wraps are deleted
+opening      S = ECDH P-256(my ephemeral, their ephemeral), salt = chat_id
+             K_low_high = HKDF(S, salt = chat_id, info = "low→high")
+             K_high_low = HKDF(S, salt = chat_id, info = "high→low")
+             ─► low and high are the participants' identity_id sorted the same way
+                as in pair_key: each side knows which key it encrypts with and which it expects
+message      AES-GCM(K_of_my_direction, nonce, text) → node → the peer decrypts
+             nonce — 96 bits from crypto.getRandomValues, fresh for every message
+chat death   both K and the ephemeral keys are wiped, the wraps are deleted
              ─► old ciphertext can no longer be opened, by anyone
 ```
+
+**Two keys, not one — decided 2026-08-21 from the review.** A single symmetric `K` shared by both used to stand here. Ciphertext then says nothing about who created it, and a dishonest node can hand a sender their own message back as an incoming one from the peer: the cryptography stays silent, the key being genuine. Splitting by direction closes that with one `info` string in HKDF — a side decrypts incoming traffic **only** with the other direction's key, and its own echo stops opening.
+
+**The `nonce` is written down because silence here costs more than a line.** WebCrypto has neither a default nor a counter: `iv` is mandatory and entirely on the caller. This spec settles such places everywhere else — it names P-256, `SHA-256`, the exact string to sign, `extractable: false`, the HKDF salt — and leaving the one unnamed hands the decision to the first implementation, which will live with it for years.
 
 **How the key survives an identity transfer.** Whoever consented wraps `K` under their live session's `wrap_public_key` (§8.2) and puts the wrap on the server. The server cannot unwrap it — it stores opaque bytes. There is one live session, so there is one wrap; on transfer the new session gets the wraps of new chats, while the old ones stay with the frozen session and come back with it.
 
@@ -1331,6 +1444,8 @@ the old K       cannot be recovered by anything
 **What it does not give — and this must be said plainly.**
 
 - **We serve the very script that encrypts.** That is the ceiling of any web application: a person trusts not the mathematics but our not swapping the code tomorrow. It is why Signal is an app rather than a page. The honest wording: **the server cannot read a conversation after the fact** — not through a breach, not through a seized database, not on request. That is a great deal, but it is not "we are physically incapable", and it must not be sold that way.
+- **That promise has a condition, and it is named in §8.2 (2026-08-21).** "A seized database" is safe exactly as long as the vault shares sit in it **encrypted under the node's key**, and the key does not travel in the dump. Without that condition a dump plus one device gave an offline PIN search and a read of the local history — precisely the reading-after-the-fact promised not to happen. The condition is met by the `vault_shares` schema, and the day it stops being met this line is the first one to remove.
+- **A message reflected by the node.** The chat key `K` is one and symmetric for both, so ciphertext by itself does not say who created it: a dishonest node can return a sender's own message as an incoming one. The safety code (below) does not catch that — it is about key substitution at the opening of a chat, whereas reflection works at any point in the life of an already-open one. It is closed by splitting the key per direction (§8.13 above), and until then this is an honest boundary.
 - **Metadata remains.** The node knows `chat_id`, both participants, when something moved and how long the messages were. What is encrypted is the content, not the fact of the conversation.
 - **Encryption does not protect you from the person you are talking to.** They have the plaintext on their screen: they can keep it and attach it to a report. That is by design (§8.10) — otherwise there would be nothing to report with.
 
@@ -1413,12 +1528,14 @@ The web follows it over a protocol that is by then already proven. The reverse
 order would produce an API the terminal would have to be bent to fit.
 
 1. **Identity and session** (§8.2) — `identities`, `sessions`, `vault_shares`,
-   request signing, the code transfer with confirmation. Registration is longer
-   here than it looks: name and age, then the paper recovery code with a
-   write-down check, then the PIN and the exchange with the node for a share.
-   All three are mandatory and none can be deferred — without the paper code the
-   first lost device is irreversible, and without the share the local database
-   sits unencrypted. Everything else rests on "who is this".
+   request signing, the code transfer with confirmation. Registration: **name and
+   age, then the PIN and the exchange with the node for a share**. Two steps,
+   both mandatory — without the share the local database sits unencrypted.
+   **There is no paper code here**: it moved to the opening of the first chat
+   (§8.2, decided 2026-08-18), and this item used to carry the retired order
+   together with its reasoning — and the build order is what people write code
+   from, so that is what would have been built. The window without insurance is
+   named plainly there. Everything else rests on "who is this".
 **There is no unchecked-name window — decided 2026-08-20.** A gap used to stand
 here: a name goes through the same moderation queue as a phrase, the queue only
 arrives at step 2, and so between steps 1 and 2 a name was accepted unchecked.
@@ -1474,13 +1591,15 @@ web catches up in a single step at the end.
 
 What "the chat is done" means, checkable rather than eyeballed:
 
-- Two clients on **different nodes** hold a conversation, and in at least one
-  pair one of them is `depth`. That tests the bus, not a room living in one
-  process's memory — and along with it, that the face does not affect the
-  protocol.
-- A node falling over breaks the socket but **not the conversation**: on
-  reconnecting to a neighbour, the person continues the same chat with the same
-  history.
+- Two clients hold a conversation and in at least one pair one of them is
+  `depth`: that tests that the face does not affect the protocol.
+- **On "different nodes" — the criterion is deferred until the pool exists, not
+  quietly dropped (2026-08-21).** It stood here as the test of the bus, but there
+  is nowhere to show it today: the deploy refuses a second box for an environment
+  with a database (§8.1). Until the pool exists, what is testable is tested:
+  whether a conversation survives a **node restart** — sockets break, clients
+  reconnect, the chat continues with the same history. The neighbouring-node
+  criterion returns the day a shared Postgres does.
 - An identity transferred to a second device shows **the same chats and empty
   windows** there; the previous device freezes and, once the identity comes back,
   shows its entire history again — **in a browser**. `depth` has nothing to bring
@@ -1496,14 +1615,26 @@ What "the chat is done" means, checkable rather than eyeballed:
   web, and the other way round. An expired or already-applied code does
   nothing, a sixth entry attempt burns the invite, and without "that's me" on
   the old device no transfer happens at all.
-- The paper code restores the identity on a clean device when no live session is
-  left, and the previous session is frozen afterwards. Tested on an identity
-  whose browser was wiped.
-- A message longer than `max_message_length` is refused by the **node**, not
-  merely by the counter in the client. Tested with a request that bypasses the
-  client.
+- The paper code restores the identity on a clean device **including when a live
+  session exists** — it is frozen (§8.2). The former wording demanded "when no
+  live session is left" and contradicted itself: there is nothing to freeze if
+  none is live. Tested twice — on an identity whose browser was wiped, and on one
+  with a live device.
+- A message longer than the limit is refused by the **node**, not merely by the
+  counter in the client. Tested with a request that bypasses the client — but by
+  **ciphertext bytes** (`max_ciphertext_bytes`), not by characters: the node sees
+  ciphertext and cannot count 256 characters in it, exactly or approximately.
+  `max_message_length` = 256 stays what §8.6 calls it — a counter in the client.
 - An expired chat disappears **for both**, together with the game board and the
-  local history, on the first `alive` sweep.
+  local history, on the first `alive` sweep. Whoever had the chat open on screen
+  at that moment keeps a headstone reading "chat expired" until they press
+  "close", and it does not return to the list (§5).
+- **A node with an unreachable database does not cause local history to be
+  deleted.** `POST /chats/alive` answers with a list of the living only on a
+  confirmed read of the database; on error it answers 503 and the client deletes
+  nothing. Otherwise five minutes of unavailable Postgres wipe the conversations
+  of everyone who came in during those minutes — irreversibly, because no copy
+  exists either with us or with the other side.
 - A message to an offline peer yields `error` and a retry button rather than
   vanishing quietly.
 - After all of the above the database holds **not one message**. Verified by

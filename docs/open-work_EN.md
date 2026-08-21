@@ -1055,15 +1055,25 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       valid token, then the per-IP limit and the honeypot, and only then repoint
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
-- [ ] **G11. Decide the Shield mode before 2026-08-21.** Four production zones
+- [ ] **G11. Decide the Shield mode before 2026-09-01.** Four production zones
       (`xorad-api-prod`, `neighbro-prod`, `sosed-prod`, `panel-prod`) sit in
-      observation and Learning Mode ends 2026-08-21. The decision is made from the
-      WAF log, which is readable only in the Bunny dashboard — a person's step.
-      Two things to look for: whether a real `POST /report` was matched (a JSON
-      body looks suspicious to a site profile) and whether panel sign-in was.
-      Until that log is read, **blocking must not be switched on** — the first
-      thing to break would be the intake of illegal-content notices. State is read
-      by `deploy/shield_state.py`, which goes red after the 21st.
+      observation. The decision is made from the WAF log, which is readable only
+      in the Bunny dashboard — a person's step. Two things to look for: whether a
+      real `POST /report` was matched (a JSON body looks suspicious to a site
+      profile) and whether panel sign-in was. Until that log is read, **blocking
+      must not be switched on** — the first thing to break would be the intake of
+      illegal-content notices.
+
+      **The deadline moved from 2026-08-21 to 2026-09-01 by decision, not by
+      forgetting.** Learning ended 2026-08-21 and the log was not read that day.
+      The move means exactly this: until 2026-09-01 the four production zones live
+      in log-only — the WAF watches and does not act. That is accepted knowingly,
+      because the opposite error is dearer: blocking switched on blind takes out
+      the Article 16 notice intake first. Learning itself cannot be extended from
+      here — Bunny's API offers neither the log nor an extension, checked by
+      enumeration. State is read by `deploy/shield_state.py`, which from
+      2026-08-22 reports these zones as awaiting a decision, and rightly so: the
+      decision genuinely has not been made.
 - [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not

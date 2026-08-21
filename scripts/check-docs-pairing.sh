@@ -30,7 +30,19 @@ import sys
 
 root = pathlib.Path(sys.argv[1])
 # Файлы, названные хуком: сверяем только их пары. Без аргументов — весь комплект.
-requested = {pathlib.Path(name).name for name in sys.argv[2:]}
+# Сравнение по хвосту пути, а не по одному имени: CHECKLIST_RU.md есть и в dsa/,
+# и в offers/, и по имени хук просил одну пару, а получал обе.
+requested = [pathlib.Path(name).as_posix() for name in sys.argv[2:]]
+
+# Месяц словом — обе половины пишут даты так, и без этого «5 Aug 2027» оставляет
+# голое «2027», которого нет в русском «05.08.2027». Русские месяцы здесь по той
+# же причине: исключить только английские значило бы поменять одно ложное
+# расхождение на другое — «5 августа 2026» против исключённого «5 August 2026».
+MONTH = (r"(?:January|February|March|April|May|June|July|August|September|"
+         r"October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|"
+         r"Oct|Nov|Dec"
+         r"|январ[ья]|феврал[ья]|марта|март|апрел[ья]|ма[йя]|июн[ья]|июл[ья]|"
+         r"августа|август|сентябр[ья]|октябр[ья]|ноябр[ья]|декабр[ья])")
 
 # Figures worth comparing, and the shapes they take in these documents.
 # Order matters: the longest shapes first, or 19.08.2026 is read as «19.08» plus
@@ -38,35 +50,96 @@ requested = {pathlib.Path(name).name for name in sys.argv[2:]}
 NUMBER = re.compile(
     r"\b\d{2}\.\d{2}\.\d{4}\b"        # 19.08.2026
     r"|\b\d{4}-\d{2}-\d{2}\b"          # 2026-08-19
+    rf"|\b\d{{1,2}}\s+{MONTH}\s+\d{{4}}\b"   # 5 Aug 2027
+    rf"|\b{MONTH}\s+\d{{1,2}},?\s+\d{{4}}\b" # Aug 5, 2027
     r"|\b\d+\s*(?:КБ|МБ|ГБ|KB|MB|GB)\b"  # 41 КБ / 41 KB
     r"|\b\d{1,4}[:.]\d{2}\b"           # 4:20
-    r"|\b\d+\b"
+    # Без закрывающей границы: «$400m» — это те же 400, что и «$400 млн», а с
+    # \b на конце цифры, слипшиеся с буквой, не находились вовсе, и число
+    # выглядело как имеющееся только в русской половине.
+    r"|\b\d+"
 )
 
 # The same size written in two alphabets is the same size.
 UNITS = {"КБ": "KB", "МБ": "MB", "ГБ": "GB"}
-# Noise is cut out of the line rather than the line out of the comparison: a URL
+# Noise is cut out of the text rather than the text out of the comparison: a URL
 # in the Russian sentence and none in the English one made «236 КБ» look like a
 # figure only the English version had.
+#
+# Cut from the whole document, not line by line. An inline code span that wraps
+# across a line — `{shieldZoneId,\nmodel}` in deployment_EN.md — left one half of
+# the backticks on each line, so the stripping ate the wrong stretch and let the
+# `202` inside the next span through as a bare figure. The pair agreed; the
+# reading of it did not.
 NOISE = re.compile(r"https?://\S+|`[^`]*`|[0-9a-f]{7,}|\b\S+\.(?:woff2|js|css|mjs|jpg|png|svg|sh|py)\b")
 
 # Only figures distinctive enough to carry a decision. A bare 5 is written «5» in
 # one language and "five" in the other often enough that comparing them reports
 # translation style, not disagreement — and a check that is permanently red is a
 # check nobody reads. So: dates, times, sizes, and anything from three digits up.
-DISTINCTIVE = re.compile(r"\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2}|[:.]|KB|MB|GB|^\d{3,}$")
+DISTINCTIVE = re.compile(r"\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2}|[:.]|KB|MB|GB|^\d{3,}$"
+                         rf"|^\d{{1,2}} {MONTH} \d{{4}}$|^{MONTH} \d{{1,2}},? \d{{4}}$")
+
+MONTH_NUMBER = {}
+for index, names in enumerate((
+    ("january", "jan", "январь", "января"),
+    ("february", "feb", "февраль", "февраля"),
+    ("march", "mar", "март", "марта"),
+    ("april", "apr", "апрель", "апреля"),
+    ("may", "май", "мая"),
+    ("june", "jun", "июнь", "июня"),
+    ("july", "jul", "июль", "июля"),
+    ("august", "aug", "август", "августа"),
+    ("september", "sep", "sept", "сентябрь", "сентября"),
+    ("october", "oct", "октябрь", "октября"),
+    ("november", "nov", "ноябрь", "ноября"),
+    ("december", "dec", "декабрь", "декабря"),
+), start=1):
+    for name in names:
+        MONTH_NUMBER[name] = index
+
+
+def canonical(figure):
+    """One shape for a date, whichever half wrote it.
+
+    Dates used to be dropped from the comparison outright, because 19.08.2026 and
+    2026-08-19 are the same day written twice. Dropping them meant a date that
+    genuinely drifted between the halves — a deadline moved in one language only —
+    was the one kind of disagreement this check could never see. Measured: changing
+    2026-08-20 to 2026-08-21 in one half was not reported. Now the four shapes are
+    folded into one and compared like any other figure.
+    """
+    match = re.fullmatch(r"(\d{2})\.(\d{2})\.(\d{4})", figure)
+    if match:
+        return f"{match[3]}-{match[2]}-{match[1]}"
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", figure):
+        return figure
+    match = re.fullmatch(r"(\d{1,2}) ([^\s]+) (\d{4})", figure)
+    if match and match[2].lower() in MONTH_NUMBER:
+        return f"{match[3]}-{MONTH_NUMBER[match[2].lower()]:02d}-{int(match[1]):02d}"
+    match = re.fullmatch(r"([^\s]+) (\d{1,2}),? (\d{4})", figure)
+    if match and match[1].lower() in MONTH_NUMBER:
+        return f"{match[3]}-{MONTH_NUMBER[match[1].lower()]:02d}-{int(match[2]):02d}"
+    return figure
+
 
 def figures(path):
     counts = collections.Counter()
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = NOISE.sub(" ", line)
-        for match in NUMBER.finditer(line):
-            figure = match.group(0)
-            for russian, english in UNITS.items():
-                figure = figure.replace(russian, english)
-            figure = re.sub(r"\s+", " ", figure)
-            if DISTINCTIVE.search(figure):
-                counts[figure] += 1
+    raw = path.read_text(encoding="utf-8")
+    # Чистка идёт по всему тексту, поэтому непарная обратная кавычка съедает всё
+    # до следующей — молча и, возможно, вместе с числами. Молчания здесь быть не
+    # должно: проверка, которая тихо перестала смотреть, хуже красной.
+    if raw.count("`") % 2:
+        print(f"  ! в {path.name} нечётное число обратных кавычек — "
+              f"часть текста могла выпасть из сверки")
+    text = NOISE.sub(" ", raw)
+    for match in NUMBER.finditer(text):
+        figure = match.group(0)
+        for russian, english in UNITS.items():
+            figure = figure.replace(russian, english)
+        figure = re.sub(r"\s+", " ", figure)
+        if DISTINCTIVE.search(figure):
+            counts[canonical(figure)] += 1
     return counts
 
 pairs = []
@@ -74,7 +147,10 @@ for russian in sorted((root / "docs").rglob("*_RU.md")):
     english = russian.with_name(russian.name.replace("_RU.md", "_EN.md"))
     if not english.exists():
         continue
-    if requested and russian.name not in requested and english.name not in requested:
+    if requested and not any(
+        russian.as_posix().endswith(name) or english.as_posix().endswith(name)
+        for name in requested
+    ):
         continue
     pairs.append((russian, english))
 
@@ -90,11 +166,11 @@ for russian, english in pairs:
     ru, en = set(figures(russian)), set(figures(english))
     only_ru = {k: 1 for k in ru - en}
     only_en = {k: 1 for k in en - ru}
-    # Dates legitimately differ in form (19.08.2026 vs 2026-08-19), so a figure
-    # missing on one side is only interesting when it is not a date.
-    date = re.compile(r"^\d{4}-\d{2}-\d{2}$|^\d{2}\.\d{2}\.\d{4}$")
-    only_ru = {k: v for k, v in only_ru.items() if not date.match(k)}
-    only_en = {k: v for k, v in only_en.items() if not date.match(k)}
+    # Dates are no longer dropped here. They used to be, because 19.08.2026 and
+    # 2026-08-19 are one day written twice — but dropping them made a moved
+    # deadline the single kind of drift this check could not see. canonical()
+    # folds the four shapes into one instead, so a date is compared like any
+    # other figure and only a genuine difference shows up.
 
     if not only_ru and not only_en:
         print(f"  ✓ {russian.stem[:-3]:<24} числа сходятся")

@@ -581,6 +581,7 @@ A phrase is tied not to a city but to **an area the person picks on a map** — 
 ```sql
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- ATTRIBUTION ONLY: which face the author arrived through
   author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
   text             text NOT NULL,                             -- ≤128
   mode             text NOT NULL,                             -- alone | company | party
@@ -598,7 +599,9 @@ CREATE TABLE feed_messages (
 CREATE INDEX feed_expiry ON feed_messages (expires_at) WHERE visible_at IS NOT NULL;
 ```
 
-**Neither `brand` nor a `NOT NULL` on `expires_at` — both edits made 2026-08-21, both from the review.** The `brand` column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The attribution "which face did this person arrive through" lives outside `feed_messages` and takes part in no `WHERE` of the feed query.
+**`brand` is attribution, and only that (clarified 2026-08-21 from the review).** The column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The comment is corrected and the column stays: **it takes part in no condition of the feed query, the like or the match**, but the DSA snapshot scopes its copy of a row by it — otherwise a notice carrying somebody else's identifier would pull another tenant's row into the reporter's moderator view (`relay/node/src/lib/dsa_snapshot.ts`; the test `dsa_snapshot_columns.test.ts` holds that contract and caught the first, too-broad edit).
+
+**An open question visible from here.** The world is one, while a notice arrives under a brand. So a complaint filed through one storefront about a phrase whose author arrived through another will, by the present rule, find no copy and be filed as "there was nothing to copy". Renaming the column does not fix that: either the snapshot is scoped by the phrase's visibility to the reporter rather than by brand, or notices get a boundary of their own. To be settled before the first line of snapshot code.
 
 `expires_at` was declared `NOT NULL` while being derived from `visible_at`, which is empty at insert. Checked by experiment in a container: `INSERT ... visible_at = NULL` fails the constraint, and `GENERATED ALWAYS AS (visible_at + interval '4:20') STORED` is rejected by Postgres — the expression is not `IMMUTABLE`. So the column is empty until the verdict and is filled by one `UPDATE` together with `visible_at`; the `CHECK` keeps them in step so that "published" and "has a deadline" cannot drift apart.
 

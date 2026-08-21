@@ -667,9 +667,12 @@ trade: nobody should have to erase themselves over a typo or a birthday.
 ```mermaid
 flowchart TD
   edit["editing name or age"] --> what{"which one?"}
-  what -- "name" --> mod{"name moderation"}
-  mod -- "rejected" --> keep["the rejected name is NOT stored,<br/>the previous one stays in force"]
-  mod -- "passed" --> sys1["into every open chat:<br/>«they now call themselves differently»"]
+  what -- "name" --> clean{"clean slate?<br/>#40;no live phrases, no open chats#41;"}
+  clean -- "no, and the name is accepted" --> frozen["editing refused:<br/>an accepted name is frozen #40;§8.2#41;"]
+  clean -- "the name was rejected" --> mod{"name moderation"}
+  clean -- "yes" --> mod
+  mod -- "rejected" --> keep["the rejected name is NOT stored,<br/>the previous one stays in force;<br/>no match opens, the reason stays on screen"]
+  mod -- "passed" --> live["the new name takes effect;<br/>NO system message into chats"]
   what -- "age" --> cross{"crossing the 20/21 line?"}
   cross -- "no" --> ok["free inside your own band"]
   cross -- "20 → 21" --> up["allowed, IRREVERSIBLE<br/>#40;warn before saving#41;"]

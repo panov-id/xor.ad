@@ -35,8 +35,11 @@ An external model**       | chat_EN.md       | two steps on the node, 2026-08-17
 synchronous check         | chat_EN.md       | the check before publication, 2026-08-17
 
 # --- смена имени под живым разговором ---------------------------------------------
-называет себя иначе       | chat_RU.md       | имя заморожено, пока живы посты или чаты, 20.08.2026
-they now call themselves  | chat_EN.md       | the name is frozen while posts or chats live, 2026-08-20
+# Область поиска расширена 21.08.2026: правило искало только в chat_*, а
+# отменённая строка всё это время жила в обеих схемах потоков — и проверка была
+# зелёной. Реестр стоит ровно столько, сколько файлов он смотрит.
+называет себя иначе       | chat_RU.md chat-flows_RU.md depth-client_RU.md | имя заморожено, пока живы посты или чаты, 20.08.2026
+they now call themselves  | chat_EN.md chat-flows_EN.md depth-client_EN.md | the name is frozen while posts or chats live, 2026-08-20
 
 # --- опознание устройства --------------------------------------------------------
 отпечаток браузера считается | chat_RU.md    | ограничение частоты по адресу, 05.08.2026

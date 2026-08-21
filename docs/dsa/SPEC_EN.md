@@ -204,10 +204,20 @@ Refusing to examine without an explanation is forbidden: a reply is always owed.
 The platform is accessible to children, so an Article 28 measure is required. We
 claim exactly what we do, with no promises we do not keep:
 
-- **Age bands.** Age is asked before the feed and cuts what the feed returns. An
-  adult is never shown anyone under 18; for a minor the top of the range stays
-  narrow and never reaches adults. The rule is symmetric: if I cannot see you,
-  you cannot see me.
+- **Age bands.** Age is asked before the feed and cuts what the feed returns, and
+  it is checked not only in the feed query but on the like and at the moment of a
+  match — otherwise editing an age after the fact would empty the band of
+  meaning. The rule is symmetric: if I cannot see you, you cannot see me.
+
+  **The wording was corrected 2026-08-21: it claimed more than the construction
+  does.** It used to read "an adult is never shown anyone under 18, and for a
+  minor the top of the range never reaches adults". By the rule in `chat_EN.md`
+  the bands meet at the edges within ±2 years: a 19- or 20-year-old can see a
+  21–22-year-old, and an 18-year-old sits in the teenage pool and sees
+  16-year-olds. What can be shown to be true: **a person in the adult pool (21
+  and over) is never shown anyone under 19**, and everyone below 19 is cut off
+  from 21+ entirely. The break is synchronous on both sides, with no one-way
+  holes.
 - **No profiling for what is shown.** Article 28(2) forbids advertising based on
   profiling a minor. We do no profiling at all: both the feed and the offers are
   decided by place rather than behaviour — the prohibition is met by the absence

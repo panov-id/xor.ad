@@ -71,6 +71,7 @@ UNITS = {"КБ": "KB", "МБ": "MB", "ГБ": "GB"}
 # the backticks on each line, so the stripping ate the wrong stretch and let the
 # `202` inside the next span through as a bare figure. The pair agreed; the
 # reading of it did not.
+FENCE = re.compile(r"^[ \t]*```.*$", re.MULTILINE)
 NOISE = re.compile(r"https?://\S+|`[^`]*`|[0-9a-f]{7,}|\b\S+\.(?:woff2|js|css|mjs|jpg|png|svg|sh|py)\b")
 
 # Only figures distinctive enough to carry a decision. A bare 5 is written «5» in
@@ -129,6 +130,12 @@ def figures(path):
     # Чистка идёт по всему тексту, поэтому непарная обратная кавычка съедает всё
     # до следующей — молча и, возможно, вместе с числами. Молчания здесь быть не
     # должно: проверка, которая тихо перестала смотреть, хуже красной.
+    # Заборы ограждённых блоков убираются ДО чистки. Иначе тройная кавычка
+    # читается как парная плюс остаток, остаток склеивается со следующим забором,
+    # и весь блок кода исчезает из сверки вместе со схемами, запросами и
+    # замерами. Так и случилось 21.08.2026, когда чистка стала сплошной:
+    # подмена измеренного числа внутри блока проверкой не замечалась.
+    raw = FENCE.sub("", raw)
     if raw.count("`") % 2:
         print(f"  ! в {path.name} нечётное число обратных кавычек — "
               f"часть текста могла выпасть из сверки")

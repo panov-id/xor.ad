@@ -32,7 +32,11 @@ Ed25519 signature         | chat-flows_EN.md | ECDSA P-256, 2026-08-19
 # --- модерация ленты ------------------------------------------------------------
 Внешняя модель**          | chat_RU.md       | две ступени на узле, 17.08.2026 — текст не покидает узел
 An external model**       | chat_EN.md       | two steps on the node, 2026-08-17
-synchronous check         | chat_EN.md       | the check before publication, 2026-08-17
+# Прежняя запись искала «synchronous check» и не ловила ничего — такой подстроки
+# в документах нет. Заменена на те формулировки, которые там действительно стояли.
+synchronous, before publication | chat_EN.md depth-client_EN.md | queue before publication, 2026-08-23
+publication**, synchronously    | CLIENT_TERMS.md  | queue before publication, 2026-08-23
+синхронная, до публикации       | chat_RU.md depth-client_RU.md | очередь до публикации, 23.08.2026
 
 # --- смена имени под живым разговором ---------------------------------------------
 # Область поиска расширена 21.08.2026: правило искало только в chat_*, а

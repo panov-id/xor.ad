@@ -24,8 +24,11 @@ These hold for every client, ours or yours, because they live on the server:
   gets nothing;
 - **limits hold**: message length, request rate, the number of live phrases per
   identity;
-- **the feed is moderated before publication**, synchronously — text that does not
-  pass is not published, whichever client sent it;
+- **the feed is moderated before publication**, through a queue rather than inside
+  the request — `POST /feed` answers at once, the phrase stays invisible until the
+  verdict, and text that does not pass is never published, whichever client sent
+  it. Your client must show that waiting state instead of pretending the post is
+  already live;
 - **age bands are applied** to delivery and to matching.
 
 None of this depends on your client behaving. That is the point: the node treats

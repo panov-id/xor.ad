@@ -403,8 +403,13 @@ count and a time — exactly as in the web.
 **128 characters** is the feed's limit. The counter is the client's; the node is
 what refuses.
 
-Feed moderation is **synchronous, before publication** (§8.3): a refusal arrives
-at once and with a reason, not in silence.
+Feed moderation runs as a **queue before publication** (§8.3), which is not the
+same as "at once": `POST /feed` answers `202` immediately, the phrase sits with
+an empty `visible_at` and appears in nobody's feed, and the verdict arrives
+later — a refusal with a reason, not in silence. The client must show that state:
+"being checked". Measured on production-class hardware — a 2.8 second median and
+a maximum near 12; the terminal must not pretend to an instant answer that does
+not exist.
 
 ### 4.6. Matches
 

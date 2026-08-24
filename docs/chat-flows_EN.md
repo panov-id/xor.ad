@@ -15,21 +15,21 @@ Headings link to the section the flow was taken from.
 ## 1. First run: an identity is created ([§8.2](chat_EN.md))
 
 There is no anonymous browsing: name and age are asked **before the feed**,
-because the feed itself depends on age. A name is publishable text, so it goes
-through the same moderation a feed phrase does.
+because the feed itself depends on age. A name is publishable text and goes
+through the same moderation a feed phrase does, but **at the first publication,
+not here**: at step 1 the queue does not exist yet, and before the first post the
+name is visible to nobody (edit of 2026-08-23, per the decision of 2026-08-20).
 
 ```mermaid
 flowchart TD
   start(["client starts for the first time"]) --> keys["keys are born locally:<br/>the identity's long-term key"]
   keys --> form["name and age"]
-  form --> mod{"did the name<br/>pass moderation?"}
-  mod -- "no" --> again["the previous name stays in force;<br/>on a first run there is none<br/>→ no entry to the feed"]
-  again --> form
-  mod -- "yes" --> pin["PIN: six digits, twice"]
+  form --> pin["PIN: six digits, twice"]
   pin --> share["the node creates a vault share<br/>key = HKDF#40;local ‖ share#41;"]
   share --> warn["one line: there is no insurance yet,<br/>losing the device loses the identity"]
   warn --> feed(["the feed"])
   feed -.-> later["the paper code is not here but<br/>when the first chat opens #40;§9#41;"]
+  feed -.-> namecheck["the name goes into the queue<br/>with the first phrase #40;flow 6#41;;<br/>rejected → no match opens"]
 ```
 
 - There is no email and no password by construction. After a lost device the only

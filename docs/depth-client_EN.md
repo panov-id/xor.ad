@@ -122,7 +122,9 @@ The price is stated plainly, before the identity is created rather than after:
 
 > Forget the PIN and you lose access to this volume: ten wrong attempts burn the
 > share, and nothing is left to decrypt the keys in the file with. The paper code
-> brings the identity back on any device.
+> brings the identity back on any device — **if you already have one**: it is
+> issued when the first chat opens, and until then losing the device means a new
+> identity rather than a return.
 
 No conversations are lost in the terminal — there were none there to lose:
 nothing but the keys and the accepted revision of the Terms ever reaches the disk
@@ -197,10 +199,17 @@ commands are a door for whoever arrived from a shell, not a second interface.
 
 ### 3.1. `depth new`
 
-Name, age, paper recovery code, PIN, area — and the person is in the feed. The
-order is mandatory: age is asked before the feed because it decides what the feed
-hands out (§8.2, age bands), and the paper code comes before the PIN because
-without it the first lost volume is irreversible.
+Name, age, PIN, area — and the person is in the feed. The order is mandatory: age
+is asked before the feed because it decides what the feed hands out (§8.2, age
+bands), and the PIN because without the node's share the local key file stays
+unencrypted.
+
+**The paper code is not here — edit of 2026-08-23.** It moved to the opening of
+the first chat (§8.2 of the spec, decided 2026-08-18): before that first chat
+there is nothing worth insuring, and the insurance demanded writing sixteen
+characters down before the person had even seen the product. The code screen
+lives in `depth` where it lives in the web — on the first chat that opens — and
+looks like this:
 
 ```
   write this code down. we will not show it again.
@@ -292,7 +301,9 @@ The PIN and the paper code follow the same rules, and are never echoed.
 
 ## 4. Screens
 
-The same flow as the web: splash → area → name and age → feed → matches → chat.
+The same flow as the web (§13 of the spec and `chat-flows_EN.md`, flow 1): splash
+→ name and age → PIN → area → feed → matches → chat; the paper code comes with
+the first chat that opens.
 The layout assumes 80 columns; narrower is a warning, not a breakage.
 
 ### 4.1. Splash and voice

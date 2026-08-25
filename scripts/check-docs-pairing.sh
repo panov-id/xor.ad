@@ -149,21 +149,75 @@ def figures(path):
             counts[canonical(figure)] += 1
     return counts
 
+# Обход от корня репозитория, а не от docs/. Раньше сверялись только документы
+# внутри docs/, и восемь пар из сорока семи — README репозитория и весь комплект
+# relay/ (SPEC, ARCHITECTURE, HARDENING, RELEASE, MIGRATION_PLAN) — не проверялись
+# вовсе: это спецификация узла и регламент релизов, живые части, а не архив.
+# Симлинки на витрины отбрасываются, иначе их пары считались бы дважды.
+SKIP = ("/node_modules/", "/.git/", "/dist/", "/build/")
+
+def candidates():
+    for path in sorted(root.rglob("*_RU.md")):
+        text = path.as_posix()
+        if any(part in text for part in SKIP):
+            continue
+        try:
+            if any(parent.is_symlink() for parent in path.relative_to(root).parents
+                   if (root / parent).exists()):
+                continue
+        except ValueError:
+            continue
+        yield path
+
 pairs = []
-for russian in sorted((root / "docs").rglob("*_RU.md")):
+matched_requests = set()
+asymmetric = 0
+for russian in candidates():
     english = russian.with_name(russian.name.replace("_RU.md", "_EN.md"))
     if not english.exists():
         continue
-    if requested and not any(
-        russian.as_posix().endswith(name) or english.as_posix().endswith(name)
-        for name in requested
-    ):
+    if requested:
+        # Совпадение по хвосту пути, но с проверкой однозначности: имя README_RU.md
+        # совпадает с тремя разными парами, и раньше запрос одной сверял три чужие,
+        # а саму запрошенную мог не тронуть.
+        hits = [name for name in requested
+                if russian.as_posix().endswith("/" + name) or english.as_posix().endswith("/" + name)
+                or russian.as_posix().endswith(name) or english.as_posix().endswith(name)]
+        if not hits:
+            continue
+        matched_requests.update(hits)
+    # Пара может быть асимметричной осознанно: русская половина промптов Midjourney
+    # делегирует к английской, потому что сами промпты по природе английские.
+    # Такую пару пропускаем, но вслух — молчаливый пропуск ничем не отличается от
+    # непроверенной пары.
+    if any("pairing: asymmetric" in half.read_text(encoding="utf-8")
+           for half in (russian, english)):
+        print(f"  ~ {russian.stem[:-3]:<24} пара помечена асимметричной, числа не сверяются")
+        asymmetric += 1
         continue
+
     pairs.append((russian, english))
 
+if requested:
+    missed = [name for name in requested if name not in matched_requests]
+    if missed:
+        # Молчаливый ноль здесь опаснее расхождения: хук ищет в выводе слово
+        # MISMATCH, не находит и пропускает коммит как проверенный.
+        print("НЕ НАЙДЕНО ПАР для: " + ", ".join(missed), file=sys.stderr)
+        print("MISMATCH: запрошенный документ не попал в сверку", file=sys.stderr)
+        raise SystemExit(1)
+
 if not pairs:
-    print("нет пар для проверки")
-    raise SystemExit(0)
+    # Помеченная асимметричной пара — это принятое решение, а не пропущенная
+    # проверка, и разница видна только здесь: хук зовёт скрипт с именами
+    # staged-файлов, так что коммит одной такой пары приходил сюда с пустым
+    # pairs и получал MISMATCH — отказ на ровном месте за то, что решение
+    # записано (23.08.2026 маркер, 24.08.2026 отказ).
+    if asymmetric:
+        print(f"сверять нечего: пар помечено асимметричными — {asymmetric}")
+        raise SystemExit(0)
+    print("MISMATCH: нет пар для проверки", file=sys.stderr)
+    raise SystemExit(1)
 
 problems = 0
 for russian, english in pairs:

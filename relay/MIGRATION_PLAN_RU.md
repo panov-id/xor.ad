@@ -54,7 +54,7 @@ relay (`relay/node/src`):
 ☑ 1.1 Скрипт `relay/wizard/migrate_waitlist.py` — экспорт `waitlist` (dev+prod) → relay-формат,
       upload в Bunny (зона `sosed-waitlist-dev`, пути `waitlist/<env>/`). 20 строк (3 dev + 17 prod).
 ☑ 1.2 Проверено: дедуп — POST мигрированного email на ноду даёт `{"duplicate":true}`; формат объекта верный,
-      `created_at` из Supabase сохранён. (UA-фикс: WAF режет дефолтный `python-urllib` User-Agent.)
+      `created_at` из Supabase сохранён. (UA-фикс: WAF отвечает 403 на дефолтный `python-urllib` User-Agent.)
 
 Скрипт (`relay/wizard/migrate_waitlist.py`, запуск в контейнере relay-wizard):
 

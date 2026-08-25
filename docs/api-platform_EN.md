@@ -25,9 +25,13 @@ below about webhooks and notifications.
 | Panel | Refine + magic-link sessions, the `access/` RBAC core, audit trail, log explorer |
 | Observability | structured JSON logging to stdout, Prometheus counters |
 
-The defining property of the node today: **it holds no state of its own**. All state
-lives in object storage, so nodes are identical and interchangeable. Every constraint
-below follows from that.
+The defining property of the node today: **it holds no state of its own**. Data
+lives in object storage, while control state — brands, keys, quotas, the queue,
+idempotency, daily aggregates — lives in **Postgres beside the node, one database
+per environment** (decided 2026-07-28, `relay/node/db/001_control_state.sql`).
+That does not stop the nodes being interchangeable, but "all state lives in object
+storage" is no longer true, and the constraints below read with that correction
+(edit of 2026-08-23).
 
 ## The central tension
 

@@ -16,20 +16,25 @@ set -uo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WINDOW="${1:-14}"
 
-python3 - "$ROOT_DIR/docs/open-work_RU.md" "$WINDOW" <<'PY'
+python3 - "$WINDOW" "$ROOT_DIR/docs/open-work_RU.md" "$ROOT_DIR/docs/open-work_EN.md" <<'PY'
 import datetime
 import pathlib
 import re
 import sys
 
-document = pathlib.Path(sys.argv[1])
-window = int(sys.argv[2])
+# Обе половины: срок, записанный только в английской, раньше был невидим —
+# читался один русский файл, и форма «before 2026-09-01» не разбиралась вовсе.
+window = int(sys.argv[1])
+documents = [pathlib.Path(name) for name in sys.argv[2:]]
 today = datetime.date.today()
 
-if not document.exists():
-    raise SystemExit(f"нет файла {document}")
+missing = [d for d in documents if not d.exists()]
+if missing:
+    raise SystemExit("нет файла " + ", ".join(str(d) for d in missing))
 
-lines = document.read_text(encoding="utf-8").splitlines()
+lines = []
+for document in documents:
+    lines.extend(document.read_text(encoding="utf-8").splitlines())
 
 # Items are the unit: a date belongs to the item it sits in, and only open items
 # are asked about.
@@ -51,17 +56,19 @@ for number, line in enumerate(lines, start=1):
 # something already done. The first version of this script read them all and
 # reported six overdue items of which five were decisions; a warning that is
 # mostly wrong is a warning nobody reads.
-DEADLINE = re.compile(r"\b(?:до|к|не позднее|before|by)\s+(\d{2})\.(\d{2})\.(\d{4})\b",
-                      re.IGNORECASE)
+DEADLINE = re.compile(
+    r"\b(?:до|к|не позднее|before|by)\s+(?:(\d{2})\.(\d{2})\.(\d{4})|(\d{4})-(\d{2})-(\d{2}))\b",
+    re.IGNORECASE)
 
 found = []
 for item in items:
     if not item["open"]:
         continue
     for line in item["text"]:
-        for day, month, year in DEADLINE.findall(line):
+        for day, month, year, iso_year, iso_month, iso_day in DEADLINE.findall(line):
             try:
-                when = datetime.date(int(year), int(month), int(day))
+                when = (datetime.date(int(year), int(month), int(day)) if year
+                        else datetime.date(int(iso_year), int(iso_month), int(iso_day)))
             except ValueError:
                 continue
             found.append((when, item))
@@ -70,9 +77,18 @@ if not found:
     print("в открытых пунктах нет ни одного срока («до <дата>»)")
     raise SystemExit(0)
 
-overdue = sorted({(w, i["code"], i["title"]) for w, i in found if w < today})
-soon = sorted({(w, i["code"], i["title"]) for w, i in found
-               if today <= w <= today + datetime.timedelta(days=window)})
+# Один и тот же пункт есть в обеих половинах — показываем его один раз,
+# по коду и дате, взяв заголовок той половины, которая встретилась первой.
+def collapse(rows):
+    seen = {}
+    for when, item in rows:
+        key = (when, item["code"])
+        seen.setdefault(key, item["title"])
+    return sorted((when, code, title) for (when, code), title in seen.items())
+
+overdue = collapse((w, i) for w, i in found if w < today)
+soon = collapse((w, i) for w, i in found
+                if today <= w <= today + datetime.timedelta(days=window))
 later = sorted({(w, i["code"]) for w, i in found if w > today + datetime.timedelta(days=window)})
 
 print(f"сегодня {today:%d.%m.%Y}, окно {window} дней\n")

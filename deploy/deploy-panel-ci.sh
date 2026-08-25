@@ -47,6 +47,12 @@ mime_type() {
 # questions what it kept — which is how five design sheets and three fonts came
 # to be served from the production panel. A stranger stops the deploy here, where
 # it costs nothing, instead of being discovered by a curl months later.
+# Deep links are files, not a CDN trick. Bunny returns index.html for a missing
+# path, but under 404 — measured on dev, uat and prod on 2026-08-25 — so every
+# magic-link address answered "not found" while carrying the application. A file
+# per declared route answers 200, and a path nobody declared still answers 404.
+python3 "$ROOT_DIR/deploy/spa-route-files.py" "$DIST" "$ROOT_DIR/panel/src/App.tsx"
+
 python3 "$ROOT_DIR/deploy/check-shipped-files.py" "$DIST" "$ROOT_DIR/deploy/panel-shipped.manifest"
 
 echo "Deploying panel dist → Bunny zone '${BUNNY_STORAGE_ZONE}'"

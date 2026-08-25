@@ -456,8 +456,10 @@ them.
 ```
 
 - **256 characters** is the chat limit and it **comes from the server**
-  (`max_message_length`, §8.6) rather than being baked in here. The client draws
-  the counter; the node decides.
+  (`max_message_length`, §8.6) rather than being baked in here. The counter is the
+  client's; the node refuses by a different parameter — `max_ciphertext_bytes`,
+  2048 bytes — because what it sees is ciphertext, not characters (edit of
+  2026-08-25).
 - `✓` is `delivered`; `error` produces a retry line instead of vanishing quietly.
 - The silence counter appears by the `min(20 min, ttl/3)` rule and is reset by any
   delivered message.

@@ -549,10 +549,12 @@ stateDiagram-v2
   person is online. The pause grows ×3: at once, 5 s, 15 s, 45 s, 135 s, capped
   around 10 min. The retry carries the same `local_id` so the recipient drops the
   duplicate.
-- **Length is a server parameter.** `max_message_length` arrives when the chat
-  opens, 256 by default; the client draws a counter, but **the node decides** and
-  refuses anything longer with `error`. Our client is open: a check that lives only
-  there is a hint to the author, not a rule of the system.
+- **Length is a server parameter, but the node measures it in bytes.**
+  `max_message_length` arrives when the chat opens, 256 by default, and draws the
+  counter in the client; `max_ciphertext_bytes` — 2048 bytes — arrives beside it
+  and is what refuses with `error`, because the node sees ciphertext and counts no
+  characters in it (§8.6, edit of 2026-08-25). Our client is open: a check that
+  lives only there is a hint to the author, not a rule of the system.
 - **The node must not matter.** A room does not live in one node's memory:
   participants may sit on different ones, and a node falling over drops only its
   own sockets. The limit — the bus works within one database.

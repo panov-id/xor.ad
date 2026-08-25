@@ -1081,11 +1081,21 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not
       change.
-- [ ] **G6. Message length limit — enforcement on the node.** Decided 07.08.2026
-      and written into the chat spec (§4, §8.6): `max_message_length` is returned
-      when a chat opens, defaults to **256 characters**, and is checked **on the
-      node** — anything longer is refused with `error`. The feed stays at **128**;
-      that is a different limit and the two should not be merged.
+- [ ] **G6. Message length limit — enforcement on the node.** The decision of
+      07.08.2026 was impossible in the shape it was written: the node sees
+      **ciphertext** and counts no 256 characters in it, exactly or approximately,
+      while the spec promised a check on characters in §8.6 and in both flow
+      diagrams — even though its own acceptance checklist demanded bytes. Made one
+      on 25.08.2026: the node checks `max_ciphertext_bytes` — **2048 bytes**,
+      calculated from the worst case (256 emoji characters → 1024 bytes of UTF-8 →
+      1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
+      `max_message_length` = **256** stays the counter in the client. The feed
+      stays at **128**; that is a different limit and the two should not be merged.
+      **Nothing can close it yet:** checked 25.08.2026 against
+      `api.relay.panov.id` — `GET /chat` answers **501** "chat relay not enabled on
+      this node yet", there is no feed route (**404**), `/health` is 200. The item
+      closes on a measurement made by a request that bypasses the client, once the
+      node has chat code.
 - [x] **G7. Storefront privacy policies — closed 2026-08-10.** Filed 2026-08-07 as
       two gaps; on inspection the first no longer existed and the second was closed
       by a decision rather than by work.

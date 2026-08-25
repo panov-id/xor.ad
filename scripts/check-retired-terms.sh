@@ -55,8 +55,13 @@ for term, scope, replacement in entries:
     # Scoped on purpose: the same words are correct elsewhere. «секрет» is right
     # in forty places about GitHub secrets; it was one sentence in one spec that
     # went stale.
+    # Ищем и в docs/, и в корне: CLIENT_TERMS.md лежит рядом с README, и правило,
+    # написанное на него, молча не находило ни одного файла — а реестр умолчал,
+    # потому что другой glob того же правила файл всё-таки нашёл (23.08.2026).
     documents = sorted({
-        path for glob in scope for path in (root / "docs").glob(glob)
+        path
+        for glob in scope
+        for path in list((root / "docs").glob(glob)) + list(root.glob(glob))
     })
     if not documents:
         print(f"  ! правило «{term}» не нашло ни одного файла из: {' '.join(scope)}")

@@ -8,7 +8,7 @@
 
 ## Purpose
 
-An internal interface for the team: visibility into and control over the waitlist, reports, bans, and user quotas across both faces (sosed.place, neighbro.place). This is the operational surface of the shared backend, separate from the user-facing frontends. The panel is built to grow: the MVP covers the waitlist, authentication, reports/bans, and panel user management; quotas, support tickets, and the sticker catalog follow later.
+An internal interface for the team: visibility into and control over the waitlist, Article 16 notices, and per-key quotas across both faces (sosed.place, neighbro.place). This is the operational surface of the shared backend, separate from the user-facing frontends. The panel is built to grow: the MVP covers the waitlist, authentication, Article 16 notices, per-key quotas and panel user management; support tickets and the sticker catalog follow later. **Bans are named nowhere in the code — no route, no column, no permission (2026-08-23); either they get built or they leave this line.**
 
 ## Sources (design)
 
@@ -56,7 +56,7 @@ that is the only place where "what may this role do" is written:
 | Role | What it may do |
 |---|---|
 | `admin` | everything, including permissions added later (`*`) |
-| `moderator` | waitlist, logs, **and Article 16 notices: read and decide** |
+| `moderator` | waitlist, panel users (read), the client / audit / pageview logs — **but not the node's server logs** — **and Article 16 notices: read and decide** |
 | `viewer` | the waitlist only |
 | `tenant_admin` | everything inside their own brand: panel users, keys, logs. Deliberately not `*` |
 
@@ -86,11 +86,11 @@ the Article 16 decision.
 
 ## Visual style
 
-The same neo-brutalism as the landing pages (hard borders, sharp corners, un-blurred shadows, Unbounded for headings) — but the panel's own accent color is neutral, since it's shared by both faces. Red (sosed.place) and gold/bronze (neighbro.place) are used sparingly — as badges/stripes on data rows to visually distinguish a record's source — rather than as the interface's overall accent.
+A **hybrid**, as settled in `panel-refactor_EN.md`: a calm base for tables, brutalism in the accents. Hard 2px borders, un-blurred 4/4 shadows and Unbounded for headings — but a **6px radius**, not sharp corners, and not the landing pages' look (`panel/src/App.css`). The panel's own accent is neutral, since it is shared by both faces. A record's source is marked by a **neutral** badge: colour in the panel is spent on warnings and refusals, not on brands.
 
 ## Open questions
 
-- The exact neutral accent colour for the panel is not finalised.
+- ~~The exact neutral accent colour~~ — settled: `#3355dd` light / `#7d9bff` dark (`panel/src/App.css`), and it passes the contrast counter.
 - The UI for support tickets and the sticker catalogue is not designed yet — it
   will be added as the panel grows.
 

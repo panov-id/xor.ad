@@ -280,11 +280,14 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       `https://neighbro.place/sitemap.xml`). They are Domain properties, so the
       full URL is required. www was not submitted: the zones redirect it to the
       apex, so it would only duplicate.
-- [ ] **D5. Register in Bing Webmaster Tools** — a manual step; IndexNow does not
-      need it, but it brings reports. Checked 2026-08-17: there is no verification
-      — `/BingSiteAuth.xml` is 404 on both storefronts and no `msvalidate` tag is
-      in the markup. IndexNow itself works: the key is in the deploy and it pings
-      on every one. Only a person can open the account.
+- [x] **D5. The Bing Webmaster Tools account — accepted as it is.** Settled
+      2026-08-25: won't-fix. The account is not what indexing needs, only what
+      reporting on it needs: IndexNow works without it and works now — the key is
+      in the deploy, it pings on every one, and the key file answers 200 on both
+      storefronts (checked 2026-08-25). Bing verification is absent and will not
+      appear by itself: `/BingSiteAuth.xml` is 404 on both, no `msvalidate` tag is
+      in the markup, and only a person can open the account. The item is closed
+      not as done but as not worth the step; if the reports are wanted, it reopens.
 - [x] **D6. A real 404 page — accepted as it is.** Settled 2026-07-29:
       won't-fix. Bunny's `ErrorPageCustomCode` applies to origin errors, not to a
       404 from a storage zone. The page exists, is served at `/404.html`, and the
@@ -1078,11 +1081,21 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not
       change.
-- [ ] **G6. Message length limit — enforcement on the node.** Decided 07.08.2026
-      and written into the chat spec (§4, §8.6): `max_message_length` is returned
-      when a chat opens, defaults to **256 characters**, and is checked **on the
-      node** — anything longer is refused with `error`. The feed stays at **128**;
-      that is a different limit and the two should not be merged.
+- [ ] **G6. Message length limit — enforcement on the node.** The decision of
+      07.08.2026 was impossible in the shape it was written: the node sees
+      **ciphertext** and counts no 256 characters in it, exactly or approximately,
+      while the spec promised a check on characters in §8.6 and in both flow
+      diagrams — even though its own acceptance checklist demanded bytes. Made one
+      on 25.08.2026: the node checks `max_ciphertext_bytes` — **2048 bytes**,
+      calculated from the worst case (256 emoji characters → 1024 bytes of UTF-8 →
+      1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
+      `max_message_length` = **256** stays the counter in the client. The feed
+      stays at **128**; that is a different limit and the two should not be merged.
+      **Nothing can close it yet:** checked 25.08.2026 against
+      `api.relay.panov.id` — `GET /chat` answers **501** "chat relay not enabled on
+      this node yet", there is no feed route (**404**), `/health` is 200. The item
+      closes on a measurement made by a request that bypasses the client, once the
+      node has chat code.
 - [x] **G7. Storefront privacy policies — closed 2026-08-10.** Filed 2026-08-07 as
       two gaps; on inspection the first no longer existed and the second was closed
       by a decision rather than by work.

@@ -151,7 +151,8 @@ more honest.
   value, the menu directly beneath, the active item filled with the accent, and
   only the theme toggle and logout pushed to the bottom. The 250 px hole is gone.
 - **One title**, not shouted; the content has a width, and the table has zebra
-  striping and a sticky header.
+  striping. The sticky header was tried and dropped: measured at -272px after
+  scrolling 600, it did not stick (`panel/src/App.css`).
 - **The histogram** gained a baseline and labelled window edges, and a bar no
   longer overflows the top on a tall peak.
 - **Controls** share one look, focus is visible, and the active range is
@@ -184,10 +185,11 @@ more honest.
   Following a link closes it, or it would cover the page just asked for.
 - **The toolbar wraps**, the range strip scrolls as one piece, and the search
   takes a line of its own.
-- **Contrast is checked by arithmetic, not by eye** — `panel/tests/contrast.mjs`
-  reads the tokens out of `App.css` and computes 8 pairs per theme. All 16 pass
-  4.5:1 (lowest 6.03). Run it with `scripts/check-panel-contrast.sh`; it exits
-  non-zero on a failure, so it can gate a build.
+- **Contrast is checked by arithmetic, not by eye** — `panel/check-contrast.mjs`
+  reads the tokens out of `App.css` and computes **13 pairs per theme. All 26 pass
+  4.5:1, the lowest being 5.08** (recounted 2026-08-23 from a real run). Run it
+  with `scripts/check-panel-contrast.sh`; it exits non-zero on a failure, so it
+  can gate a build.
 - **`aria-live`** on the log page's counters and on the invite form's reply:
   after "load older" or a refusal, that line is the only thing that moves.
 

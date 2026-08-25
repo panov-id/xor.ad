@@ -280,11 +280,14 @@ behind a flag, edge rules (www→apex, short HTML TTL). What remains:
       `https://neighbro.place/sitemap.xml`). They are Domain properties, so the
       full URL is required. www was not submitted: the zones redirect it to the
       apex, so it would only duplicate.
-- [ ] **D5. Register in Bing Webmaster Tools** — a manual step; IndexNow does not
-      need it, but it brings reports. Checked 2026-08-17: there is no verification
-      — `/BingSiteAuth.xml` is 404 on both storefronts and no `msvalidate` tag is
-      in the markup. IndexNow itself works: the key is in the deploy and it pings
-      on every one. Only a person can open the account.
+- [x] **D5. The Bing Webmaster Tools account — accepted as it is.** Settled
+      2026-08-25: won't-fix. The account is not what indexing needs, only what
+      reporting on it needs: IndexNow works without it and works now — the key is
+      in the deploy, it pings on every one, and the key file answers 200 on both
+      storefronts (checked 2026-08-25). Bing verification is absent and will not
+      appear by itself: `/BingSiteAuth.xml` is 404 on both, no `msvalidate` tag is
+      in the markup, and only a person can open the account. The item is closed
+      not as done but as not worth the step; if the reports are wanted, it reopens.
 - [x] **D6. A real 404 page — accepted as it is.** Settled 2026-07-29:
       won't-fix. Bunny's `ErrorPageCustomCode` applies to origin errors, not to a
       404 from a storage zone. The page exists, is served at `/404.html`, and the

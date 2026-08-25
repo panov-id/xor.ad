@@ -14,3 +14,24 @@ fonts/*.woff2
 # файл шрифта эта проверка не поймает — только лишний файл другого рода. Три
 # шрифта мокапов уехали бы через него незамеченными. Ловит их сегодня уборка
 # зоны и то, что public/fonts пополняется только руками.
+
+# Файл на каждый маршрут приложения — то, что делает глубокую ссылку двухсотой
+# (см. deploy/spa-route-files.py). Список здесь не дубль App.tsx, а объявление,
+# и держит он одну сторону расхождения строго: маршрут, добавленный в App.tsx и
+# не записанный сюда, останавливает выкат как файл, который никто не решал
+# публиковать. Обратная сторона мягче — строка, не поймавшая ни одного файла,
+# печатается в отчёте, но выкат не валит (проверено 25.08.2026: код возврата 0).
+# Так и задумано в check-shipped-files.py, поэтому лишняя строка тут — мусор в
+# отчёте, а не сломанная панель.
+api-keys/index.html
+auth/callback/index.html
+brands/index.html
+dsa-notices/index.html
+login/index.html
+logs/audit/index.html
+logs/client-errors/index.html
+logs/pageviews/index.html
+logs/server/index.html
+panel-users/index.html
+secret-keys/index.html
+waitlist/index.html

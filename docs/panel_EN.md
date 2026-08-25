@@ -33,6 +33,21 @@ Key takeaways: minimalism and fewer metrics per screen, dark theme by default, c
 in July, yet the spec kept describing its Auth, its Edge Functions and its RLS —
 three mechanisms that do not exist in this codebase.
 
+## Addresses
+
+The panel is a `BrowserRouter` application served from a storage zone: an address
+such as `/auth/callback?token=…`, where every magic-link points, has to exist as a
+file. Bunny's `Custom404FilePath` does return the application for such a path, but
+**under a 404** — measured on 2026-08-25 across all three environments, which means
+monitoring sees a panel that is down, `fetch` with an `res.ok` check refuses, and
+the browser is handed an error page that happens to contain an application.
+
+So the deploy writes a copy of `index.html` at the path of every declared route
+(`deploy/spa-route-files.py`, the list read out of `panel/src/App.tsx`): a declared
+address answers **200**, while an undeclared one — a mistyped asset name, a route
+that was removed — still answers **404**. `Rewrite404To200` is deliberately not
+used: it would have made a 200 out of what genuinely is not there.
+
 ## Authorisation
 
 Passwordless, magic-link, entirely on our own node

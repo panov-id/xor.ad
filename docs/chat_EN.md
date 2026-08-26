@@ -566,6 +566,10 @@ Asymmetry is unacceptable here: one side would like a phrase the other cannot se
 
 On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, wider is not.
 
+**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old may narrow the filter to 21–22 and see adults only: formally they are inside their own band, and symmetry holds — `band(22) = [20, ∞)` contains them. This is allowed deliberately; forbidding it would mean a second ceiling on top of the formula and would diverge from §8.5. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
+
+**What a person sees is in the storefront screens:** the handle does not pass the band, an adult's right end is labelled "no limit", and a band shifted by a birthday is announced in one line.
+
 ```sql
 ALTER TABLE identities
   ADD COLUMN age CHECK (age BETWEEN 13 AND 120),
@@ -881,6 +885,10 @@ something illegal into a public feed. Thresholds are set per direction; a single
 
 ### 8.4. Likes and counters
 
+**A like is available only to someone with a live phrase in the feed — settled 2026-08-26.** The rule is derived from §8.5 rather than added to it: a match counts only while **both** phrases are alive, so a like from a person without one of their own could never become a match — it was placed and went quietly nowhere, and the one who placed it never learned that. The check runs on the node, because the client is open: `EXISTS (SELECT 1 FROM feed_messages WHERE author_identity = :me AND visible_at IS NOT NULL AND expires_at > now())`.
+
+The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
+
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
 
 ```sql
@@ -970,7 +978,7 @@ CREATE TABLE match_participants (
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
-  idle_ttl_minutes  integer,            -- chosen chat lifetime
+  idle_ttl_minutes  integer,            -- NOT FILLED since 2026-08-26: chosen inside the chat
   ephemeral_public_key text,            -- this chat's key, wrapped to the other side (8.13)
   PRIMARY KEY (match_id, identity)
 );
@@ -1099,6 +1107,8 @@ CREATE TABLE chat_starters (
 **The node, however, counts bytes and not characters.** What it sees is ciphertext: 256 characters cannot be counted in it, exactly or approximately. So the chat opens with a second parameter — `max_ciphertext_bytes`, **2048 bytes** by default — and whatever does not fit it is refused with `error`, delivered to nobody. Two parameters, and the division of labour is this: the counter in the client is a convenience, the rule of the system is bytes at the node (edit of 2026-08-25; §8.6 promised a check on characters while the acceptance checklist of the same spec already required bytes, and the promise was impossible to keep).
 
 2048 is calculated from the worst case rather than chosen: 256 emoji characters are 1024 bytes of UTF-8, 1052 with an AES-GCM nonce and tag, 1404 in base64. That leaves 46% of headroom and a quarter of the `NOTIFY` payload.
+
+**An honest client never reaches that limit — recomputed 2026-08-26.** 1404 bytes against 2048: hitting the refusal takes **378** emoji characters, one and a half counters. So `max_ciphertext_bytes` guards against a forged client rather than bounding a real conversation, and there is no point showing it to a person: the interface keeps one counter, at 256 characters.
 
 The separation is not pedantry. Our client is **open**: the `depth` image can be rebuilt by anyone, and the web script is edited in the debugger in a minute. Any check that lives only on the client is a hint to its author, not a rule of the system. Treating it as a defence would be self-deception, so the limit is enforced where it cannot be rewritten.
 
@@ -1467,7 +1477,7 @@ the old K       cannot be recovered by anything
 
 ## 9. UI states and breakpoints
 
-- **`≥900px`** — three-column workspace: **[Feed] | [Open chats] | [Active chat]** (feed `flex:1`, chats `300px`, active chat `400px`). Columns collapse into vertical rails. Before a chat is picked, the active column shows an empty `Pick a chat` state.
+- **`≥900px`** — three-column workspace: **[Feed] | [Offers and conversations] | [Active chat]** (the second column gained two tabs on 2026-08-26: matches waiting for an answer, and open conversations — until then matches were shown nowhere, though the inbox collects them first, §8.12) (feed `flex:1`, chats `300px`, active chat `400px`). Columns collapse into vertical rails. Before a chat is picked, the active column shows an empty `Pick a chat` state.
 - **`≤899px`** — single column, bottom navigation (`Feed` / `Chats` / `Say` / `Me`); the conversation is a full-screen overlay (`position:fixed`), "back" → list.
 - **`≤560px`** — compact header.
 

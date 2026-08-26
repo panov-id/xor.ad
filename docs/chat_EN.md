@@ -216,6 +216,21 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
+#### The "stepped away" state (2026-08-26)
+
+A person may leave the place for a span — **20 minutes, an hour, or until morning** — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. The point is not an errand but giving someone caught in the pull a real way out.
+
+- **Phrases are deleted** (`DELETE`, not hidden) along with their likes: quota slots free immediately, and whoever returns has nothing to catch up on.
+- **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
+- **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a departure "until morning" is survived only by conversations with a long span.
+- **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
+- **A peer in an open chat sees `stepped_away`** instead of the ability to write. This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **Leaving early** takes a confirmation; the frequency of departures is not limited.
+
+**The time-in-app counter never reaches the node.** It lives in the browser and counts like this: a visible tab plus a touch within the last three minutes. The offer to step away after an hour is the client's decision; the node has no business knowing how long somebody sat there, and no such record belongs beside an identity.
+
+> **The measurement is incomplete (2026-08-26).** `visibilitychange` behaves differently across mobile browsers and there were no devices to check with. Captured in desktop Chromium: a page in a background tab starts at `visibilityState=hidden` with `hasFocus=false` and receives no events until activation — hence the rule that loading a page does not start the count. The `visible ↔ hidden` transitions could not be captured: there was no way to activate the window. Marked as unverified.
+
 **A name goes through the same check as a phrase.** It is published text: the
 other person sees it on the match card and in an open chat, so anything forbidden
 in a phrase can be said in a name. The check runs the same path and the same

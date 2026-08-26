@@ -116,7 +116,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.5 | A successful publication zeroes the refusal counter | four refusals, a success, four more → no mute | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
-| 6.8 | Limits: ≤4 live phrases, ≤8 in 64 minutes | the fifth live one → refused; the ninth in an hour → refused | nothing to check |
+| 6.8 | Limits: ≤5 live phrases, ≤8 in 64 minutes | the sixth live one → refused; the ninth in an hour → refused | nothing to check |
 | 6.9 | Taking a phrase down frees the slot but not the 64-minute ceiling | take down and repost in a loop → the ceiling holds | nothing to check |
 
 ## 7. Building the feed (step 2)
@@ -131,6 +131,9 @@ through three different wrappers and cannot be counted by eye.
 | 7.6 | Cards from the widened radius are marked | a "further than you asked" flag in the response | nothing to check |
 | 7.7 | The quota: no more than one commercial card per ten ordinary | a feed with twenty offers → two in the response | nothing to check |
 | 7.8 | Own phrases, blocks and hidden ones are excluded | all three cases in one feed | nothing to check |
+| 7.9 | **The node returns a step, not an exact number** (2026-08-26) | 7 live phrases in the circle → the response says `about a dozen`, the seven appears nowhere | nothing to check |
+| 7.10 | The step boundaries are exactly as written: 0 · 1–4 · 5–14 · 15–99 · 100+ | one phrase at each boundary: 4→`a few`, 5→`about a dozen`, 14→`about a dozen`, 15→`dozens` | nothing to check |
+| 7.11 | The counter carries a rate limit of its own | a hundred requests in a row → refused, while the feed keeps working | nothing to check |
 
 ## 8. A like (step 3)
 
@@ -196,11 +199,15 @@ through three different wrappers and cannot be counted by eye.
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
-| 13.1 | The **smaller** of the two `idle_ttl` is taken | 20 minutes and 4:20 → the chat lives 20 minutes | nothing to check |
-| 13.2 | Who set the span is not visible | the open-chat response carries no authorship for the value | nothing to check |
-| 13.3 | The span does not change in an open chat | an attempt to change it → refused | nothing to check |
+| 13.1 | **Each side has its own span, counted from their own last message** | Petya 10 min, Kolya an hour; Petya silent for 11 → `gone_at` for Petya, alive for Kolya | nothing to check |
+| 13.2 | The other side's span and remainder are not handed out | the open response carries neither the peer's value nor their `gone_at` time | nothing to check |
+| 13.3 | The span changes inside an open conversation at any time | 10 → 60 on a live conversation → accepted, recounted from the same `last_own_message_at` | nothing to check |
+| 13.3a | The other person's message does **not** reset my count | Kolya writes every 5 minutes, Petya stays silent for 11 → it ended for Petya | nothing to check |
 | 13.4 | A game move moves `last_activity_at` exactly like a message | moves only, an hour → the chat lives | nothing to check |
-| 13.5 | **An expired chat disappears for both, with the board and the local history** (§14) | after the first `alive` check — empty on both sides | nothing to check |
+| 13.5 | **The conversation disappears for whoever's span ran out** (§14) | after the first `alive` check it is empty for them, the other's history intact | nothing to check |
+| 13.5a | **The key and the board go out for both at the first death** (§8.13) | `chat_key_wraps` empty for both, while the other's history still reads | nothing to check |
+| 13.5b | Neither side can write into an ended conversation | sending around the client from both sides → the node refuses | nothing to check |
+| 13.5c | The node deletes `chats` only once `gone_at` is set for both | after the first death the row is there; after the second it cascades | nothing to check |
 | 13.6 | **Whoever was looking keeps the headstone until "close", and it does not return to the list** (§14) | the chat is on screen at the moment of death | nothing to check |
 | 13.7 | One chat per pair is held by a unique `pair_key` | a second `INSERT` → conflict | nothing to check |
 | 13.8 | After death the `pair_key` is released | the same pair matches again | nothing to check |

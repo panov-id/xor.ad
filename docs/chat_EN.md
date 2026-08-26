@@ -51,13 +51,13 @@ Liking again when a chat with that person is already open creates **no new match
 ## 5. Ephemerality
 
 - A chat's TTL is **sliding**: it lives no longer than the chosen span **after the last activity**. Activity means a delivered message or a move in a game.
-- **Each person picks the span** when consenting to the chat — **20 minutes, 1 hour or 4:20** of silence — and the **smaller of the two** applies: one person's caution is not overridden by the other's generosity. The value is visible to both; who set it is not. It cannot be changed inside an open chat.
-- **The silence counter** appears not immediately but after `min(20 minutes, span / 3)` of silence, and counts down to the chat's disappearance. Any message or move resets it.
-- As expiry approaches — visual **fading**; on expiry the chat **disappears for both** with all its content (messages, liked phrases, game board).
+- **Each person picks their span inside the conversation itself, and it is their own — settled 2026-08-26, reversing the pick at consent.** Four values: **10 minutes, 30 minutes, an hour** or **"while we're talking"** (the same 4:20). The handle sits in the conversation header and changes at any time. The count runs from **your own last message**, not from theirs: Petya sets ten minutes, Kolya an hour; Petya stays silent for ten minutes and the conversation disappears **for Petya**. Your own remainder is always visible; the other side's setting and remainder are not. Asking for a span before a person has seen who they are talking to demands a decision before there are grounds for one.
+- **The silence counter** appears in the **last quarter of your own span** and counts down to the conversation's disappearance. Any message or move of yours resets it. A fraction rather than fixed minutes: a quarter of an hour for an hour-long conversation, two and a half minutes for a ten-minute one. The old `min(20 minutes, span / 3)` rule is retired along with the pick at consent — on a ten-minute span it lit the counter after 3 minutes 20 seconds, leaving two thirds of the conversation's life in a countdown.
+- As expiry approaches — visual **fading**; on expiry the conversation **disappears for whoever's span ran out**, with all its content (messages, liked phrases, game board). For the other it remains, but it stops **being a conversation**: nothing can be written into it, and one line says so — otherwise an expired span is indistinguishable from taking offence.
 - **The last frame — decided 2026-08-20: only the person who was looking sees a headstone.** A chat open on screen at that moment shows "chat expired" and a "close" button. A chat that was sitting in the list disappears from it silently. The content is erased immediately in both cases — the words stand over emptiness, not over a saved conversation. The difference is not politeness: taking the screen away without a word from someone mid-message is indistinguishable from a crash or a ban, while nobody has a list row under their hands at that instant. The headstone lives until it is closed and **does not return** to the list — otherwise someone who stayed away for a day comes back to a column of "there was a chat with this person here", a trace outliving the thing that was supposed to vanish (§1).
-- The span and last-activity time are stored on the server; the conversation itself lives only in browsers (§8.8), and the client sweeps it via `POST /chats/alive` (§8.10).
+- The span is stored **per participant**, the last-activity time per conversation; the conversation itself lives only in browsers (§8.8), and the client sweeps it via `POST /chats/alive` (§8.10). Hence a consequence for that endpoint: it answers **differently to the two participants of one conversation**, and that is the design rather than a fault (§8.10).
 - The **feed** has its own span — a phrase lives **4 hours 20 minutes**; a **match** has its own — until the first of the two phrases dies. Three different timers for three different reasons.
-- **The set of spans is settled 2026-08-20: these three stay** — 20 minutes, 1 hour, 4:20. There will be no fourth, neither below nor above. Anything shorter than 20 minutes breaks the silence counter it comes with: at `min(20 minutes, span / 3)` a five-minute chat would start counting down after 1 minute 40 seconds — sooner than a person writes a second message — and since the smaller of the two applies, one cautious pick would close the conversation for both. Anything longer than 4:20 outlives its own reason: a phrase in the feed lives exactly 4:20, and a conversation about it should not hang around longer than what started it. Free entry is not considered separately: it turns a choice between three words into a setting with numbers on the consent screen.
+- **The set of spans is four, settled 2026-08-26:** 10 minutes, 30 minutes, an hour, "while we're talking". The previous three (20 minutes, 1 hour, 4:20) stood from 2026-08-20 and rested on two arguments that no longer exist. First: anything shorter than 20 minutes breaks the `min(20 minutes, span / 3)` counter — that counter is now a quarter of the span, and ten minutes give a calm 2:30. Second, [retired]: "since the smaller of the two applies, one cautious pick would close the conversation for both" — there is no smaller of the two any more; each side governs only its own, and one person's caution closes nothing for anyone else. The ceiling stands for the old reason: **"while we're talking" is 4:20**, exactly as long as a phrase lives in the feed, and a conversation about it should not hang around longer than what started it. Free entry is not considered: it turns a choice between four words into a setting with numbers.
 
 ## 6. Rules-free shared games
 
@@ -801,12 +801,14 @@ per-address limit works alongside, separately).
 
 ```
 likes     64 per 32 minutes
-phrases   at most 4 live at a time
+phrases   at most 5 live at a time
           and at most 8 published per 64 minutes
 ```
 
-**Why phrases have two numbers instead of one.** The main one is "four live": it
-is the natural limit, because a phrase occupies space in the neighbours' feed and
+**Why phrases have two numbers instead of one.** The main one is "five live" (the
+number was reconciled with the storefronts on 2026-08-26: they had five from the
+start, in four places, while this said four; they must not diverge, and five was
+chosen). It is the natural limit, because a phrase occupies space in the neighbours' feed and
 a person sees their four rather than counting minutes. But a phrase lives 4:20
 while the ceiling's window is 64 minutes: none would expire by itself in that
 time, so the second number would never fire. It exists for exactly one case —
@@ -832,7 +834,7 @@ phrases in general, the limit of one about the commercial ones among them.
 **When the band and the radius come up empty, the feed widens the radius — and
 only the radius.** An empty screen says nothing: broken, nobody here, or a
 delivery the person narrowed themselves — indistinguishable. So on an empty
-result the radius grows in steps up to **10 km**, the same ceiling a person could
+result the radius grows in steps up to **25 km**, the same ceiling a person could
 have set for themselves (§8.3).
 
 **The band is never widened.** It separates teenagers from adults, and touching
@@ -842,8 +844,26 @@ launch is an accepted price, not a problem to be fixed with age.
 **The widening is visible and does not change the setting.** Every such card is
 marked "further than you asked", and the person's own radius stays where they
 left it: this is a temporary answer to an empty result, not a quiet edit of their
-preferences. If 10 km is empty too, we say so: "nobody here yet. Write first — a
+preferences. If 25 km is empty too, we say so: "nobody here yet. Write first — a
 phrase lives 4:20", with the number of people in range beside it.
+
+**How many are in the circle — the node answers with a step, not a number (settled
+2026-08-26).** The radius handle says how many live phrases are inside:
+`nobody here yet` · `a few` (1–4) · `about a dozen` (5–14) · `dozens` (15–99) ·
+`hundreds` (100+). Without it the handle is dragged blind and lands either in
+emptiness or in somebody else's district.
+
+There is no exact number here, and the reason is not rounding for looks. A counter
+tied to a radius is **a measuring instrument**: stepping the handle and reading
+exact numbers, a person builds a density profile of their surroundings, and from
+the increment on a single step works out the ring holding one particular phrase —
+going around the blur its author chose for themselves. Steps do not forbid that,
+they make it coarse enough to stop being worth the effort; only the absence of a
+counter would close the question, and its price is a blind handle.
+
+Hence two requirements: the answer is computed **on release**, one request per
+gesture, and the route carries **a rate limit of its own** — a hundred requests in a
+row is not a person with a slider but a density profile being taken.
 
 **A consequence worth knowing up front: a like across a widened radius often will
 not become a match.** Mutuality requires the other person to see your phrase in
@@ -1043,7 +1063,6 @@ CREATE TABLE match_participants (
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
-  idle_ttl_minutes  integer,            -- NOT FILLED since 2026-08-26: chosen inside the chat
   ephemeral_public_key text,            -- this chat's key, wrapped to the other side (8.13)
   PRIMARY KEY (match_id, identity)
 );
@@ -1056,16 +1075,16 @@ Flow:
 ```
 mutual like     → INSERT matches + two match_participants rows
                   both see: "match — open chat?" + peer's phrase and mode
-one presses     → the "not checked" disclaimer + the idle_ttl choice
+one presses     → the "not checked" disclaimer — and that is all, no span here
                   → generates an EPHEMERAL pair for this chat (§8.13)
                   → UPDATE match_participants SET accepted_at = now(),
-                      idle_ttl_minutes = :n, ephemeral_public_key = :epk
+                      ephemeral_public_key = :epk
 both press      → INSERT chats + chat_participants + chat_starters, matches.chat_id = <new>
                   both get chat_id and the system line "you both liked this — chat is open"
 expired         → the match quietly disappears; there was no chat
 ```
 
-**The disclaimer at consent.** Right here, beside the choice of span, a person reads what they are stepping into:
+**The disclaimer at consent.** It is the only thing on this screen — a person reads what they are stepping into:
 
 ```
 This chat is not checked. Nobody reads what you write here —
@@ -1078,7 +1097,9 @@ If someone behaves badly, block them and report them, attaching
 a copy from your own device.
 ```
 
-This is **not** another consent or a checkbox: the text sits on the same screen as the span choice, and "open chat" stays the single press. It is said here because this is the last moment at which nothing has been opened yet.
+This is **not** another consent or a checkbox: "open chat" stays the single press on the screen. The disclaimer is said here because this is the last moment at which nothing has been opened yet.
+
+**There is no span on this screen — settled 2026-08-26.** An `idle_ttl` choice used to stand here, and the column behind it in `match_participants` outlived the decision by two days, marked "not filled"; now it is gone. The span is picked inside the conversation, one per person (§5, §8.6), because deciding it before a person has seen who they are talking to demands a decision before there are grounds for one.
 
 - **Match TTL** = `least()` of both phrases' `expires_at`, with no safety floor. Either phrase dies and the match dies with it, even if one side already accepted; a new mutual like does **not** extend it. The consequence is accepted deliberately: a match born on a dying phrase may leave a pair only minutes for two presses, and then burn out. The rule matters more than the match count — the reason died, so the invitation dies too.
 - **The text snapshot is taken at match time**, not at opening: otherwise a phrase can expire between "match" and "both pressed", and someone would consent without seeing why.
@@ -1140,15 +1161,18 @@ the inbox shows only what survived. That follows directly from dropping push
 CREATE TABLE chats (
   id                uuid PRIMARY KEY,
   pair_key          text NOT NULL UNIQUE,
-  idle_ttl_minutes  integer NOT NULL,      -- min() of both choices
   last_activity_at  timestamptz NOT NULL DEFAULT now(),
   created_at        timestamptz NOT NULL DEFAULT now()
-  -- expires_at is not a column but a derivation: last_activity_at + idle_ttl_minutes
+  -- expires_at is neither a column nor one number: each participant has their own,
+  -- last_activity_at + their idle_ttl_minutes (see chat_participants)
 );
 
 CREATE TABLE chat_participants (
   chat_id   uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
   identity  uuid NOT NULL REFERENCES identities(id),
+  idle_ttl_minutes integer NOT NULL DEFAULT 60,  -- 10 | 30 | 60 | 260, ONE PER PERSON (§5)
+  last_own_message_at timestamptz,               -- their span counts from here
+  gone_at   timestamptz,                         -- the conversation ended for this participant
   PRIMARY KEY (chat_id, identity)
 );
 
@@ -1165,7 +1189,7 @@ CREATE TABLE chat_starters (
 
 - Access check is "is there a row": `SELECT 1 FROM chat_participants WHERE chat_id = :id AND identity = :me`.
 - `chat_starters` stores a **copy** of the text rather than a reference to `feed_messages`: the phrase lives N hours, the chat lives by its own clock, and the header must not empty out mid-conversation. `feed_message_id` is deliberately not stored — the link "this phrase → this chat" is better off not existing in the database at all.
-- Opening a chat returns: `idle_ttl_minutes`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
+- Opening a chat returns: **your own** `idle_ttl_minutes` and `last_own_message_at`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
 
 **Message length is a server parameter, not a client constant.** `max_message_length` arrives when the chat opens, defaults to **256 characters**, and changes without shipping a client. The client draws the counter and will not let you send more.
 
@@ -1188,12 +1212,16 @@ The limit is not cosmetic — it holds up the arithmetic in §8.1 and §8.13. 25
 
 Moves count deliberately: a game (§6) is an ice-breaker where staying silent in words is the point, and it would be absurd for the chat to die under the hands of two people happily pushing checkers around. Activity is any shared action, not text alone.
 
-Each side picks `idle_ttl_minutes` on consent; the **smaller of the two** wins — one person's caution cannot be overridden by the other's generosity. The value is visible to both (`chat fades after 1h of silence`), **who set it is not**. It cannot be changed inside an open chat: it is a rule that was agreed to, not a setting.
+Each side picks `idle_ttl_minutes` **inside the conversation**, with the handle in the header, and changes it at any time; the value lives in `chat_participants`, one row per person. The other side's value is never handed out — neither the number nor the remainder computed from it: knowing that it is time to answer is needed, knowing someone's character from the span they chose is not. Your own is always visible (`fades after 1h of your silence`).
+
+**It counts from your own last message**, not from the last activity in the conversation: reading is not talking, and someone who reads silently for an hour loses the conversation exactly as if they had left. `last_activity_at` stays on the conversation itself but does a different job — it moves the game board and the ordering of the list (§8.10).
+
+**There is no smaller-of-the-two any more — settled 2026-08-26.** The old rule took `min()` of the two picks so that one person's caution was not overridden by the other's generosity; now there is nothing to override, because each side governs only its own. Petya's conversation dies on Petya's span and does not touch Kolya's.
 
 **The silence counter** — two different thresholds:
 
 ```
-threshold = min(20 min, idle_ttl_minutes / 3)
+threshold = idle_ttl_minutes / 4   (your own span, from your own last message)
 
 silence < threshold   → no timer
 silence ≥ threshold   → counter: chat deletes in Nm
@@ -1202,7 +1230,7 @@ last_activity + ttl   → the chat disappears for both
 
 20 minutes is a **display** threshold, not a deadline — and it is not taken literally, but against the chosen TTL: at `ttl = 20 min` a fixed twenty would light the counter only as the chat died, which is to say never show it at all. A third of the span feels the same on an hour-long chat and on a twenty-minute one: the counter appears after 6 minutes 40 seconds of silence. The example used to be written on `ttl = 30 min` — a span that does not exist since the set was closed (§5).
 
-Any delivered message resets both the counter and the countdown. The server pushes nothing: the client knows `last_activity_at` and `idle_ttl_minutes` and computes the rest.
+Any **of your own** delivered messages resets both the counter and the countdown; theirs does not. The server pushes nothing: the client knows `last_own_message_at` and its own `idle_ttl_minutes` and computes the rest.
 
 A chat can outlive its originating phrases by a long way if people keep talking — that is fine: the texts are already copied, and the feed has nothing to do with the conversation any more.
 
@@ -1328,6 +1356,8 @@ POST /chats/alive  { ids: [uuid, ...] }  →  { alive: [uuid, ...] }
 ```
 
 Anything missing from `alive` is deleted from IndexedDB along with its messages. This covers, in one move: an expired TTL, a peer's closed identity, a block, and "hasn't opened the app in a month" — the very next session sweeps the dead away.
+
+**The endpoint answers differently to the two participants of one conversation — a consequence of §8.6, written down here so it is not discovered during debugging.** `alive` is computed **for the caller**: a conversation is alive for them until **their** span runs out. The same `chats` row lands in Kolya's `alive` and not in Petya's — and that is the correct answer to both, not a desync. Separately: a conversation whose peer has `gone_at` set **stays alive** for the caller — they still see their own history — but is marked as **ended**, and nothing can be written into it (§8.6). Otherwise a person sends words into emptiness and waits for an answer.
 
 **Three rules for this endpoint, all from 2026-08-21 — it is the only destruction command the system has.** The reply contains only those `id`s for which a `chat_participants` row exists with the caller: other people's and non-existent ones are silently absent and therefore indistinguishable from dead. The array length is capped. And above all: **the list of the living is valid only on a confirmed read of the database** — on error the node answers 503, not an empty list. The node's policy of "the query failed, carry on without an answer" would mean here that five minutes of unavailable Postgres wipe the conversations of everyone who opened the app in those minutes.
 
@@ -1518,7 +1548,11 @@ the old K       cannot be recovered by anything
 
 **A schema consequence.** The ephemeral halves need somewhere to sit between the two presses — at consent that is `match_participants.ephemeral_public_key`; a reissue has no such place, and one has to be created.
 
-**Forward secrecy holds.** The ephemeral keys and `K` are wiped when the chat dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
+**Forward secrecy holds.** The ephemeral keys and `K` are wiped when the conversation dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
+
+**When the spans diverge, `K` goes out on the first of them — settled 2026-08-26.** Participants have their own spans (§5, §8.6), so "the death of a conversation" stopped being a single moment: it ended for Petya while it still runs for Kolya. The key is nevertheless destroyed **for both at once**, together with both `chat_key_wraps` and the game board.
+
+This does not undo the per-person count, because the count is about history and the key is about transit. The local history sits under the **vault key** (§8.2), not under `K`: Kolya's reads exactly as it read and lives until his own span. Putting `K` out later would be a cost with nothing bought — nothing can be written into the conversation by either side any more, while the key from which intercepted ciphertext could be decrypted would stay derivable for hours. Forward secrecy must fire at the **earliest** of the two moments, not the latest.
 
 **A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away.
 
@@ -1712,10 +1746,16 @@ here are the ones without which the chat is not done at all:
   **ciphertext bytes** (`max_ciphertext_bytes`), not by characters: the node sees
   ciphertext and cannot count 256 characters in it, exactly or approximately.
   `max_message_length` = 256 stays what §8.6 calls it — a counter in the client.
-- An expired chat disappears **for both**, together with the game board and the
-  local history, on the first `alive` sweep. Whoever had the chat open on screen
-  at that moment keeps a headstone reading "chat expired" until they press
-  "close", and it does not return to the list (§5).
+- A conversation disappears **for whoever's span ran out**, along with their local
+  history, on the first `alive` sweep; for the other it remains until their own
+  span, marked as ended, and sending into it is refused **by the node**. Checked
+  with a pair on different spans: ten minutes for one, an hour for the other.
+- **The game board and the key go out for both at the first death** (§8.13), while
+  the other person's history keeps reading: it sits under the vault key, not under
+  the conversation key. Checked on a live node, not by reasoning.
+- Whoever had the conversation open on screen at that moment keeps a headstone
+  reading "conversation ended" until they press "close", and it does not return to
+  the list (§5).
 - **A node with an unreachable database does not cause local history to be
   deleted.** `POST /chats/alive` answers with a list of the living only on a
   confirmed read of the database; on error it answers 503 and the client deletes

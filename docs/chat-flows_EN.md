@@ -221,7 +221,7 @@ The feed is public and anyone within the radius sees it, so text is checked
 
 ```mermaid
 flowchart TD
-  post["POST /feed"] --> limits{"per-identity limits:<br/>≤4 live phrases,<br/>≤8 in 64 minutes?"}
+  post["POST /feed"] --> limits{"per-identity limits:<br/>≤5 live phrases,<br/>≤8 in 64 minutes?"}
   limits -- "no" --> refuse(["refused"])
   limits -- "yes" --> insert["INSERT feed_messages<br/>visible_at = NULL"]
   insert --> ans["202 — answered at once"]
@@ -283,7 +283,9 @@ flowchart TD
   excl --> quota["quota: at most one commercial card<br/>per ten ordinary phrases"]
   quota --> empty{"is the result empty?"}
   empty -- "no" --> show(["the feed"])
-  empty -- "yes" --> grow["the radius grows in steps up to 10 km;<br/>such cards are marked «further than you asked»"]
+  empty -- "yes" --> grow["the radius grows in steps up to 25 km;<br/>such cards are marked «further than you asked»"]
+  show --> knob["the radius handle shows a STEP, not a number:<br/>nobody · a few · about a dozen ·<br/>dozens · hundreds #40;§8.3#41;"]
+  knob --> once["computed ON RELEASE of the handle,<br/>one request per gesture + its own rate limit"]
   grow --> empty2{"still empty?"}
   empty2 -- "no" --> show
   empty2 -- "yes" --> nobody(["«nobody here yet.<br/>Write first, a phrase lives 4:20»<br/>+ how many people are within the radius"])
@@ -362,9 +364,9 @@ sequenceDiagram
   N->>N: INSERT matches + two match_participants rows
   N->>A: «a match — open a chat?» + the other's phrase and mode
   N->>B: the same, mirrored
-  A->>A: the «this chat is not checked» notice + a choice of idle_ttl
+  A->>A: the «this chat is not checked» notice — no span here #40;2026-08-26#41;
   A->>A: generates an EPHEMERAL pair for this chat
-  A->>N: accepted_at, idle_ttl_minutes, ephemeral_public_key
+  A->>N: accepted_at, ephemeral_public_key
   N->>B: «waiting for you»
   alt the second did not make it before expires_at
     N->>N: the match quietly disappears, there was no chat
@@ -427,7 +429,7 @@ flowchart LR
 ```
 
 From there the same machine runs unchanged: two `match_participants` rows, the
-notice, the `idle_ttl` choice, the double consent. **The offer's author may
+notice, the double consent. **The offer's author may
 decline**, and then there is no chat.
 
 - The one who liked has no phrase of their own → `message_id` and `text_snapshot`
@@ -587,31 +589,56 @@ stateDiagram-v2
 
 ---
 
-## 13. The life and death of a chat ([§5](chat_EN.md), [§8.6](chat_EN.md))
+## 13. The life and death of a conversation ([§5](chat_EN.md), [§8.6](chat_EN.md))
 
-The TTL slides from the last activity. Activity is **any joint action**, not only
-text: a move in a game pushes the timer on purpose.
+The span slides and is **each person's own**: it counts from **their own** last
+message. Reading is not talking. A move in a game pushes the timer on purpose,
+because the game is there so that one can be silent in words.
+
+The same conversation goes through these states **differently for each side**:
 
 ```mermaid
 stateDiagram-v2
   [*] --> alive: both accepted
-  alive --> alive: a delivered message or a move<br/>→ last_activity_at = now#40;#41;
-  alive --> counting: silence ≥ min#40;20 min, ttl/3#41;
-  counting --> alive: any movement resets it
-  counting --> fading: approaching expiry
-  fading --> [*]: last_activity + ttl<br/>the chat disappears for both
+  alive --> alive: MY message or move<br/>→ last_own_message_at = now#40;#41;
+  alive --> counting: my silence ≥ 3/4 of my span
+  counting --> alive: my movement resets it
+  counting --> fading: the last quarter
+  fading --> ended: last_own_message_at + my idle_ttl<br/>gone_at set for me
+  ended --> [*]: my history erased,<br/>a headstone if I was looking
 ```
 
-- Each side picks `idle_ttl_minutes` at consent from **20 minutes / 1 hour /
-  4:20**; the **smaller of the two** applies — one person's caution is not
-  overridden by the other's generosity. The value is visible to both, **who set it
-  is not**. It does not change once the chat is open.
-- The display threshold is not taken literally: at `ttl = 30 min` a fixed twenty
-  would light almost immediately and hang for two thirds of the chat's life.
-- The server sends nothing: the client knows `last_activity_at` and
+And for the other side at that moment:
+
+```mermaid
+flowchart TD
+  mine["the conversation ended for me<br/>#40;gone_at is set#41;"] --> key["THE KEY AND THE BOARD go out<br/>FOR BOTH at once #40;§8.13#41;"]
+  key --> peer["for the peer it is still ALIVE<br/>on their span: the history reads,<br/>it sits under the vault key"]
+  peer --> nowrite["but neither side can write into it:<br/>the node refuses, a line explains"]
+  nowrite --> both{"has their span run out too?"}
+  both -- "no" --> wait["waiting: a row exists, a conversation does not"]
+  both -- "yes" --> gone(["gone_at for both →<br/>the node deletes chats,<br/>participants and starters cascade"])
+```
+
+- Each side picks `idle_ttl_minutes` **inside the conversation**, with the handle
+  in the header, from **10 minutes / 30 minutes / an hour / «while we're talking»
+  #40;4:20#41;**, and changes it at any time (settled 2026-08-26, reversing the pick at
+  consent and the smaller-of-the-two). The span is each person's own and counts
+  **from their own last message**: Petya sets ten minutes, Kolya an hour — Petya
+  stays silent for ten minutes and the conversation ends **for Petya**. The other
+  side's value and remainder are never handed out.
+- The counter lights in the **last quarter of your own span**: a fraction, not
+  fixed minutes. That is 2:30 on a ten-minute conversation and a quarter of an hour
+  on an hour-long one. The old `min(20 min, ttl / 3)` is retired along with the
+  pick at consent.
+- The server sends nothing: the client knows `last_own_message_at` and its own
   `idle_ttl_minutes` and counts by itself.
 - The only thing the server learns about the conversation is **when** there was
   movement. Not the text, not the author, not the count.
+- **The conversation key goes out for both at the FIRST death** (§8.13), together
+  with the board. The other person's history still reads: it sits under the vault
+  key, not the conversation key, and lives until their own span. Neither side can
+  write into such a conversation, and one line says so.
 - **One chat per pair** while it lives: a unique `pair_key`. After the chat dies
   the `pair_key` is free again and the pair can match anew — but on the ordinary
   rules.
@@ -870,8 +897,9 @@ flowchart TD
   f2 --> f3["chat_starters do NOT break:<br/>the text is copied, not referenced"]
   match["a match"] --> m1["least#40;#41; of both phrases"]
   m1 --> m2["expired — gone, there was no chat"]
-  chat["a chat"] --> c1["last_activity_at + idle_ttl_minutes"]
-  c1 --> c2["the node strikes out chats;<br/>chat_participants, chat_starters,<br/>chat_key_wraps cascade"]
+  chat["a conversation"] --> c1["ONE PER PERSON:<br/>last_own_message_at + their idle_ttl"]
+  c1 --> c2["first to expire → gone_at for them,<br/>key and board go out for both"]
+  c2 --> c3["both expired → the node strikes out chats;<br/>chat_participants, chat_starters,<br/>chat_key_wraps cascade"]
 ```
 
 **The client cleans the local history, and always on its own initiative:**
@@ -924,7 +952,7 @@ flowchart TD
   L1d --> L2["Match"]
   L2 --> L2d["+ the other's phrase and mode,<br/>NAME, AGE, a timer"]
   L2d --> L3["Chat"]
-  L3 --> L3d["+ chat_starters, idle_ttl_minutes,<br/>last_activity_at"]
+  L3 --> L3d["+ chat_starters, YOUR OWN idle_ttl_minutes,<br/>last_own_message_at, last_activity_at"]
   L3d --> never["NEVER: another person's identity_id,<br/>private keys, authorship in the feed,<br/>who liked, how many chats, message text"]
 ```
 

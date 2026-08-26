@@ -80,3 +80,34 @@ checked separately        | chat_EN.md chat-flows_EN.md | the first publication 
 # классов.
 без единого зашитого правила | chat-flows_RU.md | игра описывается примитивами, 26.08.2026
 with no rules built in at all | chat-flows_EN.md | a game is described by primitives, 2026-08-26
+
+# --- срок беседы: выбор и чей он ------------------------------------------------
+# До 26.08.2026 срок выбирали на экране согласия и брали min() из двух — один
+# осторожный закрывал разговор обоим. Теперь срок свой у каждого, живёт в
+# chat_participants и меняется в самой беседе. Правка 26.08 успела дойти только до
+# комментария у колонки match_participants, а §5 и §8.6 два дня описывали
+# отменённое; поймано проходом по потокам.
+меньшее из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md | срок свой у каждого, 26.08.2026
+меньший из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md | срок свой у каждого, 26.08.2026
+В открытом чате не меняется | chat_RU.md chat-flows_RU.md | ручка в шапке беседы, меняется когда угодно, 26.08.2026
+выбор idle_ttl            | chat_RU.md chat-flows_RU.md | на согласии срока нет, 26.08.2026
+smaller of the two        | chat_EN.md chat-flows_EN.md depth-client_EN.md | each side has its own span, 2026-08-26
+It cannot be changed inside an open chat | chat_EN.md chat-flows_EN.md | the handle sits in the header, 2026-08-26
+the idle_ttl choice       | chat_EN.md chat-flows_EN.md | no span at consent, 2026-08-26
+
+# --- счётчик тишины --------------------------------------------------------------
+# Порог min(20 мин, ttl/3) держался на трёх сроках от 20 минут. С десятиминутным
+# сроком он зажигал счётчик через 3:20 — две трети жизни беседы в отсчёте.
+min(20 мин, idle_ttl_minutes / 3) | chat_RU.md | четверть своего срока, 26.08.2026
+min(20 min, idle_ttl_minutes / 3) | chat_EN.md | a quarter of your own span, 2026-08-26
+
+# --- квота фраз ------------------------------------------------------------------
+# Спека говорила «четыре живых», обе витрины — «пять», в четырёх местах каждая.
+не более 4 живых          | chat_RU.md chat-flows_RU.md | пять живых, 26.08.2026
+at most 4 live            | chat_EN.md chat-flows_EN.md | five live, 2026-08-26
+
+# --- потолок радиуса -------------------------------------------------------------
+# Довод «тот же потолок, который человек мог бы поставить себе сам» ссылался на
+# 10 км, когда ручка витрины уже шла до 25.
+шагами до 10 км           | chat_RU.md chat-flows_RU.md | до 25 км, вслед за ручкой, 26.08.2026
+in steps up to 10 km      | chat_EN.md chat-flows_EN.md | up to 25 km, following the handle, 2026-08-26

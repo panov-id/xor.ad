@@ -206,7 +206,7 @@ stays unencrypted, and the code because until it exists the identity is insured 
 nothing.
 
 **The paper code is here again — edit of 2026-08-26, overriding the move of
-2026-08-18.** It had moved to the opening of the first chat: before that chat
+2026-08-18.** [retired] It had moved to the opening of the first chat: before that chat
 there is nothing worth insuring, and sixteen characters were demanded before the
 person had seen the product. The argument holds for property and fails for
 identity: a screen that fails to convince mends itself — the person returns a day
@@ -650,5 +650,5 @@ such a contract.
   typed at every start, and what guards it against guessing is the node's
   counter rather than the cost of the hash.
 - **The image support window** (8.2): how many versions back the node must accept.
-- **Re-asking for age** (§8.2 re-asks every few months) — what that looks like in
-  a terminal is undecided.
+- **Re-asking for age** (§8.2 re-asks **once a year**: "are you still 38?", one
+  line that closes on a tap) — what that looks like in a terminal is undecided.

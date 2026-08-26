@@ -38,10 +38,14 @@ flowchart TD
 - Every client starts as a **separate** identity. Web on a phone, web on a laptop
   and `depth` in a container are three different neighbours until somebody moves
   the identity there themselves.
-- **The paper code was moved off this screen to the opening of the first chat**
-  (2026-08-18): it wrote the insurance before there was anything to insure. On the
-  first minute there is nothing to lose — no chats, no messages — and a name and an
-  age are retyped in seconds.
+- **The paper code is issued here — decided 2026-08-26, reversing the move of
+  2026-08-18.** The move rested on «on the first minute there is nothing to
+  insure»: no chats, no messages, and a name and an age are retyped in seconds.
+  That holds for property and fails for an identity. The cost is asymmetric: a
+  person the screen did not convince leaves and comes back a day later; a person
+  who loses the device inside a window with no paper never comes back, because
+  there is nothing to present. So the weight is on the explanation, not on the
+  moment (`chat_EN.md` §8.2, §13 step 1).
 - **The PIN stayed here, and the reason is the terminal.** In the web the keys are
   non-extractable `CryptoKey` objects and the vault key is only needed for history
   that does not exist yet. But `depth` writes its key file immediately and encrypts
@@ -224,7 +228,10 @@ flowchart TD
   insert --> queue["moderation queue"]
   queue --> ladder["two steps, both on the node:<br/>1. rules #40;length, links, stop words#41;<br/>2. a local model on the node"]
   ladder --> verdict{"verdict — one threshold,<br/>there is no third outcome"}
-  verdict -- "passed" --> live["visible_at = now#40;#41;<br/>expires_at = visible_at + 4:20"]
+  verdict -- "passed" --> name{"has this identity's name<br/>been accepted by the queue?"}
+  name -- "no" --> hold(["the phrase LIES AND WAITS<br/>until the name is fixed;<br/>a second one cannot be sent"])
+  hold --> name
+  name -- "yes" --> live["visible_at = now#40;#41;<br/>expires_at = visible_at + 4:20"]
   live --> zero["rejected_count = 0"]
   live --> shown(["the phrase is in the feed"])
   verdict -- "rejected" --> del["the row is deleted,<br/>the author gets a reason"]
@@ -239,6 +246,16 @@ flowchart TD
   review. "Publish now, take down later" would make both the storefront policy and
   the Article 28 position a lie.
 - **4:20 counts from `visible_at`**, or the queue eats somebody else's lifetime.
+- **The first publication waits for the name — amended 2026-08-26, reversing the
+  split.** Phrase and name used to be checked apart, and the post went into the
+  feed whatever the verdict on the name. That split closed the wrong hole: the
+  post lived and was liked while the author's name stayed unchecked, and it
+  reached the other person with the very first match. Now a phrase goes out only
+  when **both** are accepted; if the name is rejected the phrase lies and
+  publishes itself as soon as the name is fixed. `expires_at` counts **from
+  publication**, so the wait does not cost it its life, and while it waits no
+  second phrase can be sent — otherwise waiting would build a queue around the
+  cap (`chat_EN.md` §8.2).
 - **A queue failure closes rather than opens.** Fail-open here is exactly the move
   already rejected for links in offers: it will be used, and the night will be
   chosen for it.
@@ -304,7 +321,9 @@ was liked is never disclosed to it.
 flowchart TD
   tap["tap on the logo button"] --> self{"own phrase?"}
   self -- "yes" --> no(["forbidden:<br/>author_identity ≠ liker"])
-  self -- "no" --> rate{"64 likes<br/>in 32 minutes?"}
+  self -- "no" --> alive{"do I have a live<br/>phrase in the feed myself?"}
+  alive -- "no" --> nolike(["liking is unavailable #40;§8.4#41;:<br/>no match could ever come of it"])
+  alive -- "yes" --> rate{"64 likes<br/>in 32 minutes?"}
   rate -- "exceeded" --> no
   rate -- "no" --> ins["INSERT likes ON CONFLICT DO NOTHING<br/>#40;a double tap inflates nothing#41;"]
   ins --> counters["in the same transaction:<br/>like_count + 1, identity_stats"]
@@ -320,6 +339,14 @@ flowchart TD
   m1 --> matched(["state: matched, match_id"])
   m2 --> matched
 ```
+
+- **Only someone who has a live phrase of their own can like — decided
+  2026-08-26.** This is not a new restriction but §8.5 carried to its end: a match
+  counts only while **both** phrases are alive, so a like from a person without one
+  could never have become a match — it was recorded and went silently nowhere. The
+  check runs on the node, because the client is open:
+  `EXISTS (SELECT 1 FROM feed_messages WHERE author_identity = :me AND visible_at
+  IS NOT NULL AND expires_at > now())`.
 
 ---
 
@@ -346,20 +373,18 @@ sequenceDiagram
     N->>N: matches.chat_id = the new one
     N->>A: chat_id + «you both liked this — chat is open»
     N->>B: the same
-    opt this identity's first chat
-      Note over A,B: the paper code screen: copy it down,<br/>confirm by typing two groups
-      Note over A,B: it cannot be skipped — nothing can be<br/>written in the chat until it is confirmed
-    end
+    Note over A,B: both already hold the paper code —<br/>it is issued at registration #40;flow 1#41;
   end
 ```
 
-**The paper code is asked for here, not at registration.** After the opening rather
-than before it: a gate "before the chat" would land on the consent screen, which
-already carries the notice and the span choice, with the match timer running above
-it — a few minutes in the worst case. A first-ever match with three minutes on the
-clock and a request to copy sixteen characters would end in "later" or in a lost
-match. After the opening the timer does not press: a chat lives from its last
-activity.
+**The paper code is no longer on this screen — decided 2026-08-26.** It stood here
+from 2026-08-18, and the argument against a gate "before the chat" still holds: the
+consent screen already carries the notice and the span choice, with the match timer
+running above it, and asking someone to copy sixteen characters with three minutes
+on the clock would end in "later" or in a lost match. The conclusion drawn from it
+is a different one: the code moved not to after the chat opens but **back to
+registration** (flow 1), where no timer presses at all. The first chat asks for
+nothing.
 
 **The match TTL** is `least()` of both phrases' `expires_at`, with no safety floor.
 Either one dies and the match goes out, even if one side has already accepted. A
@@ -611,14 +636,36 @@ thing, arriving later.
 
 ## 15. A game ([§6](chat_EN.md))
 
-Dominoes, draughts, chess — **with no rules built in at all**: the engine only
-draws the board and lets pieces be moved freely.
+**A game is described by primitives, not by its name — decided 2026-08-26.**
+Otherwise every new game is a separate application, and the list already holds
+more than a dozen. The engine draws the field and moves the pieces; it knows not
+one rule.
+
+```mermaid
+flowchart TD
+  prim["seven primitives"] --> f["Field: an N×M grid,<br/>a grid of dots, or a free table"]
+  prim --> ch["Pieces: two sides,<br/>ownership where it is needed"]
+  prim --> st["Stock: empty for draughts,<br/>a pile for dominoes, endless for go"]
+  prim --> hand["Hand: the private part of the stock"]
+  prim --> ops["Operations: take, place,<br/>turn, flip — and that is all"]
+  prim --> rnd["Randomness: shuffling and dice"]
+  prim --> phys["Physics: a flick with momentum"]
+  prim --> txt["Text input: the word to guess"]
+  f --> add(["adding a game = describing a field<br/>and a set, not writing code"])
+```
+
+The classes are built from these primitives: a grid board (draughts, chess,
+corners) and a free table (dominoes) need nothing beyond the four operations; a
+grid of dots adds drawing along edges; a deck and a hand add shuffling, a private
+hand and a discard pile; backgammon adds a throw; flick-checkers add a
+deterministic simulation; hangman adds a word.
 
 ```mermaid
 sequenceDiagram
   participant A as first
+  participant N as node
   participant B as second
-  A->>A: 🎲 «suggest a game» → pick a board
+  A->>A: 🎲 «suggest a game» → pick a class and a set
   A->>B: request
   alt declined
     Note over A,B: nothing opens
@@ -626,12 +673,74 @@ sequenceDiagram
     Note over A,B: the board opens for both
     A->>B: a move #40;transit state, encrypted with the chat key#41;
     Note over A,B: last_activity_at updates — the chat will not die mid-game
+    opt the set has a deck or dice
+      A->>N: a request to shuffle or throw
+      N->>N: it shuffles itself — and SEES the deal
+      N->>A: A's hand, encrypted to A
+      N->>B: B's hand, encrypted to B
+    end
+    opt the set has a word to guess
+      A->>N: the word goes into the moderation queue #40;flow 6#41;
+      N-->>A: rejected → «think of another one»
+    end
     B->>A: a move
   end
 ```
 
-No move validation, no score, no winner. Both may move pieces. The board lives
-inside the chat and disappears with it; nothing is written to the database.
+- **The node shuffles and throws — and in those games it sees the deal
+  (2026-08-26).** This is the **only exception to §8.13**, and it is said out
+  loud because staying quiet about it is not an option: a board without
+  randomness syncs encrypted and stays opaque to the node, a deck and dice do
+  not. Fair randomness is needed by exactly one side, and if a player's client
+  shuffles, that client technically sees the other's cards and can stack them.
+  Between "the neighbour cheats" and "the node knows which cards were dealt" the
+  second was chosen — and none of these games has a win to take anyway.
+- **A private hand is dealt encrypted to its player**: each sees their own, the
+  others see the backs. The node meanwhile knows both the deal and its contents.
+- **Physics syncs on a shared seed** — without one the two results diverge: one
+  sees the piece in the pocket, the other on the board.
+- **The word to guess goes through the moderation queue like a phrase** (§8.3):
+  another person will see it, and everything published is checked before it shows.
+- **Turn order is an agreement, not a rule (2026-08-26).** The interface carries a
+  "take turns" switch that both sides turn on if it suits them. Building turns
+  into the engine is out — the whole point is the absence of rules; but not
+  showing who is currently dragging a piece is equally out: two people tugging the
+  same piece blind reads as a breakage, not as freedom.
+- No move validation, no score, no winner. Both may move pieces. The board lives
+  inside the chat and disappears with it; nothing is written to the database.
+
+### 15.1. A table: playing as a group ([§6.1](chat_EN.md))
+
+A two-player board lives inside a chat. A group does **not** fit inside one:
+`pair_key` is unique per pair (§8.5) and the chat key is derived for two (§8.13) —
+a third party would mean different cryptography and a key re-issue on every
+departure. So a table is **an entity of its own beside the feed**, not a group
+chat.
+
+```mermaid
+flowchart TD
+  put["a neighbour sets up a table"] --> zone["the table's zone is visible to those<br/>whose viewing circle crosses it<br/>#40;the same rules as a phrase#41;"]
+  zone --> join{"N wants to sit down"}
+  join --> bands{"bands, each with each:<br/>N is in every sitter's band<br/>AND they are all in N's"}
+  bands -- "no" --> deny(["cannot sit"])
+  bands -- "yes" --> blocked{"is someone I blocked<br/>at this table?"}
+  blocked -- "yes" --> hidden(["the table is not shown at all"])
+  blocked -- "no" --> sit["seated: the board arrives AS IT STANDS,<br/>the talk from this moment on"]
+  sit --> talk["talk at a table is PUBLIC<br/>and goes through the moderation queue"]
+  talk --> ttl["a move and a line move<br/>the sliding TTL alike"]
+  ttl --> kick{"remove a sitter?"}
+  kick --> vote(["the majority of sitters decides —<br/>nobody owns a table"])
+```
+
+- **Anyone within the radius may sit down**, without an invitation or a request;
+  there is no hard cap on the group.
+- **A newcomer gets no history** — the same rule as moving an identity (§8.2), and
+  it also settles the question of moderating retroactively.
+- **Talk at a table is checked**, because "a conversation between two is not a
+  publication" does not hold at a table of strangers. The cost is named: a median
+  of 2.8 seconds per line is more noticeable here than in the feed.
+- **A block hides the whole table.** The cost is accepted and named: one person can
+  hide somebody else's game from another simply by sitting down at it.
 
 ---
 
@@ -829,3 +938,40 @@ What somebody intercepting traffic sees: uuids, the feed's phrase texts (public
 anyway) and the **ciphertext** of the conversation. What they do not see: the
 content, who wrote a phrase, who liked it, or whether two phrases belong to one
 person.
+
+---
+
+## 22. Stepping away ([§8.2](chat_EN.md))
+
+A person can leave the place for a span — **20 minutes, an hour, or until
+morning**. This is not an interface pause but a state of the account on the node:
+`stepped_away_until` in `identities`. The point is not the absence but giving
+somebody who is stuck a way to actually leave.
+
+```mermaid
+flowchart TD
+  away["«step away»: 20 min / an hour / until morning"] --> del["phrases are DELETED #40;DELETE, not hidden#41;<br/>along with their likes — quota slots free at once"]
+  away --> match["matches go out as if the phrase expired;<br/>the other side sees the offer vanish<br/>with NO reason given"]
+  away --> sock["this session's sockets are closed<br/>the same way as on a freeze #40;§7#41;"]
+  away --> chats["chats are NOT frozen:<br/>last_activity_at does not move, the TTL runs"]
+  chats --> price(["only conversations with a long span<br/>survive an «until morning»"])
+  sock --> peer["the other side in an open chat sees stepped_away<br/>instead of being able to write"]
+  del --> back{"back, or leaving early?"}
+  back -- "early" --> confirm["a confirmation; the frequency is not capped"]
+  back -- "the span ran out" --> clean(["back to a clean place:<br/>there is nothing to catch up on"])
+```
+
+- **`stepped_away` is the only exception to "we do not report anyone's
+  presence"**, and it is allowed because the person declared the state themselves
+  rather than the system inferring it.
+- **Chats run on**, because each side has its own count and one person leaving
+  must not decide for the other. The cost is stated plainly, not hidden.
+- **The in-app timer never reaches the node.** It lives in the browser: a visible
+  tab plus a touch within the last three minutes. Offering to step away after an
+  hour is the client's decision; the node has no business knowing how long someone
+  sat there, and no such record belongs next to an identity.
+- **The measurement is incomplete (2026-08-26).** `visibilitychange` behaves
+  differently across mobile browsers and there were no devices to check on. On
+  desktop Chromium it was measured: a page in a background tab starts with
+  `visibilityState=hidden` and `hasFocus=false`. The `visible ↔ hidden`
+  transitions could not be captured — marked as unverified.

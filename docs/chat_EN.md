@@ -209,7 +209,7 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
 - **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
 - **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name the queue rejected: that one is always editable.** Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
-- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling.
+- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". [retired] Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling.
 
 **A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
@@ -1635,8 +1635,8 @@ name **on every change**.
 ```
 step 1  name accepted, seen by nobody     nothing to check and no reason to
 step 2  first post → the queue exists     the name rides into it with the phrase
-        name rejected → the post lives,   checked separately; the author is
-        the author is asked to fix it     offered to go and update the name
+        name rejected → the phrase WAITS  only both together reach the feed;
+        the author is asked to fix it     fix the name and it publishes itself
 step 4  first match                       the name is first seen by another
 ```
 
@@ -1674,7 +1674,9 @@ web catches up in a single step at the end.
 
 ## 14. Acceptance criteria
 
-What "the chat is done" means, checkable rather than eyeballed:
+What "the chat is done" means, checkable rather than eyeballed. Broken down by flow
+and turned into queries, these criteria live in [`test-map_EN.md`](test-map_EN.md);
+here are the ones without which the chat is not done at all:
 
 - Two clients hold a conversation and in at least one pair one of them is
   `depth`: that tests that the face does not affect the protocol.

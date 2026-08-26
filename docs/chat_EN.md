@@ -61,7 +61,44 @@ Liking again when a chat with that person is already open creates **no new match
 
 ## 6. Rules-free shared games
 
-Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. The twist: **no hard-coded rules** — the engine only draws the board and lets players move/place pieces freely; players invent and enforce the rules themselves. It is an ice-breaker, not a competition.
+Inside a chat — a shared visual board for two. The twist: **no hard-coded rules** — the engine only draws the field and lets players move pieces freely; players invent and enforce the rules themselves. It is an ice-breaker, not a competition.
+
+**A game is described by primitives, not by its name (2026-08-26).** Otherwise every new game is a separate application, and the list already runs past a dozen. There are seven primitives:
+
+| Primitive | What it is |
+|---|---|
+| **Field** | a grid N×M, a grid of points, or a free table with no cells |
+| **Pieces** | a set with two sides and, where needed, ownership |
+| **Stock** | what is not yet placed: empty in draughts, the whole pile in dominoes, infinite in go |
+| **Hand** | the private part of the stock, visible only to its owner |
+| **Operations** | take, place, rotate, flip — and nothing else |
+| **Randomness** | shuffling a deck and rolling dice |
+| **Physics** | a flick with momentum and rebounds — only where a game cannot exist without it |
+| **Text input** | a word somebody guesses that another will see |
+
+Adding a game means describing a field and a set of pieces, not writing code.
+
+**The classes and what falls into them:**
+
+| Class | Games | Needed beyond the four operations |
+|---|---|---|
+| Grid board | draughts, chess, giveaway, corners, big-board noughts and crosses | nothing |
+| Free table | dominoes | nothing |
+| Grid of points | dots | drawing along edges |
+| Deck and hand | durak, poker, uno | shuffling, a private hand, a discard pile |
+| Dice | backgammon | a roll |
+| Physics | flick-draughts | deterministic simulation |
+| Text | hangman | entering a word and checking it |
+
+**The node shuffles and rolls — and in those games it sees the layout (2026-08-26).** The decision is deliberate and stated out loud because it is the one exception to §8.13: a board without randomness is synchronised encrypted and opaque to the node, while a deck and dice are not. The reason is plain: fair randomness has to belong to somebody, and if a player's client shuffles, it technically sees the others' cards and can stack the deck. Between "a neighbour cheats" and "the node knows what was dealt", the second was chosen — all the more easily because these games have no winner anyway.
+
+**A private hand is dealt encrypted to its player**: each sees their own, the others see backs. The node, as above, knows both the deal and its contents.
+
+**Physics is synchronised by a shared seed.** A flick is not "place a piece in a cell" but a simulation, and without a shared seed the result diverges: one player's piece is in the pocket, the other's is still on the board.
+
+**A guessed word goes through the moderation queue**, like a phrase (§8.3): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one".
+
+**Three shared buttons sit above any class:** play again, suggest another game, pass or hand over the turn. They belong to no particular board and live in the common frame.
 
 - Start/switch is **request-based**: the 🎲 "propose a game" button → pick a board → the other person gets a request → they accept → the board opens for both. Switching games is the same request.
 - No move validation, no score, no winner — only board state + dragging.
@@ -1213,6 +1250,8 @@ error      — not delivered (offline, drop, timeout) → a "send again" button
 The refusal counter and the moderation ladder moved to §8.3: they belong to the feed, and the chat no longer has anything to feed them with.
 
 **The game board** (`game_sessions` from §6) is synced as transient chat state, encrypted with the same key, and disappears with the chat; nothing is written to the database.
+
+**The exception is named: games with randomness (2026-08-26).** In cards, uno and backgammon the node shuffles and rolls, which means it sees the deck, the hands and the dice — encrypting from it what it deals out itself is impossible. The promise that the node does not read holds for messages and for boards without randomness; for those three classes it does not, and staying quiet about that is not an option. A private hand is still wrapped for its player: the others at the table see backs, the node sees contents.
 
 ### 8.9. Blocks
 

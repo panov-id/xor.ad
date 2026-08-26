@@ -129,7 +129,7 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 
 ### 8.2. Identity and sessions
 
-An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for not at registration but when the first chat opens (below).
+An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for **at registration** (below: restored there on 2026-08-26).
 
 This used to read "a secret, and the server stores the secret's hash" — a leftover from an earlier design, incompatible with the rest of §8: a public key has no hash, and a shared secret would mean the node can sign as the person. Corrected 2026-08-12, before it reached any code.
 
@@ -143,7 +143,7 @@ CREATE TABLE identities (
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
-                                        -- both NULL until the first chat opens — the code is issued there (§8.2)
+                                        -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
@@ -154,12 +154,14 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
   WHERE recovery_auth_hash IS NOT NULL AND closed_at IS NULL;
 ```
 
-**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns became nullable: the code is issued when the first chat opens, and `NOT NULL` made it impossible to create an identity at all. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
+**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns were made nullable back when the code was issued at the first chat: `NOT NULL` made it impossible to create an identity at all. Since 2026-08-26 the code is issued at registration again and they are filled straight away — the nullability is left as it is rather than rewriting the schema for a column that is always populated anyway. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
 - **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
 - **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name the queue rejected: that one is always editable.** Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
-- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. A rejected name **does not cancel the post** — they are checked separately; the author is offered to go and update the name. **A consequence derived from §8.11:** the name becomes visible to another person only from the first match, so while the name stands rejected no match opens — otherwise a rejected name would reach the peer's screen before its owner fixed it.
+- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling.
+
+**A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
@@ -448,15 +450,15 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 
 **Shown exactly once, and mandatory.** With a single live session, losing the device is the end of the identity, and the piece of paper is the only way out; it cannot be made optional.
 
-**But not at registration — moved 2026-08-18.** It stood at the entrance and wrote the insurance before there was anything to insure: on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The only thing lost with the identity was the nameless counters in `identity_stats`. For that we asked somebody to copy sixteen characters and type them back — the one act in the physical world anywhere in the entry flow, and it stood **before** they had even seen the product.
+**It is asked for at registration — restored 2026-08-26, overriding the move of 2026-08-18.** August's argument ran like this: the insurance was written before there was anything to insure; on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The argument is sound — but it is about property, not about identity, and the cost of being wrong is not symmetric in the two directions.
 
-**It is now asked for the moment the first chat opens.** Both pressed "open", the room exists — and before the first message the person goes through the same screen: the code, copied down, confirmed by typing two groups of four. From that second they hold something that exists nowhere else, and the insurance arrives with it.
+**What outweighed it.** Someone the explanation failed to convince, who walked away, lost nothing: they come back a day later and carry on where they left off. Someone who lost their device inside the uninsured window comes back **never** — not in a day, not in a year, because they have nothing to present. The first mends itself, the second mends by nothing at all, and keeping open a window with no way out to save one screen at the entrance is not worth it.
 
-**Why after the opening rather than before it.** A gate "before the first chat" lands on the consent screen, which already carries the notice and the span choice, with the match timer running above it — `least()` of both phrases, and in the worst case a few minutes. A first-ever match with three minutes on the clock and a request to copy sixteen characters would end either in "later" or in a lost match. After the opening the timer no longer presses: a chat lives from its last activity.
+**So the whole weight moves onto the explanation.** The screen must answer "what for", not "what is this": there is no email and no password, we cannot look the code up — we do not hold it; lose the device or clear the data, and there is nothing to bring you back with. The word "paper" stands in the first line deliberately: a screenshot lives on the very device that gets lost.
 
-**The screen cannot be skipped.** It is the same "exactly once, and mandatory", only in a different place: until the code is confirmed, nothing can be written in the chat. Otherwise moving it would amount to abolishing it.
+**Shown once as before, confirmation mandatory.** The code is shown a single time and does not let anyone past until two of the four groups are typed back: "next" gets pressed unread, and recovery cannot ask afterwards. A screen that can be skipped is the absence of a code, not its presence.
 
-**The uninsured window is named plainly.** Between registration and the first chat a person lives without the paper, and losing the device then means losing the identity — along with the accumulated counters and the published phrases. We accept that because the price is measurable and small, but it must not go unsaid: one line on the registration screen, not a footnote.
+**There is no uninsured window any more.** The earlier text named it plainly and asked for a line on the registration screen; there is nothing left to name — the code is there from the first minute.
 
 **The PIN stays at registration, and the reason is the terminal.** In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history, which does not exist on the first minute. But `depth` writes its key file immediately, and that file is encrypted with the same vault key (below). Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
 
@@ -536,9 +538,8 @@ age changed   → "they changed their age: 39"
 
 Disclaimers (both required in the UI):
 
-> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down when your first chat opened. The conversations do not come back: they exist nowhere else, including with us.
+> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
 
-> Before your first chat you have no paper code yet, and there would be nothing to bring the identity back with: lose the device and you start a new one. There is nothing to lose at that point beyond a name and some counters.
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
 
@@ -1536,13 +1537,13 @@ order would produce an API the terminal would have to be bent to fit.
 
 1. **Identity and session** (§8.2) — `identities`, `sessions`, `vault_shares`,
    request signing, the code transfer with confirmation. Registration: **name and
-   age, then the PIN and the exchange with the node for a share**. Two steps,
-   both mandatory — without the share the local database sits unencrypted.
-   **There is no paper code here**: it moved to the opening of the first chat
-   (§8.2, decided 2026-08-18), and this item used to carry the retired order
-   together with its reasoning — and the build order is what people write code
-   from, so that is what would have been built. The window without insurance is
-   named plainly there. Everything else rests on "who is this".
+   age, then the PIN and the exchange with the node for a share, then the paper
+   code**. Three steps, all mandatory — without the share the local database sits
+   unencrypted, and without the code a lost device means a lost identity. **The
+   code came back here on 2026-08-26** (§8.2): the move to the first chat is
+   overridden, because a window without insurance has no way out, while a screen
+   that fails to convince mends itself — the person returns a day later.
+   Everything else rests on "who is this".
 **There is no unchecked-name window — decided 2026-08-20.** A gap used to stand
 here: a name goes through the same moderation queue as a phrase, the queue only
 arrives at step 2, and so between steps 1 and 2 a name was accepted unchecked.

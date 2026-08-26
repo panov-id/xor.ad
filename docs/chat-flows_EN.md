@@ -26,9 +26,8 @@ flowchart TD
   keys --> form["name and age"]
   form --> pin["PIN: six digits, twice"]
   pin --> share["the node creates a vault share<br/>key = HKDF#40;local ‖ share#41;"]
-  share --> warn["one line: there is no insurance yet,<br/>losing the device loses the identity"]
-  warn --> feed(["the feed"])
-  feed -.-> later["the paper code is not here but<br/>when the first chat opens #40;§9#41;"]
+  share --> code["the paper code: shown once,<br/>confirmed by typing two groups"]
+  code --> feed(["the feed"])
   feed -.-> namecheck["the name goes into the queue<br/>with the first phrase #40;flow 6#41;;<br/>rejected → no match opens"]
 ```
 

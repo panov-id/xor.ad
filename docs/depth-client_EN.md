@@ -444,7 +444,7 @@ them.
 
 ```
   ────────────────────────────────────────────────────────
-   Anya, 34                      chat fades after 1h of silence
+   Anya, 34                 fades after 1h of YOUR silence
   ────────────────────────────────────────────────────────
 
    Anya  hi! I'm usually at the second entrance at 7   14:22
@@ -463,8 +463,17 @@ them.
   2048 bytes — because what it sees is ciphertext, not characters (edit of
   2026-08-25).
 - `✓` is `delivered`; `error` produces a retry line instead of vanishing quietly.
-- The silence counter appears by the `min(20 min, ttl/3)` rule and is reset by any
-  delivered message.
+- **The span is each person's own and changes right here** (§5, §8.6, settled
+  2026-08-26): 10 minutes, 30 minutes, an hour, "while we're talking". The header
+  shows **your own** remainder; the other side's span is neither shown nor sent.
+  It counts from **your** last message — theirs does not reset it, because reading
+  is not talking.
+- The silence counter appears in the **last quarter of your own span** and is reset
+  by any **of your own** delivered messages. The old `min(20 min, ttl/3)` rule is
+  retired along with the pick at consent.
+- **The conversation ended for the peer** — a line replaces the input: neither of
+  you can write, the key is out for both (§8.13). Your own history stays — exactly
+  until your own span.
 - **No history on disk.** The process exits and the conversation is gone. The
   scrollback is held in the live process's memory and nowhere else.
 

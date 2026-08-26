@@ -54,3 +54,29 @@ they now call themselves  | chat_EN.md chat-flows_EN.md depth-client_EN.md | the
 # спеки уже требовал байты — противоречие прожило до 25.08.2026.
 решает узел               | chat_RU.md chat-flows_RU.md depth-client_RU.md | предел по `max_ciphertext_bytes`, 25.08.2026
 the node decides          | chat_EN.md chat-flows_EN.md depth-client_EN.md | the limit is `max_ciphertext_bytes`, 2026-08-25
+
+# --- бумажный код: где он выдаётся -----------------------------------------------
+# Код стоял на регистрации, ушёл 18.08.2026 на открытие первого чата и вернулся
+# 26.08.2026. Перенос пережил сам себя в chat-flows: схема потока 1 уже рисовала
+# код на регистрации, а буллет под ней объявлял перенос действующим, и обе версии
+# ошибались одинаково — парность их не ловит, потому что переводы сходились.
+перенесён с этого экрана  | chat_RU.md chat-flows_RU.md depth-client_RU.md | код выдаётся на регистрации, 26.08.2026
+на открытие первого чата  | chat_RU.md chat-flows_RU.md depth-client_RU.md | код выдаётся на регистрации, 26.08.2026
+Бумажный код спрашивается здесь | chat-flows_RU.md | код выдаётся на регистрации, 26.08.2026
+was moved off this screen | chat_EN.md chat-flows_EN.md depth-client_EN.md | the code is issued at registration, 2026-08-26
+to the opening of the first chat | chat_EN.md chat-flows_EN.md depth-client_EN.md | the code is issued at registration, 2026-08-26
+The paper code is asked for here | chat-flows_EN.md | the code is issued at registration, 2026-08-26
+
+# --- имя и первая публикация -----------------------------------------------------
+# «Проверяются раздельно» выпускало пост в ленту при непроверенном имени; имя
+# доезжало до собеседника с первым мэтчем. Отменено 26.08.2026: фраза выходит,
+# только когда приняты оба.
+проверяются раздельно     | chat_RU.md chat-flows_RU.md | первая публикация ждёт имени, 26.08.2026
+checked separately        | chat_EN.md chat-flows_EN.md | the first publication waits for the name, 2026-08-26
+
+# --- игры: чем они описываются ---------------------------------------------------
+# Пока игра называлась именем, каждая новая была отдельным приложением. С
+# 26.08.2026 игра описывается семью примитивами, а имена остались только ярлыками
+# классов.
+без единого зашитого правила | chat-flows_RU.md | игра описывается примитивами, 26.08.2026
+with no rules built in at all | chat-flows_EN.md | a game is described by primitives, 2026-08-26

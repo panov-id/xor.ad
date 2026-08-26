@@ -61,11 +61,61 @@ Liking again when a chat with that person is already open creates **no new match
 
 ## 6. Rules-free shared games
 
-Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. The twist: **no hard-coded rules** — the engine only draws the board and lets players move/place pieces freely; players invent and enforce the rules themselves. It is an ice-breaker, not a competition.
+Inside a chat — a shared visual board for two. The twist: **no hard-coded rules** — the engine only draws the field and lets players move pieces freely; players invent and enforce the rules themselves. It is an ice-breaker, not a competition.
+
+**A game is described by primitives, not by its name (2026-08-26).** Otherwise every new game is a separate application, and the list already runs past a dozen. There are seven primitives:
+
+| Primitive | What it is |
+|---|---|
+| **Field** | a grid N×M, a grid of points, or a free table with no cells |
+| **Pieces** | a set with two sides and, where needed, ownership |
+| **Stock** | what is not yet placed: empty in draughts, the whole pile in dominoes, infinite in go |
+| **Hand** | the private part of the stock, visible only to its owner |
+| **Operations** | take, place, rotate, flip — and nothing else |
+| **Randomness** | shuffling a deck and rolling dice |
+| **Physics** | a flick with momentum and rebounds — only where a game cannot exist without it |
+| **Text input** | a word somebody guesses that another will see |
+
+Adding a game means describing a field and a set of pieces, not writing code.
+
+**The classes and what falls into them:**
+
+| Class | Games | Needed beyond the four operations |
+|---|---|---|
+| Grid board | draughts, chess, giveaway, corners, big-board noughts and crosses | nothing |
+| Free table | dominoes | nothing |
+| Grid of points | dots | drawing along edges |
+| Deck and hand | durak, poker, uno | shuffling, a private hand, a discard pile |
+| Dice | backgammon | a roll |
+| Physics | flick-draughts | deterministic simulation |
+| Text | hangman | entering a word and checking it |
+
+**The node shuffles and rolls — and in those games it sees the layout (2026-08-26).** The decision is deliberate and stated out loud because it is the one exception to §8.13: a board without randomness is synchronised encrypted and opaque to the node, while a deck and dice are not. The reason is plain: fair randomness has to belong to somebody, and if a player's client shuffles, it technically sees the others' cards and can stack the deck. Between "a neighbour cheats" and "the node knows what was dealt", the second was chosen — all the more easily because these games have no winner anyway.
+
+**A private hand is dealt encrypted to its player**: each sees their own, the others see backs. The node, as above, knows both the deal and its contents.
+
+**Physics is synchronised by a shared seed.** A flick is not "place a piece in a cell" but a simulation, and without a shared seed the result diverges: one player's piece is in the pocket, the other's is still on the board.
+
+**A guessed word goes through the moderation queue**, like a phrase (§8.3): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one".
+
+**Three shared buttons sit above any class:** play again, suggest another game, pass or hand over the turn. They belong to no particular board and live in the common frame.
 
 - Start/switch is **request-based**: the 🎲 "propose a game" button → pick a board → the other person gets a request → they accept → the board opens for both. Switching games is the same request.
 - No move validation, no score, no winner — only board state + dragging.
-- Both players can move pieces (there are no rules).
+- Both players can move pieces (there are no rules). **Turn-taking is an agreement, not a rule (2026-08-26):** the interface carries a "take turns" toggle that both switch on if it suits them. Wiring turns into the engine is not allowed — the whole point is the absence of rules; but neither is hiding who is dragging a piece right now: two people tugging at one piece blindly reads as a fault rather than as freedom.
+
+### 6.1. Tables: playing as a group (2026-08-26)
+
+The board for two lives inside a chat. A group game **does not fit** inside one: `pair_key` is unique per pair (§8.5) and the chat key is derived for two (§8.13) — a third participant would mean different cryptography and a key reissue on every departure. So a table is **a thing of its own beside the feed**, not a group chat, and private talk between two stays as it was.
+
+- **Visible in the feed** to those whose viewing circle overlaps the table's zone — by the same rules as a phrase (§8.3).
+- **Anyone within the radius may join**, with no invitation and no application; there is no hard cap on numbers.
+- **It lives from its last move**, like a chat: a sliding TTL, with a move and a reply pushing it alike.
+- **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
+- **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
+- **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
+- **The majority of those sitting can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
+- **A block hides the table entirely.** If someone blocked is sitting there, the table is not shown at all. The cost is accepted and named: one person can hide someone else's game from another simply by joining it.
 - The board lives within the chat and **disappears with it** (ephemerality).
 - Sync in real time (see §7).
 
@@ -129,7 +179,7 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 
 ### 8.2. Identity and sessions
 
-An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for not at registration but when the first chat opens (below).
+An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for **at registration** (below: restored there on 2026-08-26).
 
 This used to read "a secret, and the server stores the secret's hash" — a leftover from an earlier design, incompatible with the rest of §8: a public key has no hash, and a shared secret would mean the node can sign as the person. Corrected 2026-08-12, before it reached any code.
 
@@ -143,7 +193,7 @@ CREATE TABLE identities (
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
-                                        -- both NULL until the first chat opens — the code is issued there (§8.2)
+                                        -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
@@ -154,15 +204,32 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
   WHERE recovery_auth_hash IS NOT NULL AND closed_at IS NULL;
 ```
 
-**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns became nullable: the code is issued when the first chat opens, and `NOT NULL` made it impossible to create an identity at all. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
+**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns were made nullable back when the code was issued at the first chat: `NOT NULL` made it impossible to create an identity at all. Since 2026-08-26 the code is issued at registration again and they are filled straight away — the nullability is left as it is rather than rewriting the schema for a column that is always populated anyway. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
 - **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
 - **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name the queue rejected: that one is always editable.** Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
-- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. A rejected name **does not cancel the post** — they are checked separately; the author is offered to go and update the name. **A consequence derived from §8.11:** the name becomes visible to another person only from the first match, so while the name stands rejected no match opens — otherwise a rejected name would reach the peer's screen before its owner fixed it.
+- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". [retired] Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling.
+
+**A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
+
+#### The "stepped away" state (2026-08-26)
+
+A person may leave the place for a span — **20 minutes, an hour, or until morning** — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. The point is not an errand but giving someone caught in the pull a real way out.
+
+- **Phrases are deleted** (`DELETE`, not hidden) along with their likes: quota slots free immediately, and whoever returns has nothing to catch up on.
+- **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
+- **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a departure "until morning" is survived only by conversations with a long span.
+- **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
+- **A peer in an open chat sees `stepped_away`** instead of the ability to write. This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **Leaving early** takes a confirmation; the frequency of departures is not limited.
+
+**The time-in-app counter never reaches the node.** It lives in the browser and counts like this: a visible tab plus a touch within the last three minutes. The offer to step away after an hour is the client's decision; the node has no business knowing how long somebody sat there, and no such record belongs beside an identity.
+
+> **The measurement is incomplete (2026-08-26).** `visibilitychange` behaves differently across mobile browsers and there were no devices to check with. Captured in desktop Chromium: a page in a background tab starts at `visibilityState=hidden` with `hasFocus=false` and receives no events until activation — hence the rule that loading a page does not start the count. The `visible ↔ hidden` transitions could not be captured: there was no way to activate the window. Marked as unverified.
 
 **A name goes through the same check as a phrase.** It is published text: the
 other person sees it on the match card and in an open chat, so anything forbidden
@@ -448,15 +515,15 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 
 **Shown exactly once, and mandatory.** With a single live session, losing the device is the end of the identity, and the piece of paper is the only way out; it cannot be made optional.
 
-**But not at registration — moved 2026-08-18.** It stood at the entrance and wrote the insurance before there was anything to insure: on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The only thing lost with the identity was the nameless counters in `identity_stats`. For that we asked somebody to copy sixteen characters and type them back — the one act in the physical world anywhere in the entry flow, and it stood **before** they had even seen the product.
+**It is asked for at registration — restored 2026-08-26, overriding the move of 2026-08-18.** August's argument ran like this: the insurance was written before there was anything to insure; on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The argument is sound — but it is about property, not about identity, and the cost of being wrong is not symmetric in the two directions.
 
-**It is now asked for the moment the first chat opens.** Both pressed "open", the room exists — and before the first message the person goes through the same screen: the code, copied down, confirmed by typing two groups of four. From that second they hold something that exists nowhere else, and the insurance arrives with it.
+**What outweighed it.** Someone the explanation failed to convince, who walked away, lost nothing: they come back a day later and carry on where they left off. Someone who lost their device inside the uninsured window comes back **never** — not in a day, not in a year, because they have nothing to present. The first mends itself, the second mends by nothing at all, and keeping open a window with no way out to save one screen at the entrance is not worth it.
 
-**Why after the opening rather than before it.** A gate "before the first chat" lands on the consent screen, which already carries the notice and the span choice, with the match timer running above it — `least()` of both phrases, and in the worst case a few minutes. A first-ever match with three minutes on the clock and a request to copy sixteen characters would end either in "later" or in a lost match. After the opening the timer no longer presses: a chat lives from its last activity.
+**So the whole weight moves onto the explanation.** The screen must answer "what for", not "what is this": there is no email and no password, we cannot look the code up — we do not hold it; lose the device or clear the data, and there is nothing to bring you back with. The word "paper" stands in the first line deliberately: a screenshot lives on the very device that gets lost.
 
-**The screen cannot be skipped.** It is the same "exactly once, and mandatory", only in a different place: until the code is confirmed, nothing can be written in the chat. Otherwise moving it would amount to abolishing it.
+**Shown once as before, confirmation mandatory.** The code is shown a single time and does not let anyone past until two of the four groups are typed back: "next" gets pressed unread, and recovery cannot ask afterwards. A screen that can be skipped is the absence of a code, not its presence.
 
-**The uninsured window is named plainly.** Between registration and the first chat a person lives without the paper, and losing the device then means losing the identity — along with the accumulated counters and the published phrases. We accept that because the price is measurable and small, but it must not go unsaid: one line on the registration screen, not a footnote.
+**There is no uninsured window any more.** The earlier text named it plainly and asked for a line on the registration screen; there is nothing left to name — the code is there from the first minute.
 
 **The PIN stays at registration, and the reason is the terminal.** In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history, which does not exist on the first minute. But `depth` writes its key file immediately, and that file is encrypted with the same vault key (below). Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
 
@@ -536,9 +603,8 @@ age changed   → "they changed their age: 39"
 
 Disclaimers (both required in the UI):
 
-> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down when your first chat opened. The conversations do not come back: they exist nowhere else, including with us.
+> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
 
-> Before your first chat you have no paper code yet, and there would be nothing to bring the identity back with: lose the device and you start a new one. There is nothing to lose at that point beyond a name and some counters.
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
 
@@ -564,6 +630,10 @@ AND me.age BETWEEN band_low(other.age) AND band_high(other.age)
 Asymmetry is unacceptable here: one side would like a phrase the other cannot see in their feed, and a match would be impossible in principle — the like would go nowhere.
 
 On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, wider is not.
+
+**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old may narrow the filter to 21–22 and see adults only: formally they are inside their own band, and symmetry holds — `band(22) = [20, ∞)` contains them. This is allowed deliberately; forbidding it would mean a second ceiling on top of the formula and would diverge from §8.5. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
+
+**What a person sees is in the storefront screens:** the handle does not pass the band, an adult's right end is labelled "no limit", and a band shifted by a birthday is announced in one line.
 
 ```sql
 ALTER TABLE identities
@@ -880,6 +950,10 @@ something illegal into a public feed. Thresholds are set per direction; a single
 
 ### 8.4. Likes and counters
 
+**A like is available only to someone with a live phrase in the feed — settled 2026-08-26.** The rule is derived from §8.5 rather than added to it: a match counts only while **both** phrases are alive, so a like from a person without one of their own could never become a match — it was placed and went quietly nowhere, and the one who placed it never learned that. The check runs on the node, because the client is open: `EXISTS (SELECT 1 FROM feed_messages WHERE author_identity = :me AND visible_at IS NOT NULL AND expires_at > now())`.
+
+The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
+
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
 
 ```sql
@@ -969,7 +1043,7 @@ CREATE TABLE match_participants (
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
-  idle_ttl_minutes  integer,            -- chosen chat lifetime
+  idle_ttl_minutes  integer,            -- NOT FILLED since 2026-08-26: chosen inside the chat
   ephemeral_public_key text,            -- this chat's key, wrapped to the other side (8.13)
   PRIMARY KEY (match_id, identity)
 );
@@ -1099,6 +1173,8 @@ CREATE TABLE chat_starters (
 
 2048 is calculated from the worst case rather than chosen: 256 emoji characters are 1024 bytes of UTF-8, 1052 with an AES-GCM nonce and tag, 1404 in base64. That leaves 46% of headroom and a quarter of the `NOTIFY` payload.
 
+**An honest client never reaches that limit — recomputed 2026-08-26.** 1404 bytes against 2048: hitting the refusal takes **378** emoji characters, one and a half counters. So `max_ciphertext_bytes` guards against a forged client rather than bounding a real conversation, and there is no point showing it to a person: the interface keeps one counter, at 256 characters.
+
 The separation is not pedantry. Our client is **open**: the `depth` image can be rebuilt by anyone, and the web script is edited in the debugger in a minute. Any check that lives only on the client is a hint to its author, not a rule of the system. Treating it as a defence would be self-deception, so the limit is enforced where it cannot be rewritten.
 
 The limit is not cosmetic — it holds up the arithmetic in §8.1 and §8.13. 256 characters of UTF-8 come to ~1 KB, the ciphertext with nonce, tag and base64 to about 1.4 KB, and all of it must fit inside the 8 KB `NOTIFY` payload with room to spare. Raising the value is allowed, but not blindly: there is a transport behind it.
@@ -1189,6 +1265,8 @@ error      — not delivered (offline, drop, timeout) → a "send again" button
 The refusal counter and the moderation ladder moved to §8.3: they belong to the feed, and the chat no longer has anything to feed them with.
 
 **The game board** (`game_sessions` from §6) is synced as transient chat state, encrypted with the same key, and disappears with the chat; nothing is written to the database.
+
+**The exception is named: games with randomness (2026-08-26).** In cards, uno and backgammon the node shuffles and rolls, which means it sees the deck, the hands and the dice — encrypting from it what it deals out itself is impossible. The promise that the node does not read holds for messages and for boards without randomness; for those three classes it does not, and staying quiet about that is not an option. A private hand is still wrapped for its player: the others at the table see backs, the node sees contents.
 
 ### 8.9. Blocks
 
@@ -1466,7 +1544,7 @@ the old K       cannot be recovered by anything
 
 ## 9. UI states and breakpoints
 
-- **`≥900px`** — three-column workspace: **[Feed] | [Open chats] | [Active chat]** (feed `flex:1`, chats `300px`, active chat `400px`). Columns collapse into vertical rails. Before a chat is picked, the active column shows an empty `Pick a chat` state.
+- **`≥900px`** — three-column workspace: **[Feed] | [Offers and conversations] | [Active chat]** (the second column gained two tabs on 2026-08-26: matches waiting for an answer, and open conversations — until then matches were shown nowhere, though the inbox collects them first, §8.12) (feed `flex:1`, chats `300px`, active chat `400px`). Columns collapse into vertical rails. Before a chat is picked, the active column shows an empty `Pick a chat` state.
 - **`≤899px`** — single column, bottom navigation (`Feed` / `Chats` / `Say` / `Me`); the conversation is a full-screen overlay (`position:fixed`), "back" → list.
 - **`≤560px`** — compact header.
 
@@ -1536,13 +1614,13 @@ order would produce an API the terminal would have to be bent to fit.
 
 1. **Identity and session** (§8.2) — `identities`, `sessions`, `vault_shares`,
    request signing, the code transfer with confirmation. Registration: **name and
-   age, then the PIN and the exchange with the node for a share**. Two steps,
-   both mandatory — without the share the local database sits unencrypted.
-   **There is no paper code here**: it moved to the opening of the first chat
-   (§8.2, decided 2026-08-18), and this item used to carry the retired order
-   together with its reasoning — and the build order is what people write code
-   from, so that is what would have been built. The window without insurance is
-   named plainly there. Everything else rests on "who is this".
+   age, then the PIN and the exchange with the node for a share, then the paper
+   code**. Three steps, all mandatory — without the share the local database sits
+   unencrypted, and without the code a lost device means a lost identity. **The
+   code came back here on 2026-08-26** (§8.2): the move to the first chat is
+   overridden, because a window without insurance has no way out, while a screen
+   that fails to convince mends itself — the person returns a day later.
+   Everything else rests on "who is this".
 **There is no unchecked-name window — decided 2026-08-20.** A gap used to stand
 here: a name goes through the same moderation queue as a phrase, the queue only
 arrives at step 2, and so between steps 1 and 2 a name was accepted unchecked.
@@ -1557,8 +1635,8 @@ name **on every change**.
 ```
 step 1  name accepted, seen by nobody     nothing to check and no reason to
 step 2  first post → the queue exists     the name rides into it with the phrase
-        name rejected → the post lives,   checked separately; the author is
-        the author is asked to fix it     offered to go and update the name
+        name rejected → the phrase WAITS  only both together reach the feed;
+        the author is asked to fix it     fix the name and it publishes itself
 step 4  first match                       the name is first seen by another
 ```
 
@@ -1596,7 +1674,9 @@ web catches up in a single step at the end.
 
 ## 14. Acceptance criteria
 
-What "the chat is done" means, checkable rather than eyeballed:
+What "the chat is done" means, checkable rather than eyeballed. Broken down by flow
+and turned into queries, these criteria live in [`test-map_EN.md`](test-map_EN.md);
+here are the ones without which the chat is not done at all:
 
 - Two clients hold a conversation and in at least one pair one of them is
   `depth`: that tests that the face does not affect the protocol.

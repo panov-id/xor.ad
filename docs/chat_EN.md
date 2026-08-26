@@ -65,7 +65,20 @@ Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. 
 
 - Start/switch is **request-based**: the 🎲 "propose a game" button → pick a board → the other person gets a request → they accept → the board opens for both. Switching games is the same request.
 - No move validation, no score, no winner — only board state + dragging.
-- Both players can move pieces (there are no rules).
+- Both players can move pieces (there are no rules). **Turn-taking is an agreement, not a rule (2026-08-26):** the interface carries a "take turns" toggle that both switch on if it suits them. Wiring turns into the engine is not allowed — the whole point is the absence of rules; but neither is hiding who is dragging a piece right now: two people tugging at one piece blindly reads as a fault rather than as freedom.
+
+### 6.1. Tables: playing as a group (2026-08-26)
+
+The board for two lives inside a chat. A group game **does not fit** inside one: `pair_key` is unique per pair (§8.5) and the chat key is derived for two (§8.13) — a third participant would mean different cryptography and a key reissue on every departure. So a table is **a thing of its own beside the feed**, not a group chat, and private talk between two stays as it was.
+
+- **Visible in the feed** to those whose viewing circle overlaps the table's zone — by the same rules as a phrase (§8.3).
+- **Anyone within the radius may join**, with no invitation and no application; there is no hard cap on numbers.
+- **It lives from its last move**, like a chat: a sliding TTL, with a move and a reply pushing it alike.
+- **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
+- **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
+- **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
+- **The majority of those sitting can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
+- **A block hides the table entirely.** If someone blocked is sitting there, the table is not shown at all. The cost is accepted and named: one person can hide someone else's game from another simply by joining it.
 - The board lives within the chat and **disappears with it** (ephemerality).
 - Sync in real time (see §7).
 

@@ -1,6 +1,6 @@
 # Spec: app prototype — Feed & Chat screens
 
-Status: a record of what is **already implemented** in the interactive prototype. Further screens are next.
+Status: a record of what is **already implemented** in the interactive prototype (July 2026). Every other screen has since been described separately, one document per screen — `sosed.place/docs/`. Where this document disagrees with the chat spec, the spec wins: the list of divergences is at the bottom.
 
 Artifact (live prototype): https://claude.ai/code/artifact/02d90a97-3b35-4667-a828-71aefd9f336f
 Source: `neighbro.place/prototype/neighbro-app-proto.html` (single-file, no external assets — works under PWA/CSP).
@@ -115,9 +115,17 @@ Color tokens (recolor everything at once):
 - Verified: horizontal `overflow = 0` in all states (wide/mobile, feed/viewer/list/conversation), iPhone 12 mini (375px) as the base screen.
 
 ## Out of scope (next screens)
-Onboarding (birth year + name), Say screen (post), match moment, Me/profile, game screen (board), session freeze. See `app-ui-notes_EN.md`, `backlog_EN.md`.
 
-## Divergences from the chat spec (recorded 2026-08-10)
+**Closed on 2026-08-27: these screens are written.** Posting is screen 4, the
+match moment 6, Me and settings 9 and 10, the board 18, session freeze and
+stepping away 20; on top of that came the offer (17), stickers (16), the table
+(19), moving an identity (13), support (14), legal documents (15) and empty
+states (11). All twenty live in `sosed.place/docs/` and `neighbro.place/docs/`
+and match between the storefronts word for word. The prototype shows none of
+them — which is now the only reason to keep this document: it says what was
+**built**, not what was decided.
+
+## Divergences from the chat spec (recorded 2026-08-10, extended 2026-08-27)
 
 This document describes **the prototype as built**, not the intent. The chat spec
 has moved on since, and where the two disagree **`chat_EN.md` wins** — the
@@ -133,6 +141,11 @@ a divergence is not mistaken for a decision:
 | the like is a "plus" button | the like is a tap on the logo button on a phrase (§2) |
 | "location blur radius" in the composer | there is no blur: the area is chosen on a map and does not reveal where a person is (§8.3) |
 | "Not included: onboarding (year of birth + name)" | onboarding **is** in the prototype — the line contradicts §2 of this same file |
+| one conversation timer `chat open · Nh Nm`, shared by both | the span is **each person's own**: a handle in the header (10 min / 30 min / an hour / "while we're talking"), only your own remainder is visible, and the conversation ends at different moments for the two of them (§5, §8.10; decided 2026-08-26) |
+| tabs `Chats N` / `Requests N`, a count on both | "Offers" with a count and "Conversations" **without one** (screen 7, 2026-08-27); a conversation row carries the name, a fragment of the last line and your own remaining span |
+| swipe left in the viewer = "minus", the phrase is gone for good | there is one reaction, the like; hide, block and report live in the "…" menu, and swiping was considered and rejected: it fights the scroll (screen 5, 2026-08-26) |
+| "Set location" and a `34 nearby` indicator in the header | a radius circle in the filter panel with a **band** of density under it (`nobody here yet` … `hundreds`), shown only once the handle is released: exact counts per radius are an instrument for working out where an author stands (screen 3, 2026-08-26) |
+| `maxlength=256` hard-coded in the client | the limit arrives from the server (`max_message_length`, 256 by default), and the system's rule is ciphertext bytes (`max_ciphertext_bytes`, 2048): the node does not see characters (§8.6, 2026-08-25) |
 
 None of these is a defect of the prototype: it was built earlier. Carrying any of
 them into the application would be.

@@ -19,60 +19,60 @@
 # into a queue. Nothing was wrong with the writing — nothing watched the wording.
 
 # --- личность опознаётся секретом, а не парой ключей ---------------------------
-живым секретом            | chat_RU.md       | закрытая половина ключа, 12.08.2026
-identity_id` + секрет     | chat_RU.md       | закрытая половина ключа, 12.08.2026
-a live secret             | chat_EN.md       | the private half of the key, 2026-08-12
-хэш секрета               | chat_RU.md       | у публичного ключа нет хэша, 12.08.2026
+живым секретом            | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | закрытая половина ключа, 12.08.2026
+identity_id` + секрет     | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | закрытая половина ключа, 12.08.2026
+a live secret             | chat_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the private half of the key, 2026-08-12
+хэш секрета               | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | у публичного ключа нет хэша, 12.08.2026
 
 # --- подпись запросов ----------------------------------------------------------
-**Ed25519.**              | chat_RU.md chat_EN.md | ECDSA P-256, 19.08.2026 — Chromium ≤136 не умеет Ed25519
+**Ed25519.**              | chat_RU.md chat_EN.md app-prototype-spec_RU.md app-ui-notes_RU.md app-prototype-spec_EN.md app-ui-notes_EN.md | ECDSA P-256, 19.08.2026 — Chromium ≤136 не умеет Ed25519
 подпись Ed25519           | chat-flows_RU.md | ECDSA P-256, 19.08.2026
 Ed25519 signature         | chat-flows_EN.md | ECDSA P-256, 2026-08-19
 
 # --- модерация ленты ------------------------------------------------------------
-Внешняя модель**          | chat_RU.md       | две ступени на узле, 17.08.2026 — текст не покидает узел
-An external model**       | chat_EN.md       | two steps on the node, 2026-08-17
+Внешняя модель**          | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | две ступени на узле, 17.08.2026 — текст не покидает узел
+An external model**       | chat_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | two steps on the node, 2026-08-17
 # Прежняя запись искала «synchronous check» и не ловила ничего — такой подстроки
 # в документах нет. Заменена на те формулировки, которые там действительно стояли.
-synchronous, before publication | chat_EN.md depth-client_EN.md | queue before publication, 2026-08-23
+synchronous, before publication | chat_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | queue before publication, 2026-08-23
 publication**, synchronously    | CLIENT_TERMS.md  | queue before publication, 2026-08-23
-синхронная, до публикации       | chat_RU.md depth-client_RU.md | очередь до публикации, 23.08.2026
+синхронная, до публикации | chat_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | очередь до публикации, 23.08.2026
 
 # --- смена имени под живым разговором ---------------------------------------------
 # Область поиска расширена 21.08.2026: правило искало только в chat_*, а
 # отменённая строка всё это время жила в обеих схемах потоков — и проверка была
 # зелёной. Реестр стоит ровно столько, сколько файлов он смотрит.
-называет себя иначе       | chat_RU.md chat-flows_RU.md depth-client_RU.md | имя заморожено, пока живы посты или чаты, 20.08.2026
-they now call themselves  | chat_EN.md chat-flows_EN.md depth-client_EN.md | the name is frozen while posts or chats live, 2026-08-20
+называет себя иначе       | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | имя заморожено, пока живы посты или чаты, 20.08.2026
+they now call themselves  | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the name is frozen while posts or chats live, 2026-08-20
 
 # --- опознание устройства --------------------------------------------------------
-отпечаток браузера считается | chat_RU.md    | ограничение частоты по адресу, 05.08.2026
+отпечаток браузера считается | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | ограничение частоты по адресу, 05.08.2026
 
 # --- предел длины сообщения ------------------------------------------------------
 # «Решает узел» обещало проверку символов там, где узел видит только шифротекст.
 # Формулировка стояла в §8.6 и в обеих схемах потоков, а чеклист приёмки той же
 # спеки уже требовал байты — противоречие прожило до 25.08.2026.
-решает узел               | chat_RU.md chat-flows_RU.md depth-client_RU.md | предел по `max_ciphertext_bytes`, 25.08.2026
-the node decides          | chat_EN.md chat-flows_EN.md depth-client_EN.md | the limit is `max_ciphertext_bytes`, 2026-08-25
+решает узел               | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | предел по `max_ciphertext_bytes`, 25.08.2026
+the node decides          | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the limit is `max_ciphertext_bytes`, 2026-08-25
 
 # --- бумажный код: где он выдаётся -----------------------------------------------
 # Код стоял на регистрации, ушёл 18.08.2026 на открытие первого чата и вернулся
 # 26.08.2026. Перенос пережил сам себя в chat-flows: схема потока 1 уже рисовала
 # код на регистрации, а буллет под ней объявлял перенос действующим, и обе версии
 # ошибались одинаково — парность их не ловит, потому что переводы сходились.
-перенесён с этого экрана  | chat_RU.md chat-flows_RU.md depth-client_RU.md | код выдаётся на регистрации, 26.08.2026
-на открытие первого чата  | chat_RU.md chat-flows_RU.md depth-client_RU.md | код выдаётся на регистрации, 26.08.2026
+перенесён с этого экрана  | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | код выдаётся на регистрации, 26.08.2026
+на открытие первого чата  | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | код выдаётся на регистрации, 26.08.2026
 Бумажный код спрашивается здесь | chat-flows_RU.md | код выдаётся на регистрации, 26.08.2026
-was moved off this screen | chat_EN.md chat-flows_EN.md depth-client_EN.md | the code is issued at registration, 2026-08-26
-to the opening of the first chat | chat_EN.md chat-flows_EN.md depth-client_EN.md | the code is issued at registration, 2026-08-26
+was moved off this screen | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the code is issued at registration, 2026-08-26
+to the opening of the first chat | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the code is issued at registration, 2026-08-26
 The paper code is asked for here | chat-flows_EN.md | the code is issued at registration, 2026-08-26
 
 # --- имя и первая публикация -----------------------------------------------------
 # «Проверяются раздельно» выпускало пост в ленту при непроверенном имени; имя
 # доезжало до собеседника с первым мэтчем. Отменено 26.08.2026: фраза выходит,
 # только когда приняты оба.
-проверяются раздельно     | chat_RU.md chat-flows_RU.md | первая публикация ждёт имени, 26.08.2026
-checked separately        | chat_EN.md chat-flows_EN.md | the first publication waits for the name, 2026-08-26
+проверяются раздельно     | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | первая публикация ждёт имени, 26.08.2026
+checked separately        | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the first publication waits for the name, 2026-08-26
 
 # --- игры: чем они описываются ---------------------------------------------------
 # Пока игра называлась именем, каждая новая была отдельным приложением. С
@@ -87,30 +87,30 @@ with no rules built in at all | chat-flows_EN.md | a game is described by primit
 # chat_participants и меняется в самой беседе. Правка 26.08 успела дойти только до
 # комментария у колонки match_participants, а §5 и §8.6 два дня описывали
 # отменённое; поймано проходом по потокам.
-меньшее из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md | срок свой у каждого, 26.08.2026
-меньший из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md | срок свой у каждого, 26.08.2026
-В открытом чате не меняется | chat_RU.md chat-flows_RU.md | ручка в шапке беседы, меняется когда угодно, 26.08.2026
-выбор idle_ttl            | chat_RU.md chat-flows_RU.md | на согласии срока нет, 26.08.2026
-smaller of the two        | chat_EN.md chat-flows_EN.md depth-client_EN.md | each side has its own span, 2026-08-26
-It cannot be changed inside an open chat | chat_EN.md chat-flows_EN.md | the handle sits in the header, 2026-08-26
-the idle_ttl choice       | chat_EN.md chat-flows_EN.md | no span at consent, 2026-08-26
+меньшее из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | срок свой у каждого, 26.08.2026
+меньший из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | срок свой у каждого, 26.08.2026
+В открытом чате не меняется | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | ручка в шапке беседы, меняется когда угодно, 26.08.2026
+выбор idle_ttl            | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | на согласии срока нет, 26.08.2026
+smaller of the two        | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | each side has its own span, 2026-08-26
+It cannot be changed inside an open chat | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the handle sits in the header, 2026-08-26
+the idle_ttl choice       | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | no span at consent, 2026-08-26
 
 # --- счётчик тишины --------------------------------------------------------------
 # Порог min(20 мин, ttl/3) держался на трёх сроках от 20 минут. С десятиминутным
 # сроком он зажигал счётчик через 3:20 — две трети жизни беседы в отсчёте.
-min(20 мин, idle_ttl_minutes / 3) | chat_RU.md | четверть своего срока, 26.08.2026
-min(20 min, idle_ttl_minutes / 3) | chat_EN.md | a quarter of your own span, 2026-08-26
+min(20 мин, idle_ttl_minutes / 3) | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | четверть своего срока, 26.08.2026
+min(20 min, idle_ttl_minutes / 3) | chat_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | a quarter of your own span, 2026-08-26
 
 # --- квота фраз ------------------------------------------------------------------
 # Спека говорила «четыре живых», обе витрины — «пять», в четырёх местах каждая.
-не более 4 живых          | chat_RU.md chat-flows_RU.md | пять живых, 26.08.2026
-at most 4 live            | chat_EN.md chat-flows_EN.md | five live, 2026-08-26
+не более 4 живых          | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | пять живых, 26.08.2026
+at most 4 live            | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | five live, 2026-08-26
 
 # --- потолок радиуса -------------------------------------------------------------
 # Довод «тот же потолок, который человек мог бы поставить себе сам» ссылался на
 # 10 км, когда ручка витрины уже шла до 25.
-шагами до 10 км           | chat_RU.md chat-flows_RU.md | до 25 км, вслед за ручкой, 26.08.2026
-in steps up to 10 km      | chat_EN.md chat-flows_EN.md | up to 25 km, following the handle, 2026-08-26
+шагами до 10 км           | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | до 25 км, вслед за ручкой, 26.08.2026
+in steps up to 10 km      | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | up to 25 km, following the handle, 2026-08-26
 
 # --- язык в ленте ----------------------------------------------------------------
 # Экран 3 подмешивал чужие языки долями через переменную окружения, механика §8

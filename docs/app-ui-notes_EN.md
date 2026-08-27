@@ -48,3 +48,27 @@ What to change:
 - How strong the message "scatter" should be while staying readable and accessible (a11y, no horizontal overflow).
 - The right-side tabs: only "Chats" or also sub-sections (chat requests, active, match history).
 - Concrete texture: inline SVG noise or a CSS pattern (no external assets, so it works under PWA/CSP).
+
+## What of this has been decided (2026-08-27)
+
+These notes were written on 2026-07-06, before the twenty storefront screens
+existed. The five open questions above are closed — not here but there, and the
+answers are worth keeping next to this file:
+
+- **The bottom-nav set** — four: `Feed` / `Conversations` / `Say` / `Me` (§9 of
+  `chat_EN.md`). A fifth does not fit a narrow screen, so the "Offers" and
+  "Conversations" tabs live inside the section (screen 7).
+- **The per-message "mechanic"** — a like by tapping the logo button, plus a "…"
+  menu with three actions: hide, block, report (screen 5). Swipe actions were
+  considered and rejected: they fight the scroll.
+- **How strong the "scatter" is** — columns are set by width
+  (`column-width: 330px`), cards never shrink below ~330px, and horizontal
+  overflow is zero in every state (§4 and §10 of `app-prototype-spec_EN.md`).
+- **The right-side tabs** — "Offers" and "Conversations", a count on the first
+  only (screen 7). Match history is not among them and will not be: it would
+  outlive the thing that is supposed to disappear.
+- **The concrete texture** — inline SVG grain via a data-URI, no external assets
+  (§1 of `app-prototype-spec_EN.md`).
+
+The file itself stays as it is. It records what was wanted in July, and shows
+which of it survived to the screens and which quietly fell away.

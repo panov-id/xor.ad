@@ -256,6 +256,9 @@ through three different wrappers and cannot be counted by eye.
 | № | What must be true | What proves it | State |
 |---|---|---|---|
 | 16.1 | Hiding is visible only to the one who hid | the author's feed and like counter unchanged | nothing to check |
+| 16.1a | **Hiding sends nothing into the moderation queue** | after hiding, the queue is empty and the phrase's report counter has not grown | nothing to check |
+| 16.5a | **A report without a justification is not accepted** | a notice `POST` with empty text → refused, no record | nothing to check |
+| 16.5b | **There is no offence category in the form** | the notice schema has no category field and the API does not accept one | nothing to check |
 | 16.2 | A block is symmetric | neither of the two sees the other's phrases | nothing to check |
 | 16.3 | A block closes the shared chat | the chat is gone for both | nothing to check |
 | 16.4 | A like under a block yields no match | mutual likes → no match | nothing to check |

@@ -143,3 +143,10 @@ in the fragment of the link | sosed.place/docs/13-devices_EN.md neighbro.place/d
 reduce the author's posting quota | sosed.place/landing/legal/community-guidelines_EN.md neighbro.place/landing/legal/community-guidelines_EN.md | reporting and blocking do not touch the quota, 2026-08-26
 снижают квоту публикаций  | sosed.place/landing/legal/community-guidelines_RU.md neighbro.place/landing/legal/community-guidelines_RU.md | жалоба и блокировка квоту не трогают, 26.08.2026
 
+
+# --- модерация: чьи это числа ------------------------------------------------
+# «Ловится 0.55, зря 0.07» — рабочая точка ветки ПО ОРИГИНАЛУ. 27.08.2026 выбрана
+# ветка через перевод, и при той же цене ошибки она ловит 0.46, зато вдвое больше
+# на худшем языке. Обещание пережило выбор на несколько часов.
+ловится 0.55              | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | 0.46 при том же 0.07, 27.08.2026
+0.55 of what people call offensive | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | 0.46 at the same 0.07, 2026-08-27

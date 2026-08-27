@@ -139,7 +139,7 @@ a divergence is not mistaken for a decision:
 | filter `≥21`: lower slider `21…your age` | the band is `[min(21, A−2), ∞)` — a 21-year-old sees from 19 (§8.2) |
 | tabs `Chats` / `Requests` | `Chats` / `Matches` (§3) |
 | the like is a "plus" button | the like is a tap on the logo button on a phrase (§2) |
-| "location blur radius" in the composer | there is no blur: the area is chosen on a map and does not reveal where a person is (§8.3) |
+| "location blur radius" in the composer | the handle stayed, its meaning changed — edit of 2026-08-27. This said "there is no blur", which is wrong: §8.3 itself speaks of "the blur its author chose for themselves", and screen 4 of the storefronts sets it with a 100 m — 10 km slider. What was retired is not the blur but where the point comes from: it is not taken from the device and coarsened, the person **chooses** it on a map |
 | "Not included: onboarding (year of birth + name)" | onboarding **is** in the prototype — the line contradicts §2 of this same file |
 | one conversation timer `chat open · Nh Nm`, shared by both | the span is **each person's own**: a handle in the header (10 min / 30 min / an hour / "while we're talking"), only your own remainder is visible, and the conversation ends at different moments for the two of them (§5, §8.10; decided 2026-08-26) |
 | tabs `Chats N` / `Requests N`, a count on both | "Offers" with a count and "Conversations" **without one** (screen 7, 2026-08-27); a conversation row carries the name, a fragment of the last line and your own remaining span |

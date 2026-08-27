@@ -53,6 +53,10 @@ through three different wrappers and cannot be counted by eye.
 |---|---|---|---|
 | 1.1 | The node holds no private halves of any key | `SELECT` across every column of `identities`: no private key anywhere | nothing to check |
 | 1.2 | Name and age are `NOT NULL` from the first row | an `INSERT` without them fails in the database, not in the app | nothing to check |
+| 1.2a | **A name longer than 24 graphemes is refused by the node, not truncated** | a request around the client with 25 graphemes → refused; the old name stays in the database | nothing to check |
+| 1.2b | The limit counts graphemes | a name of 24 emoji with modifiers → accepted; 25 → refused | nothing to check |
+| 1.2c | An age outside 13–120 cannot be created | an `INSERT` with 12 fails on the `CHECK`, not in the app | nothing to check |
+| 1.2d | An obvious PIN **warns but does not lock** | registration with `000000` succeeds, the response carries a warning flag | nothing to check |
 | 1.3 | Registration without a PIN creates no identity | around the client: three steps, skip the second → refused | nothing to check |
 | 1.4 | The paper code is shown once and confirmed by typing two groups | without the confirmation registration does not finish | nothing to check |
 | 1.5 | Every client starts as a separate identity | two clients in a row → two different `identity_id` | nothing to check |
@@ -118,6 +122,10 @@ through three different wrappers and cannot be counted by eye.
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
 | 6.8 | Limits: ≤5 live phrases, ≤8 in 64 minutes | the sixth live one → refused; the ninth in an hour → refused | nothing to check |
 | 6.9 | Taking a phrase down frees the slot but not the 64-minute ceiling | take down and repost in a loop → the ceiling holds | nothing to check |
+| 6.10 | **A phrase longer than 128 characters is refused by the database, not the app** | an `INSERT` with 129 characters fails on the `CHECK` | nothing to check |
+| 6.11 | **A zone outside 100–10000 metres cannot be created** | an `INSERT` with `area_radius = 50` and with `20000` fails on the `CHECK` | nothing to check |
+| 6.12 | A link in the text is stripped, and the person is told | a phrase with a link → the feed shows it without one, the author gets an explaining line | nothing to check |
+| 6.13 | A non-empty discount turns a phrase into a private offer | a like on it yields a match at once, with none back (§8.5) | nothing to check |
 
 ## 7. Building the feed (step 2)
 
@@ -131,6 +139,10 @@ through three different wrappers and cannot be counted by eye.
 | 7.6 | Cards from the widened radius are marked | a "further than you asked" flag in the response | nothing to check |
 | 7.7 | The quota: no more than one commercial card per ten ordinary | a feed with twenty offers → two in the response | nothing to check |
 | 7.8 | Own phrases, blocks and hidden ones are excluded | all three cases in one feed | nothing to check |
+| 7.8a | **Language is a filter of up to three, not a mix of shares** | a feed filtered to `ru` holds no Greek phrases; the response carries the "N more in other languages" count | nothing to check |
+| 7.8b | The node detects the language locally | the phrase's text does not leave: the node's network is silent on publication | nothing to check |
+| 7.8c | **An offer is not hidden by the language filter** | filter `ru`, a Greek offer in the circle → present in the feed | nothing to check |
+| 7.8d | Tables and offers arrive in the same stream, labelled | one feed carrying a phrase, an offer and a table, each with its own type | nothing to check |
 | 7.9 | **The node returns a step, not an exact number** (2026-08-26) | 7 live phrases in the circle → the response says `about a dozen`, the seven appears nowhere | nothing to check |
 | 7.10 | The step boundaries are exactly as written: 0 · 1–4 · 5–14 · 15–99 · 100+ | one phrase at each boundary: 4→`a few`, 5→`about a dozen`, 14→`about a dozen`, 15→`dozens` | nothing to check |
 | 7.11 | The counter carries a rate limit of its own | a hundred requests in a row → refused, while the feed keeps working | nothing to check |

@@ -188,7 +188,7 @@ This used to read "a secret, and the server stores the secret's hash" — a left
 ```sql
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
-  name             text NOT NULL,
+  name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
   age              integer NOT NULL,
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
@@ -471,9 +471,15 @@ The interface says so plainly, not in small print:
 
 #### The PIN and local storage
 
+**The name limit is 24 graphemes, and it lives on the node (settled 2026-08-26).** The number came from layout — that is what fits the conversation header and the match card at 375px without an ellipsis — but until this decision it existed only in the storefront, which made it a hint to the author rather than a rule: the client is open, and a ten-thousand-character name reached somebody else's conversation header. Longer is now **refused** rather than silently truncated: the name is the only thing by which a peer recognises who they agreed to talk to (§8.11), and handing a person a stump instead of what they typed substitutes their own name without their knowledge.
+
+Counted in **graphemes**, not bytes and not code points: an emoji with a modifier and a letter with a diacritic are one character to a person, and the limit must match what they see.
+
 **A PIN is mandatory and asked at registration** — six digits, twice. It does two things at once: it locks an open tab against whoever picks the device up, and it takes part in encrypting everything on disk.
 
 Six digits are a million combinations, and on their own they are not protection: whoever copies the profile brute-forces them at home in minutes. So the vault key **cannot be assembled from the disk alone**: half of it comes from the node.
+
+**An obvious PIN warns but does not lock — settled 2026-08-26.** A short list — repeats (`000000`), runs (`123456`, `654321`) and four-digit birth years inside the six — produces one line, "this PIN is easy to guess", and the "next" button stays live. A ban here would hit exactly the person who barely made it to the end of the single registration screen, and the gain would be smaller than it looks: a million options are no defence with or without the list; the node's share and the ten-attempt counter are. The list lives on the node, because another client will not draw the warning — but even on the node it stays a warning rather than a refusal.
 
 ```
 device  material = Argon2id(pin, device salt, 64 MB, t=3)
@@ -653,11 +659,11 @@ CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ATTRIBUTION ONLY: which face the author arrived through
   author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
-  text             text NOT NULL,                             -- ≤128
+  text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
-  area_radius      integer NOT NULL,                          -- metres, 100 .. 10000
+  area_radius      integer NOT NULL CHECK (area_radius BETWEEN 100 AND 10000),  -- metres
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount

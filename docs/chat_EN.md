@@ -1624,6 +1624,28 @@ launders abuse — which is why the lexicon over the original stays the first la
 and stands **before** the translator (§8.3). That ordering is what makes this
 choice work.
 
+**The operating point is set by the cost of a mistake, not by peak F1 — edit of
+2026-08-27.** The table above compares the arms where each shows its best F1, and
+for moderation that point is unusable: there the translation arm wrongly blocks
+**41%** of ordinary messages, and the native arm 22%. F1 is symmetric, the two
+mistakes are not, and the product has already named its price out loud: "0.07 of
+ordinary messages are blocked for nothing" (§5 of the storefront mechanics). So
+the arms have to be compared at an equal price:
+
+| at 7% false blocks | native | translated |
+|---|---|---|
+| caught overall | 0.55 | 0.46 |
+| caught in the worst language (de) | 0.13 | **0.26** |
+
+The conclusion has not changed, but it no longer rests on F1: at the same cost of
+a mistake, the translation arm catches **twice as much** in German. Two
+consequences did change. First, **the threshold is set by a false-block budget**
+and therefore lives as a node parameter rather than a constant of the model — it
+is moved without retraining anything. Second, the published promise "0.55 is
+caught, 0.07 blocked for nothing" describes the **native** arm, the one we did
+not take; for the arm we did, the honest numbers are **0.46 and 0.07**, and they
+are corrected in both storefronts' mechanics.
+
 **What stays open:** the queue's throughput (§8.3) — a separate measurement on
 live hardware, made on the day the queue appears.
 

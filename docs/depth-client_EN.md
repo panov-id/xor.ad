@@ -1,7 +1,7 @@
 # `depth` — the terminal client
 
 The platform's third face. Not a storefront and not an operator's tool, but the
-same product — feed, matches, chat — entirely in a terminal, launched through
+same product — feed, tables, matches, chat — entirely in a terminal, launched through
 Docker.
 
 The chat spec (`chat_EN.md`) describes **what** happens and is the same for every
@@ -316,7 +316,7 @@ $ depth
   Operator.
 
   ─────────────────────────────────────────────
-   signal              48 neighbours in range
+   signal              dozens in range
    broadcast depth     800 m
    depth of field      13 — 61
   ─────────────────────────────────────────────
@@ -336,6 +336,16 @@ The names were not invented for style; each describes a mechanism:
 | `depth of field` | the age range |
 | `hardline` | quit |
 | `speak` | posting |
+| `table` | a table (4.9) |
+
+**Counts are named in bands — edit of 2026-08-27.** This said "48 neighbours in
+range", and the feed header carried the same number. An exact count that moves
+with the radius is an instrument: stepping the handle and reading the numbers
+works out the ring a particular phrase appeared in, which goes around the area
+its author chose (§8.3, screen 3 of the storefronts). So all three faces name a
+band — `nobody here yet` · `a few` · `about a dozen` · `dozens` · `hundreds` —
+and the boundaries come from the storefront mechanics rather than being invented
+here: "roughly" without numbers means three different roughlys in three faces.
 
 ### 4.2. The area — `broadcast depth`
 
@@ -381,25 +391,72 @@ Age bands work exactly as in the spec and are not softened here: the filter is
 clamped into its own band, the 20/21 border is crossed upwards only, and the
 client warns that this is irreversible before saving.
 
+**The other two feed filters live here too — added 2026-08-27** (screen 3, §8 of
+the mechanics). They were missing, and the terminal was showing a feed the web no
+longer shows:
+
+```
+  languages  ● ru   ● el   ○ en   ○ fr      12 more in other languages
+  mode       ● alone   ● company   ○ party
+```
+
+- **Up to three languages**, taken from the locale by default. The line "N more in
+  other languages" always sits under the feed: a person has to know the
+  neighbourhood is livelier than their filter, and not read the filter's silence
+  as the neighbourhood's.
+- **The language filter never hides an offer** — the one exception: the bakery
+  across the street is just as useful whatever language you read in.
+- **Mode** — three toggles, `alone` / `company` / `party`, on a phrase's `mode`.
+  Until now the terminal could set a mode when posting but could not search by
+  one.
+
 ### 4.4. The feed — `signal`
 
 ```
-  signal                                    48 in range
+  signal                                     dozens in range
 
   › does anyone know if the bakery on the corner
     opens on sunday                        ♥ 3   14:22
 
-  › looking for someone to run to the sea at 7:00
-                                           ♥ 11  14:19
+  ⊞ table · dominoes · three seated                14:19
+    [enter] sit down
+
+  ₪ offer · −20% · the bakery on the corner
+    code CORNER20, until sunday            ♥ 1   14:04
 
   › two chairs to give away, pick up, yard of no. 14
                                            ♥ 0   13:58
 
-  [j/k] scroll  [l] like  [/] speak  [r] report  [tab] chats
+  [j/k] scroll  [l] like  [/] speak  [h] hide
+  [b] block  [r] report  [tab] chats
 ```
 
 The author is not shown in any form: no name, no label, no hint. A phrase, a like
 count and a time — exactly as in the web.
+
+**The feed holds three things, each of them marked — edit of 2026-08-27** (screen
+3): a neighbour's phrase, a **table** (4.9) and an **offer** (screen 17 of the
+storefronts). They run in one stream by time rather than on shelves, because a
+shelf turns a neighbour's offer into an ad block people scroll past without
+looking. The terminal was showing phrases only.
+
+- **An offer is marked by the word and the size of the discount.** A venue also
+  gets a code and an external link — opened through our own redirect and behind a
+  warning; a private person gets neither, and their offer is an ordinary phrase
+  with a non-empty discount.
+- **The share of offers in the feed is capped**: no more than one commercial card
+  per ten ordinary ones (§8.3).
+- **An offer can be liked without a live phrase of your own** (§8.4, decided
+  2026-08-27). An ordinary like requires a live phrase on both sides or no match
+  can ever happen; an offer's match is one-sided, and without the exception you
+  would have to write something of your own before claiming the free chairs.
+- **A table is marked by its game and how many are seated**, and you can sit down
+  right from here (4.9).
+
+**There are three actions on a phrase, not one — edit of 2026-08-27** (screen 5):
+`h` hide, `b` block, `r` report. A single report used to stand here, which meant
+the quiet exit — "stop showing me this" — existed only in the web, and in the
+terminal every irritation had to be taken to a moderator.
 
 ### 4.5. Posting — `speak`
 
@@ -411,10 +468,20 @@ count and a time — exactly as in the web.
   ────────────────────────────────────────────  50 / 128
 
   how many of us   ● alone   ○ two of us   ○ a group
+  discount         ○ no      ● yes   −20%, until sunday
+
+  [s] put up a table instead of a phrase
 ```
 
 **128 characters** is the feed's limit. The counter is the client's; the node is
 what refuses.
+
+**The discount and the table were added on 2026-08-27**, following the
+storefronts' composer (screen 4). A filled-in discount turns the phrase into a
+**private person's offer** — there is no separate entity here and there will not
+be one; the whole mechanic of a post comes free with it. `s` switches to putting
+up a table: the game, the area, "put up" (4.9). Until this edit the terminal
+could sit down at a table it had no way of putting up.
 
 Feed moderation runs as a **queue before publication** (§8.3), which is not the
 same as "at once": `POST /feed` answers `202` immediately, the phrase sits with
@@ -474,6 +541,21 @@ them.
 - **The conversation ended for the peer** — a line replaces the input: neither of
   you can write, the key is out for both (§8.13). Your own history stays — exactly
   until your own span.
+- **The other person has stepped away** — a line saying "away" instead of the
+  input field, with no time of leaving and no time of return (screen 8, §13 of the
+  mechanics). It is the only place in the whole product where someone else's
+  presence is reported, and it is allowed because the person declared it rather
+  than the system inferring it.
+- **You can step away too** — `a`: 20 minutes, an hour, or until morning. It is a
+  real absence, not a pause: live phrases go with their likes, offers to talk burn
+  out, short-span conversations will not survive it, and the price is counted on
+  the spot, before the confirmation. A table you were sitting at stays: the person
+  leaving gets up from it and the game goes on (screen 20, decided 2026-08-27).
+- **A conversation can be closed by hand** — `x`, with a confirmation, and it
+  closes **for both at once**: the other person sees the same gravestone as on
+  expiry (2026-08-26, confirmation added 2026-08-27). Staying silent until expiry
+  to get out of an unpleasant conversation is a poor only exit, and a block is too
+  large a step for it.
 - **No history on disk.** The process exits and the conversation is gone. The
   scrollback is held in the live process's memory and nowhere else.
 
@@ -487,12 +569,73 @@ them.
 | `tab` | `signal` ↔ `chats` |
 | `l` | like |
 | `/` | speak / write |
+| `s` | in `speak` — a table instead of a phrase |
+| `h` | hide a phrase |
+| `b` | block the author |
+| `x` | close the conversation (with a confirmation) |
+| `a` | step away and come back |
 | `d` | `broadcast depth` — the area |
-| `f` | `depth of field` — age and filter |
+| `f` | `depth of field` — age, languages, mode |
 | `g` | a game inside an open chat |
 | `r` | report |
 | `?` | help |
 | `q` | `hardline` — quit |
+
+### 4.9. The table — `table`
+
+The terminal gets the table in full, not just its card in the feed: a face that
+shows you something you cannot enter irritates exactly as much as a face that
+shows you nothing.
+
+```
+  ────────────────────────────────────────────────────────
+   table · dominoes         fades after 1h of shared silence
+   seated  you · Anya · Kostya
+  ────────────────────────────────────────────────────────
+
+   [7|3] [3|3] [3|5]                    your hand
+                                        [1|4] [2|2] [6|6]
+   Anya    dibs on going first           14:19
+   Kostya  fine                          14:20
+
+  ────────────────────────────────────────────────────────
+  › ▋                                            0 / 128
+  [hjkl] choose  [enter] move  [/] say  [esc] get up
+```
+
+The rules in full are screen 19 of the storefronts; here is what the terminal
+shows and what it is obliged to say out loud:
+
+- **A table is not a conversation.** It lives by the feed's rules: visible by
+  radius, and speech at it is public and goes through **the same moderation
+  queue** as a phrase. A median of 2.8 seconds per line is felt more at a table
+  than in the feed, and that has to be shown as a state rather than disguised as
+  an instant send.
+- **There is no end-to-end encryption here, and the screen says so.** The
+  conversation key is derived for two (§8.13) and does not extend to a table; the
+  node sees both the board and the lines, or there would be nothing to moderate.
+  Anyone who read about encryption in a conversation will carry the expectation
+  here unless told.
+- **One span for everyone, counted from the last move** — unlike a conversation,
+  where each side has its own. The seating at a table changes, and separate counts
+  would mean the table exists in different states for the people sitting at it.
+- **Someone who sits down late sees nothing from before**: the board arrives as it
+  stands, the lines from the moment they sat. The same rule as moving an identity.
+- **Bands are checked each against each.** You may sit down only if you are in
+  everyone's band and they are in yours; to someone outside the bands the table is
+  **not visible at all** — no line, no greyed-out card, because such a card would
+  itself report who is sitting where.
+- **A majority of those seated removes someone**, and whoever put the table up
+  does not own it. Nobody holds sole power over a table.
+- **A block hides the whole table**: if someone you blocked is sitting at it, you
+  do not see the table. The price is named — one person can hide someone else's
+  game from you simply by sitting down at it.
+- **A table is not in the conversation list**, because it is not a conversation.
+  While you are at one, the `signal` header carries a line "you are at a table —
+  [enter] to return": narrow your circle or leave the radius and the line will
+  still take you back, while finding the table again in the feed will not work.
+- **`table` is never written to the volume**, like everything else: the board
+  lives in the process's memory.
 
 ---
 
@@ -647,9 +790,12 @@ such a contract.
 
 ## 9. Open questions
 
-- **Interface language.** The storefronts speak several languages; the terminal is
-  so far conceived in one. Whose choice that is — an environment variable, a flag
-  or the system locale — is undecided.
+- ~~Interface language~~ — **asked at first run** (decided 2026-08-27). One
+  question in `depth new`, and the answer goes into the volume next to the accepted
+  revision of the terms. Neither the system locale nor a flag: a shell's locale is
+  often not the language a person speaks to their neighbours in, and choosing
+  silently is the same thing as the feed's language shares, already retired. Price:
+  one more step in a long registration.
 - **Colour.** `NO_COLOR` support and behaviour in a terminal without 256 colours.
 - **Narrow terminals.** What exactly breaks at 60 columns, and what to show.
 - **Accessibility.** Behaviour under a screen reader in a terminal has not been
@@ -658,6 +804,10 @@ such a contract.
   the transfer code (§8.2), but a PIN has a different threat model — six digits,
   typed at every start, and what guards it against guessing is the node's
   counter rather than the cost of the hash.
-- **The image support window** (8.2): how many versions back the node must accept.
+- ~~The image support window~~ (8.2) — **the current major only** (decided
+  2026-08-27). An older image gets a legible refusal with the command to update,
+  and the sunset date is announced in advance. Price: one major version switches
+  off everyone who is not watching; accepted for the opposite reason — every
+  supported old branch is code nobody touches and nobody checks.
 - **Re-asking for age** (§8.2 re-asks **once a year**: "are you still 38?", one
   line that closes on a tap) — what that looks like in a terminal is undecided.

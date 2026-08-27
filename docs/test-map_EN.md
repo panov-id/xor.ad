@@ -95,6 +95,8 @@ through three different wrappers and cannot be counted by eye.
 | 4.6 | The old device freezes at the same moment | `frozen_at` set before the new one is answered | nothing to check |
 | 4.7 | The old device's disk is not wiped | move the identity back → its own PIN opens the whole history (§14) | nothing to check |
 | 4.8 | The move works across faces: code shown in `depth`, typed in the web, and back (§14) | a pair of clients, both directions | nothing to check |
+| 4.9 | **No link and no QR: no separate page exists for the pairing** | there is no route for an invitation; the node accepts only a `lookup_id` | nothing to check |
+| 4.10 | The second half of the code never leaves for the server | intercept the move traffic: only `lookup_id` and envelopes in the requests | nothing to check |
 
 ## 5. Recovery by the paper code (step 1)
 
@@ -157,6 +159,8 @@ through three different wrappers and cannot be counted by eye.
 | 8.4 | The counters move in the same transaction | a crash after `INSERT likes` → no drift | nothing to check |
 | 8.5 | 64 likes in 32 minutes is the ceiling | the 65th → refused | nothing to check |
 | 8.6 | The client is never told who it liked | the response carries only `{state}` | nothing to check |
+| 8.7 | **The author sees their phrase's `like_count` as the same number everyone else does** | the author's response and a stranger's carry one value | nothing to check |
+| 8.8 | **Who liked is disclosed neither to the author nor to anyone** | the response for one's own phrase holds no list and no trace of a particular like | nothing to check |
 
 ## 9. The match and the double consent (step 4)
 
@@ -171,6 +175,9 @@ through three different wrappers and cannot be counted by eye.
 | 9.7 | An identity closed between the two consents yields no chat | `closed_at` on one → no `INSERT chats` | nothing to check |
 | 9.8 | A block on a pending match puts it out immediately | block → the match is gone, as if expired | nothing to check |
 | 9.9 | **The paper code is not asked for at this step** (2026-08-26) | an identity's first chat opens with no extra screen | nothing to check |
+| 9.10 | **Whoever accepted first is told nothing about the other's action** | their response carries neither the peer's `accepted_at` nor any sign of a view | nothing to check |
+| 9.11 | The card returns name, age, mode and timer — and nothing else | the response holds neither the peer's `identity_id` nor their other phrases | nothing to check |
+| 9.12 | No match opens while the name stands rejected | `name_state = rejected` → a mutual like creates no card | nothing to check |
 
 ## 10. A match from an offer is one-sided (step 4)
 
@@ -181,6 +188,9 @@ through three different wrappers and cannot be counted by eye.
 | 10.3 | `message_id` and `text_snapshot` are optional | a match from an offer with no phrase of one's own passes | nothing to check |
 | 10.4 | The TTL follows the only live phrase — the offer | the offer expired → the match went out | nothing to check |
 | 10.5 | Venue offers carry no like at all | an attempt to like → refused | nothing to check |
+| 10.6 | **An offer can be liked with no live phrase of one's own** | an identity with no phrases likes an offer → a match is created; the same identity likes an ordinary phrase → refused | nothing to check |
+| 10.7 | **Age bands do not cut venue offers** | a 15-year-old and a 40-year-old see the same offer in range | nothing to check |
+| 10.8 | A private offer disappears on stepping away, with the phrases | "step away" → the offer is gone from the feed | nothing to check |
 
 ## 11. Opening a chat, and the keys (step 6)
 
@@ -215,7 +225,9 @@ through three different wrappers and cannot be counted by eye.
 | 13.2 | The other side's span and remainder are not handed out | the open response carries neither the peer's value nor their `gone_at` time | nothing to check |
 | 13.3 | The span changes inside an open conversation at any time | 10 → 60 on a live conversation → accepted, recounted from the same `last_own_message_at` | nothing to check |
 | 13.3a | The other person's message does **not** reset my count | Kolya writes every 5 minutes, Petya stays silent for 11 → it ended for Petya | nothing to check |
-| 13.4 | A game move moves `last_activity_at` exactly like a message | moves only, an hour → the chat lives | nothing to check |
+| 13.4 | **Your own move pushes your own count exactly as your own message** | only your moves, an hour of verbal silence → the conversation lives for the one who moved | nothing to check |
+| 13.4a | **Their move does not push my count** | the peer moves, I only watch → the conversation ends for me on my span | nothing to check |
+| 13.4b | Board and key go out for both at the first death | the other still counts the conversation alive, the board is already gone | nothing to check |
 | 13.5 | **The conversation disappears for whoever's span ran out** (§14) | after the first `alive` check it is empty for them, the other's history intact | nothing to check |
 | 13.5a | **The key and the board go out for both at the first death** (§8.13) | `chat_key_wraps` empty for both, while the other's history still reads | nothing to check |
 | 13.5b | Neither side can write into an ended conversation | sending around the client from both sides → the node refuses | nothing to check |
@@ -224,6 +236,9 @@ through three different wrappers and cannot be counted by eye.
 | 13.7 | One chat per pair is held by a unique `pair_key` | a second `INSERT` → conflict | nothing to check |
 | 13.8 | After death the `pair_key` is released | the same pair matches again | nothing to check |
 | 13.9 | The server knows only **when** there was movement | `chats` holds no text, no author, no count | nothing to check |
+| 13.10 | **"End it" closes for both at once, unlike expiry** | one presses → `gone_at` is set for the other too | nothing to check |
+| 13.11 | The safety code derives from both identities' long-term keys | it matches on both sides; a chat-key re-issue does not change it (§8.13) | nothing to check |
+| 13.12 | With the peer stepped away the input is replaced and the node refuses sends | an attempt around the client → refused | nothing to check |
 
 ## 14. An extra like into an open chat (step 7)
 
@@ -240,6 +255,7 @@ through three different wrappers and cannot be counted by eye.
 |---|---|---|---|
 | 15.1 | The board syncs encrypted and stays opaque to the node | intercept: the board state is unreadable | nothing to check |
 | 15.2 | **The exception is named: the node sees decks and dice** (2026-08-26) | shuffling happens on the node, the one place where §8.13 does not hold | nothing to check |
+| 15.2a | **A sticker is invisible to the node: its id sits inside the ciphertext** | intercept a line with a sticker → no identifier in the clear | nothing to check |
 | 15.3 | A private hand arrives encrypted to its own player | the other sees backs, not cards | nothing to check |
 | 15.4 | Physics converges for both on a shared seed | one flick → the same final position | nothing to check |
 | 15.5 | The word to guess goes through the moderation queue | a forbidden word → "think of another one" | nothing to check |
@@ -250,6 +266,9 @@ through three different wrappers and cannot be counted by eye.
 | 15.10 | **Table:** talk is public and goes through the queue | a line shows after the check, not before | nothing to check |
 | 15.11 | **Table:** the majority removes a sitter, nobody owns it | whoever set up the table cannot remove alone | nothing to check |
 | 15.12 | **Table:** a blocked person at a table hides the whole table | the table is not shown at all | nothing to check |
+| 15.13 | **Table:** one span for everyone, from anyone's last move | one plays while others stay quiet for an hour → the table lives for all | nothing to check |
+| 15.14 | **Table:** speech and board travel in the clear, the node sees them | a line at a table is readable by the node — otherwise the queue has nothing to check | nothing to check |
+| 15.15 | **Table:** it is not served at all to someone outside the bands | the feed response has no table, rather than "present but greyed" | nothing to check |
 
 ## 16. Three different actions against a person (step 7)
 
@@ -263,7 +282,10 @@ through three different wrappers and cannot be counted by eye.
 | 16.3 | A block closes the shared chat | the chat is gone for both | nothing to check |
 | 16.4 | A like under a block yields no match | mutual likes → no match | nothing to check |
 | 16.5 | A report closes nothing by itself | after the report the phrase is alive | nothing to check |
+| 16.5c | **Neither reporting nor blocking changes the author's quota** | before and after: the live-phrase ceiling is the same, so is the 64-minute one | nothing to check |
 | 16.6 | A report carries its copy from the reporter's device | the node has no copy and nowhere to take one from | nothing to check |
+| 16.7 | **A content report through support lands in the same register** | a message describing something illegal → a record in the notices register, not in the support table | nothing to check |
+| 16.8 | **The answer is shown in the app at the next visit, with no email** | a message with no address → the answer waits with the identity and appears on entry | nothing to check |
 
 ## 17. Changing the name and the age (step 1, fully — from step 2)
 
@@ -277,6 +299,9 @@ through three different wrappers and cannot be counted by eye.
 | 17.6 | On an age change the filter is re-clamped into the new band | the stored values are clamped | nothing to check |
 | 17.7 | An age change sends a system message into every open chat | the line appeared for the peers | nothing to check |
 | 17.8 | Re-asked once a year, and silence changes nothing | a year later with no answer → the same age, no blocks | nothing to check |
+| 17.9 | **The paper code is re-issued only on presenting the current one** | a request without it → refused; with the right code → a new one issued, the old one dead | nothing to check |
+| 17.10 | Changing the PIN re-encrypts the base and takes a new share | the old PIN opens nothing afterwards | nothing to check |
+| 17.11 | "Start over" closes the identity rather than deleting the row | `closed_at` set, phrases out of the feed, the paper code no longer raises it | nothing to check |
 
 ## 18. The inbox (step 8)
 
@@ -287,6 +312,8 @@ through three different wrappers and cannot be counted by eye.
 | 18.3 | No push leaves anywhere, in any face | the network is silent with the tab closed | nothing to check |
 | 18.4 | A missed message is inferred, its text is not recovered | the "you missed one" line is there, the text is not | nothing to check |
 | 18.5 | A burnt match never appears in the inbox | expired while the client was closed → it is not there | nothing to check |
+| 18.6 | **Fading counts from my own silence, not from shared activity** | the peer writes every minute while I stay silent → my inbox marks the conversation as fading | nothing to check |
+| 18.7 | A counter is returned only for offers awaiting my answer | the inbox response carries no number for open conversations | nothing to check |
 
 ## 19. Three timers and the cleanup (step 7)
 
@@ -328,6 +355,8 @@ through three different wrappers and cannot be counted by eye.
 | 22.5 | The peer in an open chat sees `stepped_away` | the only exception to "we do not report presence" | nothing to check |
 | 22.6 | The in-app timer never reaches the node | neither a column nor a request next to the identity | nothing to check |
 | 22.7 | Leaving early works, the frequency is not capped | three departures in a row → no refusal | nothing to check |
+| 22.8 | **A table survives its founder's break while they stand up from it** | "step away" → the table is in the feed, the leaver is not among the sitters | nothing to check |
+| 22.9 | A private person's offer goes with the phrases | "step away" → the phrase with a discount is deleted | nothing to check |
 
 ---
 

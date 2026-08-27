@@ -127,3 +127,19 @@ shares configurable       | sosed.place/docs/03-feed-screen_EN.md neighbro.place
 cause from a short list   | sosed.place/docs/05-message-actions_EN.md neighbro.place/docs/05-message-actions_EN.md | a justification in the person's own words, 2026-08-27
 A report names its cause  | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | a justification in the person's own words, 2026-08-27
 
+# --- перенос личности: код, а не ссылка ------------------------------------------
+# Экран показывал QR и ссылку с ключом во фрагменте, спека §8.2 и depth-client §5.4
+# отменили и то и другое: привязка живёт внутри клиентов, отдельной страницы нет.
+QR-код и ссылку           | sosed.place/docs/13-devices_RU.md neighbro.place/docs/13-devices_RU.md | девять символов, набираются руками, 27.08.2026
+во фрагменте ссылки       | sosed.place/docs/13-devices_RU.md neighbro.place/docs/13-devices_RU.md | ссылки нет вовсе, 27.08.2026
+a QR code with a link     | sosed.place/docs/13-devices_EN.md neighbro.place/docs/13-devices_EN.md | nine characters typed by hand, 2026-08-27
+in the fragment of the link | sosed.place/docs/13-devices_EN.md neighbro.place/docs/13-devices_EN.md | there is no link at all, 2026-08-27
+
+# --- правила сообщества: что делает жалоба ---------------------------------------
+# Опубликованные правила утверждали, что жалобы и блокировки режут квоту автора.
+# Решение 26.08.2026 отменило это в механике и на экране 5, а документ, который
+# человек принимает чекбоксом, остался прежним ещё на сутки. Сторожим оба языка,
+# на которых текст правится нами; остальные переводы ждут носителя.
+reduce the author's posting quota | sosed.place/landing/legal/community-guidelines_EN.md neighbro.place/landing/legal/community-guidelines_EN.md | reporting and blocking do not touch the quota, 2026-08-26
+снижают квоту публикаций  | sosed.place/landing/legal/community-guidelines_RU.md neighbro.place/landing/legal/community-guidelines_RU.md | жалоба и блокировка квоту не трогают, 26.08.2026
+

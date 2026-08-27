@@ -62,7 +62,12 @@ runs, and that a language nobody declared (Thai, Arabic) still goes through the
 pipeline. Its labels are mine, and quality must not be measured against them: that
 would be marking a model against an exam written by the marker.
 
-Real numbers come from human-labelled datasets — step 2.
+Real numbers come from human-labelled datasets — and they **already exist**:
+`evaluation.json` has held 300 labelled examples per language across nine
+languages since 2026-08-04. The conclusion was drawn from them on 2026-08-27 with
+`summarize.py`, and the decision is written into `xor.ad/docs/chat_EN.md` §8.14:
+we take the **translation** arm, because at one threshold for all languages it
+does not collapse where the native arm falls to F1 0.404.
 
 ## What we actually measure, and what we do not know
 
@@ -84,9 +89,12 @@ public labelled data at all. For those, only levels 2–4 exist.
 
 ## What is not here yet
 
-- **Transliteration** of Greeklish and of latinized Russian back into their own
-  alphabets. The most valuable addition to the first layer; not done, and the code
-  says so plainly rather than hiding it.
+- ~~**Transliteration** of Greeklish and of latinized Russian~~ — **done**, and
+  done from the very start: `transliterate.py` arrived in the same commit of
+  2026-08-04 as this section. For six weeks the document said "not done yet"
+  about a file sitting next to it. Verified 2026-08-27 by running it:
+  `eisai malakas` → `εισαι μαλακας`, `ty durak` → `ты дурак`; a candidate beats
+  the original only when the identifier is markedly more confident about it.
 - The Toxicity-200 lists are fetched by [`fetch_resources.py`](./fetch_resources.py);
   if they cannot be fetched it fails loudly — it will not quietly run on four
   layers instead of five.

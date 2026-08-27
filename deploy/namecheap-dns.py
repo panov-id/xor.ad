@@ -25,6 +25,13 @@ FACES = ["sosed", "neighbro"]
 
 def records_for(env):
     """(host, cname-target) pairs for one environment, mirroring deploy/wizard.py."""
+    # "www" is not an environment. It is one record for the personal site, and it
+    # lives here because this is the only place that talks to the registrar: the
+    # site answered on the apex only, so every link written with a "www." in front
+    # of it — and people write it — reached a host that did not resolve at all.
+    if env == "www":
+        return [("www", "panov-id.b-cdn.net")]
+
     sfx = f"-{env}"
     recs = []
     for face in FACES:
@@ -102,9 +109,9 @@ def set_hosts(hosts, ip):
 def main():
     args = sys.argv[1:]
     apply = "--apply" in args
-    env = next((a for a in args if a in ("dev", "uat", "prod")), None)
+    env = next((a for a in args if a in ("dev", "uat", "prod", "www")), None)
     if not env:
-        raise SystemExit("Usage: namecheap-dns.py <dev|uat|prod> [--apply]")
+        raise SystemExit("Usage: namecheap-dns.py <dev|uat|prod|www> [--apply]")
 
     ip = client_ip()
     print(f"Domain: {DOMAIN}  ·  ClientIp (must be whitelisted in Namecheap): {ip}")

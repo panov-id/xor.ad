@@ -110,7 +110,9 @@ The board for two lives inside a chat. A group game **does not fit** inside one:
 
 - **Visible in the feed** to those whose viewing circle overlaps the table's zone — by the same rules as a phrase (§8.3).
 - **Anyone within the radius may join**, with no invitation and no application; there is no hard cap on numbers.
-- **It lives from its last move**, like a chat: a sliding TTL, with a move and a reply pushing it alike.
+- **It lives from its last move — on one span shared by everyone (clarified 2026-08-27).** The TTL slides, and a move or a line from any sitter pushes it alike. This is a **difference from a conversation**, where since 2026-08-26 each side has its own count: there two people are involved, and each one's silence is their own business; at a table the company changes, and a per-person count would mean the table exists in different states for those sitting at it, with the board drifting apart. The cost is accepted: one active player keeps the table alive for everybody, including those who have not moved in a while.
+- **A table with one sitter is a normal state.** It is visible in the feed, people can pull up a chair, and that person is precisely waiting for company; it disappears on the same shared silence span. Closing it the moment the last guest stands up would take the table away from whoever set it up and is waiting for the first.
+- **A table is not encrypted, and that is a consequence rather than an omission.** The conversation key is derived for two and does not apply here (above), while speech at a table is public and goes through the moderation queue — there is nothing to check in ciphertext. So **the node sees both the board and the lines**, as it sees the feed. The end-to-end encryption of §8.13 is about a conversation between two; a table is outside it, and a person has to be told plainly, because they will carry the expectation over from a conversation.
 - **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
 - **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
 - **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
@@ -225,6 +227,7 @@ A person may leave the place for a span — **20 minutes, an hour, or until morn
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a departure "until morning" is survived only by conversations with a long span.
 - **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
 - **A peer in an open chat sees `stepped_away`** instead of the ability to write. This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **A table is not deleted; whoever leaves stands up from it (2026-08-27).** Phrases go, the table stays: people are sitting at it, and tearing it down would throw out of the game those who have nothing to do with somebody else's break — and would hand the founder a power they do not have (§6.1).
 - **Leaving early** takes a confirmation; the frequency of departures is not limited.
 
 **The time-in-app counter never reaches the node.** It lives in the browser and counts like this: a visible tab plus a touch within the last three minutes. The offer to step away after an hour is the client's decision; the node has no business knowing how long somebody sat there, and no such record belongs beside an identity.
@@ -978,6 +981,14 @@ something illegal into a public feed. Thresholds are set per direction; a single
 
 **A like is available only to someone with a live phrase in the feed — settled 2026-08-26.** The rule is derived from §8.5 rather than added to it: a match counts only while **both** phrases are alive, so a like from a person without one of their own could never become a match — it was placed and went quietly nowhere, and the one who placed it never learned that. The check runs on the node, because the client is open: `EXISTS (SELECT 1 FROM feed_messages WHERE author_identity = :me AND visible_at IS NOT NULL AND expires_at > now())`.
 
+**An offer is an exception, and it is named (2026-08-27).** The check does not apply to a like on a phrase **with a discount**: there the match is born one-sided (§8.5), and the argument "a like could never become a match" is simply false for an offer — it becomes one at once. Without this proviso the rule would cancel the offer mechanism itself: to collect stools somebody is giving away you would first have to write something of your own into the feed, so the barrier would remain, merely a different one. The node-side condition becomes
+
+```sql
+EXISTS (SELECT 1 FROM feed_messages
+         WHERE author_identity = :me AND visible_at IS NOT NULL AND expires_at > now())
+OR (SELECT discount_value IS NOT NULL FROM feed_messages WHERE id = :target)
+```
+
 The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
 
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
@@ -1231,12 +1242,12 @@ threshold = idle_ttl_minutes / 4   (your own span, from your own last message)
 
 silence < threshold   → no timer
 silence ≥ threshold   → counter: chat deletes in Nm
-last_activity + ttl   → the chat disappears for both
+my silence + my ttl   → the conversation ends FOR ME
 ```
 
-20 minutes is a **display** threshold, not a deadline — and it is not taken literally, but against the chosen TTL: at `ttl = 20 min` a fixed twenty would light the counter only as the chat died, which is to say never show it at all. A third of the span feels the same on an hour-long chat and on a twenty-minute one: the counter appears after 6 minutes 40 seconds of silence. The example used to be written on `ttl = 30 min` — a span that does not exist since the set was closed (§5).
+A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fixed number: on a ten-minute conversation any "twenty minutes" would light the counter after its death, which is to say never show it at all. A quarter feels the same across all four spans: 2:30 on a ten-minute conversation, a quarter of an hour on an hour-long one, 65 minutes on "while we're talking". The previous rule — a third of `min(20 min, ttl)` — is retired along with the pick at consent (§5).
 
-Any **of your own** delivered messages resets both the counter and the countdown; theirs does not. The server pushes nothing: the client knows `last_own_message_at` and its own `idle_ttl_minutes` and computes the rest.
+Any **of your own** delivered messages resets both the counter and the countdown; theirs does not. **Your own move in a game counts the same as your own message** (settled 2026-08-27): the game exists so that two people can be silent in words, and without this rule a game played in silence would kill the conversation in the middle of itself. Their move, like their line, does not move your count. The server pushes nothing: the client knows `last_own_message_at` and its own `idle_ttl_minutes` and computes the rest.
 
 A chat can outlive its originating phrases by a long way if people keep talking — that is fine: the texts are already copied, and the feed has nothing to do with the conversation any more.
 
@@ -1354,7 +1365,7 @@ Hiding is **silent and one-way**: the author is not told, their feed does not ch
 
 - **Feed** — `expires_at` (N hours): the phrase drops out of results, a background job deletes the row, `likes` cascade away. Starters survive — the text was copied.
 - **Match** — `least()` of both phrases; expired means gone.
-- **Chat** — `last_activity_at + idle_ttl_minutes`; the node closes the room and deletes `chats`, with `chat_participants` and `chat_starters` cascading.
+- **A conversation** — each participant has their own end: `last_own_message_at + their idle_ttl_minutes` (§8.6). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants` and `chat_starters` cascading.
 - **Local history** — cleaned by the client, always on the client's initiative:
 
 ```
@@ -1367,7 +1378,7 @@ Anything missing from `alive` is deleted from IndexedDB along with its messages.
 
 **Three rules for this endpoint, all from 2026-08-21 — it is the only destruction command the system has.** The reply contains only those `id`s for which a `chat_participants` row exists with the caller: other people's and non-existent ones are silently absent and therefore indistinguishable from dead. The array length is capped. And above all: **the list of the living is valid only on a confirmed read of the database** — on error the node answers 503, not an empty list. The node's policy of "the query failed, carry on without an answer" would mean here that five minutes of unavailable Postgres wipe the conversations of everyone who opened the app in those minutes.
 
-**The client does not delete what its own clock still calls alive.** If a chat has not expired by `last_activity_at + idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
+**The client does not delete what its own clock still calls alive.** If a conversation has not expired by `last_own_message_at + its own idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
 
 **Local history is encrypted with the vault key of §8.2** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
 
@@ -1428,7 +1439,7 @@ WHERE m.expires_at > now() AND me.accepted_at IS NULL;
 -- "waiting for you": I accepted, they have not  (and the reverse)
 -- chat opened: a chats row that is missing from my local database
 -- one more phrase liked: chat_starters with a position beyond what I have seen
--- chat fading: last_activity_at + idle_ttl_minutes is close
+-- the conversation fades FOR ME: my last_own_message_at + my idle_ttl_minutes is close
 ```
 
 This is the rare case of a feature that adds not a single line to the schema: everything derives from `matches`, `chats`, `chat_starters` and `last_activity_at`. The inbox honestly survives a closed tab, a reload and a node switch — because it lives in the data, not in memory.

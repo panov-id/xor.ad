@@ -111,3 +111,10 @@ at most 4 live            | chat_EN.md chat-flows_EN.md | five live, 2026-08-26
 # 10 км, когда ручка витрины уже шла до 25.
 шагами до 10 км           | chat_RU.md chat-flows_RU.md | до 25 км, вслед за ручкой, 26.08.2026
 in steps up to 10 km      | chat_EN.md chat-flows_EN.md | up to 25 km, following the handle, 2026-08-26
+
+# --- язык в ленте ----------------------------------------------------------------
+# Экран 3 подмешивал чужие языки долями через переменную окружения, механика §8
+# фильтровала по трём языкам со строкой «ещё N». Доли решали за человека молча.
+доли настраиваются        | sosed.place/docs/03-feed-screen_RU.md neighbro.place/docs/03-feed-screen_RU.md | фильтр до трёх языков, 26.08.2026
+shares configurable       | sosed.place/docs/03-feed-screen_EN.md neighbro.place/docs/03-feed-screen_EN.md | a filter of up to three languages, 2026-08-26
+

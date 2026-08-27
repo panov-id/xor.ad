@@ -118,6 +118,9 @@ through three different wrappers and cannot be counted by eye.
 | 6.1 | While `visible_at` is empty the phrase is in nobody's feed but the author's | a third party's feed does not contain it | nothing to check |
 | 6.2 | `expires_at` = `visible_at` + 4:20, not the time of sending | a slow queue → the phrase's life is not eaten | nothing to check |
 | 6.3 | **A queue failure closes**: nothing to check with → the phrase waits | the model is down → nothing is published | nothing to check |
+| 6.3a | **One moderation threshold for all languages, not tuned per language** | the node's configuration holds a single number; a phrase's language does not change it | nothing to check |
+| 6.3b | The lexicon over the original stands before the translator | abuse that translation launders is caught by the first layer (§8.3) | nothing to check |
+| 6.3c | Latin script is returned to its own alphabet before language identification | `ty durak` is identified as Russian, not Slovak | **have** |
 | 6.4 | The fifth refusal in a row gives 15 minutes without posting; feed, likes and chats keep working | five refusals → `POST /feed` refused, `GET /feed` 200 | nothing to check |
 | 6.5 | A successful publication zeroes the refusal counter | four refusals, a success, four more → no mute | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |

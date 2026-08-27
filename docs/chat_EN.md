@@ -1589,9 +1589,43 @@ This does not undo the per-person count, because the count is about history and 
 
 **Edge cases.** The peer closed their identity — the chat is killed like an expired one. Reconnecting to a different node does not touch the keys: they live on the clients, and the node holds only public halves and wraps, from which nothing can be derived.
 
-### 8.14. Open
+### 8.14. The moderation model: measured
 
-- Which moderation model exactly — **a measurement, not an argument**: the frame is fixed in §8.3, and the numbers are run against our own phrase set on the day the queue exists.
+**Settled 2026-08-27 by numbers rather than by argument.** The `relay/moderation-bench`
+stand collected 300 human-labelled examples per language across nine languages and
+read each of them two ways: **natively**, with a multilingual classifier on the
+original, and **through translation** into English with an English classifier.
+Three languages (ru, es, fr) are excluded from the conclusion: the model was
+trained on those very sets, and the number there is flattering.
+
+Across the six honest languages (en, el, tr, ar, de, uk):
+
+| | native | through translation |
+|---|---|---|
+| mean F1, threshold tuned per language | **0.784** | 0.737 |
+| F1 at **one** threshold for all | 0.741 | 0.720 |
+| worst language at one threshold | **de 0.404** | de 0.669 |
+
+**We take translation, although its mean F1 is lower.** The gap in the mean is
+0.047, and it evaporates as soon as the threshold is one for all languages — and
+in production it is one, because the language is identified by the same pipeline
+and with error, and tuning per language means trusting that identifier more than
+it deserves.
+
+What decides is not the mean but the **worst case**: on German the native arm
+collapses to F1 0.404 — at its tuned threshold it flags nearly everything (0.50
+precision at 1.00 recall). The translation arm holds 0.669 on the same language.
+Moderation is a place where being good on average matters less than never
+collapsing: a collapse means either a feed full of abuse or blocking the innocent,
+and both cost more than forty-seven thousandths of a mean.
+
+**The cost is named:** translation adds a step and time, and machine translation
+launders abuse — which is why the lexicon over the original stays the first layer
+and stands **before** the translator (§8.3). That ordering is what makes this
+choice work.
+
+**What stays open:** the queue's throughput (§8.3) — a separate measurement on
+live hardware, made on the day the queue appears.
 
 ## 9. UI states and breakpoints
 

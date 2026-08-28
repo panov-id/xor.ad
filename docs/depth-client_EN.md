@@ -349,7 +349,10 @@ here: "roughly" without numbers means three different roughlys in three faces.
 
 ### 4.2. The area — `broadcast depth`
 
-There is no map in a terminal. Coordinates are typed by hand:
+There is no map in a terminal — **and none in the browser either, decided
+2026-08-28**. The area is chosen on a diagram: a circle, a radius, a density band
+and the place named in words. Coordinates can still be typed by hand if you
+already have them:
 
 ```
   broadcast depth

@@ -2,6 +2,21 @@
 
 Short notes for later — not in current work, kept so they aren't lost.
 
+**Both entries below are closed by decisions and kept as history — edit of
+2026-08-28.** The file was not under the retirement registry and spent six weeks
+holding descriptions the product has since revised. What replaced them:
+
+- **The freeze** → screen 20 of the storefronts, "Step away" (2026-08-26 and 2026-08-27):
+  three spans — 20 minutes, an hour, until morning — with the price of leaving
+  counted on the spot before the confirmation, live phrases deleted, the table
+  left standing while the person sitting at it gets up. The server side is §8.2 of
+  the chat spec: `frozen_at` and a `NOTIFY session_frozen` that cuts the session's
+  sockets.
+- **The games** → §6 of the chat spec and screen 18: a game is described by
+  **seven primitives**, not by names. The note below names games and promises "no
+  built-in rules" — [retired] wording, retired on 2026-08-26 precisely because
+  describing games by name makes every new one a separate application.
+
 ## Session freeze (self-lockout)
 
 In the app: a "freeze" button — the user bars themselves from entering for a while (e.g. 20 minutes) so they don't get stuck doom-scrolling. While frozen, sign-in is blocked.
@@ -16,7 +31,7 @@ Open questions: can the freeze be lifted early; freeze per face or across all of
 
 ## Rule-free shared games
 
-In a chat/match — a shared visual board for two: **dominoes, checkers, chess**. The twist: **no built-in rules** — the engine just draws the board and lets you move/place pieces freely; the players make up and honor the rules themselves. It's an ice-breaker and a "shared moment," not a competition.
+In a chat/match — a shared visual board for two: **dominoes, checkers, chess**. The twist: [retired] **no built-in rules** — the engine just draws the board and lets you move/place pieces freely; the players make up and honor the rules themselves. It's an ice-breaker and a "shared moment," not a competition.
 
 Sketch:
 - The shared board syncs in real time (websockets through the relay node).

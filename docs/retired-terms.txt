@@ -78,8 +78,8 @@ checked separately        | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md
 # Пока игра называлась именем, каждая новая была отдельным приложением. С
 # 26.08.2026 игра описывается семью примитивами, а имена остались только ярлыками
 # классов.
-без единого зашитого правила | chat-flows_RU.md | игра описывается примитивами, 26.08.2026
-with no rules built in at all | chat-flows_EN.md | a game is described by primitives, 2026-08-26
+без единого зашитого правила | chat-flows_RU.md backlog_RU.md | игра описывается примитивами, 26.08.2026
+with no rules built in at all | chat-flows_EN.md backlog_EN.md | a game is described by primitives, 2026-08-26
 
 # --- срок беседы: выбор и чей он ------------------------------------------------
 # До 26.08.2026 срок выбирали на экране согласия и брали min() из двух — один
@@ -156,3 +156,8 @@ reduce the author's posting quota | sosed.place/landing/legal/community-guidelin
 # 28.08.2026 отдают 17 языков у одной витрины и 10 у другой.
 говорят на шести языках   | offers/SPEC_RU.md dsa/SPEC_RU.md | семнадцать и десять, 28.08.2026
 speak six languages       | offers/SPEC_EN.md dsa/SPEC_EN.md | seventeen and ten, 2026-08-28
+
+# --- бэклог: игры по именам ------------------------------------------------------
+# Формулировка жила в бэклоге, который не был ни под чьим наблюдением.
+никаких зашитых правил    | backlog_RU.md | игра описывается примитивами, 26.08.2026
+no built-in rules         | backlog_EN.md | a game is described by primitives, 2026-08-26

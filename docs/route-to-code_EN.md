@@ -122,6 +122,15 @@ document, the Argon2id measurement, the nine languages of the rules.
 
 ### Stage 1 — drawing
 
+**The stage's first decision is where the application's tokens come from (found
+2026-08-28).** Not one of the twenty screens points at a source of visual
+decisions, and `design-system_EN.md` describes the **panel**, not the storefronts:
+different colour roles, a 6px radius instead of sharp corners, admin components.
+There are three partial sources — the landings, the July prototype's tokens, and
+the panel's system — and drawing before choosing between them is not possible:
+twenty mock-ups would land in three systems, and reconciling them costs more than
+drawing again.
+
 An SVG mock-up at true geometry for every screen, numbered questions at the end,
 agreement, and only then CSS. Twenty screens; this is where most of the 36 open
 questions close — nearly all of them are about layout, and layout is not settled

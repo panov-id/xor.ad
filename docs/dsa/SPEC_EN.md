@@ -55,7 +55,7 @@ Mandatory (Art. 16(2)):
 
 | Field | Type | Note |
 |---|---|---|
-| `target_kind` | enum | `feed_message` \| `offer` \| `chat` \| `other` |
+| `target_kind` | enum | `feed_message` \| `offer` \| `table_line` \| `chat` \| `other` |
 | `target_id` | string | pre-filled when opened from a card |
 | `reason_text` | text | **the reasoning** why the notifier believes the content is illegal |
 | `notifier_name` | string | asked for, not required — see below |
@@ -114,6 +114,7 @@ On **creation** of a notice, before any examination:
     if the target still exists → store a snapshot:
         phrase  id, text, mode, created_at, author_identity
         offer   id, offer_text, discount_value, conditions, published_at, venue_id
+        line    id, text, created_at, author_identity, table_id
         (names per chat_EN.md §8.3 and offers/SPEC_EN.md §3; a test holds them there)
     if the target already expired → snapshot = null, snapshot_state = target_gone
 
@@ -123,6 +124,16 @@ notices never reached the moderator's queue (`WHERE status IN
 ('received','in_review')`) and were never examined at all — contrary to Art. 16.
 `status` answers "what did we decide", `snapshot_state` answers "did we manage to
 take a copy", and the two must not be mixed.
+
+**The table was added on 2026-08-28 — a consequence, not a new decision.** The
+table was introduced on 2026-08-27 (screen 19 of the storefronts), and speech at
+it is **public**: lines go through the same moderation queue as the feed, and the
+node sees both the board and the text, because the conversation key does not
+extend to a table. Public content has to have an Article 16 path — otherwise a
+notice about an unlawful line would land in `other`, which has neither a target
+nor a snapshot shape. What is captured is the **line**, not the whole table: it is
+the text that can be unlawful, not the game, and capturing the board would mean
+keeping someone's match for a year.
 
 **The area is not copied into a snapshot.** A notice asks whether a text is
 illegal, and the text is what answers; where the phrase was shown has no bearing
@@ -305,7 +316,7 @@ the feed mechanic.
 
     notice
         id
-        target_kind             # feed_message | offer | chat | other
+        target_kind             # feed_message | offer | table_line | chat | other
         target_id
         snapshot                # null if the content was already gone
         reason_text

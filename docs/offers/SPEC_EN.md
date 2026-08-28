@@ -350,6 +350,12 @@ limit it turns into a free broadcast channel.
 ## 5. The life of an offer
 
     created → active ──── OFFER_LIFETIME expired ────► expired
+
+**A private offer also disappears when its author steps away — added 2026-08-28**
+(screen 20 of the storefronts, decided 2026-08-27). Leaving "for 20 minutes, an
+hour, or until morning" deletes the person's live phrases, and their offer is a
+phrase with a non-empty discount. A venue offer is untouched: there is no person
+behind it who could step away.
                 │
                 └──── 3 complaints from different people ───► hidden → examined within a day
                                                                  │
@@ -465,6 +471,21 @@ lawyer.
   ordinary post, except that a like on it creates a chat request at once (section 2)
 - The quota counts **both** kinds of commercial card together — venue offers and phrases with a
   discount. Otherwise a private author walks around the limit the quota exists for
+- **An offer can be liked without a live phrase of your own — edit of 2026-08-28**
+  (decided 2026-08-27, `chat_EN.md` §8.4, screen 17 of the storefronts). An
+  ordinary like requires the liker to have a live phrase, or no match can ever
+  happen: it counts only when both sides have one. An offer's match is one-sided,
+  so the argument does not apply — and the rule without the exception would cancel
+  the mechanic itself: to claim the free stools you would first have to write
+  something of your own
+- **The language filter never hides an offer — edit of 2026-08-28** (decided
+  2026-08-26, §8 of the storefront mechanics). It is the one exception to the
+  filter: the bakery across the street is just as useful whatever language you
+  read in, and the language filter is meant against speech you cannot read, not
+  against the block you live on
+- **Since 2026-08-27 the feed holds three things**, not two: a phrase, an offer and
+  a **table** (screen 19 of the storefronts). What that does to the quota is a
+  question of the denominator, and the value is open — see §16
 
 ## 8. Repeat placement
 
@@ -708,7 +729,8 @@ argument; this is a deliberate trade, not strictness for its own sake.
 
 **Language is the same.** "We speak Russian, neighbours get a discount" sounds
 friendly and works as a marker of origin. Writing the announcement itself in
-Russian is fine and expected — the storefronts speak six languages; **making
+Russian is fine and expected — the storefronts speak seventeen and ten languages
+(measured on 2026-08-28 from the live sitemaps; this said "six"); **making
 language a condition of the discount is not.**
 
 **A product aimed at someone is not a condition.** A children's portion, a student
@@ -790,3 +812,9 @@ Values to be confirmed in practice:
 - `OFFER_LIFETIME` — tie it to an ordinary post's lifetime, a product-level value
 - `FEED_OFFER_QUOTA` = 1 in 10 — check against a real feed
 - `COMPLAINT_EXAMINATION_HOURS` = 24 — check in practice whether one person keeps up
+- **Whether a table counts towards `FEED_OFFER_QUOTA`'s denominator** — open since
+  2026-08-28. The quota holds commercial load down relative to organic content; a
+  table is organic, so counting it is the natural reading, but it also outlives a
+  phrase, and a single table in the feed would then open the way for one more
+  card. Settled against a real feed together with the quota itself, not by
+  argument

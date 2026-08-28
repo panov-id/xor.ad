@@ -142,6 +142,17 @@ transaction as `frozen_at`.
 | PIN attempts | 10, then the share burns | the node |
 | transfer code attempts | 5, then the invitation burns | the node |
 | queue throughput | ~20 phrases per minute, **not yet measured** | the node |
+| false-block budget | 7% — the moderation threshold is derived from it | the node's config |
+| report threshold | 5% of a phrase's possible audience | the node's config |
+| floor of the report threshold | 3 people | the node's config |
+
+**The last three rows are deploy-time parameters, not constants of the code**
+(decided 2026-08-27/28, `route-to-code_EN.md`). The environment variable names are
+proposed here and need agreement: `MODERATION_FALSE_BLOCK_BUDGET`,
+`REPORT_THRESHOLD_SHARE`, `REPORT_THRESHOLD_FLOOR`. They are not in the node's
+config today and should not be: the moderation queue arrives at step 2, and
+creating keys for a subsystem that does not exist leaves numbers in the code that
+nobody reads.
 
 **Two limits on message length are not a duplicate.** The client counts
 characters, the node counts ciphertext bytes: what it sees is ciphertext, and

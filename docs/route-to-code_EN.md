@@ -109,16 +109,27 @@ document, the Argon2id measurement, the nine languages of the rules.
 
 ## The order of work
 
-### Stage 0 — loose ends (first)
+### Stage 0 — loose ends — **closed 2026-08-28**
 
-- Reconcile the SEO document (decision 7).
-- Measure Argon2id parameters for the PIN in a container: 64 MB / t=3 were taken
-  by analogy with the transfer code, and the threat model is different — six
-  digits, entered at every launch, protected from brute force by a counter on the
-  node. The result goes into `depth-client`.
-- Translate the report paragraph into nine languages (decision 5).
-- Write the moderation constants (decisions 1 and 2) into the node config and into
-  `open-work`.
+- ~~Reconcile the SEO document~~ — there was nothing to reconcile: for the other
+  storefront it is a short "transfer and differences" document, and it says so
+  itself. Instead every promise of both was checked **live**
+  (`scripts/check-seo-live.sh`), including the one open item — no requests to the
+  counter without consent: 24 and 26 requests, none to its domains.
+- ~~Measure Argon2id~~ — done, and the answer was not about parameters: this
+  handle **does not tune** the PIN's security (six digits are a million
+  possibilities; even 256 MB is hours on a dozen cards). The choice is made by
+  latency, so 64 MB / t=3 stays, at a measured 144 ms.
+- ~~Translate the report paragraph~~ — done in **23 places** across 27 documents.
+  On the way it turned out the 2026-08-27 fix had missed **seven languages**: it
+  searched by a dictionary of translations, while German says
+  "Veröffentlichungskontingent" and Georgian writes quota in its own script.
+  Eleven places kept lying for two more days; a two-sided check now exists,
+  `check-rules-quota-sentence.sh`.
+- ~~Write the moderation constants~~ — written into `protocol_EN.md` §5 along with
+  proposed variable names. They are **not** added to the node's config today: the
+  queue arrives at step 2, and keys for a subsystem that does not exist are
+  numbers nobody reads.
 
 ### Stage 1 — drawing
 

@@ -221,7 +221,7 @@ The feed is public and anyone within the radius sees it, so text is checked
 
 ```mermaid
 flowchart TD
-  post["POST /feed"] --> limits{"per-identity limits:<br/>≤5 live phrases,<br/>≤8 in 64 minutes?"}
+  post["POST /feed"] --> limits{"per-identity limits:<br/>≤4 live phrases,<br/>≤4 per hour?"}
   limits -- "no" --> refuse(["refused"])
   limits -- "yes" --> insert["INSERT feed_messages<br/>visible_at = NULL"]
   insert --> ans["202 — answered at once"]
@@ -913,7 +913,7 @@ reconciliation covers an expired TTL, a closed identity on the other side, a blo
 and "did not come back for a month" all at once.
 
 A phrase **can be taken down by its author** — a withdrawn phrase disappears just
-as an expired one does. The slot frees immediately, the "8 in 64 minutes" ceiling
+as an expired one does. The slot frees immediately, the "four per hour" ceiling
 does not: that ceiling exists precisely against somebody who withdraws phrases in
 a loop to free the slot.
 

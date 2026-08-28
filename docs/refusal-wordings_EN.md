@@ -93,7 +93,7 @@ ban.
 
 | Refusal | What is said | Action |
 |---|---|---|
-| quota | Five phrases are already live. The next slot frees at 14:32. | Wait, or take one down |
+| quota | Four phrases are already live. The next slot frees at 14:32. | Wait, or take one down |
 | no network | There is no connection. What you wrote is saved. | We will send it when there is |
 | the conversation expired | The span ran out; the conversation is gone. | Back to the feed |
 | the other person closed it | The conversation has ended. | Back to the feed |

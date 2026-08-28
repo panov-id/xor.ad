@@ -51,7 +51,7 @@ investigation six months from now.
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
   name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
-  age              integer NOT NULL,
+  age              integer NOT NULL CHECK (age >= 13),
   identity_public_key text NOT NULL,
   recovery_auth_hash  text,
   recovery_wrapped_key bytea,
@@ -151,10 +151,13 @@ Not by eye, and not by "it applied without errors":
 
 ## Open
 
-- **`age` has no `CHECK`.** The bands require 13+, while the column accepts any
-  integer: the rule is held by the application. Whether to add
-  `CHECK (age BETWEEN 13 AND 119)` is a decision about whether a data error is
-  fixed by a migration or refused by the database.
+- ~~`age` has no `CHECK`~~ — **closed 2026-08-28**: `CHECK (age >= 13)` is in the DDL,
+  and **there is no upper bound in it** — somebody may have lived a long time, and an
+  invented ceiling cuts off a living person to catch a typo. It was not an open question but a divergence: screen 2 of the
+  storefronts already stated that this constraint exists in the database, and
+  explained the refusal to a twelve-year-old by it — while the spec's DDL had none.
+  The screen won, because behind it stand the decision of 2026-08-26 and the text a
+  person actually reads.
 - **`name_state` is text, not an `enum`.** Three values are listed in a comment;
   the database does not check them.
 - **The node's key for `share_enc`** comes from `004_secret_keys.sql`; how its

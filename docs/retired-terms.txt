@@ -161,3 +161,18 @@ speak six languages       | offers/SPEC_EN.md dsa/SPEC_EN.md | seventeen and ten
 # Формулировка жила в бэклоге, который не был ни под чьим наблюдением.
 никаких зашитых правил    | backlog_RU.md | игра описывается примитивами, 26.08.2026
 no built-in rules         | backlog_EN.md | a game is described by primitives, 2026-08-26
+
+# --- верхняя граница возраста ------------------------------------------------------
+# «13 AND 120» — придуманный потолок, отрезающий живого человека ради поимки
+# опечатки. Снят 28.08.2026: сверху возраст не ограничивается вовсе.
+BETWEEN 13 AND 120        | chat_RU.md migrations-step1_RU.md test-map_RU.md | CHECK (age >= 13), 28.08.2026
+BETWEEN 13 AND 120        | chat_EN.md migrations-step1_EN.md test-map_EN.md | CHECK (age >= 13), 2026-08-28
+
+# --- кнопка «где я» и карта --------------------------------------------------------
+# 28.08.2026: точная геопозиция не запрашивается никогда, карты нет ни в одном лице.
+# Тайл сообщает тому, кто его отдаёт, какой квадрат смотрят, — и свой узел здесь не
+# лучше чужого сервера.
+кнопкой «где я»           | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | геопозиция не запрашивается, 28.08.2026
+"where am I" button asks  | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | no precise location is requested, 2026-08-28
+слайдер на карте          | sosed.place/docs/03-feed-screen_RU.md neighbro.place/docs/03-feed-screen_RU.md | схема вместо карты, 28.08.2026
+slider on a map           | sosed.place/docs/03-feed-screen_EN.md neighbro.place/docs/03-feed-screen_EN.md | a diagram instead of a map, 2026-08-28

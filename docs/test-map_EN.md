@@ -55,7 +55,7 @@ through three different wrappers and cannot be counted by eye.
 | 1.2 | Name and age are `NOT NULL` from the first row | an `INSERT` without them fails in the database, not in the app | nothing to check |
 | 1.2a | **A name longer than 24 graphemes is refused by the node, not truncated** | a request around the client with 25 graphemes → refused; the old name stays in the database | nothing to check |
 | 1.2b | The limit counts graphemes | a name of 24 emoji with modifiers → accepted; 25 → refused | nothing to check |
-| 1.2c | An age outside 13–120 cannot be created | an `INSERT` with 12 fails on the `CHECK`, not in the app | nothing to check |
+| 1.2c | An age below 13 cannot be created, and there is no upper bound | an `INSERT` with 12 fails on the `CHECK`; an `INSERT` with 130 goes through | nothing to check |
 | 1.2d | An obvious PIN **warns but does not lock** | registration with `000000` succeeds, the response carries a warning flag | nothing to check |
 | 1.3 | Registration without a PIN creates no identity | around the client: three steps, skip the second → refused | nothing to check |
 | 1.4 | The paper code is shown once and confirmed by typing two groups | without the confirmation registration does not finish | nothing to check |

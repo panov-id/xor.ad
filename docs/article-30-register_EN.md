@@ -48,7 +48,8 @@ processing is identical and only the storefront differs, so the record is shared
 
 - **Purpose.** Match neighbours by a chosen zone without revealing a point.
 - **Basis.** Performance of a contract; **precise coordinates** rest on consent,
-  Art. 6(1)(a), and are requested only when "where am I" is pressed.
+  Art. 6(1)(a), and are not requested at all — the "where am I" button was
+  retired on 2026-08-28, and no face asks for a precise location.
 - **Data.** An approximate area (time zone, IP, browser language) or a point
   placed by hand; the reach you look at and the precision you are seen with.
 - **Recipients.** None. Precise coordinates place the point once and are not

@@ -53,7 +53,7 @@
 
 | Поле | Тип | Примечание |
 |---|---|---|
-| `target_kind` | enum | `feed_message` \| `offer` \| `chat` \| `other` |
+| `target_kind` | enum | `feed_message` \| `offer` \| `table_line` \| `chat` \| `other` |
 | `target_id` | string | подставляется автоматически при открытии из карточки |
 | `reason_text` | text | **обоснование**, почему заявитель считает контент незаконным |
 | `notifier_name` | string | запрашивается, но не требуется — см. ниже |
@@ -109,8 +109,9 @@
 При **создании** уведомления, до всякого разбора:
 
     если target существует → сохранить снимок:
-        фраза  id, text, mode, created_at, author_identity
-        оффер  id, offer_text, discount_value, conditions, published_at, venue_id
+        фраза   id, text, mode, created_at, author_identity
+        оффер   id, offer_text, discount_value, conditions, published_at, venue_id
+        реплика id, text, created_at, author_identity, table_id
         (имена — по chat_RU.md §8.3 и offers/SPEC_RU.md §3; сверяются тестом)
     если target уже удалён по таймеру → snapshot = null, snapshot_state = target_gone
 
@@ -119,6 +120,14 @@
 попадали в очередь модератора (`WHERE status IN ('received','in_review')`) и не
 рассматривались вовсе — вопреки ст. 16. Статус отвечает на «что мы решили»,
 `snapshot_state` — на «удалось ли снять копию», и смешивать их нельзя.
+
+**Стол добавлен 28.08.2026 — следствие, а не новое решение.** Стол заведён
+27.08.2026 (экран 19 витрин), и речь за ним **публичная**: реплики проходят ту же
+очередь модерации, что и лента, а узел видит и доску, и текст, потому что ключ
+беседы на стол не распространяется. Публичное содержимое обязано иметь путь по
+ст. 16 — иначе уведомление о незаконной реплике попадало бы в `other`, где нет ни
+цели, ни формы снимка. Снимается **реплика**, а не стол целиком: незаконен бывает
+текст, а не игра, и снимать доску значило бы хранить год чужую партию.
 
 **Область в снимок не попадает.** Уведомление спрашивает, незаконен ли текст, и
 отвечает на это сам текст; где фразу показывали, к вопросу не относится, а снимок
@@ -294,7 +303,7 @@
 
     notice
         id
-        target_kind             # feed_message | offer | chat | other
+        target_kind             # feed_message | offer | table_line | chat | other
         target_id
         snapshot                # null, если контента уже не было
         reason_text

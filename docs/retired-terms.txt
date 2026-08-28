@@ -150,3 +150,9 @@ reduce the author's posting quota | sosed.place/landing/legal/community-guidelin
 # на худшем языке. Обещание пережило выбор на несколько часов.
 ловится 0.55              | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | 0.46 при том же 0.07, 27.08.2026
 0.55 of what people call offensive | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | 0.46 at the same 0.07, 2026-08-27
+
+# --- сколько языков у витрин -----------------------------------------------------
+# «Шесть языков» — число из июля, когда лендинг только переводили. Живые sitemap
+# 28.08.2026 отдают 17 языков у одной витрины и 10 у другой.
+говорят на шести языках   | offers/SPEC_RU.md dsa/SPEC_RU.md | семнадцать и десять, 28.08.2026
+speak six languages       | offers/SPEC_EN.md dsa/SPEC_EN.md | seventeen and ten, 2026-08-28

@@ -15,13 +15,13 @@ Measured, not remembered:
 |---|---|
 | flows described and reconciled | 22 |
 | screens per storefront, matching between them word for word | 20 |
-| claims in the test map (`test-map_EN.md`) | 204 |
+| claims in the test map (`test-map_EN.md`) | 208 |
 | of those, checkable today | 1 |
 | wordings under the retirement registry (`retired-terms.txt`) | 54 across 31 documents |
 | open questions on the screens | 36 |
 | open questions in the terminal client | 7, two of them closed below |
 
-One checkable claim out of two hundred and four is not a criticism of the map but
+One checkable claim out of two hundred and eight is not a criticism of the map but
 its design: every row carries the build step after which it can be opened. Before
 that step it would go red for a missing table rather than for a mistake.
 

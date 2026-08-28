@@ -121,6 +121,8 @@ through three different wrappers and cannot be counted by eye.
 | 6.3a | **One moderation threshold for all languages, not tuned per language** | the node's configuration holds a single number; a phrase's language does not change it | nothing to check |
 | 6.3b | The lexicon over the original stands before the translator | abuse that translation launders is caught by the first layer (§8.3) | nothing to check |
 | 6.3c | Latin script is returned to its own alphabet before language identification | `ty durak` is identified as Russian, not Slovak | **have** |
+| 6.3d | **The operating point lives in the node's config, not in code** (2026-08-28) | changing the false-block budget moves the threshold with no rebuild and no retraining | nothing to check |
+| 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
 | 6.4 | The fifth refusal in a row gives 15 minutes without posting; feed, likes and chats keep working | five refusals → `POST /feed` refused, `GET /feed` 200 | nothing to check |
 | 6.5 | A successful publication zeroes the refusal counter | four refusals, a success, four more → no mute | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
@@ -272,6 +274,8 @@ through three different wrappers and cannot be counted by eye.
 | 15.13 | **Table:** one span for everyone, from anyone's last move | one plays while others stay quiet for an hour → the table lives for all | nothing to check |
 | 15.14 | **Table:** speech and board travel in the clear, the node sees them | a line at a table is readable by the node — otherwise the queue has nothing to check | nothing to check |
 | 15.15 | **Table:** it is not served at all to someone outside the bands | the feed response has no table, rather than "present but greyed" | nothing to check |
+| 15.16 | **An Article 16 notice is accepted about a line at a table** (2026-08-28) | `target_kind = table_line` goes through; the snapshot holds the line's text and `table_id` | nothing to check |
+| 15.17 | **The board does not go into a notice's snapshot** | the line's snapshot holds no state of the match: it is the text that can be unlawful, not the game | nothing to check |
 
 ## 16. Three different actions against a person (step 7)
 

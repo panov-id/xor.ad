@@ -176,3 +176,10 @@ BETWEEN 13 AND 120        | chat_EN.md migrations-step1_EN.md test-map_EN.md | C
 "where am I" button asks  | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | no precise location is requested, 2026-08-28
 слайдер на карте          | sosed.place/docs/03-feed-screen_RU.md neighbro.place/docs/03-feed-screen_RU.md | схема вместо карты, 28.08.2026
 slider on a map           | sosed.place/docs/03-feed-screen_EN.md neighbro.place/docs/03-feed-screen_EN.md | a diagram instead of a map, 2026-08-28
+
+# --- поиск места ------------------------------------------------------------------
+# «Геокодинга нет» держалось ради обещания, что запроса «какое место искали» не
+# существует. 28.08.2026 поиск появился, обещание сохранено иначе: список мест
+# приходит на устройство и ищется там.
+Геокодинга нет            | depth-client_RU.md | поиск по списку на устройстве, 28.08.2026
+There is no geocoding     | depth-client_EN.md | search over a list on the device, 2026-08-28

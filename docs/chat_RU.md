@@ -1064,6 +1064,7 @@ CREATE TABLE match_participants (
   text_snapshot     text NOT NULL,      -- снимок на момент мэтча
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = ещё не нажал «открыть чат»
+  declined_at       timestamptz,        -- «не сейчас» (28.08.2026): отказ виден только своей стороне
   ephemeral_public_key text,            -- ключ этого чата, завёрнутый для второй стороны (8.13)
   PRIMARY KEY (match_id, identity)
 );

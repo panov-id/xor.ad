@@ -1082,7 +1082,8 @@ CREATE TABLE match_participants (
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
-  declined_at       timestamptz,        -- "not now" (2026-08-28): the refusal is visible to its own side only
+  declined_at       timestamptz,        -- "not now" (2026-08-28): the refusal is visible to its own side only;
+                                        -- written at once, cleared by an undo while the match lives
   ephemeral_public_key text,            -- this chat's key, wrapped to the other side (8.13)
   PRIMARY KEY (match_id, identity)
 );

@@ -127,7 +127,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.5 | A successful publication zeroes the refusal counter | four refusals, a success, four more → no mute | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
-| 6.8 | Limits: ≤5 live phrases, ≤8 in 64 minutes | the sixth live one → refused; the ninth in an hour → refused | nothing to check |
+| 6.8 | Limits: ≤4 live phrases, ≤4 per hour (2026-08-28) | a fifth live one → refused; a fifth within the hour → refused | nothing to check |
 | 6.9 | Taking a phrase down frees the slot but not the 64-minute ceiling | take down and repost in a loop → the ceiling holds | nothing to check |
 | 6.10 | **A phrase longer than 128 characters is refused by the database, not the app** | an `INSERT` with 129 characters fails on the `CHECK` | nothing to check |
 | 6.11 | **A zone outside 100–10000 metres cannot be created** | an `INSERT` with `area_radius = 50` and with `20000` fails on the `CHECK` | nothing to check |

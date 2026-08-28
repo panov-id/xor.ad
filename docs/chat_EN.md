@@ -812,17 +812,17 @@ per-address limit works alongside, separately).
 
 ```
 likes     64 per 32 minutes
-phrases   at most 5 live at a time
-          and at most 8 published per 64 minutes
+phrases   at most 4 live at a time
+          and at most 4 published per hour
 ```
 
-**Why phrases have two numbers instead of one.** The main one is "five live" (the
-number was reconciled with the storefronts on 2026-08-26: they had five from the
-start, in four places, while this said four; they must not diverge, and five was
-chosen). It is the natural limit, because a phrase occupies space in the neighbours' feed and
-a person sees their four rather than counting minutes. But a phrase lives 4:20
-while the ceiling's window is 64 minutes: none would expire by itself in that
-time, so the second number would never fire. It exists for exactly one case —
+**Why phrases have two numbers instead of one.** The main one is "four live"
+(edit of 2026-08-28; [retired] "five live" stood here from 2026-08-26, when it was
+reconciled with the storefronts). It is the natural limit, because a phrase
+occupies space in the neighbours' feed and a person sees their four rather than
+counting minutes. But a phrase lives 4:20 while the ceiling's window is an hour:
+none would expire by itself in that time, so the second number would never
+fire. It exists for exactly one case —
 when a person **takes their own phrase down** to free a slot, and repeats that in
 a loop.
 

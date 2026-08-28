@@ -103,8 +103,6 @@ min(20 min, idle_ttl_minutes / 3) | chat_EN.md app-prototype-spec_EN.md app-ui-n
 
 # --- квота фраз ------------------------------------------------------------------
 # Спека говорила «четыре живых», обе витрины — «пять», в четырёх местах каждая.
-не более 4 живых          | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | пять живых, 26.08.2026
-at most 4 live            | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | five live, 2026-08-26
 
 # --- потолок радиуса -------------------------------------------------------------
 # Довод «тот же потолок, который человек мог бы поставить себе сам» ссылался на
@@ -183,3 +181,13 @@ slider on a map           | sosed.place/docs/03-feed-screen_EN.md neighbro.place
 # приходит на устройство и ищется там.
 Геокодинга нет            | depth-client_RU.md | поиск по списку на устройстве, 28.08.2026
 There is no geocoding     | depth-client_EN.md | search over a list on the device, 2026-08-28
+
+# --- квота фраз: снова четыре ------------------------------------------------------
+# 26.08.2026 спеку свели с витринами на «пять живых»; 28.08.2026 решено четыре и
+# «четыре за час» вместо «восьми за 64 минуты». Правило, стерёгшее четвёрку, снято —
+# теперь стережём пятёрку и старое окно.
+пять живых                | chat_RU.md chat-flows_RU.md sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | четыре живых, 28.08.2026
+8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026
+five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | четыре живых, 2026-08-28
+8 in 64 minutes           | chat_EN.md chat-flows_EN.md | four per hour, 2026-08-28
+

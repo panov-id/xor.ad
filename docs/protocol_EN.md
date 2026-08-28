@@ -136,8 +136,8 @@ transaction as `frozen_at`.
 | chat message length | `max_message_length`, 256 by default | the client's counter |
 | ciphertext size | `max_ciphertext_bytes`, 2048 bytes by default | the node |
 | `NOTIFY` payload | 8 KB | Postgres |
-| live phrases | 5 | the node |
-| publications | 8 per 64 minutes | the node |
+| live phrases | 4 | the node |
+| publications | 4 per hour | the node |
 | a phrase's area radius | 100–10000 metres | a `CHECK` in the database |
 | PIN attempts | 10, then the share burns | the node |
 | transfer code attempts | 5, then the invitation burns | the node |

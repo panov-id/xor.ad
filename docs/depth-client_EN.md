@@ -376,8 +376,26 @@ blurring.
 The value is remembered in the volume, so it is typed once.
 
 A side benefit of this choice: the client makes **no** request to any external
-service. There is no geocoding, and therefore no record of what place a person
-searched for — neither with us nor with a third party.
+service.
+
+**A place can be typed in words — edit of 2026-08-28.** This used to say
+"[retired] there is no geocoding, and therefore no record of what place a person
+searched for". Geocoding has arrived and the promise stayed: the list of places —
+districts and cities — is delivered together with the area and searched **on the
+device**. There is still no record of "what place was searched for" with us or
+with a third party, because there is nobody to search with. The terminal gets the
+same field as the web:
+
+```
+  broadcast depth
+
+  place       › Kolonaki▋
+  radius      › 800
+
+  ─────────────────────────────────────────────
+  the list of districts and cities arrived with the area
+  and is searched right here: no request leaves the client.
+```
 
 ### 4.3. Name and age — `depth of field`
 

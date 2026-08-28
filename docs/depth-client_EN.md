@@ -800,10 +800,31 @@ such a contract.
 - **Narrow terminals.** What exactly breaks at 60 columns, and what to show.
 - **Accessibility.** Behaviour under a screen reader in a terminal has not been
   studied.
-- **Argon2id parameters** for the PIN: 64 MB / t=3 were taken by analogy with
-  the transfer code (§8.2), but a PIN has a different threat model — six digits,
-  typed at every start, and what guards it against guessing is the node's
-  counter rather than the cost of the hash.
+- ~~Argon2id parameters for the PIN~~ — **they stay at 64 MB / t=3, measured
+  2026-08-28** (`scripts/measure-argon2-pin.sh`, container `python:3.12-slim`):
+
+  ```
+      memory  iterations    ms      offline search of a million PINs
+       16 MB           2    21       5.9 h on one core
+       32 MB           3    70      19.4 h
+       64 MB           3   144      39.9 h      ← taken
+      128 MB           3   308      85.5 h
+      256 MB           3   693     192.6 h
+  ```
+
+  The measurement closed the question not by naming the best number but by showing
+  that **this handle does not tune the PIN's security**. Six digits are a million
+  possibilities, and even 256 MB buys forty machine-days on one core — hours on a
+  dozen graphics cards. The only real defence here is the node's counter and its
+  ten attempts, exactly as written above; raising the parameters means paying a
+  delay at **every** launch for something that does not work.
+
+  So the choice is made by latency, and 144 ms is the edge of imperceptible. We
+  keep 64/3: the same parameters as the transfer code, where the hash's cost does
+  decide (45 bits against 20), and one implementation instead of two. The honest
+  caveat: the measurement was made on a developer's machine, while the delay is
+  paid by someone else's hardware — on a weak device the number will be several
+  times larger.
 - ~~The image support window~~ (8.2) — **the current major only** (decided
   2026-08-27). An older image gets a legible refusal with the command to update,
   and the sunset date is announced in advance. Price: one major version switches

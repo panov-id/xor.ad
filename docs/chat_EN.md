@@ -423,7 +423,6 @@ first        decrypted the envelope ─► so the code was typed correctly
   a device is asking to take the identity
 
   called itself   Chrome, Android
-  network         different from this device's
   when            just now
 
   Nobody from support will ever ask for this code.
@@ -431,11 +430,11 @@ first        decrypted the envelope ─► so the code was typed correctly
   [ that's me ]                        [ decline ]
 ```
 
-Three lines, chosen because each can be substantiated and none pretends to be more than it is.
+Two lines, chosen because neither pretends to be more than it is.
+
+**The "network" line was removed — decided 2026-08-29, and the price is named.** [retired] It used to compare the addresses of both sides: "a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another". That signal was the **only verifiable one** on this screen: the label is sent by the same side that is asking for the move, and anything can be written in it. Without it the confirmation rests on a pause and a time rather than on data. What goes with it is a false signal — a phone on mobile data next to you also read "different" — and the requirement for the node to compare two devices' addresses.
 
 **"Called itself", not "device".** The label is sent by the other side, is backed by nothing, and can say anything. Presenting it as fact would be lying on the very screen built against deception.
-
-**"Network"** compares the addresses of both sides, both of which the node sees. No geo database and no new dependency. It is the most useful signal there is: a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another. And it is **a hint, not a verdict**: a phone on mobile data next to you also reads "different", so the text reports an observation rather than passing judgement.
 
 Until "that's me" is pressed, the other side receives nothing. Silence or a closed tab means the code expired in two minutes and no transfer happened.
 

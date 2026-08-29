@@ -39,6 +39,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 - [x] Reconciled `legal/` duplicates: kept `terms_/privacy_/community-guidelines_`; deleted old `terms-of-service_/privacy-policy_`.
 - [ ] Set up `support@neighbro.place` mailbox.
 - [ ] Legal review of the Terms (13+ together with offline meetings is sensitive).
+- [ ] **Work out the legal side of saving an offer** (opened 2026-08-29). A saved card outlives the offer itself on the device, and there are three questions about that, all for a lawyer rather than for me: **what binds the business** when the discount on a saved card has already passed its `discount_until` and someone turns up with it; **what happens to the copy** when an offer is taken down on a report or turns out to be unlawful — we cannot erase it from a device, there is no such handle; **whether** a saved card counts as an offer in the contract-law sense or as an invitation to treat. The terms currently say only "a published discount must be honoured", with no term and no word about copies.
 - [ ] Screen/page to view accepted documents (already in the app profile).
 
 ## 3. App screens (next)

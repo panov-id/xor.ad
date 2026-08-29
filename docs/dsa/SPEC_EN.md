@@ -210,6 +210,39 @@ content is unreachable for us, so we cannot examine it. What we do instead:
 
 Refusing to examine without an explanation is forbidden: a reply is always owed.
 
+### 5.2a. Advertising: Article 26 and why it may not apply here
+
+**Recorded 2026-08-29, and this is not a lawyer's conclusion.** Until that day
+there was no section at all, although the product has exactly one form of
+advertising — the neighbourhood offer — and a blank where the article should be
+reads as an oversight rather than a decision.
+
+**First reading — the article does not apply.** The Regulation ties advertising
+to **remuneration for promotion**: an advertisement is information placed in
+return for payment specifically for promoting it. Our placement is free, with no
+money and no barter of any kind (`xor.ad/docs/offers/SPEC_EN.md`), and by the
+letter of the definition an offer falls outside it.
+
+**Second reading — it applies in substance.** An offer looks like advertising,
+works like advertising and is commercial by design. Leaning on the fact that we
+take no money is a defence that holds exactly until somebody tests it.
+
+**What we do regardless of which reading is right:**
+
+- an offer is **labelled with the word "offer"** and the discount amount right on
+  the card — not with a frame and not with an icon, because a venue's icon reads
+  as a neighbour's avatar, which is advertising disguised as a person (screen 17);
+- **whose it is, is visible**: the venue's name on the card, verified by an
+  envelope sent to its physical address;
+- **there are no targeting parameters** — placement is decided by location, not
+  behaviour, which is also what §5.3 records about Article 28(2);
+- **paid placement does not exist**, so "who paid" has no answer by construction
+  rather than by omission.
+
+**What is left for a lawyer:** which reading is right, and whether a separate
+advertising repository under Article 39 is needed (it is required of very large
+platforms, which we are not, but it hangs on the same definition).
+
 ### 5.3. Protection of minors (Article 28)
 
 The platform is accessible to children, so an Article 28 measure is required. We

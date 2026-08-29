@@ -172,6 +172,7 @@ through three different wrappers and cannot be counted by eye.
 | № | What must be true | What proves it | State |
 |---|---|---|---|
 | 9.0 | **"Not now" clears the card for the refuser only** (2026-08-28) | `declined_at` is set; the other participant's response is unchanged and the match's span is the same | nothing to check |
+| 8.9 | **The accepted revision is checked by hash** (2026-08-29) | editing a document file → identities holding the old hash are shown the documents again; without an edit they are not | nothing to check |
 | 9.1 | A match is born only while **both** phrases live | one expired → the like yields no match | nothing to check |
 | 9.2 | The match TTL is `least()` of both phrases, with no safety floor | a phrase with 3 minutes left → a 3-minute match | nothing to check |
 | 9.3 | A new mutual like does not extend the match | a like near the end → the same `expires_at` | nothing to check |

@@ -206,6 +206,50 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
   WHERE recovery_auth_hash IS NOT NULL AND closed_at IS NULL;
 ```
 
+**What a person accepted is a table of its own, not a column (decided 2026-08-29).**
+
+```sql
+CREATE TABLE legal_acceptances (
+  id               bigserial PRIMARY KEY,
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  document         text NOT NULL,        -- terms | privacy | guidelines
+  revision_date    date NOT NULL,        -- the date the document declares about itself
+  revision_sha256  text NOT NULL,        -- sha256 of the substance: the file with its date line blanked
+  accepted_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, accepted_at DESC);
+```
+
+- **A pair (date, hash), not a version number.** A number is raised by a person,
+  and people forget: the guidelines were edited on 2026-08-27 and went on
+  declaring themselves the 13 August revision until 2026-08-29. A hash cannot be
+  forgotten — it is computed from the very file the person read.
+- **The hash is taken with the date line blanked out.** The date lives inside the
+  file, so hashing the file whole would make every date edit a text edit, and
+  "the date moved while the text did not" would be indistinguishable from a real
+  new revision. The substance hash plus the date beside it cover the whole file
+  and tell those cases apart.
+- **Only the three English originals are hashed.** The clause inside every
+  translation says the English version governs; that is what was accepted. The
+  price is accepted: someone who read a translation is signed under a text they
+  never saw — but that is exactly the legal position the document already takes.
+- **A log, not a current value.** An `accepted_legal jsonb` column on
+  `identities` would be one table cheaper and would answer only "what is
+  accepted now". A dispute asks something else: what was accepted then and when,
+  the previous revision included — and only a row per acceptance answers that.
+- **What a change costs is stated in the manifest itself.** Each document
+  carries `reaccept`: `required` for the terms and the privacy policy, `silent`
+  for the guidelines. `required` means the identity **cannot publish or open a
+  chat** until it accepts again; the feed still reads. `silent` means the node
+  writes a new row itself and screen 15 marks the document as changed. The
+  difference is deliberate: the guidelines restate mechanics that already apply,
+  and stopping a conversation to announce them teaches people to press "accept"
+  without reading.
+- **The manifest reaches the node from the storefront**
+  (`/legal-manifest.json`, built by the storefront deploy out of
+  `deploy/legal-revisions.json`). The node stores no texts and computes no
+  hashes: the documents live where the person reads them.
+
 **Three edits in this table, all made 2026-08-21 from the review.** The recovery columns were made nullable back when the code was issued at the first chat: `NOT NULL` made it impossible to create an identity at all. Since 2026-08-26 the code is issued at registration again and they are filled straight away — the nullability is left as it is rather than rewriting the schema for a column that is always populated anyway. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.

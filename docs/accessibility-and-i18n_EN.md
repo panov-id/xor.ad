@@ -40,7 +40,11 @@ why they are recorded here rather than on a wishlist:
    same rule already holds in the panel.
 2. **Tab order equals reading order.** The feed is a collage, and that is exactly
    the case where visual order drifts away from the order in the markup.
-3. **A touch target is no smaller than 44 px.** The like and the "…" menu sit next
+3. **A touch target is no smaller than 44 px.** **One exception, recorded
+   2026-08-29: the cells of a game board.** The rule is about controls, where a
+   miss takes you somewhere else; a cell is a surface a person magnifies
+   themselves, and a miss costs one move back (screen 18 on the storefronts).
+   The like and the "…" menu sit next
    to each other on a card; a miss between them is a like where a person meant to
    report.
 4. **Every field is labelled by a word, not by a hint inside it.** A placeholder
@@ -63,6 +67,26 @@ community guidelines were: machine translation under the clause now, a native
 speaker improving it later. An untranslated name is an English island in
 someone else's conversation, not an absence of accessibility — so no case here
 ends in emptiness.
+
+## The board: keyboard and words (added 2026-08-29)
+
+A game board is the hardest surface in the product: until 2026-08-29 the only way
+to move was dragging, which meant no play from a keyboard and nothing at all for
+a screen reader.
+
+**The solution did not need inventing — it was already written in the terminal
+client.** `depth` draws the same board and moves across it with keys: select,
+move, leave. The web takes the same grammar, and the four operations on a piece —
+take, put, rotate, flip — turn out to be a ready vocabulary for the mouse, the
+keys and the reader alike.
+
+**A move is announced in the same words that name it.** "Anya put a piece on e4",
+not "Anya made a move": the second forces a walk across the whole board after
+every twitch. The vocabulary of coordinates belongs to each class of board; a
+free table has no coordinates and announces adjacency instead ("placed it against
+the six"); the "physics" class has no coordinate at all, and there it honestly
+stays "flicked" — the one place in the product where a game remains sighted, and
+that is recorded rather than passed over.
 
 ## The terminal: what we do not know
 

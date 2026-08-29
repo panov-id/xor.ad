@@ -251,7 +251,6 @@ The other side, when this terminal is the one showing the code:
   a device is asking to take the identity
 
   called itself   Chrome, Android
-  network         different from this terminal's
   when            just now
 
   nobody from support will ever ask for this code.

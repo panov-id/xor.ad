@@ -80,6 +80,8 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 | `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use | **spec** |
 | `POST /sessions/claim` | using the code on the new device; the old one goes still | **spec** |
 | `POST /recovery/claim` | raising an identity from the paper code | **proposed** (§8.2, §13) |
+| `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy | **proposed** (2026-08-29) |
+| `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **proposed** (2026-08-29) |
 
 **Registration is three steps, all mandatory:** name and age, then the PIN and the
 exchange with the node for its share, then the paper code. Without the share the
@@ -163,6 +165,21 @@ counting characters in it is impossible either exactly or approximately.
 What the spec states: `POST /feed` answers **202**; an undelivered message yields
 `error` — the same behaviour as being offline; routes that do not exist yet answer
 **404** (`/feed`) and **501** (`/chat`).
+
+**The "accept again" refusal is the one shape already needed** (2026-08-29).
+Any signed request that publishes or opens a chat answers **409** with the
+documents whose revisions have parted from the accepted ones:
+
+```
+{ "error": "legal_reacceptance_required",
+  "documents": [ { "document": "terms",
+                   "revision_date": "2026-09-14",
+                   "revision_sha256": "…" } ] }
+```
+
+Reading the feed is **not** closed by this refusal: someone who came to read a
+reply gets the conversation, not a legal text (screen 11). The guidelines never
+appear in this list — the node records their new revision itself (§8.2).
 
 **There is no single error shape in the spec, and I did not invent one here** —
 see §8. It is the first thing to agree on: without a common shape the two faces

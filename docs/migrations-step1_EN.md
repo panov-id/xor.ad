@@ -36,6 +36,7 @@ identity, a share references a session.
 
 ```
 011_identities.sql     →   012_sessions.sql     →   013_vault_shares.sql
+                       →   014_legal_acceptances.sql
    the identity              the device               the vault key's share
 ```
 
@@ -44,6 +45,35 @@ identity, a share references a session.
 different fates: a session goes still on transfer, a share burns after ten wrong
 PINs, an identity lives on. The split costs one extra file and saves an
 investigation six months from now.
+
+## 014 — what a person accepted
+
+```sql
+CREATE TABLE legal_acceptances (
+  id               bigserial PRIMARY KEY,
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  document         text NOT NULL CHECK (document IN ('terms', 'privacy', 'guidelines')),
+  revision_date    date NOT NULL,
+  revision_sha256  text NOT NULL CHECK (char_length(revision_sha256) = 64),
+  accepted_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, accepted_at DESC);
+```
+
+- **Added 2026-08-29 — until then the acceptance existed only in words.** Both
+  the registration screen and the spec claimed the accepted revision is stored
+  next to the identity; there was nothing to store, because the documents
+  carried a single "last updated" line typed by hand. Now the pair is a date and
+  the `sha256` of the text's substance, and a storefront check
+  (`deploy/check-legal-revisions.py`) keeps the two from drifting apart.
+- **The reference cascades.** When an identity is erased its acceptances go with
+  it: this is data about a person, not about a document, and it has no business
+  outliving them.
+- **The index on (identity, document, time) descending** — the only frequent
+  query here is "what does this identity have accepted now", which takes the
+  first row of the group.
+- **A `CHECK` on the hash length**, because the one plausible write error is a
+  truncated or empty hash, discovered in a dispute.
 
 ## 011 — the identity
 

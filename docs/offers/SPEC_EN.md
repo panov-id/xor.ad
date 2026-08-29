@@ -260,13 +260,22 @@ different objects for the sake of a row half of whose columns are always empty.
     redirect_hits           integer — a counter, tied to no person
     last_checked_at         when the target was last checked
     repeated_from_offer_id  nullable — if created by "Show again"
+    discount_until          timestamptz, required — the moment the discount stops being valid
     status                  enum: active | expired | hidden
     published_at
-    expires_at
+    expires_at              the card's life in the feed (4:20), not the discount's term
 
 Field rules:
 
 - `discount_value` cannot be empty — without it publication is impossible
+- `discount_until` cannot be empty either (decided 2026-08-29): a discount has an
+  end date and time, and eternal discounts do not exist. It is a separate value
+  from `expires_at`: **the card lives 4:20 in the feed, the discount lives until
+  its own term** — two different things that used to be one
+- `discount_until` no further than **90 days** from publication. The number is
+  chosen rather than measured: a saved card is a promise the business is obliged
+  to keep, and three months is the longest such promise worth binding anyone to.
+  Longer than that means "show again" with a new date
 - an empty `conditions` means the discount has no limits and cannot be refused
 - `external_url` is the only place in the product where a link is allowed, and it exists only
   for venues
@@ -277,7 +286,14 @@ Field rules:
 
 ### 3.1. Conditions: the only place a discount is limited
 
-**Everything that limits a discount lives in `conditions`.** Not in the offer's
+**The term is the one limit with a field of its own (edit of 2026-08-29).** This
+used to say that **everything** lives in `conditions`; with `discount_until` that
+is no longer true, and the reason is not tidiness but that a term does not work
+as free text: you cannot render it as "expires in two hours", cannot grey out a
+saved card with it, and cannot tell "until Friday" from "until Friday next week"
+without parsing prose in seventeen languages.
+
+**Everything else that limits a discount lives in `conditions`.** Not in the offer's
 text, not in the staff's heads, not in code. This rule replaces any limit
 mechanics — redemption counters, quotas, reservations, statuses — and that is
 exactly why none of them appear in §14.
@@ -286,8 +302,11 @@ exactly why none of them appear in §14.
 a statement, not a silence.
 
 **Availability is a condition too.** If you expect to run out, write "while
-stocks last". If you did not, you promised everyone who comes within the offer's
-4:20. The rule is deliberately strict: a person must learn about a limit **before
+stocks last". If you did not, you promised everyone who comes **before
+`discount_until`** (edit of 2026-08-29; [retired] this used to say "within the
+offer's 4:20 of life" — once the discount gained a term of its own that stopped
+being true, and in the direction that costs the business more: the card leaves
+the feed after 4:20, a saved one lives on). The rule is deliberately strict: a person must learn about a limit **before
 setting off**, not at the counter. A venue is burned by this once and writes it
 thereafter.
 

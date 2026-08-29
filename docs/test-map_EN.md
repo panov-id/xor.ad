@@ -176,6 +176,7 @@ through three different wrappers and cannot be counted by eye.
 | 8.10 | **A document's date is held against its text** (2026-08-29) | text edited without the date → red; date edited without the text → red; both → "new revision", the deploy waits for a decision | `deploy/check-legal-revisions.py`, self-test `--self-test` |
 | 8.11 | **The `legal_reacceptance_required` refusal** (2026-08-29) | the terms changed → publishing and opening a chat refused with 409, feed delivery unchanged; the guidelines changed → no refusal, a log row appears on its own | nothing to check |
 | 8.12 | **A sticker carries a name into all three faces** (2026-08-29) | the terminal prints `[name]`, the reader speaks the same word, the node receives neither name nor image — only an identifier inside the ciphertext | nothing to check |
+| 8.13 | **The discount has its own term, the card has its own** (2026-08-29) | `discount_until` is required and ≤90 days; the card leaves the feed after 4:20, a saved one lives on and greys into "the term has passed" past `discount_until` | nothing to check |
 | 9.1 | A match is born only while **both** phrases live | one expired → the like yields no match | nothing to check |
 | 9.2 | The match TTL is `least()` of both phrases, with no safety floor | a phrase with 3 minutes left → a 3-minute match | nothing to check |
 | 9.3 | A new mutual like does not extend the match | a like near the end → the same `expires_at` | nothing to check |

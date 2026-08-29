@@ -186,6 +186,14 @@ There is no geocoding     | depth-client_EN.md | search over a list on the devic
 # 26.08.2026 спеку свели с витринами на «пять живых»; 28.08.2026 решено четыре и
 # «четыре за час» вместо «восьми за 64 минуты». Правило, стерёгшее четвёрку, снято —
 # теперь стережём пятёрку и старое окно.
+# Стикеры уехали из ленты в беседу 27.08.2026, а формулировка «для сообщений/
+# чата» пережила отмену: в README шлюза до 29.08.2026, а в самом экране 16 — на
+# два абзаца ниже собственного опровержения. Ловится теперь машиной.
+стикеры для сообщений/чата | README_RU.md sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | стикеры в беседе, 29.08.2026
+в сообщении/чате          | sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | в беседе, 29.08.2026
+stickers for messages/chat | README.md sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | stickers in a conversation, 2026-08-29
+in a message/chat         | sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | in a conversation, 2026-08-29
+
 пять живых                | chat_RU.md chat-flows_RU.md sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | четыре живых, 28.08.2026
 8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026
 five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | четыре живых, 2026-08-28

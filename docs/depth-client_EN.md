@@ -659,6 +659,30 @@ shows and what it is obliged to say out loud:
 
 ---
 
+## 4a. Stickers
+
+Stickers are beyond the alpha (screen 16 on the storefronts), but in a text
+client their fate is peculiar, and it is recorded here on **2026-08-29**,
+because until that day the word "sticker" did not appear in this document once.
+The decision "one sticker, and instead of the text" made a line the terminal
+could not render at all.
+
+Every sticker has a name. The terminal prints it:
+
+```
+  neighbour   [waving]
+  you         hey :)
+```
+
+The brackets are not decoration but a mark: this is a sticker, not somebody's
+two-word message. The terminal does not draw the image and does not try — not in
+block graphics, not in `sixel`: the neighbouring line would be no clearer for it,
+and the output would stop being copyable.
+
+The name comes **from the catalogue** the client has already fetched whole;
+only the identifier travels inside the ciphertext. The terminal knows no more
+than the web does, and the node no more than the terminal.
+
 ## 5. What a terminal lacks, and what replaces it
 
 ### 5.1. The map → coordinates

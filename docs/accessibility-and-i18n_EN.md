@@ -46,7 +46,25 @@ why they are recorded here rather than on a wishlist:
 4. **Every field is labelled by a word, not by a hint inside it.** A placeholder
    disappears on typing, and someone returning to the form loses the question.
 
-### The terminal: what we do not know
+### A sticker is a line, not a picture (added 2026-08-29)
+
+The rule is short: **anything that occupies the place of a line must carry a
+word.** A sticker is sent instead of text, which makes it the line itself;
+without a name a screen reader reads emptiness where it stands, and a person in
+a terminal sees a hole in the conversation.
+
+So every sticker in the catalogue carries a short name, and it is the **same
+one** for the reader and for the terminal: not an "alt text for the web" and a
+separate "caption for the console", but one string serving both. Two strings
+would drift, as everything written twice does.
+
+The names are translated into the storefront languages the same way the
+community guidelines were: machine translation under the clause now, a native
+speaker improving it later. An untranslated name is an English island in
+someone else's conversation, not an absence of accessibility — so no case here
+ends in emptiness.
+
+## The terminal: what we do not know
 
 The three open questions of `depth-client` stay open honestly, and here is what is
 known about them:

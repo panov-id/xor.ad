@@ -98,7 +98,32 @@ Adding a game means describing a field and a set of pieces, not writing code.
 
 **A guessed word goes through the moderation queue**, like a phrase (§8.3): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one".
 
-**Three shared buttons sit above any class:** play again, suggest another game, pass or hand over the turn. They belong to no particular board and live in the common frame.
+**Four shared buttons sit above any class:** play again, suggest another game,
+pass or hand over the turn, and **put it back**. They belong to no particular
+board and live in the common frame.
+
+**Three of them are proposals rather than actions (2026-08-29).** "Play again"
+and "put it back" send a request to the others and fire **once everyone agrees**;
+none of them is unilateral, for the same reason there is no turn order and no
+table owner. What follows:
+
+- **the board does not go out by itself.** The engine knows no rules, so it
+  cannot know when a game ended; it ended when the people agreed it did. Once
+  everyone has declined to play again, the game is over and the board closes;
+- **in a pair, one person leaving ends the game**, because there is nobody to
+  wait for;
+- **at a table the last person left waits** for someone to sit down (§6.1);
+- **behind "put it back" the engine keeps exactly one previous snapshot**, in
+  memory, under the same key and past the database. There is no move history and
+  there will not be: it would outlive the board, and the board is transient
+  state.
+
+**The board is operable from a keyboard too (2026-08-29).** The grammar is taken
+from the terminal client, where it existed from the start: select, take-and-put,
+rotate, flip. The other person's move is **announced in words** — "put a piece on
+e4" rather than "made a move": the vocabulary of coordinates belongs to each
+class, a free table announces adjacency instead of coordinates, and the "physics"
+class has no coordinate at all.
 
 - Start/switch is **request-based**: the 🎲 "propose a game" button → pick a board → the other person gets a request → they accept → the board opens for both. Switching games is the same request.
 - No move validation, no score, no winner — only board state + dragging.

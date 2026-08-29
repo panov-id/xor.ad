@@ -724,7 +724,18 @@ simply here than in the web:
    ·   ·───·   ·
 
   [hjkl] pick an edge   [enter] move   [esc] leave
+  [u] put it back   [r] play again
 ```
+
+**The web took this grammar on 2026-08-29** (screen 18 on the storefronts): until
+then a board in a browser worked by dragging alone, which is to say it worked
+neither from a keyboard nor with a screen reader. Here it existed from the start —
+a terminal cannot do it any other way.
+
+`u` and `r` are **requests, not actions**: they go to the others and fire once
+everyone agrees. Once everyone has declined to play again, the board closes; in a
+pair, one person leaving ends the game; at a table the last one left waits for
+someone to sit down.
 
 The board is transit state of the chat: encrypted with the same key, held in
 memory, gone with the chat, never written to the database (§8.8).

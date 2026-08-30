@@ -17,7 +17,12 @@ import { captureTarget } from "../lib/dsa_snapshot.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, REPORT_LIMITS } from "../lib/rate_limit.ts";
 
-const KINDS = new Set(["feed_message", "offer", "chat", "other"]);
+// `table_line` was added to the spec and to screen 19 on 2026-08-26 and to this
+// set on 2026-08-30: for four days a line at a table was the one public,
+// unencrypted, moderated surface in the product that the notice route answered
+// with 422. Article 16(1) asks the mechanism to accept a notice about any
+// content the notifier considers illegal, and this one refused a whole surface.
+export const KINDS = new Set(["feed_message", "offer", "table_line", "chat", "other"]);
 
 // Long enough to say why something is illegal, short enough that the field is
 // not a place to paste a novel into the database.

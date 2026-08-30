@@ -194,8 +194,17 @@ There is no geocoding     | depth-client_EN.md | search over a list on the devic
 stickers for messages/chat | README.md sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | stickers in a conversation and at a table, 2026-08-30
 in a message/chat         | sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | in a conversation, 2026-08-29
 
-пять живых                | chat_RU.md chat-flows_RU.md sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | четыре живых, 28.08.2026
+# 30.08.2026: правило ловило только «пять живых» и только в четырёх файлах, а
+# экран 20 говорил «Пять свободных слотов квоты», экран 11 по-английски — «All
+# five slots». Пережило смену числа на двое суток. Теперь и формулировок больше,
+# и область — все экраны обеих витрин.
+пять живых                | chat_RU.md chat-flows_RU.md sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | четыре живых, 28.08.2026
+пять свободных слот       | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | четыре свободных слота, 30.08.2026
+все пять слотов           | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | все четыре слота, 30.08.2026
+Five free quota slots     | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four free quota slots, 2026-08-30
+All five slots            | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | all four slots, 2026-08-30
+five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four slots free, 2026-08-30
 8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026
-five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | четыре живых, 2026-08-28
+five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | четыре живых, 2026-08-28
 8 in 64 minutes           | chat_EN.md chat-flows_EN.md | four per hour, 2026-08-28
 

@@ -291,7 +291,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 
 #### The "stepped away" state (2026-08-26)
 
-A person may leave the place for a span — **20 minutes, an hour, or until morning** — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. The point is not an errand but giving someone caught in the pull a real way out.
+A person may leave the place for a span — **20 minutes, an hour, or until morning** — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. **A phrase awaiting the queue's verdict is deleted along with the published ones (2026-08-30)** — there is no "accepted but held until return" state; **the hour counter behind the step-away prompt is reset by leaving**, because it counts continuous use. The point is not an errand but giving someone caught in the pull a real way out.
 
 - **Phrases are deleted** (`DELETE`, not hidden) along with their likes: quota slots free immediately, and whoever returns has nothing to catch up on.
 - **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.

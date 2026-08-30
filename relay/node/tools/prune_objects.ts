@@ -54,6 +54,16 @@ export const COLLECTIONS: readonly Collection[] = [
     because: "same window as the attributed ones — a report with no tenant is still a crash",
   },
   {
+    // Written by the CSP endpoint since it was built and swept by nothing: the
+    // one collection here that grew without a ceiling. It carries a user agent
+    // (300 chars), the page the violation happened on and the time — which is
+    // the shape §5 of the policy calls "logs", so it gets the window logs get.
+    // Found 2026-08-30 by a review panel, not by a check; there was none.
+    directory: "csp-reports",
+    days: 30,
+    because: "a policy violation is worth reading while the release that caused it is live",
+  },
+  {
     directory: "waitlist",
     // Not an age. The promise is "until launch and a year after", and before
     // launch nothing has expired — deleting leads on a timer would quietly throw

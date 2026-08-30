@@ -15,6 +15,10 @@ configured("every collection with a promised window has a row", () => {
     "audit",
     "client-errors",
     "client-errors-unattributed",
+    // Added 2026-08-30. It had been written since the CSP endpoint was built and
+    // swept by nothing — the list here is the list of promises, and this one was
+    // being kept by nobody because it had never been made.
+    "csp-reports",
     "server-logs",
     "waitlist",
   ].sort());
@@ -38,7 +42,10 @@ configured("the windows are the ones the documents promise", () => {
 
   const logsAndErrors = promised(
     register,
-    /Server logs and client errors (\d+) days/,
+    // The register gained CSP reports in this sentence on 2026-08-30; the shape
+    // is deliberately narrow, so the day the sentence changes this goes red and
+    // somebody reads why rather than the number drifting quietly.
+    /Server logs, client errors and CSP reports (\d+) days/,
     "how long server logs and client errors are kept",
   );
   const auditTrail = promised(

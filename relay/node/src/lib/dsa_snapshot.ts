@@ -64,6 +64,17 @@ export const SNAPSHOTTABLE: Record<
     tenant: "brand",
     quote: "offer_text",
   },
+  // A line at a table is public, unencrypted and moderated like the feed, so it
+  // is copied like the feed — unlike a chat, where there is nothing on our side
+  // to copy. Added 2026-08-30 together with the kind itself; the table does not
+  // exist yet, and until it does the lookup above answers `not_accessible`.
+  table_line: {
+    table: "table_lines",
+    columns: "id, text, created_at, author_identity, table_id",
+    posted: "created_at",
+    tenant: "brand",
+    quote: "text",
+  },
 };
 
 async function tableExists(name: string): Promise<boolean> {

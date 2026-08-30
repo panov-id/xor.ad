@@ -183,8 +183,16 @@ processing is identical and only the storefront differs, so the record is shared
   query string can carry anything, and the markers field accepts only flat short
   values — nested objects are dropped rather than serialised
   (`routes/client_error.ts`, 2026-08-11).
-- **Retention.** Server logs and client errors 30 days. Backups 14 days
-  (`relay/wizard/backup-postgres.sh`, `keep_days`).
+- **Content-security-policy reports.** A browser that refuses to load something
+  the page asked for posts a report, and the node keeps it: the page it happened
+  on, the blocked path, the directive, the source file and line, the user agent
+  (300 chars) and the time (`routes/csp_report.ts`). It carries no identifier and
+  no address, and it exists to show a policy drifting away from the pages it
+  guards. **Added to this register 2026-08-30** — it had been collected since the
+  endpoint was built and swept by nothing, which a review panel found and no
+  check did.
+- **Retention.** Server logs, client errors and CSP reports 30 days. Backups 14
+  days (`relay/wizard/backup-postgres.sh`, `keep_days`).
 
 ### 12. Administering the panel
 

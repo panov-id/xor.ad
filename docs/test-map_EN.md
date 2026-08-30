@@ -179,6 +179,7 @@ through three different wrappers and cannot be counted by eye.
 | 8.13 | **The discount has its own term, the card has its own** (2026-08-29) | `discount_until` is required and ≤90 days; the card leaves the feed after 4:20, a saved one lives on and greys into "the term has passed" past `discount_until` | nothing to check |
 | 8.14 | **The board moves from a keyboard and speaks in words** (2026-08-29) | arrows+Enter move a piece without a mouse; the other's move arrives as "put a piece on e4"; a free table announces adjacency, physics announces "flicked" | nothing to check |
 | 8.15 | **Play-again and undo take everyone's agreement** (2026-08-29) | one of two at a table agrees — nothing happens; all agree — one step back; all decline to play again — the board closes; in a pair one leaves — the game ends; at a table one remains — the table lives | nothing to check |
+| 8.16 | **A table spends no quota** (2026-08-30) | four live phrases plus a table put up → a fifth phrase is still refused and the table stands; the table goes → the quota is unchanged | nothing to check |
 | 9.1 | A match is born only while **both** phrases live | one expired → the like yields no match | nothing to check |
 | 9.2 | The match TTL is `least()` of both phrases, with no safety floor | a phrase with 3 minutes left → a 3-minute match | nothing to check |
 | 9.3 | A new mutual like does not extend the match | a like near the end → the same `expires_at` | nothing to check |

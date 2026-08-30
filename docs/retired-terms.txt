@@ -189,9 +189,9 @@ There is no geocoding     | depth-client_EN.md | search over a list on the devic
 # Стикеры уехали из ленты в беседу 27.08.2026, а формулировка «для сообщений/
 # чата» пережила отмену: в README шлюза до 29.08.2026, а в самом экране 16 — на
 # два абзаца ниже собственного опровержения. Ловится теперь машиной.
-стикеры для сообщений/чата | README_RU.md sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | стикеры в беседе, 29.08.2026
+стикеры для сообщений/чата | README_RU.md sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | стикеры в беседе и за столом, 30.08.2026
 в сообщении/чате          | sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | в беседе, 29.08.2026
-stickers for messages/chat | README.md sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | stickers in a conversation, 2026-08-29
+stickers for messages/chat | README.md sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | stickers in a conversation and at a table, 2026-08-30
 in a message/chat         | sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | in a conversation, 2026-08-29
 
 пять живых                | chat_RU.md chat-flows_RU.md sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | четыре живых, 28.08.2026

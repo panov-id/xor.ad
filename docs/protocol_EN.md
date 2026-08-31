@@ -98,7 +98,7 @@ identity.
 | `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release | **proposed** (§8.3, screen 3) |
 
 A feed response carries `{id, text, mode, lat, lon, area_radius, like_count,
-created_at}` — **a circle, not a point**, and nothing about the author.
+created_at}` — **a circle, not a point**, and nothing about the author. `lat`/`lon` are **rounded to a grid node stepped by `area_radius`** (the formula is in `chat_EN.md` §8.3); the exact ones never leave and stay only for computing the overlap.
 
 ### 4.3. Like, match, chat (steps 3–6)
 

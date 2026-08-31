@@ -782,7 +782,7 @@ Age is self-declared, with no verification whatsoever. The bands separate teenag
 
 ### 8.3. Feed and geography
 
-A phrase is tied not to a city but to **an area the person chooses themselves** — not to where they are. They choose it on a **diagram** rather than a map: no face draws a map (decided 2026-08-28), because a tile tells whoever serves it which square is being looked at. So there is nothing to coarsen: the point does not reveal a location anyway.
+A phrase is tied not to a city but to **an area the person chooses themselves** — not to where they are. They choose it on a **diagram** rather than a map: no face draws a map (decided 2026-08-28), because a tile tells whoever serves it which square is being looked at. So the point does not reveal a location anyway. **Coarsening is still needed, for a different reason — decided 2026-08-31:** not against "where is he", but against joining up one author's phrases. The reasoning is below, in the paragraph on what goes out.
 
 ```sql
 CREATE TABLE feed_messages (
@@ -830,15 +830,28 @@ What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at
 
 **The grid step equals the phrase's radius.** Everyone who published with the same radius inside one cell then sends out **identical** coordinates, and equality stops being a signal. A random offset was considered and rejected: an attacker joins by proximity rather than equality, and four points within a couple of hundred metres group together after any jitter.
 
+**How the cell is computed — written down on 2026-08-31, because a naive implementation cancels this whole paragraph.** The radius is in metres, `lat`/`lon` are in degrees, and the bridge between them is the one place where the decision breaks silently:
+
+```
+Δφ    = r / 111320
+lat_q = round(lat / Δφ) · Δφ
+Δλ    = r / (111320 · cos(lat_q))      ← cosine of the ALREADY ROUNDED latitude
+lon_q = round(lon / Δλ) · Δλ
+```
+
+The grid is anchored at (0°, 0°) and what goes out is a grid node. The cosine is taken from the rounded latitude, and that is not pedantry: take it from the exact one and the longitude step becomes a function of an unpublished quantity. A thousand people in one cell would then get a thousand **different** longitudes, equality would vanish, and the exact latitude itself would be recoverable from the published pair by searching one integer — measured: 25–30 bits with a cautious float tolerance, 36–43 at full `double` precision, and the leak falls to zero only on the prime meridian. So the naive variant does not leak a little; it leaves exactly the unique pseudonym all of this is written against. The trap sits nearby: the query below has `cos(radians(:lat))` on the exact latitude — that is the coarse index filter, and it must not be carried into the rounding.
+
 **The radius became stepped too — and that is the other half of the same hole.** A free integer from 100 to 10000 is 9901 values, which is close to a unique mark on its own.
 
 **Every phrase has a zone of its own** — the circle, the radius and the "district or city" field live in the composer and are chosen at each publication, not once per identity. So the join is not guaranteed by construction: it appears **on repetition**, when a person publishes from the same place with a similar circle, which is both natural and convenient. How often that happens is decided by an open question — whether the placed point is remembered between openings (`00-mechanics_EN.md`, "Open") — and while it is open, the worst case is what counts.
 
-Five steps — 100, 300, 1000, 3000, 10000 — make even a full repetition produce a value shared with hundreds of neighbours. The price is named: whoever wanted 700 metres gets 1000, and the control on screen 4 becomes five positions instead of a continuum.
+Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark. **By how much was computed on 2026-08-31, and the earlier wording "shared with hundreds of neighbours" did not survive it.** On the most favourable reading (10% of residents in the app, each holding all four live phrases, steps equally likely) a cell in Paris holds 16 other phrases at 100 metres, 144 at 300 and 1600 at a kilometre; on sober assumptions (1% of residents, one publication a day) — 0.07, 0.65 and 7.2. For a 100-metre cell to hold two hundred neighbours you would need 250,000 people per km², denser than anywhere on Earth. So, honestly: **hundreds begin at a kilometre and up, and at 100 and 300 metres a cell holds single digits** — the lower steps hide weakly. The price is named twice: whoever wanted 700 metres gets 1000 and the control on screen 4 becomes five positions instead of a continuum — and whoever took 100 metres for precision hides less well than the word "cell" suggests.
 
-**What this does not fix.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+**What this does not fix, second: the steps are not nested.** Publishing from one point at 300 metres and then at a kilometre sends out two cells, and their intersection is sometimes narrower than the smaller of them: simulated over 2 million points — 30% of positions narrow, in the worst case to 50 metres instead of 300. The pairs 100/300 and 1000/3000 are nested and never narrow; 300/10000 narrows for 3% of positions. A divisibility chain — 100/300/900/2700/8100 — would close the channel outright, but it would move the ceiling off the 10 km reconciled with the filter rectangle above; keeping five steps and naming the remainder was chosen instead. The one consolation is thin and worth knowing: to intersect the cells you must already know the phrases belong to one person, so this sharpens a join rather than making one.
 
-**The viewing radius in the feed (screen 3) gets no steps** — it is not published, never leaves, and cannot be a signal.
+**What this does not fix, first.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+
+**The viewing radius in the feed (screen 3) gets no steps** — it is not published to other people and so cannot be a joining signal. The node does see it: `GET /feed` and `GET /feed/density` are built on it, and as a measuring instrument in someone else's hands it is discussed separately.
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 
@@ -920,7 +933,10 @@ where it sits is the whole of the choice.
 Visibility is **circle intersection** plus the age band (8.2): if I can see you, you can see me.
 
 ```sql
-SELECT f.id, f.text, f.mode, f.lat, f.lon, f.area_radius, f.like_count, f.created_at
+SELECT f.id, f.text, f.mode,
+       grid_round_lat(f.lat, f.area_radius)        AS lat,   -- outwards: the grid node,
+       grid_round_lon(f.lon, f.lat, f.area_radius) AS lon,   -- not what the database holds
+       f.area_radius, f.like_count, f.created_at
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
 WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text
@@ -1554,7 +1570,7 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
 | Level | Available |
 |---|---|
-| Feed | `feed_message.id`, text, `mode`, circle (centre + radius), `like_count`, time |
+| Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
 | Match | `match_id`, peer's phrase + `mode`, name, age, timer |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
 | Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text |

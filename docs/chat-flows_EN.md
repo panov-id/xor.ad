@@ -948,7 +948,7 @@ deliberate press rather than automation.
 
 ```mermaid
 flowchart TD
-  L1["Feed"] --> L1d["phrase id, text, mode,<br/>a CIRCLE #40;centre + radius#41;, like_count, time<br/>— and nothing about the author"]
+  L1["Feed"] --> L1d["phrase id, text, mode,<br/>a CIRCLE #40;centre rounded to a cell + radius#41;,<br/>like_count, time — and nothing about the author"]
   L1d --> L2["Match"]
   L2 --> L2d["+ the other's phrase and mode,<br/>NAME, AGE, a timer"]
   L2d --> L3["Chat"]

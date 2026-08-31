@@ -369,8 +369,9 @@ already have them:
 ```
 
 That last line is not decoration: per the spec (§8.3) the point is tied to a
-**chosen area** rather than to where the person is, which is why it needs no
-blurring.
+**chosen area** rather than to where the person is. It still leaves rounded to a
+cell (§8.3, decided 2026-08-31) — for a different reason: not to hide the place,
+but so that an exact centre does not join up one author's phrases.
 
 The value is remembered in the volume, so it is typed once.
 

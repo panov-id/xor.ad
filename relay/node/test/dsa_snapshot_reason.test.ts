@@ -4,7 +4,7 @@
 // Why it exists: the reason used to live only in a log line, so the night's
 // review could not tell a chat report (by design) from a broken query (a defect
 // shipping silently). Both were `not_accessible`, and both looked fine.
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1";
 import { captureTarget, type CaptureReason } from "../src/lib/dsa_snapshot.ts";
 
 async function reasonFor(

@@ -901,7 +901,7 @@ Hence a consequence worth naming outright: **a phrase can be taken down by its
 author**. The spec did not describe this before — a phrase only expired. A phrase
 taken down disappears exactly as an expired one does (§8.10): the text is
 deleted, the likes cascade away, `chat_starters` survive as copies. The slot frees
-immediately; the 64-minute ceiling does not.
+immediately; the hourly ceiling does not.
 
 Likes are counted with room to spare: 64 in half an hour is one every thirty
 seconds without a break. No living person keeps that up, while automation hits it

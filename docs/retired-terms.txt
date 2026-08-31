@@ -203,6 +203,14 @@ in a message/chat         | sosed.place/docs/16-stickers_EN.md neighbro.place/do
 все пять слотов           | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | все четыре слота, 30.08.2026
 Five free quota slots     | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four free quota slots, 2026-08-30
 All five slots            | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | all four slots, 2026-08-30
+# 31.08.2026: панель ревью нашла ещё два остатка правки 28.08 — «третья из пяти»
+# на экране композера и «потолок за 64 минуты» в спеке. Первое пережило и реестр,
+# и мою же выборку, потому что искали «слоты», а там счёт фраз.
+третья из пяти            | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | третья из четырёх, 31.08.2026
+third of five             | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | third of four, 2026-08-31
+потолок за 64 минуты      | chat_RU.md chat-flows_RU.md | потолок за час, 31.08.2026
+64-minute ceiling         | chat_EN.md chat-flows_EN.md | hourly ceiling, 2026-08-31
+
 five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four slots free, 2026-08-30
 8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026
 five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | четыре живых, 2026-08-28

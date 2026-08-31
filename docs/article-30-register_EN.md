@@ -15,7 +15,7 @@ the product's `00-mechanics`, `dsa/SPEC`, `offers/SPEC_EN` and `vendors-dpa`.
 |---|---|
 | **Who** | Evgenii Panov, a private individual, brands PSYTICAN & PEJEDED |
 | **Where** | Limassol, Cyprus (EU) |
-| **Data contact** | `privacy@sosed.place`, `privacy@neighbro.place` |
+| **Data contact** | `support@sosed.place`, `support@neighbro.place` — the address the privacy policy gives. `privacy@` on both domains is an alias to the same mailbox, kept so mail sent there is not lost (reconciled 2026-08-31: the register named one address and the policy another, and a regulator opening the register would have written to the one people are not told about) |
 | **General contact** | `support@sosed.place`, `support@neighbro.place` — English and Greek |
 | **Art. 27 representative** | not required: the controller is established in the EU |
 | **DPO** | not appointed. Art. 37 requires one for large-scale systematic monitoring or large-scale special-category processing; neither applies — the service has not launched and we do no profiling |

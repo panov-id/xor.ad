@@ -65,18 +65,26 @@ git -C "$root" --no-pager diff -- relay/wizard/environments.toml
 echo "== wizard --node $box deploy"
 SECRETS_ENV="$secrets_file" bash "$root/relay/wizard/run.sh" --node "$box" deploy
 
-# Health says a node answers; this says it is THIS node. /v1/client-error only
-# exists in the build being rolled out, so 404 means the old image is still up —
-# and it needs no credential to ask, unlike /waitlist on a keyed environment.
+# Health says a node answers; this says it is THIS build. It used to ask whether
+# /v1/client-error existed, on the reasoning that the route was new — which
+# stopped identifying anything the moment the route landed in an older image. On
+# 2026-08-31 that probe reported "the new build is live" over a node whose image
+# pull had been denied, and the run before it had reported the same. Now the node
+# names its own tag (RELAY_IMAGE_TAG, handed in by the wizard and kept by the
+# running container), and the probe compares it with the tag being rolled.
 base="https://$box-$environment.relay.panov.id"
 echo "== probe $base"
 curl -fsS -m 10 "$base/health" | grep -q '"status":"ok"' || { echo "FAIL: health"; exit 1; }
-status="$(curl -sS -o /dev/null -w '%{http_code}' -m 10 -X POST "$base/v1/client-error" \
-  -H 'content-type: application/json' -d '{}')"
-case "$status" in
-  401) echo "   /v1/client-error -> 401: the new build is live" ;;
-  404) echo "FAIL: /v1/client-error -> 404 — the old image is still running" >&2; exit 1 ;;
-  *)   echo "FAIL: /v1/client-error -> $status, expected 401" >&2; exit 1 ;;
+running="$(curl -fsS -m 10 "$base/health" |
+  python3 -c 'import json,sys; print(json.load(sys.stdin).get("image", ""))')"
+case "$running" in
+  "$tag")   echo "   /health image -> $running: this build is live" ;;
+  ""|unknown)
+    echo "FAIL: the node does not report an image tag — it predates RELAY_IMAGE_TAG," >&2
+    echo "      which means it is older than this probe and certainly not $tag" >&2
+    exit 1 ;;
+  *)  echo "FAIL: the node is running $running, not $tag — the roll did not take" >&2
+      exit 1 ;;
 esac
 
 echo

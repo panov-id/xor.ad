@@ -143,9 +143,10 @@ The board for two lives inside a chat. A group game **does not fit** inside one:
 - **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
 - **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
 - **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
+
 **The table's schema — established 2026-08-31.** Until that day a table existed as
 paragraphs: no table, no columns, no zone, although it stands in the same feed as
-a phrase and since 2026-08-26 its lines have a notice target under Article 16. A
+a phrase and since 2026-08-28 its lines have a notice target under Article 16. A
 review panel named this the first gap; screen 19 cannot be drawn without it.
 
 ```sql
@@ -156,11 +157,13 @@ CREATE TABLE tables (
   lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- the phrase's steps: a table is published by the same rule
-  created_by       uuid NOT NULL REFERENCES identities(id),   -- never leaves, and grants nothing: a table has no owner
+  created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- not part of any response; a table has no owner
   created_at       timestamptz NOT NULL DEFAULT now(),
   last_move_at     timestamptz NOT NULL DEFAULT now(),        -- the sliding span: a move or a line from anyone seated
   closed_at        timestamptz                                -- everyone left, or everyone declined to play again
 );
+
+CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
 
 CREATE TABLE table_seats (
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
@@ -170,28 +173,72 @@ CREATE TABLE table_seats (
   PRIMARY KEY (table_id, identity)
 );
 
+CREATE INDEX table_seats_by_identity ON table_seats (identity) WHERE left_at IS NULL;
+
 CREATE TABLE table_lines (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- the `table_line` notice target is scoped by it
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  author_identity  uuid NOT NULL REFERENCES identities(id),
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   created_at       timestamptz NOT NULL DEFAULT now(),
   visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
 );
+
+CREATE INDEX table_lines_feed  ON table_lines (table_id, created_at) WHERE visible_at IS NOT NULL;
+CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS NULL;
 ```
 
 - **The zone and radius are a phrase's**, because a table is seen by the same
-  circle-overlap rule. It introduces no geography of its own.
+  circle-overlap rule. It introduces no geography of its own — and **the same
+  rounding applies on the way out**: a cell stepped by `area_radius`, by the
+  formula in §8.3. A table is a stronger pseudonym than a phrase, not a weaker
+  one: it lives until silence rather than 4:20, it carries no quota at all
+  (2026-08-30), and one person may put up any number of tables sharing a centre.
+  The exact coordinates stay in the database — the overlap is computed from them.
 - **`created_by` exists and grants nothing.** Moderation and abuse work need it —
   tables carry no limit at all (2026-08-30), and when a limiter is needed there
-  will be nothing to count without this column. It never goes out, like a
-  phrase's `author_identity`.
+  will be nothing to count without this column. It is part of no response. The
+  price is named: a fresh table usually has one sitter, and that sitter is the
+  one who started it — "it never goes out" protects the column, not the inference.
+- **`ON DELETE SET NULL`, not `CASCADE` — decided 2026-08-31 by a review panel.**
+  §8.2 promises a closed identity a real `DELETE` after 30 days; with no
+  behaviour named it would fail on the foreign key, and the irreversible erasure
+  screen 12 promises would not happen. `CASCADE` is wrong here: it would take
+  away the very line a notice under Article 16 was filed against, while the
+  snapshot of it lives a year and points at the row. `SET NULL` erases the person
+  and keeps the evidence. **Open item:** six older columns carry the same defect —
+  `feed_messages.author_identity`, `likes.liker_identity`,
+  `identity_stats.identity`, `match_participants.identity`,
+  `chat_participants.identity`, `hidden_messages.identity` — and they want one
+  pass under one rule, not six.
 - **`joined_at` *is* the "a newcomer sees nothing from before" rule**: the line
   feed is cut by it rather than by a flag of its own.
 - **`visible_at` without `expires_at`**, unlike a phrase: a line at a table has no
   span of its own and goes with the table. The span is single and shared, and it
   lives in `tables.last_move_at`.
+- **The span of silence is 60 minutes — the number named on 2026-08-31.** Until
+  that day there was only the adjective "sliding", and no sweep could be written
+  from it: `last_move_at` exists, and there was nothing to subtract. Sixty is not
+  invented but taken from the conversation, where `chat_participants.idle_ttl_minutes`
+  stands at `DEFAULT 60`; the difference is that a table's span is one for
+  everyone (2026-08-27) rather than each sitter's own. The price is named: a table
+  where a move is pondered for over an hour closes under the people at it — and if
+  that turns out to be short, the number changes here, not in the code.
+- **One statement removes a table**, and both cascades above exist for it:
+  `DELETE FROM tables WHERE closed_at IS NOT NULL OR last_move_at < now() -
+  interval '60 minutes'`. `closed_at` on its own sweeps nothing — it is a mark,
+  not a deletion — and without this statement public speech at a table would sit
+  in plaintext forever, while §8.8 promises the opposite for a conversation
+  between two. **The sweeper does not exist yet** — as with identities (§8.2) —
+  and that is written down as an open item rather than passed off as done.
+- **Open item: being asked to leave locks nothing.** "The majority of those
+  sitting can ask someone to leave" is not something the schema supports:
+  `table_seats` has `left_at` but no trace of an eviction, and the primary key
+  `(table_id, identity)` means coming back is the same `UPDATE ... SET left_at =
+  NULL`. Either a column is added, or the price is written plainly: an eviction
+  shows someone out, it does not lock the door. To be decided before the first
+  line of a table's code.
 - **The board is not in the schema.** Board state is transient — in memory,
   encrypted under the conversation key where there is one, never written to the
   database (§8.8). A table stores who is seated and what was said, not where the

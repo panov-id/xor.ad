@@ -130,7 +130,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.8 | Limits: ≤4 live phrases, ≤4 per hour (2026-08-28) | a fifth live one → refused; a fifth within the hour → refused | nothing to check |
 | 6.9 | Taking a phrase down frees the slot but not the 64-minute ceiling | take down and repost in a loop → the ceiling holds | nothing to check |
 | 6.10 | **A phrase longer than 128 characters is refused by the database, not the app** | an `INSERT` with 129 characters fails on the `CHECK` | nothing to check |
-| 6.11 | **A zone outside 100–10000 metres cannot be created** | an `INSERT` with `area_radius = 50` and with `20000` fails on the `CHECK` | nothing to check |
+| 6.11 | **A zone is one of five steps and nothing else** (rewritten 2026-08-31) | an `INSERT` with `area_radius = 50`, `437` and `20000` fails on the `CHECK`; 100, 300, 1000, 3000, 10000 pass | nothing to check |
 | 6.12 | A link in the text is stripped, and the person is told | a phrase with a link → the feed shows it without one, the author gets an explaining line | nothing to check |
 | 6.13 | A non-empty discount turns a phrase into a private offer | a like on it yields a match at once, with none back (§8.5) | nothing to check |
 
@@ -181,7 +181,7 @@ through three different wrappers and cannot be counted by eye.
 | 8.15 | **Play-again and undo take everyone's agreement** (2026-08-29) | one of two at a table agrees — nothing happens; all agree — one step back; all decline to play again — the board closes; in a pair one leaves — the game ends; at a table one remains — the table lives | nothing to check |
 | 8.16 | **A table spends no quota** (2026-08-30) | four live phrases plus a table put up → a fifth phrase is still refused and the table stands; the table goes → the quota is unchanged | nothing to check |
 | 8.17 | **A break takes what is in the queue too** (2026-08-30) | a phrase sent and not yet judged → after leaving it is in neither the feed nor the queue, and the quota is free | nothing to check |
-| 8.18 | **Coordinates in a response are rounded to a cell** (2026-08-31) | two phrases by one author, same radius, same cell arrive with **identical** `lat`/`lon`; in the database they differ, and the intersection is computed from the exact ones | nothing to check |
+| 8.18 | **Coordinates in a response are rounded to a cell** (2026-08-31, tightened the same day) | two phrases by one author, same radius, same cell arrive with **identical** `lat`/`lon`; in the database they differ **in latitude as well as longitude** — otherwise the test stays green against a naive cosine of the exact latitude; the intersection is computed from the exact ones | nothing to check |
 | 8.19 | **The radius is a step and nothing else** (2026-08-31) | `area_radius = 437` → refused at publication; 300 and 1000 pass | nothing to check |
 | 9.1 | A match is born only while **both** phrases live | one expired → the like yields no match | nothing to check |
 | 9.2 | The match TTL is `least()` of both phrases, with no safety floor | a phrase with 3 minutes left → a 3-minute match | nothing to check |

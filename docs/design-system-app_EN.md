@@ -54,6 +54,7 @@ The roles follow the panel's; the names are the storefronts' wherever those exis
 | `--ok`, `--err` | outcome | the storefronts |
 | `--sans`, `--mono`, `--disp` | three faces | the storefronts |
 | `--r-1`, `--r-2`, `--r-pill`, `--r-round` | the radius scale | **established here** |
+| `--s-1` … `--s-12` | the spacing scale | **established here** |
 
 **The radius scale is derived from the measurement, not chosen by taste.** The
 seventeen values across the two storefronts fall into three heaps: small 7–9
@@ -104,15 +105,21 @@ The delta is kept here and only here. Every difference carries its reason.
 
 ## Open
 
-**A spacing scale was established 2026-08-31 — and it is not inherited.** With the
-radii the measurement gave three clean heaps; with spacing it gave the opposite
-answer: **30 distinct values across 164 uses**, and the best scale fitted to them
-lands exactly on only 45%, moving 90 declarations. There is no scale there. So the
-application takes the ordinary four-based one — `--s-1: 4px`, `--s-2: 8px`,
+**A spacing scale exists as of 2026-08-31 — and the storefronts do not inherit it.**
+With the radii the measurement gave three clean heaps; with spacing it gave the
+opposite answer. The corpus is the same two files `scripts/check-landing-tokens.sh`
+reads — both storefronts' `landing/index.html`: **201 declarations** of
+`margin`/`padding`/`gap` holding **62 distinct values**. There is no scale in there.
+Of 201 pixel values, 64 (32%) land exactly on the seven steps of a four-based scale
+and half are multiples of four at all; converting would move 137 declarations. So
+the application takes the ordinary four-based one — `--s-1: 4px`, `--s-2: 8px`,
 `--s-3: 12px`, `--s-4: 16px`, `--s-6: 24px`, `--s-8: 32px`, `--s-12: 48px` — and
 **the storefronts are not converted**: they are live pages that work, and nobody
-asked to move 110 of their 164 declarations. The scale fitting the landings badly
+asked for 137 declarations in them to be moved. The scale fitting the landings badly
 is not an argument against the scale, because there is nothing to convert.
+(Recounted 2026-08-31: the previous wording said "30 distinct values across 164
+uses" and never named what it measured; it could not be reproduced under any of
+four corpora.)
 - **A light theme for the application.** Both storefronts are dark; the panel has
   a light theme, the application has not decided.
 - **What to do with the July prototype.** It is closest of the three to the shape

@@ -216,3 +216,9 @@ five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md
 five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | четыре живых, 2026-08-28
 8 in 64 minutes           | chat_EN.md chat-flows_EN.md | four per hour, 2026-08-28
 
+огрублять её не нужно     | *_RU.md | наружу уходит клетка с шагом в радиус, 31.08.2026
+огрублять координаты не нужно | *_RU.md | наружу уходит клетка с шагом в радиус, 31.08.2026
+it needs no blurring      | *_EN.md | a cell stepped by the radius goes out, 2026-08-31
+nothing to coarsen        | *_EN.md | a cell stepped by the radius goes out, 2026-08-31
+Шкала отступов не заведена | design-system-app_RU.md | четвёрочная шкала заведена, 31.08.2026
+There is no spacing scale | design-system-app_EN.md | a four-based scale exists, 2026-08-31

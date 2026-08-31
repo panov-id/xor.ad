@@ -143,9 +143,10 @@ The board for two lives inside a chat. A group game **does not fit** inside one:
 - **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
 - **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
 - **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
+
 **The table's schema — established 2026-08-31.** Until that day a table existed as
 paragraphs: no table, no columns, no zone, although it stands in the same feed as
-a phrase and since 2026-08-26 its lines have a notice target under Article 16. A
+a phrase and since 2026-08-28 its lines have a notice target under Article 16. A
 review panel named this the first gap; screen 19 cannot be drawn without it.
 
 ```sql
@@ -156,11 +157,13 @@ CREATE TABLE tables (
   lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- the phrase's steps: a table is published by the same rule
-  created_by       uuid NOT NULL REFERENCES identities(id),   -- never leaves, and grants nothing: a table has no owner
+  created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- not part of any response; a table has no owner
   created_at       timestamptz NOT NULL DEFAULT now(),
   last_move_at     timestamptz NOT NULL DEFAULT now(),        -- the sliding span: a move or a line from anyone seated
   closed_at        timestamptz                                -- everyone left, or everyone declined to play again
 );
+
+CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
 
 CREATE TABLE table_seats (
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
@@ -170,28 +173,72 @@ CREATE TABLE table_seats (
   PRIMARY KEY (table_id, identity)
 );
 
+CREATE INDEX table_seats_by_identity ON table_seats (identity) WHERE left_at IS NULL;
+
 CREATE TABLE table_lines (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- the `table_line` notice target is scoped by it
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  author_identity  uuid NOT NULL REFERENCES identities(id),
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   created_at       timestamptz NOT NULL DEFAULT now(),
   visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
 );
+
+CREATE INDEX table_lines_feed  ON table_lines (table_id, created_at) WHERE visible_at IS NOT NULL;
+CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS NULL;
 ```
 
 - **The zone and radius are a phrase's**, because a table is seen by the same
-  circle-overlap rule. It introduces no geography of its own.
+  circle-overlap rule. It introduces no geography of its own — and **the same
+  rounding applies on the way out**: a cell stepped by `area_radius`, by the
+  formula in §8.3. A table is a stronger pseudonym than a phrase, not a weaker
+  one: it lives until silence rather than 4:20, it carries no quota at all
+  (2026-08-30), and one person may put up any number of tables sharing a centre.
+  The exact coordinates stay in the database — the overlap is computed from them.
 - **`created_by` exists and grants nothing.** Moderation and abuse work need it —
   tables carry no limit at all (2026-08-30), and when a limiter is needed there
-  will be nothing to count without this column. It never goes out, like a
-  phrase's `author_identity`.
+  will be nothing to count without this column. It is part of no response. The
+  price is named: a fresh table usually has one sitter, and that sitter is the
+  one who started it — "it never goes out" protects the column, not the inference.
+- **`ON DELETE SET NULL`, not `CASCADE` — decided 2026-08-31 by a review panel.**
+  §8.2 promises a closed identity a real `DELETE` after 30 days; with no
+  behaviour named it would fail on the foreign key, and the irreversible erasure
+  screen 12 promises would not happen. `CASCADE` is wrong here: it would take
+  away the very line a notice under Article 16 was filed against, while the
+  snapshot of it lives a year and points at the row. `SET NULL` erases the person
+  and keeps the evidence. **Open item:** six older columns carry the same defect —
+  `feed_messages.author_identity`, `likes.liker_identity`,
+  `identity_stats.identity`, `match_participants.identity`,
+  `chat_participants.identity`, `hidden_messages.identity` — and they want one
+  pass under one rule, not six.
 - **`joined_at` *is* the "a newcomer sees nothing from before" rule**: the line
   feed is cut by it rather than by a flag of its own.
 - **`visible_at` without `expires_at`**, unlike a phrase: a line at a table has no
   span of its own and goes with the table. The span is single and shared, and it
   lives in `tables.last_move_at`.
+- **The span of silence is 60 minutes — the number named on 2026-08-31.** Until
+  that day there was only the adjective "sliding", and no sweep could be written
+  from it: `last_move_at` exists, and there was nothing to subtract. Sixty is not
+  invented but taken from the conversation, where `chat_participants.idle_ttl_minutes`
+  stands at `DEFAULT 60`; the difference is that a table's span is one for
+  everyone (2026-08-27) rather than each sitter's own. The price is named: a table
+  where a move is pondered for over an hour closes under the people at it — and if
+  that turns out to be short, the number changes here, not in the code.
+- **One statement removes a table**, and both cascades above exist for it:
+  `DELETE FROM tables WHERE closed_at IS NOT NULL OR last_move_at < now() -
+  interval '60 minutes'`. `closed_at` on its own sweeps nothing — it is a mark,
+  not a deletion — and without this statement public speech at a table would sit
+  in plaintext forever, while §8.8 promises the opposite for a conversation
+  between two. **The sweeper does not exist yet** — as with identities (§8.2) —
+  and that is written down as an open item rather than passed off as done.
+- **Open item: being asked to leave locks nothing.** "The majority of those
+  sitting can ask someone to leave" is not something the schema supports:
+  `table_seats` has `left_at` but no trace of an eviction, and the primary key
+  `(table_id, identity)` means coming back is the same `UPDATE ... SET left_at =
+  NULL`. Either a column is added, or the price is written plainly: an eviction
+  shows someone out, it does not lock the door. To be decided before the first
+  line of a table's code.
 - **The board is not in the schema.** Board state is transient — in memory,
   encrypted under the conversation key where there is one, never written to the
   database (§8.8). A table stores who is seated and what was said, not where the
@@ -211,7 +258,7 @@ CREATE TABLE table_lines (
 
 ## 8. Data model
 
-Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 are taken, and the runner sorts by name).
+Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 and 012 are taken, 011 is held for this schema, and the runner sorts by name).
 
 **Core principle: no user identifier ever leaves the server.** A client knows exactly two kinds of UUID — a feed phrase id and a chat id. Who wrote a phrase, who liked it, who is in a chat with whom, how many chats someone has — all of it stays inside the database and never appears in an API response.
 
@@ -782,7 +829,7 @@ Age is self-declared, with no verification whatsoever. The bands separate teenag
 
 ### 8.3. Feed and geography
 
-A phrase is tied not to a city but to **an area the person chooses themselves** — not to where they are. They choose it on a **diagram** rather than a map: no face draws a map (decided 2026-08-28), because a tile tells whoever serves it which square is being looked at. So there is nothing to coarsen: the point does not reveal a location anyway.
+A phrase is tied not to a city but to **an area the person chooses themselves** — not to where they are. They choose it on a **diagram** rather than a map: no face draws a map (decided 2026-08-28), because a tile tells whoever serves it which square is being looked at. So the point does not reveal a location anyway. **Coarsening is still needed, for a different reason — decided 2026-08-31:** not against "where is he", but against joining up one author's phrases. The reasoning is below, in the paragraph on what goes out.
 
 ```sql
 CREATE TABLE feed_messages (
@@ -830,15 +877,28 @@ What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at
 
 **The grid step equals the phrase's radius.** Everyone who published with the same radius inside one cell then sends out **identical** coordinates, and equality stops being a signal. A random offset was considered and rejected: an attacker joins by proximity rather than equality, and four points within a couple of hundred metres group together after any jitter.
 
+**How the cell is computed — written down on 2026-08-31, because a naive implementation cancels this whole paragraph.** The radius is in metres, `lat`/`lon` are in degrees, and the bridge between them is the one place where the decision breaks silently:
+
+```
+Δφ    = r / 111320
+lat_q = round(lat / Δφ) · Δφ
+Δλ    = r / (111320 · cos(lat_q))      ← cosine of the ALREADY ROUNDED latitude
+lon_q = round(lon / Δλ) · Δλ
+```
+
+The grid is anchored at (0°, 0°) and what goes out is a grid node. The cosine is taken from the rounded latitude, and that is not pedantry: take it from the exact one and the longitude step becomes a function of an unpublished quantity. A thousand people in one cell would then get a thousand **different** longitudes, equality would vanish, and the exact latitude itself would be recoverable from the published pair by searching one integer — measured: 25–30 bits with a cautious float tolerance, 36–43 at full `double` precision, and the leak falls to zero only on the prime meridian. So the naive variant does not leak a little; it leaves exactly the unique pseudonym all of this is written against. The trap sits nearby: the query below has `cos(radians(:lat))` on the exact latitude — that is the coarse index filter, and it must not be carried into the rounding.
+
 **The radius became stepped too — and that is the other half of the same hole.** A free integer from 100 to 10000 is 9901 values, which is close to a unique mark on its own.
 
 **Every phrase has a zone of its own** — the circle, the radius and the "district or city" field live in the composer and are chosen at each publication, not once per identity. So the join is not guaranteed by construction: it appears **on repetition**, when a person publishes from the same place with a similar circle, which is both natural and convenient. How often that happens is decided by an open question — whether the placed point is remembered between openings (`00-mechanics_EN.md`, "Open") — and while it is open, the worst case is what counts.
 
-Five steps — 100, 300, 1000, 3000, 10000 — make even a full repetition produce a value shared with hundreds of neighbours. The price is named: whoever wanted 700 metres gets 1000, and the control on screen 4 becomes five positions instead of a continuum.
+Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark. **By how much was computed on 2026-08-31, and the earlier wording "shared with hundreds of neighbours" did not survive it.** On the most favourable reading (10% of residents in the app, each holding all four live phrases, steps equally likely) a cell in Paris holds 16 other phrases at 100 metres, 144 at 300 and 1600 at a kilometre; on sober assumptions (1% of residents, one publication a day) — 0.07, 0.65 and 7.2. For a 100-metre cell to hold two hundred neighbours you would need 250,000 people per km², denser than anywhere on Earth. So, honestly: **hundreds begin at a kilometre and up, and at 100 and 300 metres a cell holds single digits** — the lower steps hide weakly. The price is named twice: whoever wanted 700 metres gets 1000 and the control on screen 4 becomes five positions instead of a continuum — and whoever took 100 metres for precision hides less well than the word "cell" suggests.
 
-**What this does not fix.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+**What this does not fix, second: the steps are not nested.** Publishing from one point at 300 metres and then at a kilometre sends out two cells, and their intersection is sometimes narrower than the smaller of them: simulated over 2 million points — 30% of positions narrow, in the worst case to 50 metres instead of 300. The pairs 100/300 and 1000/3000 are nested and never narrow; 300/10000 narrows for 3% of positions. A divisibility chain — 100/300/900/2700/8100 — would close the channel outright, but it would move the ceiling off the 10 km reconciled with the filter rectangle above; keeping five steps and naming the remainder was chosen instead. The one consolation is thin and worth knowing: to intersect the cells you must already know the phrases belong to one person, so this sharpens a join rather than making one.
 
-**The viewing radius in the feed (screen 3) gets no steps** — it is not published, never leaves, and cannot be a signal.
+**What this does not fix, first.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+
+**The viewing radius in the feed (screen 3) gets no steps** — it is not published to other people and so cannot be a joining signal. The node does see it: `GET /feed` and `GET /feed/density` are built on it, and as a measuring instrument in someone else's hands it is discussed separately.
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 
@@ -920,7 +980,10 @@ where it sits is the whole of the choice.
 Visibility is **circle intersection** plus the age band (8.2): if I can see you, you can see me.
 
 ```sql
-SELECT f.id, f.text, f.mode, f.lat, f.lon, f.area_radius, f.like_count, f.created_at
+SELECT f.id, f.text, f.mode,
+       grid_round_lat(f.lat, f.area_radius)        AS lat,   -- outwards: the grid node,
+       grid_round_lon(f.lon, f.lat, f.area_radius) AS lon,   -- not what the database holds
+       f.area_radius, f.like_count, f.created_at
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
 WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text
@@ -1554,7 +1617,7 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
 | Level | Available |
 |---|---|
-| Feed | `feed_message.id`, text, `mode`, circle (centre + radius), `like_count`, time |
+| Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
 | Match | `match_id`, peer's phrase + `mode`, name, age, timer |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
 | Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text |

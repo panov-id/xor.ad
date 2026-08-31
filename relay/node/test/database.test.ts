@@ -902,6 +902,51 @@ Deno.test({
   },
 });
 
+// Every kind the route accepts has to survive the INSERT, not just the route's own
+// check. Added 2026-08-31: `table_line` passed KINDS and died on the CHECK in
+// db/005, which listed four kinds and not that one, so lib/db.ts swallowed the
+// PostgresError and the reporter got 503 where Article 16(4) requires a receipt.
+// The suite had no test that sent it — the three notices below used 'chat',
+// 'feed_message' and 'other', which is why five days of green proved nothing.
+//
+// Looping over KINDS rather than naming the kinds keeps the next one honest: a
+// value added to the set with no migration behind it fails here.
+Deno.test({
+  name: "every kind the route accepts reaches the database",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { report, KINDS } = await import("../src/routes/report.ts");
+    for (const kind of KINDS) {
+      const marker = `kind-${kind}-${uniqueId()}`;
+      const response = await report(
+        new Request("https://relay.test/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            target_kind: kind,
+            reason_text: `[${marker}] a notice about ${kind}, filed to prove it is storable`,
+            bona_fide: true,
+          }),
+        }),
+      );
+      const body = await response.json();
+      assertEquals(
+        response.status,
+        202,
+        `a notice about ${kind} was refused with ${response.status}: ${JSON.stringify(body)}`,
+      );
+      const rows = await database.queryOrThrow<{ target_kind: string }>(
+        "SELECT target_kind FROM dsa_notices WHERE id = $1",
+        [body.id],
+      );
+      assertEquals(rows.length, 1, `a notice about ${kind} answered 202 and stored nothing`);
+      assertEquals(rows[0].target_kind, kind);
+      await database.queryOrThrow("DELETE FROM dsa_notices WHERE id = $1", [body.id]);
+    }
+  },
+});
+
 // --- a native key is a different kind of key ----------------------------------
 //
 // The terminal client ships one publishable key inside its image, shared by every

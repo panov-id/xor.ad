@@ -104,8 +104,15 @@ The delta is kept here and only here. Every difference carries its reason.
 
 ## Open
 
-- **No spacing scale.** The radii are measured and reconciled; the spacing is
-  not, and it will have to come out of the first mock-ups rather than before them.
+**A spacing scale was established 2026-08-31 — and it is not inherited.** With the
+radii the measurement gave three clean heaps; with spacing it gave the opposite
+answer: **30 distinct values across 164 uses**, and the best scale fitted to them
+lands exactly on only 45%, moving 90 declarations. There is no scale there. So the
+application takes the ordinary four-based one — `--s-1: 4px`, `--s-2: 8px`,
+`--s-3: 12px`, `--s-4: 16px`, `--s-6: 24px`, `--s-8: 32px`, `--s-12: 48px` — and
+**the storefronts are not converted**: they are live pages that work, and nobody
+asked to move 110 of their 164 declarations. The scale fitting the landings badly
+is not an argument against the scale, because there is nothing to convert.
 - **A light theme for the application.** Both storefronts are dark; the panel has
   a light theme, the application has not decided.
 - **What to do with the July prototype.** It is closest of the three to the shape

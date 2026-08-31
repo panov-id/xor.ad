@@ -1082,16 +1082,16 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       installed PWA's metadata carries a brand name, whose language does not
       change.
 - [ ] **G6. Message length limit — enforcement on the node.** The decision of
-      07.08.2026 was impossible in the shape it was written: the node sees
+      2026-08-07 was impossible in the shape it was written: the node sees
       **ciphertext** and counts no 256 characters in it, exactly or approximately,
       while the spec promised a check on characters in §8.6 and in both flow
       diagrams — even though its own acceptance checklist demanded bytes. Made one
-      on 25.08.2026: the node checks `max_ciphertext_bytes` — **2048 bytes**,
+      on 2026-08-25: the node checks `max_ciphertext_bytes` — **2048 bytes**,
       calculated from the worst case (256 emoji characters → 1024 bytes of UTF-8 →
       1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
       `max_message_length` = **256** stays the counter in the client. The feed
       stays at **128**; that is a different limit and the two should not be merged.
-      **Nothing can close it yet:** checked 25.08.2026 against
+      **Nothing can close it yet:** checked 2026-08-25 against
       `api.relay.panov.id` — `GET /chat` answers **501** "chat relay not enabled on
       this node yet", there is no feed route (**404**), `/health` is 200. The item
       closes on a measurement made by a request that bypasses the client, once the
@@ -1114,7 +1114,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       expensive. Whoever needs it in their own language can translate it. The
       decision is recorded in the pointer files themselves, so that in six months it
       is not mistaken for a forgotten translation.
-- [x] **G8. Push fully cancelled — 07.08.2026.** The decision: notifications about
+- [x] **G8. Push fully cancelled — 2026-08-07.** The decision: notifications about
       new messages and matches exist, but **there is no push anywhere** — no Web
       Push in the browser, no system notifications in the terminal, no `BEL`.
 
@@ -1430,7 +1430,7 @@ mistaken for a loss.
       nothing retries the send, so those rows must stay visible. Verified against
       a real database; the test went red on the old insert.
 - [x] **J16. The Article 17(3) statement of reasons — closed 2026-08-11 as
-      already done.** All three gaps were closed on 2026-08-09/10 while the
+      already done.** All three gaps were closed on 2026-08-09–2026-08-10 while the
       letters were being given a common shape, and this list never heard about
       it. Verified in the code rather than from memory:
 

@@ -249,7 +249,7 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
       to an address plus the styling of the letter. See
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md). Revisit if
       the waitlist grows or anything beyond it lands in that storage.
-- [x] **Push notifications cancelled — 07.08.2026.** The activity and the
+- [x] **Push notifications cancelled — 2026-08-07.** The activity and the
       "browser's push service" sub-processor are removed from this record. The
       processing **never ran for a day**: the VAPID public key was empty on both
       storefronts, the subscribe offer was hidden, no subscription endpoint ever

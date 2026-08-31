@@ -1048,7 +1048,8 @@ phrases in general, the limit of one about the commercial ones among them.
 only the radius.** An empty screen says nothing: broken, nobody here, or a
 delivery the person narrowed themselves — indistinguishable. So on an empty
 result the radius grows in steps up to **25 km**, the same ceiling a person could
-have set for themselves (§8.3).
+have set for themselves (§8.3; the number follows the storefront's control, checked
+2026-08-26 — it used to say 10 km, from the control as it was before).
 
 **The band is never widened.** It separates teenagers from adults, and touching
 it to fill a feed is exactly the door it exists to close. A sparse sandbox at

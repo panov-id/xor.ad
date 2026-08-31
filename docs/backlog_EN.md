@@ -6,7 +6,7 @@ Short notes for later — not in current work, kept so they aren't lost.
 2026-08-28.** The file was not under the retirement registry and spent six weeks
 holding descriptions the product has since revised. What replaced them:
 
-- **The freeze** → screen 20 of the storefronts, "Step away" (2026-08-26 and 2026-08-27):
+- **The freeze** → screen 20 of the storefronts, "Step away" (2026-08-26–2026-08-27):
   three spans — 20 minutes, an hour, until morning — with the price of leaving
   counted on the spot before the confirmation, live phrases deleted, the table
   left standing while the person sitting at it gets up. The server side is §8.2 of

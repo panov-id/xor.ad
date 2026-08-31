@@ -52,7 +52,6 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 
 ## 4. App i18n
 - [ ] Full app-string translation (like the landing i18n), 6+ languages; the prototype has the selector only.
-- [ ] Push-notification languages (see `docs/pwa-push`).
 
 ## 5. Sosed (mirroring)
 - [ ] Port the updates to **sosed.place** (red accent, Soviet aesthetic).
@@ -61,7 +60,7 @@ Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
 ## 6. Backend / data / deploy
 - [ ] Real tables/RLS for messages, likes, chats, profile, age filter, ephemerality (TTL/fade).
 - [ ] Realtime (websockets via the api proxy) for chat and games.
-- [x] ~~Web Push~~ — **cancelled 07.08.2026**, see `docs/pwa-push_EN.md`. The
+- [x] ~~Web Push~~ — **cancelled 2026-08-07**, see `docs/pwa-push_EN.md`. The
       launch call goes by waitlist email.
 - [x] **dev + UAT deployed** (neighbro landing + panel; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny zones + api proxy with Origin Host Header/WebSockets/cache=0; panov.id DNS; GitHub secrets). prod later. sosed provisioned only, not deployed.
 

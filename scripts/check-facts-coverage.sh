@@ -153,6 +153,41 @@ for ru_file in $(cd "$group" && ls */docs/*_RU.md */docs/*/*_RU.md 2>/dev/null);
   fi
 done
 
+# --- срок годности шума -------------------------------------------------------
+# Строка «эта дата — пример внутри JSON» переживёт и пример, и документ: она
+# ничем не связана с явью и молча оправдывает пропуск там, где оправдывать уже
+# нечего. Поэтому у каждой отговорки проверяется, что её файл на месте и что
+# сама величина в нём всё ещё встречается. Номер строки не проверяется намеренно:
+# он сдвигается от любой правки выше, и реестр на номерах краснел бы всегда.
+stale=0
+while IFS=$'\t' read -r date _kind _why example; do
+  case "$date" in ''|'#'*|date) continue ;; esac
+  file="${example%%:*}"
+  if [ ! -f "$group/$file" ]; then
+    printf '  ✗ шум %s ссылается на файл, которого нет: %s\n' "$date" "$file"
+    problems=$((problems + 1)); continue
+  fi
+  year=${date%%-*}; rest=${date#*-}; month=${rest%%-*}; day=${rest##*-}
+  if ! grep -qE "$date|$day\.$month\.$year|$((10#$day)) [а-яa-z]+ $year" "$group/$file"; then
+    printf '  ✗ шум %s: даты в %s больше нет — отговорка пережила повод\n' "$date" "$file"
+    problems=$((problems + 1)); stale=$((stale + 1))
+  fi
+done < "$noise"
+
+while IFS=$'\t' read -r value unit _kind _why example; do
+  case "$value" in ''|'#'*|value) continue ;; esac
+  file="${example%%:*}"
+  if [ ! -f "$group/$file" ]; then
+    printf '  ✗ шум %s %s ссылается на файл, которого нет: %s\n' "$value" "$unit" "$file"
+    problems=$((problems + 1)); continue
+  fi
+  if ! grep -qF "$value" "$group/$file"; then
+    printf '  ✗ шум %s %s: числа в %s больше нет — отговорка пережила повод\n' \
+      "$value" "$unit" "$file"
+    problems=$((problems + 1)); stale=$((stale + 1))
+  fi
+done < "$numbers_noise"
+
 if [ "$problems" -gt 0 ]; then
   printf '\nпунктов: %s (записями %s, своим списком %s)\n' "$items_total" "$as_entry" "$as_own"
   printf 'дат: %s (решениями %s, шумом %s); пар чисел: %s (пределами %s, шумом %s) — НЕ ПОКРЫТО: %s\n' \

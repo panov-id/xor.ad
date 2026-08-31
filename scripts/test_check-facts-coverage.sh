@@ -38,12 +38,12 @@ printf -- '# Проба\n\n- **Решение пробы** — 03.03.2029, чт�
 printf -- '# Probe\n\n- **A probe decision** — 2029-03-03, so coverage sees it.\n' > "${probe/_RU/_EN}"
 expect 1 '2029-03-03 не покрыта' 'новая дата в документе всплывает непокрытой'
 
-printf '2029-03-03\tsample.data\tпроба\tdocs/facts/probe-date_RU.md:3\n' >> "$noise"
+printf '2029-03-03\tsample.data\tпроба\txor.ad/docs/facts/probe-date_RU.md:3\n' >> "$noise"
 expect 0 'непокрытых нет' 'объявленная шумом дата закрывает покрытие'
 
 # Дата, объявленная шумом, но уже заведённая решением: отговорка пережила решение.
 existing=$(grep -v '^#' "$decisions" | cut -f2 | grep -E '^20' | head -1)
-printf '%s\tsample.data\tпроба конфликта\tdocs/facts/probe-date_RU.md:3\n' "$existing" >> "$noise"
+printf '%s\tsample.data\tпроба конфликта\txor.ad/docs/facts/probe-date_RU.md:3\n' "$existing" >> "$noise"
 expect 1 'отговорка пережила решение' 'дата и в решениях, и в шуме — находка'
 # Реестр возвращается сразу: случай, оставляющий за собой сломанное состояние,
 # проваливает следующие и выдаёт свою грязь за их находку.
@@ -57,7 +57,7 @@ printf -- '# Проба\n\n- Порог пробы — **777 символов** 
 printf -- '# Probe\n\n- The probe threshold is **777 characters** in a line.\n' > "${probe/_RU/_EN}"
 expect 1 '777 chars не покрыто' 'новое число с единицей всплывает непокрытым'
 
-printf '777\tchars\tsample.data\tпроба\tdocs/facts/probe-date_RU.md:3\n' >> "$numbers_noise"
+printf '777\tchars\tsample.data\tпроба\txor.ad/docs/facts/probe-date_RU.md:3\n' >> "$numbers_noise"
 expect 0 'непокрытых нет' 'объявленное шумом число закрывает покрытие'
 
 # Единица в другом падеже — то же число, а не новое: без нормализации покрытие
@@ -91,6 +91,25 @@ expect 1 'незакрытых пунктов RU' 'пункт есть в одн
 
 cp "$backup_victim" "$victim"; cp "$backup_victim_en" "$victim_en"
 rm -f "$backup_victim" "$backup_victim_en" "$backup_open_noise"
+
+# --- срок годности шума --------------------------------------------------------
+# Отговорка обязана умирать вместе с поводом: пока этого нет, реестр шума растёт
+# и начинает оправдывать пропуски, которых уже не существует.
+backup_noise2=$(mktemp); cp "$noise" "$backup_noise2"
+backup_numbers2=$(mktemp); cp "$numbers_noise" "$backup_numbers2"
+
+printf '2031-01-01\tsample.data\tпроба\txor.ad/docs/protocol_RU.md:1\n' >> "$noise"
+expect 1 'отговорка пережила повод' 'шум на дату, которой в файле нет'
+cp "$backup_noise2" "$noise"
+
+printf '2031-01-01\tsample.data\tпроба\txor.ad/docs/no-such-file_RU.md:1\n' >> "$noise"
+expect 1 'ссылается на файл, которого нет' 'шум на пропавший файл'
+cp "$backup_noise2" "$noise"
+
+printf '999999\tchars\tsample.data\tпроба\txor.ad/docs/protocol_RU.md:1\n' >> "$numbers_noise"
+expect 1 'отговорка пережила повод' 'шум на число, которого в файле нет'
+cp "$backup_numbers2" "$numbers_noise"
+rm -f "$backup_noise2" "$backup_numbers2"
 
 echo
 if [ "$failures" -gt 0 ]; then printf 'случаев: %s — ПРОВАЛОВ: %s\n' "$number" "$failures"; exit 1; fi

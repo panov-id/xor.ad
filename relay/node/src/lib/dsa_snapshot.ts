@@ -32,6 +32,7 @@ export type CaptureReason =
   | "unknown_kind"
   | "surface_absent"
   | "unattributed"
+  | "out_of_scope"
   | "lookup_failed";
 
 export interface Capture {
@@ -162,7 +163,31 @@ export async function captureTarget(
     });
     return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
   }
-  if (rows.length === 0) return { snapshot: null, status: "target_gone", reason: null };
+  if (rows.length === 0) {
+    // Nothing under this face. Two very different things look identical from
+    // here: the phrase expired, or it belongs to a person who arrived through
+    // another face — the world is one, the notice comes in under a brand.
+    // Answering "target_gone" for the second is not a gap in the copy, it is an
+    // untrue statement in an Article 16 reply: the phrase is alive.
+    //
+    // So we ask whether the id exists at all — existence only, no columns, no
+    // copy. What we learn is that something with this id lives elsewhere; what
+    // the notifier is told is that we did not find it under this face, without
+    // naming another one.
+    const anywhere = await query<{ one: number }>(
+      `SELECT 1 AS one FROM ${table} WHERE id = $1 LIMIT 1`,
+      [targetId],
+    );
+    if (anywhere === null) {
+      log("error", "existence check failed after an empty scoped lookup", { kind, table });
+      return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
+    }
+    if (anywhere.length > 0) {
+      log("info", "notice about a target that lives under another face", { kind, table, brand });
+      return { snapshot: null, status: "not_accessible", reason: "out_of_scope" };
+    }
+    return { snapshot: null, status: "target_gone", reason: null };
+  }
 
   return {
     snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] },

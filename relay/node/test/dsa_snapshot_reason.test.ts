@@ -59,12 +59,30 @@ Deno.test("every reason is one the database will accept", async () => {
     "unknown_kind",
     "surface_absent",
     "unattributed",
+    "out_of_scope",
     "lookup_failed",
   ];
+  // The list moved to db/014 when the sixth reason arrived: the check that
+  // matters is the one the database enforces now, not the one it enforced once.
   const migration = await Deno.readTextFile(
-    new URL("../db/013_dsa_notice_snapshot_reason.sql", import.meta.url),
+    new URL("../db/014_dsa_notice_out_of_scope.sql", import.meta.url),
   );
   for (const reason of allowed) {
-    assertEquals(migration.includes(`'${reason}'`), true, `${reason} missing from db/013`);
+    assertEquals(migration.includes(`'${reason}'`), true, `${reason} missing from db/014`);
   }
+});
+
+Deno.test("a target under another face is not called expired", async () => {
+  // The distinction this suite exists for: "we did not find it here" and "it is
+  // gone" are different sentences, and only one of them is true when the phrase
+  // is alive under a different brand. Without a database the surface check
+  // answers first, which is a different reason and an honest one.
+  const { status, reason } = await reasonFor("feed_message", "someone-elses-id", "sosed");
+  assertEquals(status, "not_accessible");
+  assertEquals(
+    reason === "surface_absent" || reason === "out_of_scope",
+    true,
+    `expected surface_absent or out_of_scope, got ${reason}`,
+  );
+  assertEquals(status === "target_gone", false, "a live phrase must never be called expired");
 });

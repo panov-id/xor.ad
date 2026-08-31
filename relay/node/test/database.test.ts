@@ -1016,3 +1016,60 @@ Deno.test({
     assertEquals(await ask(native.id, null), 200);
   },
 });
+
+// A phrase that lives under another face must never be called expired.
+//
+// The scoped lookup finds nothing and the honest question is which nothing it
+// is: a phrase that ran out its 4:20, or a phrase alive under a brand this
+// notice did not arrive through. Only a database can tell them apart, so this
+// is the one suite where the branch actually runs. It builds the surface it
+// needs — feed_messages does not exist yet, and the day it does, this test
+// stops building and starts using it.
+Deno.test({
+  name: "a target under another face is out_of_scope, not target_gone",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
+
+    const built = await query(
+      // The columns are the ones SNAPSHOTTABLE asks for, not a plausible
+      // guess: the first version of this probe omitted created_at and
+      // author_identity, and the branch under test answered lookup_failed —
+      // which is what a wrong column is supposed to produce.
+      `CREATE TABLE IF NOT EXISTS feed_messages (
+         id uuid PRIMARY KEY,
+         brand text,
+         text text,
+         mode text,
+         created_at timestamptz DEFAULT now(),
+         author_identity uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    const id = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text) VALUES ($1, 'alpha', 'фраза из альфы')`,
+      [id],
+    );
+
+    try {
+      const elsewhere = await captureTarget("feed_message", id, "beta");
+      assertEquals(elsewhere.status, "not_accessible");
+      assertEquals(elsewhere.reason, "out_of_scope");
+
+      const home = await captureTarget("feed_message", id, "alpha");
+      assertEquals(home.status, "received");
+      assertEquals(home.reason, null);
+
+      const missing = await captureTarget("feed_message", crypto.randomUUID(), "alpha");
+      assertEquals(missing.status, "target_gone");
+      assertEquals(missing.reason, null);
+    } finally {
+      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+    }
+  },
+});

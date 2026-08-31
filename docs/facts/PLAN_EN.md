@@ -11,9 +11,10 @@ State as of 2026-08-31, 18:00. The numbers come from running the scripts, not fr
 | `check-facts-limits.sh` | a limit's number stands in every file it must | 116 comparisons agree |
 | `check-facts-schema.sh` | a table in the registry exists in the live database | 27 in the registry, 9 in the database |
 | `ontology.py --check` | the memory graph: types, edges, orphans, dangling links | 24 nodes, 47 edges, 144 facts |
-| `test_ontology.sh` | 17 cases, each one watched failing | green |
-| `test_check-facts-schema.sh` | 5 ways the database can disagree | green |
-| `test_check-facts-coverage.sh` | 4 ways coverage can be incomplete | green |
+| `test_ontology.sh` | 20 cases, each one watched failing | green |
+| `test_check-facts-schema.sh` | 7 ways the database can disagree | green |
+| `test_check-facts-coverage.sh` | 13 ways coverage can be incomplete | green |
+| `test_check-facts-open.sh` | 8 ways the open registry can be malformed | green |
 
 ## Order and scope — settled 2026-08-31
 
@@ -28,7 +29,7 @@ grouping, not one heap.
 
 ## Steps
 
-### 12. Numbers: 16 limits against 189 "value + unit" pairs
+### 12. Numbers: bring the "value + unit" pairs under watch
 
 1. Extend `check-facts-coverage.sh` with a second half — number pairs.
 2. Obtain the list of uncovered pairs (~173).
@@ -41,7 +42,7 @@ grouping, not one heap.
 
 Done when: coverage prints "nothing uncovered" and has been seen red.
 
-### 13. Open items: 21 entries against 291 candidates
+### 13. Open items: compare both ways
 
 6. Teach `collect-open-items.sh --tsv` to compare with `open.tsv` both ways.
 7. Work through the candidates by source; ticked boxes and other people's checklists

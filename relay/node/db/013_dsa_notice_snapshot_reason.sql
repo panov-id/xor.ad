@@ -1,5 +1,6 @@
 -- Why the copy was not taken, next to the fact that it was not.
 --
+-- (Since db/014 there are six; this file describes the five it introduced.)
 -- `snapshot_state` says what happened to the copy: received, target_gone,
 -- not_accessible. Five different situations arrive at the third — a chat that is
 -- never stored, a kind with no snapshot rule, a surface not built yet, a notice

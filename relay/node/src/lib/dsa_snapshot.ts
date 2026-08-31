@@ -21,11 +21,11 @@ import { log } from "./log.ts";
 
 export type CaptureStatus = "received" | "target_gone" | "not_accessible";
 
-// Five different things arrive at `not_accessible`, and from the outside they
+// Six different things arrive at `not_accessible`, and from the outside they
 // were indistinguishable: a chat that is carried and never stored, a kind this
 // file was never taught, a surface not built yet, a notice with no tenant to
 // scope the lookup to, and a lookup that broke. Answering the notifier is the
-// same in all five — we could not look — but deciding what to fix is not, and
+// same in all six — we could not look — but deciding what to fix is not, and
 // the night's review had nothing to sort them by.
 export type CaptureReason =
   | "chat_not_stored"
@@ -133,17 +133,24 @@ export async function captureTarget(
   }
 
   const { table, columns, tenant } = SNAPSHOTTABLE[kind];
-  if (!(await tableExists(table))) {
-    log("info", "notice about a surface that is not built yet", { kind, table, brand });
-    return { snapshot: null, status: "not_accessible", reason: "surface_absent" };
-  }
 
   // An unattributed notice belongs to no tenant, so there is no scope to look
   // within. Looking anyway — which is what an unscoped lookup did — would copy
   // whichever tenant's row happened to carry that identifier.
+  //
+  // This is checked before the surface exists, and the order matters: having no
+  // tenant is a property of the notice, while a missing surface is a property of
+  // the deployment. With the surface check first, every unattributed notice on a
+  // box without product tables was filed as "surface_absent" — the product's
+  // fault rather than the notice's — and the reason could never appear at all.
   if (!brand) {
     log("info", "unattributed notice: no tenant to scope the copy to", { kind, table });
     return { snapshot: null, status: "not_accessible", reason: "unattributed" };
+  }
+
+  if (!(await tableExists(table))) {
+    log("info", "notice about a surface that is not built yet", { kind, table, brand });
+    return { snapshot: null, status: "not_accessible", reason: "surface_absent" };
   }
 
   const rows = await query<Record<string, unknown>>(

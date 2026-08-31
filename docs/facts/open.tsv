@@ -23,8 +23,10 @@
 #   where    где это записано (файл:строка)
 #
 # 31.08.2026: J25 «свести открытые вопросы спеки чата в список» закрыт — его
-# закрыл этот файл. Остальные 21 сверены с явью: таблиц стола и личностей в базе
-# нет, в relay/node/src/chat лежит один файл, предела длины на узле нет.
+# закрыл этот файл. Остальные сверены с явью: таблиц стола и личностей в базе
+# нет, в relay/node/src/chat лежит один файл, предела длины на узле нет. Счёт
+# записей не пишется здесь прозой — его печатает scripts/check-facts-open.sh,
+# и он не может устареть.
 id	opened	due	weight	what	blocks	where
 G11	2026-08-19	2026-09-01	product	Режим Shield для четырёх боевых зон	prod	docs/open-work_RU.md:1024
 J9	2026-08-05	2027-08-05	legal	Перепроверить статус микропредприятия	dsa	docs/open-work_RU.md:613
@@ -50,3 +52,4 @@ moderation.queue.throughput	2026-08-24	-	product	Пропускная спосо
 refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:132
 refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:134
 refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:136
+gates.without.probe	2026-09-01	-	product	У check-facts-limits.sh и check-facts-decisions.sh нет пробы: их зелёный отчёт никем не видан красным	dsa	docs/facts/ontology_RU.md:72

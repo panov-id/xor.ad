@@ -1,5 +1,5 @@
-// Five situations answer the notifier the same way — "we could not look" — and
-// mean five different things to us. This suite holds them apart.
+// Six situations answer the notifier the same way — "we could not look" — and
+// mean six different things to us. This suite holds them apart.
 //
 // Why it exists: the reason used to live only in a log line, so the night's
 // review could not tell a chat report (by design) from a broken query (a defect
@@ -51,7 +51,7 @@ Deno.test("a free-form report carries no identifier, and that is not a failure",
 });
 
 Deno.test("every reason is one the database will accept", async () => {
-  // The column's CHECK in db/013 lists exactly these five. A sixth added here
+  // The column's CHECK in db/014 lists exactly these six. A sixth added here
   // without a migration would be rejected at insert time, in production, on the
   // first notice that hit it.
   const allowed: CaptureReason[] = [

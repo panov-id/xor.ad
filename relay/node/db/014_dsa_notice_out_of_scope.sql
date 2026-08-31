@@ -18,3 +18,10 @@ ALTER TABLE dsa_notices
     CHECK (snapshot_reason IS NULL OR snapshot_reason IN
       ('chat_not_stored', 'unknown_kind', 'surface_absent', 'unattributed',
        'out_of_scope', 'lookup_failed'));
+
+-- The column comment lives in the database and outlives the file that set it.
+-- 013 wrote "five situations"; leaving it there means anyone reading \d+ in
+-- production is told a number the constraint above already contradicts.
+COMMENT ON COLUMN dsa_notices.snapshot_reason IS
+  'Which of the six situations led to not_accessible. Must stay equal to '
+  'CaptureReason in src/lib/dsa_snapshot.ts.';

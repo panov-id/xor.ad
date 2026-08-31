@@ -1,7 +1,7 @@
 # The ontology of facts and memory
 
 The facts layer answers one question: **where else is this fact written down, and does
-it agree with itself?** The group holds 186 documents, the same fact lives in two
+it agree with itself?** The group holds 190 documents under `docs/`, the same fact lives in two
 language halves and across as many as three repositories, and such copies drift apart
 in silence.
 
@@ -46,7 +46,9 @@ The type pairs are restricted deliberately: a "verified by" edge from `reference
 |---|---|---|
 | `decisions.tsv` | a decision anchored in both language halves | `check-facts-decisions.sh` |
 | `limits.tsv` | a limit's number and every file it must appear in | `check-facts-limits.sh` |
-| `open.tsv` | an open question: what awaits a decision and what it blocks | `collect-open-items.sh` |
+| `open.tsv` | an open question: weight, area, deadline | `check-facts-open.sh` |
+| `noise-numbers.tsv` | a number that is not a limit, and why | `check-facts-coverage.sh` |
+| `noise-open.tsv` | how many of a file's items are kept by its own list | `check-facts-coverage.sh` |
 | `schema.tsv` | a table: where it is declared and whether it exists in the database | `check-facts-schema.sh` |
 | `noise.tsv` | a date that is not a decision, and why | `check-facts-coverage.sh` |
 
@@ -69,8 +71,10 @@ image built before the fifth migration and saw 4 files out of 11.
 
 ## The rule of negative control
 
-A check becomes a check the moment its failure has been seen. Every gate in this layer
-has a probe that breaks what it guards and shows red: `test_ontology.sh`,
-`test_check-facts-schema.sh`, `test_check-facts-coverage.sh`. A green report on an empty
+A check becomes a check the moment its failure has been seen. Four gates of six have a probe that breaks what they
+guard and shows red: `test_ontology.sh`, `test_check-facts-schema.sh`,
+`test_check-facts-coverage.sh`, `test_check-facts-open.sh`. `check-facts-limits.sh`
+and `check-facts-decisions.sh` have none — an open item, `gates.without.probe`,
+rather than an omission. A green report on an empty
 place is the worst thing a check can do, which is why `check-facts-schema.sh` exits with
 code 2 when there is no database, rather than with zero.

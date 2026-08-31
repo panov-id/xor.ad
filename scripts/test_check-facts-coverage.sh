@@ -12,10 +12,28 @@ root="$(cd "$here/.." && pwd)"
 gate="$here/check-facts-coverage.sh"
 probe="$root/docs/facts/probe-date_RU.md"
 noise="$root/docs/facts/noise.tsv"
+numbers_noise="$root/docs/facts/noise-numbers.tsv"
+open_noise="$root/docs/facts/noise-open.tsv"
 decisions="$root/docs/facts/decisions.tsv"
 
 backup_noise=$(mktemp); cp "$noise" "$backup_noise"
-restore() { cp "$backup_noise" "$noise"; rm -f "$backup_noise" "$probe" "${probe/_RU/_EN}"; }
+# Один restore на все пять целей, снятый до первой правки. Раньше trap знал про
+# один файл, а остальные возвращались строками по ходу: прерывание оставляло
+# пробную галочку в настоящем docs/review-checklist_RU.md — строку, которая
+# выглядит как обычный пункт и уезжает в коммит незамеченной.
+backup_numbers_all=$(mktemp); cp "$numbers_noise" "$backup_numbers_all"
+backup_open_all=$(mktemp); cp "$open_noise" "$backup_open_all"
+backup_check_ru=$(mktemp); cp "$root/docs/review-checklist_RU.md" "$backup_check_ru"
+backup_check_en=$(mktemp); cp "$root/docs/review-checklist_EN.md" "$backup_check_en"
+restore() {
+  cp "$backup_noise" "$noise"
+  cp "$backup_numbers_all" "$numbers_noise"
+  cp "$backup_open_all" "$open_noise"
+  cp "$backup_check_ru" "$root/docs/review-checklist_RU.md"
+  cp "$backup_check_en" "$root/docs/review-checklist_EN.md"
+  rm -f "$backup_noise" "$backup_numbers_all" "$backup_open_all" \
+        "$backup_check_ru" "$backup_check_en" "$probe" "${probe/_RU/_EN}"
+}
 trap restore EXIT
 
 failures=0; number=0
@@ -50,7 +68,6 @@ expect 1 'отговорка пережила решение' 'дата и в р
 cp "$backup_noise" "$noise"
 
 # --- вторая половина: числа ---------------------------------------------------
-numbers_noise="$root/docs/facts/noise-numbers.tsv"
 backup_numbers=$(mktemp); cp "$numbers_noise" "$backup_numbers"
 
 printf -- '# Проба\n\n- Порог пробы — **777 символов** в строке.\n' > "$probe"
@@ -68,7 +85,6 @@ expect 0 'непокрытых нет' 'падеж единицы не созд�
 cp "$backup_numbers" "$numbers_noise"; rm -f "$backup_numbers" "$probe" "${probe/_RU/_EN}"
 
 # --- третья половина: открытые пункты ------------------------------------------
-open_noise="$root/docs/facts/noise-open.tsv"
 backup_open_noise=$(mktemp); cp "$open_noise" "$backup_open_noise"
 victim="$root/docs/review-checklist_RU.md"
 victim_en="$root/docs/review-checklist_EN.md"

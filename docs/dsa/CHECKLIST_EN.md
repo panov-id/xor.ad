@@ -142,7 +142,7 @@ are gone and what follows is only what is genuinely unbuilt.
       restriction becomes exactly that silent removal.
       (SPEC §7)
 - [x] The wording of refusal reasons — shared with the feed mechanic, assembled
-      on 2026-08-31 in `docs/refusal-wordings_{RU,EN}.md`: eleven texts across six
+      on 2026-08-31 in `docs/refusal-wordings_{RU,EN}.md`: twelve texts across six
       classes of refusal, including §10 of the mechanics and the Article 17
       statement of reasons. The three questions still inside it are kept in
       `docs/facts/open.tsv` as `refusal.texts.readaloud`,

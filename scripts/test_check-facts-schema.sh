@@ -25,7 +25,16 @@ if ! sql 'select 1'; then
 fi
 
 backup=$(mktemp); cp "$registry" "$backup"
-restore() { cp "$backup" "$registry"; rm -f "$backup" "$root/relay/node/db/999_probe.sql"; }
+# Восстанавливается всё, что проба меняет, — включая базу. Раньше здесь стоял
+# только реестр, а переименование jobs откатывалось строкой в теле: прерывание
+# между ними оставляло стенд без таблицы jobs, и очередь вставала без всякого
+# следа о причине. Панель ревью 01.09.2026 нашла это тремя линзами сразу.
+restore() {
+  cp "$backup" "$registry"
+  rm -f "$backup" "$root/relay/node/db/999_probe.sql"
+  sql 'alter table if exists jobs_probe rename to jobs'
+  sql 'drop table if exists probe_orphan'
+}
 trap restore EXIT
 
 failures=0; number=0

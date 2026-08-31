@@ -57,3 +57,4 @@ offer.card.device.retention	90	дней	сколько карточка живё
 match.code.length	9	символов	длина кода мэтча, Crockford base32	клиент	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md
 panel.label.clip	42	символов	обрезка метки в таблице панели	панель	xor.ad/docs/panel-refactor_RU.md,xor.ad/docs/panel-refactor_EN.md
 audit.log.retention	365	дней	срок хранения общего аудит-лога панели	панель	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
+identity.deletion.delay	30	дней	срок удаления закрытой личности	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md

@@ -33,8 +33,8 @@ DSA-reasons-no-mail	2026-08-26	сейчас	legal	Показ мотивиров�
 DSA-refusal-wordings	2026-08-26	сейчас	legal	Формулировки причин отказа — общий список с механикой ленты	dsa	docs/dsa/CHECKLIST_RU.md:134
 DSA-turnover	2026-08-26	сейчас	legal	Не появился ли у витрин оборот: реклама или подписка	dsa	docs/dsa/CHECKLIST_RU.md:140
 brand.scope.snapshot	2026-08-26	сейчас	legal	Жалоба через одну витрину на автора из другой не найдёт копии	dsa	docs/chat_RU.md:836
-identity.sweeper	2026-08-30	сейчас	legal	Уборщика личностей нет: удаление через 30 дней обещано и не делается	identity	docs/chat_RU.md:381
-identity.cascades	2026-08-31	сейчас	legal	Шесть колонок постарше без ON DELETE — привести к одному правилу	identity	docs/chat_RU.md:205
+identity.sweeper	2026-08-30	сейчас	legal	Уборщика личностей нет: удаление через 30 дней (предел identity.deletion.delay) обещано спекой и обеими витринами, задачи в планировщике нет	identity	docs/chat_RU.md:381
+identity.cascades	2026-08-31	сейчас	legal	Шесть колонок без ON DELETE — feed_messages.author_identity, likes.liker_identity, identity_stats.identity, match_participants.identity, chat_participants.identity, hidden_messages.identity — привести к SET NULL одним заходом (правило: решение chat.2026-08-31.200)	identity	docs/chat_RU.md:205
 J19	2026-08-21	-	product	Модель личности переписана в спеке и не существует в коде	chat	docs/open-work_RU.md:1496
 G6	2026-08-07	-	product	Предел длины сообщения — проверка на узле, а не только в клиенте	chat	docs/open-work_RU.md:1045
 product.tables.unmigrated	2026-08-31	-	product	18 таблиц продукта объявлены спекой и не мигрированы: продукт не начат	chat	docs/facts/schema.tsv

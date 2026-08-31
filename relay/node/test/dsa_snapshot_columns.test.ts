@@ -63,6 +63,21 @@ configured("every feed column copied into a snapshot exists in the feed's schema
   }
 });
 
+// Added 2026-08-31, the day the table got a schema. The kind was accepted by the
+// route a day earlier with a column list written from the screen description —
+// which is exactly the shape of guess this file exists to stop. Until the schema
+// landed there was nothing to hold it against; now there is.
+configured("every table-line column copied into a snapshot exists in the table's schema", () => {
+  const schema = columnsOfCreateTable(read("../../../docs/chat_EN.md"), "table_lines");
+  for (const column of listed("table_line")) {
+    assert(
+      schema.has(column),
+      `dsa_snapshot copies table_lines.${column}, which the chat spec does not define. ` +
+        `The spec has: ${[...schema].join(", ")}`,
+    );
+  }
+});
+
 configured("every offer column copied into a snapshot exists in the offer's fields", () => {
   const fields = fieldsOfBlock(read("../../../docs/offers/SPEC_EN.md"), "### offer\n");
   for (const column of listed("offer")) {

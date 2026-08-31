@@ -143,6 +143,60 @@ The board for two lives inside a chat. A group game **does not fit** inside one:
 - **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
 - **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
 - **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
+**The table's schema — established 2026-08-31.** Until that day a table existed as
+paragraphs: no table, no columns, no zone, although it stands in the same feed as
+a phrase and since 2026-08-26 its lines have a notice target under Article 16. A
+review panel named this the first gap; screen 19 cannot be drawn without it.
+
+```sql
+CREATE TABLE tables (
+  id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- attribution ONLY, as on a phrase
+  game             text NOT NULL,                             -- board class: grid | free | dots | deck | dice | physics | word
+  lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
+  lon              double precision NOT NULL,
+  area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- the phrase's steps: a table is published by the same rule
+  created_by       uuid NOT NULL REFERENCES identities(id),   -- never leaves, and grants nothing: a table has no owner
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  last_move_at     timestamptz NOT NULL DEFAULT now(),        -- the sliding span: a move or a line from anyone seated
+  closed_at        timestamptz                                -- everyone left, or everyone declined to play again
+);
+
+CREATE TABLE table_seats (
+  table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  joined_at        timestamptz NOT NULL DEFAULT now(),        -- lines are shown from here on, and no earlier
+  left_at          timestamptz,
+  PRIMARY KEY (table_id, identity)
+);
+
+CREATE TABLE table_lines (
+  id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- the `table_line` notice target is scoped by it
+  table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  author_identity  uuid NOT NULL REFERENCES identities(id),
+  text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
+);
+```
+
+- **The zone and radius are a phrase's**, because a table is seen by the same
+  circle-overlap rule. It introduces no geography of its own.
+- **`created_by` exists and grants nothing.** Moderation and abuse work need it —
+  tables carry no limit at all (2026-08-30), and when a limiter is needed there
+  will be nothing to count without this column. It never goes out, like a
+  phrase's `author_identity`.
+- **`joined_at` *is* the "a newcomer sees nothing from before" rule**: the line
+  feed is cut by it rather than by a flag of its own.
+- **`visible_at` without `expires_at`**, unlike a phrase: a line at a table has no
+  span of its own and goes with the table. The span is single and shared, and it
+  lives in `tables.last_move_at`.
+- **The board is not in the schema.** Board state is transient — in memory,
+  encrypted under the conversation key where there is one, never written to the
+  database (§8.8). A table stores who is seated and what was said, not where the
+  pieces stand.
+
 - **The majority of those sitting can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
 - **A block hides the table entirely.** If someone blocked is sitting there, the table is not shown at all. The cost is accepted and named: one person can hide someone else's game from another simply by joining it.
 - The board lives within the chat and **disappears with it** (ephemerality).
@@ -739,7 +793,7 @@ CREATE TABLE feed_messages (
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
-  area_radius      integer NOT NULL CHECK (area_radius BETWEEN 100 AND 10000),  -- metres
+  area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- metres, in steps
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
@@ -770,7 +824,21 @@ UPDATE feed_messages
 
 The quota counts **both** kinds of commercial card together — phrases with a discount and business offers alike: no more than one per ten ordinary phrases in a given person's feed. Otherwise "selling a stool" walks around the very limit the quota exists for.
 
-What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}` — **a circle, not a point**, and nothing about the author. The client draws an area, not a pin.
+What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}`, where **`lat`/`lon` are not what the database holds**: the node rounds them to a grid node before sending. It stores the exact ones — the intersection is computed from them — and publishes a cell.
+
+**Why — decided 2026-08-31.** The exact `double precision` centre used to go out, and an author's four live phrases carried one and the same triple `(lat, lon, area_radius)`. That is a stable pseudonym for as long as they live, while §8.11 promises the opposite: "what an interceptor does not see: … whether two phrases belong to one person". The promise was broken not by a leak but by the response itself.
+
+**The grid step equals the phrase's radius.** Everyone who published with the same radius inside one cell then sends out **identical** coordinates, and equality stops being a signal. A random offset was considered and rejected: an attacker joins by proximity rather than equality, and four points within a couple of hundred metres group together after any jitter.
+
+**The radius became stepped too — and that is the other half of the same hole.** A free integer from 100 to 10000 is 9901 values, which is close to a unique mark on its own.
+
+**Every phrase has a zone of its own** — the circle, the radius and the "district or city" field live in the composer and are chosen at each publication, not once per identity. So the join is not guaranteed by construction: it appears **on repetition**, when a person publishes from the same place with a similar circle, which is both natural and convenient. How often that happens is decided by an open question — whether the placed point is remembered between openings (`00-mechanics_EN.md`, "Open") — and while it is open, the worst case is what counts.
+
+Five steps — 100, 300, 1000, 3000, 10000 — make even a full repetition produce a value shared with hundreds of neighbours. The price is named: whoever wanted 700 metres gets 1000, and the control on screen 4 becomes five positions instead of a continuum.
+
+**What this does not fix.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+
+**The viewing radius in the feed (screen 3) gets no steps** — it is not published, never leaves, and cannot be a signal.
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 

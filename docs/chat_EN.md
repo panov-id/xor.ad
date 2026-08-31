@@ -258,7 +258,7 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 
 ## 8. Data model
 
-Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 are taken, and the runner sorts by name).
+Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 and 012 are taken, 011 is held for this schema, and the runner sorts by name).
 
 **Core principle: no user identifier ever leaves the server.** A client knows exactly two kinds of UUID — a feed phrase id and a chat id. Who wrote a phrase, who liked it, who is in a chat with whom, how many chats someone has — all of it stays inside the database and never appears in an API response.
 

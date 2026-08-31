@@ -1,9 +1,17 @@
-// The kinds of target a notice may name live in two places: the enum in the DSA
-// specification and the set the route accepts. On 2026-08-26 `table_line` was
-// added to the specification and to screen 19 of both storefronts; it reached
-// this code on 2026-08-30. For four days a line at a table — public,
-// unencrypted, moderated like the feed — was answered with 422 by the only
-// mechanism Article 16 requires us to run, and nothing anywhere went red.
+// The kinds of target a notice may name live in three places: the enum in the DSA
+// specification, the set the route accepts, and the CHECK the database holds. The
+// table and screen 19 were added on 2026-08-26; the specification got the notice
+// target on 2026-08-28 (191eb9e), and it reached this code on 2026-08-30. For two
+// days a line at a table — public, unencrypted, moderated like the feed — was
+// answered with 422 by the only mechanism Article 16 requires us to run, and
+// nothing anywhere went red.
+//
+// Then the same gap opened one layer down and stayed open five days longer: the
+// route accepted the kind, and `CHECK (target_kind IN ...)` in db/005 did not
+// list it, so the INSERT was refused and the reporter got 503 where Article
+// 16(4) requires a receipt. Found on 2026-08-31 by a review panel, measured
+// against a migrated database, closed by db/012. Two places agreeing while the
+// third disagrees is the whole failure mode here, so the test now holds three.
 //
 // The registry of retired wordings cannot catch this: nothing was retired, a
 // value was added. The pairing check cannot: both language versions of the
@@ -38,6 +46,31 @@ function kindsFromSpec(): string[] {
 
 configured("the route accepts exactly the kinds the specification names", () => {
   assertEquals([...KINDS].sort(), kindsFromSpec());
+});
+
+// What the database will actually hold, read the way a database reads it: files
+// in order, the last definition winning. A migration that widens the constraint
+// is a new file — tools/migrate_db.ts skips a name already in schema_migrations,
+// so editing an applied file changes nothing anywhere it matters.
+function kindsFromMigrations(): string[] {
+  const directory = new URL("../db/", import.meta.url);
+  const names = [...Deno.readDirSync(directory)]
+    .map((entry) => entry.name)
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  let last: string[] | null = null;
+  for (const name of names) {
+    const sql = Deno.readTextFileSync(new URL(name, directory));
+    for (const match of sql.matchAll(/target_kind\s+IN\s*\(([^)]*)\)/g)) {
+      last = [...match[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]).sort();
+    }
+  }
+  assert(last, "no migration defines the target_kind CHECK any more");
+  return last!;
+}
+
+configured("the database allows exactly the kinds the route accepts", () => {
+  assertEquals(kindsFromMigrations(), [...KINDS].sort());
 });
 
 configured("the enum in the specification is not empty and names a table line", () => {

@@ -17,11 +17,19 @@ import { captureTarget } from "../lib/dsa_snapshot.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, REPORT_LIMITS } from "../lib/rate_limit.ts";
 
-// `table_line` was added to the spec and to screen 19 on 2026-08-26 and to this
-// set on 2026-08-30: for four days a line at a table was the one public,
-// unencrypted, moderated surface in the product that the notice route answered
-// with 422. Article 16(1) asks the mechanism to accept a notice about any
-// content the notifier considers illegal, and this one refused a whole surface.
+// The table and screen 19 were added on 2026-08-26; `table_line` reached the DSA
+// specification on 2026-08-28 (191eb9e) and this set on 2026-08-30: for two days
+// a line at a table was the one public, unencrypted, moderated surface in the
+// product that the notice route answered with 422. Article 16(1) asks the
+// mechanism to accept a notice about any content the notifier considers illegal,
+// and this one refused a whole surface. The dates were wrong here until
+// 2026-08-31 — this comment said the specification had it from 2026-08-26, and
+// docs/chat_EN.md had copied that from here.
+//
+// Accepting it was not enough: the CHECK in db/005 did not list the kind, so the
+// INSERT was refused and the reporter got 503 where Article 16(4) requires a
+// receipt. Closed by db/012 on 2026-08-31; dsa_kinds.test.ts now holds the
+// specification, this set and the database together.
 export const KINDS = new Set(["feed_message", "offer", "table_line", "chat", "other"]);
 
 // Long enough to say why something is illegal, short enough that the field is

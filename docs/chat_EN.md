@@ -739,7 +739,7 @@ CREATE TABLE feed_messages (
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
-  area_radius      integer NOT NULL CHECK (area_radius BETWEEN 100 AND 10000),  -- metres
+  area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- metres, in steps
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
@@ -770,7 +770,21 @@ UPDATE feed_messages
 
 The quota counts **both** kinds of commercial card together — phrases with a discount and business offers alike: no more than one per ten ordinary phrases in a given person's feed. Otherwise "selling a stool" walks around the very limit the quota exists for.
 
-What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}` — **a circle, not a point**, and nothing about the author. The client draws an area, not a pin.
+What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}`, where **`lat`/`lon` are not what the database holds**: the node rounds them to a grid node before sending. It stores the exact ones — the intersection is computed from them — and publishes a cell.
+
+**Why — decided 2026-08-31.** The exact `double precision` centre used to go out, and an author's four live phrases carried one and the same triple `(lat, lon, area_radius)`. That is a stable pseudonym for as long as they live, while §8.11 promises the opposite: "what an interceptor does not see: … whether two phrases belong to one person". The promise was broken not by a leak but by the response itself.
+
+**The grid step equals the phrase's radius.** Everyone who published with the same radius inside one cell then sends out **identical** coordinates, and equality stops being a signal. A random offset was considered and rejected: an attacker joins by proximity rather than equality, and four points within a couple of hundred metres group together after any jitter.
+
+**The radius became stepped too — and that is the other half of the same hole.** A free integer from 100 to 10000 is 9901 values, which is close to a unique mark on its own.
+
+**Every phrase has a zone of its own** — the circle, the radius and the "district or city" field live in the composer and are chosen at each publication, not once per identity. So the join is not guaranteed by construction: it appears **on repetition**, when a person publishes from the same place with a similar circle, which is both natural and convenient. How often that happens is decided by an open question — whether the placed point is remembered between openings (`00-mechanics_EN.md`, "Open") — and while it is open, the worst case is what counts.
+
+Five steps — 100, 300, 1000, 3000, 10000 — make even a full repetition produce a value shared with hundreds of neighbours. The price is named: whoever wanted 700 metres gets 1000, and the control on screen 4 becomes five positions instead of a continuum.
+
+**What this does not fix.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+
+**The viewing radius in the feed (screen 3) gets no steps** — it is not published, never leaves, and cannot be a signal.
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 

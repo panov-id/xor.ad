@@ -140,7 +140,8 @@ transaction as `frozen_at`.
 | `NOTIFY` payload | 8 KB | Postgres |
 | live phrases | 4 | the node |
 | publications | 4 per hour | the node |
-| a phrase's area radius | 100–10000 metres | a `CHECK` in the database |
+| a phrase's area radius | five steps: 100, 300, 1000, 3000, 10000 metres | a `CHECK` in the database |
+| coordinate rounding in a response | to a grid node stepped by the phrase's radius | the node |
 | PIN attempts | 10, then the share burns | the node |
 | transfer code attempts | 5, then the invitation burns | the node |
 | queue throughput | ~20 phrases per minute, **not yet measured** | the node |

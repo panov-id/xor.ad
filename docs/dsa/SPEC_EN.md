@@ -146,6 +146,17 @@ returned `received` with an empty snapshot, filing the notice as though a copy h
 never been required. That case now logs an error and tells the notifier plainly
 that we could not look.
 
+**Five reasons, not one — `snapshot_reason` (2026-08-31).** The notifier hears the
+same sentence in every case: we could not look. To us the cases are not the same.
+A chat is never stored (`chat_not_stored`) and that is by design; a kind with no
+snapshot rule (`unknown_kind`) is a surface nobody taught this file about; a
+surface not built yet (`surface_absent`) waits on the product; a notice with no
+face (`unattributed`) has no scope to search within; and a broken query
+(`lookup_failed`) is a defect that otherwise ships in silence. Before this column
+the night's review could not tell the first from the last, and a broken `SELECT`
+looked exactly like an ordinary chat report. The column is null whenever the
+status already says everything: a copy was taken, or the target was gone.
+
 The snapshot is held inside the notice record. There is no separate table of
 "retained messages": a snapshot does not outlive its notice and is used for
 nothing else.

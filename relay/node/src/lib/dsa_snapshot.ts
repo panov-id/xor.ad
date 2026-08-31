@@ -21,9 +21,25 @@ import { log } from "./log.ts";
 
 export type CaptureStatus = "received" | "target_gone" | "not_accessible";
 
+// Five different things arrive at `not_accessible`, and from the outside they
+// were indistinguishable: a chat that is carried and never stored, a kind this
+// file was never taught, a surface not built yet, a notice with no tenant to
+// scope the lookup to, and a lookup that broke. Answering the notifier is the
+// same in all five — we could not look — but deciding what to fix is not, and
+// the night's review had nothing to sort them by.
+export type CaptureReason =
+  | "chat_not_stored"
+  | "unknown_kind"
+  | "surface_absent"
+  | "unattributed"
+  | "lookup_failed";
+
 export interface Capture {
   snapshot: Record<string, unknown> | null;
   status: CaptureStatus;
+  // Null whenever the status speaks for itself: a copy was taken, the target
+  // was gone, or the report carried no identifier to look for.
+  reason: CaptureReason | null;
 }
 
 // Surfaces whose content lives in the database and can therefore be copied.
@@ -95,11 +111,13 @@ export async function captureTarget(
 ): Promise<Capture> {
   // A chat is carried, never stored: there is nothing on our side to copy, and
   // saying so plainly is the answer the notifier gets.
-  if (kind === "chat") return { snapshot: null, status: "not_accessible" };
+  if (kind === "chat") {
+    return { snapshot: null, status: "not_accessible", reason: "chat_not_stored" };
+  }
 
   // Free-form reports carry no identifier. Nothing to copy, and nothing wrong
   // with that — a person still gets an answer.
-  if (!targetId) return { snapshot: null, status: "received" };
+  if (!targetId) return { snapshot: null, status: "received", reason: null };
 
   // Object.hasOwn rather than `in`: "constructor" is in every object, and the
   // only thing keeping that unreachable is the KINDS list one file away.
@@ -110,13 +128,13 @@ export async function captureTarget(
   // kind is added to KINDS without a line here.
   if (!Object.hasOwn(SNAPSHOTTABLE, kind)) {
     log("info", "notice about a kind with no snapshot rule", { kind });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "unknown_kind" };
   }
 
   const { table, columns, tenant } = SNAPSHOTTABLE[kind];
   if (!(await tableExists(table))) {
     log("info", "notice about a surface that is not built yet", { kind, table, brand });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "surface_absent" };
   }
 
   // An unattributed notice belongs to no tenant, so there is no scope to look
@@ -124,7 +142,7 @@ export async function captureTarget(
   // whichever tenant's row happened to carry that identifier.
   if (!brand) {
     log("info", "unattributed notice: no tenant to scope the copy to", { kind, table });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "unattributed" };
   }
 
   const rows = await query<Record<string, unknown>>(
@@ -142,9 +160,13 @@ export async function captureTarget(
       table,
       columns,
     });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
   }
-  if (rows.length === 0) return { snapshot: null, status: "target_gone" };
+  if (rows.length === 0) return { snapshot: null, status: "target_gone", reason: null };
 
-  return { snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] }, status: "received" };
+  return {
+    snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] },
+    status: "received",
+    reason: null,
+  };
 }

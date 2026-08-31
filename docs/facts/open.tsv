@@ -42,7 +42,6 @@ table.sweeper	2026-08-31	-	product	Уборщика стола нет: опер�
 table.eviction	2026-08-31	-	product	Высадка ничего не запирает: вернуться можно тем же UPDATE	table	docs/chat_RU.md:229
 table.brand.equality	2026-08-31	-	product	table_lines.brand и tables.brand независимы, равенство никто не держит	table	docs/chat_RU.md:196
 table.band	2026-08-31	-	product	По чему считается возрастная полоса стола: created_by, сидящие или никак	table	docs/test-map_RU.md:289
-snapshot.states	2026-08-31	-	product	not_accessible склеивает четыре причины; наблюдаемости нет	dsa	relay/node/src/lib/dsa_snapshot.ts:117
 app.light.theme	2026-08-24	-	comfort	Светлая тема приложения не решена	design	docs/design-system-app_RU.md:116
 app.july.prototype	2026-08-24	-	comfort	Куда девать июльский прототип	design	docs/design-system-app_RU.md:118
 landing.mockup.texts	2026-08-18	-	comfort	Тексты в мокапах захардкожены по-английски, отложено	design	docs/review-checklist_RU.md:154

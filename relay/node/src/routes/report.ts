@@ -126,7 +126,14 @@ export async function report(req: Request): Promise<Response> {
   // would otherwise be examined against nothing. The capture reports which of
   // three things happened — copied, expired, or never reachable — because
   // telling a notifier "it expired" when we simply never looked would be a lie.
-  const { snapshot, status } = await captureTarget(kind, targetId, brand?.key ?? null);
+  // `reason` above is the notifier's own text; this one is why we could not
+  // take a copy. Two different things, and one line held both names until the
+  // second silently took the first one's place in the insert.
+  const { snapshot, status, reason: snapshotReason } = await captureTarget(
+    kind,
+    targetId,
+    brand?.key ?? null,
+  );
 
   const rows = await query<{ id: string }>(
     // The capture outcome goes in its own column. It used to be written into
@@ -136,8 +143,9 @@ export async function report(req: Request): Promise<Response> {
     // never examined. See db/006.
     `INSERT INTO dsa_notices
        (brand, target_kind, target_id, snapshot, reason_text,
-        notifier_name, notifier_email, bona_fide, status, snapshot_state)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8)
+        notifier_name, notifier_email, bona_fide, status, snapshot_state,
+        snapshot_reason)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, $9)
      RETURNING id`,
     [
       brand?.key ?? null,
@@ -148,6 +156,7 @@ export async function report(req: Request): Promise<Response> {
       name,
       email,
       status,
+      snapshotReason,
     ],
   );
 

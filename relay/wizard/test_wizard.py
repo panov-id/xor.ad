@@ -166,6 +166,22 @@ try:
     check("the old shared value reaches neither",
           "the-old-shared-one" not in dev_file and "the-old-shared-one" not in prod_file)
 
+    # The tag a node runs is the only thing a deploy can honestly ask about
+    # afterwards, and it gets there through this file: the container keeps the
+    # environment it started with, so a roll that failed before the container was
+    # recreated goes on reporting the previous tag. Without this line the probe
+    # in scripts/deploy-relay-dev.sh has nothing to compare and every deploy
+    # reports success — which is what happened on 2026-08-31.
+    pinned = {"env": {"dev": {"database": False, "image_tag": "sha-abc1234"},
+                      "prod": {"database": False}}}
+    tagged = wizard.env_file(pinned, box, "dev")
+    check("the node is told which image tag it runs",
+          "RELAY_IMAGE_TAG=sha-abc1234" in tagged,
+          [line for line in tagged.splitlines() if "IMAGE_TAG" in line] or "no such line")
+    untagged = wizard.env_file(pinned, box, "prod")
+    check("an environment with no pin still names one, rather than nothing",
+          "RELAY_IMAGE_TAG=dev" in untagged)
+
     os.environ.pop("SESSION_SECRET_PROD", None)
     try:
         wizard.env_file(inventory, box, "prod")

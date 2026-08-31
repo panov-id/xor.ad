@@ -71,6 +71,11 @@ function read() {
     envName: env("NODE_ENV_NAME", "dev"), // dev | staging | prod | local
     nodeId: env("NODE_ID", "n0"),
     region: env("NODE_REGION", "unknown"),
+    // The image tag this process was started with, handed in by the wizard. A
+    // container keeps its start-up environment, so this answers "which build is
+    // actually running" and not "which build was asked for" — the difference the
+    // deploy probe exists to catch.
+    imageTag: env("RELAY_IMAGE_TAG", "unknown"),
     port: Number(env("PORT", "8080")),
 
     // Public routes accept an x-api-key that names the tenant. Until every landing

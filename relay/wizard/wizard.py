@@ -144,6 +144,13 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "NODE_ID": f"{box['id']}-{env}",
         "NODE_REGION": box.get("region", "unknown"),
         "NODE_ROLE": "relay",
+        # The tag this environment is pinned to, handed to the process so it can
+        # say which build it is. A container keeps the environment it started
+        # with, so when a roll fails before the container is recreated, /health
+        # goes on reporting the old tag — which is the only honest answer and the
+        # one the deploy probe needs. Added 2026-08-31, after a deploy printed
+        # "the new build is live" over a node still running the previous image.
+        "RELAY_IMAGE_TAG": e.get("image_tag", "dev"),
         "PORT": "8080",
         "ALLOWED_ORIGINS": ",".join(e.get("allowed_origins", [])),
         "BUNNY_STORAGE_HOST": os.environ.get("BUNNY_STORAGE_HOST", "storage.bunnycdn.com"),
@@ -761,15 +768,27 @@ def seed_admin(box: dict, inv: dict, env: str, email: str) -> None:
 
 # --- cli --------------------------------------------------------------------
 
-def run_each(inv: dict, only: str | None, fn) -> None:
+def run_each(inv: dict, only: str | None, fn) -> int:
+    """Run over the boxes and return how many failed.
+
+    A failure on one box still must not abort the others — a pool is a pool. But
+    the process used to exit 0 regardless, so every caller believed a run that
+    had failed: on 2026-08-31 a deploy whose image pull was denied ended with
+    "dev is on sha-eeca165" printed by the calling script. Continuing is right;
+    lying about it afterwards is not, so the count travels back and main() exits
+    with it.
+    """
     bs = boxes(inv, only)
     if not bs:
         print("no matching boxes")
+    failed = 0
     for b in bs:
         try:
             fn(b)
         except Exception as e:  # one box's failure must not abort the run
+            failed += 1
             print(f"  · {b['id']}: ERROR {e}")
+    return failed
 
 
 def main() -> None:
@@ -804,20 +823,21 @@ def main() -> None:
                      f"(known: {', '.join(sorted(known))})")
     assert_one_box_per_database(inv)
 
+    failures = 0
     if args.cmd == "status":
         status(inv)
     elif args.cmd == "provision":
-        run_each(inv, args.box, lambda b: provision(b, inv))
+        failures += run_each(inv, args.box, lambda b: provision(b, inv))
     elif args.cmd == "configure":
-        run_each(inv, args.box, lambda b: configure(b, inv))
+        failures += run_each(inv, args.box, lambda b: configure(b, inv))
     elif args.cmd == "dns":
-        run_each(inv, args.box, lambda b: dns(b, inv))
+        failures += run_each(inv, args.box, lambda b: dns(b, inv))
     elif args.cmd == "pool":
-        run_each(inv, args.box, lambda b: pool(b, inv))
+        failures += run_each(inv, args.box, lambda b: pool(b, inv))
     elif args.cmd == "deploy":
-        run_each(inv, args.box, lambda b: deploy(b, inv))
+        failures += run_each(inv, args.box, lambda b: deploy(b, inv))
     elif args.cmd == "seed-admin":
-        run_each(inv, args.box, lambda b: seed_admin(b, inv, args.env, args.email))
+        failures += run_each(inv, args.box, lambda b: seed_admin(b, inv, args.env, args.email))
     elif args.cmd == "up":
         # dns before configure so DNS-01 can validate the hostnames.
         for b in boxes(inv, args.box):
@@ -827,7 +847,10 @@ def main() -> None:
                 dns(b, inv)
                 configure(b, inv)
             except Exception as e:
+                failures += 1
                 print(f"  · {b['id']}: ERROR {e}")
+    if failures:
+        raise SystemExit(f"{failures} box(es) failed — see the errors above")
 
 
 if __name__ == "__main__":

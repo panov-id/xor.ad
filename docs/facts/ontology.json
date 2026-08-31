@@ -1,0 +1,52 @@
+{
+  "_": [
+    "Что этот проект показывает о себе и на что опирается его граф памяти.",
+    "Общий ~/.claude/scripts/ontology.py зашивает такой список в код и знает про",
+    "docs/FIX_CHECKLIST_RU.md и PATTERNS_RU.md, которых в xor.ad нет вовсе.",
+    "Здесь то же самое лежит данными: scripts/ontology.py читает этот файл, а при",
+    "его отсутствии обходится умолчаниями."
+  ],
+
+  "documents": [
+    ["CLAUDE.md",                     "правила проекта: что считается проверкой"],
+    ["docs/protocol_RU.md",           "канон: пределы и обязательства платформы"],
+    ["docs/chat_RU.md",               "спека чата — самый крупный источник решений"],
+    ["docs/open-work_RU.md",          "что открыто и чем закрывается"],
+    ["docs/design-system-app_RU.md",  "дизайн-система приложения"],
+    ["docs/dsa/CHECKLIST_RU.md",      "обязательства DSA"],
+    ["docs/review-checklist_RU.md",   "чеклист ревью"]
+  ],
+
+  "gates": ["scripts/check-*.sh"],
+
+  "registries": [
+    {
+      "name": "limits", "file": "docs/facts/limits.tsv", "id": "id",
+      "what": "пределы платформы: число и все файлы, где оно обязано стоять",
+      "checked_by": "scripts/check-facts-limits.sh"
+    },
+    {
+      "name": "decisions", "file": "docs/facts/decisions.tsv", "id": "id",
+      "what": "решения: предмет и дата в обеих языковых половинах",
+      "checked_by": "scripts/check-facts-decisions.sh"
+    },
+    {
+      "name": "open", "file": "docs/facts/open.tsv", "id": "id",
+      "what": "открытые вопросы: один список вместо пяти",
+      "checked_by": "scripts/collect-open-items.sh"
+    },
+    {
+      "name": "schema", "file": "docs/facts/schema.tsv", "id": "table",
+      "what": "таблицы: где объявлены и существуют ли в базе",
+      "checked_by": "scripts/check-facts-schema.sh"
+    }
+  ],
+
+  "open_items": {
+    "registry": "open",
+    "opened": "opened",
+    "due": "due",
+    "what": "what",
+    "blocks": "blocks"
+  }
+}

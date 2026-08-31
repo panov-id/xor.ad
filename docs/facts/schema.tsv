@@ -1,0 +1,54 @@
+# Таблицы: где объявлены и существуют ли в базе.
+#
+# 31.08.2026 счёт таков: 18 таблиц продукта объявлены спекой и не мигрированы ни
+# одной строкой, 9 таблиц управляющего контура и DSA живут в миграциях и в спеке
+# чата не описаны. Это не дефект — это состояние: продукт на бумаге, контур в
+# базе. Реестр держит счёт, чтобы «схема есть» не путали с «таблица есть».
+#
+# Колонки:
+#   table       имя таблицы
+#   declared_in где объявлена (файл:строка) или «-»
+#   migration   файл миграции или «-» (таблицы нет в базе)
+#   layer       product | control — продукт или управляющий контур
+#
+# Две колонки — два разных утверждения, и проверяются они по-разному:
+#   declared_in — утверждение о тексте, проверяется грепом по документу;
+#   migration   — утверждение о базе, проверяется запросом к живой базе стенда,
+#                 а не грепом по тексту миграции.
+# 31.08.2026 разница оказалась не теоретической: стенд крутил образ, собранный до
+# пятой миграции, и видел 4 файла из 11 — по тексту «таблица есть» выходило для
+# семи таблиц, которых база не знала. Поэтому scripts/check-facts-schema.sh
+# требует поднятый стенд и без базы отказывается работать, а не зеленеет.
+#
+# Проверяет scripts/check-facts-schema.sh: таблица из миграции обязана быть в
+# реестре, таблица реестра с миграцией обязана в ней найтись, а объявленная в
+# документе — найтись в этом документе.
+#
+table	declared_in	migration	layer
+api_keys	-	relay/node/db/001_control_state.sql	control
+blocks	docs/chat_RU.md:1497	-	product
+brands	-	relay/node/db/001_control_state.sql	control
+chat_key_wraps	docs/chat_RU.md:1698	-	product
+chat_participants	docs/chat_RU.md:1363	-	product
+chat_starters	docs/chat_RU.md:1372	-	product
+chats	docs/chat_RU.md:1354	-	product
+dsa_notices	-	relay/node/db/005_dsa_notices.sql	control
+dsa_statements	-	relay/node/db/005_dsa_notices.sql	control
+feed_messages	docs/chat_RU.md:820	-	product
+hidden_messages	docs/chat_RU.md:1522	-	product
+idempotency	-	relay/node/db/001_control_state.sql	control
+identities	docs/chat_RU.md:311	-	product
+identity_stats	docs/chat_RU.md:1179	-	product
+jobs	-	relay/node/db/001_control_state.sql	control
+legal_acceptances	docs/chat_RU.md:332	-	product
+likes	docs/chat_RU.md:1172	-	product
+match_participants	docs/chat_RU.md:1251	-	product
+matches	docs/chat_RU.md:1243	-	product
+pageview_daily	-	relay/node/db/001_control_state.sql	control
+quota_counters	-	relay/node/db/001_control_state.sql	control
+schema_migrations	-	relay/node/db/001_control_state.sql	control
+sessions	docs/chat_RU.md:521	-	product
+table_lines	docs/chat_RU.md:175	-	product
+table_seats	docs/chat_RU.md:165	-	product
+tables	docs/chat_RU.md:150	-	product
+vault_shares	docs/chat_RU.md:658	-	product

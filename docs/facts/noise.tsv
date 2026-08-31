@@ -1,0 +1,33 @@
+# Даты, которые не являются решениями. Одна дата — одна строка, с причиной.
+#
+# Зачем реестр шума. Полное покрытие значит, что каждая дата, найденная разведкой,
+# либо стоит решением в decisions.tsv, либо объявлена здесь. Без второй половины
+# «покрытие» достигается молчанием: непокрытая дата ничем не отличается от
+# незамеченной. Строка здесь стоит дороже пропуска — её видно в диффе, и добавить
+# сюда дату можно только письменно объяснив, чем она не решение.
+#
+# Виды:
+#   document.stamp  дата составления или ревизии самого документа
+#   external.fact   дата чужого документа, органа, договора или сервиса
+#   sample.data     значение внутри примера: JSON, таблица, вывод команды
+#   deadline        срок; ведётся в open.tsv, а не среди решений
+#   state.report    дата замера или отчёта о состоянии, а не выбора
+#
+# Колонки: date, kind, why, example (файл:строка от корня группы)
+date	kind	why	example
+2022-12-17	external.fact	подпись чужого DPA поставщиком, наша сторона его не подписывала	xor.ad/docs/legal-archive/bunny-dpa_RU.md:47
+2024-02-02	external.fact	назначение кипрского органа советом министров	xor.ad/docs/dsa/README_RU.md:233
+2025-12-31	external.fact	редакция чужих условий обработки данных	xor.ad/docs/article-30-register_RU.md:211
+2026-07-06	document.stamp	дата, когда написаны заметки по интерфейсу	xor.ad/docs/app-ui-notes_EN.md:54
+2026-07-07	document.stamp	снимок дорожной карты, документ объявлен историческим	xor.ad/docs/roadmap_RU.md:3
+2026-07-15	document.stamp	дата сбора обзора поставщиков	xor.ad/docs/backend-alternatives_EN.md:178
+2026-07-22	external.fact	чужой проект закрыт в этот день	xor.ad/docs/open-work_EN.md:480
+2026-07-30	document.stamp	дата написания разбора визуального стиля	xor.ad/docs/brutalism_EN.md:3
+2026-07-31	document.stamp	ревизия дизайн-системы	xor.ad/docs/design-system_EN.md:19
+2026-08-02	document.stamp	дата ревью приватности, из которого выписаны пункты	xor.ad/docs/open-work_EN.md:530
+2026-08-03	document.stamp	дата сбора сведений с юридических страниц поставщиков	xor.ad/docs/vendors-dpa_EN.md:4
+2026-08-22	state.report	дата замера состояния зон скриптом, а не выбора	xor.ad/docs/open-work_RU.md:1040
+2026-09-01	deadline	срок G11; ведётся в open.tsv	xor.ad/docs/open-work_RU.md:1024
+2026-09-14	sample.data	значение поля revision_date внутри примера JSON	xor.ad/docs/protocol_EN.md:177
+2026-12-31	external.fact	дата закрытия чужого сервиса	neighbro.place/docs/00-mechanics_EN.md:408
+2026-07-26	document.stamp	дата снимка обзора многоарендности, а не выбора	xor.ad/docs/tenancy-review_RU.md:7

@@ -67,8 +67,7 @@ open_items="$root/docs/facts/open.tsv"
 backup_open=$(mktemp); cp "$open_items" "$backup_open"
 grep -v '^product.tables.unmigrated' "$backup_open" > "$open_items"
 expect 'записи product.tables.unmigrated в open.tsv нет' 'непроведённые таблицы без датированной записи'
-sed 's/^product.tables.unmigrated\t\([^\t]*\)\t\([^\t]*\)\t18 /product.tables.unmigrated\t\1\t\2\t7 /' \
-  "$backup_open" > "$open_items"
+sed 's/\t18 таблиц/\t7 таблиц/' "$backup_open" > "$open_items"
 expect 'записано другое число таблиц продукта' 'число в записи разошлось с явью'
 cp "$backup_open" "$open_items"; rm -f "$backup_open"
 

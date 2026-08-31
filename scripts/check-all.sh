@@ -60,6 +60,7 @@ else
 fi
 
 run check-facts-coverage  bash "$here/check-facts-coverage.sh"
+run check-facts-open      bash "$here/check-facts-open.sh"
 run check-facts-decisions bash "$here/check-facts-decisions.sh"
 run check-facts-limits    bash "$here/check-facts-limits.sh"
 run check-docs-pairing    bash "$here/check-docs-pairing-all.sh"
@@ -70,6 +71,7 @@ if [ "$with_tests" = 1 ]; then
   echo "ПРОБЫ ВОРОТ"
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
+  run test_check-facts-open     bash "$here/test_check-facts-open.sh"
   [ "$skipped" = 0 ] && run test_check-facts-schema bash "$here/test_check-facts-schema.sh"
 fi
 

@@ -6,47 +6,90 @@
     "Здесь то же самое лежит данными: scripts/ontology.py читает этот файл, а при",
     "его отсутствии обходится умолчаниями."
   ],
-
   "documents": [
-    ["CLAUDE.md",                     "правила проекта: что считается проверкой"],
-    ["docs/protocol_RU.md",           "канон: пределы и обязательства платформы"],
-    ["docs/chat_RU.md",               "спека чата — самый крупный источник решений"],
-    ["docs/open-work_RU.md",          "что открыто и чем закрывается"],
-    ["docs/design-system-app_RU.md",  "дизайн-система приложения"],
-    ["docs/dsa/CHECKLIST_RU.md",      "обязательства DSA"],
-    ["docs/review-checklist_RU.md",   "чеклист ревью"]
+    [
+      "CLAUDE.md",
+      "правила проекта: что считается проверкой"
+    ],
+    [
+      "docs/protocol_RU.md",
+      "канон: пределы и обязательства платформы"
+    ],
+    [
+      "docs/chat_RU.md",
+      "спека чата — самый крупный источник решений"
+    ],
+    [
+      "docs/open-work_RU.md",
+      "что открыто и чем закрывается"
+    ],
+    [
+      "docs/design-system-app_RU.md",
+      "дизайн-система приложения"
+    ],
+    [
+      "docs/dsa/CHECKLIST_RU.md",
+      "обязательства DSA"
+    ],
+    [
+      "docs/review-checklist_RU.md",
+      "чеклист ревью"
+    ]
   ],
-
-  "gates": ["scripts/check-*.sh"],
-
+  "gates": [
+    "scripts/check-*.sh"
+  ],
   "registries": [
     {
-      "name": "limits", "file": "docs/facts/limits.tsv", "id": "id",
+      "name": "limits",
+      "file": "docs/facts/limits.tsv",
+      "id": "id",
       "what": "пределы платформы: число и все файлы, где оно обязано стоять",
       "checked_by": "scripts/check-facts-limits.sh"
     },
     {
-      "name": "decisions", "file": "docs/facts/decisions.tsv", "id": "id",
+      "name": "decisions",
+      "file": "docs/facts/decisions.tsv",
+      "id": "id",
       "what": "решения: предмет и дата в обеих языковых половинах",
       "checked_by": "scripts/check-facts-decisions.sh"
     },
     {
-      "name": "open", "file": "docs/facts/open.tsv", "id": "id",
+      "name": "open",
+      "file": "docs/facts/open.tsv",
+      "id": "id",
       "what": "открытые вопросы: один список вместо пяти",
       "checked_by": "scripts/collect-open-items.sh"
     },
     {
-      "name": "schema", "file": "docs/facts/schema.tsv", "id": "table",
+      "name": "schema",
+      "file": "docs/facts/schema.tsv",
+      "id": "table",
       "what": "таблицы: где объявлены и существуют ли в базе",
       "checked_by": "scripts/check-facts-schema.sh"
     }
   ],
-
   "open_items": {
     "registry": "open",
     "opened": "opened",
     "due": "due",
     "what": "what",
-    "blocks": "blocks"
+    "blocks": "blocks",
+    "weight": "weight",
+    "where": "where"
+  },
+  "open_areas": {
+    "prod": "выкат боевого контура",
+    "dsa": "обязанности по DSA и работа с жалобами",
+    "identity": "личность, её удаление и право на забвение",
+    "chat": "чат: модель, лента, пределы, таблицы продукта",
+    "table": "стол: посадка, высадка, уборщик, полоса",
+    "depth": "терминальный клиент",
+    "design": "дизайн приложения и витрин"
+  },
+  "open_weights": {
+    "legal": "обещание, записанное в юридических документах или в законе",
+    "product": "обязательство продукта перед человеком",
+    "comfort": "удобство: без него продукт работает"
   }
 }

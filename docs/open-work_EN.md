@@ -1487,7 +1487,10 @@ mistaken for a loss.
       Diagram 1 in `chat-flows_EN.md` is redrawn; the invented "PIN → code" order
       went away with the code itself.
 
-- [ ] **J25. The chat spec's own open questions — listed so they are not lost.**
+- [x] **J25. The chat spec's own open questions — listed so they are not lost.**
+      The list was assembled on 2026-08-31 in `docs/facts/open.tsv`; the two
+      remaining questions are kept there as `moderation.model` and
+      `moderation.queue.throughput`.
       They live in the spec but are invisible from this checklist, and they have to
       be settled before any code: which moderation model — **a measurement, not an
       argument** (§8.14) — and the moderation queue's throughput (§8.3).

@@ -131,7 +131,7 @@ for ru_file in $(cd "$group" && ls */docs/*_RU.md */docs/*/*_RU.md 2>/dev/null);
   # своего места в реестре нет, и сумма обязана сойтись точно.
   declared=$(grep -v '^#' "$open_noise" | awk -F'\t' -v f="$ru_file" '$1==f {print $2; exit}')
   short=${ru_file#*/}
-  entries=$(grep -v '^#' "$open_registry" | awk -F'\t' -v f="$short" '$6 ~ f' | wc -l)
+  entries=$(grep -v '^#' "$open_registry" | awk -F'\t' -v f="$short" '$7 ~ f' | wc -l)
 
   if [ -n "$declared" ]; then
     if [ $((declared + entries)) != "$count" ]; then

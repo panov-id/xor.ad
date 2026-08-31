@@ -8,7 +8,7 @@
 // letter that must not contain any.
 
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
-import { whatWasRestricted } from "../src/lib/mailer.ts";
+import { decisionOutcome, whatWasRestricted } from "../src/lib/mailer.ts";
 import { letter, PLATFORM } from "../src/lib/email_shell.ts";
 import { config } from "../src/config.ts";
 
@@ -244,4 +244,25 @@ configured("the notifier is told which of the four outcomes happened", async () 
   // No state at all — an older notice, or a kind that never had one — falls back
   // to the decision rather than inventing a fact about the content.
   assertStringIncludes(decisionOutcome("upheld"), "has been restricted");
+});
+
+// The sentence a notifier gets when the target lives under another storefront.
+//
+// This is the finding a review panel returned about the change that introduced
+// out_of_scope: the snapshot stopped lying ("it expired") and the letter went on
+// lying differently ("we do not hold it"). Both letters are checked here, and
+// neither may name the other storefront.
+Deno.test("out_of_scope says where we looked, not that we hold nothing", () => {
+  const outcome = decisionOutcome("rejected", "not_accessible", "out_of_scope");
+  assertEquals(outcome.includes("not something we hold"), false);
+  assert(outcome.includes("under the storefront"));
+
+  const lines = whatWasRestricted("feed_message", null, "not_accessible", "out_of_scope");
+  assertEquals(lines.length, 1);
+  assertEquals(lines[0].value.includes("not stored where we could take one"), false);
+  assert(lines[0].value.includes("under the storefront"));
+
+  // A different reason keeps the old, and true, sentence.
+  const chat = whatWasRestricted("chat", null, "not_accessible", "chat_not_stored");
+  assert(chat[0].value.includes("not stored where we could take one"));
 });

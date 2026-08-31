@@ -219,10 +219,20 @@ export async function sendNoticeReceipt(
 export function decisionOutcome(
   decision: "upheld" | "rejected",
   snapshotState?: string,
+  snapshotReason?: string,
 ): string {
   if (snapshotState === "target_gone") {
     return "The content was already gone by the time we looked, so there was nothing " +
       "left to restrict. Your report was still examined and recorded.";
+  }
+  // Not every "we could not look" is "we do not hold it". When the target lives
+  // under another storefront the phrase is ours and alive, and the sentence
+  // below would be false — the same kind of falsehood db/014 was written to stop,
+  // reappearing one file over. The other face is never named: what the notifier
+  // learns is where we looked, not where it is.
+  if (snapshotState === "not_accessible" && snapshotReason === "out_of_scope") {
+    return "We did not find it under the storefront your report came through, so we " +
+      "could not examine a copy. Your report was recorded and examined all the same.";
   }
   if (snapshotState === "not_accessible") {
     return "We could not reach the content to examine it — it is not something we " +
@@ -249,11 +259,12 @@ export async function sendNoticeDecision(
     // what happened, and is the exact untruth dsa_snapshot.ts was written to
     // avoid filing.
     snapshotState?: string;
+    snapshotReason?: string;
   },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
   const brand = (opts.brand ? await brandByKey(opts.brand) : null) ?? resolveBrand(null);
-  const outcome = decisionOutcome(opts.decision, opts.snapshotState);
+  const outcome = decisionOutcome(opts.decision, opts.snapshotState, opts.snapshotReason);
   const blocks: Block[] = [
     { kind: "reference", value: `Report ${opts.id.slice(0, 8)}` },
     { kind: "text", value: outcome },
@@ -294,6 +305,9 @@ export function whatWasRestricted(
   targetKind: string | undefined,
   snapshot: unknown,
   snapshotState: string | undefined,
+  // Optional the same way the reason itself is: most outcomes do not have one,
+  // and the callers that predate the column keep working unchanged.
+  snapshotReason?: string,
 ): Block[] {
   // Which columns hold the content is a property of the surface, and the surface
   // is what `targetKind` names — so it is looked up rather than guessed. It used
@@ -323,6 +337,12 @@ export function whatWasRestricted(
       value: "It had already expired by the time the report was examined, so there is no copy to show you.",
     }];
   }
+  if (snapshotState === "not_accessible" && snapshotReason === "out_of_scope") {
+    return [{
+      kind: "text",
+      value: "We did not find it under the storefront the report came through, so there is no copy to show.",
+    }];
+  }
   if (snapshotState === "not_accessible") {
     return [{
       kind: "text",
@@ -344,6 +364,7 @@ export async function sendStatementOfReasons(
     targetKind?: string;
     snapshot?: unknown;
     snapshotState?: string;
+    snapshotReason?: string;
   },
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
@@ -359,7 +380,7 @@ export async function sendStatementOfReasons(
       kind: "text",
       value: "It applies everywhere the Service is available, and it is not time-limited.",
     },
-    ...whatWasRestricted(opts.targetKind, opts.snapshot, opts.snapshotState),
+    ...whatWasRestricted(opts.targetKind, opts.snapshot, opts.snapshotState, opts.snapshotReason),
     { kind: "heading", value: "Facts and circumstances" },
     { kind: "quote", value: opts.facts },
     {

@@ -33,6 +33,7 @@ interface NoticeRow {
   notifier_email: string | null;
   status: string;
   snapshot_state: string;
+  snapshot_reason: string | null;
   created_at: string;
   decided_at: string | null;
 }
@@ -67,7 +68,7 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
     conditions.push(`brand = $${args.length}`);
   }
   const rows = await query<NoticeRow>(
-    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, reason_text,
+    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, snapshot_reason, reason_text,
             notifier_name, notifier_email, status, created_at, decided_at
        FROM dsa_notices
       ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
@@ -118,7 +119,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     // their posts this is about. Without them the letter opens with "something
     // you posted has been restricted" and never says which — useless to anybody
     // with more than one.
-    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state,
+    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, snapshot_reason,
             notifier_email, status, decided_at
        FROM dsa_notices WHERE id = $1`,
     [params.id],
@@ -208,6 +209,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       targetKind: notice.target_kind,
       snapshot: notice.snapshot,
       snapshotState: notice.snapshot_state,
+      snapshotReason: notice.snapshot_reason ?? undefined,
     });
     if (delivered && statementId) {
       await queryOrThrow(`UPDATE dsa_statements SET delivered_at = now() WHERE id = $1`, [statementId]);
@@ -234,6 +236,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       // Article 16(5) asks what was decided, and "we disagreed" is the wrong
       // answer when the content had expired before anyone looked.
       snapshotState: notice.snapshot_state,
+      snapshotReason: notice.snapshot_reason ?? undefined,
     });
   }
 

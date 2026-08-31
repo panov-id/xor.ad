@@ -133,7 +133,16 @@ document, the Argon2id measurement, the nine languages of the rules.
 
 ### Stage 1 — drawing
 
-**The stage's first decision is where the application's tokens come from (found
+**The stage's first decision was closed on 2026-08-31: structure from the panel,
+palette from the storefronts.** The application's system is
+`design-system-app_EN.md`; it carries the delta with the panel by name and a
+radius scale derived from measurement. On the way the two storefronts' tokens
+were reconciled (they had drifted: `--ok` on one, `--mono`/`--sans` on the other)
+and a check was added, `scripts/check-landing-tokens.sh`. And the claim the
+framing rested on was disproved: **the storefronts have no sharp corners** — 37
+radius declarations, 17 distinct values.
+
+**How the question stood (found
 2026-08-28).** Not one of the twenty screens points at a source of visual
 decisions, and `design-system_EN.md` describes the **panel**, not the storefronts:
 different colour roles, a 6px radius instead of sharp corners, admin components.

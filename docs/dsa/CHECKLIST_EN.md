@@ -153,11 +153,16 @@ are gone and what follows is only what is genuinely unbuilt.
 - [ ] The micro-enterprise status — **by 5 Aug 2027**, yearly thereafter. Losing
       it switches Section 3 on after a year; update the record in README §3
 - [ ] Whether the faces have acquired revenue: paid advertising or a subscription.
-      **Checked 2026-08-31 — no revenue:** there is no payment integration in any
-      of the three repositories, the payment API is disabled in
-      `Permissions-Policy` (`payment=()`), and the DSA register holds an annual
-      turnover of €0. The next check goes with the micro-enterprise status, by
-      5 Aug 2027, or out of turn as soon as a first payment appears.
+      **Measured 2026-08-31, and here is what was measured:** no payment
+      integration exists in any of the three repositories, the payment API is
+      disabled in `Permissions-Policy` on both storefronts and the panel, and the
+      DSA register holds an annual turnover of €0. **What that does not measure:**
+      money arriving through the external donation link (`article-30-register_EN.md`,
+      "Donations") leaves no trace in the code, and how turnover should be counted
+      against the 2003/361/EC threshold is itself an open question
+      (`legal-review-brief_RU.md` §2). The item therefore stays open: the next
+      check goes with the micro-enterprise status, by 5 Aug 2027, or out of turn
+      as soon as a first payment appears.
       would change both the tax picture and several answers in the README
 
 ## What is deliberately not done

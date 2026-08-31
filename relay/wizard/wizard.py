@@ -585,6 +585,16 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         # and a migration against a database that is not listening yet just fails
         # and leaves the node running on storage — which is survivable, and still
         # not what anyone asked for. --wait blocks until the healthcheck passes.
+        # The image is pulled before anything runs out of it. Migrations go through
+        # `docker compose run node-<env>`, so with the pull left until after them
+        # they were applied by whatever image already sat on the box — the previous
+        # release — and the new code then came up against a schema it did not have.
+        # A review panel found this on 2026-09-01, with db/013 and db/014 fresh:
+        # every Article 16 notice would have answered 503 until the wizard ran twice.
+        pulled = " ".join(f"node-{env}" for env in acting_envs(box))
+        print(f"      docker compose pull ({pulled or 'all'})")
+        sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull {pulled}", sudo=sudo)
+
         print("      waiting for postgres")
         sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --wait postgres", sudo=sudo)
         for env in acting_envs(box):
@@ -620,9 +630,8 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
     # also recreate the other environment if anything of its configuration had
     # changed, and "deploy dev" must not be a way to restart staging.
     services = " ".join(f"node-{env}" for env in acting_envs(box))
-    print(f"      docker compose pull + up -d ({services or 'all'})")
-    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull {services} "
-               f"&& docker compose up -d {services}", sudo=sudo)
+    print(f"      docker compose up -d ({services or 'all'})")
+    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d {services}", sudo=sudo)
     # The Caddyfile is a bind-mounted file: `up -d` does not restart caddy when only
     # its content changed, so reload it explicitly (graceful; restart as fallback).
     print("      reload caddy (pick up Caddyfile changes)")

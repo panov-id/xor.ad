@@ -30,7 +30,7 @@ G11	2026-08-19	2026-09-01	product	Режим Shield для четырёх бое
 J9	2026-08-05	2027-08-05	legal	Перепроверить статус микропредприятия	dsa	docs/open-work_RU.md:613
 DSA-report-menu	2026-08-26	сейчас	legal	Пункт «пожаловаться» в меню сообщения и на карточке оффера	dsa	docs/dsa/CHECKLIST_RU.md:118
 DSA-reasons-no-mail	2026-08-26	сейчас	legal	Показ мотивировки в приложении, когда почты автора нет	dsa	docs/dsa/CHECKLIST_RU.md:121
-DSA-turnover	2026-08-26	2027-08-05	legal	Не появился ли у витрин оборот: проверено 31.08.2026, оборота нет; следующая — со статусом микропредприятия	dsa	docs/dsa/CHECKLIST_RU.md:140
+DSA-turnover	2026-08-26	2027-08-05	legal	Не появился ли оборот: в коде платежей нет (31.08.2026), донаты по внешней ссылке не измерены, способ подсчёта для порога не решён	dsa	docs/dsa/CHECKLIST_RU.md:140
 brand.scope.snapshot	2026-08-26	сейчас	legal	Граница снимка: по витрине или по видимости для заявителя. Ложный ответ «цель исчезла» устранён 31.08.2026 (out_of_scope), сама граница не решена	dsa	docs/chat_RU.md:836
 identity.sweeper	2026-08-30	сейчас	legal	Уборщика личностей нет: удаление через 30 дней (предел identity.deletion.delay) обещано спекой и обеими витринами, задачи в планировщике нет	identity	docs/chat_RU.md:381
 identity.cascades	2026-08-31	сейчас	legal	Шесть колонок без ON DELETE — feed_messages.author_identity, likes.liker_identity, identity_stats.identity, match_participants.identity, chat_participants.identity, hidden_messages.identity — привести к SET NULL одним заходом (правило: решение chat.2026-08-31.200)	identity	docs/chat_RU.md:205

@@ -1058,25 +1058,63 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       valid token, then the per-IP limit and the honeypot, and only then repoint
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
-- [ ] **G11. Decide the Shield mode before 2026-09-01.** Four production zones
-      (`xorad-api-prod`, `neighbro-prod`, `sosed-prod`, `panel-prod`) sit in
-      observation. The decision is made from the WAF log, which is readable only
-      in the Bunny dashboard — a person's step. Two things to look for: whether a
-      real `POST /report` was matched (a JSON body looks suspicious to a site
-      profile) and whether panel sign-in was. Until that log is read, **blocking
-      must not be switched on** — the first thing to break would be the intake of
-      illegal-content notices.
+- [x] **G11. The Shield mode was decided 2026-09-01.** The answer came out
+      different for different zones, because the zones are different: one answer
+      for all four was the very mistake six weeks were spent avoiding.
 
-      **The deadline moved from 2026-08-21 to 2026-09-01 by decision, not by
-      forgetting.** Learning ended 2026-08-21 and the log was not read that day.
-      The move means exactly this: until 2026-09-01 the four production zones live
-      in log-only — the WAF watches and does not act. That is accepted knowingly,
-      because the opposite error is dearer: blocking switched on blind takes out
-      the Article 16 notice intake first. Learning itself cannot be extended from
-      here — Bunny's API offers neither the log nor an extension, checked by
-      enumeration. State is read by `deploy/shield_state.py`, which from
-      2026-08-22 reports these zones as awaiting a decision, and rightly so: the
-      decision genuinely has not been made.
+      **Blocking since 2026-09-01 — `sosed-prod` and `neighbro-prod`.** Each
+      serves one self-contained file: the page makes no request to its own
+      origin at all, and the sign-up form goes to `api.relay.panov.id`, another
+      zone. Checked after the switch: `/`, `/robots.txt` and `/sitemap.xml` come
+      back byte for byte as before (199,976 and 140,188 for the two landings),
+      and a 404 stays Bunny's ordinary one, not a Shield page.
+
+      **Still watching, because blocking breaks it — `panel-prod`.** Switched on
+      2026-09-01 and rolled back within the hour: `/assets/index-*.js` began
+      answering `403` with the Shield page (`errorcode: 112`), even though the
+      origin had served the file (`cdn-requestpullcode: 200`). CSS, fonts and
+      `index.html` itself pass — it is exactly the bundle that is cut, which
+      means the panel under blocking is a blank page. Continued in **G12**.
+
+      **Still watching, because the log has not been read — `xorad-api-prod`.**
+      That zone carries `POST /report` and the panel's own API calls. Continued
+      in **G13**.
+
+      The switch is `deploy/shield_mode.py`: without `--apply` it prints the
+      plan, it refuses `xorad-api-prod` without an explicit `--include-api` and
+      refuses a zone that is still learning, and after writing it re-reads the
+      state — a `200` on a `PATCH` whose body the API quietly ignored looks
+      exactly like a switch that happened. The write shape was measured on
+      2026-09-01: `PATCH /shield/shield-zone`, body `{"shieldZoneId": N,
+      "shieldZone": {"wafExecutionMode": M}}`; a flat body is refused with
+      `model_validation_error.shieldzone`.
+
+      **History of the deadline.** The move from 2026-08-21 to 2026-09-01 was a
+      decision, not forgetting: learning ended 2026-08-21, the log was not read
+      that day, and until 2026-09-01 all four zones knowingly lived in log-only —
+      the opposite error is dearer, and blocking switched on blind takes out the
+      Article 16 intake first. Learning cannot be extended from here: Bunny's API
+      offers neither the log nor an extension — re-checked 2026-09-01 by
+      enumerating twenty-three endpoints across three namespaces, all `404`.
+- [ ] **G12. Find the rule that cuts the panel bundle, before 2026-09-15.**
+      Under blocking, `panel-prod` answers `403` on `/assets/index-*.js` and on
+      nothing else. The event reproduces on the first try, so the WAF log now
+      certainly holds it — which could not be said of any earlier guess. What is
+      needed is the rule id: with it, the rule goes into that zone's
+      `wafLogOnlyRules` and blocking can be switched on without a blank panel.
+      The id lives in the log, and the log lives in the dashboard, so this is a
+      person's step. Until there is an id the zone stays watching: a blank panel
+      is not the trade a WAF is switched on for.
+- [ ] **G13. Read the WAF log for `xorad-api-prod` and decide, before
+      2026-09-15.** The one zone of the four where the question is still exactly
+      what it was. Two things to look for: whether a real `POST /report` was
+      matched (a JSON body looks suspicious to a site profile) and whether panel
+      sign-in was — the panel calls `api.relay.panov.id`, which is this zone. A
+      caveat that was not known before: the zone has `requestBodyLoggingEnabled`
+      set to `false`, so about the JSON body itself the log may say nothing.
+      Turning body logging on is a separate decision with a price: Bunny would
+      then store the bodies of illegal-content notices, which is a new processor
+      and a row in the Article 30 register.
 - [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not

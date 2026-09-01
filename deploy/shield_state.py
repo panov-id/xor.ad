@@ -12,6 +12,14 @@ nothing switches that automatically and nothing said so out loud.
 Learning is the reason to be in log-only. Once it has ended, log-only is no
 longer a stage — it is a decision nobody made. That is what this reports.
 
+Unless somebody did make it. On 01.09.2026 two zones were switched to blocking
+and two were knowingly left watching, each for a written reason with an open item
+carrying its deadline. Calling those two "a decision nobody made" would be the
+same rot this file was written against, only pointing the other way: a report
+that cries about settled things is one people stop reading. Held zones are listed
+in HELD, and a zone leaves that list by having its item closed, not by being
+forgotten.
+
 The judgement is a pure function so it can be tested without a key or a network
 (deploy/test_shield_state.py); only the fetching needs either.
 """
@@ -23,6 +31,14 @@ import urllib.request
 from datetime import datetime, timezone
 
 API = "https://api.bunny.net"
+
+# Zones kept in log-only on purpose: name -> (item, why). The item is where the
+# deadline lives (docs/facts/open.tsv), so this map never becomes the place a
+# postponement hides — scripts/due.sh keeps shouting about it either way.
+HELD = {
+    "panel-prod": ("G12", "блокировка рубит /assets/index-*.js — нужен номер правила"),
+    "xorad-api-prod": ("G13", "журнал WAF не прочитан; зона несёт POST /report"),
+}
 
 
 def parse_time(value):
@@ -60,6 +76,9 @@ def judge(zones, now=None):
             notes.append(f"{name}: блокирует")
         elif learning:
             notes.append(f"{name}: учится до {until:%d.%m.%Y}" if until else f"{name}: учится")
+        elif name in HELD:
+            item, why = HELD[name]
+            notes.append(f"{name}: только журнал, держим сознательно ({item}: {why})")
         else:
             since = f" (обучение кончилось {until:%d.%m.%Y})" if until else ""
             problems.append(

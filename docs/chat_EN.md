@@ -230,7 +230,8 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
   interval '60 minutes'`. `closed_at` on its own sweeps nothing — it is a mark,
   not a deletion — and without this statement public speech at a table would sit
   in plaintext forever, while §8.8 promises the opposite for a conversation
-  between two. **The sweeper does not exist yet** — as with identities (§8.2) —
+  between two. **The sweeper does not exist yet, and neither does the `tables`
+  table in the node** — as with identities (§8.2) —
   and that is written down as an open item rather than passed off as done.
 - **Open item: being asked to leave locks nothing.** "The majority of those
   sitting can ask someone to leave" is not something the schema supports:
@@ -388,7 +389,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 **A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
-- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. Thirty days is not a convenience delay but a window for someone who pressed it in anger and wants back in with the paper code; after it, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet** — the scheduler holds three jobs and this is not one of them — and that is recorded as an open item rather than passed off as done.
+- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. Thirty days is not a convenience delay but a window for someone who pressed it in anger and wants back in with the paper code; after it, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
 #### The "stepped away" state (2026-08-26)

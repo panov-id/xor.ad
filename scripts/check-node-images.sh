@@ -50,7 +50,7 @@ zone = inventory.get("pool", {}).get("dns_zone")
 if not zone:
     sys.exit("в inventory не объявлена dns_zone — имя узла не собрать")
 
-matched = mismatched = silent = unreachable = 0
+matched = mismatched = silent = unreachable = planned = 0
 
 
 def health(host):
@@ -62,10 +62,19 @@ def health(host):
 
 for box in inventory.get("box", []):
     box_id = box.get("id")
+    # Без адреса бокса нет и машины: mode = "configure" означает, что визард её
+    # не создаёт, а только настраивает уже существующую. Такая запись — намерение,
+    # и спрашивать её по сети незачем: молчание заранее известно и ничего не значит.
+    declared_only = not str(box.get("ssh_host", "")).strip()
     for env in box.get("envs", []):
         expected = environments.get(env, {}).get("image_tag")
         host = f"{box_id}-{env}.{zone}"
         label = f"{box_id}/{env}"
+
+        if declared_only:
+            planned += 1
+            print(f"  · {label:<14} бокс объявлен, но не заведён: адреса нет ({box.get('provider')})")
+            continue
 
         if not expected:
             mismatched += 1
@@ -109,9 +118,9 @@ for box in inventory.get("box", []):
             print(f"  ✗ {label:<14} работает {actual}, а записано {expected}")
 
 print()
-total = matched + mismatched + silent + unreachable
-print(f"узлов в пуле: {total} · сошлось: {matched} · разошлось: {mismatched} · "
-      f"без ответа: {unreachable} · молчат про образ: {silent}")
+total = matched + mismatched + silent + unreachable + planned
+print(f"записей в пуле: {total} · сошлось: {matched} · разошлось: {mismatched} · "
+      f"без ответа: {unreachable} · молчат про образ: {silent} · не заведены: {planned}")
 
 if mismatched:
     print("расхождение между записанным и работающим — выкат либо не делали, либо он не доехал")

@@ -57,3 +57,7 @@ match.code.length	9	символов	длина кода мэтча, Crockford b
 panel.label.clip	42	символов	обрезка метки в таблице панели	панель	xor.ad/docs/panel-refactor_RU.md,xor.ad/docs/panel-refactor_EN.md
 audit.log.retention	365	дней	срок хранения общего аудит-лога панели	панель	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
 identity.deletion.delay	30	дней	срок удаления закрытой личности	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md
+seo.sitemap.sosed	19	адресов	адресов в sitemap витрины sosed	конфиг	sosed.place/docs/SEO_AND_ANALYTICS_RU.md,sosed.place/docs/SEO_AND_ANALYTICS_EN.md
+seo.hreflang.sosed	18	ссылок	альтернатив hreflang в шапке страницы sosed	конфиг	sosed.place/docs/SEO_AND_ANALYTICS_RU.md,sosed.place/docs/SEO_AND_ANALYTICS_EN.md
+seo.sitemap.neighbro	12	адресов	адресов в sitemap витрины neighbro	конфиг	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md,neighbro.place/docs/SEO_AND_ANALYTICS_EN.md
+seo.hreflang.neighbro	11	ссылок	альтернатив hreflang в шапке страницы neighbro	конфиг	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md,neighbro.place/docs/SEO_AND_ANALYTICS_EN.md

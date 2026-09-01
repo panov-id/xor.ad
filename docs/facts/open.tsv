@@ -59,3 +59,4 @@ open.where.line	2026-09-01	-	product	Реестр обещает адрес фа
 feed.span.retired	2026-09-01	-	product	open-work обещает «остаются три срока, четвёртого не будет» против канона с четырьмя (chat_RU.md:60)	chat	docs/open-work_RU.md:1486
 schema.offers.missing	2026-09-01	-	product	offers объявлена в SNAPSHOTTABLE и отсутствует в реестре таблиц	dsa	docs/facts/schema.tsv
 report.malformed.id	2026-09-01	-	product	Кривой target_id от заявителя даёт lookup_failed — причину, означающую дефект, а не опечатку	dsa	relay/node/src/routes/report.ts:121
+pool.image.unreported	2026-09-01	-	product	Прод и staging не сообщают свой образ: поле image в /health добавлено 31.08.2026 (599ff11), а обе среды на v2026.8.14-gc3d10fb, который старше него. Пока это так, check-node-images.sh проверяет одну среду из трёх, и вопрос «что на проде» отвечается только человеком	prod	scripts/check-node-images.sh:20

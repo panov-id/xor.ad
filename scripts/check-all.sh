@@ -116,6 +116,7 @@ reason_for() {
     check-analytics-gate)    echo "живые адреса прода, чистый профиль браузера" ;;
     check-webcrypto-support) echo "качает три движка на каждый прогон; это замер, а не ворота" ;;
     check-docs-pairing)      echo "не самостоятельные ворота: зовётся из check-docs-pairing-all" ;;
+    check-node-images)       echo "живые адреса пула; dev и staging закрыты по IP, из CI не пройдёт" ;;
     *)                       echo "причина не записана — впишите её сюда" ;;
   esac
 }

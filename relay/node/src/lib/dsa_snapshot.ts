@@ -21,9 +21,26 @@ import { log } from "./log.ts";
 
 export type CaptureStatus = "received" | "target_gone" | "not_accessible";
 
+// Six different things arrive at `not_accessible`, and from the outside they
+// were indistinguishable: a chat that is carried and never stored, a kind this
+// file was never taught, a surface not built yet, a notice with no tenant to
+// scope the lookup to, and a lookup that broke. Answering the notifier is the
+// same in all six — we could not look — but deciding what to fix is not, and
+// the night's review had nothing to sort them by.
+export type CaptureReason =
+  | "chat_not_stored"
+  | "unknown_kind"
+  | "surface_absent"
+  | "unattributed"
+  | "out_of_scope"
+  | "lookup_failed";
+
 export interface Capture {
   snapshot: Record<string, unknown> | null;
   status: CaptureStatus;
+  // Null whenever the status speaks for itself: a copy was taken, the target
+  // was gone, or the report carried no identifier to look for.
+  reason: CaptureReason | null;
 }
 
 // Surfaces whose content lives in the database and can therefore be copied.
@@ -95,11 +112,13 @@ export async function captureTarget(
 ): Promise<Capture> {
   // A chat is carried, never stored: there is nothing on our side to copy, and
   // saying so plainly is the answer the notifier gets.
-  if (kind === "chat") return { snapshot: null, status: "not_accessible" };
+  if (kind === "chat") {
+    return { snapshot: null, status: "not_accessible", reason: "chat_not_stored" };
+  }
 
   // Free-form reports carry no identifier. Nothing to copy, and nothing wrong
   // with that — a person still gets an answer.
-  if (!targetId) return { snapshot: null, status: "received" };
+  if (!targetId) return { snapshot: null, status: "received", reason: null };
 
   // Object.hasOwn rather than `in`: "constructor" is in every object, and the
   // only thing keeping that unreachable is the KINDS list one file away.
@@ -110,21 +129,28 @@ export async function captureTarget(
   // kind is added to KINDS without a line here.
   if (!Object.hasOwn(SNAPSHOTTABLE, kind)) {
     log("info", "notice about a kind with no snapshot rule", { kind });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "unknown_kind" };
   }
 
   const { table, columns, tenant } = SNAPSHOTTABLE[kind];
-  if (!(await tableExists(table))) {
-    log("info", "notice about a surface that is not built yet", { kind, table, brand });
-    return { snapshot: null, status: "not_accessible" };
-  }
 
   // An unattributed notice belongs to no tenant, so there is no scope to look
   // within. Looking anyway — which is what an unscoped lookup did — would copy
   // whichever tenant's row happened to carry that identifier.
+  //
+  // This is checked before the surface exists, and the order matters: having no
+  // tenant is a property of the notice, while a missing surface is a property of
+  // the deployment. With the surface check first, every unattributed notice on a
+  // box without product tables was filed as "surface_absent" — the product's
+  // fault rather than the notice's — and the reason could never appear at all.
   if (!brand) {
     log("info", "unattributed notice: no tenant to scope the copy to", { kind, table });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "unattributed" };
+  }
+
+  if (!(await tableExists(table))) {
+    log("info", "notice about a surface that is not built yet", { kind, table, brand });
+    return { snapshot: null, status: "not_accessible", reason: "surface_absent" };
   }
 
   const rows = await query<Record<string, unknown>>(
@@ -142,9 +168,37 @@ export async function captureTarget(
       table,
       columns,
     });
-    return { snapshot: null, status: "not_accessible" };
+    return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
   }
-  if (rows.length === 0) return { snapshot: null, status: "target_gone" };
+  if (rows.length === 0) {
+    // Nothing under this face. Two very different things look identical from
+    // here: the phrase expired, or it belongs to a person who arrived through
+    // another face — the world is one, the notice comes in under a brand.
+    // Answering "target_gone" for the second is not a gap in the copy, it is an
+    // untrue statement in an Article 16 reply: the phrase is alive.
+    //
+    // So we ask whether the id exists at all — existence only, no columns, no
+    // copy. What we learn is that something with this id lives elsewhere; what
+    // the notifier is told is that we did not find it under this face, without
+    // naming another one.
+    const anywhere = await query<{ one: number }>(
+      `SELECT 1 AS one FROM ${table} WHERE id = $1 LIMIT 1`,
+      [targetId],
+    );
+    if (anywhere === null) {
+      log("error", "existence check failed after an empty scoped lookup", { kind, table });
+      return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
+    }
+    if (anywhere.length > 0) {
+      log("info", "notice about a target that lives under another face", { kind, table, brand });
+      return { snapshot: null, status: "not_accessible", reason: "out_of_scope" };
+    }
+    return { snapshot: null, status: "target_gone", reason: null };
+  }
 
-  return { snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] }, status: "received" };
+  return {
+    snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] },
+    status: "received",
+    reason: null,
+  };
 }

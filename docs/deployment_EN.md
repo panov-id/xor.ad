@@ -155,7 +155,7 @@ Both files carry live keys and belong to their machine rather than to the
 repository, so their permissions are a property of the machine and nothing in
 git can enforce them: `chmod 600` on each after cloning. `secrets.env` was
 already 0600; `.env.deploy` was 0664 — readable by every account on the host —
-until 13.08.2026.
+until 2026-08-13.
 
 A template with every name and no values: `relay/wizard/secrets.env.example`. An
 empty value counts as absent — the wizard will say it could not check.

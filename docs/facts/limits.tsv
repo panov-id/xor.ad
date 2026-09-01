@@ -1,0 +1,59 @@
+# Пределы платформы: одно число — одна строка, и перечень файлов, где оно обязано стоять.
+#
+# Зачем. 31.08.2026 радиус зоны стал пятью ступенями в гейте, а канонические
+# механики обеих витрин остались с непрерывным диапазоном 100–10000: одно решение,
+# шесть файлов, три репозитория, и ни одна из двенадцати проверок этого не увидела.
+# Реестр держит число один раз и знает, где оно должно повториться.
+#
+# Колонки:
+#   id           короткое имя факта, устойчивое к переписыванию текста
+#   values       значения через пробел; каждое обязано найтись в каждом файле places
+#   unit         единица измерения, для человека
+#   what         что это, одной строкой
+#   enforced_by  кто удерживает: база | узел | клиент | конфиг | документ
+#   places       файлы от корня группы через запятую; там число обязано быть
+#
+# Проверяет scripts/check-facts-limits.sh — в обе стороны: значение реестра
+# обязано найтись в каждом своём файле, а каждая строка таблицы «Пределы» в
+# protocol_{RU,EN}.md обязана иметь строку здесь.
+#
+# Граница честности: проверка ищет число как отдельный токен во всём файле, а не
+# в конкретном предложении. Для «4» это почти всегда истина и потому слабо; вся
+# сила — на числах, которые лежат в нескольких файлах и расходятся.
+#
+id	values	unit	what	enforced_by	places
+phrase.length	128	символов	длина фразы	база	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+chat.message.length	256	символов	длина сообщения чата по умолчанию	клиент	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+chat.ciphertext.bytes	2048	байт	размер шифротекста	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+notify.payload	8	КБ	payload NOTIFY	база	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+feed.live.slots	4	фразы	живых фраз на личность	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+feed.publications.hour	4	за час	публикаций в час	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+feed.area.steps	100 300 1000 3000 10000	метров	радиус области фразы — пять ступеней	база	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/04-post-composer_RU.md,sosed.place/docs/04-post-composer_EN.md,sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/04-post-composer_RU.md,neighbro.place/docs/04-post-composer_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md
+pin.attempts	10	попыток	попыток ПИНа до сгорания доли	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+transfer.attempts	5	попыток	попыток кода переноса до сгорания	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+queue.throughput	20	фраз в минуту	пропускная способность очереди, замер не сделан	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
+moderation.false.block.budget	7	процентов	бюджет ложных блокировок	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
+report.threshold.share	5	процентов	порог жалоб от возможной аудитории	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
+report.threshold.floor	3	человека	нижняя граница порога жалоб	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
+table.idle.span	60	минут	срок молчания стола, общий на всех	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+chat.idle.ttl	10 30 60	минут	ручка срока беседы, своя у каждого	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+name.length	24	графем	длина имени	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/02-name-screen_RU.md,sosed.place/docs/02-name-screen_EN.md,neighbro.place/docs/02-name-screen_RU.md,neighbro.place/docs/02-name-screen_EN.md
+invite.lifetime	120	секунд	жизнь приглашения	узел	xor.ad/docs/test-map_RU.md,xor.ad/docs/test-map_EN.md
+stickers.catalogue.wire	150	КБ	потолок каталога стикеров на проводе	клиент	sosed.place/docs/16-stickers_RU.md,sosed.place/docs/16-stickers_EN.md,neighbro.place/docs/16-stickers_RU.md,neighbro.place/docs/16-stickers_EN.md
+dump.min.size	512	байт	минимальный размер дампа, меньше — отказ	скрипт	xor.ad/docs/open-work_RU.md,xor.ad/docs/open-work_EN.md
+prune.window.min	7	дней	минимальное окно очистки, меньше — отказ	скрипт	xor.ad/docs/open-work_RU.md,xor.ad/docs/open-work_EN.md
+recovery.code.length	16	символов	длина кода восстановления, Crockford base32	клиент	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md
+feed.radius.ceiling	25	км	потолок радиуса, до которого лента расширяется на пустой выдаче	узел	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md,sosed.place/docs/03-feed-screen_RU.md,sosed.place/docs/03-feed-screen_EN.md,neighbro.place/docs/03-feed-screen_RU.md,neighbro.place/docs/03-feed-screen_EN.md
+analytics.detail.retention	14	дней	срок хранения подробных просмотров до свёртки	узел	xor.ad/docs/open-work_RU.md,xor.ad/docs/open-work_EN.md,sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md
+dsa.review.failopen	2	часа	срок разбора, после которого ссылка публикуется	узел	xor.ad/docs/dsa/SPEC_RU.md,xor.ad/docs/dsa/SPEC_EN.md,xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
+useragent.stored.length	300	символов	сколько строки user-agent хранится в отчёте CSP	узел	xor.ad/docs/test-map_RU.md,xor.ad/docs/test-map_EN.md
+posting.silence.mute	15	минут	молчание без публикации, после которого включается ограничение	узел	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+feed.phrase.span	4	часа	жизнь фразы в ленте — 4 часа 20 минут	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+table.span.short	20	минут	короткий срок стола	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+table.span.hour	1	час	средний срок стола	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+dsa.reply.target	72	часа	срок решения и ответа заявителю	узел	xor.ad/docs/dsa/SPEC_RU.md,xor.ad/docs/dsa/SPEC_EN.md
+offer.card.device.retention	90	дней	сколько карточка живёт на устройстве после оффера	клиент	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
+match.code.length	9	символов	длина кода мэтча, Crockford base32	клиент	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md
+panel.label.clip	42	символов	обрезка метки в таблице панели	панель	xor.ad/docs/panel-refactor_RU.md,xor.ad/docs/panel-refactor_EN.md
+audit.log.retention	365	дней	срок хранения общего аудит-лога панели	панель	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
+identity.deletion.delay	30	дней	срок удаления закрытой личности	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md

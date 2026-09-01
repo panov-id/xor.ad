@@ -141,13 +141,28 @@ are gone and what follows is only what is genuinely unbuilt.
       restrict and no harm. The day a feed ships without that screen, the first
       restriction becomes exactly that silent removal.
       (SPEC §7)
-- [ ] The wording of refusal reasons — shared with the feed mechanic
+- [x] The wording of refusal reasons — shared with the feed mechanic, assembled
+      on 2026-08-31 in `docs/refusal-wordings_{RU,EN}.md`: twelve texts across six
+      classes of refusal, including §10 of the mechanics and the Article 17
+      statement of reasons. The three questions still inside it are kept in
+      `docs/facts/open.tsv` as `refusal.texts.readaloud`,
+      `refusal.checking.timeout` and `refusal.slot.time`.
 
 ## To re-check regularly
 
 - [ ] The micro-enterprise status — **by 5 Aug 2027**, yearly thereafter. Losing
       it switches Section 3 on after a year; update the record in README §3
-- [ ] Whether the faces have acquired revenue: paid advertising or a subscription
+- [ ] Whether the faces have acquired revenue: paid advertising or a subscription.
+      **Measured 2026-08-31, and here is what was measured:** no payment
+      integration exists in any of the three repositories, the payment API is
+      disabled in `Permissions-Policy` on both storefronts and the panel, and the
+      DSA register holds an annual turnover of €0. **What that does not measure:**
+      money arriving through the external donation link (`article-30-register_EN.md`,
+      "Donations") leaves no trace in the code, and how turnover should be counted
+      against the 2003/361/EC threshold is itself an open question
+      (`legal-review-brief_RU.md` §2). The item therefore stays open: the next
+      check goes with the micro-enterprise status, by 5 Aug 2027, or out of turn
+      as soon as a first payment appears.
       would change both the tax picture and several answers in the README
 
 ## What is deliberately not done

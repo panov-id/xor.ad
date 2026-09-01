@@ -241,6 +241,7 @@ wizard.SELECTED_ENVS = None
 
 migrate_calls = []
 create_calls = []
+pull_calls = []
 for node in ast.walk(tree):
     if not (isinstance(node, ast.Call) and getattr(node.func, "id", "") == "sh"):
         continue
@@ -249,6 +250,8 @@ for node in ast.walk(tree):
         migrate_calls.append((node, rendered))
     if "createdb" in rendered:
         create_calls.append((node, rendered))
+    if "compose pull" in rendered:
+        pull_calls.append((node, rendered))
 
 check("the migration is run", len(migrate_calls) == 1, f"{len(migrate_calls)} calls")
 if migrate_calls:
@@ -271,7 +274,21 @@ if create_calls and migrate_calls:
           "no existence check — Postgres has no CREATE DATABASE IF NOT EXISTS")
 
 print()
+
+# Migrations run out of the image, through `docker compose run node-<env>`. Pull
+# it afterwards and they are applied by the image already on the box — the
+# previous release — while the new code comes up against a schema without its
+# columns. That is a 503 on every Article 16 notice until someone runs the wizard
+# again, and it is invisible in a green deploy.
+check("the image is pulled", len(pull_calls) >= 1, f"{len(pull_calls)} calls")
+if pull_calls and migrate_calls:
+    check("it is pulled before the migration runs",
+          pull_calls[0][0].lineno < migrate_calls[0][0].lineno,
+          f"pull at line {pull_calls[0][0].lineno}, "
+          f"migrate at {migrate_calls[0][0].lineno}")
+
 if failed:
     print(f"FAILED: {failed}")
     sys.exit(1)
 print("wizard: every case passed")
+

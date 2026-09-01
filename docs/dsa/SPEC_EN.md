@@ -146,6 +146,28 @@ returned `received` with an empty snapshot, filing the notice as though a copy h
 never been required. That case now logs an error and tells the notifier plainly
 that we could not look.
 
+**Six reasons, not one — `snapshot_reason` (2026-08-31).** The notifier hears the
+same sentence in every case: we could not look. To us the cases are not the same.
+A chat is never stored (`chat_not_stored`) and that is by design; a kind with no
+snapshot rule (`unknown_kind`) is a surface nobody taught this file about; a
+surface not built yet (`surface_absent`) waits on the product; a notice with no
+face (`unattributed`) has no scope to search within; and a broken query
+(`lookup_failed`) is a defect that otherwise ships in silence. Before this column
+the night's review could not tell the first from the last, and a broken `SELECT`
+looked exactly like an ordinary chat report. The column is null whenever the
+status already says everything: a copy was taken, or the target was gone.
+
+The sixth, `out_of_scope`, is about the honesty of the answer rather than the
+completeness of the copy. The world is one while a notice arrives under a brand:
+a complaint filed through one storefront about a person who came through another
+finds nothing under its own face. The earlier code called that "target gone" —
+telling the notifier, in an Article 16 reply, that the phrase had expired while
+it was alive. An empty scoped lookup now checks whether the record exists at all,
+reading no columns and naming no other face: if it does, the answer is "not found
+here", not "gone". The scope itself stays an open question
+(`brand.scope.snapshot`); telling the reasons apart does not settle it, it only
+stops the untruth while it is being settled.
+
 The snapshot is held inside the notice record. There is no separate table of
 "retained messages": a snapshot does not outlive its notice and is used for
 nothing else.

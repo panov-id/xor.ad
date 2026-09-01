@@ -13,7 +13,7 @@ This document described two unrelated things, and their fates differ:
 | Part | State |
 |---|---|
 | **The PWA shell** — manifest, the cache in `sw.js`, `version.json`, icons | built and working, described below |
-| **Web Push** — VAPID, subscriptions, broadcast | **cancelled 07.08.2026**, not to be implemented |
+| **Web Push** — VAPID, subscriptions, broadcast | **cancelled 2026-08-07**, not to be implemented |
 
 ## Why Web Push was cancelled
 

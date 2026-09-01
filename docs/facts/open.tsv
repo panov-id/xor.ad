@@ -1,0 +1,61 @@
+# Открытые вопросы: один список вместо пяти.
+#
+# Источники были разрознены — незакрытые чекбоксы в open-work, в dsa/CHECKLIST и
+# в review-checklist, абзацы «Открытый пункт» в спеке чата, раздел «Открыто» в
+# дизайн-системе. Собрать «что открыто» можно было только глазами по шести
+# файлам, и часть терялась. scripts/collect-open-items.sh показывает сырьё,
+# этот файл — то, что действительно ждёт решения.
+#
+# Колонки:
+#   id       имя пункта; для чекбоксов — их собственное (G11, J19)
+#   opened   когда заведён
+#   due      дата, «сейчас» или «-»
+#            «сейчас» значит, что обязательство уже действует, а исполнения нет:
+#            приватность обещает удаление через 30 дней, уборщика нет — срок не в
+#            будущем, он идёт. «-» ставится только там, где срока действительно
+#            нет, и вес такого пункта не может быть legal.
+#   weight   legal | product | comfort — чем это является:
+#            legal    обещание, записанное в юридических документах или в законе
+#            product  обязательство продукта перед человеком
+#            comfort  удобство: без него продукт работает
+#   what     что решить, одной строкой
+#   blocks   область из объявленных в docs/facts/ontology.json (open_areas)
+#   where    где это записано (файл:строка)
+#
+# 31.08.2026: J25 «свести открытые вопросы спеки чата в список» закрыт — его
+# закрыл этот файл. Остальные сверены с явью: таблиц стола и личностей в базе
+# нет, в relay/node/src/chat лежит один файл, предела длины на узле нет. Счёт
+# записей не пишется здесь прозой — его печатает scripts/check-facts-open.sh,
+# и он не может устареть.
+id	opened	due	weight	what	blocks	where
+G11	2026-08-19	2026-09-01	product	Режим Shield для четырёх боевых зон	prod	docs/open-work_RU.md:1024
+J9	2026-08-05	2027-08-05	legal	Перепроверить статус микропредприятия	dsa	docs/open-work_RU.md:613
+DSA-report-menu	2026-08-26	сейчас	legal	Пункт «пожаловаться» в меню сообщения и на карточке оффера	dsa	docs/dsa/CHECKLIST_RU.md:118
+DSA-reasons-no-mail	2026-08-26	сейчас	legal	Показ мотивировки в приложении, когда почты автора нет	dsa	docs/dsa/CHECKLIST_RU.md:121
+DSA-turnover	2026-08-26	2027-08-05	legal	Не появился ли оборот: в коде платежей нет (31.08.2026), донаты по внешней ссылке не измерены, способ подсчёта для порога не решён	dsa	docs/dsa/CHECKLIST_RU.md:140
+brand.scope.snapshot	2026-08-26	сейчас	legal	Граница снимка: по витрине или по видимости для заявителя. Ложный ответ «цель исчезла» устранён 31.08.2026 (out_of_scope), сама граница не решена	dsa	docs/chat_RU.md:836
+identity.sweeper	2026-08-30	сейчас	legal	Уборщика личностей нет: удаление через 30 дней (предел identity.deletion.delay) обещано спекой и обеими витринами, задачи в планировщике нет	identity	docs/chat_RU.md:381
+identity.cascades	2026-08-31	сейчас	legal	Шесть колонок без ON DELETE — feed_messages.author_identity, likes.liker_identity, identity_stats.identity, match_participants.identity, chat_participants.identity, hidden_messages.identity — привести к SET NULL одним заходом (правило: решение chat.2026-08-31.200)	identity	docs/chat_RU.md:205
+J19	2026-08-21	-	product	Модель личности переписана в спеке и не существует в коде	chat	docs/open-work_RU.md:1496
+G6	2026-08-07	-	product	Предел длины сообщения — проверка на узле, а не только в клиенте	chat	docs/open-work_RU.md:1045
+product.tables.unmigrated	2026-08-31	-	product	18 таблиц продукта объявлены спекой и не мигрированы: продукт не начат	chat	docs/facts/schema.tsv
+G9	2026-08-12	-	product	Ключ для нативного клиента: три подпункта из пяти	depth	docs/open-work_RU.md:1123
+table.sweeper	2026-08-31	-	product	Уборщика стола нет: оператор написан, в планировщике его нет	table	docs/chat_RU.md:227
+table.eviction	2026-08-31	-	product	Высадка ничего не запирает: вернуться можно тем же UPDATE	table	docs/chat_RU.md:229
+table.brand.equality	2026-08-31	-	product	table_lines.brand и tables.brand независимы, равенство никто не держит	table	docs/chat_RU.md:196
+table.band	2026-08-31	-	product	По чему считается возрастная полоса стола: created_by, сидящие или никак	table	docs/test-map_RU.md:289
+app.light.theme	2026-08-24	-	comfort	Светлая тема приложения не решена	design	docs/design-system-app_RU.md:116
+app.july.prototype	2026-08-24	-	comfort	Куда девать июльский прототип	design	docs/design-system-app_RU.md:118
+landing.mockup.texts	2026-08-18	-	comfort	Тексты в мокапах захардкожены по-английски, отложено	design	docs/review-checklist_RU.md:154
+moderation.model	2026-08-24	-	product	Какая модель модерации: решается замером, а не спором (§8.14)	chat	docs/open-work_RU.md:1491
+moderation.queue.throughput	2026-08-24	-	product	Пропускная способность очереди модерации (§8.3)	chat	docs/open-work_RU.md:1491
+refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:132
+refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:134
+refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:136
+gates.without.probe	2026-09-01	-	product	У check-facts-limits.sh и check-facts-decisions.sh нет пробы: их зелёный отчёт никем не видан красным	dsa	docs/facts/ontology_RU.md:72
+panel.snapshot.reason	2026-09-01	сейчас	legal	Панель не показывает snapshot_reason: модератор по-прежнему видит одно not_accessible на шесть причин	dsa	relay/node/src/routes/dsa.ts:71
+probe.drops.feed.table	2026-09-01	-	product	Проба в database.test.ts безусловно роняет feed_messages: сработает в день, когда таблицу создаст миграция	chat	relay/node/test/database.test.ts:1041
+open.where.line	2026-09-01	-	product	Реестр обещает адрес файл:строка, а ворота проверяют только файл — шесть номеров уже указывают не туда	dsa	scripts/check-facts-open.sh:73
+feed.span.retired	2026-09-01	-	product	open-work обещает «остаются три срока, четвёртого не будет» против канона с четырьмя (chat_RU.md:60)	chat	docs/open-work_RU.md:1486
+schema.offers.missing	2026-09-01	-	product	offers объявлена в SNAPSHOTTABLE и отсутствует в реестре таблиц	dsa	docs/facts/schema.tsv
+report.malformed.id	2026-09-01	-	product	Кривой target_id от заявителя даёт lookup_failed — причину, означающую дефект, а не опечатку	dsa	relay/node/src/routes/report.ts:121

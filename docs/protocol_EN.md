@@ -150,7 +150,7 @@ transaction as `frozen_at`.
 | floor of the report threshold | 3 people | the node's config |
 
 **The last three rows are deploy-time parameters, not constants of the code**
-(decided 2026-08-27/28, `route-to-code_EN.md`). The environment variable names are
+(decided 2026-08-27–2026-08-28, `route-to-code_EN.md`). The environment variable names are
 proposed here and need agreement: `MODERATION_FALSE_BLOCK_BUDGET`,
 `REPORT_THRESHOLD_SHARE`, `REPORT_THRESHOLD_FLOOR`. They are not in the node's
 config today and should not be: the moderation queue arrives at step 2, and

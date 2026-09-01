@@ -54,7 +54,6 @@ refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказ
 refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:134
 refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:136
 gates.without.probe	2026-09-01	-	product	У check-facts-limits.sh и check-facts-decisions.sh нет пробы: их зелёный отчёт никем не видан красным	dsa	docs/facts/ontology_RU.md:72
-panel.snapshot.reason	2026-09-01	сейчас	legal	Панель не показывает snapshot_reason: модератор по-прежнему видит одно not_accessible на шесть причин	dsa	relay/node/src/routes/dsa.ts:71
 probe.drops.feed.table	2026-09-01	-	product	Проба в database.test.ts безусловно роняет feed_messages: сработает в день, когда таблицу создаст миграция	chat	relay/node/test/database.test.ts:1041
 open.where.line	2026-09-01	-	product	Реестр обещает адрес файл:строка, а ворота проверяют только файл — шесть номеров уже указывают не туда	dsa	scripts/check-facts-open.sh:73
 feed.span.retired	2026-09-01	-	product	open-work обещает «остаются три срока, четвёртого не будет» против канона с четырьмя (chat_RU.md:60)	chat	docs/open-work_RU.md:1486

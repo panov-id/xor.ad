@@ -12,6 +12,7 @@ import { Badge } from "../../components/badge";
 import { DataTable } from "../../components/data-table";
 import { EmptyState } from "../../components/states";
 import { api } from "../../providers/api";
+import { copyCell, longReason } from "./reasons";
 
 type Notice = {
   id: string;
@@ -24,6 +25,10 @@ type Notice = {
   notifier_email: string | null;
   status: string;
   snapshot_state: string;
+  // Sent by the list endpoint since db/013 (routes/dsa.ts returns the rows as
+  // they are). Null on notices older than that migration — a real absence of
+  // knowledge, not a missing label.
+  snapshot_reason: string | null;
   created_at: string;
   decided_at: string | null;
 };
@@ -43,14 +48,6 @@ const STATUS_LABEL: Record<string, string> = {
   in_review: "In review",
   upheld: "Upheld",
   rejected: "Rejected",
-};
-
-// Whether a copy exists, and when it does not, why — the two reasons are not
-// interchangeable and decide what can be examined at all. They used to live in
-// `status`, which kept such notices out of the queue entirely (see db/006).
-const COPY_LABEL: Record<string, string> = {
-  target_gone: "gone before we looked",
-  not_accessible: "never held",
 };
 
 export const DsaNoticesList = () => {
@@ -101,7 +98,8 @@ export const DsaNoticesList = () => {
             // three clicks away — and "no copy" is worth its reason: content that
             // expired before anyone looked is a different problem from content we
             // could never have copied.
-            render: (row) => (row.snapshot ? "yes" : COPY_LABEL[row.snapshot_state] ?? "—"),
+            render: (row) =>
+              copyCell(Boolean(row.snapshot), row.snapshot_state, row.snapshot_reason),
           },
           {
             key: "id",
@@ -227,9 +225,7 @@ const NoticeDetail = ({
         <pre className="snapshot">{JSON.stringify(notice.snapshot.row ?? notice.snapshot, null, 2)}</pre>
       ) : (
         <p className="panel-hint">
-          None. Either the content had already expired before the report arrived, or
-          it is something we never hold — a chat is carried, not stored. Say so in
-          the answer rather than implying it was examined.
+          {longReason(notice.snapshot_reason)}
         </p>
       )}
 

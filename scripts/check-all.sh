@@ -80,6 +80,7 @@ run ontology              python3 "$here/ontology.py" --check
 run check-landing-tokens       bash "$here/check-landing-tokens.sh"
 run check-retired-terms        bash "$here/check-retired-terms.sh"
 run check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
+run check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.

@@ -26,8 +26,7 @@ date	kind	why	example
 2026-07-31	document.stamp	ревизия дизайн-системы	xor.ad/docs/design-system_EN.md:19
 2026-08-02	document.stamp	дата ревью приватности, из которого выписаны пункты	xor.ad/docs/open-work_EN.md:530
 2026-08-03	document.stamp	дата сбора сведений с юридических страниц поставщиков	xor.ad/docs/vendors-dpa_EN.md:4
-2026-08-22	state.report	дата замера состояния зон скриптом, а не выбора	xor.ad/docs/open-work_RU.md:1040
-2026-09-01	deadline	срок G11; ведётся в open.tsv	xor.ad/docs/open-work_RU.md:1024
 2026-09-14	sample.data	значение поля revision_date внутри примера JSON	xor.ad/docs/protocol_EN.md:177
 2026-12-31	external.fact	дата закрытия чужого сервиса	neighbro.place/docs/00-mechanics_EN.md:408
 2026-07-26	document.stamp	дата снимка обзора многоарендности, а не выбора	xor.ad/docs/tenancy-review_RU.md:7
+2026-09-15	deadline	срок G12 и G13; ведётся в open.tsv	xor.ad/docs/open-work_RU.md:1062

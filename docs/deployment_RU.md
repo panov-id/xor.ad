@@ -58,6 +58,11 @@ api.<фейс>                        узел relay на своих бокса�
 | `deploy-uat.yml` | push в `main` | режет тег `vГГГГ.ММ.ДД-<sha7>` и деплоит его на uat |
 | `deploy-prod.yml` | ручной запуск с тегом | тот же скрипт с `LANDING_ENV=prod` |
 
+**`docs/deploy-prod_RU.md` — это история, а не runbook** (пометка 02.09.2026).
+Имя похоже на строку выше, а описывает документ вынесенный стек Supabase; ночью
+по имени открывают первое, что нашлось. Действующий порядок выката — здесь и в
+`relay/ARCHITECTURE_RU.md`.
+
 **Панель (`xor.ad`)** — `deploy-dev/uat/prod.yml` зовут общий `_deploy.yml`:
 `npm ci && npm run build` в `panel/` с `VITE_RELAY_API_URL`, затем
 `deploy/deploy-panel-ci.sh` в зону панели.

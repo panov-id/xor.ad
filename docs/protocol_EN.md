@@ -130,6 +130,25 @@ out in this scheme.
 **Freezing a session cuts its sockets**: `NOTIFY session_frozen` in the same
 transaction as `frozen_at`.
 
+**How the node closes a socket — proposed 2026-09-02; until that day not one code
+was named.** RFC 6455 §7.4 splits the range: 1000–2999 belong to the protocol
+itself, 4000–4999 are the application's. Hence:
+
+| Code | When | What the client does |
+|---|---|---|
+| `1000` | the person closed the conversation or left the page | nothing |
+| `1001` | the node is going down for a restart | reconnects after a delay |
+| `1011` | an error on the node | reconnects after a delay |
+| `4001` | the ticket is expired, spent or wrong | takes a new ticket and retries |
+| `4002` | the session was frozen by an identity transfer | does not reconnect, shows "the identity has moved" |
+| `4003` | the conversation ended: your span ran out or it was closed | does not reconnect, shows the tombstone (§5) |
+| `4004` | the protocol version is not supported | does not reconnect, asks to update (§3) |
+
+The difference between 4002 and 4003 is not politeness: in the first case
+reconnecting is pointless forever, in the second it is pointless for this
+conversation. A client that does not tell them apart either hammers a closed door
+or takes a live identity for a dead one.
+
 ## 5. Limits
 
 | What | Value | Who enforces it |
@@ -212,3 +231,10 @@ it has to be settled before the first line of step 1.
 6. **The wordings of moderation refusals** — they do not exist at all, and §7 of
    the storefront mechanics admits it; without them the Article 17 statement of
    reasons has nothing to fill it.
+7. **The threshold of the shared miss counter in recovery** — a count per address
+   plus a shared counter are named in `chat-flows_EN.md` §5, and the shared one
+   has no number at all, nor a consequence for reaching it. The neighbouring
+   numbers were chosen (10 PIN attempts, 5 transfer-code attempts); this one was
+   not, and it must not be invented here: too low a threshold locks out someone
+   who merely misread a character on paper, too high leaves brute force over the
+   whole base.

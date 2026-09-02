@@ -205,6 +205,26 @@ finally:
 box = {"id": "n1", "envs": ["dev", "staging"], "region": "test"}
 
 wizard.SELECTED_ENVS = None
+
+# --- every service caps its own log --------------------------------------------
+#
+# Docker's default keeps every line until the disk says otherwise, and the log
+# viewer on the box reads those same files: an unbounded log takes down the node
+# and the only way to look at it, together. Checked per service rather than once
+# for the file, because the policy is repeated in five places and four of them
+# are string concatenation - exactly the shape that loses a line in an edit.
+import yaml as _yaml
+
+_inv = {"pool": {}, "env": {"dev": {"image_tag": "sha-x", "mail": "mailpit", "database": True}},
+        "dns": {"zone": "relay.panov.id"}}
+_box = {"id": "n1", "envs": ["dev"], "database": True}
+_services = _yaml.safe_load(wizard.render_compose(_inv, _box))["services"]
+_without = sorted(name for name, svc in _services.items() if not svc.get("logging"))
+check("every service in the compose file caps its own log",
+      _without == [], f"no logging policy on: {_without}")
+_limits = {name: svc["logging"]["options"]["max-size"] for name, svc in _services.items()}
+check("the cap is a size, not a promise",
+      set(_limits.values()) == {"50m"}, str(_limits))
 check("without a filter, every environment is acted on",
       wizard.acting_envs(box) == ["dev", "staging"], str(wizard.acting_envs(box)))
 

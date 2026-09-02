@@ -239,6 +239,23 @@ def aux_hosts(inv: dict, box: dict) -> list[str]:
     return hosts
 
 
+# Docker's default json-file driver keeps every line forever: nothing rotates it,
+# and the only thing that eventually stops it is the disk. The log viewer on the
+# box reads the same files, so an unbounded log is not extra safety — it is the
+# node and the viewer sharing one way to die. Fifty megabytes across three files
+# per service is roughly a day of ordinary traffic and survives a burst of
+# errors, which is the window someone woken at night actually reads.
+#
+# Written into every service rather than into a daemon-wide default: the daemon
+# config is not ours to own on a shared box, and a compose file that states its
+# own limits is one a person can read without logging in.
+LOG_POLICY = (
+    '    logging:\n'
+    '      driver: json-file\n'
+    '      options: {max-size: "50m", max-file: "3"}\n'
+)
+
+
 def render_compose(inv: dict, box: dict) -> str:
     pool = inv.get("pool", {})
     node_repo = pool.get("node_repo", "ghcr.io/panov-id/edge-node")
@@ -251,7 +268,7 @@ def render_compose(inv: dict, box: dict) -> str:
     restart: unless-stopped
     env_file: [{env}.env]
     expose: ["8080"]
-""" for env in box["envs"])
+{LOG_POLICY}""" for env in box["envs"])
     extra = ""
     # Control state lives beside the node it serves: keys, brands, quotas, the
     # queue. Reachable on the compose network only — the port is never published,
@@ -261,7 +278,7 @@ def render_compose(inv: dict, box: dict) -> str:
     if uses_database(inv, box):
         extra += ('  postgres:\n    image: postgres:16-alpine\n'
                   '    restart: unless-stopped\n'
-                  '    env_file: [postgres.env]\n'
+                  '    env_file: [postgres.env]\n' + LOG_POLICY +
                   '    volumes:\n'
                   '      - pgdata:/var/lib/postgresql/data\n'
                   '      - ./init-databases.sql:/docker-entrypoint-initdb.d/10-databases.sql:ro\n'
@@ -271,9 +288,9 @@ def render_compose(inv: dict, box: dict) -> str:
                   '    expose: ["5432"]\n')
     if uses_mailpit(inv, box):
         extra += ('  mailpit:\n    image: axllent/mailpit:latest\n'
-                  '    restart: unless-stopped\n    expose: ["1025", "8025"]\n')
+                  '    restart: unless-stopped\n    expose: ["1025", "8025"]\n' + LOG_POLICY)
     extra += ('  dozzle:\n    image: amir20/dozzle:latest\n    restart: unless-stopped\n'
-              '    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]\n    expose: ["8080"]\n')
+              '    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]\n    expose: ["8080"]\n' + LOG_POLICY)
     deps = ", ".join([f"node-{e}" for e in box["envs"]]
                      + (["mailpit"] if uses_mailpit(inv, box) else []) + ["dozzle"])
     return f"""services:
@@ -287,6 +304,7 @@ def render_compose(inv: dict, box: dict) -> str:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+{LOG_POLICY}
 volumes:
   caddy_data:
   caddy_config:{"" if not uses_database(inv, box) else chr(10) + "  pgdata:"}

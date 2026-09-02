@@ -222,3 +222,21 @@ it needs no blurring      | *_EN.md | a cell stepped by the radius goes out, 202
 nothing to coarsen        | *_EN.md | a cell stepped by the radius goes out, 2026-08-31
 Шкала отступов не заведена | design-system-app_RU.md | четвёрочная шкала заведена, 31.08.2026
 There is no spacing scale | design-system-app_EN.md | a four-based scale exists, 2026-08-31
+
+# --- README шлюза: доли языков и квота ------------------------------------------
+# 02.09.2026: README обеих языковых версий пережил две отмены. Доли 95/5 сняты
+# 26.08.2026 в пользу фильтра до трёх языков, квота стала четырьмя живыми и
+# четырьмя за час 28.08.2026, а жалоба квоту не режет с 26.08.2026 — и всё это
+# время README обещал старое. Ни одни ворота его не сторожили: реестр отмен
+# смотрел на витрины и юр-тексты, а не на README.
+доли настраиваются через переменную | README_RU.md | фильтр до трёх языков, 26.08.2026
+shares configurable via environment  | README.md    | a filter of up to three languages, 2026-08-26
+квота 5 сообщений         | README_RU.md | четыре живых и четыре за час, 28.08.2026
+quota of 5 posts          | README.md    | four live and four an hour, 2026-08-28
+# 02.09.2026, тот же проход: README обещал автоопределение позиции (снято
+# 28.08.2026 вместе с кнопкой «где я») и острые углы у витрин (опровергнуто
+# замером 31.08.2026 — 37 объявлений радиуса, 17 значений).
+может определить позицию само | README_RU.md | геопозиция не спрашивается, точка ставится рукой, 28.08.2026
+can detect your position  | README.md    | geolocation is never requested, the point is set by hand, 2026-08-28
+острые углы               | README_RU.md | сдержанные радиусы: 37 объявлений, 17 значений, 31.08.2026
+sharp corners             | README.md    | restrained radii: 37 declarations, 17 values, 2026-08-31

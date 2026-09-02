@@ -110,7 +110,7 @@ created_at}` — **a circle, not a point**, and nothing about the author. `lat`/
 | `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |
 | `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
 | `DELETE /chats/:id` | closes a conversation by hand — for both at once | **proposed** (§5, screen 8) |
-| `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" | **proposed** (§8.6) |
+| `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **proposed** (§8.6) |
 
 ### 4.4. The socket
 

@@ -25,7 +25,7 @@ Two rules for step 1 follow, and neither is a matter of taste:
 - **A file reads as the schema.** Since `db/` *is* the description of the schema, a
   comment in a migration is worth exactly as much as the column beside it.
 
-Today `db/` holds ten files, `001`–`010`: control state, quotas, brand and API
+Today `db/` holds thirteen files, `001`–`010` and `012`–`014`: control state, quotas, brand and API
 keys, the node's secret keys, the register of Article 16 notices. Not one product
 table — step 1 opens the first.
 
@@ -35,10 +35,17 @@ It was not chosen; it follows from the foreign keys: a session references an
 identity, a share references a session.
 
 ```
-011_identities.sql     →   012_sessions.sql     →   013_vault_shares.sql
-                       →   014_legal_acceptances.sql
+011_identities.sql     →   015_sessions.sql     →   016_vault_shares.sql
+                       →   017_legal_acceptances.sql
    the identity              the device               the vault key's share
 ```
+
+**The numbers jump, and it is not a typo (fixed 2026-09-02).** The plan was
+written on 2026-08-28, when 011–014 were free. While it sat there, a neighbouring
+subsystem took 012, 013 and 014 for its DSA Article 16 migrations, and the plan
+quietly pointed at occupied names: `migrate_db.ts` is deliberately dumb, sorts by
+name and does not catch a collision — only the deploy itself would have. The
+identity keeps 011, the rest moves to 015–017. The chat schema is 018.
 
 **Three files rather than one.** A single migration for three tables would read as
 "the identity and everything stuck to it", while these are different things with
@@ -46,7 +53,7 @@ different fates: a session goes still on transfer, a share burns after ten wrong
 PINs, an identity lives on. The split costs one extra file and saves an
 investigation six months from now.
 
-## 014 — what a person accepted
+## 017 — what a person accepted
 
 ```sql
 CREATE TABLE legal_acceptances (
@@ -107,7 +114,7 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
 Closes test-map claims **1.1–1.6** (an identity is created, name and age are
 mandatory, before the first post the name is visible to nobody).
 
-## 012 — the session
+## 015 — the session
 
 ```sql
 CREATE TABLE sessions (
@@ -131,7 +138,7 @@ why the rule lives here rather than in an application check.
 Closes: **2.1–2.5** (request signing), **4.1–4.10** (moving an identity: the old
 device goes still, the new one has its own key pair).
 
-## 013 — the vault key's share
+## 016 — the vault key's share
 
 ```sql
 CREATE TABLE vault_shares (

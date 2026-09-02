@@ -251,7 +251,7 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 
 ## 8. Модель данных
 
-Уровень требований — схема набросками; реализация отдельным шагом (миграция `relay/node/db/011_chat.sql`, накатывается `tools/migrate_db.ts` — заняты 005–010 и 012, номер 011 держится за этой схемой, а раннер сортирует по имени).
+Уровень требований — схема набросками; реализация отдельным шагом (миграция `relay/node/db/018_chat.sql`, накатывается `tools/migrate_db.ts` — заняты 001–010 и 012–014, номер 011 держится за личностью шага 1, 015–017 за сессией, долей и принятиями; раннер сортирует по имени).
 
 **Главный принцип: наружу не уходит ни один идентификатор пользователя.** Клиент знает ровно два вида UUID — uuid фразы в ленте и uuid чата. Кто автор фразы, кто её лайкнул, кто с кем в чате, сколько у человека чатов — живёт только внутри БД и никогда не попадает в ответ API.
 
@@ -312,7 +312,7 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
   name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
-  age              integer NOT NULL CHECK (age >= 13),
+  age              integer NOT NULL CHECK (age >= 13),  -- сверху не ограничен: 28.08.2026
   identity_public_key text NOT NULL,    -- долгий ключ: подтверждает личность (§8.13)
   recovery_auth_hash  text,             -- хэш половины бумажного кода: по нему узел находит личность
   recovery_wrapped_key bytea,           -- долгий ключ под второй половиной; узел его не открывает
@@ -806,7 +806,6 @@ AND me.age BETWEEN band_low(other.age) AND band_high(other.age)
 
 ```sql
 ALTER TABLE identities
-  ADD COLUMN age CHECK (age >= 13),   -- сверху не ограничен: 28.08.2026
   ADD COLUMN filter_age_min integer,   -- зажимается в band(age) на записи
   ADD COLUMN filter_age_max integer;
 ```

@@ -259,7 +259,7 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 
 ## 8. Data model
 
-Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 and 012 are taken, 011 is held for this schema, and the runner sorts by name).
+Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/018_chat.sql`, applied by `tools/migrate_db.ts` — 001 through 010 and 012 through 014 are taken, 011 is held for step 1's identity, 015–017 for the session, the share and the acceptances; the runner sorts by name).
 
 **Core principle: no user identifier ever leaves the server.** A client knows exactly two kinds of UUID — a feed phrase id and a chat id. Who wrote a phrase, who liked it, who is in a chat with whom, how many chats someone has — all of it stays inside the database and never appears in an API response.
 
@@ -320,7 +320,7 @@ This used to read "a secret, and the server stores the secret's hash" — a left
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
   name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
-  age              integer NOT NULL CHECK (age >= 13),
+  age              integer NOT NULL CHECK (age >= 13),  -- no upper bound: 2026-08-28
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
@@ -821,7 +821,6 @@ On top of the band sits a **user filter**, clamped to it: narrower than your ban
 
 ```sql
 ALTER TABLE identities
-  ADD COLUMN age CHECK (age >= 13),   -- no upper bound: 2026-08-28
   ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write
   ADD COLUMN filter_age_max integer;
 ```

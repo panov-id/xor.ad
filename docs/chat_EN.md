@@ -207,11 +207,21 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
   screen 12 promises would not happen. `CASCADE` is wrong here: it would take
   away the very line a notice under Article 16 was filed against, while the
   snapshot of it lives a year and points at the row. `SET NULL` erases the person
-  and keeps the evidence. **Open item:** six older columns carry the same defect —
-  `feed_messages.author_identity`, `likes.liker_identity`,
-  `identity_stats.identity`, `match_participants.identity`,
-  `chat_participants.identity`, `hidden_messages.identity` — and they want one
-  pass under one rule, not six.
+  and keeps the evidence. **The six older columns were brought under the same rule
+  on 2026-09-02, in one pass.** The rule reads: a row that is content or evidence
+  loses its author — `SET NULL`; a row that is only about the person goes with
+  them — `CASCADE`. Under it `feed_messages.author_identity` becomes nullable and
+  takes `SET NULL` (a phrase can be the subject of an Article 16 notice), while
+  `likes.liker_identity`, `identity_stats.identity`, `match_participants.identity`,
+  `chat_participants.identity` and `hidden_messages.identity` take `CASCADE`: a
+  like, a counter, a place in a match, a place in a conversation and a personal
+  hidden list mean nothing without the person, and the first two also sit in a
+  primary key, where `NULL` is impossible. The price is named: code reading
+  `feed_messages` must expect a `NULL` author — a phrase without an author is not
+  a fault, it is an erased person. And the delivery queries of §8.3 and §8.5 that
+  join `identities` by author must do so with an outer join or filter such authors
+  out explicitly: an inner join drops that phrase from the feed silently, and the
+  silence will look like a disappearance.
 - **`joined_at` *is* the "a newcomer sees nothing from before" rule**: the line
   feed is cut by it rather than by a flag of its own.
 - **`visible_at` without `expires_at`**, unlike a phrase: a line at a table has no
@@ -835,7 +845,7 @@ A phrase is tied not to a city but to **an area the person chooses themselves** 
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ATTRIBUTION ONLY: which face the author arrived through
-  author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- never exposed; NULL = the author was erased
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre
@@ -867,7 +877,7 @@ UPDATE feed_messages
 
 **A private offer is a phrase with a discount, not a separate entity.** The neighbour giving away two stools writes the same phrase into the same feed; a non-empty `discount_value` is what makes it an offer. Everything else — geography, lifetime, likes, matching, chat — works without a single new line, because it is a post. What a private author may put in an offer (text, discount, conditions — and nothing else: no link, no promo code) is decided in `offers/SPEC_EN.md` §2.
 
-**A business offer does not live in this table.** There is no identity behind it, and `author_identity` is `NOT NULL`. It stays a separate object (`offers/SPEC_EN.md` §3) and joins the feed when the delivery is assembled, by its venue's coordinates. It carries no like by construction: a like leads to a match, a match to a conversation, and there is nobody to converse with.
+**A business offer does not live in this table.** There is no identity behind it, and an empty author here already means something else: since 2026-09-02 `author_identity` is nullable, and a `NULL` there reads as "the person was erased", not "there was no author". An offer placed here would be indistinguishable from an erased neighbour. It stays a separate object (`offers/SPEC_EN.md` §3) and joins the feed when the delivery is assembled, by its venue's coordinates. It carries no like by construction: a like leads to a match, a match to a conversation, and there is nobody to converse with.
 
 The quota counts **both** kinds of commercial card together — phrases with a discount and business offers alike: no more than one per ten ordinary phrases in a given person's feed. Otherwise "selling a stool" walks around the very limit the quota exists for.
 
@@ -1200,14 +1210,14 @@ Counting must happen **at event time**: `likes` are cleaned along with the phras
 
 ```sql
 CREATE TABLE likes (
-  liker_identity   uuid NOT NULL REFERENCES identities(id),
+  liker_identity   uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (liker_identity, feed_message_id)
 );
 
 CREATE TABLE identity_stats (
-  identity        uuid PRIMARY KEY REFERENCES identities(id),
+  identity        uuid PRIMARY KEY REFERENCES identities(id) ON DELETE CASCADE,
   likes_received  integer NOT NULL DEFAULT 0,
   likes_given     integer NOT NULL DEFAULT 0,
   matches         integer NOT NULL DEFAULT 0,
@@ -1280,7 +1290,7 @@ CREATE TABLE matches (
 
 CREATE TABLE match_participants (
   match_id          uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
-  identity          uuid NOT NULL REFERENCES identities(id),
+  identity          uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   message_id        uuid NOT NULL,
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
   mode              text NOT NULL,      -- alone | company | party
@@ -1393,7 +1403,7 @@ CREATE TABLE chats (
 
 CREATE TABLE chat_participants (
   chat_id   uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-  identity  uuid NOT NULL REFERENCES identities(id),
+  identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   idle_ttl_minutes integer NOT NULL DEFAULT 60,  -- 10 | 30 | 60 | 260, ONE PER PERSON (§5)
   last_own_message_at timestamptz,               -- their span counts from here
   gone_at   timestamptz,                         -- the conversation ended for this participant
@@ -1551,7 +1561,7 @@ The effect applies at all three levels at once: phrases are hidden from both sid
 
 ```sql
 CREATE TABLE hidden_messages (
-  identity         uuid NOT NULL REFERENCES identities(id),
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (identity, feed_message_id)

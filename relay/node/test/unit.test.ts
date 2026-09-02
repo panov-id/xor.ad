@@ -4,7 +4,7 @@ import { isEmail } from "../src/lib/http.ts";
 import { sha256hex } from "../src/lib/hash.ts";
 import { resolveBrand, welcomeEmail } from "../src/lib/welcome.ts";
 import { brandByKey } from "../src/config.ts";
-import { inc, render } from "../src/lib/metrics.ts";
+import { clearGauge, inc, render, setGauge } from "../src/lib/metrics.ts";
 
 import { suite } from "./support/config_env.ts";
 
@@ -106,6 +106,39 @@ configured("metrics render Prometheus counters with labels", () => {
   assert(out.includes("# TYPE relay_ut_total counter"));
   assert(out.includes('relay_ut_total{result="ok"} 2'));
   assert(out.includes('relay_ut_total{result="fail"} 1'));
+});
+
+configured("metrics render gauges as gauges, and let a level fall", () => {
+  setGauge("relay_ut_queue_depth", 7, { env: "test" });
+  assert(render().includes('relay_ut_queue_depth{env="test"} 7'));
+  // The whole reason for a second kind: a counter cannot do this.
+  setGauge("relay_ut_queue_depth", 2, { env: "test" });
+  const out = render();
+  assert(out.includes("# TYPE relay_ut_queue_depth gauge"));
+  assert(out.includes('relay_ut_queue_depth{env="test"} 2'));
+  assert(!out.includes('relay_ut_queue_depth{env="test"} 7'));
+});
+
+configured("metrics: a level that stopped existing is removed, not zeroed", () => {
+  setGauge("relay_ut_gone", 3);
+  assert(render().includes("relay_ut_gone 3"));
+  clearGauge("relay_ut_gone");
+  assert(!render().includes("relay_ut_gone"));
+});
+
+configured("metrics publish when the process started, so a reset is visible", () => {
+  const out = render();
+  assert(out.includes("# TYPE relay_process_start_time_seconds gauge"));
+  assert(out.includes("# TYPE relay_process_uptime_seconds gauge"));
+  // Anchored: without ^ the first match is the "# TYPE ... gauge" line, and
+  // Number("gauge") is NaN, which compares false against every bound and
+  // would have let a broken value through as a failing test for the wrong
+  // reason.
+  const started = Number(out.match(/^relay_process_start_time_seconds (\S+)$/m)?.[1]);
+  // Seconds since the epoch, not milliseconds: the reading below is 2026, and
+  // the same number in milliseconds would put the node's start in the year
+  // 57000, which a dashboard renders without complaining.
+  assert(started > 1_700_000_000 && started < 4_000_000_000, `start time out of range: ${started}`);
 });
 
 // The quota's arithmetic, without a database: what "today" means and what a

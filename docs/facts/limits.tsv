@@ -61,3 +61,4 @@ seo.sitemap.sosed	19	адресов	адресов в sitemap витрины sos
 seo.hreflang.sosed	18	ссылок	альтернатив hreflang в шапке страницы sosed	конфиг	sosed.place/docs/SEO_AND_ANALYTICS_RU.md,sosed.place/docs/SEO_AND_ANALYTICS_EN.md
 seo.sitemap.neighbro	12	адресов	адресов в sitemap витрины neighbro	конфиг	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md,neighbro.place/docs/SEO_AND_ANALYTICS_EN.md
 seo.hreflang.neighbro	11	ссылок	альтернатив hreflang в шапке страницы neighbro	конфиг	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md,neighbro.place/docs/SEO_AND_ANALYTICS_EN.md
+node.log.size	50	МБ	потолок файла логов одного сервиса, три файла на сервис	конфиг	xor.ad/docs/runbook-node-down_RU.md,xor.ad/docs/runbook-node-down_EN.md

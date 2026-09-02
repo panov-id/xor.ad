@@ -82,6 +82,7 @@ run check-retired-terms        bash "$here/check-retired-terms.sh"
 run check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
 run check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
 run check-identity-cascades    bash "$here/check-identity-cascades.sh"
+run check-screens-mirror       bash "$here/check-screens-mirror.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.

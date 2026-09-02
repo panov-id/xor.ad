@@ -36,7 +36,7 @@ moderation.false.block.budget	7	процентов	бюджет ложных б�
 report.threshold.share	5	процентов	порог жалоб от возможной аудитории	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
 report.threshold.floor	3	человека	нижняя граница порога жалоб	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
 table.idle.span	60	минут	срок молчания стола, общий на всех	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
-chat.idle.ttl	10 30 60	минут	ручка срока беседы, своя у каждого	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+chat.idle.ttl	10 30 60 260	минут	ручка срока беседы, своя у каждого	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
 name.length	24	графем	длина имени	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/02-name-screen_RU.md,sosed.place/docs/02-name-screen_EN.md,neighbro.place/docs/02-name-screen_RU.md,neighbro.place/docs/02-name-screen_EN.md
 invite.lifetime	120	секунд	жизнь приглашения	узел	xor.ad/docs/test-map_RU.md,xor.ad/docs/test-map_EN.md
 stickers.catalogue.wire	150	КБ	потолок каталога стикеров на проводе	клиент	sosed.place/docs/16-stickers_RU.md,sosed.place/docs/16-stickers_EN.md,neighbro.place/docs/16-stickers_RU.md,neighbro.place/docs/16-stickers_EN.md

@@ -202,11 +202,21 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
   поведения он упал бы на внешнем ключе, и «необратимое стирание» с экрана 12 не
   состоялось бы. `CASCADE` здесь неверен: он снёс бы реплику, против которой
   подано уведомление по ст. 16, а снимок по ней живёт год и ссылается на строку.
-  `SET NULL` стирает человека и оставляет улику. **Открытый пункт:** тем же
-  дефектом больны шесть колонок постарше — `feed_messages.author_identity`,
+  `SET NULL` стирает человека и оставляет улику. **Шесть колонок постарше
+  приведены к тому же правилу 02.09.2026, одним заходом.** Правило звучит так:
+  строка, которая является содержанием или уликой, теряет автора — `SET NULL`;
+  строка, которая есть только про человека, уходит вместе с ним — `CASCADE`.
+  По нему `feed_messages.author_identity` становится обнуляемой и получает
+  `SET NULL` (фраза может быть предметом уведомления по ст. 16), а
   `likes.liker_identity`, `identity_stats.identity`, `match_participants.identity`,
-  `chat_participants.identity`, `hidden_messages.identity`, — их надо привести к
-  одному правилу за один заход, а не по одной.
+  `chat_participants.identity` и `hidden_messages.identity` — `CASCADE`: лайк,
+  счётчик, участие в мэтче, участие в беседе и личный список скрытого не значат
+  ничего без человека, а первые две ещё и входят в первичный ключ, где `NULL`
+  невозможен. Цена названа: код, читающий `feed_messages`, обязан ждать `NULL`
+  в авторе — фраза без автора это не сбой, а стёртый человек. И запросы выдачи
+  из §8.3 и §8.5, которые джойнят `identities` по автору, обязаны делать это
+  внешним соединением или отсекать таких авторов явно: внутренний джойн уронит
+  такую фразу из ленты молча, и молчание будет выглядеть как исчезновение.
 - **`joined_at` — это и есть правило «подсевший не видит прошлого»**: выдача
   реплик отсекается им, а не отдельным флагом.
 - **`visible_at` без `expires_at`**, в отличие от фразы: у реплики за столом нет
@@ -251,7 +261,7 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 
 ## 8. Модель данных
 
-Уровень требований — схема набросками; реализация отдельным шагом (миграция `relay/node/db/011_chat.sql`, накатывается `tools/migrate_db.ts` — заняты 005–010 и 012, номер 011 держится за этой схемой, а раннер сортирует по имени).
+Уровень требований — схема набросками; реализация отдельным шагом (миграция `relay/node/db/018_chat.sql`, накатывается `tools/migrate_db.ts` — заняты 001–010 и 012–014, номер 011 держится за личностью шага 1, 015–017 за сессией, долей и принятиями; раннер сортирует по имени).
 
 **Главный принцип: наружу не уходит ни один идентификатор пользователя.** Клиент знает ровно два вида UUID — uuid фразы в ленте и uuid чата. Кто автор фразы, кто её лайкнул, кто с кем в чате, сколько у человека чатов — живёт только внутри БД и никогда не попадает в ответ API.
 
@@ -312,7 +322,7 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
   name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
-  age              integer NOT NULL CHECK (age >= 13),
+  age              integer NOT NULL CHECK (age >= 13),  -- сверху не ограничен: 28.08.2026
   identity_public_key text NOT NULL,    -- долгий ключ: подтверждает личность (§8.13)
   recovery_auth_hash  text,             -- хэш половины бумажного кода: по нему узел находит личность
   recovery_wrapped_key bytea,           -- долгий ключ под второй половиной; узел его не открывает
@@ -806,7 +816,6 @@ AND me.age BETWEEN band_low(other.age) AND band_high(other.age)
 
 ```sql
 ALTER TABLE identities
-  ADD COLUMN age CHECK (age >= 13),   -- сверху не ограничен: 28.08.2026
   ADD COLUMN filter_age_min integer,   -- зажимается в band(age) на записи
   ADD COLUMN filter_age_max integer;
 ```
@@ -821,7 +830,7 @@ ALTER TABLE identities
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ТОЛЬКО атрибуция: под каким лицом пришёл автор
-  author_identity  uuid NOT NULL REFERENCES identities(id),   -- наружу никогда
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- наружу никогда; NULL = автор стёрт
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- центр области
@@ -853,7 +862,7 @@ UPDATE feed_messages
 
 **Оффер частника — это фраза со скидкой, а не отдельная сущность.** Сосед, отдающий две табуретки, пишет ту же фразу в ту же ленту; непустой `discount_value` делает её офферчиком. Всё остальное — гео, срок жизни, лайк, мэтч, чат — работает без единой новой строки, потому что это и есть пост. Что частнику разрешено в оффере (текст, скидка, условия — и ничего больше: ни ссылки, ни промокода), решает `offers/SPEC_RU.md` §2.
 
-**Оффер заведения в этой таблице не живёт.** За ним нет личности, а `author_identity` — `NOT NULL`. Он остаётся отдельным объектом (`offers/SPEC_RU.md` §3) и попадает в ленту при сборке выдачи, по координатам своего заведения. Лайка у него нет по построению: лайк ведёт к мэтчу, мэтч — к разговору, а разговаривать не с кем.
+**Оффер заведения в этой таблице не живёт.** За ним нет личности, а пустой автор в этой таблице занят другим смыслом: с 02.09.2026 `author_identity` обнуляема, и `NULL` там читается как «человек стёрт», а не «автора не было». Оффер, положенный сюда, стал бы неотличим от стёртого соседа. Он остаётся отдельным объектом (`offers/SPEC_RU.md` §3) и попадает в ленту при сборке выдачи, по координатам своего заведения. Лайка у него нет по построению: лайк ведёт к мэтчу, мэтч — к разговору, а разговаривать не с кем.
 
 Квота считает **обе** коммерческие карточки вместе — и фразы со скидкой, и офферы заведений: не более одной на десять обычных фраз в ленте конкретного человека. Иначе «продам табуретку» обходит ограничение, ради которого оно заведено.
 
@@ -1171,14 +1180,14 @@ OR (SELECT discount_value IS NOT NULL FROM feed_messages WHERE id = :target)
 
 ```sql
 CREATE TABLE likes (
-  liker_identity   uuid NOT NULL REFERENCES identities(id),
+  liker_identity   uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (liker_identity, feed_message_id)
 );
 
 CREATE TABLE identity_stats (
-  identity        uuid PRIMARY KEY REFERENCES identities(id),
+  identity        uuid PRIMARY KEY REFERENCES identities(id) ON DELETE CASCADE,
   likes_received  integer NOT NULL DEFAULT 0,
   likes_given     integer NOT NULL DEFAULT 0,
   matches         integer NOT NULL DEFAULT 0,
@@ -1251,7 +1260,7 @@ CREATE TABLE matches (
 
 CREATE TABLE match_participants (
   match_id          uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
-  identity          uuid NOT NULL REFERENCES identities(id),
+  identity          uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   message_id        uuid NOT NULL,
   text_snapshot     text NOT NULL,      -- снимок на момент мэтча
   mode              text NOT NULL,      -- alone | company | party
@@ -1363,7 +1372,7 @@ CREATE TABLE chats (
 
 CREATE TABLE chat_participants (
   chat_id   uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-  identity  uuid NOT NULL REFERENCES identities(id),
+  identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   idle_ttl_minutes integer NOT NULL DEFAULT 60,  -- 10 | 30 | 60 | 260, СВОЙ у каждого (§5)
   last_own_message_at timestamptz,               -- от него и считается его срок
   gone_at   timestamptz,                         -- беседа кончилась у этого участника
@@ -1521,7 +1530,7 @@ LIMIT 1
 
 ```sql
 CREATE TABLE hidden_messages (
-  identity         uuid NOT NULL REFERENCES identities(id),
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (identity, feed_message_id)

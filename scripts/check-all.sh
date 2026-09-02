@@ -81,6 +81,7 @@ run check-landing-tokens       bash "$here/check-landing-tokens.sh"
 run check-retired-terms        bash "$here/check-retired-terms.sh"
 run check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
 run check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
+run check-identity-cascades    bash "$here/check-identity-cascades.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.
@@ -102,6 +103,12 @@ if [ "$with_tests" = 1 ]; then
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
   run test_check-facts-open     bash "$here/test_check-facts-open.sh"
+  # Сам check-node-images остаётся снаружи (живые адреса пула), но его проба
+  # сети не трогает: стенд поднимает подставной /health на 127.0.0.1.
+  run test_check-node-images    bash "$here/test_check-node-images.sh"
+  # Проба не на одни ворота, а на класс: ни одни ворота не имеют права
+  # выйти нулём, не проверив ни одной единицы. Докера не требует.
+  run test_empty-input          bash "$here/test_empty-input.sh"
   [ "$skipped" = 0 ] && run test_check-facts-schema bash "$here/test_check-facts-schema.sh"
 fi
 

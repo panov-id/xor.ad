@@ -61,6 +61,11 @@ no build step, only page generation and upload:
 | `deploy-uat.yml` | push to `main` | cuts `vYYYY.MM.DD-<sha7>` and deploys that tag to uat |
 | `deploy-prod.yml` | manual, with a tag | the same script with `LANDING_ENV=prod` |
 
+**`docs/deploy-prod_EN.md` is history, not a runbook** (noted 2026-09-02). The
+name looks like the row above, while the document describes the retired Supabase
+stack; at night people open the first thing the name matches. The deployment
+order in force is here and in `relay/ARCHITECTURE_EN.md`.
+
 **Panel (`xor.ad`)** — `deploy-dev/uat/prod.yml` call the shared `_deploy.yml`:
 `npm ci && npm run build` in `panel/` with `VITE_RELAY_API_URL`, then
 `deploy/deploy-panel-ci.sh` into the panel's zone.

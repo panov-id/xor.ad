@@ -19,12 +19,26 @@
 # Красным считается только настоящее расхождение. Узел, который не ответил, и
 # узел, который не сообщает свой образ, — не провал: сегодня таких три из
 # четырёх, и гейт, красный всегда, перестают читать через неделю.
+#
+# Коды выхода: 0 — сверено и сошлось; 1 — расхождение; 2 — гейт не смог
+# начать, нет файла сред или inventory; 3 — сверить не удалось ни одного
+# узла. Третий отделён от первого нарочно: «узлы разошлись» и «сверять было
+# нечего» требуют разных действий, а вызывающий скрипт читает код, не текст.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 environments="${NODE_IMAGES_ENVS:-$root/relay/wizard/environments.toml}"
 inventory="${NODE_IMAGES_INVENTORY:-$root/relay/wizard/inventory.toml}"
+# Вживую адрес пробы один и меняться не должен. Переменная нужна пробе ворот
+# (scripts/test_check-node-images.sh): сети у неё нет, и без подмены адреса
+# проверялись бы только отказные ветки, а главная — «сошлось» против
+# «разошлось» — не исполнялась бы никогда и ломалась бы молча.
+# Значение по умолчанию — отдельной переменной: в ${X:-https://{host}/health}
+# bash закрывает подстановку на первой } — на той, что внутри {host}, — и
+# приклеивает к значению хвост "/health}". Проба ворот на этом и покраснела.
+default_health='https://{host}/health'
+health_template="${NODE_IMAGES_HEALTH_TEMPLATE:-$default_health}"
 
 [ -f "$environments" ] || { echo "нет файла сред: $environments" >&2; exit 2; }
 if [ ! -f "$inventory" ]; then
@@ -33,14 +47,48 @@ if [ ! -f "$inventory" ]; then
   exit 2
 fi
 
-python3 - "$environments" "$inventory" <<'PY'
+python3 - "$environments" "$inventory" "$health_template" <<'PY'
 import json
 import sys
 import tomllib
 import urllib.error
+import urllib.parse
 import urllib.request
 
-environments_path, inventory_path = sys.argv[1], sys.argv[2]
+environments_path, inventory_path, health_template = sys.argv[1:4]
+
+# Должно совпадать с default_health в шапке скрипта: значение живёт в двух
+# местах — bash подставляет его по умолчанию, python по нему узнаёт подмену.
+DEFAULT_HEALTH = "https://{host}/health"
+
+
+def fail_start(message):
+    # Негодный шаблон — это отказ старта (код 2), а не приговор пулу. До правки
+    # 02.09.2026 сломанная скобка читалась как «узел недоступен», а чужой ключ
+    # вылетал KeyError и давал код 1 «расхождение — выкат не доехал».
+    print(message, file=sys.stderr)
+    raise SystemExit(2)
+
+
+# Шаблон проверяется целиком и до первого запроса. Замер 01.09.2026: шаблон без
+# {host} опрашивает ВСЕ боксы по одному адресу, и гейт объявляет пул сошедшимся,
+# не спросив ни одного узла. Одна переменная окружения — и ложная зелень там,
+# где весь смысл ворот в том, чтобы её не было.
+if "{host}" not in health_template:
+    fail_start("шаблон адреса без {host}: все узлы опрашивались бы по одному "
+               f"адресу — NODE_IMAGES_HEALTH_TEMPLATE={health_template}")
+try:
+    sample = health_template.format(host="проба")
+except (KeyError, IndexError, ValueError) as error:
+    fail_start(f"шаблон адреса не разбирается ({error}) — "
+               f"NODE_IMAGES_HEALTH_TEMPLATE={health_template}")
+parsed = urllib.parse.urlsplit(sample)
+if parsed.scheme != "https" and parsed.hostname not in ("127.0.0.1", "localhost", "::1"):
+    fail_start(f"шаблон адреса не https и не локальный ({parsed.scheme}://{parsed.hostname}) — "
+               "ответ узла по такому адресу подделывается кем угодно по дороге")
+if health_template != DEFAULT_HEALTH:
+    # Забытый export в профиле или в окружении CI не должен уводить опрос молча.
+    print(f"  ! адрес пробы подменён: {health_template}")
 with open(environments_path, "rb") as handle:
     environments = tomllib.load(handle).get("env", {})
 with open(inventory_path, "rb") as handle:
@@ -53,8 +101,8 @@ if not zone:
 matched = mismatched = silent = unreachable = planned = 0
 
 
-def health(host):
-    request = urllib.request.Request(f"https://{host}/health",
+def health(url):
+    request = urllib.request.Request(url,
                                      headers={"accept": "application/json"})
     with urllib.request.urlopen(request, timeout=12) as response:
         return json.loads(response.read())
@@ -81,8 +129,11 @@ for box in inventory.get("box", []):
             print(f"  ✗ {label:<14} среды {env} нет в environments.toml — сверять не с чем")
             continue
 
+        # Адрес собирается ВНЕ try: ошибка шаблона не должна попадать в
+        # обработчик, который трактует всё как «узел не ответил».
+        url = health_template.format(host=host)
         try:
-            body = health(host)
+            body = health(url)
         except (urllib.error.URLError, OSError, ValueError) as error:
             unreachable += 1
             # «Имени нет в DNS» и «узел не отвечает» — разные новости и разные
@@ -126,5 +177,9 @@ if mismatched:
     print("расхождение между записанным и работающим — выкат либо не делали, либо он не доехал")
     sys.exit(1)
 if not matched:
+    # Ноль сверенных — не успех, и код обязан это сказать: строку читает
+    # человек, код читает вызывающий. Печать без кода уже дала бы зелень
+    # ровно там, где не проверено ничего, — та самая ложная зелень.
     print("внимание: сверить не удалось ни один узел — это не зелёный результат")
+    sys.exit(3)
 PY

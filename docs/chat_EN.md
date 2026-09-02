@@ -845,7 +845,7 @@ A phrase is tied not to a city but to **an area the person chooses themselves** 
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ATTRIBUTION ONLY: which face the author arrived through
-  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- never exposed; NULL = the author was erased
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- never exposed, NULL = the author was erased
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre

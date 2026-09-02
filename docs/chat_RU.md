@@ -830,7 +830,7 @@ ALTER TABLE identities
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ТОЛЬКО атрибуция: под каким лицом пришёл автор
-  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- наружу никогда; NULL = автор стёрт
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- наружу никогда, NULL = автор стёрт
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- центр области

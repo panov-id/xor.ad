@@ -109,9 +109,42 @@ while IFS=$'\t' read -r id opened due weight what blocks where; do
   file="${where%%:*}"
   # Реестр может ссылаться и на себя подобных: docs/facts/schema.tsv держит счёт
   # непроведённых таблиц, и это законный адрес.
-  if [ ! -f "$root/$file" ] && [ ! -f "$group/$file" ]; then
+  target=""
+  if [ -f "$root/$file" ]; then target="$root/$file"
+  elif [ -f "$group/$file" ]; then target="$group/$file"
+  else
     printf '  ✗ %s: адрес указывает на файл, которого нет — %s\n' "$id" "$file"
     problems=$((problems + 1))
+  fi
+
+  # Номер строки проверяется, а не только файл. Пункт open.where.line завёл это
+  # 01.09.2026: реестр обещает адрес «файл:строка», ворота смотрели лишь на файл,
+  # и номера разъезжались молча — документ правят, строки съезжают, адрес
+  # продолжает указывать на то, что там теперь оказалось. Замер 03.09.2026:
+  # brand.scope.snapshot вёл на колонку `lat` вместо открытого вопроса,
+  # identity.sweeper — на пустую строку.
+  #
+  # Ловится ровно две вещи: номер за концом файла и пустая строка. Попадание
+  # по смыслу машинно не проверяется — для этого в реестре нет якоря, и врать
+  # про это нельзя: пустая строка это заведомо не адрес, а непустая — ещё не
+  # доказательство, что адрес верен.
+  line="${where##*:}"
+  if [ -n "$target" ] && [ "$line" != "$where" ]; then
+    case "$line" in
+      ''|*[!0-9]*)
+        printf '  ✗ %s: в адресе «%s» после двоеточия не номер строки\n' "$id" "$where"
+        problems=$((problems + 1)) ;;
+      *)
+        total=$(wc -l < "$target")
+        if [ "$line" -gt "$total" ]; then
+          printf '  ✗ %s: адрес ведёт на строку %s, а в файле их %s — %s\n' \
+            "$id" "$line" "$total" "$file"
+          problems=$((problems + 1))
+        elif [ -z "$(sed -n "${line}p" "$target" | tr -d '[:space:]')" ]; then
+          printf '  ✗ %s: адрес ведёт на пустую строку — %s\n' "$id" "$where"
+          problems=$((problems + 1))
+        fi ;;
+    esac
   fi
 done < "$registry"
 

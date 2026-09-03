@@ -93,6 +93,36 @@ expect 0 'форма, вес, область и срок на месте' 'ср�
 probe "$(printf 'probe.launch.notdash\t2026-08-31\t-\tlegal\tпроба\tdsa\tdocs/facts/open.tsv')"
 expect 1 'без срока' '«с запуском» не отменяет запрета «-» для legal'
 
+# Адрес — «файл:строка», и номер тоже проверяется. Пункт open.where.line завёл
+# это 01.09.2026, закрыто 03.09.2026: до того ворота смотрели только на файл,
+# и два адреса из тридцати одного вели не туда — brand.scope.snapshot на колонку
+# `lat`, identity.sweeper на пустую строку. Три случая на три способа соврать
+# номером: за концом файла, на пустой строке и не числом вовсе.
+probe "$(printf 'probe.line.past\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/open.tsv:99999')"
+expect 1 'а в файле их' 'номер строки за концом файла'
+
+# Номер пустой строки не вписывается сюда числом: он бы разъехался при первой
+# правке документа — то есть случай страдал бы ровно тем дефектом, который
+# проверяет. Поэтому пустая строка ищется в живом документе на месте.
+blank_file="docs/chat_RU.md"
+blank_line=$(grep -n '^[[:space:]]*$' "$root/$blank_file" | head -1 | cut -d: -f1)
+if [ -z "$blank_line" ]; then
+  failures=$((failures + 1)); number=$((number + 1))
+  printf '  ✗ в %s не нашлось пустой строки — случай не на чем построить\n' "$blank_file"
+else
+  probe "$(printf 'probe.line.blank\t2026-08-31\t-\tproduct\tпроба\tchat\t%s:%s' \
+    "$blank_file" "$blank_line")"
+  expect 1 'ведёт на пустую строку' 'номер строки указывает на пустую'
+fi
+
+probe "$(printf 'probe.line.nan\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/open.tsv:где-то')"
+expect 1 'после двоеточия не номер строки' 'вместо номера строки слово'
+
+# Обратная сторона: адрес без номера законен и не должен краснеть — на него
+# опираются пункты, указывающие на реестр целиком (docs/facts/schema.tsv).
+probe "$(printf 'probe.line.none\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/open.tsv')"
+expect 0 'форма, вес, область и срок на месте' 'адрес без номера строки законен'
+
 # Вес и область — строки, а не образцы. Случая на это не было вовсе, и потому
 # дыра жила: `grep -qx` без -F трактовал значение из реестра как регулярку.
 probe "$(printf 'probe.regex.weight\t2026-08-31\t-\t.*\tпроба\tchat\tdocs/facts/open.tsv')"

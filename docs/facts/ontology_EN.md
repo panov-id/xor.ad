@@ -52,6 +52,24 @@ The type pairs are restricted deliberately: a "verified by" edge from `reference
 | `schema.tsv` | a table: where it is declared and whether it exists in the database | `check-facts-schema.sh` |
 | `noise.tsv` | a date that is not a decision, and why | `check-facts-coverage.sh` |
 
+**A fourth kind of due date — `с запуском`, "on launch" — was added on 2026-09-03.**
+Two cells were not enough, and one of them lied: an obligation written into legal
+documents has either a date or the word "сейчас" (now), and "-" is forbidden at `legal`
+weight. An item there is nothing to implement on — no feed, no offers, no messages in the
+node's schema — was kept permanently alight by "now", next to items alight for a reason.
+The difference between overdue and cannot-start-yet is not bookkeeping: the first asks
+for work today, the second only to be remembered on launch day, and merging them drowns a
+real overdue in a list of the impossible.
+
+**An open item's address is checked together with its line number — since 2026-09-03.**
+The registry promises `file:line`, and the gate only ever looked at the file, so numbers
+drifted in silence: a document is edited, lines move, and the address keeps pointing at
+whatever landed there. Three ways of lying with a number are caught — past the end of the
+file, on a blank line, not a number at all; whether the number lands in the right
+paragraph is not machine-checkable, because the registry carries no anchor for that. That
+check found and fixed three addresses, including this item's own — it had drifted along
+with the file it described.
+
 The noise registry is the second half of coverage. Without it "coverage" is achieved by
 silence: an uncovered date is indistinguishable from an unnoticed one. A row in
 `noise.tsv` costs more than a skip — it shows up in the diff, and adding one requires

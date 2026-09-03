@@ -51,11 +51,30 @@ while IFS=$'\t' read -r table declared migration layer; do
   checked=$((checked + 1))
   [ "$layer" = product ] && product=$((product + 1)) || control=$((control + 1))
 
-  # Объявление в документе — утверждение о тексте.
+  # Объявление в документе — утверждение о тексте. Проверяется и файл, и номер
+  # строки: до 03.09.2026 номер не сверялся ни с чем, и пятнадцать адресов из
+  # восемнадцати вели мимо — все со смещением в 11-14 строк, то есть документ
+  # рос выше, а реестр заполнили один раз и не трогали.
+  #
+  # Отдельной колонки-якоря здесь не нужно, в отличие от open.tsv: якорь
+  # выводится из имени таблицы — строка `CREATE TABLE <имя>` уникальна в
+  # документе по определению, и держать её копию в реестре значило бы дублировать
+  # первую же колонку.
   if [ "$declared" != "-" ]; then
     file="${declared%%:*}"
-    if ! grep -qE "CREATE TABLE (IF NOT EXISTS )?$table\b" "$root/$file" 2>/dev/null; then
+    line="${declared##*:}"
+    found=$(grep -nE "CREATE TABLE (IF NOT EXISTS )?$table\b" "$root/$file" 2>/dev/null | cut -d: -f1)
+    hits=$(printf '%s' "$found" | grep -c .)
+    if [ "$hits" = 0 ]; then
       printf '  ✗ %s: реестр обещает объявление в %s, а его там нет\n' "$table" "$file"
+      problems=$((problems + 1))
+    elif [ "$hits" -gt 1 ]; then
+      printf '  ✗ %s: объявлений в %s несколько (%s) — адрес неоднозначен\n' \
+        "$table" "$file" "$(printf '%s' "$found" | tr '\n' ' ')"
+      problems=$((problems + 1))
+    elif [ "$line" != "$declared" ] && [ "$found" != "$line" ]; then
+      printf '  ✗ %s: адрес говорит строка %s, а объявление на %s — %s\n' \
+        "$table" "$line" "$found" "$file"
       problems=$((problems + 1))
     fi
   fi

@@ -90,12 +90,25 @@ The table registry holds two claims, and they are checked differently:
 On 2026-08-31 the difference turned out not to be theoretical: the stand was running an
 image built before the fifth migration and saw 4 files out of 11.
 
+**Since 2026-09-03 the line number in `declared_in` is reconciled against the
+declaration.** Grepping for the table's name was enough to say "the declaration is there",
+and nothing checked the number: fifteen of the eighteen addresses pointed elsewhere, all
+off by 11 to 14 lines — the document grew above them while the registry was filled in
+once and never revisited. No separate anchor column is needed here, unlike in `open.tsv`:
+the anchor follows from the table's name, the line `CREATE TABLE <name>` occurs once in
+the document, and keeping a copy of it would duplicate the very first column. Should
+there ever be several declarations, the address is called ambiguous rather than resolved
+to the first one found.
+
 ## The rule of negative control
 
-A check becomes a check the moment its failure has been seen. Four gates of six have a probe that breaks what they
-guard and shows red: `test_ontology.sh`, `test_check-facts-schema.sh`,
-`test_check-facts-coverage.sh`, `test_check-facts-open.sh`. `check-facts-limits.sh`
-and `check-facts-decisions.sh` have none — an open item, `gates.without.probe`,
-rather than an omission. A green report on an empty
+A check becomes a check the moment its failure has been seen. Since 2026-09-03 all six gates have a probe that
+breaks what they guard and shows red: `test_ontology.sh`, `test_check-facts-schema.sh`,
+`test_check-facts-coverage.sh`, `test_check-facts-open.sh`, and the two added that
+day, `test_check-facts-decisions.sh` and `test_check-facts-limits.sh`. The open item
+`gates.without.probe` is closed by them. Every branch of both new suites was dropped
+red on its own — a disabled check must redden its case and no other; the negative
+control over the live files was dropped too, by pointing the probes at a live file
+with its restore removed. A green report on an empty
 place is the worst thing a check can do, which is why `check-facts-schema.sh` exits with
 code 2 when there is no database, rather than with zero.

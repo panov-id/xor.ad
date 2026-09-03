@@ -72,6 +72,23 @@ rm -f "$root/relay/node/db/999_probe.sql"
 
 # Состояние «продукт на бумаге» обязано быть датировано, и число в записи —
 # сверяться с явью, иначе запись переживёт своё содержание.
+# Адрес объявления — не только файл, но и номер строки. До 03.09.2026 номер не
+# сверялся ни с чем, и пятнадцать адресов из восемнадцати вели мимо: все со
+# смещением в 11-14 строк, то есть документ рос выше, а реестр заполнили один
+# раз и не трогали. Отдельной колонки-якоря здесь нет — якорь выводится из имени
+# таблицы, строка `CREATE TABLE <имя>` в документе одна.
+row=$(grep -v '^#' "$backup" | awk -F'\t' '$2 != "-" && $2 ~ /:/ {print; exit}')
+table=$(printf '%s' "$row" | cut -f1)
+declared=$(printf '%s' "$row" | cut -f2)
+awk -F'\t' -v t="$table" -v a="${declared%%:*}:99999" \
+  'BEGIN{OFS="\t"} $1==t {$2=a} {print}' "$backup" > "$registry"
+expect 'а объявление на' 'номер строки разошёлся с объявлением'
+
+awk -F'\t' -v t="$table" -v f="docs/такого-файла-нет.md:1" \
+  'BEGIN{OFS="\t"} $1==t {$2=f} {print}' "$backup" > "$registry"
+expect 'а его там нет' 'файла с объявлением не существует'
+cp "$backup" "$registry"
+
 open_items="$root/docs/facts/open.tsv"
 backup_open=$(mktemp); cp "$open_items" "$backup_open"
 grep -v '^product.tables.unmigrated' "$backup_open" > "$open_items"

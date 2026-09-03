@@ -104,6 +104,12 @@ if [ "$with_tests" = 1 ]; then
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
   run test_check-facts-open     bash "$here/test_check-facts-open.sh"
+  # Заведены 03.09.2026, пункт gates.without.probe закрыт: до них зелёный отчёт
+  # этих двух ворот никто не видел красным, а сверка пределов идёт по нескольким
+  # файлам и трём репозиториям — ровно тот случай, что однажды прошёл мимо
+  # двенадцати проверок.
+  run test_check-facts-decisions bash "$here/test_check-facts-decisions.sh"
+  run test_check-facts-limits    bash "$here/test_check-facts-limits.sh"
   # Сам check-node-images остаётся снаружи (живые адреса пула), но его проба
   # сети не трогает: стенд поднимает подставной /health на 127.0.0.1.
   run test_check-node-images    bash "$here/test_check-node-images.sh"

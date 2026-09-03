@@ -1161,9 +1161,11 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       `dsa_notices`, with an injection string in its reason field. The safety
       argument was right — the kind is checked before the database is touched —
       and the code contradicted it. Fixed: the control now carries a
-      non-existent kind, confirmed by a `422`. The row is closed by deciding it
-      in the panel, not by deleting it: the trace of an Article 16 obligation is
-      not something to tidy away.
+      non-existent kind, confirmed by a `422`. The row was closed by deciding it
+      in the panel on 2026-09-03 — rejected on the `/dsa-notices` screen, not
+      deleted: the trace of an Article 16 obligation is not something to tidy
+      away. That closure is recorded on a person's word, not machine-checked:
+      the session held no key with `dsa_notices.read`.
 - [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not

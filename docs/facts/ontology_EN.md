@@ -61,14 +61,17 @@ The difference between overdue and cannot-start-yet is not bookkeeping: the firs
 for work today, the second only to be remembered on launch day, and merging them drowns a
 real overdue in a list of the impossible.
 
-**An open item's address is checked together with its line number — since 2026-09-03.**
+**An open item's address is held by an anchor, not by a line number — since 2026-09-03.**
 The registry promises `file:line`, and the gate only ever looked at the file, so numbers
 drifted in silence: a document is edited, lines move, and the address keeps pointing at
-whatever landed there. Three ways of lying with a number are caught — past the end of the
-file, on a blank line, not a number at all; whether the number lands in the right
-paragraph is not machine-checkable, because the registry carries no anchor for that. That
-check found and fixed three addresses, including this item's own — it had drifted along
-with the file it described.
+whatever landed there. Checking the number came first — it caught the obvious nonsense, a
+number past the end of the file or on a blank line, but not whether it landed in the
+right paragraph; that same day thirteen of the twenty-nine addresses turned out to point
+elsewhere, and a fourteenth was broken by inserting a paragraph into this very file an
+hour before the check. So the item gained an `anchor` column — a piece of the target line
+itself, as in the decisions registry. An anchor must be unique within its file: a
+non-unique one finds the wrong line and restores exactly the uncertainty it exists to
+remove. The number is reconciled against the anchor and corrected from it.
 
 The noise registry is the second half of coverage. Without it "coverage" is achieved by
 silence: an uncovered date is indistinguishable from an unnoticed one. A row in

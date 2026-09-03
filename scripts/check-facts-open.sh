@@ -66,7 +66,7 @@ done <<< "$due_words"
 problems=0; checked=0; seen=""
 declare -A by_weight
 
-while IFS=$'\t' read -r id opened due weight what blocks where; do
+while IFS=$'\t' read -r id opened due weight what blocks where anchor; do
   case "$id" in ''|'#'*|id) continue ;; esac
   checked=$((checked + 1))
 
@@ -117,35 +117,52 @@ while IFS=$'\t' read -r id opened due weight what blocks where; do
     problems=$((problems + 1))
   fi
 
-  # Номер строки проверяется, а не только файл. Пункт open.where.line завёл это
-  # 01.09.2026: реестр обещает адрес «файл:строка», ворота смотрели лишь на файл,
-  # и номера разъезжались молча — документ правят, строки съезжают, адрес
-  # продолжает указывать на то, что там теперь оказалось. Замер 03.09.2026:
-  # brand.scope.snapshot вёл на колонку `lat` вместо открытого вопроса,
-  # identity.sweeper — на пустую строку.
+  # Адрес держится якорем, а не номером. Номер — удобство для перехода, и
+  # только он проверялся до 03.09.2026: ворота ловили номер за концом файла и
+  # пустую строку, но не то, попал ли он в нужный абзац. В тот же день это
+  # выстрелило дважды — тринадцать адресов из двадцати девяти вели мимо, и
+  # четырнадцатый сломала вставка абзаца в ontology_RU.md за час до проверки.
   #
-  # Ловится ровно две вещи: номер за концом файла и пустая строка. Попадание
-  # по смыслу машинно не проверяется — для этого в реестре нет якоря, и врать
-  # про это нельзя: пустая строка это заведомо не адрес, а непустая — ещё не
-  # доказательство, что адрес верен.
-  line="${where##*:}"
-  if [ -n "$target" ] && [ "$line" != "$where" ]; then
-    case "$line" in
-      ''|*[!0-9]*)
-        printf '  ✗ %s: в адресе «%s» после двоеточия не номер строки\n' "$id" "$where"
-        problems=$((problems + 1)) ;;
-      *)
-        total=$(wc -l < "$target")
-        if [ "$line" -gt "$total" ]; then
-          printf '  ✗ %s: адрес ведёт на строку %s, а в файле их %s — %s\n' \
-            "$id" "$line" "$total" "$file"
-          problems=$((problems + 1))
-        elif [ -z "$(sed -n "${line}p" "$target" | tr -d '[:space:]')" ]; then
-          printf '  ✗ %s: адрес ведёт на пустую строку — %s\n' "$id" "$where"
-          problems=$((problems + 1))
-        fi ;;
-    esac
+  # Якорь — кусок самой целевой строки, как в decisions.tsv. Он обязан быть
+  # уникальным в файле: неуникальный находит не ту строку и возвращает ровно ту
+  # неопределённость, ради которой заведён. Номер сверяется с якорем, и при
+  # расхождении ворота называют настоящую строку — чинится одной правкой.
+  if [ -n "$target" ]; then
+    line="${where##*:}"
+    if [ "$line" = "$where" ]; then
+      # Адрес на файл целиком (docs/facts/schema.tsv) — якоря у него не бывает.
+      if [ -n "$anchor" ]; then
+        printf '  ✗ %s: адрес без номера строки, а якорь задан — «%s»\n' "$id" "$anchor"
+        problems=$((problems + 1))
+      fi
+    elif [ -z "$anchor" ]; then
+      printf '  ✗ %s: адрес с номером строки, а якоря нет — %s\n' "$id" "$where"
+      problems=$((problems + 1))
+    else
+      case "$line" in
+        ''|*[!0-9]*)
+          printf '  ✗ %s: в адресе «%s» после двоеточия не номер строки\n' "$id" "$where"
+          problems=$((problems + 1)) ;;
+        *)
+          found=$(grep -nF -- "$anchor" "$target" | cut -d: -f1)
+          hits=$(printf '%s' "$found" | grep -c . )
+          if [ "$hits" = 0 ]; then
+            printf '  ✗ %s: якорь не найден в %s — «%s»\n' "$id" "$file" "$anchor"
+            printf '      строку переписали или удалили: обнови якорь или верни формулировку\n'
+            problems=$((problems + 1))
+          elif [ "$hits" -gt 1 ]; then
+            printf '  ✗ %s: якорь встречается %s раз в %s — «%s»\n' "$id" "$hits" "$file" "$anchor"
+            printf '      удлини якорь: по неуникальному нельзя сказать, какая строка имелась в виду\n'
+            problems=$((problems + 1))
+          elif [ "$found" != "$line" ]; then
+            printf '  ✗ %s: адрес говорит строка %s, а якорь стоит на %s — %s\n' \
+              "$id" "$line" "$found" "$file"
+            problems=$((problems + 1))
+          fi ;;
+      esac
+    fi
   fi
+
 done < "$registry"
 
 summary=""

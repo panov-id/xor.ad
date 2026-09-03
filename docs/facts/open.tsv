@@ -25,42 +25,50 @@
 #            comfort  удобство: без него продукт работает
 #   what     что решить, одной строкой
 #   blocks   область из объявленных в docs/facts/ontology.json (open_areas)
-#   where    где это записано (файл:строка)
+#   where    где это записано: файл или файл:строка
+#   anchor   кусок той самой строки, по которому её найти снова. Обязателен там,
+#            где адрес несёт номер, и запрещён там, где адрес указывает на файл
+#            целиком. Заведён 03.09.2026: номер сам по себе адресом не является —
+#            документ правят, строки съезжают, а адрес продолжает указывать на
+#            то, что там теперь оказалось. В тот день мимо вели тринадцать
+#            адресов из двадцати девяти, и четырнадцатый сломала вставка абзаца
+#            за час до проверки. Якорь обязан быть уникальным в файле:
+#            неуникальный находит не ту строку и возвращает ту же
+#            неопределённость. Номер сверяется с якорем и правится по нему.
 #
 # 31.08.2026: J25 «свести открытые вопросы спеки чата в список» закрыт — его
 # закрыл этот файл. Остальные сверены с явью: таблиц стола и личностей в базе
 # нет, в relay/node/src/chat лежит один файл, предела длины на узле нет. Счёт
 # записей не пишется здесь прозой — его печатает scripts/check-facts-open.sh,
 # и он не может устареть.
-id	opened	due	weight	what	blocks	where
-J9	2026-08-05	2027-08-05	legal	Перепроверить статус микропредприятия	dsa	docs/open-work_RU.md:613
-DSA-report-menu	2026-08-26	с запуском	legal	Пункт «пожаловаться» в меню сообщения и на карточке оффера	dsa	docs/dsa/CHECKLIST_RU.md:118
-DSA-reasons-no-mail	2026-08-26	с запуском	legal	Показ мотивировки в приложении, когда почты автора нет	dsa	docs/dsa/CHECKLIST_RU.md:121
-DSA-turnover	2026-08-26	2027-08-05	legal	Не появился ли оборот: в коде платежей нет (31.08.2026), донаты по внешней ссылке не измерены, способ подсчёта для порога не решён	dsa	docs/dsa/CHECKLIST_RU.md:144
-brand.scope.snapshot	2026-08-26	сейчас	legal	Граница снимка: по витрине или по видимости для заявителя. Ложный ответ «цель исчезла» устранён 31.08.2026 (out_of_scope), сама граница не решена	dsa	docs/chat_RU.md:852
-identity.sweeper	2026-08-30	-	product	Уборщика личностей нет, и писать его не на чем: таблицы identities в схеме узла нет (замерено 01.09.2026). Удаление через 30 дней (предел identity.deletion.delay) обещано спекой чата и спеками витрин; на живых витринах и в опубликованных юр-текстах этого обещания НЕТ — проверено запросом. Ждёт схемы чата. Срок снят 01.09.2026: обещание не опубликовано нигде — шесть живых страниц обеих витрин и их юр-тексты его не несут	identity	docs/chat_RU.md:392
-identity.cascades	2026-08-31	-	product	Правило каскадов принято 02.09.2026 и записано в спеку: SET NULL там, где строка содержание или улика (feed_messages.author_identity), CASCADE там, где строка только про человека (likes, identity_stats, match_participants, chat_participants, hidden_messages). Осталась реализация: ни одной из этих таблиц в схеме узла нет — ждёт схемы чата	identity	docs/chat_RU.md:205
-J19	2026-08-21	-	product	Модель личности переписана в спеке и не существует в коде	chat	docs/open-work_RU.md:1622
-G6	2026-08-07	-	product	Предел длины сообщения — проверка на узле, а не только в клиенте	chat	docs/open-work_RU.md:1169
-product.tables.unmigrated	2026-08-31	-	product	18 таблиц продукта объявлены спекой и не мигрированы: продукт не начат	chat	docs/facts/schema.tsv
-G9	2026-08-12	-	product	Ключ для нативного клиента: два подпункта из пяти (пересчитано 03.09.2026: [x] стоит у двух из пяти)	depth	docs/open-work_RU.md:1247
-table.sweeper	2026-08-31	-	product	Уборщика стола нет: оператор написан, в планировщике его нет	table	docs/chat_RU.md:237
-table.eviction	2026-08-31	-	product	Высадка ничего не запирает: вернуться можно тем же UPDATE	table	docs/chat_RU.md:240
-table.brand.equality	2026-08-31	-	product	table_lines.brand и tables.brand независимы, равенство никто не держит	table	docs/chat_RU.md:177
-table.band	2026-08-31	-	product	По чему считается возрастная полоса стола: created_by, сидящие или никак	table	docs/test-map_RU.md:289
-app.light.theme	2026-08-24	-	comfort	Светлая тема приложения не решена	design	docs/design-system-app_RU.md:116
-app.july.prototype	2026-08-24	-	comfort	Куда девать июльский прототип	design	docs/design-system-app_RU.md:118
-landing.mockup.texts	2026-08-18	-	comfort	Тексты в мокапах захардкожены по-английски, отложено	design	docs/review-checklist_RU.md:154
-moderation.model	2026-08-24	-	product	Какая модель модерации: решается замером, а не спором (§8.14)	chat	docs/open-work_RU.md:1618
-moderation.queue.throughput	2026-08-24	-	product	Пропускная способность очереди модерации (§8.3)	chat	docs/open-work_RU.md:1619
-refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:132
-refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:134
-refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:136
-gates.without.probe	2026-09-01	-	product	У check-facts-limits.sh и check-facts-decisions.sh нет пробы: их зелёный отчёт никем не видан красным	dsa	docs/facts/ontology_RU.md:88
-probe.drops.feed.table	2026-09-01	-	product	Проба в database.test.ts безусловно роняет feed_messages: сработает в день, когда таблицу создаст миграция	chat	relay/node/test/database.test.ts:1041
-open.where.line	2026-09-01	-	product	Реестр обещает адрес файл:строка, а ворота смотрели только на файл. Машинная часть закрыта 03.09.2026: гейт проверяет номер — за концом файла, на пустой строке, не числом, — и на этом нашлись и починены два адреса (brand.scope.snapshot вёл на колонку lat, identity.sweeper на пустую строку). Смысловое попадание прочитано глазами 03.09.2026: из 29 адресов с номером строки мимо вели 13 — починены все; четырнадцатый сломала в тот же день вставка абзаца в ontology_RU.md, и ворота её не увидели. Машинно это по-прежнему не ловится, якоря в реестре нет, и следующий разъезд снова придётся ловить чтением	dsa	scripts/check-facts-open.sh:120
-feed.span.retired	2026-09-01	-	product	open-work обещает «остаются три срока, четвёртого не будет» против канона с четырьмя (chat_RU.md:60)	chat	docs/open-work_RU.md:1610
-schema.offers.missing	2026-09-01	-	product	offers объявлена в SNAPSHOTTABLE и отсутствует в реестре таблиц	dsa	docs/facts/schema.tsv
-report.malformed.id	2026-09-01	-	product	Кривой target_id от заявителя даёт lookup_failed — причину, означающую дефект, а не опечатку	dsa	relay/node/src/routes/report.ts:121
-pool.image.unreported	2026-09-01	-	product	Прод и staging не сообщают свой образ: поле image в /health добавлено 31.08.2026 (599ff11), а обе среды на v2026.8.14-gc3d10fb, который старше него. Пока это так, check-node-images.sh проверяет одну среду из трёх, и вопрос «что на проде» отвечается только человеком	prod	scripts/check-node-images.sh:20
-recovery.miss.threshold	2026-09-02	-	product	Порог общего счётчика промахов восстановления по бумажному коду не назван: счёт по адресу и общий счётчик объявлены, числа и последствия у общего нет — перебор по всей базе ничем не ограничен	identity	xor.ad/docs/protocol_RU.md:222
+id	opened	due	weight	what	blocks	where	anchor
+J9	2026-08-05	2027-08-05	legal	Перепроверить статус микропредприятия	dsa	docs/open-work_RU.md:613	**J9. Перепроверить статус микропредприятия до
+DSA-report-menu	2026-08-26	с запуском	legal	Пункт «пожаловаться» в меню сообщения и на карточке оффера	dsa	docs/dsa/CHECKLIST_RU.md:118	Пункт «пожаловаться» в скрытом меню сообщения ведёт в форму
+DSA-reasons-no-mail	2026-08-26	с запуском	legal	Показ мотивировки в приложении, когда почты автора нет	dsa	docs/dsa/CHECKLIST_RU.md:121	**Показ мотивировки в приложении, когда почты автора нет
+DSA-turnover	2026-08-26	2027-08-05	legal	Не появился ли оборот: в коде платежей нет (31.08.2026), донаты по внешней ссылке не измерены, способ подсчёта для порога не решён	dsa	docs/dsa/CHECKLIST_RU.md:144	Не появился ли у витрин оборот: платная реклама или
+brand.scope.snapshot	2026-08-26	сейчас	legal	Граница снимка: по витрине или по видимости для заявителя. Ложный ответ «цель исчезла» устранён 31.08.2026 (out_of_scope), сама граница не решена	dsa	docs/chat_RU.md:852	**Открытый вопрос, который отсюда виден.** Мир один, а
+identity.sweeper	2026-08-30	-	product	Уборщика личностей нет, и писать его не на чем: таблицы identities в схеме узла нет (замерено 01.09.2026). Удаление через 30 дней (предел identity.deletion.delay) обещано спекой чата и спеками витрин; на живых витринах и в опубликованных юр-текстах этого обещания НЕТ — проверено запросом. Ждёт схемы чата. Срок снят 01.09.2026: обещание не опубликовано нигде — шесть живых страниц обеих витрин и их юр-тексты его не несут	identity	docs/chat_RU.md:392	**Закрытая личность удаляется через 30 дней — решено
+identity.cascades	2026-08-31	-	product	Правило каскадов принято 02.09.2026 и записано в спеку: SET NULL там, где строка содержание или улика (feed_messages.author_identity), CASCADE там, где строка только про человека (likes, identity_stats, match_participants, chat_participants, hidden_messages). Осталась реализация: ни одной из этих таблиц в схеме узла нет — ждёт схемы чата	identity	docs/chat_RU.md:205	`SET NULL` стирает человека и оставляет улику. **Шесть
+J19	2026-08-21	-	product	Модель личности переписана в спеке и не существует в коде	chat	docs/open-work_RU.md:1622	**J19. Модель личности переписана в спеке и не существует в
+G6	2026-08-07	-	product	Предел длины сообщения — проверка на узле, а не только в клиенте	chat	docs/open-work_RU.md:1169	**G6. Предел длины сообщения — проверка на узле.** Решение
+product.tables.unmigrated	2026-08-31	-	product	18 таблиц продукта объявлены спекой и не мигрированы: продукт не начат	chat	docs/facts/schema.tsv	
+G9	2026-08-12	-	product	Ключ для нативного клиента: два подпункта из пяти (пересчитано 03.09.2026: [x] стоит у двух из пяти)	depth	docs/open-work_RU.md:1247	**G9. Ключ для нативного клиента — два подпункта из пяти
+table.sweeper	2026-08-31	-	product	Уборщика стола нет: оператор написан, в планировщике его нет	table	docs/chat_RU.md:237	**Уборщика ещё нет, и таблицы `tables` в узле тоже нет** —
+table.eviction	2026-08-31	-	product	Высадка ничего не запирает: вернуться можно тем же UPDATE	table	docs/chat_RU.md:240	**Открытый пункт: высадка ничего не запирает.** «Высаживает
+table.brand.equality	2026-08-31	-	product	table_lines.brand и tables.brand независимы, равенство никто не держит	table	docs/chat_RU.md:177	brand            text NOT NULL,                             -- цель `ta
+table.band	2026-08-31	-	product	По чему считается возрастная полоса стола: created_by, сидящие или никак	table	docs/test-map_RU.md:289	15.15 | **Стол:** не проходящему по полосам он не отдаётся
+app.light.theme	2026-08-24	-	comfort	Светлая тема приложения не решена	design	docs/design-system-app_RU.md:116	**Светлая тема приложения.** Обе витрины тёмные; светлая у
+app.july.prototype	2026-08-24	-	comfort	Куда девать июльский прототип	design	docs/design-system-app_RU.md:118	**Куда девать июльский прототип.** Он ближе всех к форме
+landing.mockup.texts	2026-08-18	-	comfort	Тексты в мокапах захардкожены по-английски, отложено	design	docs/review-checklist_RU.md:154	`index.html` — тексты в мокапах захардкожены по-английски.
+moderation.model	2026-08-24	-	product	Какая модель модерации: решается замером, а не спором (§8.14)	chat	docs/open-work_RU.md:1618	модель модерации (§8.14 — «замер, а не спор», и сама спека
+moderation.queue.throughput	2026-08-24	-	product	Пропускная способность очереди модерации (§8.3)	chat	docs/open-work_RU.md:1619	в день, когда очередь появится) и пропускная способность
+refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:132	**Тексты приняты не будут, пока их не прочитали вслух.**
+refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:134	таймаут или строка «дольше обычного» — не решено.
+refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:136	чужих сроков и потому раскрывает ритм ленты; безопаснее
+gates.without.probe	2026-09-01	-	product	У check-facts-limits.sh и check-facts-decisions.sh нет пробы: их зелёный отчёт никем не видан красным	dsa	docs/facts/ontology_RU.md:91	Проверка становится проверкой в тот момент, когда увидели
+probe.drops.feed.table	2026-09-01	-	product	Проба в database.test.ts безусловно роняет feed_messages: сработает в день, когда таблицу создаст миграция	chat	relay/node/test/database.test.ts:1041	`CREATE TABLE IF NOT EXISTS feed_messages (
+feed.span.retired	2026-09-01	-	product	open-work обещает «остаются три срока, четвёртого не будет» против канона с четырьмя (chat_RU.md:60)	chat	docs/open-work_RU.md:1610	**И пятый, тем же днём — набор сроков чата.** Остаются три:
+schema.offers.missing	2026-09-01	-	product	offers объявлена в SNAPSHOTTABLE и отсутствует в реестре таблиц	dsa	docs/facts/schema.tsv	
+report.malformed.id	2026-09-01	-	product	Кривой target_id от заявителя даёт lookup_failed — причину, означающую дефект, а не опечатку	dsa	relay/node/src/routes/report.ts:121	const rawTargetId = text(body.target_id, 400);
+pool.image.unreported	2026-09-01	-	product	Прод и staging не сообщают свой образ: поле image в /health добавлено 31.08.2026 (599ff11), а обе среды на v2026.8.14-gc3d10fb, который старше него. Пока это так, check-node-images.sh проверяет одну среду из трёх, и вопрос «что на проде» отвечается только человеком	prod	scripts/check-node-images.sh:20	узел, который не сообщает свой образ, — не провал: сегодня
+recovery.miss.threshold	2026-09-02	-	product	Порог общего счётчика промахов восстановления по бумажному коду не назван: счёт по адресу и общий счётчик объявлены, числа и последствия у общего нет — перебор по всей базе ничем не ограничен	identity	xor.ad/docs/protocol_RU.md:222	7. **Порог общего счётчика промахов восстановления** — счёт

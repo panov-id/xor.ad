@@ -1089,14 +1089,40 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       a control carrying an injection answering `403`. The zone has no
       exclusions.
 
-      **What this switch did not check.** The bodies of genuine notices — ones
-      carrying links, markup or quotes — have not been through the blocking WAF;
-      what was checked is the shape of the request, not everything it can hold.
-      The first real Article 16 notifier goes through blocking. A complaint that
-      "the form does not submit" is reason to suspect a rule immediately and to
-      corner it the same way: `deploy/waf_rule_search.py --zone xorad-api-prod`.
-      The panel was checked signed out: a signed-in session's API calls go to
-      the same zone and were not tried against real data.
+      **The caveat was tested the same day and turned out to be a hole.** On
+      2026-09-03 sixteen realistic notice bodies went through the blocking zone.
+      Thirteen passed — links, quotes, apostrophes, HTML tags, markdown, the
+      words `union`/`select` in an ordinary sentence, 3310 characters of
+      Cyrillic, a body at the 4000 limit, emoji with RTL marks, newlines.
+      **Three were cut:** one quoting `<script>alert(1)</script>`, one naming
+      the path `../../uploads/2026/09/scan.pdf`, and one carrying a
+      `data:…;base64,` URI. A notice that quotes what it complains about — and a
+      report of XSS or of someone's scan is exactly that — was being refused.
+
+      Rules do not fix it. The bisection named `944152` (Log4shell), `930110`
+      (Path Traversal) and `941170` (XSS Attribute Injection), and excluding all
+      three changed nothing: each body is caught by several rules at once,
+      because a quotation of an attack is indistinguishable from an attack.
+      Bunny offers no way around it on this plan: `customWafRulesLimit` is 0,
+      there are no per-route exceptions, and all five WAF profiles are CMS or
+      hosting profiles carrying XSS and SQLi detection.
+
+      **So the intake moved instead of the rules.** On 2026-09-03 the zone
+      `xorad-report-prod` was created with the host `report.relay.panov.id` on
+      the same origin `p1-prod.relay.panov.id`, with no Shield; both edge rules
+      (`X-Origin-Token`, `X-Client-IP`) were copied from the api zone, without
+      which the origin does not trust the request. Checked live: `/health`
+      through the new host answers `200`, a preflight with `Origin:
+      https://sosed.place` answers `204`, and the three cut bodies reach the
+      node through the new host while the old one still answers `403`. The rest
+      of the API stays behind the WAF.
+
+      **What that did not check either.** On the new host the bodies reached the
+      node with `429` — the daily `/report` limit had been spent on the
+      measurements — so the full path "a notice is accepted and stored" has not
+      been walked through the new host. The panel was checked signed out: a
+      signed-in session's API calls go to the zone behind the WAF and were not
+      tried against real data.
 
       The switch is `deploy/shield_mode.py`: without `--apply` it prints the
       plan, it refuses `xorad-api-prod` without an explicit `--include-api` and

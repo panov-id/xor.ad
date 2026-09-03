@@ -28,8 +28,6 @@
 # записей не пишется здесь прозой — его печатает scripts/check-facts-open.sh,
 # и он не может устареть.
 id	opened	due	weight	what	blocks	where
-G12	2026-09-01	2026-09-15	product	Блокировка на panel-prod рубит /assets/index-*.js (403, errorcode 112) — нужен номер правила из журнала WAF, чтобы положить его в wafLogOnlyRules	prod	docs/open-work_RU.md:1062
-G13	2026-09-01	2026-09-15	product	Журнал WAF по xorad-api-prod не прочитан: попал ли под правила POST /report и вход в панель; requestBodyLoggingEnabled=false, тело может не логироваться	prod	docs/open-work_RU.md:1070
 J9	2026-08-05	2027-08-05	legal	Перепроверить статус микропредприятия	dsa	docs/open-work_RU.md:613
 DSA-report-menu	2026-08-26	сейчас	legal	Пункт «пожаловаться» в меню сообщения и на карточке оффера	dsa	docs/dsa/CHECKLIST_RU.md:118
 DSA-reasons-no-mail	2026-08-26	сейчас	legal	Показ мотивировки в приложении, когда почты автора нет	dsa	docs/dsa/CHECKLIST_RU.md:121

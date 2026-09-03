@@ -29,4 +29,3 @@ date	kind	why	example
 2026-09-14	sample.data	значение поля revision_date внутри примера JSON	xor.ad/docs/protocol_EN.md:177
 2026-12-31	external.fact	дата закрытия чужого сервиса	neighbro.place/docs/00-mechanics_EN.md:408
 2026-07-26	document.stamp	дата снимка обзора многоарендности, а не выбора	xor.ad/docs/tenancy-review_RU.md:7
-2026-09-15	deadline	срок G12 и G13; ведётся в open.tsv	xor.ad/docs/open-work_RU.md:1062

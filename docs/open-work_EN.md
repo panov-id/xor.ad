@@ -1096,25 +1096,74 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       Article 16 intake first. Learning cannot be extended from here: Bunny's API
       offers neither the log nor an extension — re-checked 2026-09-01 by
       enumerating twenty-three endpoints across three namespaces, all `404`.
-- [ ] **G12. Find the rule that cuts the panel bundle, before 2026-09-15.**
-      Under blocking, `panel-prod` answers `403` on `/assets/index-*.js` and on
-      nothing else. The event reproduces on the first try, so the WAF log now
-      certainly holds it — which could not be said of any earlier guess. What is
-      needed is the rule id: with it, the rule goes into that zone's
-      `wafLogOnlyRules` and blocking can be switched on without a blank panel.
-      The id lives in the log, and the log lives in the dashboard, so this is a
-      person's step. Until there is an id the zone stays watching: a blank panel
-      is not the trade a WAF is switched on for.
-- [ ] **G13. Read the WAF log for `xorad-api-prod` and decide, before
-      2026-09-15.** The one zone of the four where the question is still exactly
-      what it was. Two things to look for: whether a real `POST /report` was
-      matched (a JSON body looks suspicious to a site profile) and whether panel
-      sign-in was — the panel calls `api.relay.panov.id`, which is this zone. A
-      caveat that was not known before: the zone has `requestBodyLoggingEnabled`
-      set to `false`, so about the JSON body itself the log may say nothing.
-      Turning body logging on is a separate decision with a price: Bunny would
-      then store the bodies of illegal-content notices, which is a new processor
-      and a row in the Article 30 register.
+- [x] **G12. The rule was found on 2026-09-03 — `952100`, and not in the
+      dashboard.** The note saying "the id lives in the log, and the log lives
+      in the dashboard, so this is a person's step" was half right. The log is
+      indeed absent from the API: re-checked on 2026-09-03 with a sweep of its
+      own, thirteen candidate event-log paths, all `404`. But the API does serve
+      the rule catalogue — `GET /shield/waf/rules`, `200` — and the catalogue
+      has a **RESPONSE** section: rules that read the response body, 55 of them
+      against 205 on the request. That section explains the measurement that
+      looked strange: the origin served the file (`cdn-requestpullcode: 200`)
+      and Bunny still answered `403`, because what was inspected was the
+      response, not the request — which is why the CSS and `index.html` passed
+      while the minified bundle was cut.
+
+      The id was cornered instead of read: a set of candidates goes into
+      `wafLogOnlyRules`, the bundle is requested, and the answer says whether
+      the culprit is inside that set. Seven rounds narrowed 55 to one. It is
+      **`952100 — Java Source Code Leakage`**: a Java source-leak heuristic
+      firing on minified JavaScript. Confirmed live on 2026-09-03 — with
+      `wafExecutionMode: 1` and `wafLogOnlyRules: ["952100"]` the panel is
+      served whole: `/`, `/assets/index-44Ca_wX_.css` and
+      `/assets/index-DgdjqIRF.js` all `200`, all `cdn-cache: MISS`. After the
+      measurement the zone was put back to watching (`0`, `[]`): the id is
+      found, switching blocking on is a separate decision, and it has not been
+      taken.
+
+      **The cache nearly forged the answer.** The first run announced that the
+      `403` does not reproduce — with `cdn-cache: HIT`. The edge was serving a
+      stored copy the WAF never looked at, and the query string is not part of
+      the cache key, so a parameter could not get past it. A cached answer is
+      now not counted as a verdict at all, and each probe purges the URL first
+      via `POST /purge`. What caught the substitution was the positive control —
+      the step that demands to see the `403` first and refuses to search in
+      green.
+- [x] **G13. Settled by measurement on 2026-09-03: blocking cuts neither the
+      Article 16 intake nor panel sign-in.** The item was written as reading a
+      log, and the log is not readable — re-checked 2026-09-03. After G12 it does
+      not need to be: the question closes with the same trick, a short announced
+      window of blocking and three requests instead of a read.
+
+      Measured at `wafExecutionMode: 1`: `POST /report` passed (`422` from the
+      node, not `403`), `POST /auth/request-link` passed (`204`). Outside the
+      window both answer the same, and the zone was restored to `0` with an
+      empty `wafLogOnlyRules`.
+
+      **The conclusion rests on the control, not on the green.** The third
+      request was `/report` carrying an obvious injection string in its reason:
+      under blocking it answered `403`, outside it `422`. Without that, "nothing
+      was cut" would have meant only that the WAF was not looking — and it was.
+
+      The boundary, said plainly: one body was tested, realistic in shape and
+      length. A genuine notice may carry links, markup or quotes, and about
+      those this measurement says nothing.
+
+      `requestBodyLoggingEnabled: false` drops out of the framing: it would have
+      obstructed reading the log, and what we read is the response. Turning body
+      logging on is still unnecessary, and its price is unchanged: Bunny would
+      store the bodies of illegal-content notices — a new processor and a row in
+      the Article 30 register.
+
+      **This item took its price from production.** The first run sent the
+      control with `target_kind: "other"` — a real kind — and the node accepted
+      it as a real notice: `202`, row `6c815400-d6e9-407e-bfe7-aaef2e55b463` in
+      `dsa_notices`, with an injection string in its reason field. The safety
+      argument was right — the kind is checked before the database is touched —
+      and the code contradicted it. Fixed: the control now carries a
+      non-existent kind, confirmed by a `422`. The row is closed by deciding it
+      in the panel, not by deleting it: the trace of an Article 16 obligation is
+      not something to tidy away.
 - [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not

@@ -1069,16 +1069,34 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       back byte for byte as before (199,976 and 140,188 for the two landings),
       and a 404 stays Bunny's ordinary one, not a Shield page.
 
-      **Still watching, because blocking breaks it — `panel-prod`.** Switched on
-      2026-09-01 and rolled back within the hour: `/assets/index-*.js` began
-      answering `403` with the Shield page (`errorcode: 112`), even though the
-      origin had served the file (`cdn-requestpullcode: 200`). CSS, fonts and
-      `index.html` itself pass — it is exactly the bundle that is cut, which
-      means the panel under blocking is a blank page. Continued in **G12**.
+      **Blocking since 2026-09-03 — `panel-prod`.** It was switched on
+      2026-09-01 and rolled back within the hour: `/assets/index-*.js` answered
+      `403` with the Shield page (`errorcode: 112`), even though the origin had
+      served the file (`cdn-requestpullcode: 200`). CSS, fonts and `index.html`
+      itself passed — it was exactly the bundle that was cut, which made the
+      panel under blocking a blank page. G12 found the culprit: rule `952100`
+      (Java Source Code Leakage) firing on minified JavaScript. It sits in this
+      zone's `wafLogOnlyRules`, written in the same write as the mode: flipping
+      the mode first would blank the panel for as long as a second write takes.
+      Checked after the switch on 2026-09-03 — `/`, `/login`, `/dsa-notices`,
+      `/brands`, `/waitlist` and both assets answer `200`, the assets with
+      `cdn-cache: MISS`, which is a real pass through the WAF.
 
-      **Still watching, because the log has not been read — `xorad-api-prod`.**
-      That zone carries `POST /report` and the panel's own API calls. Continued
-      in **G13**.
+      **Blocking since 2026-09-03 — `xorad-api-prod`.** The zone carries `POST
+      /report` and the panel's own API calls, and G13 settled it by measurement
+      rather than by reading a log: under blocking `POST /report` answers `422`
+      from the node, `POST /auth/request-link` `204`, `GET /health` `200`, with
+      a control carrying an injection answering `403`. The zone has no
+      exclusions.
+
+      **What this switch did not check.** The bodies of genuine notices — ones
+      carrying links, markup or quotes — have not been through the blocking WAF;
+      what was checked is the shape of the request, not everything it can hold.
+      The first real Article 16 notifier goes through blocking. A complaint that
+      "the form does not submit" is reason to suspect a rule immediately and to
+      corner it the same way: `deploy/waf_rule_search.py --zone xorad-api-prod`.
+      The panel was checked signed out: a signed-in session's API calls go to
+      the same zone and were not tried against real data.
 
       The switch is `deploy/shield_mode.py`: without `--apply` it prints the
       plan, it refuses `xorad-api-prod` without an explicit `--include-api` and

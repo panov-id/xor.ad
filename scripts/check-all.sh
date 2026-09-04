@@ -113,6 +113,9 @@ if [ "$with_tests" = 1 ]; then
   # Сам check-node-images остаётся снаружи (живые адреса пула), но его проба
   # сети не трогает: стенд поднимает подставной /health на 127.0.0.1.
   run test_check-node-images    bash "$here/test_check-node-images.sh"
+  # Те же ворота снаружи (живой узел), проба внутри: подставной /chat на
+  # 127.0.0.1 играет и заглушку 501, и рабочий чат с другими числами.
+  run test_check-message-limits bash "$here/test_check-message-limits.sh"
   # Проба не на одни ворота, а на класс: ни одни ворота не имеют права
   # выйти нулём, не проверив ни одной единицы. Докера не требует.
   run test_empty-input          bash "$here/test_empty-input.sh"
@@ -131,6 +134,7 @@ reason_for() {
     check-webcrypto-support) echo "качает три движка на каждый прогон; это замер, а не ворота" ;;
     check-docs-pairing)      echo "не самостоятельные ворота: зовётся из check-docs-pairing-all" ;;
     check-node-images)       echo "живые адреса пула; dev и staging закрыты по IP, из CI не пройдёт" ;;
+    check-message-limits)    echo "живой узел relay; без сети замер отложен, а не пройден" ;;
     *)                       echo "причина не записана — впишите её сюда" ;;
   esac
 }

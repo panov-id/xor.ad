@@ -213,6 +213,18 @@ third of five             | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md
 
 five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four slots free, 2026-08-30
 8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026
+
+# 04.09.2026: панель ревью нашла четвёртый остаток той же правки 28.08 — на этот
+# раз на экране 9 обеих витрин, и в английской половине хуже, чем в русской: там
+# уцелело не только «3 of 5 free», но и само отменённое правило «Eight
+# publications per 64 minutes». Пережило шесть дней и три предыдущие чистки,
+# потому что каждая искала свою формулировку: сперва «слоты», потом «счёт фраз»,
+# а здесь счёт идёт остатком — «свободно N из M». Реестр пределов такое не ловит
+# по построению: он ищет число как токен во всём файле, а «4» в этом файле стоит
+# строкой выше и делает проверку зелёной при любом соседнем вранье.
+свободно 3 из 5           | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | свободно 3 из 4, 04.09.2026
+3 of 5 free               | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | 3 of 4 free, 2026-09-04
+Eight publications per 64 minutes | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four publications per hour, 2026-09-04
 five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | четыре живых, 2026-08-28
 8 in 64 minutes           | chat_EN.md chat-flows_EN.md | four per hour, 2026-08-28
 

@@ -53,7 +53,7 @@ table.span.short	20	минут	короткий срок стола	узел	xor
 table.span.hour	1	час	средний срок стола	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
 dsa.reply.target	72	часа	срок решения и ответа заявителю	узел	xor.ad/docs/dsa/SPEC_RU.md,xor.ad/docs/dsa/SPEC_EN.md
 offer.card.device.retention	90	дней	сколько карточка живёт на устройстве после оффера	клиент	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
-match.code.length	9	символов	длина кода мэтча, Crockford base32	клиент	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md
+transfer.code.length	9	символов	длина кода переноса личности, Crockford base32	клиент	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md
 panel.label.clip	42	символов	обрезка метки в таблице панели	панель	xor.ad/docs/panel-refactor_RU.md,xor.ad/docs/panel-refactor_EN.md
 audit.log.retention	365	дней	срок хранения общего аудит-лога панели	панель	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md
 identity.deletion.delay	30	дней	срок удаления закрытой личности	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md

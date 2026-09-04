@@ -119,6 +119,27 @@ What next       reply to us, contact the Digital Services Coordinator,
                 go to court
 ```
 
+**The "How decided" line is two lines, not one — amended 2026-09-04 after the
+review panel.** A single variant stood here, "no automated check was used; a person
+decided", while the product restricts content along two different paths. A review
+on a notice is indeed carried out by a person. Hiding by the complaint threshold —
+a share of the possible audience with a floor of three people — fires **on its
+own**, with no human decision at any point. Handing the author of such a
+restriction a line saying no automation was involved states something untrue under
+Art. 17(3)(c), in the very document that exists for accuracy:
+
+```
+How decided     (a review on a notice)
+                no automated check was used; a person decided
+
+How decided     (hidden by the complaint threshold)
+                hidden automatically, by the number of complaints from different
+                people; no person decided — write to us and a person will look
+```
+
+The second wording must also name the route of objection: an automated decision
+with no human review is exactly what the article is written against.
+
 **The notifier's identity is never disclosed** — the product's rule is stricter
 than the law, and we keep the strict variant. **If there is no electronic contact**
 — and usually there is none, we do not ask for email — the statement is shown in

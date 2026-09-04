@@ -62,9 +62,9 @@ app.july.prototype	2026-08-24	-	comfort	Куда девать июльский �
 landing.mockup.texts	2026-08-18	-	comfort	Тексты в мокапах захардкожены по-английски, отложено	design	docs/review-checklist_RU.md:154	`index.html` — тексты в мокапах захардкожены по-английски.
 moderation.model	2026-08-24	-	product	Какая модель модерации: решается замером, а не спором (§8.14)	chat	docs/open-work_RU.md:1631	модель модерации (§8.14 — «замер, а не спор», и сама спека
 moderation.queue.throughput	2026-08-24	-	product	Пропускная способность очереди модерации (§8.3)	chat	docs/open-work_RU.md:1632	в день, когда очередь появится) и пропускная способность
-refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:132	**Тексты приняты не будут, пока их не прочитали вслух.**
-refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:134	таймаут или строка «дольше обычного» — не решено.
-refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:136	чужих сроков и потому раскрывает ритм ленты; безопаснее
+refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:152	**Тексты приняты не будут, пока их не прочитали вслух.**
+refusal.checking.timeout	2026-08-26	-	product	Сколько живёт строка «проверяется…», если очередь встала: молчание, таймаут или «дольше обычного»	dsa	docs/refusal-wordings_RU.md:154	таймаут или строка «дольше обычного» — не решено.
+refusal.slot.time	2026-08-26	-	product	Показывать ли время освобождения слота: точное время раскрывает ритм ленты	dsa	docs/refusal-wordings_RU.md:156	чужих сроков и потому раскрывает ритм ленты; безопаснее
 probe.drops.feed.table	2026-09-01	-	product	Проба в database.test.ts безусловно роняет feed_messages: сработает в день, когда таблицу создаст миграция	chat	relay/node/test/database.test.ts:1041	`CREATE TABLE IF NOT EXISTS feed_messages (
 feed.span.retired	2026-09-01	-	product	open-work обещает «остаются три срока, четвёртого не будет» против канона с четырьмя (chat_RU.md:60)	chat	docs/open-work_RU.md:1623	**И пятый, тем же днём — набор сроков чата.** Остаются три:
 schema.offers.missing	2026-09-01	-	product	offers объявлена в SNAPSHOTTABLE и отсутствует в реестре таблиц	dsa	docs/facts/schema.tsv	

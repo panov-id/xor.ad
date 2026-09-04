@@ -1224,11 +1224,25 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
       `max_message_length` = **256** stays the counter in the client. The feed
       stays at **128**; that is a different limit and the two should not be merged.
-      **Nothing can close it yet:** checked 2026-08-25 against
-      `api.relay.panov.id` — `GET /chat` answers **501** "chat relay not enabled on
-      this node yet", there is no feed route (**404**), `/health` is 200. The item
-      closes on a measurement made by a request that bypasses the client, once the
-      node has chat code.
+      **Nothing can close it yet, and it was re-measured 2026-09-04:** on
+      `api.relay.panov.id` `GET /chat` still answers **501** "chat relay not
+      enabled on this node yet", there is no feed route (**404**), `/health` is
+      200. Nothing changed in ten days.
+      **The unblocking condition is now stated by machine —
+      `scripts/check-message-limits.sh` (filed 2026-09-04).** The gate asks the
+      node itself and holds two things the limits registry did not. First: 256 and
+      2048 are linked rather than kept apart — the byte ceiling is recomputed from
+      the character ceiling (256 emoji characters → 1024 bytes of UTF-8 → 1052
+      with nonce and tag → **1404** in base64), and either a trimmed ceiling or a
+      grown character count turns the gate red. `check-facts-limits` cannot see
+      that: both numbers still stand everywhere they are written, and the link
+      breaks in silence. Second: while `/chat` answers 501, the gate exits **4** —
+      "measurement deferred", kept apart from zero so a check that never ran is
+      never read as one that passed.
+      **The item closes on the day that answer becomes 200:** the same script
+      pulls `max_message_length` and `max_ciphertext_bytes` out of the node's
+      response and checks them against the registry — a measurement made by a
+      request that bypasses the client, exactly as decided.
 - [x] **G7. Storefront privacy policies — closed 2026-08-10.** Filed 2026-08-07 as
       two gaps; on inspection the first no longer existed and the second was closed
       by a decision rather than by work.

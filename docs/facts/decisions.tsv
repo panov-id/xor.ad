@@ -101,3 +101,7 @@ ontology.2026-09-03.100	2026-09-03	xor.ad/docs/facts/ontology_RU.md:100	xor.ad/d
 ontology.2026-09-03.89	2026-09-03	xor.ad/docs/facts/ontology_RU.md:89	xor.ad/docs/facts/ontology_EN.md:93	Номер строки в `declared_in` сверяется с объявлением — с 03.09.2026.	Since 2026-09-03 the line number in `declared_in` is reconciled against the
 open-work.2026-09-04.1179	2026-09-04	xor.ad/docs/open-work_RU.md:1179	xor.ad/docs/open-work_EN.md:1227	Закрыть пока нечем, и перемерено 04.09.2026:	Nothing can close it yet, and it was re-measured 2026-09-04:
 open-work.2026-09-04.1184	2026-09-04	xor.ad/docs/open-work_RU.md:1184	xor.ad/docs/open-work_EN.md:1232	(заведены 04.09.2026).** Ворота спрашивают узел сами	(filed 2026-09-04).** The gate asks the
+chat.2026-09-07.937	2026-09-07	xor.ad/docs/chat_RU.md:937	xor.ad/docs/chat_EN.md:953	Правка 07.09.2026 по панели ревью.	Edited 2026-09-07 after a review panel.
+refusal-wordings.2026-09-07.86	2026-09-07	xor.ad/docs/refusal-wordings_RU.md:86	xor.ad/docs/refusal-wordings_EN.md:92	«За час», а не «подряд» — правка 07.09.2026	rather than "in a row" — edited 2026-09-07
+test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:128	xor.ad/docs/test-map_EN.md:127	Успешная публикация счётчик отказов не обнуляет	A successful publication does not zero the refusal counter
+test-map.2026-09-07.129	2026-09-07	xor.ad/docs/test-map_RU.md:129	xor.ad/docs/test-map_EN.md:128	Отлучка не снимает ни часовой предел, ни паузу	Stepping away lifts neither the hourly limit nor the pause

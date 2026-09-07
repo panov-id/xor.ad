@@ -71,6 +71,11 @@ fi
 
 run check-facts-coverage  bash "$here/check-facts-coverage.sh"
 run check-facts-open      bash "$here/check-facts-open.sh"
+# Не ворота на содержание, а ворота на адресацию: открытые и схема держат
+# номера строк, документы их перерастают, и оба реестра краснеют одинаково.
+# Сухой прогон называет настоящий номер и краснеет, если его никто не записал;
+# чинится тем же скриптом с --write.
+run readdress-facts       python3 "$here/readdress-facts.py"
 run check-facts-decisions bash "$here/check-facts-decisions.sh"
 run check-facts-limits    bash "$here/check-facts-limits.sh"
 run check-docs-pairing    bash "$here/check-docs-pairing-all.sh"
@@ -104,6 +109,10 @@ if [ "$with_tests" = 1 ]; then
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
   run test_check-facts-open     bash "$here/test_check-facts-open.sh"
+  # Переадресатор пишет в реестры, и потому опаснее ворот: неверный номер он
+  # сделал бы зелёным. Проба держит его отказы — ненайденный якорь,
+  # неуникальный, отсутствующий, — а не только «чинит».
+  run test_readdress-facts      bash "$here/test_readdress-facts.sh"
   # Заведены 03.09.2026, пункт gates.without.probe закрыт: до них зелёный отчёт
   # этих двух ворот никто не видел красным, а сверка пределов идёт по нескольким
   # файлам и трём репозиториям — ровно тот случай, что однажды прошёл мимо

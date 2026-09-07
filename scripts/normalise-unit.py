@@ -3,6 +3,7 @@
 
     ... | normalise-unit.py            строки «единица» → нормализованная
     ... | normalise-unit.py --pairs    строки «значение<TAB>единица» → пара
+    normalise-unit.py --forms <ед>     все формы этой единицы, по строке на форму
 
 «128 символов» и «128 characters» — одно и то же обязательство, записанное в двух
 половинах. Считать их порознь значит удваивать каждый предел и получать покрытие,
@@ -38,6 +39,17 @@ LOOKUP = {form.lower(): name for name, forms in UNITS.items() for form in forms}
 def normalise(unit):
     return LOOKUP.get(unit.strip().lower(), unit.strip())
 
+
+# Обратный режим: по единице — все её формы. Нужен воротам пределов, чтобы у
+# малого числа требовать единицу рядом. Без него «20» ищется как голый токен и
+# находится где угодно: в chat_RU.md «20» встречается 30 раз, «1» — 40, и два
+# несуществующих факта («короткий срок стола», «средний срок стола») числились
+# действующими, пока их не нашла панель ревью 04.09.2026.
+if '--forms' in sys.argv[1:]:
+    wanted = normalise(sys.argv[sys.argv.index('--forms') + 1])
+    for form in UNITS.get(wanted, ()):
+        print(form)
+    sys.exit(0)
 
 pairs = '--pairs' in sys.argv[1:]
 with_place = '--pairs-with-place' in sys.argv[1:]

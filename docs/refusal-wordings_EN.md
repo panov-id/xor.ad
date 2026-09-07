@@ -79,15 +79,26 @@ Fix the name and it will publish itself.
 The rule of 2026-08-26: a phrase reaches the feed only when **both** are accepted.
 Its lifetime counts from publication, so waiting does not cost it its 4:20.
 
-## 4. The fifth refusal in a row
+## 4. The fifth refusal within an hour
 
 ```
-Five refusals in a row. Posting is unavailable for 15 minutes —
+Five refusals in an hour. Posting is unavailable for 15 minutes —
 the feed, likes and conversations work.
 ```
 
 What exactly stopped working is named: a silent refusal of everything reads as a
 ban.
+
+**"Within an hour" rather than "in a row" — edited 2026-09-07 after a review
+panel.** "In a row" means any successful publication resets the run, and the
+limit is then undone by alternating: four probes, one clean phrase, four more.
+The whole rule is in `sosed.place/docs/00-mechanics_EN.md` §3, and so is the
+cost: someone who honestly got it wrong five times in an hour waits fifteen
+minutes, even though they published something good in between.
+
+**Stepping away does not lift the pause** (§13 of the mechanics): a twenty-minute
+departure is longer than a fifteen-minute pause, and without that rule the "step
+away" button would put it out.
 
 ## 5. The other refusals (§10 of the mechanics)
 
@@ -118,6 +129,27 @@ Grounds         <the legal provision or the clause of the terms>
 What next       reply to us, contact the Digital Services Coordinator,
                 go to court
 ```
+
+**The "How decided" line is two lines, not one — amended 2026-09-04 after the
+review panel.** A single variant stood here, "no automated check was used; a person
+decided", while the product restricts content along two different paths. A review
+on a notice is indeed carried out by a person. Hiding by the complaint threshold —
+a share of the possible audience with a floor of three people — fires **on its
+own**, with no human decision at any point. Handing the author of such a
+restriction a line saying no automation was involved states something untrue under
+Art. 17(3)(c), in the very document that exists for accuracy:
+
+```
+How decided     (a review on a notice)
+                no automated check was used; a person decided
+
+How decided     (hidden by the complaint threshold)
+                hidden automatically, by the number of complaints from different
+                people; no person decided — write to us and a person will look
+```
+
+The second wording must also name the route of objection: an automated decision
+with no human review is exactly what the article is written against.
 
 **The notifier's identity is never disclosed** — the product's rule is stricter
 than the law, and we keep the strict variant. **If there is no electronic contact**

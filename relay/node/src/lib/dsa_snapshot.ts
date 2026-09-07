@@ -41,6 +41,14 @@ export interface Capture {
   // Null whenever the status speaks for itself: a copy was taken, the target
   // was gone, or the report carried no identifier to look for.
   reason: CaptureReason | null;
+  // Which face the copied row is attributed to. Null when nothing was copied.
+  //
+  // Taking the copy by the target (2026-09-07) means the row may belong to a
+  // face other than the one the notice was filed through, and the caller has to
+  // know that to route the notice: examined by its owner's moderators or by the
+  // platform, never by whoever chose to send it. Attribution, not a filter — the
+  // lookup above has already happened by the time this is read.
+  owner: string | null;
 }
 
 // Surfaces whose content lives in the database and can therefore be copied.
@@ -56,22 +64,54 @@ export interface Capture {
 // that, while a snapshot is kept for a year. Copying coordinates would keep a
 // year of locations for no examining value.
 //
-// `tenant` is the column that says whose row it is, and every lookup is scoped
-// by it. Without that, a notice naming another tenant's identifier copied their
-// row into the reporter's notice, where the reporter's own moderator could read
-// it — the notice is filed under the brand that sent it, so the usual brand
-// filter was already pointing at the wrong tenant by the time it ran. It never
-// fired only because these tables do not exist yet, which is the worst kind of
-// safe: it would have opened silently on the day they were created.
+// `tenant` is the column that says whose row it is. Whether a lookup is scoped
+// by it is `visibility`, and that is the boundary question, decided 2026-09-07:
+//
+//   the snapshot is bounded by what the notifier could see.
+//
+// One rule, and it lands differently per surface because the surfaces differ:
+//
+//   world      the feed and the tables. `brand` there is attribution only and
+//              takes no part in what is shown (docs/chat §8.3), so a phrase is
+//              visible to everyone whichever face they arrived through. The
+//              notifier saw it, so the notice follows the target and the lookup
+//              is not scoped. This deliberately lets a moderator read a row
+//              attributed to another tenant — that row was public to the whole
+//              world before the notice, and refusing to examine it would mean
+//              telling a person we cannot look at what they are looking at.
+//   per_brand  the venue offer. docs/offers/SPEC makes `brand` the thing every
+//              search is bounded by, so an offer does not exist for someone who
+//              arrived through another face. A notice about it is `out_of_scope`,
+//              which is the truth: under that face there was nothing to see.
+//
+// Until this was decided the code scoped everything by tenant — not by choice
+// but because the snapshots were written before the question was answered
+// (2026-09-01). It closed the cross-tenant hole and, on the feed, closed it by
+// refusing to examine phrases the notifier had plainly seen.
+export type Visibility = "world" | "per_brand";
+
 export const SNAPSHOTTABLE: Record<
   string,
-  { table: string; columns: string; posted: string; tenant: string; quote: string }
+  {
+    table: string;
+    columns: string;
+    posted: string;
+    tenant: string;
+    visibility: Visibility;
+    // The column that says the row is public. Null where the surface has no such
+    // step. A row where this is NULL was seen by nobody and is never copied:
+    // "what the notifier could see" is bounded by time as well as by face.
+    published: string | null;
+    quote: string;
+  }
 > = {
   feed_message: {
     table: "feed_messages",
     columns: "id, text, mode, created_at, author_identity",
     posted: "created_at",
     tenant: "brand",
+    visibility: "world",
+    published: "visible_at",
     quote: "text",
   },
   offer: {
@@ -79,6 +119,8 @@ export const SNAPSHOTTABLE: Record<
     columns: "id, offer_text, discount_value, conditions, published_at, venue_id",
     posted: "published_at",
     tenant: "brand",
+    visibility: "per_brand",
+    published: "published_at",
     quote: "offer_text",
   },
   // A line at a table is public, unencrypted and moderated like the feed, so it
@@ -90,6 +132,8 @@ export const SNAPSHOTTABLE: Record<
     columns: "id, text, created_at, author_identity, table_id",
     posted: "created_at",
     tenant: "brand",
+    visibility: "world",
+    published: "visible_at",
     quote: "text",
   },
 };
@@ -113,12 +157,12 @@ export async function captureTarget(
   // A chat is carried, never stored: there is nothing on our side to copy, and
   // saying so plainly is the answer the notifier gets.
   if (kind === "chat") {
-    return { snapshot: null, status: "not_accessible", reason: "chat_not_stored" };
+    return { snapshot: null, status: "not_accessible", reason: "chat_not_stored", owner: null };
   }
 
   // Free-form reports carry no identifier. Nothing to copy, and nothing wrong
   // with that — a person still gets an answer.
-  if (!targetId) return { snapshot: null, status: "received", reason: null };
+  if (!targetId) return { snapshot: null, status: "received", reason: null, owner: null };
 
   // Object.hasOwn rather than `in`: "constructor" is in every object, and the
   // only thing keeping that unreachable is the KINDS list one file away.
@@ -129,10 +173,11 @@ export async function captureTarget(
   // kind is added to KINDS without a line here.
   if (!Object.hasOwn(SNAPSHOTTABLE, kind)) {
     log("info", "notice about a kind with no snapshot rule", { kind });
-    return { snapshot: null, status: "not_accessible", reason: "unknown_kind" };
+    return { snapshot: null, status: "not_accessible", reason: "unknown_kind", owner: null };
   }
 
-  const { table, columns, tenant } = SNAPSHOTTABLE[kind];
+  const { table, columns, tenant, visibility, published } = SNAPSHOTTABLE[kind];
+  const scoped = visibility === "per_brand";
 
   // An unattributed notice belongs to no tenant, so there is no scope to look
   // within. Looking anyway — which is what an unscoped lookup did — would copy
@@ -143,20 +188,44 @@ export async function captureTarget(
   // the deployment. With the surface check first, every unattributed notice on a
   // box without product tables was filed as "surface_absent" — the product's
   // fault rather than the notice's — and the reason could never appear at all.
-  if (!brand) {
+  //
+  // It only applies where the face is the boundary. On a world surface there is
+  // nothing to scope to in the first place: the phrase was public, and a notice
+  // that names no face is still about something its sender could see.
+  if (scoped && !brand) {
     log("info", "unattributed notice: no tenant to scope the copy to", { kind, table });
-    return { snapshot: null, status: "not_accessible", reason: "unattributed" };
+    return { snapshot: null, status: "not_accessible", reason: "unattributed", owner: null };
   }
 
   if (!(await tableExists(table))) {
     log("info", "notice about a surface that is not built yet", { kind, table, brand });
-    return { snapshot: null, status: "not_accessible", reason: "surface_absent" };
+    return { snapshot: null, status: "not_accessible", reason: "surface_absent", owner: null };
   }
 
-  const rows = await query<Record<string, unknown>>(
-    `SELECT ${columns} FROM ${table} WHERE id = $1 AND ${tenant} = $2 LIMIT 1`,
-    [targetId, brand],
-  );
+  // The face of the row comes back with it, always: on a world surface it is what
+  // routes the notice, and asking for it separately would be a second lookup
+  // answering about a row we already hold.
+  const selected = columns.split(",").map((column) => column.trim()).includes(tenant)
+    ? columns
+    : `${columns}, ${tenant}`;
+
+  // "What the notifier could see" is not only a matter of face. A phrase waiting
+  // in the moderation queue has `visible_at IS NULL` and was public to nobody, so
+  // copying it would break the rule this file exists to keep — in the direction
+  // that is worse, since the copy would then be examined and answered as though
+  // the notifier had seen it. Surfaces that publish in one step say `published`
+  // is null and are read as always visible.
+  const visible = published ? ` AND ${published} IS NOT NULL` : "";
+
+  const rows = scoped
+    ? await query<Record<string, unknown>>(
+      `SELECT ${selected} FROM ${table} WHERE id = $1 AND ${tenant} = $2${visible} LIMIT 1`,
+      [targetId, brand],
+    )
+    : await query<Record<string, unknown>>(
+      `SELECT ${selected} FROM ${table} WHERE id = $1${visible} LIMIT 1`,
+      [targetId],
+    );
   // `query` answers null both for "no database" and for "the query failed", but
   // the table check above has already ruled out the first. So this is a broken
   // query — a wrong column, a renamed table — and calling it "received" would
@@ -168,14 +237,18 @@ export async function captureTarget(
       table,
       columns,
     });
-    return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
+    return { snapshot: null, status: "not_accessible", reason: "lookup_failed", owner: null };
   }
   if (rows.length === 0) {
+    // On a world surface the lookup was not scoped, so an empty answer has only
+    // one meaning: the row is not there at all. The phrase ran out its 4:20.
+    if (!scoped) return { snapshot: null, status: "target_gone", reason: null, owner: null };
+
     // Nothing under this face. Two very different things look identical from
-    // here: the phrase expired, or it belongs to a person who arrived through
-    // another face — the world is one, the notice comes in under a brand.
+    // here: the offer expired, or it exists under a face the notifier did not
+    // arrive through — and there it was never visible to them.
     // Answering "target_gone" for the second is not a gap in the copy, it is an
-    // untrue statement in an Article 16 reply: the phrase is alive.
+    // untrue statement in an Article 16 reply: the offer is alive.
     //
     // So we ask whether the id exists at all — existence only, no columns, no
     // copy. What we learn is that something with this id lives elsewhere; what
@@ -187,18 +260,20 @@ export async function captureTarget(
     );
     if (anywhere === null) {
       log("error", "existence check failed after an empty scoped lookup", { kind, table });
-      return { snapshot: null, status: "not_accessible", reason: "lookup_failed" };
+      return { snapshot: null, status: "not_accessible", reason: "lookup_failed", owner: null };
     }
     if (anywhere.length > 0) {
       log("info", "notice about a target that lives under another face", { kind, table, brand });
-      return { snapshot: null, status: "not_accessible", reason: "out_of_scope" };
+      return { snapshot: null, status: "not_accessible", reason: "out_of_scope", owner: null };
     }
-    return { snapshot: null, status: "target_gone", reason: null };
+    return { snapshot: null, status: "target_gone", reason: null, owner: null };
   }
 
+  const row = rows[0];
   return {
-    snapshot: { table, captured_at: new Date().toISOString(), row: rows[0] },
+    snapshot: { table, captured_at: new Date().toISOString(), row },
     status: "received",
     reason: null,
+    owner: typeof row[tenant] === "string" ? row[tenant] as string : null,
   };
 }

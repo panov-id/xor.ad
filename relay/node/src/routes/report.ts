@@ -129,11 +129,34 @@ export async function report(req: Request): Promise<Response> {
   // `reason` above is the notifier's own text; this one is why we could not
   // take a copy. Two different things, and one line held both names until the
   // second silently took the first one's place in the insert.
-  const { snapshot, status, reason: snapshotReason } = await captureTarget(
+  const { snapshot, status, reason: snapshotReason, owner } = await captureTarget(
     kind,
     targetId,
     brand?.key ?? null,
   );
+
+  // Who examines this, decided 2026-09-07 together with the boundary of the copy.
+  //
+  // Since the copy is bounded by what the notifier could see, a world surface
+  // hands back rows belonging to other faces — and `brand` here is chosen by
+  // whoever sent the notice, while the moderator's queue is filtered by that
+  // same column. Filing such a notice under the sender's face would let a tenant
+  // read another tenant's rows by naming their identifiers, one notice at a
+  // time. So when the copy belongs elsewhere, the notice goes to the platform
+  // queue (`brand IS NULL`, db/007 and db/015) instead of to the sender.
+  //
+  // The face it arrived through is kept in `received_via`: an Article 16 reply
+  // is sent from somewhere, and it is attribution, never a filter.
+  const arrivedVia = brand?.key ?? null;
+  const foreign = owner !== null && arrivedVia !== null && owner !== arrivedVia;
+  const examinedBy = foreign ? null : arrivedVia;
+  if (foreign) {
+    inc("relay_report_total", { result: "routed_to_platform" });
+    log("info", "the copy belongs to another face — the platform examines it", {
+      kind,
+      received_via: arrivedVia,
+    });
+  }
 
   const rows = await query<{ id: string }>(
     // The capture outcome goes in its own column. It used to be written into
@@ -144,11 +167,11 @@ export async function report(req: Request): Promise<Response> {
     `INSERT INTO dsa_notices
        (brand, target_kind, target_id, snapshot, reason_text,
         notifier_name, notifier_email, bona_fide, status, snapshot_state,
-        snapshot_reason)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, $9)
+        snapshot_reason, received_via)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, $9, $10)
      RETURNING id`,
     [
-      brand?.key ?? null,
+      examinedBy,
       kind,
       targetId,
       snapshot ? JSON.stringify(snapshot) : null,
@@ -157,6 +180,7 @@ export async function report(req: Request): Promise<Response> {
       email,
       status,
       snapshotReason,
+      arrivedVia,
     ],
   );
 
@@ -179,7 +203,16 @@ export async function report(req: Request): Promise<Response> {
     return json({ error: "could not store the notice" }, 503);
   }
   inc("relay_report_total", { result: "accepted", kind });
-  log("info", "notice accepted", { id, kind, brand: brand?.key ?? null, snapshot: snapshot !== null });
+  // Both faces, because since 2026-09-07 they can differ: `brand` is who will
+  // examine it, `received_via` is who it came through. One field said "brand"
+  // and meant the sender, which is now the wrong half for reading the queue.
+  log("info", "notice accepted", {
+    id,
+    kind,
+    brand: examinedBy,
+    received_via: arrivedVia,
+    snapshot: snapshot !== null,
+  });
 
   // Article 16(4): confirmation without undue delay, when we have somewhere to
   // send it. Best-effort — a mail failure must not lose the notice itself, which

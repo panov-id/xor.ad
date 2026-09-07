@@ -82,3 +82,4 @@ value	unit	kind	why	example
 800	m	sample.data	значение в макете терминального клиента, не обязательство	xor.ad/docs/depth-client_EN.md:319
 8	chars	prose.figure	встречено в: There is a transport behind the limit: 256 UTF-8 characters → ~1.4 KB of	xor.ad/docs/open-work_EN.md:1162
 3310	chars	measurement	длина одного из шестнадцати пробных тел уведомления в замере 03.09.2026, не предел	xor.ad/docs/open-work_EN.md:1095
+2	h	rejected.option	срок отклонённого fail-open по таймауту: offers/SPEC §15 «Отклонено сознательно» — не предел, а названная и отвергнутая альтернатива	xor.ad/docs/offers/SPEC_RU.md:786

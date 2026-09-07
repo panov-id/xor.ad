@@ -257,7 +257,7 @@ Deno.test("out_of_scope says where we looked, not that we hold nothing", () => {
   assertEquals(outcome.includes("not something we hold"), false);
   assert(outcome.includes("under the storefront"));
 
-  const lines = whatWasRestricted("feed_message", null, "not_accessible", "out_of_scope");
+  const lines = whatWasRestricted("offer", null, "not_accessible", "out_of_scope");
   assertEquals(lines.length, 1);
   assertEquals(lines[0].value.includes("not stored where we could take one"), false);
   assert(lines[0].value.includes("under the storefront"));

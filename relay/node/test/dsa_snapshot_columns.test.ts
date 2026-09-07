@@ -13,7 +13,7 @@
 // define. This test reads them the way the panel's access test reads App.tsx —
 // the document is the source, not a second copy of it.
 
-import { assert } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 import { SNAPSHOTTABLE } from "../src/lib/dsa_snapshot.ts";
 
 import { suite } from "./support/config_env.ts";
@@ -123,6 +123,42 @@ configured("every snapshottable surface names a tenant column", () => {
       `${kind} has no tenant column, so its snapshot would not be scoped to anyone`,
     );
   }
+});
+
+// The boundary is a property of the surface, decided 2026-09-07: the snapshot is
+// bounded by what the notifier could see. A new surface added without saying
+// which it is would compile, `visibility` would be undefined, and the lookup
+// would silently take the world branch — the widest one — on a surface whose
+// face may well be its boundary.
+configured("every snapshottable surface says what bounds it", () => {
+  for (const [kind, surface] of Object.entries(SNAPSHOTTABLE)) {
+    assert(
+      surface.visibility === "world" || surface.visibility === "per_brand",
+      `${kind} does not say whether its face is its boundary (got ${surface.visibility})`,
+    );
+  }
+});
+
+// The two documents that decide it, held against the code so they cannot drift
+// apart in silence. The feed spec calls `brand` attribution that takes no part
+// in what is shown; the offers spec calls it the thing every search is bounded
+// by. Those two sentences are exactly why the surfaces differ here.
+configured("the boundary of each surface matches the spec that sets it", () => {
+  assertEquals(
+    SNAPSHOTTABLE.feed_message.visibility,
+    "world",
+    "docs/chat says the world is one and brand is attribution only",
+  );
+  assertEquals(
+    SNAPSHOTTABLE.table_line.visibility,
+    "world",
+    "a table line is public and moderated like the feed",
+  );
+  assertEquals(
+    SNAPSHOTTABLE.offer.visibility,
+    "per_brand",
+    "docs/offers/SPEC makes brand the thing every search is bounded by",
+  );
 });
 
 // The limits live in the code and the document, and only one of them is read by

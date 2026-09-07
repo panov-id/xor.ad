@@ -31,15 +31,28 @@ Deno.test("a kind with no snapshot rule is a surface nobody taught us about", as
 });
 
 Deno.test("a notice with no tenant has no scope to look within", async () => {
-  // feed_message has a rule, so the lookup gets past the kind check and stops
-  // at the missing tenant — provided the surface exists. Without a database the
-  // table check answers first, which is a different reason and a different fix.
-  const { status, reason } = await reasonFor("feed_message", "any", null);
+  // The reason belongs to the surfaces the face actually bounds. Since
+  // 2026-09-07 that is the venue offer alone: the feed is one world, and a
+  // notice naming no face is still about a phrase its sender could see, so
+  // there is nothing there to refuse.
+  const { status, reason } = await reasonFor("offer", "any", null);
   assertEquals(status, "not_accessible");
   assertEquals(
     reason === "unattributed" || reason === "surface_absent",
     true,
     `expected unattributed or surface_absent, got ${reason}`,
+  );
+});
+
+Deno.test("on a world surface an unattributed notice is not refused for that", async () => {
+  // Without a database the surface check answers first — what must never come
+  // back is `unattributed`, which would mean the face is still bounding a
+  // surface where the spec says the world is one.
+  const { reason } = await reasonFor("feed_message", "any", null);
+  assertEquals(
+    reason === "unattributed",
+    false,
+    "the feed is one world: a missing face is not a reason to refuse to look",
   );
 });
 
@@ -72,12 +85,15 @@ Deno.test("every reason is one the database will accept", async () => {
   }
 });
 
-Deno.test("a target under another face is not called expired", async () => {
+Deno.test("an offer under another face is not called expired", async () => {
   // The distinction this suite exists for: "we did not find it here" and "it is
-  // gone" are different sentences, and only one of them is true when the phrase
-  // is alive under a different brand. Without a database the surface check
-  // answers first, which is a different reason and an honest one.
-  const { status, reason } = await reasonFor("feed_message", "someone-elses-id", "sosed");
+  // gone" are different sentences, and only one of them is true when the offer
+  // is alive under a different brand. Since 2026-09-07 this can only happen on a
+  // per_brand surface — on the feed the lookup is not scoped, so `out_of_scope`
+  // is unreachable there and this case would have quietly stopped guarding
+  // anything. Without a database the surface check answers first, which is a
+  // different reason and an honest one.
+  const { status, reason } = await reasonFor("offer", "someone-elses-id", "sosed");
   assertEquals(status, "not_accessible");
   assertEquals(
     reason === "surface_absent" || reason === "out_of_scope",

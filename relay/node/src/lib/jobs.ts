@@ -52,6 +52,19 @@ export async function enqueue(
 // Enqueue unless one of this kind is already waiting — for jobs that are a
 // standing intention ("prune daily") rather than an event, where a second copy
 // would only do the same work twice.
+//
+// "Waiting" excludes a job that gave up. `fail()` leaves such a row in place
+// with `locked_until = 'infinity'` on purpose — it is the only record that the
+// work never succeeded — but it is a headstone, not a job that is coming. This
+// used to ask merely whether a row of the kind existed, and the headstone then
+// answered "one is already waiting" at every start-up for ever. Since the daily
+// chain re-arms itself only from inside a successful handler, one job running
+// out of attempts (storage unreachable for a couple of hours is enough) ended
+// the pruning permanently, and the only trace was a single "job gave up" line.
+// Found 2026-09-07 by a review panel; the suite covers it in
+// "a job that gave up does not block the next arming".
+//
+// A row merely leased right now still counts: a node is working on it.
 export async function enqueueOnce(
   kind: string,
   payload: Record<string, unknown> = {},
@@ -59,7 +72,9 @@ export async function enqueueOnce(
 ): Promise<void> {
   if (!databaseEnabled()) return;
   const rows = await query<{ id: number }>(
-    `SELECT id FROM jobs WHERE kind = $1 LIMIT 1`,
+    `SELECT id FROM jobs
+      WHERE kind = $1 AND locked_until IS DISTINCT FROM 'infinity'
+      LIMIT 1`,
     [kind],
   );
   if (rows === null || rows.length > 0) return;

@@ -570,6 +570,84 @@ Deno.test({
 });
 
 Deno.test({
+  // Found 2026-09-07 by a review panel, not by a failure: nothing about this is
+  // visible while it happens. A job out of attempts keeps its row with
+  // `locked_until = 'infinity'` as the record of work that never succeeded —
+  // deliberate, and right. What was wrong is that `enqueueOnce` asked only
+  // whether a row of that kind exists, so the tombstone answered "one is already
+  // waiting" for ever. The daily chain lives inside the successful handler, so
+  // once a job gave up nothing re-armed it: every later restart of every node
+  // quietly enqueued nothing, and the retention windows the privacy policy
+  // promises stopped being kept with one line in the log.
+  //
+  // Storage being unreachable for long enough is all it takes: prune_objects
+  // throws "storage is not configured", eight attempts pass in about two hours,
+  // and the pruning is over until somebody deletes the row by hand.
+  name: "a job that gave up does not block the next arming",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const kind = `test-gaveup-${Date.now()}`;
+    // The state a job is left in by `fail()` once attempts run out.
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, attempts, max_attempts, locked_until, last_error)
+       VALUES ($1, '{}'::jsonb, 8, 8, 'infinity', 'storage is not configured')`,
+      [kind],
+    );
+
+    await jobs.enqueueOnce(kind, {}, new Date(Date.now() + 86_400_000));
+
+    const rows = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs
+        WHERE kind = $1 AND locked_until IS DISTINCT FROM 'infinity'`,
+      [kind],
+    );
+    assertEquals(
+      rows[0].count,
+      "1",
+      "the tombstone must not be mistaken for a job that is still coming",
+    );
+
+    // And the tombstone itself stays: it is the only evidence of what broke.
+    const dead = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs
+        WHERE kind = $1 AND locked_until = 'infinity'`,
+      [kind],
+    );
+    assertEquals(dead[0].count, "1", "a job that gave up is not deleted by re-arming");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+Deno.test({
+  // The other half of the same question: a row that is merely leased right now
+  // (a node is running it) is still a job that is coming, and re-arming must not
+  // add a second one beside it.
+  name: "a leased job still counts as enqueued",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const kind = `test-leased-${Date.now()}`;
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, locked_until)
+       VALUES ($1, '{}'::jsonb, now() + interval '10 minutes')`,
+      [kind],
+    );
+
+    await jobs.enqueueOnce(kind, {}, new Date(Date.now() + 86_400_000));
+
+    const rows = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(rows[0].count, "1", "a job in flight is not a job that is missing");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+Deno.test({
   // The failure this guards was invisible from every direction: the notice was
   // stored, acknowledged under Article 16(4), and absent from the only screen a
   // moderator has. It happened because the snapshot outcome was written into

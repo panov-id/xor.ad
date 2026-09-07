@@ -948,7 +948,9 @@ Two consequences of the queue, settled together with it:
 ALTER TABLE identity_stats ADD COLUMN rejected_count integer NOT NULL DEFAULT 0;
 ```
 
-The counter grows on every `rejected` and **resets on the first successful publication**. Five refusals in a row — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+The counter grows on every `rejected` and counts **over a sliding hour**, the same one the publishing limit uses. Five refusals in an hour — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+
+**Edited 2026-09-07 after a review panel.** This said "resets on the first successful publication" and "five refusals in a row" — so the limit came undone by alternating: four probes, one deliberately clean phrase, four more. At four publications an hour that is sixteen probes against the filter instead of five. A window in place of a run adds no control at all: the period is the same hour. The counter and whatever is left of the block **survive a departure** (`sosed.place/docs/00-mechanics_EN.md` §13): a twenty-minute step away is longer than a fifteen-minute pause, and would otherwise put it out.
 
 **Five and fifteen are deliberately mild.** A refusal from the model is not proof of ill intent: mixed languages, a rare word, quoting somebody else's text — it makes mistakes, and the first person to hit the threshold will not be a troll but someone who was misunderstood. The threshold exists to **break the rhythm of hunting for a wording that gets through**, not to punish; anyone hunting in earnest hits it five times in a row, while anyone merely misunderstood does not lose an evening over fifteen minutes. Resetting on the first successful publication matters as much as the number: without it the counter accrues for months and one day fires out of nowhere.
 

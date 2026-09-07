@@ -123,8 +123,9 @@ through three different wrappers and cannot be counted by eye.
 | 6.3c | Latin script is returned to its own alphabet before language identification | `ty durak` is identified as Russian, not Slovak | **have** |
 | 6.3d | **The operating point lives in the node's config, not in code** (2026-08-28) | changing the false-block budget moves the threshold with no rebuild and no retraining | nothing to check |
 | 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
-| 6.4 | The fifth refusal in a row gives 15 minutes without posting; feed, likes and chats keep working | five refusals → `POST /feed` refused, `GET /feed` 200 | nothing to check |
-| 6.5 | A successful publication zeroes the refusal counter | four refusals, a success, four more → no mute | nothing to check |
+| 6.4 | The fifth refusal **within an hour** gives 15 minutes without posting; feed, likes and chats keep working | five refusals → `POST /feed` refused, `GET /feed` 200 | nothing to check |
+| 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
+| 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, twenty minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
 | 6.8 | Limits: ≤4 live phrases, ≤4 per hour (2026-08-28) | a fifth live one → refused; a fifth within the hour → refused | nothing to check |

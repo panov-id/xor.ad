@@ -79,15 +79,26 @@ Fix the name and it will publish itself.
 The rule of 2026-08-26: a phrase reaches the feed only when **both** are accepted.
 Its lifetime counts from publication, so waiting does not cost it its 4:20.
 
-## 4. The fifth refusal in a row
+## 4. The fifth refusal within an hour
 
 ```
-Five refusals in a row. Posting is unavailable for 15 minutes —
+Five refusals in an hour. Posting is unavailable for 15 minutes —
 the feed, likes and conversations work.
 ```
 
 What exactly stopped working is named: a silent refusal of everything reads as a
 ban.
+
+**"Within an hour" rather than "in a row" — edited 2026-09-07 after a review
+panel.** "In a row" means any successful publication resets the run, and the
+limit is then undone by alternating: four probes, one clean phrase, four more.
+The whole rule is in `sosed.place/docs/00-mechanics_EN.md` §3, and so is the
+cost: someone who honestly got it wrong five times in an hour waits fifteen
+minutes, even though they published something good in between.
+
+**Stepping away does not lift the pause** (§13 of the mechanics): a twenty-minute
+departure is longer than a fifteen-minute pause, and without that rule the "step
+away" button would put it out.
 
 ## 5. The other refusals (§10 of the mechanics)
 

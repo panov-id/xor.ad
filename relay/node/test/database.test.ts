@@ -1095,16 +1095,20 @@ Deno.test({
   },
 });
 
-// A phrase that lives under another face must never be called expired.
+// The boundary, exercised where it actually decides something: a database.
 //
-// The scoped lookup finds nothing and the honest question is which nothing it
-// is: a phrase that ran out its 4:20, or a phrase alive under a brand this
-// notice did not arrive through. Only a database can tell them apart, so this
-// is the one suite where the branch actually runs. It builds the surface it
-// needs — feed_messages does not exist yet, and the day it does, this test
-// stops building and starts using it.
+// Since 2026-09-07 the snapshot is bounded by what the notifier could see, and
+// the feed is one world — `brand` there is attribution and takes no part in what
+// is shown. So a notice that arrives through one face about a phrase attributed
+// to another is examined, not refused: the person reporting it was looking at
+// it. The offer is the other half of the same rule and is checked below.
+//
+// Only a database can tell an empty scoped lookup from a missing row, so this is
+// the one suite where the branch actually runs. It builds the surface it needs —
+// feed_messages does not exist yet, and the day it does, this test stops
+// building and starts using it.
 Deno.test({
-  name: "a target under another face is out_of_scope, not target_gone",
+  name: "a phrase attributed to another face is still examined, because the world is one",
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
@@ -1122,6 +1126,7 @@ Deno.test({
          text text,
          mode text,
          created_at timestamptz DEFAULT now(),
+         visible_at timestamptz,
          author_identity uuid
        )`,
       [],
@@ -1130,22 +1135,214 @@ Deno.test({
 
     const id = crypto.randomUUID();
     await query(
-      `INSERT INTO feed_messages (id, brand, text) VALUES ($1, 'alpha', 'фраза из альфы')`,
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'alpha', 'фраза из альфы', now())`,
       [id],
+    );
+
+    // Waiting in the moderation queue: public to nobody, so no notifier could
+    // have seen it, so it is never copied — the boundary is time as well as face.
+    const unpublished = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'alpha', 'ещё не пропущена', NULL)`,
+      [unpublished],
     );
 
     try {
       const elsewhere = await captureTarget("feed_message", id, "beta");
-      assertEquals(elsewhere.status, "not_accessible");
-      assertEquals(elsewhere.reason, "out_of_scope");
+      assertEquals(elsewhere.status, "received");
+      assertEquals(elsewhere.reason, null);
+      assertEquals(
+        (elsewhere.snapshot?.row as Record<string, unknown>)?.text,
+        "фраза из альфы",
+        "the copy has to be the phrase itself, not an empty shell",
+      );
 
       const home = await captureTarget("feed_message", id, "alpha");
       assertEquals(home.status, "received");
       assertEquals(home.reason, null);
 
+      // A notice that names no face at all: on a world surface there is nothing
+      // to scope to, and refusing would mean refusing to look at something
+      // public.
+      const faceless = await captureTarget("feed_message", id, null);
+      assertEquals(faceless.status, "received");
+      assertEquals(faceless.reason, null);
+
+      // The face of the row comes back with the copy: that is what routes the
+      // notice away from whoever chose to send it.
+      assertEquals(elsewhere.owner, "alpha");
+      assertEquals(home.owner, "alpha");
+
+      const waiting = await captureTarget("feed_message", unpublished, "alpha");
+      assertEquals(waiting.status, "target_gone");
+      assertEquals(
+        waiting.snapshot,
+        null,
+        "a phrase nobody could see must never be copied, not even for its own face",
+      );
+
       const missing = await captureTarget("feed_message", crypto.randomUUID(), "alpha");
       assertEquals(missing.status, "target_gone");
       assertEquals(missing.reason, null);
+    } finally {
+      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+    }
+  },
+});
+
+// The other half of the same rule. An offer exists only under the face it was
+// published through, so a notice arriving through another face is about
+// something that was never visible to its sender — `out_of_scope`, and never
+// `target_gone`, which would say the offer had expired while it is alive.
+Deno.test({
+  name: "an offer under another face is out_of_scope, because it was never visible",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
+
+    const built = await query(
+      `CREATE TABLE IF NOT EXISTS offers (
+         id uuid PRIMARY KEY,
+         brand text,
+         offer_text text,
+         discount_value text,
+         conditions text,
+         published_at timestamptz DEFAULT now(),
+         venue_id uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    const id = crypto.randomUUID();
+    await query(
+      `INSERT INTO offers (id, brand, offer_text) VALUES ($1, 'alpha', 'кофе за полцены')`,
+      [id],
+    );
+
+    try {
+      const elsewhere = await captureTarget("offer", id, "beta");
+      assertEquals(elsewhere.status, "not_accessible");
+      assertEquals(elsewhere.reason, "out_of_scope");
+
+      const home = await captureTarget("offer", id, "alpha");
+      assertEquals(home.status, "received");
+      assertEquals(home.reason, null);
+
+      const faceless = await captureTarget("offer", id, null);
+      assertEquals(faceless.status, "not_accessible");
+      assertEquals(faceless.reason, "unattributed");
+
+      const missing = await captureTarget("offer", crypto.randomUUID(), "alpha");
+      assertEquals(missing.status, "target_gone");
+      assertEquals(missing.reason, null);
+    } finally {
+      await query(`DROP TABLE IF EXISTS offers`, []);
+    }
+  },
+});
+
+// The whole route, end to end: who ends up examining a notice about a row that
+// belongs to another face.
+//
+// The two suites above hold the copy — what may be taken. This one holds the
+// consequence decided with it on 2026-09-07: the notice is filed for the
+// platform, not for the face that sent it. Without this, a tenant could name
+// another tenant's identifiers and read the copies in their own queue, which is
+// the exact hole the pre-boundary code closed by refusing to look at all.
+//
+// The face is set through the `source` hint rather than a key: publishable keys
+// live in object storage, which this suite does not have, while the hint is the
+// transitional path the storefronts still use (lib/tenant.ts). Either way it is
+// the sender who chooses it, which is the whole reason routing cannot trust it.
+Deno.test({
+  name: "a notice about another face's row is filed for the platform, not the sender",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { report } = await import("../src/routes/report.ts");
+
+    const built = await query(
+      `CREATE TABLE IF NOT EXISTS feed_messages (
+         id uuid PRIMARY KEY,
+         brand text,
+         text text,
+         mode text,
+         created_at timestamptz DEFAULT now(),
+         visible_at timestamptz,
+         author_identity uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    const filed = async (targetId: string, source: string) => {
+      const response = await report(
+        new Request("https://node.test/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            target_kind: "feed_message",
+            target_id: targetId,
+            reason_text: "This phrase names a private address and invites people to go there.",
+            bona_fide: true,
+            source,
+          }),
+        }),
+      );
+      assertEquals(response.status, 202, "a report of illegal content is never refused");
+      const body = await response.json();
+      const rows = await query<
+        { brand: string | null; received_via: string | null; snapshot: unknown }
+      >(
+        `SELECT brand, received_via, snapshot FROM dsa_notices WHERE id = $1`,
+        [body.id],
+      );
+      assert(rows !== null && rows.length === 1, "the notice was not stored");
+      return rows[0];
+    };
+
+    const theirs = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'beta', 'фраза, живущая под бетой', now())`,
+      [theirs],
+    );
+    const mine = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'alpha', 'своя фраза', now())`,
+      [mine],
+    );
+
+    try {
+      // Sent through alpha, about a row belonging to beta.
+      const foreign = await filed(theirs, "alpha.test");
+      assertEquals(
+        foreign.brand,
+        null,
+        "alpha must not examine a row belonging to beta — the platform does",
+      );
+      assertEquals(
+        foreign.received_via,
+        "alpha",
+        "the face it arrived through is kept: an Article 16 reply is sent from somewhere",
+      );
+      assert(
+        foreign.snapshot !== null,
+        "the copy is still taken — the notifier saw the phrase, the world is one",
+      );
+
+      // Same face on both sides: nothing to route away, and a tenant keeps
+      // seeing complaints about its own rows.
+      const own = await filed(mine, "alpha.test");
+      assertEquals(own.brand, "alpha", "a tenant still examines its own rows");
+      assertEquals(own.received_via, "alpha");
     } finally {
       await query(`DROP TABLE IF EXISTS feed_messages`, []);
     }

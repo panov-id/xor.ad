@@ -105,3 +105,4 @@ chat.2026-09-07.937	2026-09-07	xor.ad/docs/chat_RU.md:937	xor.ad/docs/chat_EN.md
 refusal-wordings.2026-09-07.86	2026-09-07	xor.ad/docs/refusal-wordings_RU.md:86	xor.ad/docs/refusal-wordings_EN.md:92	«За час», а не «подряд» — правка 07.09.2026	rather than "in a row" — edited 2026-09-07
 test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:128	xor.ad/docs/test-map_EN.md:127	Успешная публикация счётчик отказов не обнуляет	A successful publication does not zero the refusal counter
 test-map.2026-09-07.129	2026-09-07	xor.ad/docs/test-map_RU.md:129	xor.ad/docs/test-map_EN.md:128	Отлучка не снимает ни часовой предел, ни паузу	Stepping away lifts neither the hourly limit nor the pause
+chat.2026-09-07.852	2026-09-07	xor.ad/docs/chat_RU.md:852	xor.ad/docs/chat_EN.md:867	Граница снимка — по видимости для заявителя. Решено 07.09.2026.	The snapshot is bounded by what the notifier could see. Decided 2026-09-07.

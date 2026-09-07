@@ -158,15 +158,25 @@ looked exactly like an ordinary chat report. The column is null whenever the
 status already says everything: a copy was taken, or the target was gone.
 
 The sixth, `out_of_scope`, is about the honesty of the answer rather than the
-completeness of the copy. The world is one while a notice arrives under a brand:
-a complaint filed through one storefront about a person who came through another
-finds nothing under its own face. The earlier code called that "target gone" —
-telling the notifier, in an Article 16 reply, that the phrase had expired while
-it was alive. An empty scoped lookup now checks whether the record exists at all,
-reading no columns and naming no other face: if it does, the answer is "not found
-here", not "gone". The scope itself stays an open question
-(`brand.scope.snapshot`); telling the reasons apart does not settle it, it only
-stops the untruth while it is being settled.
+completeness of the copy. It survives on exactly one surface — the venue offer,
+where the storefront *is* the boundary of visibility: a complaint filed through
+another face finds nothing under it, because for that reporter the offer never
+existed. The earlier code called that "target gone" — telling the notifier, in an
+Article 16 reply, that the offer had expired while it was alive. An empty scoped
+lookup now checks whether the record exists at all, reading no columns and naming
+no other face: if it does, the answer is "not found here", not "gone".
+
+**The boundary was settled on 2026-09-07** (`docs/chat_EN.md`, "The snapshot is
+bounded by what the notifier could see"): the copy is bounded by what the notifier
+could see, and that is a property of each surface — the `visibility` field in
+`SNAPSHOTTABLE`. On the feed and at tables the world is one, the copy is not
+narrowed by a storefront, and `out_of_scope` cannot arise there at all. Settled
+with it: who reads the copy. A notice whose copy belongs to another face is
+examined by the **platform** (`brand IS NULL`, migration `015`) rather than by the
+storefront it was filed through — otherwise a tenant could read other tenants'
+rows by naming their identifiers. The face it arrived through is kept in its own
+column, `received_via`: an Article 16 reply is sent from somewhere, but the queue
+is never filtered by it.
 
 The snapshot is held inside the notice record. There is no separate table of
 "retained messages": a snapshot does not outlive its notice and is used for

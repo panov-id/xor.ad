@@ -118,6 +118,10 @@ if [ "$with_tests" = 1 ]; then
   # файлам и трём репозиториям — ровно тот случай, что однажды прошёл мимо
   # двенадцати проверок.
   run test_check-facts-decisions bash "$here/test_check-facts-decisions.sh"
+  # Черновик реестра решений сам воротами не является, но пишет в тот файл,
+  # который ворота проверяют. 07.09.2026 он снёс отобранное руками — проба
+  # держит границу: смотреть можно, стирать только по --force и вслух.
+  run test_seed-facts-decisions bash "$here/test_seed-facts-decisions.sh"
   run test_check-facts-limits    bash "$here/test_check-facts-limits.sh"
   # Сам check-node-images остаётся снаружи (живые адреса пула), но его проба
   # сети не трогает: стенд поднимает подставной /health на 127.0.0.1.

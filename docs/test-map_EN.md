@@ -34,15 +34,15 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 158 | storefronts, panel, tenancy, DSA, keys, limits |
+| `relay/node/test` | 168 | storefronts, panel, tenancy, DSA, keys, limits |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **168** | **about chat and feed — 0** |
+| **Total** | **178** | **about chat and feed — 0** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
 the chat is switched on, and remind us the map is due.
 
-The numbers are recounted by `scratchpad/count-tests.sh`; the cases are declared
+The numbers are recounted by `scripts/count-tests.sh --check` — which also compares them with this table and goes red on a mismatch. Until 2026-09-08 this named `scratchpad/count-tests.sh`, a file that has never existed here: the number could not be checked, and it had drifted (158 against 168 on the day the script appeared); the cases are declared
 through three different wrappers and cannot be counted by eye.
 
 ---
@@ -108,6 +108,7 @@ through three different wrappers and cannot be counted by eye.
 | 5.4 | Recovery issues a new paper code | the response carries a new code exactly once | nothing to check |
 | 5.5 | The node cannot unwrap the long key itself | only the wrapped key is stored; the second half of the code unwraps it | nothing to check |
 | 5.6 | Attempts are counted by the endpoint, not by the identity row | misses from one address on different codes → the shared counter grows | nothing to check |
+| 5.6a | **The shared miss counter: 50 an hour per node, a 15-minute pause** (2026-09-08) | 50 wrong paper codes in an hour from different addresses → the 51st attempt is refused for everyone for 15 minutes; after 15 minutes recovery accepts again | nothing to check |
 | 5.7 | Alphabet and parameters: 16 Crockford base32 characters, salt `xor.ad/recovery/v1`, 80 bits | a vector: the same code → the same `lookup_id` | nothing to check |
 | 5.8 | Recovered chats stay silent until the key is re-issued | a message into an old chat → `error`, not silence | nothing to check |
 
@@ -125,6 +126,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
 | 6.4 | The fifth refusal **within an hour** gives 15 minutes without posting; feed, likes and chats keep working | five refusals → `POST /feed` refused, `GET /feed` 200 | nothing to check |
 | 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
+| 6.5b | **The "checking…" line becomes "taking longer than usual" after 60 seconds** (2026-09-08) | a phrase in the queue, 60 seconds pass → the copy changes, no refusal arrives, the phrase is still queued | nothing to check |
 | 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, twenty minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
@@ -286,7 +288,7 @@ through three different wrappers and cannot be counted by eye.
 | 15.12 | **Table:** a blocked person at a table hides the whole table | the table is not shown at all | nothing to check |
 | 15.13 | **Table:** one span for everyone, from anyone's last move | one plays while others stay quiet for an hour → the table lives for all | nothing to check |
 | 15.14 | **Table:** speech and board travel in the clear, the node sees them | a line at a table is readable by the node — otherwise the queue has nothing to check | nothing to check |
-| 15.15 | **Table:** the band is its current sitters' and is recomputed (2026-09-08) | two adults at a table → a teenager gets no table in the feed; one leaves and the band differs → the table appears | nothing to check |
+| 15.15 | **Table:** the band is its current sitters' and is recomputed (2026-09-08) | two adults at a table → a teenager gets no table in the feed; one leaves and the band differs → the table appears; a table with nobody at it is shown to no one. In both cases the feed **has no table**, rather than "has it, greyed out" | nothing to check |
 | 15.16 | **An Article 16 notice is accepted about a line at a table** (2026-08-28) | `target_kind = table_line` goes through; the snapshot holds the line's text and `table_id` | nothing to check |
 | 15.17 | **The board does not go into a notice's snapshot** | the line's snapshot holds no state of the match: it is the text that can be unlawful, not the game | nothing to check |
 

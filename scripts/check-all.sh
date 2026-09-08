@@ -80,6 +80,10 @@ run check-facts-decisions bash "$here/check-facts-decisions.sh"
 run check-facts-limits    bash "$here/check-facts-limits.sh"
 run check-docs-pairing    bash "$here/check-docs-pairing-all.sh"
 run ontology              python3 "$here/ontology.py" --check
+# Карта тестов называет свои числа, а число в документе живёт ровно до первого
+# нового теста. Инструмент, на который она ссылалась, в репозитории не
+# существовал — и числа разошлись на десять, никем не замеченные.
+run count-tests           bash "$here/count-tests.sh" --check
 
 # Ворота, которым нужен только текст: держать их снаружи было нечем оправдать.
 run check-landing-tokens       bash "$here/check-landing-tokens.sh"

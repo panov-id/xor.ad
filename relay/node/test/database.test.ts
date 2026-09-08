@@ -1397,3 +1397,69 @@ Deno.test({
     }
   },
 });
+
+// A malformed identifier is not a failure to look — it is not an identifier.
+//
+// This needs a database, and that is the whole point: without one the surface
+// check answers first and a broken id looks exactly like a fixed one. With the
+// surface built, anything that is not a uuid used to reach Postgres, break the
+// query, and be filed `lookup_failed` — "we could not look", a statement about
+// our code — while writing an error-level line a stranger could produce at will.
+Deno.test({
+  name: "a target id that is not an identifier is free-form, not a failed lookup",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { report } = await import("../src/routes/report.ts");
+
+    const built = await query(
+      `CREATE TABLE IF NOT EXISTS feed_messages (
+         id uuid PRIMARY KEY,
+         brand text,
+         text text,
+         mode text,
+         created_at timestamptz DEFAULT now(),
+         visible_at timestamptz,
+         author_identity uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    try {
+      const response = await report(
+        new Request("https://node.test/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            target_kind: "feed_message",
+            target_id: "не помню, где-то в ленте",
+            reason_text: "This phrase names a private address and invites people to go there.",
+            bona_fide: true,
+            source: "alpha.test",
+          }),
+        }),
+      );
+      assertEquals(response.status, 202, "a report of illegal content is never refused");
+      const body = await response.json();
+
+      const rows = await query<
+        { target_id: string | null; snapshot_state: string; snapshot_reason: string | null }
+      >(
+        `SELECT target_id, snapshot_state, snapshot_reason FROM dsa_notices WHERE id = $1`,
+        [body.id],
+      );
+      assert(rows !== null && rows.length === 1, "the notice was not stored");
+      assertEquals(
+        rows[0].snapshot_reason,
+        null,
+        "a typo must not be recorded as our failure to look",
+      );
+      assertEquals(rows[0].snapshot_state, "received");
+      assertEquals(rows[0].target_id, null, "what was sent was never an identifier");
+    } finally {
+      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+    }
+  },
+});

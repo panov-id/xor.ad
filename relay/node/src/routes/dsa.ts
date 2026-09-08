@@ -184,16 +184,25 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       if (rows[0].decided_at) return { ok: false as const, reason: "already" as const };
 
       const created = await tx<{ id: string }>(
+        // `automated_used` is written, not defaulted. Article 17(3)(c) asks
+        // whether automated means were used to reach this decision, and the
+        // answer is a statement we make rather than a column nobody touched:
+        // until 2026-09-08 the DEFAULT supplied it, and an exported statement
+        // could not tell "we say no" from "nobody considered it". The value
+        // itself is unchanged and matches the letter — a person decides every
+        // notice (lib/mailer.ts). The day a decision is ever made by anything
+        // else, this is the line that has to change, and it is findable.
         `INSERT INTO dsa_statements
            (brand, notice_id, target_id, recipient_identity, restriction,
-            facts, ground_kind, ground_text)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            facts, ground_kind, ground_text, automated_used)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)
          RETURNING id`,
         [notice.brand, notice.id, notice.target_id ?? "", recipient, restriction,
          facts, groundKind, groundText],
       );
       await tx(
-        `UPDATE dsa_notices SET status = $1, decided_at = now() WHERE id = $2`,
+        `UPDATE dsa_notices SET status = $1, decided_at = now(), automated_used = false
+          WHERE id = $2`,
         [decision, notice.id],
       );
       return { ok: true as const, id: created[0]?.id ?? null };

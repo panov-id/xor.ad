@@ -120,9 +120,19 @@ processing is identical and only the storefront differs, so the record is shared
 - **Data subjects.** Notifiers and the authors of the content.
 - **Data.** The notifier's name and email (not requested where the report concerns
   the sexual exploitation of children), the reasoning, and a **snapshot of the
-  content** — text, zone, time, author identifier.
-- **Recipients.** Resend (letters to the notifier and the author); law enforcement
-  where life is threatened — Art. 18 DSA.
+  content** — text, time of publication, author identifier, and the face the
+  content was published under. The area it was published to (coordinates and
+  radius) is **not** copied: whether a text is illegal is answered by the text,
+  and a snapshot is kept for a year — a year of someone's locations has no
+  examining value (`relay/node/src/lib/dsa_snapshot.ts`). Until 2026-09-08 this
+  line said "zone", which the copy never contained.
+- **Recipients.** The moderators of the tenant the content belongs to, who examine
+  the notice. Since 2026-09-07 the copy for the feed and tables is taken by the
+  target rather than by the storefront the notice came through, so a notice whose
+  copy belongs to another face is examined by the **platform** rather than by that
+  storefront: one tenant's content is not shown to another tenant's staff. Then
+  Resend (letters to the notifier and the author); law enforcement where life is
+  threatened — Art. 18 DSA.
 - **Retention.** 1 year, then deletion; an anonymous counter remains.
 - **A notifier's identity is never disclosed to the author.**
 

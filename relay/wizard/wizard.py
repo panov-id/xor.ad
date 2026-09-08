@@ -415,6 +415,13 @@ def sh_out(client, cmd: str) -> str:
     return stdout.read().decode(errors="replace").strip()
 
 
+def sh_out_sudo(client, cmd: str, sudo: bool) -> str:
+    """sh_out with the sudo prefix sh() applies. Reading a root-owned file needs it."""
+    wrapped = ("sudo -n " if sudo else "") + "bash -lc " + shlex.quote(cmd)
+    _stdin, stdout, _stderr = client.exec_command(wrapped)
+    return stdout.read().decode(errors="replace").strip()
+
+
 def _sftp_mkdirs(sftp, remote: str) -> None:
     cur = ""
     for part in remote.strip("/").split("/"):
@@ -545,17 +552,63 @@ def firewall(client, inv: dict, box: dict, sudo: bool) -> None:
     allow443 = sorted({ip for e in box["envs"] if inv["env"][e].get("access") != "public"
                        for ip in inv["env"][e].get("whitelist_ips", [])})
 
-    cmds = ["ufw --force reset", "ufw default deny incoming", "ufw default allow outgoing"]
+    rules = ["ufw default deny incoming", "ufw default allow outgoing"]
     for ip in ssh_wl:
-        cmds.append(f"ufw allow from {ip} to any port 22 proto tcp")
+        rules.append(f"ufw allow from {ip} to any port 22 proto tcp")
     if public:
-        cmds.append("ufw allow 443/tcp")
+        rules.append("ufw allow 443/tcp")
     else:
         for ip in allow443:
-            cmds.append(f"ufw allow from {ip} to any port 443 proto tcp")
-    cmds.append("ufw --force enable")
-    sh(client, " && ".join(cmds), sudo=sudo)
-    print(f"      firewall: ssh<-{ssh_wl}  443<-{'ANY' if public else allow443}")
+            rules.append(f"ufw allow from {ip} to any port 443 proto tcp")
+
+    # This used to be one `&&` chain beginning with `ufw --force reset`, run over
+    # the ssh channel — and it had two ways to leave a public box with no
+    # firewall at all, neither of which any check would have noticed.
+    #
+    # The chain started by DISABLING the firewall (that is what reset does) and
+    # only re-enabled it at the very end. Drop the connection in between — a
+    # laptop lid, a flaky link, a Ctrl-C — and the box stays open, quietly, until
+    # somebody runs configure again. And `&&` meant one rejected rule (a typo in
+    # a whitelist address is enough) ended the chain before `ufw --force enable`
+    # was ever reached, with exactly the same result.
+    #
+    # So: a script on the box, detached from the ssh session, that always reaches
+    # `enable` — the trap runs it even when a rule fails, so a bad address costs
+    # that one rule rather than the whole firewall. Losing the connection now
+    # costs the *report*, not the boundary.
+    script = "\n".join([
+        "#!/bin/bash",
+        "# Written by the wizard. The firewall must end up enabled whatever else",
+        "# happens in here, which is what the trap is for.",
+        "trap 'ufw --force enable; ufw status verbose > /var/log/relay-firewall.state 2>&1' EXIT",
+        "set -x",
+        "ufw --force reset",
+        *rules,
+        "",
+    ])
+    sftp = client.open_sftp()
+    try:
+        _write_remote(sftp, "/tmp/relay-firewall.sh", script)
+    finally:
+        sftp.close()
+    if sudo:
+        sh(client, "mv /tmp/relay-firewall.sh /root/relay-firewall.sh", sudo=True)
+        target = "/root/relay-firewall.sh"
+    else:
+        target = "/tmp/relay-firewall.sh"
+    # setsid + nohup: the script outlives this channel. `wait` afterwards is a
+    # separate command, so a lost connection loses the wait and not the work.
+    sh(client, f"setsid nohup bash {target} > /var/log/relay-firewall.log 2>&1 < /dev/null &",
+       sudo=sudo)
+    state = sh_out_sudo(client, "for i in $(seq 1 30); do "
+                                "[ -s /var/log/relay-firewall.state ] && break; sleep 1; done; "
+                                "cat /var/log/relay-firewall.state 2>/dev/null", sudo)
+    if "Status: active" not in state:
+        raise RuntimeError(
+            "the firewall did not come back up on this box — it is reachable and "
+            f"unprotected right now. What ufw reports:\n{state or '(nothing)'}"
+        )
+    print(f"      firewall: ssh<-{ssh_wl}  443<-{'ANY' if public else allow443}  (active)")
 
 
 def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
@@ -590,6 +643,15 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                           f"BUNNY_STORAGE_ZONE={os.environ.get('BUNNY_STORAGE_ZONE', '')}\n"
                           f"BUNNY_STORAGE_KEY={os.environ.get('BUNNY_STORAGE_KEY', '')}\n"
                           f"BUNNY_STORAGE_HOST={os.environ.get('BUNNY_STORAGE_HOST', 'storage.bunnycdn.com')}\n"
+                          # A zone and key of their own for the dumps, when they
+                          # exist. Sharing the working zone means one leaked key
+                          # or one mistaken prune takes the data and the backups
+                          # together — a second copy rather than a backup. Empty
+                          # until the zone is created, and the script says so
+                          # every night it runs without one.
+                          f"BACKUP_STORAGE_ZONE={os.environ.get('BACKUP_STORAGE_ZONE', '')}\n"
+                          f"BACKUP_STORAGE_KEY={os.environ.get('BACKUP_STORAGE_KEY', '')}\n"
+                          f"BACKUP_STORAGE_HOST={os.environ.get('BACKUP_STORAGE_HOST', '')}\n"
                           f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
                           # Quoted: the file is sourced by bash, and a bare
                           # "relay_dev relay_staging" would run the second word.

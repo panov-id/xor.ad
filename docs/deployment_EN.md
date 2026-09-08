@@ -249,7 +249,7 @@ page itself lives for minutes, and an edge rule shortens the TTL:
    at all.
 4. The panel opens, magic-link sign-in works, Waitlist and the logs are visible.
 
-Items 3–4 are automated in `relay/test/smoke.sh`.
+Items 3–4 are automated in `relay/test/smoke.sh`. **Since 2026-09-08 the smoke test, the dev roll and the wizard ask `/ready`, not only `/health`:** the latter is always 200 by design, and judging a deploy by it is asking a light that cannot turn red. A node older than the route answers 404 — not a failure, and the output says so.
 
 ### Bunny Shield
 

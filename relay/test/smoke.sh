@@ -24,6 +24,19 @@ EMAIL="${1:-smoke+$(date +%s)@example.com}"
 echo "· GET $BASE/health"
 curl -fsS -m 10 "$BASE/health" | grep -q '"status":"ok"' || { echo "FAIL: health"; exit 1; }
 
+# Liveness says the process answers; readiness says it can do the work. Only the
+# second can be red, so a smoke test that reads only the first is a smoke test
+# that passes on a node with a dead database. 404 means the node is older than
+# the route, which is not a failure of this run.
+echo "· GET $BASE/ready"
+ready_code="$(curl -sS -m 10 -o /tmp/smoke_ready.$$ -w '%{http_code}' "$BASE/ready" || echo 000)"
+case "$ready_code" in
+  200) echo "  ok: ready" ;;
+  404) echo "  skip: this build has no /ready" ;;
+  *)   echo "FAIL: /ready -> $ready_code"; cat /tmp/smoke_ready.$$; rm -f /tmp/smoke_ready.$$; exit 1 ;;
+esac
+rm -f /tmp/smoke_ready.$$
+
 echo "· POST $BASE/waitlist ($EMAIL)${API_KEY:+ with a key}"
 # The body and the status separately: -f turns a 401 into an exit code and throws
 # the body away, and the body is what says which of the two 401s this is.

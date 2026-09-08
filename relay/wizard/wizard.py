@@ -458,12 +458,37 @@ def require_secret(name: str, env: str) -> str:
 
 
 def _verify_health(client, host: str, sudo: bool) -> None:
+    """Answering, and then able to work — they are different questions.
+
+    `/health` is liveness and returns 200 unconditionally, so asking it after a
+    deploy asks a light that cannot turn red: a node whose migration failed or
+    whose Postgres never started answers ok, and the roll is announced as
+    successful. `/ready` answers 503 in exactly that case, so it is what decides
+    here. A node older than the route answers 404 — not a failure of this deploy,
+    and said so rather than passed over in silence.
+    """
     for _ in range(6):
         if sh(client, f"curl -fsS -m 5 https://{host}/health", sudo=sudo, check=False) == 0:
             print(f"      {host}/health ok ✓")
-            return
+            break
         sh(client, "sleep 5", check=False)
-    print(f"      [warn] {host}/health not green yet (DNS-01 cert may still be issuing)")
+    else:
+        print(f"      [warn] {host}/health not green yet (DNS-01 cert may still be issuing)")
+        return
+
+    text = sh_out(
+        client,
+        f"curl -sS -m 5 -o /dev/null -w '%{{http_code}}' https://{host}/ready",
+    ).strip()
+    if text == "200":
+        print(f"      {host}/ready 200 ✓ — it can work, not just answer")
+    elif text == "404":
+        print(f"      {host}/ready 404 — this build predates readiness, nothing to check")
+    else:
+        raise SystemExit(
+            f"[error] {host}/ready answered {text or 'nothing'} — the node answers "
+            f"but cannot work (database?). The deploy is not green."
+        )
 
 
 # --- box operations ---------------------------------------------------------

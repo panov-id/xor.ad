@@ -79,6 +79,22 @@ SECRETS_ENV="$secrets_file" bash "$root/relay/wizard/run.sh" --node "$box" --env
 base="https://$box-$environment.relay.panov.id"
 echo "== probe $base"
 curl -fsS -m 10 "$base/health" | grep -q '"status":"ok"' || { echo "FAIL: health"; exit 1; }
+
+# `status` is a constant by design — /health is liveness and always 200. Asking
+# it whether the deploy worked is asking a light that cannot turn red: a node
+# whose migration failed or whose Postgres never came up answers ok, and the
+# roll was reported successful. /ready is the one that can refuse (503), so the
+# gate reads that.
+ready_code="$(curl -sS -m 10 -o /tmp/ready_body.$$ -w '%{http_code}' "$base/ready" || echo 000)"
+case "$ready_code" in
+  200) echo "   /ready 200: the node can work, not just answer" ;;
+  404) echo "   /ready 404: the node predates readiness — nothing to check here" ;;
+  *)   echo "FAIL: /ready answered $ready_code — the node answers but cannot work" >&2
+       head -c 200 "/tmp/ready_body.$$" >&2; echo >&2
+       rm -f "/tmp/ready_body.$$"
+       exit 1 ;;
+esac
+rm -f "/tmp/ready_body.$$"
 running="$(curl -fsS -m 10 "$base/health" |
   python3 -c 'import json,sys; print(json.load(sys.stdin).get("image", ""))')"
 case "$running" in

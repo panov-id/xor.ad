@@ -1,0 +1,13 @@
+-- An index on age, for the sweep that had nothing to sweep by.
+--
+-- `idempotency` keeps one row per unique request that carried an
+-- Idempotency-Key, and each row holds a whole response as jsonb. Nothing ever
+-- deleted from it: the table was written by lib/idempotency.ts and read by it,
+-- and that was the entire lifecycle. With no public API traffic it grew slowly
+-- enough that nobody noticed; the day a client starts sending keys it grows one
+-- row per request, for ever.
+--
+-- The window is a day: the point of an idempotency key is that a retry minutes
+-- later gets the same answer, not that an answer is kept as a record. Anything
+-- older is a row nobody will ever look up again.
+CREATE INDEX IF NOT EXISTS idempotency_age ON idempotency (created_at);

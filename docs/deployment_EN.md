@@ -128,6 +128,21 @@ Database backups: `backup-postgres.sh` is laid down on the box by the wizard and
 runs from a systemd timer; the restore is exercised by
 `scripts/verify-backup-restore.sh`.
 
+**The drill first reached its end on 2026-09-08, and until that day this line
+was a lie.** The script asked for a secret named `SESSION_SECRET`, which does
+not exist — the secrets are per environment (`SESSION_SECRET_DEV` and its
+siblings) — and under `set -euo pipefail` it died on the assignment itself, one
+line after printing "restored without error". The dump was being restored; the
+comparison with the live database, the entire point, had never run. Three more
+things came out with it: the token was minted without `NODE_ENV_NAME` and would
+have been refused by the node; the node's status was never checked, so a 401
+read as a list of keys; and the wait used `pg_isready`, which answers during
+initdb, before the database exists.
+
+That day's measurement, dev: dump `2026-09-08T03-33-51Z.sql.gz`, 5668 bytes,
+restored as `brands=2 keys=4 live_keys=2 migrations=14`, live database
+`keys=4 live_keys=2` — they match.
+
 **Background work lives inside the node.** The queue is the `jobs` table in the
 same database; the worker starts with the node and stays silent without
 `DATABASE_URL`. It carries one job today — pruning page-view objects older than

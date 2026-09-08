@@ -20,9 +20,19 @@ interface Bucket {
 // Address -> the timestamps of its recent hits, per named limit.
 const buckets = new Map<string, Bucket>();
 
+// Every window ever seen, by limit name. The sweep above decides "expired" per
+// bucket, and a bucket belongs to whichever limit named it — using the current
+// call's window for all of them would evict a day-long counter on a minute's
+// evidence.
+const WINDOWS = new Map<string, number>();
+
 // Left unbounded, the map is itself a way to exhaust the node: one entry per
-// address. Cleared wholesale rather than swept, because the entries are cheap to
-// rebuild and a sweep is one more thing to get wrong.
+// address. It used to be cleared wholesale — cheap to rebuild, and one less
+// thing to get wrong — until a review panel pointed out on 2026-09-08 what a
+// wholesale clear is from outside: whoever fills the map decides when every
+// counter on the node resets, including the ones on the waitlist and on notices
+// of illegal content. Sweeping the expired entries instead keeps the eviction
+// from being a lever.
 const MAX_TRACKED = 50_000;
 
 export interface Limit {
@@ -84,10 +94,38 @@ export interface Verdict {
 
 export function check(limit: Limit, address: string, now = Date.now()): Verdict {
   if (buckets.size > MAX_TRACKED) {
-    log("info", "rate limiter reset: too many tracked addresses", { tracked: buckets.size });
-    buckets.clear();
+    // Two passes, and neither of them is a wholesale clear.
+    //
+    // First the expired: a bucket whose every hit is outside its own window
+    // holds nothing worth keeping.
+    let swept = 0;
+    for (const [name, held] of buckets) {
+      const window = WINDOWS.get(name.slice(0, name.indexOf(":"))) ?? limit.windowMs;
+      if (held.hits.every((at) => at <= now - window)) {
+        buckets.delete(name);
+        swept += 1;
+      }
+    }
+
+    // Then, if the map is still full, the quietest — fewest hits first. A flood
+    // is made of buckets with one hit each; a caller who is actually at their
+    // limit has the most hits in the map and is evicted last. Clearing wholesale
+    // did the opposite: it freed exactly the counters worth keeping, and let
+    // whoever filled the map choose when that happened.
+    if (buckets.size > MAX_TRACKED) {
+      const byWeight = [...buckets.entries()].sort((a, b) => a[1].hits.length - b[1].hits.length);
+      const target = buckets.size - Math.floor(MAX_TRACKED / 2);
+      for (let i = 0; i < target && i < byWeight.length; i++) {
+        buckets.delete(byWeight[i][0]);
+        swept += 1;
+      }
+      log("warn", "rate limiter evicted the quietest buckets", { tracked: buckets.size, swept });
+    } else {
+      log("info", "rate limiter swept expired buckets", { tracked: buckets.size, swept });
+    }
   }
 
+  WINDOWS.set(limit.name, limit.windowMs);
   const key = `${limit.name}:${address}`;
   const bucket = buckets.get(key) ?? { hits: [] };
   const cutoff = now - limit.windowMs;

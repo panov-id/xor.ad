@@ -46,25 +46,45 @@ configured("the two silent routes have a limit at all", () => {
   }
 });
 
+// Ids as they are actually minted: `ak_pub_` and 32 hex (lib/api_key.ts). The
+// shape matters to the bucket since 2026-09-08, so the fixtures have to be real
+// ones — with `ak_pub_aaa` these cases passed while testing nothing.
+const KEY_A = "ak_pub_" + "a".repeat(32);
+const KEY_B = "ak_pub_" + "b".repeat(32);
+
 configured("the bucket is the address and the key together", () => {
   const address = "203.0.113.7";
-  assert(callerBucket(request(address, "ak_pub_aaa")) !== callerBucket(request(address, "ak_pub_bbb")));
-  assertEquals(callerBucket(request(address, "ak_pub_aaa")), callerBucket(request(address, "ak_pub_aaa")));
+  assert(callerBucket(request(address, KEY_A)) !== callerBucket(request(address, KEY_B)));
+  assertEquals(callerBucket(request(address, KEY_A)), callerBucket(request(address, KEY_A)));
   // A caller naming nobody shares one bucket, which is the right answer for
   // traffic that named nobody.
   assertEquals(callerBucket(request(address, null)), `${address}|keyless`);
+});
+
+// The bucket name is built before anything resolves the key, so an unshaped
+// header would be a free bucket per request — and fifty thousand of those used
+// to wipe every counter on the node. Anything that is not a key id shares one
+// bucket, and two different pieces of junk must not get two.
+configured("junk in the key header does not buy a bucket of its own", () => {
+  const address = "203.0.113.9";
+  const first = callerBucket(request(address, crypto.randomUUID()));
+  const second = callerBucket(request(address, crypto.randomUUID()));
+  assertEquals(first, second, "two malformed keys must share one bucket");
+  assertEquals(first, `${address}|malformed`);
+  assert(first !== callerBucket(request(address, null)), "malformed is not the same as absent");
+  assert(first !== callerBucket(request(address, KEY_A)), "junk must not share with a real key");
 });
 
 configured("one tenant's noisy visitor does not silence that address for another", () => {
   reset();
   const address = "203.0.113.8";
   const hourly = PAGEVIEW_LIMITS[0].max;
-  const noisy = callerBucket(request(address, "ak_pub_loud"));
+  const noisy = callerBucket(request(address, KEY_A));
   for (let i = 0; i < hourly; i++) checkAll(PAGEVIEW_LIMITS, noisy);
   assertEquals(checkAll(PAGEVIEW_LIMITS, noisy).allowed, false);
 
   // Same address, another tenant's key: untouched.
-  const other = callerBucket(request(address, "ak_pub_quiet"));
+  const other = callerBucket(request(address, KEY_B));
   assertEquals(checkAll(PAGEVIEW_LIMITS, other).allowed, true);
 });
 
@@ -98,5 +118,32 @@ configured("the two families count in different cells and against different colu
   assert(
     migrations.includes(QUOTA_COLUMNS.pageviews),
     `no migration adds ${QUOTA_COLUMNS.pageviews}`,
+  );
+});
+
+// Filling the map must not be a way to switch the limiter off.
+//
+// Until 2026-09-08 crossing MAX_TRACKED cleared every bucket, so a caller who
+// could mint buckets — and an unshaped key header let them — decided when the
+// counters on the waitlist and on Article 16 notices went back to zero. The
+// sweep drops what has expired and leaves what has not: this case fills the map
+// past the limit with one-hit buckets and then checks that a caller who is
+// already over their limit is still over it.
+configured("filling the limiter's map does not reset a live counter", () => {
+  reset();
+  const victim = "203.0.113.10|" + "ak_pub_" + "c".repeat(32);
+  const hourly = PAGEVIEW_LIMITS[0].max;
+  for (let i = 0; i < hourly; i++) checkAll(PAGEVIEW_LIMITS, victim);
+  assertEquals(checkAll(PAGEVIEW_LIMITS, victim).allowed, false, "the victim must be over the limit");
+
+  // Past MAX_TRACKED (50 000) with buckets that are already expired: each is
+  // stamped an hour and a half ago, older than any window in play.
+  const stale = Date.now() - 90 * 60 * 1000;
+  for (let i = 0; i < 50_001; i++) checkAll(PAGEVIEW_LIMITS, `flood-${i}`, stale);
+
+  assertEquals(
+    checkAll(PAGEVIEW_LIMITS, victim).allowed,
+    false,
+    "a flood of throwaway buckets must not hand the victim their limit back",
   );
 });

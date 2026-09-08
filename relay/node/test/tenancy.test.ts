@@ -455,6 +455,52 @@ tenancy("the platform role cannot be handed to a tenant's operator", async () =>
   assertEquals(status, 422);
 });
 
+// The same door, opened from the other side. Creating an "admin" was refused
+// since the rule was written; changing an existing operator into one was not,
+// and that made the rule on create decorative: a tenant would add a viewer of
+// its own — same brand, so nothing objects — and PATCH it to "admin", which
+// carries the wildcard and reaches past the brand. Found by a review panel
+// 2026-09-08, closed the same day.
+tenancy({
+  name: "a tenant cannot promote its own operator to the platform role",
+  sanitizeOps: false,
+  async fn() {
+    const created = await callAs(ALPHA, "POST", "/admin/panel-users", {
+      email: "climber@alpha.test",
+      role: "viewer",
+    });
+    assertEquals(created.status, 200, "the tenant must be able to add its own viewer");
+
+    const promoted = await callAs(ALPHA, "PATCH", "/admin/panel-users/climber@alpha.test", {
+      role: "admin",
+    });
+    assertEquals(promoted.status, 403, "a tenant must not be able to mint a platform admin");
+
+    // And the operator is still what it was — a refusal that leaves the role
+    // changed would be worse than no refusal at all.
+    const after = await callAs(ALPHA, "GET", "/admin/panel-users");
+    const row = after.body.find((u: Body) => u.email === "climber@alpha.test");
+    assertEquals(row?.role, "viewer");
+  },
+});
+
+// The platform itself is not blocked by that rule: it has no brand, and somebody
+// has to be able to create the next platform administrator.
+tenancy({
+  name: "the platform can still change a role to admin",
+  sanitizeOps: false,
+  async fn() {
+    await callAs(PLATFORM, "POST", "/admin/panel-users", {
+      email: "successor@platform.test",
+      role: "viewer",
+    });
+    const promoted = await callAs(PLATFORM, "PATCH", "/admin/panel-users/successor@platform.test", {
+      role: "admin",
+    });
+    assertEquals(promoted.status, 200);
+  },
+});
+
 // The last-admin guard keeps a scope reachable. Whether it should bind depends
 // on who is asking: a tenant removing its own last operator locks the tenant out,
 // the platform removing it does not — the platform is the way back in.

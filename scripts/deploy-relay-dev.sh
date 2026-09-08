@@ -57,13 +57,17 @@ open(path, "w").write(new_text)
 PYTHON
 git -C "$root" --no-pager diff -- relay/wizard/environments.toml
 
-# The wizard runs in Docker (nothing installed here) and rolls every stack on the
-# box; staging keeps its own pinned release, so only dev moves.
+# The wizard runs in Docker (nothing installed here). Without --env it acts on
+# every environment the box hosts, and n1 hosts dev AND staging — so "deploy dev"
+# recreated the staging container and ran migrations against the staging database
+# as well. The wizard's own help says as much; the flag existed and this, its
+# only caller, did not pass it. Measured 07.09.2026 in a deploy log: twelve
+# staging lines in a dev rollout, including "migrate staging database".
 #
-# --node before the subcommand: it belongs to the top-level parser, and argparse
-# rejects it after `deploy`.
-echo "== wizard --node $box deploy"
-SECRETS_ENV="$secrets_file" bash "$root/relay/wizard/run.sh" --node "$box" deploy
+# --node and --env before the subcommand: they belong to the top-level parser,
+# and argparse rejects them after `deploy`.
+echo "== wizard --node $box --env $environment deploy"
+SECRETS_ENV="$secrets_file" bash "$root/relay/wizard/run.sh" --node "$box" --env "$environment" deploy
 
 # Health says a node answers; this says it is THIS build. It used to ask whether
 # /v1/client-error existed, on the reasoning that the route was new — which

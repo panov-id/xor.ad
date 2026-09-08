@@ -777,6 +777,26 @@ route("PATCH", "/admin/panel-users/:email", async ({ req, params }) => {
     return json({ error: "invalid role" }, 422);
   }
   const nextRole = (body?.role as PanelUser["role"]) ?? existing.role;
+
+  // The same rule as on create, and it was missing here — which made the rule on
+  // create decorative. A tenant would grant "viewer" to an operator of its own,
+  // then PATCH that operator to "admin": same brand, so `visible()` allows it,
+  // and `isLastAdmin` does not fire because the target is not an administrator.
+  // The wildcard that comes with "admin" reaches past the brand, and the only
+  // thing that kept the blast radius small was a belt of separate brand checks
+  // on individual routes.
+  if (access.user.brand !== null && nextRole === "admin") {
+    recordAuditEvent({
+      actor: access.user,
+      action: "panel_users.role_change",
+      target: email,
+      outcome: "denied",
+      reason: "a tenant cannot grant the platform administrator role",
+      before: existing,
+    });
+    return json({ error: "role not available to a tenant" }, 403);
+  }
+
   if (nextRole !== existing.role && await isLastAdmin(access.user, existing)) {
     recordAuditEvent({
       actor: access.user,

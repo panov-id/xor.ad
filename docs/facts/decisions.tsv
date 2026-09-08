@@ -107,3 +107,7 @@ test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:128	xor.ad/docs/te
 test-map.2026-09-07.129	2026-09-07	xor.ad/docs/test-map_RU.md:129	xor.ad/docs/test-map_EN.md:128	Отлучка не снимает ни часовой предел, ни паузу	Stepping away lifts neither the hourly limit nor the pause
 chat.2026-09-07.852	2026-09-07	xor.ad/docs/chat_RU.md:852	xor.ad/docs/chat_EN.md:867	Граница снимка — по видимости для заявителя. Решено 07.09.2026.	The snapshot is bounded by what the notifier could see. Decided 2026-09-07.
 article-30-register.2026-09-08.124	2026-09-08	xor.ad/docs/article-30-register_RU.md:124	xor.ad/docs/article-30-register_EN.md:127	До 08.09.2026 здесь	Until 2026-09-08 this
+refusal-wordings.2026-09-08.162	2026-09-08	xor.ad/docs/refusal-wordings_RU.md:163	xor.ad/docs/refusal-wordings_EN.md:173	08.09.2026.** Отказа не будет	Decided 2026-09-08.** There is no refusal
+refusal-wordings.2026-09-08.170	2026-09-08	xor.ad/docs/refusal-wordings_RU.md:170	xor.ad/docs/refusal-wordings_EN.md:180	Время освобождения слота не показывается. Решено	The time a slot frees is not shown. Decided
+chat.2026-09-08.143	2026-09-08	xor.ad/docs/chat_RU.md:143	xor.ad/docs/chat_EN.md:146	по сидящим сейчас, и она пересчитывается. Решено	is its current sitters', and it is recomputed. Decided
+protocol.2026-09-08.222	2026-09-08	xor.ad/docs/protocol_RU.md:222	xor.ad/docs/protocol_EN.md:235	пауза 15 минут. Решено	pause. Decided 2026-09-08.** Fifty wrong paper codes

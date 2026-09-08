@@ -286,7 +286,7 @@ through three different wrappers and cannot be counted by eye.
 | 15.12 | **Table:** a blocked person at a table hides the whole table | the table is not shown at all | nothing to check |
 | 15.13 | **Table:** one span for everyone, from anyone's last move | one plays while others stay quiet for an hour → the table lives for all | nothing to check |
 | 15.14 | **Table:** speech and board travel in the clear, the node sees them | a line at a table is readable by the node — otherwise the queue has nothing to check | nothing to check |
-| 15.15 | **Table:** it is not served at all to someone outside the bands | the feed response has no table, rather than "present but greyed" | nothing to check |
+| 15.15 | **Table:** the band is its current sitters' and is recomputed (2026-09-08) | two adults at a table → a teenager gets no table in the feed; one leaves and the band differs → the table appears | nothing to check |
 | 15.16 | **An Article 16 notice is accepted about a line at a table** (2026-08-28) | `target_kind = table_line` goes through; the snapshot holds the line's text and `table_id` | nothing to check |
 | 15.17 | **The board does not go into a notice's snapshot** | the line's snapshot holds no state of the match: it is the text that can be unlawful, not the game | nothing to check |
 

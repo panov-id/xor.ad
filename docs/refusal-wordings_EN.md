@@ -169,8 +169,19 @@ the application at the next sign-in.
 
 - **These texts are not approved until they have been read out loud.** This is a
   proposal.
-- **How long the "checking…" line lives** if the queue stalls: silence, a timeout,
-  or a "taking longer than usual" line — undecided.
-- **Whether to show the time a slot frees** ("at 14:32") — it is computed from
-  other people's spans and so reveals the feed's rhythm; "in a few minutes" is
-  safer and less useful.
+- **After 60 seconds the "checking…" line becomes "taking longer than usual".
+  Decided 2026-09-08.** There is no refusal: the phrase stays in the queue and
+  goes out when the queue clears. Two of the three paths were rejected. Silence
+  is indistinguishable from a frozen app — the person cannot tell whether they
+  are waiting on us or on a broken screen. A timeout with a refusal looks more
+  honest and lies about the substance: the check has not stopped, and calling the
+  phrase rejected asks for it to be sent again, doubling the very queue that
+  stalled. Sixty seconds is where waiting stops reading as the interface working.
+- **The time a slot frees is not shown. Decided 2026-09-08.** "In a few minutes"
+  rather than "at 14:32". The exact time is computed from the spans of other
+  people's phrases, and §8.11 of `chat_EN.md` promises outright that the feed does
+  not let anyone reconstruct when other phrases expire. Rounding to five minutes
+  was considered and rejected: an observer collecting a dozen rounded points
+  recovers the rhythm coarsely — but recovers it, and a promise either holds or
+  does not. The price is acknowledged: a person cannot tell whether to come back
+  in one minute or in ten.

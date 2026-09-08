@@ -231,10 +231,19 @@ it has to be settled before the first line of step 1.
 6. **The wordings of moderation refusals** — they do not exist at all, and §7 of
    the storefront mechanics admits it; without them the Article 17 statement of
    reasons has nothing to fill it.
-7. **The threshold of the shared miss counter in recovery** — a count per address
-   plus a shared counter are named in `chat-flows_EN.md` §5, and the shared one
-   has no number at all, nor a consequence for reaching it. The neighbouring
-   numbers were chosen (10 PIN attempts, 5 transfer-code attempts); this one was
-   not, and it must not be invented here: too low a threshold locks out someone
-   who merely misread a character on paper, too high leaves brute force over the
-   whole base.
+7. **The shared miss counter has its number: 50 an hour per node, a 15-minute
+   pause. Decided 2026-09-08.** Fifty wrong paper codes in an hour across the
+   node and recovery stops accepting codes for fifteen minutes, for everyone. The
+   per-address count (`chat-flows_EN.md` §5) stays: it catches one persistent
+   person, the shared one catches distributed guessing, for which changing address
+   costs nothing. The numbers live in `docs/facts/limits.tsv`
+   (`recovery.miss.shared`, `recovery.miss.pause`), not only here.
+
+   Why not "an alert in the log" at a higher threshold: an alert needs a reader,
+   and at night there is none — a defence that rests on someone being present is
+   not a defence by morning. The price of the pause is stated plainly: during an
+   hour when guessing is under way, an honest person holding their paper gets a
+   refusal and waits fifteen minutes. That is worse than nothing and better than
+   brute force over the whole base; the band was picked so ordinary typos do not
+   reach it — the neighbouring numbers (10 PIN attempts, 5 transfer-code attempts)
+   are an order of magnitude lower and per address, not per node.

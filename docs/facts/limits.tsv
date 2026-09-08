@@ -62,3 +62,6 @@ seo.hreflang.sosed	18	ссылок	альтернатив hreflang в шапке
 seo.sitemap.neighbro	12	адресов	адресов в sitemap витрины neighbro	конфиг	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md,neighbro.place/docs/SEO_AND_ANALYTICS_EN.md
 seo.hreflang.neighbro	11	ссылок	альтернатив hreflang в шапке страницы neighbro	конфиг	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md,neighbro.place/docs/SEO_AND_ANALYTICS_EN.md
 node.log.size	50	МБ	потолок файла логов одного сервиса, три файла на сервис	конфиг	xor.ad/docs/runbook-node-down_RU.md,xor.ad/docs/runbook-node-down_EN.md
+recovery.miss.shared	50	промахов	неверных бумажных кодов за час на узел до паузы	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
+recovery.miss.pause	15	минут	пауза приёма кодов восстановления при достижении общего порога	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
+refusal.checking.longer	60	секунд	сколько строка «проверяется…» держится до «дольше обычного»	клиент	xor.ad/docs/refusal-wordings_RU.md,xor.ad/docs/refusal-wordings_EN.md

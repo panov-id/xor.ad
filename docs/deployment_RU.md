@@ -106,7 +106,8 @@ Secrets (write) на каждый репозиторий. Пустые знач�
 
 ```bash
 relay/wizard/run.sh status                            # что где стоит
-relay/wizard/run.sh --node n1 deploy                  # dev/staging
+relay/wizard/run.sh --node n1 --env dev deploy       # --env обязателен: без него визард действует на все среды бокса
+relay/wizard/run.sh --node n1 --env staging deploy   # n1 держит обе среды (правка 08.09.2026)
 relay/wizard/run.sh --node p1 --confirm-prod deploy   # prod
 ```
 

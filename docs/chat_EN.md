@@ -143,7 +143,7 @@ The board for two lives inside a chat. A group game **does not fit** inside one:
 - **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
 - **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
 - **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
-- **A table's own band is its current sitters', and it is recomputed. Decided 2026-09-08.** The feed shows a table to whoever would pass "everyone with everyone" against the people sitting at it now; somebody joins or leaves and the table's band is a different one. Taking it from whoever started the table (`created_by`) was simpler and wrong on the substance: a table has no owner — its own schema says so — and a band inherited from someone long gone describes nobody at the table. Dropping bands for tables altogether was rejected outright: a teenager would then see a table in the feed and be turned away at the seat, which is a refusal in place of an absence. **The price is accepted and it is real:** a table can vanish from somebody's feed mid-game because a person sat down. It does not touch those already at the table — the rule works on retrieval, not on seating, and lifts nobody out of a chair.
+- **A table's own band is its current sitters', and it is recomputed. Decided 2026-09-08.** The feed shows a table to whoever would pass "everyone with everyone" against the people sitting at it now; somebody joins or leaves and the table's band is a different one. Taking it from whoever started the table (`created_by`) was simpler and wrong on the substance: a table has no owner — its own schema says so — and a band inherited from someone long gone describes nobody at the table. Dropping bands for tables altogether was rejected outright: a teenager would then see a table in the feed and be turned away at the seat, which is a refusal in place of an absence. **The price is accepted and it is real:** a table can vanish from somebody's feed mid-game because a person sat down. It does not touch those already at the table — the rule works on retrieval, not on seating, and lifts nobody out of a chair. **A table with nobody at it has no band and is not shown at all:** everyone may stand up (`table_seats.left_at`) while the table itself lives on for up to an hour by `last_move_at`, until the sweeper takes it. An empty table is not an invitation, it is something about to disappear; showing it to everyone would bring back the rejected "no bands" option through the back door, since the first to sit could be anyone and the second anyone else.
 
 **The table's schema — established 2026-08-31.** Until that day a table existed as
 paragraphs: no table, no columns, no zone, although it stands in the same feed as
@@ -1648,7 +1648,15 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 | Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
 | Match | `match_id`, peer's phrase + `mode`, name, age, timer |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
-| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text |
+| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text, **when other phrases expire** |
+
+**Expiry of other people's phrases was added to "Never" on 2026-09-08.** The
+promise was already being cited as obvious — in the reasoning for why the quota
+screen does not show the time a slot frees (`refusal-wordings_EN.md`) — and it
+was not in the list. Obvious does not survive in a list like this one: the list
+is what people read when deciding what may go out. Same device as §8.3, where the
+centre is rounded to a cell: the feed must not work as a measuring instrument on
+other people's spans.
 
 **The line runs at the chat, not at the phrase.** In the feed the author is never shown — that is the core rule. But once a chat is open, authorship inside it is known by construction: the peer sees a name and age and knows whose phrases sit in `chat_starters`. Every `extra_like` (8.7) adds one more phrase by the same person to that list.
 

@@ -110,7 +110,8 @@ Provisioned and rolled by the wizard, not by Actions:
 
 ```bash
 relay/wizard/run.sh status                            # what sits where
-relay/wizard/run.sh --node n1 deploy                  # dev/staging
+relay/wizard/run.sh --node n1 --env dev deploy       # --env is required: without it the wizard acts on every env on the box
+relay/wizard/run.sh --node n1 --env staging deploy   # n1 hosts both (fixed 2026-09-08)
 relay/wizard/run.sh --node p1 --confirm-prod deploy   # prod
 ```
 

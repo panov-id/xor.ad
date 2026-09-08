@@ -16,6 +16,7 @@ import {
   CLIENT_ERROR_LIMITS,
   checkAll,
   PAGEVIEW_LIMITS,
+  REPORT_LIMITS,
   reset,
   WAITLIST_LIMITS,
 } from "../src/lib/rate_limit.ts";
@@ -145,5 +146,35 @@ configured("filling the limiter's map does not reset a live counter", () => {
     checkAll(PAGEVIEW_LIMITS, victim).allowed,
     false,
     "a flood of throwaway buckets must not hand the victim their limit back",
+  );
+});
+
+// Flooding a cheap limit must not evict the expensive one's counters.
+//
+// The first eviction sorted by raw hit count, and the limits are not
+// comparable: `report` allows ten an hour, `pageview` six hundred. A bucket at
+// its report limit holds ten hits, a half-idle pageview bucket holds twenty —
+// so the sort put every Article 16 counter at the front of the queue and
+// flooding /pageview handed a reporter their limit back. Which is the prize the
+// wholesale clear used to give away, only reached by a longer road.
+configured("flooding a cheap limit does not evict a counter at its own limit", () => {
+  reset();
+  const victim = "203.0.113.11|" + "ak_pub_" + "d".repeat(32);
+  const hourly = REPORT_LIMITS[0].max;
+  for (let i = 0; i < hourly; i++) checkAll(REPORT_LIMITS, victim);
+  assertEquals(checkAll(REPORT_LIMITS, victim).allowed, false, "the victim is at its report limit");
+
+  // Fill the map with pageview buckets that are busy but nowhere near their own
+  // ceiling: more hits each than the victim has, and a smaller share of their
+  // limit. Under the old sort these outranked the victim and it went first.
+  const perBucket = REPORT_LIMITS[0].max * 2;
+  for (let i = 0; i < 50_001; i++) {
+    for (let hit = 0; hit < perBucket; hit++) checkAll(PAGEVIEW_LIMITS, `flood-cheap-${i}`);
+  }
+
+  assertEquals(
+    checkAll(REPORT_LIMITS, victim).allowed,
+    false,
+    "a reporter at their limit must not get it back because somebody flooded /pageview",
   );
 });

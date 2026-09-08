@@ -173,8 +173,12 @@ That runs straight into the principle that nothing is kept.
 
 **Decision — a snapshot only on notice.** Until somebody reports it, nothing is
 saved and everything expires on the timer as before. The moment a notice arrives,
-the system stores a minimal snapshot: the message id, its text, its zone and its
-time. The snapshot exists for exactly two purposes — to take the decision and to
+the system stores a minimal snapshot: the message id, its text, the time it was
+published, the author identifier and the face it was published under. **The area
+it was published to — coordinates and radius — is not copied** (corrected
+2026-09-08: this said "zone", which the copy never contained). Whether a text is
+illegal is answered by the text, and the snapshot lives a year — a year of
+someone's locations has no purpose here. The snapshot exists for exactly two purposes — to take the decision and to
 defend it — and lives for a year alongside the notice.
 
 Why not otherwise:

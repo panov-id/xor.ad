@@ -134,6 +134,18 @@ def acting_envs(box: dict) -> list[str]:
     if SELECTED_ENVS is None:
         return list(box["envs"])
     chosen = [env for env in box["envs"] if env in SELECTED_ENVS]
+    # An --env the box does not host used to return nothing, and nothing is not
+    # "no environments" downstream: the services list comes out empty, and
+    # `docker compose up -d` with no services recreates every container on the
+    # box — printed as "(all)". So a typo (`--env dv`, or `--env prod` against
+    # n1) did the widest possible thing while asking for the narrowest, and ran
+    # no migrations at all. Refusing is the only safe reading of a name that
+    # matches nothing. Found by a review panel 2026-09-08.
+    if not chosen:
+        raise SystemExit(
+            f"[error] --env {','.join(SELECTED_ENVS)} matches nothing on this box "
+            f"(it hosts: {', '.join(box['envs'])})"
+        )
     return chosen
 
 

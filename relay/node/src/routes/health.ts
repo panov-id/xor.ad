@@ -19,6 +19,15 @@ import { enabled as databaseEnabled, query } from "../lib/db.ts";
 // all, and traffic kept arriving.
 const PROBE_TIMEOUT_MS = 1000;
 
+// How long a probe result is reused. The balancer polls /health from many
+// points of presence, and the pool holds four connections (lib/db.ts): a probe
+// per request turns anonymous HTTP into database connections one for one, and a
+// timed-out probe does NOT release its connection — `withTimeout` bounds the
+// answer, not the query. So a hung Postgres plus a busy balancer emptied the
+// pool and took the panel, the queue and the worker down with it. Found by a
+// review panel on 2026-09-08, hours after the probe was added.
+const PROBE_CACHE_MS = 5000;
+
 // A probe that hangs is a probe that turns a health check into a timeout, and
 // the balancer reads a timeout as "dead" — for a node that may be perfectly
 // able to serve. One second, then say what is known.
@@ -39,10 +48,38 @@ export type ProbeResult = "ok" | "down" | "off";
 // `off` is not a failure: a node configured without a database is a node that
 // was meant to run without one, and calling that "down" would make the field
 // useless on exactly the deployments where it is normal.
+let cached: { at: number; result: ProbeResult } | null = null;
+let inFlight: Promise<ProbeResult> | null = null;
+
 async function probeDatabase(): Promise<ProbeResult> {
   if (!databaseEnabled()) return "off";
-  const rows = await withTimeout(query<{ one: number }>("SELECT 1 AS one"), null);
-  return rows && rows.length > 0 ? "ok" : "down";
+
+  const now = Date.now();
+  if (cached && now - cached.at < PROBE_CACHE_MS) return cached.result;
+
+  // One probe at a time, whatever the traffic. Without this, every request that
+  // arrives during a slow probe starts another — which is the pool exhaustion
+  // this cache exists to prevent, only faster.
+  if (inFlight) return await inFlight;
+
+  inFlight = (async () => {
+    const rows = await withTimeout(query<{ one: number }>("SELECT 1 AS one"), null);
+    const result: ProbeResult = rows && rows.length > 0 ? "ok" : "down";
+    cached = { at: Date.now(), result };
+    return result;
+  })();
+  try {
+    return await inFlight;
+  } finally {
+    inFlight = null;
+  }
+}
+
+// Tests need a clean slate: a cached "ok" from one case would answer for the
+// next, and a probe that never runs proves nothing.
+export function forgetProbe(): void {
+  cached = null;
+  inFlight = null;
 }
 
 export async function health(): Promise<Response> {

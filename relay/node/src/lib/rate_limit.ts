@@ -26,6 +26,11 @@ const buckets = new Map<string, Bucket>();
 // evidence.
 const WINDOWS = new Map<string, number>();
 
+// And every ceiling, by the same names. Eviction weighs buckets against their
+// own limit, so it needs to know what that limit is for a bucket it is not
+// currently checking.
+const MAXIMA = new Map<string, number>();
+
 // Left unbounded, the map is itself a way to exhaust the node: one entry per
 // address. It used to be cleared wholesale — cheap to rebuild, and one less
 // thing to get wrong — until a review panel pointed out on 2026-09-08 what a
@@ -113,19 +118,40 @@ export function check(limit: Limit, address: string, now = Date.now()): Verdict 
     // did the opposite: it freed exactly the counters worth keeping, and let
     // whoever filled the map choose when that happened.
     if (buckets.size > MAX_TRACKED) {
-      const byWeight = [...buckets.entries()].sort((a, b) => a[1].hits.length - b[1].hits.length);
+      // Fullness, not raw hits — and this is the second version of this line.
+      //
+      // Sorting by `hits.length` compared buckets across limits, and the limits
+      // are not comparable: `report` allows ten an hour, `pageview` six hundred.
+      // A bucket at its report limit holds ten hits and a half-idle pageview
+      // bucket holds twenty, so flooding /pageview evicted every Article 16
+      // counter first — the same prize `buckets.clear()` used to hand out, just
+      // more slowly. Fullness is the share of a bucket's own limit, so "about to
+      // be refused" means the same number whatever the limit. Caught by a review
+      // panel on 2026-09-08, hours after the eviction replaced the clear.
+      const fullness = (name: string, held: Bucket): number => {
+        const max = MAXIMA.get(name.slice(0, name.indexOf(":"))) ?? limit.max;
+        return held.hits.length / max;
+      };
+      const byWeight = [...buckets.entries()].sort((a, b) => {
+        const spread = fullness(a[0], a[1]) - fullness(b[0], b[1]);
+        // Ties go to whoever was quiet longest: a bucket nobody has touched
+        // recently is cheaper to lose than one still being written to.
+        if (spread !== 0) return spread;
+        return (a[1].hits[a[1].hits.length - 1] ?? 0) - (b[1].hits[b[1].hits.length - 1] ?? 0);
+      });
       const target = buckets.size - Math.floor(MAX_TRACKED / 2);
       for (let i = 0; i < target && i < byWeight.length; i++) {
         buckets.delete(byWeight[i][0]);
         swept += 1;
       }
-      log("warn", "rate limiter evicted the quietest buckets", { tracked: buckets.size, swept });
+      log("warn", "rate limiter evicted the emptiest buckets", { tracked: buckets.size, swept });
     } else {
       log("info", "rate limiter swept expired buckets", { tracked: buckets.size, swept });
     }
   }
 
   WINDOWS.set(limit.name, limit.windowMs);
+  MAXIMA.set(limit.name, limit.max);
   const key = `${limit.name}:${address}`;
   const bucket = buckets.get(key) ?? { hits: [] };
   const cutoff = now - limit.windowMs;

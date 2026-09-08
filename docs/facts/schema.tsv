@@ -28,7 +28,7 @@ table	declared_in	migration	layer
 api_keys	-	relay/node/db/001_control_state.sql	control
 blocks	docs/chat_RU.md:1524	-	product
 brands	-	relay/node/db/001_control_state.sql	control
-chat_key_wraps	docs/chat_RU.md:1725	-	product
+chat_key_wraps	docs/chat_RU.md:1732	-	product
 chat_participants	docs/chat_RU.md:1390	-	product
 chat_starters	docs/chat_RU.md:1399	-	product
 chats	docs/chat_RU.md:1381	-	product

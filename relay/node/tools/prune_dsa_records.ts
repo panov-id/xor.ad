@@ -30,8 +30,15 @@ export async function pruneDsaRecords(opts: { apply?: boolean; days?: number } =
     const notices = await query<{ count: string }>(
       `SELECT count(*)::text AS count FROM dsa_notices WHERE created_at < ${cutoff}`,
     );
+    // The same condition the delete below uses, and it has to be: the preview is
+    // the only look anybody gets before legal records go. Counting statements by
+    // their own age alone said "0" for exactly the case this tool was fixed to
+    // handle — a year-old notice with a young statement — and then --apply
+    // removed it.
     const statements = await query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM dsa_statements WHERE created_at < ${cutoff}`,
+      `SELECT count(*)::text AS count FROM dsa_statements
+        WHERE created_at < ${cutoff}
+           OR notice_id IN (SELECT id FROM dsa_notices WHERE created_at < ${cutoff})`,
     );
     return {
       notices: Number(notices?.[0]?.count ?? 0),

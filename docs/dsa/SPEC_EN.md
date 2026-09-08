@@ -241,10 +241,40 @@ about. The Art. 18 obligation (inform law enforcement immediately where a crime
 threatening life or safety is suspected) is discharged by that same person, by
 hand.
 
-**What is missing, and open:** a named recipient — which Cypriot authority to
-write to — and a trace: today the fact of such a report is recorded nowhere, so
-there is nothing to prove it happened. Both are tracked by the open item
-`dsa.article18.route`.
+#### Who to inform — details, found 2026-09-08
+
+The article itself (18(1)–(2)) names more than one recipient and not always the
+Cypriot one: inform the authorities of **the Member State concerned**; where that
+State cannot be identified with reasonable certainty, inform the authorities of
+the State of establishment (Cyprus for us) **and/or** Europol.
+
+| | |
+|---|---|
+| **Primary recipient** | Office for Combating Cybercrime (Cybercrime Subdivision), Cyprus Police |
+| Email | `cybercrime@police.gov.cy` |
+| Telephone | +357 22808200 (the site states 07:00–14:30) |
+| Fax | +357 22808465 |
+| Address | Police Headquarters, Evangelos Florakis Street, P.C. 1478, Nicosia |
+| Online | the "Report Crime" form on `cyberalert.cy` — the police's own portal |
+| **Where the State cannot be identified** | Europol, the industry channel for reporting CSAM ("Industry reporting of child sexual abuse material") — **address unverified**, the form would not load |
+| **A content channel, not an Article 18 one** | SafenetCY / Cyberethics (`cyberethics.info`), hotline 7000 0 116, an INHOPE member: forwards to the hosting country. This does **not** replace informing the police |
+
+**What goes into the report.** Article 18(2) asks for "all relevant information
+available", which here is: the notice identifier (`dsa_notices.id`) and when it
+arrived; the kind of target and its identifier; the snapshot if one was taken —
+text, time of publication, author identifier and the face it was published under;
+what gave rise to the suspicion; our operator details and a contact for replies.
+The notifier's name and email only where they exist: §5.1 does not ask for them.
+
+**What we record.** The fact of the report goes into the audit log as
+`dsa_notice.escalated`: who reported, when, to which recipient. The log lives a
+year — as long as the notice does — so the proof and the record it belongs to
+expire together.
+
+**A caveat, and a real one:** the details above come from open sources (the
+Cyprus Police site and the `cyberalert.cy` portal) and were cross-checked between
+two of them, but have **not been confirmed by contacting anyone**. A first real
+Article 18 report is not the moment to discover an address is wrong.
 
 ### 5.2. A notice about chat content
 

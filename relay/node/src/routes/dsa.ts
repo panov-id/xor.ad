@@ -105,6 +105,80 @@ const RESTRICTIONS = new Set(["removed", "hidden", "offer_taken_down", "access_r
 const trimmed = (value: unknown, max: number): string | null =>
   typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 
+// Article 18: informing law enforcement, and leaving something behind that says
+// it happened.
+//
+// The obligation is on the provider — where information gives rise to a
+// suspicion of a criminal offence involving a threat to life or safety, inform
+// the authorities promptly and give all relevant information available. The
+// judgement is a person's: a notice carries no label saying it is that one, by
+// design (SPEC §5.1), so nothing here decides anything on its own.
+//
+// What this route does is the part a person cannot do reliably: record that it
+// happened. Until 2026-09-08 the fact of such a report existed nowhere, which
+// means it could not be shown afterwards. The recipient is written down rather
+// than assumed, because the article names more than one — the Member State
+// concerned first, and Cyprus or Europol only when that State cannot be
+// identified.
+const RECIPIENTS = new Set(["cy_police_cybercrime", "europol", "other_member_state"]);
+
+route("POST", "/admin/dsa-notices/:id/escalate", async ({ req, params }) => {
+  const access = await requirePermission(req, "dsa_notices.escalate");
+  if (isDenied(access)) return access.response;
+
+  const body = await readJson<{ recipient?: unknown; sent_at?: unknown; note?: unknown }>(req);
+  if (!body) return json({ error: "invalid body" }, 422);
+
+  const recipient = typeof body.recipient === "string" ? body.recipient : "";
+  if (!RECIPIENTS.has(recipient)) {
+    // A free-text recipient would fill up with "reported" and prove nothing. The
+    // set is small on purpose and matches the article's own list.
+    return json({
+      error: "recipient must be one of: " + [...RECIPIENTS].join(", "),
+    }, 422);
+  }
+
+  // Which authority, and — when it is another Member State — which one. The
+  // article asks for the State concerned, and "some other country" is not an
+  // answer anybody can act on a year later.
+  const note = trimmed(body.note, 2000);
+  if (recipient === "other_member_state" && !note) {
+    return json({ error: "name the Member State and the channel in `note`" }, 422);
+  }
+
+  const rows = await query<NoticeRow>(
+    `SELECT id, brand, target_kind, target_id, status FROM dsa_notices WHERE id = $1`,
+    [params.id],
+  );
+  if (rows === null) return json({ error: "database unavailable" }, 503);
+  const notice = rows[0];
+  if (!notice) return json({ error: "no such notice" }, 404);
+  // Same rule as deciding: another tenant's notice is answered as if it did not
+  // exist, and an unattributed one belongs to the platform.
+  if (access.user.brand && notice.brand !== access.user.brand) {
+    return json({ error: "no such notice" }, 404);
+  }
+
+  recordAuditEvent({
+    actor: access.user,
+    action: "dsa_notice.escalated",
+    target: notice.id,
+    outcome: "applied",
+    after: {
+      recipient,
+      note,
+      // What was reported about, without repeating the report itself into a
+      // second store: the audit log keeps who and when, the notice keeps what.
+      target_kind: notice.target_kind,
+      target_id: notice.target_id,
+      brand: notice.brand,
+    },
+  });
+  log("info", "article 18 report recorded", { id: notice.id, recipient });
+
+  return json({ ok: true, id: notice.id, recipient });
+});
+
 route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
   const access = await requirePermission(req, "dsa_notices.decide");
   if (isDenied(access)) return access.response;

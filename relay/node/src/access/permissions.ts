@@ -41,6 +41,11 @@ export const PERMISSIONS = [
   // someone's report, and both outcomes are owed a written reason. Whoever holds
   // this is the person the statement of reasons comes from.
   "dsa_notices.decide",
+  // Informing law enforcement under Article 18 is a third thing again: it is not
+  // reading a notice and not deciding the content's fate, it is a statement made
+  // to the police about a person. Whoever holds this is who the report comes
+  // from, and the audit record names them.
+  "dsa_notices.escalate",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

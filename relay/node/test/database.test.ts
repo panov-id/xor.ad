@@ -1620,3 +1620,48 @@ Deno.test({
     assertEquals(orphans[0].count, "0", "a statement was left without its notice");
   },
 });
+
+// Article 18 leaves a trace, and the trace names a recipient.
+//
+// The obligation is to inform law enforcement promptly where a suspicion of an
+// offence threatening life or safety arises. The judgement is a person's — a
+// notice carries no label for it by design — but until 2026-09-08 the fact that
+// a report had been made existed nowhere at all, so it could not be shown
+// afterwards. That is what this route is for, and the recipient is a closed set
+// because a free-text field fills up with "reported" and proves nothing.
+Deno.test({
+  name: "an Article 18 report is recorded with its recipient, and refuses to be vague",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const id = await seedNotice("alpha", `article 18 ${uniqueId()}`);
+    const MOD = { role: "moderator", brand: "alpha" } as const;
+
+    const vague = await callAs(MOD, "POST", `/admin/dsa-notices/${id}/escalate`, {
+      recipient: "somebody",
+    });
+    assertEquals(vague.status, 422, "an unknown recipient is not a recipient");
+
+    // Another Member State is a legitimate answer, but not on its own: the
+    // article asks for the State concerned, and "abroad" is not one.
+    const unnamed = await callAs(MOD, "POST", `/admin/dsa-notices/${id}/escalate`, {
+      recipient: "other_member_state",
+    });
+    assertEquals(unnamed.status, 422, "another State has to be named");
+
+    const done = await callAs(MOD, "POST", `/admin/dsa-notices/${id}/escalate`, {
+      recipient: "cy_police_cybercrime",
+      note: "cybercrime@police.gov.cy",
+    });
+    assertEquals(done.status, 200);
+    assertEquals(done.body.recipient, "cy_police_cybercrime");
+
+    // A tenant cannot escalate somebody else's notice, for the same reason it
+    // cannot decide one: whether it exists is not their business.
+    const theirs = await seedNotice("beta", `article 18 beta ${uniqueId()}`);
+    const trespass = await callAs(MOD, "POST", `/admin/dsa-notices/${theirs}/escalate`, {
+      recipient: "cy_police_cybercrime",
+    });
+    assertEquals(trespass.status, 404);
+  },
+});

@@ -7,7 +7,7 @@ import { corsHeaders, handlePreflight } from "./lib/cors.ts";
 import { json } from "./lib/http.ts";
 import { log } from "./lib/log.ts";
 import { inc } from "./lib/metrics.ts";
-import { health } from "./routes/health.ts";
+import { health, ready } from "./routes/health.ts";
 import { metrics } from "./routes/metrics.ts";
 import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
@@ -28,6 +28,7 @@ type Handler = (req: Request) => Response | Promise<Response>;
 
 const routes: Record<string, Handler> = {
   "GET /health": () => health(),
+  "GET /ready": () => ready(),
   "GET /metrics": () => metrics(),
   "POST /waitlist": (req) => waitlist(req),
   "POST /client-error": (req) => clientError(req),

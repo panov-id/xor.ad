@@ -239,6 +239,13 @@ page itself lives for minutes, and an edge rule shortens the TTL:
    GA4 id too.
 3. The node's `/health` answers; a preflight from the landing's domain allows
    `x-api-key`; a keyless request gets 401 wherever `require_api_key=true`.
+   **Since 2026-09-08 `/health` carries a `database` field** — `ok`, `down` or
+   `off` — and it is what the database answered a second ago rather than a line
+   of configuration. `/health` itself still always returns 200: the balancer
+   reads it, and steering traffic away is **`/ready`**'s decision, which answers
+   503 when the database is gone. Until that day `status: "ok"` was a constant,
+   and the runbook's case "answers, but no work is getting done" had no signal
+   at all.
 4. The panel opens, magic-link sign-in works, Waitlist and the logs are visible.
 
 Items 3–4 are automated in `relay/test/smoke.sh`.

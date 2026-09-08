@@ -1537,3 +1537,25 @@ Deno.test({
     }
   },
 });
+
+// The other half of the health probe: with a database, it must say so.
+//
+// The suite without one covers "off"; this covers "ok", and together they are
+// what makes the field worth reading. A balancer rule written against "down"
+// is only as good as the two states it can tell apart.
+Deno.test({
+  name: "health reports the database it can actually reach",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { health, ready } = await import("../src/routes/health.ts");
+
+    const body = await (await health()).json();
+    assertEquals(body.status, "ok");
+    assertEquals(body.database, "ok", "with DATABASE_URL set and answering, this is 'ok'");
+
+    const readiness = await ready();
+    assertEquals(readiness.status, 200);
+    assertEquals((await readiness.json()).status, "ready");
+  },
+});

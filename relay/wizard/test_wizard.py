@@ -64,6 +64,9 @@ class FakeSftp:
     def chmod(self, path, mode):
         self.events.append(("chmod", path, mode))
 
+    def close(self):
+        self.events.append(("close",))
+
 
 # --- the mode is set before the content lands --------------------------------
 
@@ -319,6 +322,149 @@ if pull_calls and migrate_calls:
           pull_calls[0][0].lineno < migrate_calls[0][0].lineno,
           f"pull at line {pull_calls[0][0].lineno}, "
           f"migrate at {migrate_calls[0][0].lineno}")
+
+print()
+
+# --- the firewall is never left down ------------------------------------------
+#
+# `firewall()` used to be one `&&` chain over the ssh channel that began with
+# `ufw --force reset` — which disables the firewall — and re-enabled it at the
+# end. Two ways to leave a public box open, and no check would have seen either:
+# lose the connection in between, or have one rule rejected (a typo in a
+# whitelist address does it) so `&&` never reaches the enable.
+#
+# The box is not touched here. What is asserted is what gets *written* and *run*,
+# because that is where both failures lived.
+
+
+class FakeChannel:
+    def recv_exit_status(self):
+        return 0
+
+
+class FakeStream(io.BytesIO):
+    """Bytes, because paramiko's streams are bytes and the wizard decodes them."""
+
+    channel = FakeChannel()
+
+
+class FakeClient:
+    """Records commands and answers reads with whatever the box would say."""
+
+    def __init__(self, answer=""):
+        self.commands = []
+        self.answer = answer
+        self.sftp = FakeSftp()
+
+    def exec_command(self, command):
+        self.commands.append(command)
+        return None, FakeStream(self.answer.encode()), FakeStream(b"")
+
+    def open_sftp(self):
+        return self.sftp
+
+
+INVENTORY = {
+    "pool": {"ssh_whitelist": ["203.0.113.5"]},
+    "env": {"dev": {"access": "private", "whitelist_ips": ["198.51.100.7"]}},
+}
+BOX = {"id": "n1", "envs": ["dev"]}
+
+client = FakeClient("Status: active\nTo  Action  From\n")
+wizard.firewall(client, INVENTORY, BOX, sudo=True)
+
+script = client.sftp.contents.get("/tmp/relay-firewall.sh", "")
+check("the rules are written as a script on the box", bool(script), repr(client.sftp.contents))
+trap_lines = [line for line in script.splitlines() if line.startswith("trap ")]
+check("the script always reaches the enable",
+      len(trap_lines) == 1 and "ufw --force enable" in trap_lines[0],
+      "a rejected rule must cost that rule, not the whole firewall; "
+      f"trap lines: {trap_lines}")
+check("the reset is inside the script, not on the ssh channel",
+      "ufw --force reset" in script
+      and not any("ufw --force reset" in c for c in client.commands),
+      str(client.commands))
+check("both whitelists reach the rules",
+      "203.0.113.5" in script and "198.51.100.7" in script, script)
+check("a private box does not open 443 to everybody",
+      "ufw allow 443/tcp" not in script, script)
+check("the script is detached from the ssh session",
+      any("setsid" in c and "nohup" in c for c in client.commands), str(client.commands))
+
+# And the wizard refuses to call it a success on a box whose firewall did not
+# come back — silence there was the whole defect.
+refused = False
+try:
+    wizard.firewall(FakeClient("Status: inactive"), INVENTORY, BOX, sudo=True)
+except RuntimeError:
+    refused = True
+check("a firewall that stayed down is an error, not a quiet success", refused)
+
+public_client = FakeClient("Status: active")
+wizard.firewall(public_client,
+                {"pool": {"ssh_whitelist": []}, "env": {"prod": {"access": "public"}}},
+                {"id": "p1", "envs": ["prod"]}, sudo=True)
+check("a public box still opens 443",
+      "ufw allow 443/tcp" in public_client.sftp.contents.get("/tmp/relay-firewall.sh", ""))
+
+print()
+
+# --- the dumps do not share a key with the thing they back up -----------------
+#
+# They lived in the same storage zone as the node's working objects, reachable
+# with the same key: one leaked key, or one mistaken prune with a wrong prefix,
+# took the data and the backups together. That is a second copy, not a backup.
+#
+# The zone itself is a person's action. What is checked here is that the script
+# uses it when it exists, falls back loudly when it does not, and — the part that
+# broke while this was being written — that the fallback still names a real key.
+
+import re  # noqa: E402
+import subprocess  # noqa: E402
+import tempfile  # noqa: E402
+
+backup = (pathlib.Path(__file__).parent / "backup-postgres.sh").read_text(encoding="utf-8")
+
+check("the uploads read the chosen zone, not a hardcoded one",
+      "${BUNNY_STORAGE_ZONE}/backups" not in backup,
+      "an upload path still names the working zone directly")
+check("nothing addresses the working key directly any more",
+      len(re.findall(r'AccessKey: \$\{BUNNY_STORAGE_KEY\}', backup)) == 0, backup[:200])
+
+# The fallback branch assigning key="${key}" is a real edit that happened here,
+# and it would have sent every dump with an empty AccessKey — a nightly failure
+# that looks like a provider problem.
+check("the fallback names the working key, not itself",
+      'key="${BUNNY_STORAGE_KEY}"' in backup and 'key="${key}"' not in backup,
+      "the fallback assignment is circular")
+
+# And run the selection for real, both ways, with the rest of the script cut off:
+# a shell reading is not a check.
+selection = backup.split("stamp=")[0].replace("cd /opt/relay/compose", "")
+selection = selection.replace("set -a; . ./backup.env; set +a", "")
+for label, env, expect_zone in [
+    ("its own zone", {"BACKUP_STORAGE_ZONE": "relay-backups", "BACKUP_STORAGE_KEY": "k2",
+                      "BUNNY_STORAGE_ZONE": "relay-live", "BUNNY_STORAGE_KEY": "k1"}, "relay-backups"),
+    ("the working zone", {"BUNNY_STORAGE_ZONE": "relay-live", "BUNNY_STORAGE_KEY": "k1"}, "relay-live"),
+]:
+    with tempfile.NamedTemporaryFile("w", suffix=".sh", delete=False) as handle:
+        handle.write(selection + '\necho "ZONE=$zone KEY=$key"\n')
+        path = handle.name
+    result = subprocess.run(["bash", path], capture_output=True, text=True,
+                            env={**os.environ, **env})
+    os.unlink(path)
+    check(f"it picks {label}", f"ZONE={expect_zone}" in result.stdout,
+          f"stdout={result.stdout!r} stderr={result.stderr!r}")
+    check(f"and a key to go with it ({label})",
+          "KEY=" in result.stdout and "KEY=\n" not in result.stdout
+          and result.stdout.split("KEY=")[1].strip() != "",
+          f"stdout={result.stdout!r}")
+
+check("a shared zone is reported, not passed over in silence",
+      "WARNING: no BACKUP_STORAGE_ZONE" in backup)
+check("the wizard puts the variables in backup.env",
+      all(name in (pathlib.Path(__file__).parent / "wizard.py").read_text(encoding="utf-8")
+          for name in ("BACKUP_STORAGE_ZONE", "BACKUP_STORAGE_KEY")))
 
 if failed:
     print(f"FAILED: {failed}")

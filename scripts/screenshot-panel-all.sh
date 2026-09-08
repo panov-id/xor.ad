@@ -18,6 +18,11 @@ deno_image="denoland/deno:alpine-2.1.4"
 playwright_image="panel-tests-runner"
 panel_url="${PANEL_URL:-http://localhost:62173}"
 secret="local-panel-secret"   # matches relay/local/docker-compose.yml
+# The token also names the environment, and the node refuses one minted for
+# another (tools/mint_panel_token.ts). Without this the mint takes the default
+# name, every request answers 401, and the sweep quietly photographs the login
+# page instead of the panel — which is exactly what it did on 2026-09-08.
+env_name="local"                # matches NODE_ENV_NAME on the stand
 
 out="$root/testing/screenshots/sweep"
 mkdir -p "$out"
@@ -26,8 +31,19 @@ echo "== building the Playwright runner (panel/tests image)"
 docker build -q -t "$playwright_image" "$root/panel/tests" >/dev/null
 
 echo "== minting an admin session for the stand"
-token="$(docker run --rm -e SESSION_SECRET="$secret" -v "$root/relay/node":/node -w /node \
+token="$(docker run --rm -e SESSION_SECRET="$secret" -e NODE_ENV_NAME="$env_name" \
+  -v "$root/relay/node":/node -w /node \
   "$deno_image" deno run --allow-env tools/mint_panel_token.ts admin admin@local.test 2>/dev/null | tail -1)"
+
+# A sweep that photographs the login page proves nothing and looks fine, so the
+# session is checked once, here, before forty-four screenshots are taken.
+me_status="$(curl -s -o /dev/null -w '%{http_code}' -H "authorization: Bearer $token" \
+  "${RELAY_URL:-http://localhost:62080}/auth/me")"
+[ "$me_status" = "200" ] || {
+  echo "the minted session is not accepted by the stand (/auth/me -> $me_status)." >&2
+  echo "check SESSION_SECRET and NODE_ENV_NAME against relay/local/docker-compose.yml" >&2
+  exit 1
+}
 
 script_dir="$(mktemp -d)"
 trap 'rm -rf "$script_dir"' EXIT
@@ -48,6 +64,10 @@ const PAGES = [
   { path: "/api-keys", name: "api-keys" },
   { path: "/secret-keys", name: "secret-keys" },
   { path: "/brands", name: "brands" },
+  // The Article 16 queue. It was missing from this sweep while the page itself
+  // existed, so nobody ever looked at it here — and on 2026-09-08 that showed:
+  // a notice held by the platform rendered its queue cell as an empty badge.
+  { path: "/dsa-notices", name: "dsa-notices" },
   // No session for this one: a login page shot while signed in redirects away.
   { path: "/login", name: "login", anonymous: true },
 ];

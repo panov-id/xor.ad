@@ -16,7 +16,15 @@ import { copyCell, longReason } from "./reasons";
 
 type Notice = {
   id: string;
-  brand: string;
+  // Null means the platform examines it, and there are two ways to get there:
+  // the notice arrived with no usable key (db/007), or its copy belongs to a
+  // face other than the one it was filed through (db/015, 2026-09-07). Rendering
+  // null as an empty badge said neither, and an empty cell in a queue reads as a
+  // rendering bug rather than as "this one is ours".
+  brand: string | null;
+  // The face the notice came through. Only interesting when it differs from
+  // `brand` — that is exactly the case the platform is holding.
+  received_via: string | null;
   target_kind: string;
   target_id: string | null;
   snapshot: { table?: string; captured_at?: string; row?: Record<string, unknown> } | null;
@@ -74,7 +82,25 @@ export const DsaNoticesList = () => {
             label: "Arrived",
             render: (row) => new Date(row.created_at).toLocaleString(),
           },
-          { key: "brand", label: "Brand", render: (row) => <Badge>{row.brand}</Badge> },
+          {
+            key: "brand",
+            label: "Queue",
+            render: (row) =>
+              row.brand
+                ? <Badge>{row.brand}</Badge>
+                : (
+                  <>
+                    <Badge>Platform</Badge>
+                    {row.received_via
+                      ? (
+                        <span className="panel-hint">
+                          {" "}filed through {row.received_via}
+                        </span>
+                      )
+                      : null}
+                  </>
+                ),
+          },
           {
             key: "target_kind",
             label: "About",

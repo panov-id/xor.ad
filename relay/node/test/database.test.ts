@@ -796,6 +796,55 @@ Deno.test({
   },
 });
 
+// A notice held by the platform says why it is held there.
+//
+// Since 2026-09-07 `brand IS NULL` has two meanings: the notice arrived with no
+// usable key, or its copy belongs to a face other than the one it was filed
+// through. The queue is the only place a person sees the difference, and the
+// difference is `received_via` — which the list route did not return at all,
+// so a platform moderator got a row with an empty brand cell and no way to tell
+// the two apart.
+Deno.test({
+  name: "a notice the platform holds names the face it came through",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const rows = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, received_via, target_kind, target_id, reason_text, bona_fide,
+          status, snapshot_state, acknowledged_at)
+       VALUES (NULL, 'beta', 'feed_message', NULL, $1, true, 'received', 'received', now())
+       RETURNING id`,
+      [`routed notice ${uniqueId()}`],
+    );
+    const routed = rows[0].id;
+    const ownedByAlpha = await seedNotice("alpha", `alpha notice ${uniqueId()}`);
+
+    const seen = await callAs(PLATFORM, "GET", "/admin/dsa-notices");
+    assertEquals(seen.status, 200);
+    const row = seen.body.find((r: Body) => r.id === routed);
+    assert(row, "the platform cannot see a notice routed to it");
+    assertEquals(row.brand, null, "a routed notice belongs to the platform queue");
+    assertEquals(
+      row.received_via,
+      "beta",
+      "without this the moderator sees an empty cell and cannot tell why it is here",
+    );
+
+    // A tenant's own notice still names its own queue, and beta — whose face the
+    // routed notice came through — must not get it back through that column.
+    const mine = seen.body.find((r: Body) => r.id === ownedByAlpha);
+    assertEquals(mine.brand, "alpha");
+
+    const beta = await callAs({ role: "moderator", brand: "beta" }, "GET", "/admin/dsa-notices");
+    const betaIds = beta.body.map((r: Body) => r.id);
+    assert(
+      !betaIds.includes(routed),
+      "the face a notice was filed through must not read the copy it was routed away from",
+    );
+  },
+});
+
 // Nothing walked the upheld path — the word did not appear in this directory at
 // all — and it was broken at the one place a test would have caught for free:
 // dsa_statements.brand was still NOT NULL while a notice's brand had been made

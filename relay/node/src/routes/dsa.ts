@@ -24,7 +24,16 @@ interface NoticeRow {
   // Nullable since migration 007: a notice can arrive naming no storefront.
   // The type said `string` and the compiler believed it, which is why the
   // statement insert below was written as if a brand were always there.
+  //
+  // Since 2026-09-07 there is a second way to be null: the copy belongs to a
+  // face other than the one the notice was filed through, so the platform
+  // examines it instead of that face (db/015). Null therefore no longer means
+  // "nobody knows whose this is" — it means "the platform's", for one of two
+  // reasons, and `received_via` is what tells them apart.
   brand: string | null;
+  // The face it arrived through. Attribution: never filtered on, and shown so a
+  // platform moderator can see whose storefront the reporter was using.
+  received_via: string | null;
   target_kind: string;
   target_id: string | null;
   snapshot: unknown;
@@ -68,8 +77,8 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
     conditions.push(`brand = $${args.length}`);
   }
   const rows = await query<NoticeRow>(
-    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, snapshot_reason, reason_text,
-            notifier_name, notifier_email, status, created_at, decided_at
+    `SELECT id, brand, received_via, target_kind, target_id, snapshot, snapshot_state, snapshot_reason,
+            reason_text, notifier_name, notifier_email, status, created_at, decided_at
        FROM dsa_notices
       ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
       ORDER BY created_at ASC

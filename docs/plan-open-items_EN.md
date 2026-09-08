@@ -73,13 +73,18 @@ Closed in full on 2026-09-08.
 
 ## Queue 4 — what goes off at three in the morning
 
-- **`firewall.reset.window`** — `configure` begins with `ufw --force reset`, which
-  disables the firewall; an ssh drop mid-chain leaves a public box open and no
-  check would see it. ~1 hour to apply rules atomically.
-- **`backups.same.zone`** — dumps live in the same storage zone under the same key
-  as the node's working objects: one leak or one mistaken prune takes both the
-  data and the backups. ~1 hour plus creating a second zone, which is a person's
-  action.
+- ~~**`firewall.reset.window`**~~ — the rules go to the box as a script, run
+  detached from the ssh session (`setsid nohup`), with `ufw --force enable` on a
+  `trap` so it runs even when a rule is rejected. There were two holes rather
+  than one: losing the connection mid-chain, and the `&&` that ended the chain at
+  the first mistyped whitelist address — both left a public box with no firewall,
+  silently. The wizard now reads `ufw status` afterwards and fails if it did not
+  come back up.
+- **`backups.same.zone`** — the code is ready: `BACKUP_STORAGE_ZONE`/`KEY` are
+  read by the backup script and by the restore drill alike (a drill looking in
+  the old zone would report a broken backup rather than a stale drill), and
+  without them the script says so every night. Creating the zone and its key in
+  Bunny is left — **a person's action**.
 - **`pool.image.unreported`** — prod and staging do not name their build. It
   closes by itself the day a release newer than 2026-08-31 reaches them.
 

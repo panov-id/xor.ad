@@ -224,8 +224,27 @@ That is deliberate. A separate path would have a person label their own notice
 mistakes are easiest. And refusing a notice over a missing name is precisely what
 Art. 16(2)(c) does not allow — so nothing is mandatory anywhere, ordinary cases
 included. The price is stated plainly: some notices arrive with no return
-address, and there is nobody to answer under Art. 16(4). Such a notice jumps the queue and is accompanied by a report to law
-enforcement under Art. 18.
+address, and there is nobody to answer under Art. 16(4).
+
+**Neither the queue jump nor the report to law enforcement is done by the system —
+and neither can be.** This said "such a notice jumps the queue and is accompanied
+by a report to law enforcement under Art. 18", which contradicted the paragraph
+above it: with no label by design, the node has no way to know a notice is "such".
+There is one queue, ordered by arrival (`routes/dsa.ts`), and the words "Art. 18"
+appear nowhere in `relay/node/src`. The promise was withdrawn on 2026-09-08 after
+a review panel — not because the obligation went away, but because the document
+described a mechanism that does not exist.
+
+**What actually happens.** The notice lands in the ordinary queue like any other,
+and a person gives it priority — the person who opens it and sees what it is
+about. The Art. 18 obligation (inform law enforcement immediately where a crime
+threatening life or safety is suspected) is discharged by that same person, by
+hand.
+
+**What is missing, and open:** a named recipient — which Cypriot authority to
+write to — and a trace: today the fact of such a report is recorded nowhere, so
+there is nothing to prove it happened. Both are tracked by the open item
+`dsa.article18.route`.
 
 ### 5.2. A notice about chat content
 

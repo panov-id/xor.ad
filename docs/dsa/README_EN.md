@@ -57,7 +57,11 @@ Sections 1 and 2 know no size exemptions beyond the ones spelled out in them.
 - **Art. 16** — the notice-and-action mechanism. **Applies.**
 - **Art. 17** — a statement of reasons for any restriction. **Applies.**
 - **Art. 18** — suspicion of an offence threatening life or safety must be
-  reported to law enforcement. **Applies.**
+  reported to law enforcement. **Applies, and is discharged by hand:** a notice
+  carries no "this is about children" label by design (`SPEC_EN.md` §5.1), so the
+  node cannot recognise such a notice and gives it no priority; the judgement and
+  the report itself rest with the person who read it. No recipient is named and
+  the fact of a report is recorded nowhere — open item `dsa.article18.route`.
 
 ## 3. What the micro-enterprise status lifts
 

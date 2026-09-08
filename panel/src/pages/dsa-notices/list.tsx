@@ -41,6 +41,16 @@ type Notice = {
   decided_at: string | null;
 };
 
+// The same closed set the node accepts (routes/dsa.ts). Article 18 names the
+// Member State concerned first; Cyprus or Europol only where that State cannot
+// be identified — so the options are worded to make that order visible rather
+// than putting the home country at the top out of habit.
+const AUTHORITIES = [
+  { value: "other_member_state", label: "The Member State concerned — name it below" },
+  { value: "cy_police_cybercrime", label: "Cyprus Police — Office for Combating Cybercrime" },
+  { value: "europol", label: "Europol" },
+];
+
 const RESTRICTIONS = [
   { value: "removed", label: "Removed" },
   { value: "hidden", label: "Hidden" },
@@ -181,8 +191,37 @@ const NoticeDetail = ({
   const [groundKind, setGroundKind] = useState<"legal" | "contractual">("contractual");
   const [groundText, setGroundText] = useState("");
   const [recipient, setRecipient] = useState("");
+  // Article 18 lives beside the decision, not inside it: informing police about a
+  // person is a different act from deciding what happens to their content, and it
+  // can be right whichever way that decision goes — including on a notice that
+  // will be rejected.
+  const [authority, setAuthority] = useState("");
+  const [authorityNote, setAuthorityNote] = useState("");
+  const [escalated, setEscalated] = useState(false);
+  const [escalateError, setEscalateError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const escalate = async () => {
+    setBusy(true);
+    setEscalateError(null);
+    try {
+      const response = await api(`/admin/dsa-notices/${notice.id}/escalate`, {
+        method: "POST",
+        body: JSON.stringify({ recipient: authority, note: authorityNote || undefined }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setEscalateError(body.error ?? `The record was refused (${response.status}).`);
+        return;
+      }
+      setEscalated(true);
+    } catch {
+      setEscalateError("The record could not be written.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const send = async () => {
     setBusy(true);
@@ -253,6 +292,45 @@ const NoticeDetail = ({
         <p className="panel-hint">
           {longReason(notice.snapshot_reason)}
         </p>
+      )}
+
+      <h3>Reported to law enforcement</h3>
+      <p className="panel-hint">
+        Article 18: where this gives you reason to suspect an offence threatening
+        someone's life or safety, inform the authorities now — the obligation is
+        immediate and does not wait for the decision below. This form does not
+        send anything; it records that you did, so it can be shown later.
+      </p>
+      {escalated ? (
+        <p className="panel-hint">Recorded. The audit log has who, when and to whom.</p>
+      ) : (
+        <>
+          <label className="field">
+            <span>Who you informed</span>
+            <select value={authority} onChange={(event) => setAuthority(event.target.value)}>
+              <option value="">—</option>
+              {AUTHORITIES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>
+              Channel, reference, and — for another Member State — which one
+            </span>
+            <input
+              value={authorityNote}
+              onChange={(event) => setAuthorityNote(event.target.value)}
+              placeholder="cybercrime@police.gov.cy, ref 2026-…"
+            />
+          </label>
+          {escalateError ? <p className="panel-error">{escalateError}</p> : null}
+          <button type="button" onClick={escalate} disabled={busy || !authority}>
+            Record the report
+          </button>
+        </>
       )}
 
       {decided ? (

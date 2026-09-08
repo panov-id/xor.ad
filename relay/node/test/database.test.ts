@@ -1559,3 +1559,64 @@ Deno.test({
     assertEquals((await readiness.json()).status, "ready");
   },
 });
+
+// The prune takes more than one batch, and takes all of it.
+//
+// Batching was added because a year in one transaction holds locks on both
+// tables until the last row is gone and pins autovacuum's horizon across the
+// database. The risk it introduces is the opposite one: a loop that stops after
+// the first batch leaves records that were supposed to be gone, quietly, and the
+// only way to notice is to count. So this seeds more than a batch's worth — with
+// a batch size lowered for the test — and checks that nothing old survives.
+Deno.test({
+  name: "the prune keeps going past the first batch",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { pruneDsaRecords } = await import("../tools/prune_dsa_records.ts");
+    const marker = `batched ${uniqueId()}`;
+
+    // Twelve old notices, each with a young statement: enough to need three
+    // passes at a batch of five, and every statement is the case that used to be
+    // orphaned rather than removed.
+    for (let i = 0; i < 12; i++) {
+      const rows = await database.queryOrThrow<{ id: string }>(
+        `INSERT INTO dsa_notices
+           (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state,
+            created_at)
+         VALUES ('alpha', 'feed_message', NULL, $1, true, 'upheld', 'received',
+                 now() - interval '400 days')
+         RETURNING id`,
+        [`${marker} ${i}`],
+      );
+      await database.queryOrThrow(
+        `INSERT INTO dsa_statements
+           (brand, notice_id, target_id, recipient_identity, restriction, facts,
+            ground_kind, ground_text, created_at)
+         VALUES ('alpha', $1, 'x', 'someone', 'removed', 'facts', 'legal', 'ground', now())`,
+        [rows[0].id],
+      );
+    }
+
+    const before = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_notices WHERE reason_text LIKE $1`,
+      [`${marker}%`],
+    );
+    assertEquals(before[0].count, "12", "the fixture did not land");
+
+    const result = await pruneDsaRecords({ apply: true, batch: 5 });
+    assert(result.notices >= 12, `expected at least 12 notices deleted, got ${result.notices}`);
+
+    const left = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_notices WHERE reason_text LIKE $1`,
+      [`${marker}%`],
+    );
+    assertEquals(left[0].count, "0", "the loop stopped before taking everything");
+
+    const orphans = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_statements
+        WHERE notice_id IS NULL AND facts = 'facts' AND recipient_identity = 'someone'`,
+    );
+    assertEquals(orphans[0].count, "0", "a statement was left without its notice");
+  },
+});

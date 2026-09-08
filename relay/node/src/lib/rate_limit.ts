@@ -91,6 +91,41 @@ export const CLIENT_ERROR_LIMITS: Limit[] = [
   { name: "client-error-day", max: 300, windowMs: DAY },
 ];
 
+// Sign-in links. Two things are being protected and they are not the same one.
+//
+// SIGN_IN_LIMITS counts the caller's address: a script asking for links is
+// spending storage — every request drops an object holding an operator's email
+// in clear — and the answer is always 204, which makes the route the cheapest
+// one to hammer.
+//
+// SIGN_IN_MAILBOX_LIMITS counts the address being asked for, because rotating
+// the caller's IP is free and the harm that survives it is a mail bomb into one
+// operator's inbox. Low on purpose: a person signing in asks once, twice if the
+// first letter went to spam. Six in an hour is somebody else asking.
+export const SIGN_IN_LIMITS: Limit[] = [
+  { name: "sign-in", max: 20, windowMs: HOUR },
+  { name: "sign-in-day", max: 60, windowMs: DAY },
+];
+
+export const SIGN_IN_MAILBOX_LIMITS: Limit[] = [
+  { name: "sign-in-mailbox", max: 6, windowMs: HOUR },
+  { name: "sign-in-mailbox-day", max: 20, windowMs: DAY },
+];
+
+// The v1 surface had no per-address limit at all: the only barrier was the daily
+// quota, which is per key rather than per caller, cached for ten seconds, counted
+// on each node separately, and — the part that matters here — switches off
+// entirely when the database is unreachable (lib/quota.ts). So the moment the
+// database is unwell, the public API has no ceiling of any kind. This one is in
+// memory and keeps working exactly then.
+//
+// Generous: a client legitimately walks pages and polls. It is a ceiling against
+// a flood, not a quota — the quota is the thing that prices ordinary use.
+export const V1_LIMITS: Limit[] = [
+  { name: "v1", max: 1200, windowMs: HOUR },
+  { name: "v1-day", max: 20000, windowMs: DAY },
+];
+
 export interface Verdict {
   allowed: boolean;
   remaining: number;

@@ -26,7 +26,7 @@ apiUrl (per env, from config.js):
                    └─→ welcome via Resend (the brand's account key,
                           from hello@neighbro.place; on dev, Mailpit instead of Resend)
   POST /client-error ─→ Bunny Storage: client-errors/<env>/<uuid>.json
-  GET  /health, /metrics ─→ node status / Prometheus counters
+  GET  /health, /metrics ─→ node status / Prometheus counters (metrics: token-gated)
 ```
 
 ## Components

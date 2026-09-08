@@ -22,36 +22,54 @@ action, not code's.
 Price: a letter or a call to the Cybercrime Subdivision. The item closes after
 that.
 
-## Queue 2 — what can only be fixed before launch
+## Queue 2 — what could only be fixed before launch · closed 2026-09-08
 
-Three items that threaten nothing today precisely because there is no product.
-The day the product tables appear, each becomes a defect with data in it.
+Three items that threatened nothing precisely because there is no product, and
+would have become defects with data in them the day the product tables appeared.
+All three are done.
 
-- **`probe.drops.feed.table`** — probes in `relay/node/test/database.test.ts`
-  create `feed_messages` and `offers` with `CREATE TABLE IF NOT EXISTS` and drop
-  them in `finally`. With the product migrated, a probe takes the real table and
-  deletes it, rows and all. A sandbox schema fixes it: ~40 minutes.
-- **`jobs.lease.unchecked`** — `enqueueOnce` checks and inserts with no unique
-  index, `finish` deletes a row without checking the lease. With three jobs and
-  one node this is invisible; with two nodes it yields two prune chains. ~1 hour
-  including a migration.
-- **`idempotency.unbounded`** — the table grows with no ceiling and no index on
-  time. With no public traffic it grows slowly. ~40 minutes.
+- **`probe.drops.feed.table`** — probes ask the database before building their
+  own surface: `refuseIfSurfaceExists` fails with a legible message if the table
+  is already the real one. Five calls guarding four `DROP TABLE`s.
+- **`jobs.lease.unchecked`** — `relay/node/db/020_jobs_lease.sql`: a partial
+  unique index `jobs_standing` (tombstones excluded) and a `lease` column.
+  `finish` names the lease both when deleting and when rescheduling.
+- **`idempotency.unbounded`** — `relay/node/db/021_idempotency_age.sql` adds the
+  index on `created_at`, the scheduler a daily sweep (`PRUNE_IDEMPOTENCY`).
+
+Each is closed by a probe, and each probe was watched go red: a broken age
+condition and a broken lease check fail their own probes. The lease probe was
+rewritten to get there — it wrote its own SQL, bypassing `finish`, and stayed
+green with the code broken.
 
 ## Queue 3 — what is exposed today
 
-- **`auth.link.unlimited`** — `/auth/request-link` has no rate limit: a mail bomb
-  into an operator's inbox and growth of `panel/<env>/magic/` objects that
-  nothing sweeps. ~1 hour including a sweeper for expired links.
-- **`v1.no.address.limit`** — `/v1/*` has no per-address limit; the only barrier
-  is the daily quota, which is cached for 10 seconds, counted per node, and
-  **switches off when the database is unreachable**. ~40 minutes.
-- **`metrics.public`** — `/metrics` is open on the node's public hostname. For
-  `/health` that openness was a decision; for `/metrics` there was none. ~30
-  minutes.
-- **`mailer.body.logged`** — the mail provider's response body goes to an
-  error-level log line, and those are copied to storage: somebody else's error
-  puts recipient addresses there. ~20 minutes.
+Closed in full on 2026-09-08.
+
+- ~~**`auth.link.unlimited`**~~ — `/auth/request-link` now has two ceilings, and
+  they are not interchangeable. On the caller's address (`SIGN_IN_LIMITS`) it may
+  say 429 out loud: that reveals no membership. On the mailbox being asked for
+  (`SIGN_IN_MAILBOX_LIMITS`, six an hour) it stays 204, because a 429 there would
+  confirm the address is worth limiting — and the person being flooded is not the
+  one asking. The mailbox is hashed: the limiter's keys live in memory as plain
+  strings. Unclicked links are swept by their own `exp` with an hour's grace
+  (`pruneMagicLinks`) — the general object prune cannot take them, it works by
+  age and refuses windows shorter than a week.
+- ~~**`v1.no.address.limit`**~~ — `V1_LIMITS` is checked inside `authenticate`,
+  before the key is resolved: a flood of unauthorized attempts is refused without
+  a key lookup each. In memory, so it works exactly when the daily quota switches
+  itself off over an unreachable database.
+- ~~**`metrics.public`**~~ — `/metrics` is served against `METRICS_TOKEN`, and
+  404 without a valid one (not 401: a 401 would confirm the path was right). Not
+  filtered by address: everything arrives through Caddy on the same box, so the
+  connection's address is identical for a scraper and for the whole internet. The
+  token is set nowhere, so it is closed to everybody — and step 3 of the runbook
+  was rewritten along with it.
+- ~~**`mailer.body.logged`**~~ — the log line carries the provider's machine
+  readable fault (`name`), not five hundred characters of body: Resend quotes the
+  request back, so one mistyped recipient put somebody's address into a log
+  storage keeps for a year. Exceptions that reach a log go through
+  `withoutAddresses`.
 
 ## Queue 4 — what goes off at three in the morning
 

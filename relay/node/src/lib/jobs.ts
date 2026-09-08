@@ -10,7 +10,7 @@
 // and the lease (`locked_until`) is what makes a node dying mid-job survivable —
 // the row becomes claimable again instead of being lost with the process.
 
-import { enabled as databaseEnabled, query } from "./db.ts";
+import { enabled as databaseEnabled, query, queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
 
 const POLL_INTERVAL_MS = 60_000;
@@ -24,6 +24,10 @@ export interface Job {
   payload: Record<string, unknown>;
   attempts: number;
   max_attempts: number;
+  // Which claim this is. Written by claim(), required by every write in
+  // finish(): a worker that lost its lease to another node must not act on the
+  // row any more (db/020).
+  lease: string | null;
 }
 
 type Handler = (payload: Record<string, unknown>) => Promise<void>;
@@ -44,6 +48,21 @@ export async function enqueue(
 ): Promise<void> {
   if (!databaseEnabled()) return;
   await query(
+    `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, $2::jsonb, $3)`,
+    [kind, JSON.stringify(payload), at.toISOString()],
+  );
+}
+
+// The same insert, but the caller learns if the database refused it. `query`
+// swallows errors by design — most callers cannot do anything about a failed
+// insert — and enqueueOnce is the one that can: a unique-index violation there
+// means another node armed the job first, which is success, not failure.
+async function enqueueOrThrow(
+  kind: string,
+  payload: Record<string, unknown>,
+  at: Date,
+): Promise<void> {
+  await queryOrThrow(
     `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, $2::jsonb, $3)`,
     [kind, JSON.stringify(payload), at.toISOString()],
   );
@@ -78,12 +97,31 @@ export async function enqueueOnce(
     [kind],
   );
   if (rows === null || rows.length > 0) return;
-  await enqueue(kind, payload, at);
+  // The read above is a courtesy, not the guarantee: two nodes starting together
+  // both see nothing and both insert. Since db/018 the database refuses the
+  // second one through a partial unique index, and a refusal here means somebody
+  // else armed the same job a moment ago — which is exactly the outcome wanted,
+  // so it is not an error to report.
+  try {
+    await enqueueOrThrow(kind, payload, at);
+  } catch (error) {
+    if (String(error).includes("jobs_standing")) {
+      log("info", "another node armed this job first", { kind });
+      return;
+    }
+    throw error;
+  }
 }
 
 async function claim(): Promise<Job | null> {
+  // The lease token, not just the deadline. Ten minutes is ordinary to overrun —
+  // the object prunes walk storage one delete at a time — and when it happens
+  // another node claims the same row. Without a token the loser of that race
+  // still deletes the row and re-arms tomorrow's job, so the day ends with two
+  // chains and one of them invisible.
   const rows = await query<Job>(
-    `UPDATE jobs SET locked_until = now() + $1::interval, attempts = attempts + 1
+    `UPDATE jobs SET locked_until = now() + $1::interval, attempts = attempts + 1,
+            lease = gen_random_uuid()
       WHERE id = (
         SELECT id FROM jobs
          WHERE run_at <= now()
@@ -92,15 +130,18 @@ async function claim(): Promise<Job | null> {
          FOR UPDATE SKIP LOCKED
          LIMIT 1
       )
-      RETURNING id, kind, payload, attempts, max_attempts`,
+      RETURNING id, kind, payload, attempts, max_attempts, lease`,
     [`${Math.round(LEASE_MS / 1000)} seconds`],
   );
   return rows?.[0] ?? null;
 }
 
 async function finish(job: Job, error?: unknown): Promise<void> {
+  // Every write names the lease this worker holds. A worker whose lease expired
+  // and was taken by another node changes nothing: the row belongs to whoever
+  // holds it now, and finishing somebody else's job is how one prune became two.
   if (error === undefined) {
-    await query(`DELETE FROM jobs WHERE id = $1`, [job.id]);
+    await query(`DELETE FROM jobs WHERE id = $1 AND lease = $2`, [job.id, job.lease]);
     return;
   }
   const message = String(error).slice(0, 1000);
@@ -108,8 +149,9 @@ async function finish(job: Job, error?: unknown): Promise<void> {
     // Out of attempts: the row stays, unclaimable, as the record of a job that
     // never worked. Deleting it would erase the only evidence.
     await query(
-      `UPDATE jobs SET locked_until = 'infinity', last_error = $2 WHERE id = $1`,
-      [job.id, message],
+      `UPDATE jobs SET locked_until = 'infinity', last_error = $2
+        WHERE id = $1 AND lease = $3`,
+      [job.id, message, job.lease],
     );
     log("error", "job gave up", { kind: job.kind, id: job.id, attempts: job.attempts });
     return;
@@ -119,8 +161,8 @@ async function finish(job: Job, error?: unknown): Promise<void> {
   const delaySeconds = Math.min(3600, 30 * job.attempts * job.attempts);
   await query(
     `UPDATE jobs SET run_at = now() + $2::interval, locked_until = NULL, last_error = $3
-      WHERE id = $1`,
-    [job.id, `${delaySeconds} seconds`, message],
+      WHERE id = $1 AND lease = $4`,
+    [job.id, `${delaySeconds} seconds`, message, job.lease],
   );
   log("warn", "job failed, will retry", {
     kind: job.kind,

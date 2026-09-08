@@ -1156,6 +1156,38 @@ Deno.test({
 // the one suite where the branch actually runs. It builds the surface it needs —
 // feed_messages does not exist yet, and the day it does, this test stops
 // building and starts using it.
+
+// A probe surface, and the promise that it is ours.
+//
+// These suites build the product's tables to exercise branches that need them —
+// feed_messages and offers exist in no migration yet. They did it with
+// `CREATE TABLE IF NOT EXISTS` and dropped unconditionally in `finally`, which is
+// safe exactly until the day the product is migrated: then a probe silently takes
+// the real table, works against it, and deletes it with every row in it. The only
+// guard was that `scripts/run-relay-database-tests.sh` hands the suite a
+// throwaway database — a property of the runner, not of the test, and `deno test`
+// with somebody's DATABASE_URL in the environment behaves the same way.
+//
+// Finding the table already there is not a reason to carry on quietly: it means
+// that day has arrived, and the suite says so instead of deleting anything. The
+// DDL below also lost its `IF NOT EXISTS` for the same reason — a probe that
+// silently accepts an existing table is the whole problem in one clause.
+async function refuseIfSurfaceExists(name: string): Promise<void> {
+  const { query } = await import("../src/lib/db.ts");
+  const rows = await query<{ exists: boolean }>(
+    "SELECT to_regclass($1) IS NOT NULL AS exists",
+    [name],
+  );
+  assert(rows !== null, "the database did not answer");
+  if (rows[0]?.exists) {
+    throw new Error(
+      `${name} already exists in this database. The product has been migrated, so ` +
+        `this probe must stop building its own surface — and must certainly not drop ` +
+        `the real one. Rewrite the suite to use the migrated table.`,
+    );
+  }
+}
+
 Deno.test({
   name: "a phrase attributed to another face is still examined, because the world is one",
   sanitizeResources: false,
@@ -1164,12 +1196,13 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
 
+    await refuseIfSurfaceExists("feed_messages");
     const built = await query(
       // The columns are the ones SNAPSHOTTABLE asks for, not a plausible
       // guess: the first version of this probe omitted created_at and
       // author_identity, and the branch under test answered lookup_failed —
       // which is what a wrong column is supposed to produce.
-      `CREATE TABLE IF NOT EXISTS feed_messages (
+      `CREATE TABLE feed_messages (
          id uuid PRIMARY KEY,
          brand text,
          text text,
@@ -1253,8 +1286,9 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
 
+    await refuseIfSurfaceExists("offers");
     const built = await query(
-      `CREATE TABLE IF NOT EXISTS offers (
+      `CREATE TABLE offers (
          id uuid PRIMARY KEY,
          brand text,
          offer_text text,
@@ -1316,8 +1350,9 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { report } = await import("../src/routes/report.ts");
 
+    await refuseIfSurfaceExists("feed_messages");
     const built = await query(
-      `CREATE TABLE IF NOT EXISTS feed_messages (
+      `CREATE TABLE feed_messages (
          id uuid PRIMARY KEY,
          brand text,
          text text,
@@ -1413,8 +1448,9 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { report } = await import("../src/routes/report.ts");
 
+    await refuseIfSurfaceExists("feed_messages");
     const built = await query(
-      `CREATE TABLE IF NOT EXISTS feed_messages (
+      `CREATE TABLE feed_messages (
          id uuid PRIMARY KEY,
          brand text,
          text text,
@@ -1663,5 +1699,140 @@ Deno.test({
       recipient: "cy_police_cybercrime",
     });
     assertEquals(trespass.status, 404);
+  },
+});
+
+// Two nodes arming the same standing job, and a worker that lost its lease.
+//
+// Both used to end the same way: two prune chains instead of one, each re-arming
+// itself the next day, and neither visible as a duplicate because only a
+// successful run deletes a row. The first came from enqueueOnce reading and then
+// writing with nothing in between; the second from finish() deleting a row by id
+// alone, so a worker whose ten-minute lease had been taken by another node still
+// deleted the row and rescheduled tomorrow.
+Deno.test({
+  name: "a standing job cannot be armed twice, even by two nodes at once",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const jobs = await import("../src/lib/jobs.ts");
+    const { query } = await import("../src/lib/db.ts");
+    const kind = `probe-standing-${uniqueId()}`;
+
+    // Simultaneous, not sequential: sequential would pass on the read alone and
+    // prove nothing about the race this fixes.
+    await Promise.all([
+      jobs.enqueueOnce(kind),
+      jobs.enqueueOnce(kind),
+      jobs.enqueueOnce(kind),
+    ]);
+
+    const rows = await query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(rows?.[0]?.count, "1", "three simultaneous armings must leave one job");
+
+    // A tombstone is not a standing job: a kind that gave up must be armable
+    // again, which is the defect the unique index must not resurrect.
+    await query(`UPDATE jobs SET locked_until = 'infinity' WHERE kind = $1`, [kind]);
+    await jobs.enqueueOnce(kind);
+    const after = await query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(after?.[0]?.count, "2", "a headstone must not block the next arming");
+
+    await query(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+Deno.test({
+  name: "a worker whose lease was taken cannot finish the job",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { handle, enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    const kind = `probe-lease-${uniqueId()}`;
+
+    // The handler stands in for a worker that overran its ten minutes: while it
+    // is running, another node claims the row and the lease token changes. The
+    // worker then returns and tries to finish a job that is no longer its own.
+    let stolen = "";
+    handle(kind, async () => {
+      const rows = await database.queryOrThrow<{ lease: string }>(
+        `UPDATE jobs SET lease = gen_random_uuid() WHERE kind = $1 RETURNING lease`,
+        [kind],
+      );
+      stolen = rows[0].lease;
+    });
+
+    await enqueue(kind);
+    assertEquals(await runOnce(), true, "the job was picked up");
+
+    const survived = await database.queryOrThrow<{ lease: string }>(
+      `SELECT lease FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(survived.length, 1, "the row belongs to whoever holds it now");
+    assertEquals(survived[0].lease, stolen, "and its lease is the new one");
+
+    // Nobody stole it this time, so the worker's own finish clears the row.
+    const quiet = `probe-lease-${uniqueId()}`;
+    handle(quiet, async () => {});
+    await enqueue(quiet);
+    assertEquals(await runOnce(), true, "the second job was picked up");
+    const gone = await database.queryOrThrow<{ id: number }>(
+      `SELECT id FROM jobs WHERE kind = $1`,
+      [quiet],
+    );
+    assertEquals(gone.length, 0, "the lease holder finishes normally");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = ANY($1)`, [[kind, quiet]]);
+  },
+});
+
+// The idempotency table stops growing.
+//
+// A key exists so a retry minutes later gets the same answer; after a day nobody
+// will look one up again. Nothing deleted them until 2026-09-08 — the table was
+// written and read and never swept — so with a client sending keys it grows one
+// row per request, each holding a whole response, for ever.
+Deno.test({
+  name: "old idempotency keys are swept, recent ones are not",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { PRUNE_IDEMPOTENCY, registerScheduledJobs } = await import("../src/lib/scheduled.ts");
+    const { runOnce } = await import("../src/lib/jobs.ts");
+    // The handlers are registered at start-up in main.ts; a suite that only
+    // imports the module has none, and runOnce would quietly find no handler.
+    registerScheduledJobs();
+    const stale = `stale-${uniqueId()}`;
+    const fresh = `fresh-${uniqueId()}`;
+
+    await database.queryOrThrow(
+      `INSERT INTO idempotency (key, brand, response, created_at)
+       VALUES ($1, 'alpha', '{"ok":true}'::jsonb, now() - interval '3 days'),
+              ($2, 'alpha', '{"ok":true}'::jsonb, now())`,
+      [stale, fresh],
+    );
+
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, '{}'::jsonb, now())`,
+      [PRUNE_IDEMPOTENCY],
+    );
+    await runOnce();
+
+    const left = await database.queryOrThrow<{ key: string }>(
+      `SELECT key FROM idempotency WHERE key IN ($1, $2)`,
+      [stale, fresh],
+    );
+    const keys = left.map((row) => row.key);
+    assert(!keys.includes(stale), "a three-day-old key must be gone");
+    assert(keys.includes(fresh), "today's key must survive — that is what it is for");
+
+    await database.queryOrThrow(`DELETE FROM idempotency WHERE key = $1`, [fresh]);
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_IDEMPOTENCY]);
   },
 });

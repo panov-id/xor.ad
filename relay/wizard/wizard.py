@@ -26,7 +26,7 @@ the one whose absence makes a prod deploy fail with the wrong explanation.
   provider   HETZNER_TOKEN (or the provider in use)
   ssh        SSH_PUBLIC_KEY
   node       SESSION_SECRET_DEV / _STAGING / _PROD (one per environment,
-             never shared), POSTGRES_PASSWORD, ORIGIN_TOKEN
+             never shared), POSTGRES_PASSWORD, ORIGIN_TOKEN, METRICS_TOKEN
   images     GHCR_USER, GHCR_TOKEN
   prod gate  GITHUB_TOKEN — read access to the release repo. Without it the
              release check cannot tell "no such release" from "private repo,
@@ -189,6 +189,11 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # every environment until the prod switch — and empty means the node
         # never trusts a header, which is the safe default rather than a gap.
         "ORIGIN_TOKEN": os.environ.get("ORIGIN_TOKEN", ""),
+        # What it takes to read GET /metrics. Empty means the endpoint answers
+        # 404 to everybody — the default, because nothing scrapes it today and
+        # open it handed the brand names and per-tenant request volumes to
+        # anyone who knew the path.
+        "METRICS_TOKEN": os.environ.get("METRICS_TOKEN", ""),
     }
     if uses_database(inv, box):
         # Reached by service name on the compose network; the password is the

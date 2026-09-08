@@ -17,6 +17,37 @@ import { sendSmtp } from "./smtp.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
 
+// What a rejected send is allowed to say in a log line.
+//
+// The whole provider body used to go in, five hundred characters of it, at
+// error level — and error lines are copied to storage and kept for a year
+// (tools/prune_objects.ts, "server-logs"). Resend quotes the request back when
+// it complains: `Invalid \`to\` field` arrives with the address in it, so one
+// mistyped recipient put somebody's email address in a year-long log, and a
+// provider outage put every recipient of the retry storm there.
+//
+// The machine-readable `name` is what a reader actually acts on — a
+// `validation_error` and a `rate_limit_exceeded` need different things done —
+// and it carries no addresses, because it is a code from a fixed list.
+async function providerFault(res: Response): Promise<string> {
+  try {
+    const body = await res.json();
+    const name = (body as { name?: unknown })?.name;
+    return typeof name === "string" ? name : "unnamed";
+  } catch {
+    // Not JSON at all: a gateway's HTML error page, or nothing. Neither is worth
+    // quoting, and both are described well enough by the status beside this.
+    return "unreadable";
+  }
+}
+
+// Anything built from an exception may still have travelled through a message
+// somebody else wrote. Addresses are the one thing that must not survive into a
+// stored log line, so they are removed by shape rather than by trust.
+export function withoutAddresses(text: string): string {
+  return text.replace(/[\w.+-]+@[\w.-]+\.\w+/g, "<address>");
+}
+
 async function viaResend(
   from: string, to: string, subject: string, html: string, text: string, brandKey: string,
 ) {
@@ -34,7 +65,7 @@ async function viaResend(
       transport: "resend",
       status: res.status,
       brand: brandKey,
-      response: (await res.text()).slice(0, 500),
+      fault: await providerFault(res),
     });
   }
 }
@@ -68,7 +99,7 @@ async function sendPanelMail(
     body: JSON.stringify({ from: config.panel.sender, to: [to], subject, html, text }),
   });
   if (!res.ok) {
-    throw new Error(`panel mail rejected: ${res.status} ${(await res.text()).slice(0, 500)}`);
+    throw new Error(`panel mail rejected: ${res.status} ${await providerFault(res)}`);
   }
 }
 
@@ -98,7 +129,7 @@ export async function sendPanelLink(to: string, link: string): Promise<void> {
     // where an operator will actually look instead.
     log("error", "panel sign-in mail rejected", {
       transport: config.mail.transport,
-      error: String(error),
+      error: withoutAddresses(String(error)),
     });
   }
 }
@@ -150,7 +181,7 @@ export async function sendWelcome(
     inc("relay_mail_total", { transport: config.mail.transport, result: "sent" });
   } catch (e) {
     inc("relay_mail_total", { transport: config.mail.transport, result: "failed" });
-    log("error", "welcome mail failed", { error: String(e) });
+    log("error", "welcome mail failed", { error: withoutAddresses(String(e)) });
   }
 }
 
@@ -503,7 +534,7 @@ async function deliver(
     return true;
   } catch (e) {
     inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind: "dsa" });
-    log("error", "dsa mail failed", { error: String(e), subject });
+    log("error", "dsa mail failed", { error: withoutAddresses(String(e)), subject });
     return false;
   }
 }

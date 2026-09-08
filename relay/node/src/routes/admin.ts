@@ -49,6 +49,9 @@ import {
 import { usedToday } from "../lib/quota.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { config } from "../config.ts";
+import { clientAddress } from "../lib/client_ip.ts";
+import { checkAll, SIGN_IN_LIMITS, SIGN_IN_MAILBOX_LIMITS } from "../lib/rate_limit.ts";
+import { sha256hex as hashForLimit } from "../lib/hash.ts";
 
 // Load every object under a prefix (small collections; leads are in the low
 // hundreds). Returns parsed records, dropping any that failed to read.
@@ -212,7 +215,31 @@ function readWindow(url: URL): LogWindow | null {
 
 route("POST", "/auth/request-link", async ({ req }) => {
   const body = await readJson<{ email?: string }>(req);
-  if (body?.email) await requestMagicLink(body.email);
+
+  // The caller's own ceiling is allowed to say 429: it reveals nothing about who
+  // is a member, only that this address is asking too often.
+  const { ip } = clientAddress(req);
+  const caller = checkAll(SIGN_IN_LIMITS, ip);
+  if (!caller.allowed) {
+    return json(
+      { error: "too many sign-in requests from here — try later" },
+      429,
+      { "retry-after": String(caller.retryAfterSeconds) },
+    );
+  }
+
+  if (body?.email) {
+    // The mailbox ceiling answers 204 like everything else on this route. A 429
+    // here would say "this address is worth rate-limiting", which is the
+    // membership fact the whole route exists to keep quiet — and the person
+    // being flooded is not the one asking, so there is nobody to inform.
+    // Hashed, because the limiter's keys live in memory as plain strings and an
+    // operator's address does not need to be one of them.
+    const mailbox = await hashForLimit(body.email.trim().toLowerCase());
+    if (checkAll(SIGN_IN_MAILBOX_LIMITS, mailbox).allowed) {
+      await requestMagicLink(body.email);
+    }
+  }
   return new Response(null, { status: 204 }); // always 204, no body — never reveal membership
 });
 

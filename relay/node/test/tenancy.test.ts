@@ -701,3 +701,100 @@ tenancy({
     assertEquals((await magicTokensFor("unreachable@beta.test")).length, 0);
   },
 });
+
+// --- what bounds the sign-in route --------------------------------------------
+//
+// It answers 204 to everything and drops an object per request, which made it
+// both the cheapest route to hammer and a way to fill somebody's inbox with
+// letters they did not ask for. Two ceilings, and they are not interchangeable:
+// one counts the caller, one counts the mailbox being asked for, because
+// rotating an address is free and the mail bomb survives it.
+
+async function requestLink(email: string, address = "203.0.113.20"): Promise<number> {
+  const url = new URL("https://relay.test/auth/request-link");
+  const found = match("POST", url.pathname);
+  assert(found);
+  const response = await found.h({
+    req: new Request(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-forwarded-for": address },
+      body: JSON.stringify({ email }),
+    }),
+    params: found.params,
+    url,
+  });
+  return response.status;
+}
+
+tenancy({
+  name: "a flood of sign-in requests is refused by address",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset, SIGN_IN_LIMITS } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const address = "203.0.113.21";
+    // Different mailboxes each time, so it is the caller's ceiling being met and
+    // not the mailbox one standing in for it.
+    for (let i = 0; i < SIGN_IN_LIMITS[0].max; i++) {
+      assertEquals(await requestLink(`nobody${i}@alpha.test`, address), 204);
+    }
+    assertEquals(
+      await requestLink("nobody@alpha.test", address),
+      429,
+      "the caller's own ceiling may say so out loud: it reveals no membership",
+    );
+    reset();
+  },
+});
+
+tenancy({
+  name: "a mail bomb into one inbox stops, and says nothing about it",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset, SIGN_IN_MAILBOX_LIMITS } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const target = "boss@alpha.test";
+    const allowed = SIGN_IN_MAILBOX_LIMITS[0].max;
+    // A rotating address, which is what an attacker has and costs nothing.
+    for (let i = 0; i < allowed + 5; i++) {
+      assertEquals(
+        await requestLink(target, `198.51.100.${i}`),
+        204,
+        "the answer never changes — a 429 here would confirm the address is worth limiting",
+      );
+    }
+    const tokens = await magicTokensFor(target);
+    assertEquals(
+      tokens.length,
+      allowed,
+      `only ${allowed} letters should have been sent, not ${allowed + 5}`,
+    );
+    reset();
+  },
+});
+
+tenancy({
+  name: "sign-in links that were never clicked do not stay for ever",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    const { pruneMagicLinks } = await import("../src/lib/auth.ts");
+    reset();
+    assertEquals(await requestLink("boss@alpha.test"), 204);
+    assertEquals((await magicTokensFor("boss@alpha.test")).length, 1);
+
+    // Nothing is due yet: a link minted a moment ago must survive the sweep, and
+    // so must one whose deadline passed within the grace hour.
+    assertEquals((await pruneMagicLinks()).removed, 0, "a live link is not swept");
+    assertEquals((await magicTokensFor("boss@alpha.test")).length, 1);
+
+    // A day later the same object means nothing to anybody.
+    const result = await pruneMagicLinks(Date.now() + 24 * 60 * 60 * 1000);
+    assertEquals(result.removed, 1, "an expired link is swept");
+    assertEquals((await magicTokensFor("boss@alpha.test")).length, 0);
+    reset();
+  },
+});

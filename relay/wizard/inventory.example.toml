@@ -19,6 +19,10 @@
 #   BUNNY_STORAGE_HOST?, RESEND_API_KEY, RESEND_KEYS?, WELCOME_FROM?,
 #   PANEL_SENDER?, SSH_PUBLIC_KEY, SESSION_SECRET, POSTGRES_PASSWORD,
 #   ORIGIN_TOKEN, GHCR_USER, GHCR_TOKEN,
+#   METRICS_TOKEN? — what it takes to read GET /metrics. Unset means the endpoint
+#                   answers 404 to everybody, which is the default: nothing
+#                   scrapes it today, and open it handed the brand names and
+#                   per-tenant request volumes to anyone who knew the path.
 #   GITHUB_TOKEN  — needed only to deploy a public env: the release check reads
 #                   it, and without it a private repo answers 404 and the tag
 #                   looks unpublished when it is not.

@@ -18,6 +18,7 @@ import {
   PAGEVIEW_LIMITS,
   REPORT_LIMITS,
   reset,
+  V1_LIMITS,
   WAITLIST_LIMITS,
 } from "../src/lib/rate_limit.ts";
 import { callerBucket } from "../src/lib/client_ip.ts";
@@ -177,4 +178,54 @@ configured("flooding a cheap limit does not evict a counter at its own limit", (
     false,
     "a reporter at their limit must not get it back because somebody flooded /pageview",
   );
+});
+
+// The v1 surface had no per-address ceiling at all. The daily quota was the only
+// barrier, and it is per key, cached for ten seconds, counted on each node
+// separately — and it switches off entirely when the database is unreachable
+// (lib/quota.ts). So the ceiling disappeared exactly when the node was least
+// able to cope. This one is in memory and does not depend on the database being
+// well, which is the whole reason it exists.
+configured("v1 has a ceiling that does not need the database", () => {
+  reset();
+  assert(V1_LIMITS.length > 0, "/v1/* has no per-address rate limit");
+  const address = "203.0.113.30";
+  for (let i = 0; i < V1_LIMITS[0].max; i++) checkAll(V1_LIMITS, address);
+  assertEquals(checkAll(V1_LIMITS, address).allowed, false, "the ceiling holds");
+  // Another caller is not touched by the first one running into it.
+  assertEquals(checkAll(V1_LIMITS, "203.0.113.31").allowed, true);
+  reset();
+});
+
+// And the route actually consults it. The case above only proves the numbers
+// exist; a limit nobody calls is a constant. This one goes through the router,
+// with no key at all — the refusal must land before authentication, since the
+// point is to refuse a flood without a key lookup each.
+configured("the v1 route refuses a flooding address before it looks at the key", async () => {
+  reset();
+  const { match } = await import("../src/lib/router.ts");
+  await import("../src/routes/v1.ts"); // registers the routes as a side effect
+  const found = match("POST", "/v1/pageview");
+  assert(found, "no route for POST /v1/pageview");
+
+  const address = "203.0.113.32";
+  const call = () =>
+    found.h({
+      req: new Request("https://relay.test/v1/pageview", {
+        method: "POST",
+        headers: { "x-forwarded-for": address },
+      }),
+      params: found.params,
+      url: new URL("https://relay.test/v1/pageview"),
+    });
+
+  // No key, so every one of these is a 401 — and each still counts, which is
+  // the behaviour wanted: unauthorized attempts are exactly what a flood is.
+  const first = await call();
+  assertEquals(first.status, 401, "a keyless call is unauthorized, not refused by the limiter yet");
+  for (let i = 1; i < V1_LIMITS[0].max; i++) await call();
+  const refused = await call();
+  assertEquals(refused.status, 429, "past the ceiling the address is refused");
+  assert(refused.headers.get("retry-after"), "and told when to come back");
+  reset();
 });

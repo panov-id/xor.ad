@@ -1463,3 +1463,77 @@ Deno.test({
     }
   },
 });
+
+// A year-old notice takes its statement with it.
+//
+// The two deletes used to run on their own ages, and `dsa_statements.notice_id`
+// is ON DELETE SET NULL (db/005): a statement younger than a year survived the
+// first delete and had its link nulled by the second. What remained was an
+// Article 17 statement that could not name the notice that produced it — the
+// record kept for defending a decision, with the decision's cause gone.
+Deno.test({
+  name: "pruning a year-old notice removes its statement rather than orphaning it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { pruneDsaRecords } = await import("../tools/prune_dsa_records.ts");
+
+    // Old notice, young statement: the exact pair that used to come apart.
+    const old = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state,
+          created_at)
+       VALUES ('alpha', 'feed_message', NULL, $1, true, 'upheld', 'received',
+               now() - interval '400 days')
+       RETURNING id`,
+      [`aged notice ${uniqueId()}`],
+    );
+    const noticeId = old[0].id;
+    const statement = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_statements
+         (brand, notice_id, target_id, recipient_identity, restriction, facts,
+          ground_kind, ground_text, created_at)
+       VALUES ('alpha', $1, 'x', 'someone', 'removed', 'facts', 'legal', 'ground', now())
+       RETURNING id`,
+      [noticeId],
+    );
+    const statementId = statement[0].id;
+
+    // A young pair that must survive untouched.
+    const fresh = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state)
+       VALUES ('alpha', 'feed_message', NULL, $1, true, 'received', 'received')
+       RETURNING id`,
+      [`fresh notice ${uniqueId()}`],
+    );
+
+    try {
+      await pruneDsaRecords({ apply: true });
+
+      const survived = await database.queryOrThrow<{ id: string; notice_id: string | null }>(
+        `SELECT id, notice_id FROM dsa_statements WHERE id = $1`,
+        [statementId],
+      );
+      assertEquals(
+        survived.length,
+        0,
+        "the statement of a pruned notice must go with it, not stay with a null link",
+      );
+
+      const gone = await database.queryOrThrow<{ id: string }>(
+        `SELECT id FROM dsa_notices WHERE id = $1`,
+        [noticeId],
+      );
+      assertEquals(gone.length, 0, "the year-old notice itself must be gone");
+
+      const kept = await database.queryOrThrow<{ id: string }>(
+        `SELECT id FROM dsa_notices WHERE id = $1`,
+        [fresh[0].id],
+      );
+      assertEquals(kept.length, 1, "a notice younger than a year must survive");
+    } finally {
+      await database.queryOrThrow(`DELETE FROM dsa_notices WHERE id = $1`, [fresh[0].id]);
+    }
+  },
+});

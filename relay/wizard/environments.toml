@@ -13,7 +13,7 @@
 [env.dev]
 access = "private"
 tls = "dns01"
-image_tag = "sha-565bc57"
+image_tag = "sha-6fca231"
 require_api_key = true
 mail = "mailpit"
 allowed_origins = ["https://dev.sosed.panov.id", "https://dev.neighbro.panov.id", "https://dev.xor.panov.id"]

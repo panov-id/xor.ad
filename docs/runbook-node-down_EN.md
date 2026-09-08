@@ -68,8 +68,15 @@ to look is the `warn`/`error` copies in storage.
 ## Step 3. Ask the metrics
 
 ```bash
-curl -sS -m 10 https://<node host>/metrics
+curl -sS -m 10 -H "authorization: Bearer $METRICS_TOKEN" https://<node host>/metrics
 ```
+
+The token is required since 2026-09-08: the endpoint handed the brand names, the
+request volume per route and per tenant to anybody who knew the path. Without a
+valid one the answer is 404 rather than 401 — a 401 would confirm to a stranger
+that the path was right. The value is the node's `METRICS_TOKEN`; if the variable
+is unset on that node the endpoint is closed to everyone and this step is skipped
+— the logs from step 2 are the place to look.
 
 `relay_process_uptime_seconds` is how long the node has been alive. A small
 number means it restarted recently: every counter lives in memory and is zeroed

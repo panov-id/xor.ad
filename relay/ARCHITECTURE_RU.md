@@ -25,7 +25,7 @@ apiUrl (per env, из config.js):
                    └─→ welcome через Resend (ключ аккаунта бренда,
                           from hello@neighbro.place; на dev вместо Resend — Mailpit)
   POST /client-error ─→ Bunny Storage: client-errors/<env>/<uuid>.json
-  GET  /health, /metrics ─→ статус ноды / Prometheus-счётчики
+  GET  /health, /metrics ─→ статус ноды / Prometheus-счётчики (метрики — по токену)
 ```
 
 ## Компоненты

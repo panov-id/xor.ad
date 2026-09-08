@@ -90,6 +90,15 @@ function read() {
     // CDN, which is every node today.
     originToken: env("ORIGIN_TOKEN"),
 
+    // What it takes to read /metrics. The endpoint was open on the node's public
+    // hostname, which was never a decision — /health is deliberately open and
+    // this one simply inherited that; it hands anybody the brand names, request
+    // volumes per route and per tenant, and the mail and quota counters.
+    // Unset means the endpoint answers 404 to everybody: no scraper is
+    // configured against it today, so closed is the honest default, and a 404
+    // does not confirm the route exists.
+    metricsToken: env("METRICS_TOKEN"),
+
     allowedOrigins: env("ALLOWED_ORIGINS")
       .split(",").map((s) => s.trim()).filter(Boolean),
 

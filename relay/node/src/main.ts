@@ -29,7 +29,7 @@ type Handler = (req: Request) => Response | Promise<Response>;
 const routes: Record<string, Handler> = {
   "GET /health": () => health(),
   "GET /ready": () => ready(),
-  "GET /metrics": () => metrics(),
+  "GET /metrics": (req) => metrics(req),
   "POST /waitlist": (req) => waitlist(req),
   "POST /client-error": (req) => clientError(req),
   "POST /pageview": (req) => pageview(req),

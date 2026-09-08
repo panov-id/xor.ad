@@ -14,7 +14,7 @@
 
 | Кусок | Состояние |
 | --- | --- |
-| HTTP-узел | Deno, свой роутер: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /ready`, `GET /metrics` |
+| HTTP-узел | Deno, свой роутер: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /ready`, `GET /metrics` (по токену `METRICS_TOKEN`; без него 404) |
 | Публичный API | `/v1/waitlist`, `/v1/pageview`, `/v1/client-error`, `/v1/me` по секретному ключу |
 | Админские маршруты | `/admin/*`: бренды, ключи, квоты, журналы, уведомления по ст. 16 |
 | Уведомления по ст. 16 | приём, очередь, решение, письма — построено (`docs/dsa/`) |

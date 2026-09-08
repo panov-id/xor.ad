@@ -28,8 +28,18 @@ value_of() {
   grep -E "^$1=" "$root/relay/wizard/secrets.env" 2>/dev/null | head -1 | cut -d= -f2- |
     sed 's/^"//; s/"$//' || true
 }
-zone="$(value_of BUNNY_STORAGE_ZONE)"
-storage_key="$(value_of BUNNY_STORAGE_KEY)"
+# The same choice backup-postgres.sh makes, and it has to be the same one: a
+# drill that looks in the working zone after the dumps moved to their own would
+# report "no dump found" and read as a broken backup rather than a stale drill.
+zone="$(value_of BACKUP_STORAGE_ZONE)"
+storage_key="$(value_of BACKUP_STORAGE_KEY)"
+if [ -n "$zone" ] && [ -n "$storage_key" ]; then
+  echo "== dumps live in their own zone (${zone})"
+else
+  zone="$(value_of BUNNY_STORAGE_ZONE)"
+  storage_key="$(value_of BUNNY_STORAGE_KEY)"
+  echo "== dumps share the working zone (${zone}) — BACKUP_STORAGE_ZONE is not set"
+fi
 host="${BUNNY_STORAGE_HOST:-storage.bunnycdn.com}"
 prefix="backups/${environment}/postgres"
 

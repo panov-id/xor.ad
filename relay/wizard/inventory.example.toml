@@ -18,6 +18,11 @@
 #   HETZNER_TOKEN, BUNNY_API_KEY, BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY,
 #   BUNNY_STORAGE_HOST?, RESEND_API_KEY, RESEND_KEYS?, WELCOME_FROM?,
 #   PANEL_SENDER?, SSH_PUBLIC_KEY, SESSION_SECRET, POSTGRES_PASSWORD,
+#   BACKUP_STORAGE_ZONE?, BACKUP_STORAGE_KEY? — a zone of their own for the
+#                   nightly dumps. Unset means they share the working zone and
+#                   its key, so one leaked key or one mistaken prune takes the
+#                   data and the backups together; the backup script says so on
+#                   every run until the zone exists.
 #   ORIGIN_TOKEN, GHCR_USER, GHCR_TOKEN,
 #   METRICS_TOKEN? — what it takes to read GET /metrics. Unset means the endpoint
 #                   answers 404 to everybody, which is the default: nothing

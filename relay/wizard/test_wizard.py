@@ -232,9 +232,22 @@ wizard.SELECTED_ENVS = ["dev"]
 check("with --env dev, only dev is acted on",
       wizard.acting_envs(box) == ["dev"], str(wizard.acting_envs(box)))
 
+# It used to yield an empty list, and this test used to assert that. An empty
+# list is not "no environments" downstream: the services list comes out empty and
+# `docker compose up -d` with no services recreates every container on the box.
+# So `--env prod` against a box that hosts dev and staging asked for the
+# narrowest thing and did the widest, running no migrations at all. Refusing is
+# the only safe reading of a name that matches nothing (2026-09-08).
 wizard.SELECTED_ENVS = ["prod"]
-check("an environment the box does not host yields nothing to act on",
-      wizard.acting_envs(box) == [], str(wizard.acting_envs(box)))
+try:
+    wizard.acting_envs(box)
+    _refused = ""
+except SystemExit as stop:
+    _refused = str(stop)
+check("an environment the box does not host is refused, not silently widened",
+      "matches nothing on this box" in _refused, _refused or "no refusal at all")
+check("the refusal says what the box does host",
+      "dev, staging" in _refused, _refused)
 
 # The compose file is rendered from the box, not from the selection: a filtered
 # render would delete the other service.

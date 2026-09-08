@@ -201,6 +201,60 @@ export async function sendNoticeReceipt(
   return sent;
 }
 
+// A notice that nobody is told about waits for somebody to open a page.
+//
+// Intake sent a receipt to the notifier and nothing to us: the queue exists, and
+// a moderator finds a report there only by looking. Meanwhile both storefronts
+// promise in public that we examine reports and say what we decided, and the
+// specification sets 72 hours for it. A queue read by chance does not keep a
+// promise with a clock on it — found by a review panel 2026-09-08.
+//
+// What the letter carries is deliberately thin: the reference, what kind of
+// thing it is about, and which queue it landed in. Not the reason text, not the
+// notifier's name or address. Mail is the least private hop in the system, the
+// letter goes to a shared inbox, and everything useful for examining the report
+// is in the panel behind a login.
+export function noticeArrivedBlocks(opts: {
+  id: string | null;
+  kind: string;
+  queue: "platform" | "tenant";
+  receivedVia?: string | null;
+}): Block[] {
+  const reference = opts.id ? opts.id.slice(0, 8) : "—";
+  const where = opts.queue === "platform"
+    ? "It is in the platform queue" +
+      (opts.receivedVia ? ` (filed through ${opts.receivedVia})` : "")
+    : "It is in your queue";
+  return [
+    { kind: "text", value: "A report of illegal content has arrived." },
+    { kind: "reference", value: `Reference: ${reference}` },
+    { kind: "text", value: `About: ${opts.kind.replace(/_/g, " ")}. ${where}.` },
+    {
+      kind: "text",
+      value: "Article 16 gives it a clock: the specification sets 72 hours to examine it " +
+        "and answer. Open the Illegal-content reports page in the panel — the report " +
+        "itself, and whatever copy we hold, are there rather than in this letter.",
+    },
+  ];
+}
+
+// Best-effort, like the receipt: a mail failure must not lose a notice that is
+// already stored. What it must not do is fail silently, so the caller logs.
+export async function sendNoticeArrived(
+  to: string,
+  opts: { id: string | null; kind: string; queue: "platform" | "tenant"; receivedVia?: string | null; brand?: string },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = (opts.brand ? await brandByKey(opts.brand) : undefined) ?? resolveBrand(null);
+  return await deliver(
+    brand,
+    to,
+    `${brand.name}: a report of illegal content is waiting`,
+    "A report is waiting",
+    noticeArrivedBlocks(opts),
+  );
+}
+
 // Article 16(5): the notifier learns what was decided, why, whether a machine
 // took part, and where to go if they disagree. The redress routes are named
 // rather than gestured at — and the one we do not have (a formal internal appeal

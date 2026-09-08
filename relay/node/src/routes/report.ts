@@ -9,8 +9,10 @@
 
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { query } from "../lib/db.ts";
+import { brandByKey } from "../lib/brand_registry.ts";
+import { config } from "../config.ts";
 import { resolveTenantSoft } from "../lib/tenant.ts";
-import { sendNoticeReceipt } from "../lib/mailer.ts";
+import { sendNoticeArrived, sendNoticeReceipt } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { captureTarget } from "../lib/dsa_snapshot.ts";
@@ -266,6 +268,36 @@ export async function report(req: Request): Promise<Response> {
   // actually left.
   if (acknowledged) {
     await query("UPDATE dsa_notices SET acknowledged_at = now() WHERE id = $1", [id]);
+  }
+
+  // Somebody has to be told a report arrived. Until 2026-09-08 the only letter
+  // went to the notifier, and the queue was read whenever a moderator happened
+  // to open it — while both storefronts promise in public that we examine
+  // reports and answer, and the specification puts 72 hours on it.
+  //
+  // The address is the contact point the storefronts publish, `support@<domain>`
+  // (terms §14), so this letter goes where people already write about illegal
+  // content. It carries a reference and nothing else worth keeping out of a
+  // shared inbox — no reason text, no notifier.
+  //
+  // Best-effort, after the receipt and after the row: a mail failure must never
+  // lose a notice, and must never turn a stored report into a 500.
+  try {
+    const owner = examinedBy ? await brandByKey(examinedBy) : null;
+    const face = owner ?? (arrivedVia ? await brandByKey(arrivedVia) : null) ??
+      config.brands[0];
+    const notified = await sendNoticeArrived(`support@${face.domain}`, {
+      id,
+      kind,
+      queue: examinedBy ? "tenant" : "platform",
+      receivedVia: arrivedVia,
+      brand: face.key,
+    });
+    if (!notified) {
+      log("info", "nobody was mailed about this notice", { id, transport: config.mail.transport });
+    }
+  } catch (error) {
+    log("error", "moderator notification not sent", { id, error: String(error) });
   }
 
   return json({ ok: true, id, acknowledged }, 202);

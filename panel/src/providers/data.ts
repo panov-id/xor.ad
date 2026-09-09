@@ -25,7 +25,18 @@ export const dataProvider: DataProvider = {
     if (!res.ok) await fail(res, `list ${resource}`);
     const data = await res.json();
     const total = Number(res.headers.get("x-total-count") ?? data.length);
-    return { data, total };
+    // Counts the server knows and a page cannot work out for itself, carried
+    // beside the rows. `x-platform-count` says how many notices the platform
+    // must decide, across the whole queue rather than across this page — the
+    // difference matters exactly when the queue is too long to fit, which is
+    // when somebody is looking. Absent for every other resource, and absent
+    // until 2026-09-09 for this one, so a missing header is not an error.
+    const platform = res.headers.get("x-platform-count");
+    return {
+      data,
+      total,
+      ...(platform === null ? {} : { meta: { platformCount: Number(platform) } }),
+    };
   },
 
   getOne: async ({ resource, id }) => {

@@ -7,6 +7,8 @@
 // will send anything. What the moderator writes here is what the author reads.
 
 import { useState } from "react";
+import { useGetIdentity } from "@refinedev/core";
+import type { PanelIdentity } from "../../providers/auth";
 import { useList } from "@refinedev/core";
 import { Badge } from "../../components/badge";
 import { DataTable } from "../../components/data-table";
@@ -88,11 +90,20 @@ export const DsaNoticesList = () => {
   });
 
   const [open, setOpen] = useState<Notice | null>(null);
+  // A tenant operator never sees a platform notice: the endpoint adds
+  // `brand = $1` for them, so the platform queue is empty by construction and
+  // offering it is offering a filter that can only ever show nothing.
+  const { data: me } = useGetIdentity<PanelIdentity>();
+  const isPlatform = me?.brand === null || me?.brand === undefined;
   // Which queue is being read; the rule itself is `inQueue` above.
   const [queue, setQueue] = useState<QueueFilter>("all");
 
   const rows = (result?.data ?? []).filter((row) => inQueue(row, queue));
-  const platformCount = (result?.data ?? []).filter((row) => row.brand === null).length;
+  // The server's count over the whole queue, not this page's. Counting the rows
+  // in hand made the number "how many of the first two hundred", which shrinks
+  // as the queue overflows and reads as good news.
+  const platformCount = (query.data as { meta?: { platformCount?: number } } | undefined)
+    ?.meta?.platformCount ?? (result?.data ?? []).filter((row) => row.brand === null).length;
 
   return (
     <div className="panel-card">
@@ -103,6 +114,7 @@ export const DsaNoticesList = () => {
         went. The reporter's name is never shown to the author.
       </p>
 
+      {isPlatform ? (
       <div className="log-controls">
         <label>
           Queue{" "}
@@ -117,6 +129,7 @@ export const DsaNoticesList = () => {
           </select>
         </label>
       </div>
+      ) : null}
 
       <DataTable<Notice>
         columns={[

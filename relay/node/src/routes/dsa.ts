@@ -87,8 +87,27 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
   );
   if (rows === null) return json({ error: "database unavailable" }, 503);
 
-  // A plain array plus the count header: what the panel's data provider reads.
-  return json(rows, 200, { "x-total-count": String(rows.length) });
+  // How many there really are, and how many of those the platform must decide
+  // itself. Counted here rather than over the page: the panel used to count the
+  // rows it had been given, so `x-total-count` was the size of the slice and the
+  // queue picker's number was "how many of the first two hundred" — which shrinks
+  // as the queue overflows and reads as good news. Found by a review lens on
+  // 2026-09-08.
+  const totals = await query<{ total: string; platform: string }>(
+    `SELECT count(*)::text AS total,
+            count(*) FILTER (WHERE brand IS NULL)::text AS platform
+       FROM dsa_notices
+      ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}`,
+    args,
+  );
+  const total = totals?.[0]?.total ?? String(rows.length);
+  const platform = totals?.[0]?.platform ?? "0";
+
+  // A plain array plus the count headers: what the panel's data provider reads.
+  return json(rows, 200, {
+    "x-total-count": total,
+    "x-platform-count": platform,
+  });
 });
 
 interface DecisionBody {

@@ -197,6 +197,20 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
   one: it lives until silence rather than 4:20, it carries no quota at all
   (2026-08-30), and one person may put up any number of tables sharing a centre.
   The exact coordinates stay in the database — the overlap is computed from them.
+- **`table_lines.brand` and `tables.brand` are independent, and nothing holds them
+  equal — decided 2026-09-08.** It stood open from 2026-08-31 as a suspected
+  missing constraint; there should be no constraint there. `brand` on both tables
+  is **attribution only**: on a table it is the face it was set up under, on a
+  line the face its author arrived under, and those are different questions about
+  different people. A neighbour who came through one storefront sits down at a
+  table set up through another — the world is one (§8.3), and a table is seen by
+  intersecting circles, not by a face. A `CHECK (brand = (SELECT brand FROM tables
+  …))` would forbid exactly what shared faces exist for.
+  The price is named: **one table's lines may carry different `brand` values**, so
+  a report of "how much speech under our face" counts such a table once per
+  storefront. That is the right answer — speech did happen under each face — but
+  it reads as "lines", not "tables".
+
 - **`created_by` exists and grants nothing.** Moderation and abuse work need it —
   tables carry no limit at all (2026-08-30), and when a limiter is needed there
   will be nothing to count without this column. It is part of no response. The
@@ -244,13 +258,23 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
   between two. **The sweeper does not exist yet, and neither does the `tables`
   table in the node** — as with identities (§8.2) —
   and that is written down as an open item rather than passed off as done.
-- **Open item: being asked to leave locks nothing.** "The majority of those
-  sitting can ask someone to leave" is not something the schema supports:
-  `table_seats` has `left_at` but no trace of an eviction, and the primary key
-  `(table_id, identity)` means coming back is the same `UPDATE ... SET left_at =
-  NULL`. Either a column is added, or the price is written plainly: an eviction
-  shows someone out, it does not lock the door. To be decided before the first
-  line of a table's code.
+- **Being shown out is not being locked out — decided 2026-09-08.** The schema
+  stays as it is: `table_seats` has `left_at`, no trace of an eviction, and coming
+  back is the same `UPDATE ... SET left_at = NULL`. A "this person may not return"
+  column is deliberately not added — that is a trace about a person, and §1
+  promises no trace is left; the table itself outlives neither party for long, it
+  ends at silence.
+  What guards against an insistent return is already there, and guards harder
+  than it looks: **a block hides the table entirely** (§8.9), and the block check
+  is **symmetric** — one row in either direction is enough. So one person at the
+  table suffices: they block, and the table disappears not only for them but
+  **for the person shown out**, who then has nowhere to come back to. What locks
+  the door is not a "may not return" list but the ordinary block, built for
+  something else and working here without a single new column.
+  The price is accepted and stated plainly: **until somebody blocks, the person
+  shown out returns with the same gesture, as often as they like.** Between the
+  eviction and the block there is a gap, and in it an eviction is a request to
+  leave rather than a lock.
 - **The board is not in the schema.** Board state is transient — in memory,
   encrypted under the conversation key where there is one, never written to the
   database (§8.8). A table stores who is seated and what was said, not where the

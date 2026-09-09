@@ -1,6 +1,6 @@
 # A plan for what is open — 2026-09-08
 
-The registry `docs/facts/open.tsv` holds 33 items and answers "what is open". It
+The registry `docs/facts/open.tsv` holds 20 items and answers "what is open". It
 deliberately does not answer "in what order" — and without that answer the list
 reads as a flat wall where an obligation already running sits beside the app's
 light theme. This document puts them in order and names the price; the items
@@ -98,21 +98,38 @@ be rewritten.
 - **`refusal.texts.readaloud`** — the refusal wordings are not approved until they
   have been read out loud.
 
-## Queue 6 — drift between documents
+## Queue 6 — drift between documents · closed 2026-09-08
 
-Cheap edits, tens of minutes each: `schema.offers.missing`, `feed.span.retired`,
-`table.brand.equality`, `table.eviction`, `identity.cascades`,
-`dsa.platform.queue.filter`.
+Five of the six. The sixth, `identity.cascades`, was not drift at all and moved
+down, to what waits on the product.
 
-They come last not because they do not matter, but because each is caught by eye
-on the next reading of the file it lives in — unlike queues 2–4, where there is
-nothing to notice until it happens.
+- ~~**`schema.offers.missing`**~~ — `offers`, `venues` and `advertisers` are
+  declared as real DDL in `docs/offers/SPEC_EN.md` and entered in the table
+  registry. The snapshot code was reading `offers` by column names no document
+  was answerable for.
+- ~~**`feed.span.retired`**~~ — the journal entry about three chat spans is
+  marked retired: the set in force has had four since 2026-08-26, and both of
+  that entry's arguments are answered in the canon by name. The entry stays as
+  the trace of a decision rather than being erased.
+- ~~**`table.brand.equality`**~~ — nothing should hold them equal, and that is
+  now written as a decision: `brand` is attribution, the world is one, a table is
+  seen by intersecting circles. The price is named: one table's lines may carry
+  different `brand` values.
+- ~~**`table.eviction`**~~ — being shown out is not being locked out. A "may not
+  return" column is not added: that is a trace about a person. What locks is the
+  symmetric block — one person at the table is enough, and it disappears for both
+  sides.
+- ~~**`dsa.platform.queue.filter`**~~ — the notice queue now offers a choice of
+  queue; the `brand IS NULL` rule lives in `inQueue` and is covered by a probe.
 
 ## What the plan leaves out
 
-**Six items that wait on the product** (`product.tables.unmigrated`, `J19`,
-`identity.sweeper`, `table.sweeper`, `G6`, `G9`) are not tasks but consequences of
-there being no chat and no feed yet. They close with the product's own code, and
+**Seven items that wait on the product** (`product.tables.unmigrated`, `J19`,
+`identity.sweeper`, `table.sweeper`, `identity.cascades`, `G6`, `G9`) — the last
+moved here on 2026-09-08 from queue 6: the cascade rule is decided and written
+down, and there is nowhere to apply it, since none of its six tables exist in the
+node's schema. These are not tasks but consequences of there being no chat and no
+feed yet. They close with the product's own code, and
 planning them separately means planning the product.
 
 **Three comfort-weight items** are deferred on purpose and recorded as deferred.

@@ -30,7 +30,14 @@ export interface Job {
   lease: string | null;
 }
 
-type Handler = (payload: Record<string, unknown>) => Promise<void>;
+// A handler may ask to run again by returning when. It must not enqueue its own
+// next run: its row is still in the table at that moment, `jobs_standing` (db/020)
+// refuses the second one, and `enqueue` swallows the refusal — so the chain died
+// silently after a single successful pass. Measured against a live Postgres on
+// 2026-09-08: INSERT, UPDATE locked_until, INSERT → duplicate key. Returning the
+// time instead moves the row this worker already holds, which keeps "one standing
+// job per kind" true by construction rather than by luck.
+type Handler = (payload: Record<string, unknown>) => Promise<void | Date>;
 
 const handlers = new Map<string, Handler>();
 
@@ -98,7 +105,7 @@ export async function enqueueOnce(
   );
   if (rows === null || rows.length > 0) return;
   // The read above is a courtesy, not the guarantee: two nodes starting together
-  // both see nothing and both insert. Since db/018 the database refuses the
+  // both see nothing and both insert. Since db/020 the database refuses the
   // second one through a partial unique index, and a refusal here means somebody
   // else armed the same job a moment ago — which is exactly the outcome wanted,
   // so it is not an error to report.
@@ -136,11 +143,27 @@ async function claim(): Promise<Job | null> {
   return rows?.[0] ?? null;
 }
 
-async function finish(job: Job, error?: unknown): Promise<void> {
+async function finish(job: Job, error?: unknown, again?: Date): Promise<void> {
   // Every write names the lease this worker holds. A worker whose lease expired
   // and was taken by another node changes nothing: the row belongs to whoever
   // holds it now, and finishing somebody else's job is how one prune became two.
   if (error === undefined) {
+    if (again) {
+      // The same row, moved. Never a delete plus an insert: between the two the
+      // kind has no standing job, and a node starting in that gap arms a second
+      // chain — the very thing db/020 exists to prevent.
+      const moved = await query(
+        `UPDATE jobs SET run_at = $3, locked_until = NULL, lease = NULL, attempts = 0
+          WHERE id = $1 AND lease = $2
+          RETURNING id`,
+        [job.id, job.lease, again.toISOString()],
+      );
+      if (moved !== null && moved.length === 0) {
+        // Somebody else holds the row now, so it is their chain to continue.
+        log("warn", "lost the lease before re-arming", { kind: job.kind, id: job.id });
+      }
+      return;
+    }
     await query(`DELETE FROM jobs WHERE id = $1 AND lease = $2`, [job.id, job.lease]);
     return;
   }
@@ -181,8 +204,8 @@ export async function runOnce(): Promise<boolean> {
     return true;
   }
   try {
-    await handler(job.payload ?? {});
-    await finish(job);
+    const again = await handler(job.payload ?? {});
+    await finish(job, undefined, again instanceof Date ? again : undefined);
   } catch (error) {
     await finish(job, error);
   }

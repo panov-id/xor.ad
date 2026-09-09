@@ -1,12 +1,18 @@
 // What the queue is for, so far: keeping the page-view objects inside their
 // retention window without anyone remembering to.
 //
-// The job re-arms itself — it enqueues tomorrow's run as its last act — so the
-// schedule lives in the same table as the work and needs no second mechanism to
-// stay in step with it. A node that never comes back leaves the row claimable by
-// whichever one does.
+// A job re-arms itself by RETURNING tomorrow's time, so the schedule lives in the
+// same table as the work and needs no second mechanism to stay in step with it. A
+// node that never comes back leaves the row claimable by whichever one does.
+//
+// It returns rather than enqueues, and that is not a style choice: enqueueing
+// happens while the handler's own row is still in the table, `jobs_standing`
+// (db/020) refuses the second standing job of that kind, and `enqueue` swallows
+// the refusal. The chain then died after one successful pass, with no error
+// anywhere — found by a review panel on 2026-09-08 and reproduced against a live
+// Postgres before this was changed.
 
-import { enqueue, enqueueOnce, handle } from "./jobs.ts";
+import { enqueueOnce, handle } from "./jobs.ts";
 import { queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
 import { prunePageviews } from "../../tools/prune_pageviews.ts";
@@ -39,13 +45,13 @@ export function registerScheduledJobs(): void {
   handle(PRUNE_OBJECTS, async (payload) => {
     const result = await pruneObjects({ apply: true, only: payload.only as string | undefined });
     log("info", "pruned stored objects", { ...result, skipped: result.skipped.join(",") });
-    await enqueue(PRUNE_OBJECTS, payload, new Date(Date.now() + A_DAY_MS));
+    return new Date(Date.now() + A_DAY_MS);
   });
 
   handle(PRUNE_DSA, async (payload) => {
     const result = await pruneDsaRecords({ apply: true });
     log("info", "pruned DSA records", { ...result });
-    await enqueue(PRUNE_DSA, payload, new Date(Date.now() + A_DAY_MS));
+    return new Date(Date.now() + A_DAY_MS);
   });
 
   handle(PRUNE_IDEMPOTENCY, async (payload) => {
@@ -58,21 +64,21 @@ export function registerScheduledJobs(): void {
        SELECT count(*)::text AS count FROM gone`,
     );
     log("info", "pruned idempotency keys", { deleted: Number(rows[0]?.count ?? 0) });
-    await enqueue(PRUNE_IDEMPOTENCY, payload, new Date(Date.now() + A_DAY_MS));
+    return new Date(Date.now() + A_DAY_MS);
   });
 
   handle(PRUNE_MAGIC, async (payload) => {
     await pruneMagicLinks();
-    await enqueue(PRUNE_MAGIC, payload, new Date(Date.now() + A_DAY_MS));
+    return new Date(Date.now() + A_DAY_MS);
   });
 
   handle(PRUNE_PAGEVIEWS, async (payload) => {
     const days = typeof payload.days === "number" ? payload.days : undefined;
     const result = await prunePageviews({ days, apply: true });
     log("info", "pruned page views", { ...result });
-    // Tomorrow's run is scheduled after this one succeeded. A failure retries on
-    // the queue's own backoff instead of skipping a day.
-    await enqueue(PRUNE_PAGEVIEWS, payload, new Date(Date.now() + A_DAY_MS));
+    // Tomorrow's run is asked for only after this one succeeded. A failure
+    // retries on the queue's own backoff instead of skipping a day.
+    return new Date(Date.now() + A_DAY_MS);
   });
 }
 

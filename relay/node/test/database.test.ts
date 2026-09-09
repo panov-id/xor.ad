@@ -1836,3 +1836,56 @@ Deno.test({
     await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_IDEMPOTENCY]);
   },
 });
+
+// The chain has to survive its own first success.
+//
+// Every prune re-arms tomorrow's run, and it used to do that with an `enqueue`
+// from inside the handler — while its own row was still in the table, holding
+// `locked_until = now() + 10 minutes`, which puts it squarely in the
+// `jobs_standing` index (db/020). Postgres refused the second row, `enqueue`
+// swallowed the refusal because `query` swallows everything, and `finish` then
+// deleted the row. So the daily chain died after ONE successful pass, silently,
+// for all five prunes — including the one that deletes operators' email
+// addresses. Found by three review lenses on 2026-09-08 and reproduced against
+// this database before the fix.
+Deno.test({
+  name: "a daily job is still standing after it has run",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { handle, enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    const kind = `probe-chain-${uniqueId()}`;
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    let runs = 0;
+    handle(kind, async () => {
+      runs += 1;
+      return tomorrow;
+    });
+
+    await enqueue(kind);
+    assertEquals(await runOnce(), true, "the job was picked up");
+    assertEquals(runs, 1, "and the handler ran");
+
+    const standing = await database.queryOrThrow<
+      { run_at: string; locked_until: string | null; lease: string | null; attempts: number }
+    >(
+      `SELECT run_at, locked_until, lease, attempts FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(standing.length, 1, "exactly one row stands: not zero, and not two");
+    assert(
+      new Date(standing[0].run_at).getTime() > Date.now() + 23 * 60 * 60 * 1000,
+      "and it is due tomorrow, not now",
+    );
+    assertEquals(standing[0].locked_until, null, "claimable again");
+    assertEquals(standing[0].lease, null, "by whichever node gets there");
+    assertEquals(standing[0].attempts, 0, "with a fresh count, so a long chain never gives up");
+
+    // And nothing is left holding it: the very next claim finds it only when due.
+    assertEquals(await runOnce(), false, "tomorrow's run does not happen today");
+    assertEquals(runs, 1);
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});

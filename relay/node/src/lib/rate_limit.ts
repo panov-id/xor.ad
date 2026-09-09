@@ -93,10 +93,13 @@ export const CLIENT_ERROR_LIMITS: Limit[] = [
 
 // Sign-in links. Two things are being protected and they are not the same one.
 //
-// SIGN_IN_LIMITS counts the caller's address: a script asking for links is
-// spending storage — every request drops an object holding an operator's email
-// in clear — and the answer is always 204, which makes the route the cheapest
-// one to hammer.
+// SIGN_IN_LIMITS counts the caller's address. The route answers 204 to everything
+// and does a storage read per request, so it is cheap to hammer and says nothing
+// back. (An earlier version of this comment claimed every request drops an
+// object holding an operator's address; it does not — `requestMagicLink` returns
+// before minting anything unless the address really belongs to an operator.
+// Corrected 2026-09-08 by a review panel; the numbers were never derived from
+// that claim.)
 //
 // SIGN_IN_MAILBOX_LIMITS counts the address being asked for, because rotating
 // the caller's IP is free and the harm that survives it is a mail bomb into one
@@ -107,9 +110,13 @@ export const SIGN_IN_LIMITS: Limit[] = [
   { name: "sign-in-day", max: 60, windowMs: DAY },
 ];
 
+// One window, not two, and deliberately: a daily ceiling on a mailbox is a way
+// to keep an operator out of the panel for a day, and the person who wants that
+// only needs to know an address that is usually published as a contact point.
+// An hour is long enough that a flood is not a flood and short enough that a
+// legitimate operator waits minutes rather than until tomorrow.
 export const SIGN_IN_MAILBOX_LIMITS: Limit[] = [
   { name: "sign-in-mailbox", max: 6, windowMs: HOUR },
-  { name: "sign-in-mailbox-day", max: 20, windowMs: DAY },
 ];
 
 // The v1 surface had no per-address limit at all: the only barrier was the daily

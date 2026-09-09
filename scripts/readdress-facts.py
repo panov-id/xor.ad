@@ -122,6 +122,24 @@ def noise_locate(fields: dict, address: str):
     return (target, find_by_anchor(target, anchor)), None
 
 
+def decisions_locate(fields: dict, address: str):
+    """The decisions registry carries the decided line itself, in `subject_ru`.
+
+    Left out of this tool until 2026-09-09, and that day showed the cost: three
+    decisions recorded in the morning pointed at lines that an afternoon's edits
+    had moved by twenty-seven, and `check-facts-decisions.sh` did not notice —
+    it compares dates, not addresses. A registry whose addresses nobody checks is
+    a registry that quietly stops being an index.
+    """
+    anchor = fields.get("subject_ru", "")
+    if not anchor:
+        return None, "нет предмета: колонка subject_ru пуста"
+    target = resolve(address.rsplit(":", 1)[0])
+    if target is None:
+        return None, "адрес указывает на файл, которого нет"
+    return (target, find_by_anchor(target, anchor)), None
+
+
 def schema_locate(fields: dict, address: str):
     target = resolve(address.rsplit(":", 1)[0])
     if target is None:
@@ -133,6 +151,7 @@ REGISTRIES = [
     Registry("open", "docs/facts/open.tsv", "where", open_locate, "FACTS_OPEN"),
     Registry("schema", "docs/facts/schema.tsv", "declared_in", schema_locate, "FACTS_SCHEMA"),
     Registry("noise", "docs/facts/noise-numbers.tsv", "example", noise_locate, "FACTS_NOISE"),
+    Registry("decisions", "docs/facts/decisions.tsv", "ru", decisions_locate, "FACTS_DECISIONS"),
 ]
 
 

@@ -197,6 +197,33 @@ configured("v1 has a ceiling that does not need the database", () => {
   reset();
 });
 
+// One tenant's flood must not silence another tenant's clients.
+//
+// The v1 ceiling was first written against the bare address, which put every
+// tenant's clients behind one carrier-grade NAT or one cloud egress into a
+// single bucket — and let a stranger with no key at all spend 1200 an hour on
+// somebody's outbound address and shut their API off. The rule client_ip.ts
+// already states for the public routes applies here too, and `callerBucket`
+// only inspects the shape of the key, so it stays before authentication.
+configured("v1 counts the address and the key together, as the public routes do", () => {
+  reset();
+  const address = "203.0.113.33";
+  const request = (key: string | null) =>
+    new Request("https://relay.test/v1/pageview", {
+      method: "POST",
+      headers: { "x-forwarded-for": address, ...(key ? { "x-api-key": key } : {}) },
+    });
+
+  const noisy = callerBucket(request(KEY_A));
+  for (let i = 0; i < V1_LIMITS[0].max; i++) checkAll(V1_LIMITS, noisy);
+  assertEquals(checkAll(V1_LIMITS, noisy).allowed, false, "the noisy caller is stopped");
+
+  // Same address, another tenant's key, and a keyless caller: untouched.
+  assertEquals(checkAll(V1_LIMITS, callerBucket(request(KEY_B))).allowed, true);
+  assertEquals(checkAll(V1_LIMITS, callerBucket(request(null))).allowed, true);
+  reset();
+});
+
 // And the route actually consults it. The case above only proves the numbers
 // exist; a limit nobody calls is a constant. This one goes through the router,
 // with no key at all — the refusal must land before authentication, since the
@@ -227,5 +254,24 @@ configured("the v1 route refuses a flooding address before it looks at the key",
   const refused = await call();
   assertEquals(refused.status, 429, "past the ceiling the address is refused");
   assert(refused.headers.get("retry-after"), "and told when to come back");
+
+  // And it is the caller's bucket the route spends, not the bare address: the
+  // same address wearing another tenant's key still gets through. Without this
+  // the route could quietly go back to counting addresses and every case above
+  // would stay green.
+  const withKey = async (key: string) =>
+    (await found.h({
+      req: new Request("https://relay.test/v1/pageview", {
+        method: "POST",
+        headers: { "x-forwarded-for": address, "x-api-key": key },
+      }),
+      params: found.params,
+      url: new URL("https://relay.test/v1/pageview"),
+    })).status;
+  assertEquals(
+    await withKey(KEY_A),
+    401,
+    "another tenant's caller on the same address is not refused by the limiter",
+  );
   reset();
 });

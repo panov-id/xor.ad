@@ -50,8 +50,7 @@ import { usedToday } from "../lib/quota.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { config } from "../config.ts";
 import { clientAddress } from "../lib/client_ip.ts";
-import { checkAll, SIGN_IN_LIMITS, SIGN_IN_MAILBOX_LIMITS } from "../lib/rate_limit.ts";
-import { sha256hex as hashForLimit } from "../lib/hash.ts";
+import { checkAll, SIGN_IN_LIMITS } from "../lib/rate_limit.ts";
 
 // Load every object under a prefix (small collections; leads are in the low
 // hundreds). Returns parsed records, dropping any that failed to read.
@@ -228,18 +227,10 @@ route("POST", "/auth/request-link", async ({ req }) => {
     );
   }
 
-  if (body?.email) {
-    // The mailbox ceiling answers 204 like everything else on this route. A 429
-    // here would say "this address is worth rate-limiting", which is the
-    // membership fact the whole route exists to keep quiet — and the person
-    // being flooded is not the one asking, so there is nobody to inform.
-    // Hashed, because the limiter's keys live in memory as plain strings and an
-    // operator's address does not need to be one of them.
-    const mailbox = await hashForLimit(body.email.trim().toLowerCase());
-    if (checkAll(SIGN_IN_MAILBOX_LIMITS, mailbox).allowed) {
-      await requestMagicLink(body.email);
-    }
-  }
+  // The mailbox ceiling lives inside requestMagicLink, past the membership
+  // check: charged here it would have let anybody spend a named operator's
+  // budget and lock them out of the panel.
+  if (body?.email) await requestMagicLink(body.email);
   return new Response(null, { status: 204 }); // always 204, no body — never reveal membership
 });
 

@@ -40,6 +40,7 @@ import argparse
 import os
 import re
 import shlex
+import uuid
 import sys
 import tomllib
 from pathlib import Path
@@ -576,37 +577,64 @@ def firewall(client, inv: dict, box: dict, sudo: bool) -> None:
     # `enable` — the trap runs it even when a rule fails, so a bad address costs
     # that one rule rather than the whole firewall. Losing the connection now
     # costs the *report*, not the boundary.
+    # A token this run and no other. The check below used to look only for a
+    # non-empty state file, which every box has after its first configure — so on
+    # the second run it read YESTERDAY's "Status: active" and called the run a
+    # success no matter what happened. Found by a review panel on 2026-09-08.
+    run_id = uuid.uuid4().hex
+
     script = "\n".join([
         "#!/bin/bash",
         "# Written by the wizard. The firewall must end up enabled whatever else",
         "# happens in here, which is what the trap is for.",
-        "trap 'ufw --force enable; ufw status verbose > /var/log/relay-firewall.state 2>&1' EXIT",
+        "umask 077",
+        # A firewall that came up with no way in is worse than one that came up
+        # late: recovery is a provider console, not ssh. So the trap enables only
+        # when a rule for 22 actually landed, and otherwise says so — the wizard
+        # reads this same file and refuses either way.
+        "report() { { echo \"run=" + run_id + "\"; ufw status verbose; } "
+        "> /var/log/relay-firewall.state 2>&1; }",
+        "trap 'if ufw show added 2>/dev/null | grep -q \"port 22\"; then ufw --force enable; "
+        "else echo \"REFUSED: no rule for port 22 — not enabling\" >&2; fi; report' EXIT",
         "set -x",
         "ufw --force reset",
         *rules,
         "",
     ])
+    # Not through /tmp. It is world-writable, the file was written 0644, and in
+    # the no-sudo branch it was executed as root straight from there — a local
+    # account that creates the path first owns it and rewrites what root runs.
+    target = f"{REMOTE_ROOT}/relay-firewall.sh"
+    sh(client, f"mkdir -p {REMOTE_ROOT} && chmod 700 {REMOTE_ROOT}", sudo=sudo)
     sftp = client.open_sftp()
     try:
-        _write_remote(sftp, "/tmp/relay-firewall.sh", script)
+        _write_remote(sftp, target, script, mode=0o700)
     finally:
         sftp.close()
-    if sudo:
-        sh(client, "mv /tmp/relay-firewall.sh /root/relay-firewall.sh", sudo=True)
-        target = "/root/relay-firewall.sh"
-    else:
-        target = "/tmp/relay-firewall.sh"
     # setsid + nohup: the script outlives this channel. `wait` afterwards is a
     # separate command, so a lost connection loses the wait and not the work.
     sh(client, f"setsid nohup bash {target} > /var/log/relay-firewall.log 2>&1 < /dev/null &",
        sudo=sudo)
+    # Wait for THIS run's report, not for any file that happens to be there.
     state = sh_out_sudo(client, "for i in $(seq 1 30); do "
-                                "[ -s /var/log/relay-firewall.state ] && break; sleep 1; done; "
+                                f"grep -q 'run={run_id}' /var/log/relay-firewall.state "
+                                "2>/dev/null && break; sleep 1; done; "
                                 "cat /var/log/relay-firewall.state 2>/dev/null", sudo)
+    if f"run={run_id}" not in state:
+        # Two different things, and they used to be reported as one. This is
+        # "ufw did not answer in time", which may well mean it is still working.
+        raise RuntimeError(
+            "the firewall script did not report within 30s on this box. It may still "
+            "be running, or it may have died — check `ufw status verbose` and "
+            f"/var/log/relay-firewall.log there before assuming either. Last report:\n"
+            f"{state or '(nothing)'}"
+        )
     if "Status: active" not in state:
+        # And this is "ufw answered, and it is down".
         raise RuntimeError(
             "the firewall did not come back up on this box — it is reachable and "
-            f"unprotected right now. What ufw reports:\n{state or '(nothing)'}"
+            f"unprotected right now. See /var/log/relay-firewall.log there. "
+            f"What ufw reports:\n{state}"
         )
     print(f"      firewall: ssh<-{ssh_wl}  443<-{'ANY' if public else allow443}  (active)")
 

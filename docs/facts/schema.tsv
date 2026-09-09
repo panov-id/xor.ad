@@ -24,31 +24,40 @@
 # реестре, таблица реестра с миграцией обязана в ней найтись, а объявленная в
 # документе — найтись в этом документе.
 #
+#
+# 08.09.2026: три таблицы спеки офферов внесены в реестр. offers обращался
+# код снимка (relay/node/src/lib/dsa_snapshot.ts) по именам колонок, а ни один
+# документ её не объявлял — снимок по уведомлению об оффере опирался на имена,
+# за которые никто не отвечал. Вместе с ней внесены venues и advertisers: без
+# них ссылка venue_id вела бы в пустоту, и реестр был бы полон ровно наполовину.
 table	declared_in	migration	layer
+advertisers	docs/offers/SPEC_RU.md:214	-	product
 api_keys	-	relay/node/db/001_control_state.sql	control
-blocks	docs/chat_RU.md:1524	-	product
+blocks	docs/chat_RU.md:1548	-	product
 brands	-	relay/node/db/001_control_state.sql	control
-chat_key_wraps	docs/chat_RU.md:1732	-	product
-chat_participants	docs/chat_RU.md:1390	-	product
-chat_starters	docs/chat_RU.md:1399	-	product
-chats	docs/chat_RU.md:1381	-	product
+chat_key_wraps	docs/chat_RU.md:1756	-	product
+chat_participants	docs/chat_RU.md:1414	-	product
+chat_starters	docs/chat_RU.md:1423	-	product
+chats	docs/chat_RU.md:1405	-	product
 dsa_notices	-	relay/node/db/005_dsa_notices.sql	control
 dsa_statements	-	relay/node/db/005_dsa_notices.sql	control
-feed_messages	docs/chat_RU.md:831	-	product
-hidden_messages	docs/chat_RU.md:1549	-	product
+feed_messages	docs/chat_RU.md:855	-	product
+hidden_messages	docs/chat_RU.md:1573	-	product
 idempotency	-	relay/node/db/001_control_state.sql	control
-identities	docs/chat_RU.md:323	-	product
-identity_stats	docs/chat_RU.md:1206	-	product
+identities	docs/chat_RU.md:347	-	product
+identity_stats	docs/chat_RU.md:1230	-	product
 jobs	-	relay/node/db/001_control_state.sql	control
-legal_acceptances	docs/chat_RU.md:344	-	product
-likes	docs/chat_RU.md:1199	-	product
-match_participants	docs/chat_RU.md:1278	-	product
-matches	docs/chat_RU.md:1270	-	product
+legal_acceptances	docs/chat_RU.md:368	-	product
+likes	docs/chat_RU.md:1223	-	product
+match_participants	docs/chat_RU.md:1302	-	product
+matches	docs/chat_RU.md:1294	-	product
+offers	docs/offers/SPEC_RU.md:308	-	product
 pageview_daily	-	relay/node/db/001_control_state.sql	control
 quota_counters	-	relay/node/db/001_control_state.sql	control
 schema_migrations	-	relay/node/db/001_control_state.sql	control
-sessions	docs/chat_RU.md:533	-	product
+sessions	docs/chat_RU.md:557	-	product
 table_lines	docs/chat_RU.md:176	-	product
 table_seats	docs/chat_RU.md:166	-	product
 tables	docs/chat_RU.md:151	-	product
-vault_shares	docs/chat_RU.md:670	-	product
+vault_shares	docs/chat_RU.md:694	-	product
+venues	docs/offers/SPEC_RU.md:245	-	product

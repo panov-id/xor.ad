@@ -1687,8 +1687,16 @@ mistaken for a loss.
       `docs/retired-terms.txt` so it cannot creep back; the check was broken
       against it and repaired — the rule catches.
 
-      **And a fifth, the same day — the set of chat spans.** Three stay: 20
-      minutes, 1 hour, 4:20; there will be no fourth, neither below nor above.
+      **And a fifth, the same day — the set of chat spans. RETIRED 2026-08-26;
+      what follows is what was decided then, not what holds now.** The set in
+      force has four — 10 minutes, 30 minutes, an hour, "while we talk"
+      (`chat_EN.md` §5) — and both arguments below are answered there by name: the
+      `min(20 minutes, span / 3)` counter was replaced by a quarter of the span,
+      and "the smaller of the two" no longer exists, since each side governs only
+      its own. The entry stays as the trace of a decision rather than as a rule;
+      marked 2026-09-08, when the open registry brought it up against the canon.
+      What was retired: three stay — 20 minutes, 1 hour, 4:20; there will be no
+      fourth, neither below nor above.
       Anything shorter than 20 minutes breaks the silence counter it comes with —
       at `min(20 minutes, span / 3)` a five-minute chat would start counting down
       after 1 minute 40 seconds, and since the smaller of the two applies, one

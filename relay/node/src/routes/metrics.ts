@@ -1,6 +1,7 @@
 import { render } from "../lib/metrics.ts";
 import { config } from "../config.ts";
 import { json } from "../lib/http.ts";
+import { inc } from "../lib/metrics.ts";
 
 // Prometheus scrape endpoint, behind a shared token.
 //
@@ -19,13 +20,32 @@ import { json } from "../lib/http.ts";
 // so closed is the honest default — and 404 rather than 401, because a 401 tells
 // a guesser the path was right.
 export function metrics(req: Request): Response {
+  // Refusals are counted, because main.ts leaves /metrics out of the request log
+  // and the request counter entirely — that exclusion was written for the
+  // successful scrape, and it meant a million guesses at the token left no line
+  // and no number anywhere. The counter is read by the scrape itself, so it
+  // costs nothing and creates no loop.
   const expected = config.metricsToken;
-  if (!expected) return json({ error: "not found" }, 404);
+  if (!expected) {
+    inc("relay_metrics_auth_total", { result: "unconfigured" });
+    return json({ error: "not found" }, 404);
+  }
   const presented = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ??
     req.headers.get("x-metrics-token")?.trim() ?? "";
-  if (!safeEqual(presented, expected)) return json({ error: "not found" }, 404);
+  if (!safeEqual(presented, expected)) {
+    inc("relay_metrics_auth_total", { result: "denied" });
+    return json({ error: "not found" }, 404);
+  }
+  inc("relay_metrics_auth_total", { result: "served" });
   return new Response(render(), {
-    headers: { "content-type": "text/plain; version=0.0.4; charset=utf-8" },
+    headers: {
+      "content-type": "text/plain; version=0.0.4; charset=utf-8",
+      // The answer depends on a request header, so a shared cache must not treat
+      // one reader's response as everybody's (RFC 9111 §4.1). `no-store` because
+      // there is nothing here worth reusing anyway.
+      "cache-control": "no-store",
+      "vary": "authorization, x-metrics-token",
+    },
   });
 }
 

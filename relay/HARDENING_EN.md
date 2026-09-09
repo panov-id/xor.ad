@@ -11,7 +11,7 @@ to `SPEC_{EN,RU}.md` (architecture) and `RELEASE_{EN,RU}.md` (delivery).
   **cosign** keyless signature; **Trivy** vulnerability scan (HIGH/CRITICAL,
   report). Deps pinned via **`deno.lock`**.
 - **Observability (node):** structured **JSON logs** (level/msg/fields, node, env,
-  request id) → ready for Loki/ELK; **`GET /metrics`** Prometheus counters
+  request id) → ready for Loki/ELK; **`GET /metrics`** Prometheus counters, token-gated by `METRICS_TOKEN`
   (`relay_requests_total`, `relay_waitlist_total`, `relay_mail_total`); an
   `x-request-id` on every response.
 - **Access/security (see SPEC §9):** default-deny firewall, key-only hardened SSH,
@@ -22,7 +22,7 @@ to `SPEC_{EN,RU}.md` (architecture) and `RELEASE_{EN,RU}.md` (delivery).
 ## Roadmap (prioritized)
 
 ### P1 — near-term, high value
-- **Centralized observability.** Ship node logs + `/metrics` to **Grafana + Loki +
+- **Centralized observability.** Ship node logs + `/metrics` (a scraper needs `METRICS_TOKEN`) to **Grafana + Loki +
   Prometheus** (self-host on a small box or Grafana Cloud free). **Alerting:** node
   down, cert-expiry, error-rate, mail-failure. Per-box Dozzle stays for quick logs.
 - **Secret hygiene.** Replace the broad PAT + account-wide Bunny key on boxes with

@@ -52,7 +52,21 @@ def lines_of(path: Path) -> list[str]:
 
 
 def find_by_anchor(path: Path, anchor: str) -> list[int]:
-    return [i for i, line in enumerate(lines_of(path), 1) if anchor in line]
+    hits = [i for i, line in enumerate(lines_of(path), 1) if anchor in line]
+    if hits:
+        return hits
+    # Second pass with runs of whitespace collapsed. An anchor copied out of an
+    # aligned block — a table of measurements, a column of numbers — loses its
+    # padding on the way into a TSV, and then never matches the line it names.
+    # Four rows of the noise registry sat like that, pointing at correct line
+    # numbers nobody could confirm.
+    squeezed = " ".join(anchor.split())
+    if not squeezed:
+        return []
+    return [
+        i for i, line in enumerate(lines_of(path), 1)
+        if squeezed in " ".join(line.split())
+    ]
 
 
 def find_by_table(path: Path, table: str) -> list[int]:
@@ -82,6 +96,32 @@ def open_locate(fields: dict, address: str):
     return (target, find_by_anchor(target, anchor)), None
 
 
+def noise_locate(fields: dict, address: str):
+    """The noise registry's anchor hides inside `why`, as `встречено в: <line>`.
+
+    It was left out of this tool until 2026-09-08, and that day showed why it
+    should not have been: an edit to the journal moved a quoted line by 158 lines,
+    both rows kept pointing at the old number, and a review lens found it — which
+    is exactly the drift the anchors exist to survive.
+    """
+    marker = "встречено в:"
+    why = fields.get("why", "")
+    if marker not in why:
+        # Not every row quotes its line: rows of kind `measurement` and
+        # `sample.data` describe the number instead. Those have nothing to search
+        # for, so they are passed over rather than reported — a refusal per row
+        # would bury the ones that really drifted. Their drift stays invisible,
+        # and that is the reason to write `встречено в:` into new rows.
+        return (None, []), None
+    anchor = why.split(marker, 1)[1].strip()
+    if not anchor:
+        return None, "якорь пуст"
+    target = resolve(address.rsplit(":", 1)[0])
+    if target is None:
+        return None, "адрес указывает на файл, которого нет"
+    return (target, find_by_anchor(target, anchor)), None
+
+
 def schema_locate(fields: dict, address: str):
     target = resolve(address.rsplit(":", 1)[0])
     if target is None:
@@ -92,6 +132,7 @@ def schema_locate(fields: dict, address: str):
 REGISTRIES = [
     Registry("open", "docs/facts/open.tsv", "where", open_locate, "FACTS_OPEN"),
     Registry("schema", "docs/facts/schema.tsv", "declared_in", schema_locate, "FACTS_SCHEMA"),
+    Registry("noise", "docs/facts/noise-numbers.tsv", "example", noise_locate, "FACTS_NOISE"),
 ]
 
 
@@ -130,6 +171,10 @@ def process(registry: Registry, write: bool) -> tuple[int, int]:
             continue
 
         target, hits = located
+        if target is None:
+            # The row has no anchor to search by and said so; not a refusal.
+            out.append(raw_line)
+            continue
         if len(hits) == 0:
             print(f"  ✗ {row_id}: не нашлось в {rel} — чинить руками, не номером")
             refused += 1

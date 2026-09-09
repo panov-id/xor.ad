@@ -120,7 +120,13 @@ export const SNAPSHOTTABLE: Record<
     posted: "published_at",
     tenant: "brand",
     visibility: "per_brand",
-    published: "published_at",
+    // Null, not "published_at". A venue offer is published in one step and its
+    // column is NOT NULL by the spec's own DDL, so `AND published_at IS NOT NULL`
+    // was a condition that could never be false — a visibility check that read
+    // like one and checked nothing. The surfaces that really publish in two steps
+    // (feed, tables) name their column here; this one says plainly that it has no
+    // such step. Found by two review lenses, 2026-09-08.
+    published: null,
     quote: "offer_text",
   },
   // A line at a table is public, unencrypted and moderated like the feed, so it

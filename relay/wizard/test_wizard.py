@@ -16,6 +16,7 @@ verified on prod byte for byte.
 
 import io
 import os
+import re
 import pathlib
 import sys
 
@@ -349,16 +350,32 @@ class FakeStream(io.BytesIO):
 
 
 class FakeClient:
-    """Records commands and answers reads with whatever the box would say."""
+    """Records commands and answers reads with whatever the box would say.
 
-    def __init__(self, answer=""):
+    The state file is answered with THIS run's token, the way a box that actually
+    ran the script would: the wizard now waits for its own `run=<id>` rather than
+    for any non-empty file, because a box configured twice already has one from
+    last time. `stale=True` makes the fake behave like that older box — it answers
+    without the token, and the wizard must refuse.
+    """
+
+    def __init__(self, answer="", stale=False):
         self.commands = []
         self.answer = answer
+        self.stale = stale
         self.sftp = FakeSftp()
+
+    def _run_id(self):
+        script = self.sftp.contents.get(f"{wizard.REMOTE_ROOT}/relay-firewall.sh", "")
+        found = re.search(r"run=([0-9a-f]{32})", script)
+        return found.group(1) if found else ""
 
     def exec_command(self, command):
         self.commands.append(command)
-        return None, FakeStream(self.answer.encode()), FakeStream(b"")
+        answer = self.answer
+        if "relay-firewall.state" in command and not self.stale:
+            answer = f"run={self._run_id()}\n{self.answer}"
+        return None, FakeStream(answer.encode()), FakeStream(b"")
 
     def open_sftp(self):
         return self.sftp
@@ -373,13 +390,23 @@ BOX = {"id": "n1", "envs": ["dev"]}
 client = FakeClient("Status: active\nTo  Action  From\n")
 wizard.firewall(client, INVENTORY, BOX, sudo=True)
 
-script = client.sftp.contents.get("/tmp/relay-firewall.sh", "")
+script = client.sftp.contents.get(f"{wizard.REMOTE_ROOT}/relay-firewall.sh", "")
 check("the rules are written as a script on the box", bool(script), repr(client.sftp.contents))
 trap_lines = [line for line in script.splitlines() if line.startswith("trap ")]
 check("the script always reaches the enable",
       len(trap_lines) == 1 and "ufw --force enable" in trap_lines[0],
       "a rejected rule must cost that rule, not the whole firewall; "
       f"trap lines: {trap_lines}")
+check("the script never passes through world-writable /tmp",
+      not any("/tmp/relay-firewall" in path for path in client.sftp.contents)
+      and not any("/tmp/relay-firewall" in c for c in client.commands),
+      "a local account that creates the path first owns what root then runs")
+check("the script masks its own files",
+      "umask 077" in script,
+      "the log carries the whole ssh whitelist and the firewall policy")
+check("the enable is refused when no rule for 22 landed",
+      "port 22" in script.split("trap", 1)[1].split("EXIT", 1)[0],
+      "a firewall up with no way in is recovered from a provider console, not ssh")
 check("the reset is inside the script, not on the ssh channel",
       "ufw --force reset" in script
       and not any("ufw --force reset" in c for c in client.commands),
@@ -400,12 +427,23 @@ except RuntimeError:
     refused = True
 check("a firewall that stayed down is an error, not a quiet success", refused)
 
+# A box configured before: the state file is already there, from last time.
+stale = FakeClient("Status: active", stale=True)
+refused_stale = False
+try:
+    wizard.firewall(stale, INVENTORY, BOX, sudo=True)
+except RuntimeError:
+    refused_stale = True
+check("a report from a previous run is not accepted as this run's", refused_stale,
+      "the second configure of any box would otherwise always look successful")
+
 public_client = FakeClient("Status: active")
 wizard.firewall(public_client,
                 {"pool": {"ssh_whitelist": []}, "env": {"prod": {"access": "public"}}},
                 {"id": "p1", "envs": ["prod"]}, sudo=True)
 check("a public box still opens 443",
-      "ufw allow 443/tcp" in public_client.sftp.contents.get("/tmp/relay-firewall.sh", ""))
+      "ufw allow 443/tcp" in public_client.sftp.contents.get(
+          f"{wizard.REMOTE_ROOT}/relay-firewall.sh", ""))
 
 print()
 
@@ -461,7 +499,11 @@ for label, env, expect_zone in [
           f"stdout={result.stdout!r}")
 
 check("a shared zone is reported, not passed over in silence",
-      "WARNING: no BACKUP_STORAGE_ZONE" in backup)
+      "WARNING:" in backup
+      # Both names, because the fallback needs both set and an operator who set
+      # only the zone would otherwise read a warning denying what they can see.
+      and "BACKUP_STORAGE_ZONE and BACKUP_STORAGE_KEY" in backup,
+      "the warning must name both variables")
 check("the wizard puts the variables in backup.env",
       all(name in (pathlib.Path(__file__).parent / "wizard.py").read_text(encoding="utf-8")
           for name in ("BACKUP_STORAGE_ZONE", "BACKUP_STORAGE_KEY")))

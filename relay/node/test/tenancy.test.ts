@@ -775,6 +775,32 @@ tenancy({
   },
 });
 
+// The ceiling that keeps an operator out was the DAY, not the hour.
+//
+// It was charged at the route, before anything checked whether the address
+// belonged to an operator — so anybody who knew the contact address a storefront
+// publishes could spend twenty requests and shut that operator out of the panel
+// until tomorrow, with Article 16 notices waiting. A review panel found it on
+// 2026-09-08.
+//
+// Two things changed, and only one of them is a defence. The daily window is
+// gone, so the worst case is minutes rather than a day — that is the fix, and it
+// is what this case pins. The check also moved past the membership test in
+// `requestMagicLink`, which stops the limiter filling with strangers' addresses;
+// that is hygiene, has no effect visible from outside, and is deliberately not
+// dressed up as a case here.
+tenancy({
+  name: "the mailbox ceiling is measured in an hour, never a day",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { SIGN_IN_MAILBOX_LIMITS } = await import("../src/lib/rate_limit.ts");
+    const HOUR = 60 * 60 * 1000;
+    assertEquals(SIGN_IN_MAILBOX_LIMITS.length, 1, "one window, so none of them is a day");
+    assertEquals(SIGN_IN_MAILBOX_LIMITS[0].windowMs, HOUR);
+  },
+});
+
 tenancy({
   name: "sign-in links that were never clicked do not stay for ever",
   sanitizeOps: false,

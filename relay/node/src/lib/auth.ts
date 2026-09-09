@@ -10,6 +10,7 @@ import { sha256hex } from "./hash.ts";
 import { sign, verify } from "./jwt.ts";
 import { sendPanelInvite, sendPanelLink } from "./mailer.ts";
 import { log } from "./log.ts";
+import { checkAll, SIGN_IN_MAILBOX_LIMITS } from "./rate_limit.ts";
 
 // Roles are owned by the access core; re-exported so route modules keep importing
 // the panel vocabulary from one place.
@@ -52,6 +53,27 @@ export async function requestMagicLink(email: string): Promise<void> {
   const e = email.trim().toLowerCase();
   if (!e) return;
   if (!await getUser(e)) return; // invite-only: never reveal membership
+
+  // The mailbox ceiling, and it is checked HERE rather than at the route on
+  // purpose. Charged before this line, a stranger's address spent a budget of
+  // its own — which is harmless — but the same call spent it under whatever
+  // address it named, so twenty requests naming the one operator locked that
+  // operator out of the panel while notices waited (found by a review panel,
+  // 2026-09-08). Past this line the budget belongs to a real operator and is
+  // spent only on letters that would actually be sent.
+  //
+  // Hashed, because the limiter's keys live in memory as plain strings and an
+  // operator's address does not need to be one of them.
+  const mailbox = await sha256hex(e);
+  if (!checkAll(SIGN_IN_MAILBOX_LIMITS, mailbox).allowed) {
+    // Said out loud in the log, because the person being flooded cannot be told:
+    // the route answers 204 whatever happens, and a 429 there would confirm the
+    // address is worth limiting. The hash, never the address.
+    log("warn", "sign-in mail withheld: mailbox over its hourly ceiling", {
+      mailbox: mailbox.slice(0, 12),
+    });
+    return;
+  }
   await sendPanelLink(e, linkFor(await issueToken(e, TOKEN_TTL_MS)));
 }
 

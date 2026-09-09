@@ -20,10 +20,10 @@ import { log } from "./log.ts";
 // What a rejected send is allowed to say in a log line.
 //
 // The whole provider body used to go in, five hundred characters of it, at
-// error level — and error lines are copied to storage and kept for a year
+// error level — and error lines are copied to storage and kept for thirty days
 // (tools/prune_objects.ts, "server-logs"). Resend quotes the request back when
 // it complains: `Invalid \`to\` field` arrives with the address in it, so one
-// mistyped recipient put somebody's email address in a year-long log, and a
+// mistyped recipient put somebody's email address in a month-long log, and a
 // provider outage put every recipient of the retry storm there.
 //
 // The machine-readable `name` is what a reader actually acts on — a

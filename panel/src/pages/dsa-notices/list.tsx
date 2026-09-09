@@ -68,6 +68,19 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: "Rejected",
 };
 
+// Which queue a notice belongs to, as one rule in one place.
+//
+// A platform reader sees every tenant's notices in one list — correct, since the
+// platform examines what no tenant can — but "which of these are mine to decide"
+// was a question answered by eye down two hundred rows. `brand IS NULL` is
+// exactly the platform's own queue, and it gets there two ways: the notice
+// arrived with no usable key (db/007), or its copy belongs to a face other than
+// the one it was filed through (db/015).
+export type QueueFilter = "all" | "platform" | "tenant";
+
+export const inQueue = (row: { brand: string | null }, queue: QueueFilter): boolean =>
+  queue === "all" || (queue === "platform" ? row.brand === null : row.brand !== null);
+
 export const DsaNoticesList = () => {
   const { result, query } = useList<Notice>({
     resource: "dsa_notices",
@@ -75,6 +88,11 @@ export const DsaNoticesList = () => {
   });
 
   const [open, setOpen] = useState<Notice | null>(null);
+  // Which queue is being read; the rule itself is `inQueue` above.
+  const [queue, setQueue] = useState<QueueFilter>("all");
+
+  const rows = (result?.data ?? []).filter((row) => inQueue(row, queue));
+  const platformCount = (result?.data ?? []).filter((row) => row.brand === null).length;
 
   return (
     <div className="panel-card">
@@ -84,6 +102,21 @@ export const DsaNoticesList = () => {
         the reporter learns what was decided, the author learns why their content
         went. The reporter's name is never shown to the author.
       </p>
+
+      <div className="log-controls">
+        <label>
+          Queue{" "}
+          <select
+            value={queue}
+            onChange={(event) => setQueue(event.target.value as QueueFilter)}
+            aria-label="Which queue to show"
+          >
+            <option value="all">every notice</option>
+            <option value="platform">the platform's own ({platformCount})</option>
+            <option value="tenant">a storefront's</option>
+          </select>
+        </label>
+      </div>
 
       <DataTable<Notice>
         columns={[
@@ -147,7 +180,7 @@ export const DsaNoticesList = () => {
             ),
           },
         ]}
-        rows={result?.data ?? []}
+        rows={rows}
         rowId={(row) => row.id}
         loading={query.isLoading}
         error={query.isError ? "Loading the reports failed." : null}
@@ -155,8 +188,10 @@ export const DsaNoticesList = () => {
         caption="Article 16 notices"
         empty={
           <EmptyState
-            title="No reports."
-            hint="The form on the storefronts writes here, and so does anything sent to support."
+            title={queue === "all" ? "No reports." : "No reports in this queue."}
+            hint={queue === "all"
+              ? "The form on the storefronts writes here, and so does anything sent to support."
+              : "There are notices, but none in the queue selected above."}
           />
         }
       />

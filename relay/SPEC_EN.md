@@ -60,13 +60,13 @@ Stateless Deno service. Identical image everywhere; only the per-env `.env` diff
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | liveness/readiness (reports env, storage/mail transport, brands) |
-| `GET /metrics` | Prometheus counters (requests/waitlist/mail) |
+| `GET /metrics` | Prometheus counters (requests/waitlist/mail) — token-gated via `METRICS_TOKEN`, 404 without it |
 | `POST /waitlist` | validate → dedup+store → per-brand welcome email |
 | `POST /client-error` | fire-and-forget client error sink |
 | `GET /chat` | placeholder `501` (future chat relay) |
 
 - **Observability**: structured **JSON logs** (level/msg/fields, node, env, request
-  id) and a `x-request-id` on every response; **`GET /metrics`** exposes Prometheus
+  id) and a `x-request-id` on every response; **`GET /metrics`** exposes, to the holder of `METRICS_TOKEN` and nobody else (404), Prometheus
   counters (`relay_requests_total`, `relay_waitlist_total`, `relay_mail_total`).
   Centralized shipping (Grafana/Loki/Prometheus) is roadmap — see `HARDENING`.
 
@@ -126,7 +126,11 @@ Python wizard, runs in a Docker launchpad (`run.sh`). Inventory =
   `docker-compose.yml`/`Caddyfile`/per-env `.env` + `pull` + `up` + `/health`.
 - **Secrets** (wizard env): `HETZNER_TOKEN`/`VULTR_API_KEY`/`DIGITALOCEAN_TOKEN`,
   `SSH_PUBLIC_KEY`, `BUNNY_API_KEY`, `BUNNY_STORAGE_ZONE/KEY`, `RESEND_API_KEY`,
-  `GHCR_TOKEN?`, `WELCOME_FROM?` (global sender override — default off), `BRANDS?`.
+  `GHCR_TOKEN?`, `WELCOME_FROM?` (global sender override — default off), `BRANDS?`,
+  `METRICS_TOKEN?` (what it takes to read `/metrics`; empty means the endpoint
+  answers 404 to everybody, which is the default), `BACKUP_STORAGE_ZONE?` /
+  `BACKUP_STORAGE_KEY?` (a zone of their own for the dumps; empty means they share
+  the working zone and its key, and the script says so on every run).
 
 ## 9. Security
 

@@ -58,13 +58,13 @@ Stateless Deno-сервис. Образ одинаковый везде, раз�
 | Эндпоинт | Назначение |
 |---|---|
 | `GET /health` | liveness/readiness (env, транспорты storage/mail, бренды) |
-| `GET /metrics` | Prometheus-счётчики (requests/waitlist/mail) |
+| `GET /metrics` | Prometheus-счётчики (requests/waitlist/mail) — по токену `METRICS_TOKEN`, без него 404 |
 | `POST /waitlist` | валидация → дедуп+запись → per-brand welcome-письмо |
 | `POST /client-error` | fire-and-forget сток ошибок |
 | `GET /chat` | заглушка `501` (будущий чат-релей) |
 
 - **Наблюдаемость**: структурные **JSON-логи** (level/msg/поля, node, env, request
-  id) и `x-request-id` в каждом ответе; **`GET /metrics`** отдаёт Prometheus-счётчики
+  id) и `x-request-id` в каждом ответе; **`GET /metrics`** отдаёт Prometheus-счётчики держателю `METRICS_TOKEN` (всем прочим 404)
   (`relay_requests_total`, `relay_waitlist_total`, `relay_mail_total`). Централизованная
   отгрузка (Grafana/Loki/Prometheus) — в роадмапе, см. `HARDENING`.
 
@@ -124,7 +124,10 @@ Python-визард, запуск в Docker-launchpad (`run.sh`). Инвента
 - **Секреты** (env визарда): `HETZNER_TOKEN`/`VULTR_API_KEY`/`DIGITALOCEAN_TOKEN`,
   `SSH_PUBLIC_KEY`, `BUNNY_API_KEY`, `BUNNY_STORAGE_ZONE/KEY`, `RESEND_API_KEY`,
   `GHCR_TOKEN?`, `WELCOME_FROM?` (глобальный override отправителя — по умолчанию
-  выкл), `BRANDS?`.
+  выкл), `BRANDS?`, `METRICS_TOKEN?` (чем читают `/metrics`; пусто — эндпоинт
+  отвечает 404 всем, и это состояние по умолчанию), `BACKUP_STORAGE_ZONE?` /
+  `BACKUP_STORAGE_KEY?` (отдельная зона для дампов; пусто — дампы делят зону и
+  ключ с рабочими объектами, и скрипт говорит об этом каждую ночь).
 
 ## 9. Безопасность
 

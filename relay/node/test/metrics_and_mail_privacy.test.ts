@@ -7,7 +7,7 @@
 //
 // And a rejected send wrote the provider's whole reply into an error line.
 // Resend quotes the request back when it complains, so a mistyped recipient put
-// an email address into a log that storage keeps for a year.
+// an email address into a log that storage keeps for thirty days.
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { suite, useEnvironment } from "./support/config_env.ts";

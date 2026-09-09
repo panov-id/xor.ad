@@ -97,7 +97,7 @@ function read() {
     // Unset means the endpoint answers 404 to everybody: no scraper is
     // configured against it today, so closed is the honest default, and a 404
     // does not confirm the route exists.
-    metricsToken: env("METRICS_TOKEN"),
+    metricsToken: env("METRICS_TOKEN").trim(),
 
     allowedOrigins: env("ALLOWED_ORIGINS")
       .split(",").map((s) => s.trim()).filter(Boolean),

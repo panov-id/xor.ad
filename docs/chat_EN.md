@@ -59,11 +59,15 @@ Liking again when a chat with that person is already open creates **no new match
 - The **feed** has its own span — a phrase lives **4 hours 20 minutes**; a **match** has its own — until the first of the two phrases dies. Three different timers for three different reasons.
 - **The set of spans is four, settled 2026-08-26:** 10 minutes, 30 minutes, an hour, "while we're talking". The previous three (20 minutes, 1 hour, 4:20) stood from 2026-08-20 and rested on two arguments that no longer exist. First: anything shorter than 20 minutes breaks the `min(20 minutes, span / 3)` counter — that counter is now a quarter of the span, and ten minutes give a calm 2:30. Second, [retired]: "since the smaller of the two applies, one cautious pick would close the conversation for both" — there is no smaller of the two any more; each side governs only its own, and one person's caution closes nothing for anyone else. The ceiling stands for the old reason: **"while we're talking" is 4:20**, exactly as long as a phrase lives in the feed, and a conversation about it should not hang around longer than what started it. Free entry is not considered: it turns a choice between four words into a setting with numbers.
 
-## 6. Rules-free shared games
+## 6. Shared games with minimal rules
 
-Inside a chat — a shared visual board for two. The twist: **no hard-coded rules** — the engine only draws the field and lets players move pieces freely; players invent and enforce the rules themselves. It is an ice-breaker, not a competition.
+Inside a chat — a shared visual board for two, and beside it a table for company (§6.1).
 
-**A game is described by primitives, not by its name (2026-08-26).** Otherwise every new game is a separate application, and the list already runs past a dozen. There are seven primitives:
+**Minimal rules are introduced — decided 2026-09-09, overriding "no hard-coded rules" of 2026-08-26.** The earlier decision read: the engine only draws the field and lets players move pieces, and the players invent and enforce the rules themselves. It held for two weeks and was overturned by one argument that outweighed the rest: **watching the rules by hand is work, and putting it on somebody who came to play is wrong.** The product stays an excuse to start talking rather than a competition, but it owes the players help in running the game.
+
+**What was overturned is kept here verbatim, so the decision reads together with what it replaced** [retired]: "no hard-coded rules — the engine only draws the field and lets players move pieces freely; players invent and enforce the rules themselves".
+
+**A game is still described by primitives (2026-08-26), and now a class also has rules.** The primitives have not gone anywhere — they describe what a game is made of; the rules describe what is allowed in it. There are eight primitives:
 
 | Primitive | What it is |
 |---|---|
@@ -76,7 +80,55 @@ Inside a chat — a shared visual board for two. The twist: **no hard-coded rule
 | **Physics** | a flick with momentum and rebounds — only where a game cannot exist without it |
 | **Text input** | a word somebody guesses that another will see |
 
-Adding a game means describing a field and a set of pieces, not writing code.
+**The scope of the rules differs by class of board (2026-09-09).** There is deliberately no single set: where a rule is cheap and unambiguous the engine checks everything; where it is expensive or contested it checks only turn order, the end of a round and the score. Three classes of seven get full checking, and the heaviest do not drag a chess engine in behind them.
+
+| Class | What the engine checks | What is left to the people |
+|---|---|---|
+| **Free table** (dominoes) | a tile may only join a matching end; end of round; score | nothing |
+| **Dot grid** (dots) | the edge is free; a closed area is counted; score | nothing |
+| **Deck and hand** (durak, uno) | whose turn, that the card came from a hand, end of the deal, score | what beats what — there are too many variants |
+| **Square grid** (draughts, chess) | whose turn, the square is not held by your own piece, end of round by agreement, score | whether the move itself is legal |
+| **Dice** (backgammon) | whose turn, the roll is honest, score | how to move what was rolled |
+| **Physics** (flick game) | whose turn, the count of pieces knocked off | everything else — a flick ends where it ends |
+| **Text** (hangman) | the letter is not repeated, the word is guessed, score | nothing |
+
+**The price is named and it is real: the behaviour is uneven.** In dominoes the engine stops your hand, in chess it says nothing, and a person cannot know in advance where they will be corrected. This is accepted deliberately — even behaviour is reached either by having no rules at all (overturned above) or by a chess engine inside every board, which is exactly the "separate application per game" §6 walked away from on 2026-08-26.
+
+**A "see the basic rules" button — decided 2026-09-09.** Every class has a short text: what we are playing, what the product checks, what is left to agreement. It opens over the board without interrupting the game. Without it "minimal rules" would be a guessing game — a person would hit a refusal from the engine and not know where it came from.
+
+**The play is shown in the conversation — decided 2026-09-09.** Every move becomes a
+line: "Anya placed a tile on e4", "Petya flicked". These words used to exist **for
+the screen reader only** (screen 18, 2026-08-29) — now everybody sees them, for
+three reasons at once.
+
+First: **a spectator at a table sees the board but could not tell what had
+happened** — the position changes silently, and an opponent's move is
+indistinguishable from a slip. Second: **somebody returning to a table starts from
+nothing** and catches up through the lines of moves. Third: **the announcement is
+already written** — the vocabulary of coordinates per class of board was made for
+accessibility, and there is no need to invent it twice.
+
+**At a table a move is a `table_lines` row of kind `move`.** The moderation queue
+does not apply to it: the text is assembled by the engine from the class of board
+and a coordinate, and there is nothing to check. It is cut off by `joined_at` like
+any other: somebody who sat down does not see the moves made before they arrived.
+
+**In a pair a move is a system line in the conversation**, and it is **not
+encrypted**, unlike the messages beside it: it is part of the game state, and that
+is open to the node from this day on. The difference is visible to a person and has
+to be said on the screen: your words are closed, your moves are not.
+
+**Moves and game state are not encrypted — decided 2026-09-09.** Only whoever sees the board can check the rules, and until that day nobody saw it but the two of them: the state was encrypted with the conversation key (§8.13). The **board, and only the board**, is now outside end-to-end encryption.
+
+**The conversation stays encrypted.** The node comes to know what two people are playing and how — and still does not know what they are saying. That is the whole price, and it has to be stated precisely rather than as "encryption was dropped": §8.13 continues to hold for messages, stickers and the guessed word.
+
+What the node now sees in a pair: the class of board, the position, whose turn, the score. What that means for a person: **what they are playing and with whom is no longer private from the platform**, and the screen says so plainly, next to what is already written about shuffling a deck (which the node saw anyway — there is no honest randomness otherwise).
+
+**Where the state lives: in memory for a pair, in the database at a table (2026-09-09).** In a pair the game stays transient as before: the node judges as it goes and forgets with it; restarting the node loses the game, and that is the price accepted so that the contents of a private conversation do not settle into the database even unencrypted. At a table it is the other way round — everything there is public anyway, the table already sits in the database with its `last_move_at`, and the game state sits beside it.
+
+**The score lives as long as the conversation or the table does — decided 2026-09-09.** It accumulates between games: five games played, 3:2 is shown. It goes out with the conversation (on its span from §5) or with the table (on silence). Nothing outlives that: no history of wins, no mark on an identity — §1 promises no trace is left, and the score is no exception. **The price is accepted:** a competition appears inside one conversation, and it can become a reason not to leave. A short one — exactly until the conversation ends.
+
+Adding a game means describing a field, a set of pieces **and the rules of the class**. The first two are data, the third is code, and that is the cost of today's decision.
 
 **The classes and what falls into them:**
 
@@ -98,9 +150,64 @@ Adding a game means describing a field and a set of pieces, not writing code.
 
 **A guessed word goes through the moderation queue**, like a phrase (§8.3): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one".
 
-**Four shared buttons sit above any class:** play again, suggest another game,
-pass or hand over the turn, and **put it back**. They belong to no particular
+**Six shared buttons sit above any class:** **play again**, pass or hand over the
+turn, **put it back**, **resign**, **offer a draw** and **congratulate the winner**
+(the last four were added or rewritten on 2026-09-09). They belong to no particular
 board and live in the common frame.
+
+**A game, a round and a move are three different things, and must not be confused
+(2026-09-09).** A move is one piece moved. A round is a deal or a hand inside a
+game; in dominoes and cards there are many of them in a row, and they run without
+asking the people anything. A game is what starts with "play again" and ends when
+the people agree it has. **The line-up is confirmed per game, not per round:**
+otherwise dominoes would turn into a questionnaire.
+
+**"Play again" asks what to play — the same game or another one (2026-09-09).**
+These used to be two buttons, "play again" and "suggest another game", doing the
+same thing in the same second: the game ended and the people are deciding whether
+to go on and with what. Now there is one button with the choice inside it; the
+same game comes first, because that is what is wanted most often. The proposal
+stays a proposal: **whoever agrees, plays**.
+
+**There are three ways to answer a proposal, not two (2026-09-09):** agree, finish,
+or **propose your own** — another board instead of the one named. A counter-proposal
+passes the ball back, and the exchange can run as many rounds as it likes: this is a
+conversation about what to play, not a vote. "Finish" is said separately from
+"propose your own" on purpose — otherwise declining one game would be
+indistinguishable from declining to play at all, and a person would have to explain
+in words what a button should be saying.
+
+**The line-up for the next game is confirmed — decided 2026-09-09.** Once "play
+again" is pressed, everyone who was playing and everyone whose application was
+accepted gets a confirmation: **30 seconds** to say "I am here". Whoever does
+not confirm is not thrown out of the table — they **become a spectator**
+(`playing_from` is cleared again) and can return to the game by applying, like
+anybody else.
+
+This is the only way to learn who is present without introducing a presence
+indicator: the product shows nowhere who is at their screen, and it does not show
+it here either. **The others see a count without names:** "2 of 4 confirmed" and a
+countdown. A list of who has confirmed, by name, would be exactly the indicator
+that was rejected on this screen on 2026-09-04 after a review.
+
+Thirty seconds are **chosen, not measured**, and that is said plainly: it is enough
+for somebody with the phone in their hand and not enough for somebody who put it
+down — and the second is what needs filtering out. The number lives in
+`docs/facts/limits.tsv` (`table.confirm.window`).
+
+**"Resign", "draw" and "congratulate the winner" are statements by players, not
+verdicts of the engine.** The
+engine knows no rules and must not: it can neither award a win nor check that a
+position is drawn. "I resign" is a unilateral announcement — whoever presses it says
+so out loud, and for the people the game is over. "Draw" is a proposal accepted by
+agreement, like "play again". **"Congratulate the winner" is an addressed
+gesture:** whoever presses it picks who they are congratulating, and a line about
+it appears at the table. The winner is decided by the people, not the engine, and
+anyone can be congratulated — including somebody the others think did not win.
+**No result is recorded anywhere**: there is no score,
+no history of games, no mark on an identity — none of those exist by construction
+(§1), and adding them for two buttons would be adding a competition where the game
+exists as an excuse to start talking.
 
 **Three of them are proposals rather than actions (2026-08-29).** "Play again"
 and "put it back" send a request to the others and fire **once everyone agrees**;
@@ -108,8 +215,13 @@ none of them is unilateral, for the same reason there is no turn order and no
 table owner. What follows:
 
 - **the board does not go out by itself.** The engine knows no rules, so it
-  cannot know when a game ended; it ended when the people agreed it did. Once
-  everyone has declined to play again, the game is over and the board closes;
+  cannot know when a game ended; it ended when the people agreed it did. **In a
+  pair the board stays up even after a refusal to play again — clarified
+  2026-09-09:** it lives inside the conversation and goes out with it (§8.13),
+  not with the outcome of a game. This used to say "once everyone has declined,
+  the board closes", which in a pair meant one "not again" took the board away
+  from both. **At a table there is nothing to close for a different reason:**
+  whoever declines stays as a spectator, and the table goes out on silence;
 - **in a pair, one person leaving ends the game**, because there is nobody to
   wait for;
 - **at a table the last person left waits** for someone to sit down (§6.1);
@@ -170,11 +282,21 @@ CREATE TABLE table_seats (
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
   identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   joined_at        timestamptz NOT NULL DEFAULT now(),        -- lines are shown from here on, and no earlier
+  playing_from     timestamptz,                               -- NULL = sitting but not playing: the application is not accepted yet
   left_at          timestamptz,
   PRIMARY KEY (table_id, identity)
 );
 
 CREATE INDEX table_seats_by_identity ON table_seats (identity) WHERE left_at IS NULL;
+
+-- One table at a time — decided 2026-09-09. Sitting down at a second table
+-- without standing up from the first is refused, and this is the only guard
+-- against burying the feed under tables that does not put an identity into the
+-- ranking: set up as many as you like, but sit at one, and a table with nobody
+-- sitting at it does not appear at all. Without it one person would take the
+-- whole quarter of the cards with their own tables, because `created_by` takes no
+-- part in the feed and the ranking may not tell them apart by author.
+CREATE UNIQUE INDEX table_seats_one_at_a_time ON table_seats (identity) WHERE left_at IS NULL;
 
 CREATE TABLE table_lines (
   id               uuid PRIMARY KEY,
@@ -182,13 +304,79 @@ CREATE TABLE table_lines (
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
   text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
+  -- What kind of line this is. `line` is ordinary speech. `application` is the
+  -- opening words of somebody asking to play, `refusal` the explanation of
+  -- somebody who said no. Both were made ordinary lines rather than an entity of
+  -- their own on 2026-09-09: they are visible to everyone at the table, go
+  -- through the same moderation queue, fit the same 128 characters and are
+  -- reported under the same `table_line` target. A separate addressed entity
+  -- would have introduced a message from one stranger to another with no mutual
+  -- like — which exists nowhere (§11) — and needed a rate limit and a notice
+  -- target of its own.
+  -- `move` is a move shown in words ("Anya placed a tile on e4"). The line is
+  -- composed by the engine, not by a person, so the moderation queue does not
+  -- apply: there is nothing to check for, the text is assembled from the class of
+  -- board and a coordinate. It is visible to everyone at the table and cut off by
+  -- `joined_at` like any other — somebody who sat down does not see the moves made
+  -- before they arrived, exactly as they do not see the speech.
+  kind             text NOT NULL DEFAULT 'line'
+                     CHECK (kind IN ('line', 'application', 'refusal', 'move')),
   created_at       timestamptz NOT NULL DEFAULT now(),
   visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
 );
 
 CREATE INDEX table_lines_feed  ON table_lines (table_id, created_at) WHERE visible_at IS NOT NULL;
 CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS NULL;
+
+-- Game state at a table — introduced 2026-09-09 along with the minimal rules.
+--
+-- In a pair the game stays in the node's memory and is not written here (§8.13):
+-- the contents of a private conversation do not settle into the database even
+-- unencrypted. At a table it is the other way round — speech, board and stickers
+-- are public by construction, the table already sits in the database, and the
+-- state sits beside it.
+CREATE TABLE table_games (
+  id           uuid PRIMARY KEY,
+  table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  class        text NOT NULL,                        -- grid | free | dots | deck | dice | physics | word
+  -- The position, the stock, whose turn it is and the players' hands. jsonb rather
+  -- than columns: the seven classes of board hold state of different shapes, and
+  -- laying it out in columns would mean seven tables for the sake of one "whose
+  -- turn".
+  state        jsonb NOT NULL,
+  started_at   timestamptz NOT NULL DEFAULT now(),
+  ended_at     timestamptz                           -- the game is over, the table remains
+);
+
+-- One game in progress per table. Any number of games in a row, none at the same
+-- time: a table has one board, and a second would mean the people sitting there
+-- are looking at different places.
+CREATE UNIQUE INDEX table_games_current ON table_games (table_id) WHERE ended_at IS NULL;
+
+-- The score lives on the TABLE, not on the game: it accumulates between games and
+-- goes out with the table (decided 2026-09-09). A separate table rather than a
+-- column in `table_games` for exactly that reason — a game ends, the score
+-- continues.
+--
+-- What goes out is a score by seats at the table, not by identities: `identity`
+-- lives here by the same rule as everywhere — present in the database, absent from
+-- the API answer (§8).
+CREATE TABLE table_scores (
+  table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  identity     uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  points       integer NOT NULL DEFAULT 0,
+  updated_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (table_id, identity)
+);
 ```
+
+**The players' hands live in `state`, and the read cuts them out.** The node sees
+everything — that is accepted and stated plainly for a table — but it may not hand
+over somebody else's hand: the "Hand" primitive is defined as the private part of
+the stock, visible only to its owner (§6), and a spectator and an opponent are
+equally non-owners here. The rule is simple: **your own hand and the backs of the
+others go out**, and this is the only place where reading the state depends on who
+is asking.
 
 - **The zone and radius are a phrase's**, because a table is seen by the same
   circle-overlap rule. It introduces no geography of its own — and **the same
@@ -258,6 +446,53 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
   between two. **The sweeper does not exist yet, and neither does the `tables`
   table in the node** — as with identities (§8.2) —
   and that is written down as an open item rather than passed off as done.
+- **Which tables reach the quarter of the feed — random ones, and the quarter is
+  counted after blocks. Decided 2026-09-09.** The share was named on 2026-09-02
+  and the selection rule was not, and without it there is nothing to write the
+  ranking from.
+  **Random rather than by recency of a move:** a table with one person sitting at
+  it makes no moves by definition — it is waiting for its first guest — and any
+  "liveliest first" order would bury exactly the tables the screen exists for. The
+  price is accepted: the selection is not stable between refreshes and a table you
+  saw can be lost; the feed refreshes itself anyway, and there is a way back to
+  your own table — the line in the feed's header.
+  **The quarter is counted against what a person can actually see**, that is,
+  after blocks have removed other people's tables. Otherwise whoever blocked
+  somebody would see fewer tables than their neighbour — a block would quietly
+  punish the person who used it, which the decision of 2026-08-26 ("a block does
+  not lower the ceiling") rules out. The price: the selection is computed per
+  reader, so a shared per-zone cache will not do.
+- **Sitting at a table and playing at it are different things, decided
+  2026-09-09.** Someone who sits down gets **the chat and the board**, but not a
+  turn: to play, they apply for the next round. A game in progress is not
+  interrupted by somebody arriving, and that is the whole argument — otherwise
+  "sit down" would mean stepping into another people's game halfway through. The
+  distinction is held by `playing_from` in `table_seats`: `NULL` means sitting and
+  talking, a timestamp means playing from that moment.
+  **A spectator sees the whole board except the hands.** Nothing new is needed for
+  that: the "Hand" primitive is already defined as the private part of the stock,
+  visible only to its owner (§6), and a spectator is simply one more non-owner. So
+  they cannot whisper somebody's cards to a partner — nobody but the holder sees
+  them.
+- **The application is opening words, the refusal is an explanation, and both are
+  ordinary lines.** They are visible to everyone at the table, go through the same
+  moderation queue, fit the same 128 characters and are reported under the same
+  `table_line` target (`docs/dsa/SPEC_EN.md`). Deliberately so: an addressed
+  application "to the players only" would have introduced a message from one
+  stranger to another **with no mutual like** — a channel that exists nowhere
+  (§8.11) — and needed a rate limit and a notice target of its own. The price is
+  accepted and it is unpleasant: a public "we are not taking you, because…" is
+  read by everyone sitting there, and that stings more than a private no.
+- **The players decide, and a "no" without words is not cast.** Those whose
+  `playing_from` is set vote; spectators do not decide who gets in. The refuse
+  button stays inactive while the explanation field is empty: a refusal with no
+  reason is not accepted, exactly as a moderation refusal without a statement of
+  reasons is not (§5 of the storefront mechanics).
+  **The deadline is the start of the next round, not a timer.** The application is
+  made "for the next round" and is settled by it: whoever has not objected by then
+  did not object. The product does not add a fourth timer beside the phrase, the
+  conversation and the table, and "the round" is the one moment the players notice
+  anyway.
 - **Being shown out is not being locked out — decided 2026-09-08.** The schema
   stays as it is: `table_seats` has `left_at`, no trace of an eviction, and coming
   back is the same `UPDATE ... SET left_at = NULL`. A "this person may not return"
@@ -1567,7 +1802,7 @@ error      — not delivered (offline, drop, timeout) → a "send again" button
 
 The refusal counter and the moderation ladder moved to §8.3: they belong to the feed, and the chat no longer has anything to feed them with.
 
-**The game board** (`game_sessions` from §6) is synced as transient chat state, encrypted with the same key, and disappears with the chat; nothing is written to the database.
+**The game board** (`game_sessions` from §6) is synced as transient chat state and disappears with the chat; nothing is written to the database. **Encryption was taken off it on 2026-09-09**, together with the introduction of minimal rules: only whoever sees the board can judge the play. The **board, and only the board**, is outside §8.13; messages, stickers and the guessed word are encrypted as before. At a table the game state sits in the database beside the table — everything there is public by construction (§6.1).
 
 **The exception is named: games with randomness (2026-08-26).** In cards, uno and backgammon the node shuffles and rolls, which means it sees the deck, the hands and the dice — encrypting from it what it deals out itself is impossible. The promise that the node does not read holds for messages and for boards without randomness; for those three classes it does not, and staying quiet about that is not an option. A private hand is still wrapped for its player: the others at the table see backs, the node sees contents.
 

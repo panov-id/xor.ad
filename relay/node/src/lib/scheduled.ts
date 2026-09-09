@@ -48,13 +48,13 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_DAY_MS);
   });
 
-  handle(PRUNE_DSA, async (payload) => {
+  handle(PRUNE_DSA, async () => {
     const result = await pruneDsaRecords({ apply: true });
     log("info", "pruned DSA records", { ...result });
     return new Date(Date.now() + A_DAY_MS);
   });
 
-  handle(PRUNE_IDEMPOTENCY, async (payload) => {
+  handle(PRUNE_IDEMPOTENCY, async () => {
     const rows = await queryOrThrow<{ count: string }>(
       `WITH gone AS (
          DELETE FROM idempotency
@@ -67,7 +67,7 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_DAY_MS);
   });
 
-  handle(PRUNE_MAGIC, async (payload) => {
+  handle(PRUNE_MAGIC, async () => {
     await pruneMagicLinks();
     return new Date(Date.now() + A_DAY_MS);
   });

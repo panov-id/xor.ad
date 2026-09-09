@@ -1858,9 +1858,11 @@ Deno.test({
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     let runs = 0;
-    handle(kind, async () => {
+    // Not async: the handler's whole job here is to say when to run again, and
+    // `deno lint` refuses an async function with nothing to await in it.
+    handle(kind, () => {
       runs += 1;
-      return tomorrow;
+      return Promise.resolve(tomorrow);
     });
 
     await enqueue(kind);

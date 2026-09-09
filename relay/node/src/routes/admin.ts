@@ -49,6 +49,7 @@ import {
 import { usedToday } from "../lib/quota.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { config } from "../config.ts";
+import { withoutAddresses } from "../lib/mailer.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, SIGN_IN_LIMITS } from "../lib/rate_limit.ts";
 
@@ -769,7 +770,7 @@ async function tryInvite(user: PanelUser, actor: PanelUser): Promise<boolean> {
     // refused delivery is neither — nobody decided anything. It goes to the
     // node's log, which the panel shows, and the caller sees `invited: false`.
     log("error", "panel invitation failed",
-        { role: user.role, brand: user.brand, error: String(error) });
+        { role: user.role, brand: user.brand, error: withoutAddresses(String(error)) });
     return false;
   }
 }
@@ -904,7 +905,7 @@ route("POST", "/admin/panel-users/:email/invite", async ({ req, params }) => {
   try {
     await sendInvitation(existing);
   } catch (error) {
-    log("error", "panel invitation failed", { error: String(error) });
+    log("error", "panel invitation failed", { error: withoutAddresses(String(error)) });
     return json({ error: "could not send the invitation" }, 502);
   }
   recordAuditEvent({ actor: access.user, action: "panel_users.invite", target: email });

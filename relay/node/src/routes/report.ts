@@ -12,7 +12,7 @@ import { query } from "../lib/db.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { config } from "../config.ts";
 import { resolveTenantSoft } from "../lib/tenant.ts";
-import { sendNoticeArrived, sendNoticeReceipt } from "../lib/mailer.ts";
+import { sendNoticeArrived, sendNoticeReceipt, withoutAddresses } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { captureTarget } from "../lib/dsa_snapshot.ts";
@@ -258,7 +258,7 @@ export async function report(req: Request): Promise<Response> {
         lang: text(body.lang, 8) ?? undefined,
       });
     } catch (error) {
-      log("error", "notice receipt not sent", { id, error: String(error) });
+      log("error", "notice receipt not sent", { id, error: withoutAddresses(String(error)) });
     }
   }
 
@@ -297,7 +297,7 @@ export async function report(req: Request): Promise<Response> {
       log("info", "nobody was mailed about this notice", { id, transport: config.mail.transport });
     }
   } catch (error) {
-    log("error", "moderator notification not sent", { id, error: String(error) });
+    log("error", "moderator notification not sent", { id, error: withoutAddresses(String(error)) });
   }
 
   return json({ ok: true, id, acknowledged }, 202);

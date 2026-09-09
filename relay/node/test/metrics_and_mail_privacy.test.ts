@@ -62,16 +62,43 @@ configured("a rejected send names the fault, not the recipient", async () => {
     !/res\.text\(\)/.test(source),
     "the provider's body must not be read into a message or a log line",
   );
-  // Every exception that reaches a log line goes through the scrubber. A new
-  // `String(e)` straight into log() is exactly how this came back the first time.
-  const raw = [...source.matchAll(/(.{0,20})String\((?:e|error)\)/gs)]
-    .filter(([, before]) => !before.includes("withoutAddresses("));
+  // Every exception that reaches a log line goes through the scrubber — and not
+  // only in this file. The rule was pinned to mailer.ts alone, and two calls in
+  // routes/admin.ts logged `String(error)` straight from a failed invitation
+  // (found by a review lens, 2026-09-08).
+  //
+  // The sweep covers the modules that actually send mail, which is the honest
+  // boundary: an exception carries a recipient only if it came back from the
+  // provider, and only these files call it. Widening it to all of src/ was tried
+  // and abandoned — it flagged fourteen places where the exception is a failed
+  // query or a bad JSON body, and a rule that demands scrubbing there teaches
+  // people to scrub everything and read nothing.
+  const senders = [...walk(new URL("../src", import.meta.url))].filter((entry) =>
+    Deno.readTextFileSync(entry).includes('from "../lib/mailer.ts"') ||
+    Deno.readTextFileSync(entry).includes('from "./mailer.ts"')
+  );
+  assert(senders.length >= 3, `expected several mail-sending modules, found ${senders.length}`);
+  const offenders: string[] = [];
+  for (const entry of senders) {
+    const text = await Deno.readTextFile(entry);
+    for (const [, before] of text.matchAll(/(.{0,24})String\((?:e|error)\)/gs)) {
+      if (!before.includes("withoutAddresses(")) offenders.push(entry.split("/src/")[1]);
+    }
+  }
   assertEquals(
-    raw.length,
+    offenders.length,
     0,
-    `an exception reaches a stored log line unscrubbed in ${raw.length} place(s)`,
+    `an exception reaches a stored log line unscrubbed in: ${offenders.join(", ")}`,
   );
 });
+
+function* walk(dir: URL): Generator<string> {
+  for (const entry of Deno.readDirSync(dir)) {
+    const child = new URL(`${dir.pathname}/${entry.name}`, dir);
+    if (entry.isDirectory) yield* walk(child);
+    else if (entry.name.endsWith(".ts")) yield child.pathname;
+  }
+}
 
 configured("the scrubber removes an address wherever it sits in a message", async () => {
   const { withoutAddresses } = await import("../src/lib/mailer.ts");

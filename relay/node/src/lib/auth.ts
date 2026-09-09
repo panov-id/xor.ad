@@ -168,6 +168,8 @@ export async function authed(req: Request): Promise<PanelUser | null> {
 export interface MagicPruneResult {
   removed: number;
   kept: number;
+  /** True when the pass stopped at its ceiling and there is more to do. */
+  more: boolean;
 }
 
 // A grace period past `exp`: a token whose deadline passed a minute ago may
@@ -175,11 +177,28 @@ export interface MagicPruneResult {
 // has expired" into "invalid link" — the same outcome in a more alarming word.
 const MAGIC_GRACE_MS = 60 * 60 * 1000;
 
+// A ceiling on one pass, because the lease is not.
+//
+// The job holds its row for ten minutes (lib/jobs.ts). This walk is two storage
+// calls per object with no bound on the objects, so a backlog turns it into a
+// job that overruns, gets claimed by another node, and climbs `attempts` on
+// every overrun until it becomes a tombstone — at which point the sweep is off
+// for good and one log line is all that says so. Found by a review lens,
+// 2026-09-08. A bounded pass that asks to run again is slower to catch up and
+// cannot switch itself off.
+const MAGIC_PER_PASS = 2000;
+
 export async function pruneMagicLinks(now = Date.now()): Promise<MagicPruneResult> {
   const dir = `panel/${config.envName}/magic`;
   let removed = 0;
   let kept = 0;
+  let seen = 0;
   for (const name of await list(dir)) {
+    if (seen >= MAGIC_PER_PASS) {
+      log("info", "magic sweep hit its per-pass ceiling", { removed, kept, ceiling: MAGIC_PER_PASS });
+      return { removed, kept, more: true };
+    }
+    seen += 1;
     const path = `${dir}/${name}`;
     const token = await get<{ exp?: number }>(path);
     // Unreadable or shapeless: `redeem` requires an `exp`, so such an object can
@@ -193,5 +212,5 @@ export async function pruneMagicLinks(now = Date.now()): Promise<MagicPruneResul
     }
   }
   log("info", "pruned magic links", { removed, kept });
-  return { removed, kept };
+  return { removed, kept, more: false };
 }

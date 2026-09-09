@@ -8,7 +8,7 @@ import { sha256hex } from "../lib/hash.ts";
 import { storageEnabled } from "../lib/storage.ts";
 import { scopedForBrand } from "../lib/scoped_storage.ts";
 import { isTenantDenied, resolveTenant } from "../lib/tenant.ts";
-import { sendWelcome } from "../lib/mailer.ts";
+import { sendWelcome, withoutAddresses } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { clientAddress } from "../lib/client_ip.ts";
@@ -130,6 +130,8 @@ export async function acceptLead(brand: Brand, body: Body): Promise<Response> {
     mode: record.mode ?? undefined,
     source,
     brand: brand.key,
-  }).catch((error) => log("error", "welcome dispatch failed", { lead, error: String(error) }));
+  }).catch((error) =>
+    log("error", "welcome dispatch failed", { lead, error: withoutAddresses(String(error)) })
+  );
   return json({ ok: true });
 }

@@ -1891,3 +1891,90 @@ Deno.test({
     await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
   },
 });
+
+// A job that gave up is evidence, not litter — but not for ever.
+//
+// `locked_until = 'infinity'` marks a job that ran out of attempts, and the
+// standing-job index deliberately ignores those rows so a dead job cannot block
+// the next arming. The consequence nobody had written down: there is no ceiling
+// on how many of one kind can accumulate, and nothing ever deleted one. A review
+// lens found it on 2026-09-08.
+Deno.test({
+  name: "job tombstones are kept for a month and then let go",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { registerScheduledJobs, PRUNE_TOMBSTONES } = await import("../src/lib/scheduled.ts");
+    const { enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    registerScheduledJobs();
+
+    const old = `probe-tomb-old-${uniqueId()}`;
+    const fresh = `probe-tomb-fresh-${uniqueId()}`;
+    const live = `probe-tomb-live-${uniqueId()}`;
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, run_at, locked_until) VALUES
+         ($1, '{}'::jsonb, now() - interval '40 days', 'infinity'),
+         ($2, '{}'::jsonb, now() - interval '3 days',  'infinity'),
+         ($3, '{}'::jsonb, now() + interval '1 day',   NULL)`,
+      [old, fresh, live],
+    );
+
+    await enqueue(PRUNE_TOMBSTONES);
+    assertEquals(await runOnce(), true, "the sweep ran");
+
+    const left = await database.queryOrThrow<{ kind: string }>(
+      `SELECT kind FROM jobs WHERE kind = ANY($1)`,
+      [[old, fresh, live]],
+    );
+    const kinds = left.map((row) => row.kind);
+    assert(!kinds.includes(old), "a tombstone older than a month is let go");
+    assert(kinds.includes(fresh), "a recent one is still evidence");
+    assert(kinds.includes(live), "and a job that is merely waiting is not a tombstone at all");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = ANY($1)`, [[old, fresh, live]]);
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_TOMBSTONES]);
+  },
+});
+
+// The idempotency sweep deletes in batches, and the batches are what keeps the
+// first run on a busy node from being one enormous transaction that outlives its
+// own lease. What is checked here is that batching does not lose rows: the
+// window is still the window, however many passes it takes.
+Deno.test({
+  name: "sweeping in batches still sweeps exactly the old keys",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { registerScheduledJobs, PRUNE_IDEMPOTENCY } = await import("../src/lib/scheduled.ts");
+    const { enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    registerScheduledJobs();
+
+    const tag = uniqueId();
+    const stale = Array.from({ length: 12 }, (_, i) => `probe-batch-old-${tag}-${i}`);
+    const recent = `probe-batch-new-${tag}`;
+    for (const key of stale) {
+      await database.queryOrThrow(
+        `INSERT INTO idempotency (key, brand, response, created_at)
+         VALUES ($1, 'probe', '{}'::jsonb, now() - interval '3 days')`,
+        [key],
+      );
+    }
+    await database.queryOrThrow(
+      `INSERT INTO idempotency (key, brand, response) VALUES ($1, 'probe', '{}'::jsonb)`,
+      [recent],
+    );
+
+    await enqueue(PRUNE_IDEMPOTENCY);
+    assertEquals(await runOnce(), true, "the sweep ran");
+
+    const left = await database.queryOrThrow<{ key: string }>(
+      `SELECT key FROM idempotency WHERE key LIKE $1`,
+      [`probe-batch-%${tag}%`],
+    );
+    assertEquals(left.length, 1, "every old key went, in however many batches");
+    assertEquals(left[0].key, recent, "and the recent one stayed");
+
+    await database.queryOrThrow(`DELETE FROM idempotency WHERE key LIKE $1`, [`probe-batch-%${tag}%`]);
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_IDEMPOTENCY]);
+  },
+});

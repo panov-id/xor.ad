@@ -210,6 +210,16 @@
 
 Учётная запись сама по себе не публикует ничего: она только владеет заведениями.
 
+```sql
+CREATE TABLE advertisers (
+  id                  uuid PRIMARY KEY,
+  email               text NOT NULL,           -- вход по magic-link
+  email_confirmed_at  timestamptz,             -- до подтверждения нельзя ни конверт, ни оффер
+  contact             text NOT NULL,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+```
+
 ### venue
 
     id
@@ -230,6 +240,18 @@
 
 Публиковать офферы может только заведение в статусе `verified`. `suspended` тоже принадлежит
 заведению: одна точка набрала жалоб — остальные продолжают работать.
+
+```sql
+CREATE TABLE venues (
+  id                   uuid PRIMARY KEY,
+  advertiser_id        uuid NOT NULL REFERENCES advertisers(id),
+  name                 text NOT NULL,
+  address              text NOT NULL,           -- на него уходит конверт
+  verification_status  text NOT NULL,           -- unverified | verified | suspended
+  verified_at          timestamptz,
+  created_at           timestamptz NOT NULL DEFAULT now()
+);
+```
 
 ### offer
 
@@ -272,8 +294,46 @@
 - `external_url` — единственное место в продукте, где разрешена ссылка, и существует оно
   только у заведений
 - `promo_code` — тоже только у заведений: у частника нет внешней системы, где код что-то значит
-- у частника заполнены ровно текст, `discount_value` и `conditions` — на его фразе в ленте
-  других полей просто нет
+- у частника заполнены ровно текст, `discount_value` и `conditions` — **и живут они на его
+  записи в `feed_messages`, не здесь**: `venue_id` в этой таблице `NOT NULL`, а заведения за
+  частником нет, так что строки частника база сюда попросту не пустит (уточнено 08.09.2026)
+
+Полями это описано выше; ниже — та же сущность как таблица, потому что
+`relay/node/src/lib/dsa_snapshot.ts` уже читает из неё колонки по именам, а
+реестр `docs/facts/schema.tsv` до 08.09.2026 не знал о ней вовсе. Код обращался
+к таблице, которой не было ни в одной спеке: снимок по уведомлению об оффере
+опирался на имена, за которые не отвечал ни один документ.
+
+```sql
+CREATE TABLE offers (
+  id                      uuid PRIMARY KEY,
+  brand                   text NOT NULL,          -- по нему ограничен любой поиск: витрина и есть граница видимости
+  venue_id                uuid NOT NULL REFERENCES venues(id),
+  offer_text              text NOT NULL,
+  discount_value          text NOT NULL,          -- пустым быть не может: без него публикация невозможна
+  conditions              text CHECK (conditions IS NULL OR char_length(conditions) <= 128),
+  promo_code              text,                   -- только у заведений
+  external_url            text,                   -- людям не показывается, см. 6.2
+  redirect_code           text NOT NULL,
+  redirect_disabled_at    timestamptz,            -- ссылка погашена, оффер остался
+  redirect_hits           integer NOT NULL DEFAULT 0,
+  last_checked_at         timestamptz,
+  repeated_from_offer_id  uuid REFERENCES offers(id),
+  discount_until          timestamptz NOT NULL,   -- срок скидки, не карточки
+  status                  text NOT NULL,          -- active | expired | hidden
+  published_at            timestamptz NOT NULL DEFAULT now(),
+  expires_at              timestamptz NOT NULL    -- жизнь карточки в ленте (4:20)
+);
+```
+
+Снимок по ст. 16 берёт отсюда `id, offer_text, discount_value, conditions,
+published_at, venue_id` и считает временем публикации `published_at`. Отдельного
+признака видимости у этой поверхности нет и быть не может: оффер публикуется в
+один шаг, колонка `NOT NULL`, и условие «опубликовано» на ней было бы всегда
+истинным — поэтому `published` для оффера объявлен `null`
+(`relay/node/src/lib/dsa_snapshot.ts`), а не именем колонки. Граница — `brand`:
+`visibility` этой поверхности `per_brand`, в отличие от ленты и столов
+(`chat_RU.md` §8.3).
 
 ### 3.1. Условия: единственное место, где скидка ограничивается
 

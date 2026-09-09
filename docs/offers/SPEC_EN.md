@@ -217,6 +217,16 @@ served both on a storefront subdomain and inside the panel; the rights model is 
 
 The account publishes nothing by itself: it only owns venues.
 
+```sql
+CREATE TABLE advertisers (
+  id                  uuid PRIMARY KEY,
+  email               text NOT NULL,           -- sign-in by magic link
+  email_confirmed_at  timestamptz,             -- before it, neither an envelope nor an offer
+  contact             text NOT NULL,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+```
+
 ### venue
 
     id
@@ -238,6 +248,18 @@ own envelope, delivered to exactly that address.
 
 Only a venue in `verified` status may publish offers. `suspended` belongs to the venue too: one
 place collected complaints, the others keep working.
+
+```sql
+CREATE TABLE venues (
+  id                   uuid PRIMARY KEY,
+  advertiser_id        uuid NOT NULL REFERENCES advertisers(id),
+  name                 text NOT NULL,
+  address              text NOT NULL,           -- the envelope goes here
+  verification_status  text NOT NULL,           -- unverified | verified | suspended
+  verified_at          timestamptz,
+  created_at           timestamptz NOT NULL DEFAULT now()
+);
+```
 
 ### offer
 
@@ -281,8 +303,47 @@ Field rules:
   for venues
 - `promo_code` is likewise venues only: a private author has no external system where a code
   means anything
-- a private author fills in exactly the text, `discount_value` and `conditions` — their phrase
-  in the feed simply has no other fields
+- a private author fills in exactly the text, `discount_value` and `conditions` — **and those
+  live on their `feed_messages` row, not here**: `venue_id` in this table is `NOT NULL` and a
+  private person has no venue, so the database would not take such a row at all (clarified
+  2026-09-08)
+
+The fields are described above; below is the same entity as a table, because
+`relay/node/src/lib/dsa_snapshot.ts` already reads columns out of it by name,
+while the registry `docs/facts/schema.tsv` did not know it existed until
+2026-09-08. The code addressed a table no specification declared: an Article 16
+snapshot about an offer rested on names no document was answerable for.
+
+```sql
+CREATE TABLE offers (
+  id                      uuid PRIMARY KEY,
+  brand                   text NOT NULL,          -- every lookup is scoped by it: the storefront is the visibility boundary
+  venue_id                uuid NOT NULL REFERENCES venues(id),
+  offer_text              text NOT NULL,
+  discount_value          text NOT NULL,          -- cannot be empty: without it publication is impossible
+  conditions              text CHECK (conditions IS NULL OR char_length(conditions) <= 128),
+  promo_code              text,                   -- venues only
+  external_url            text,                   -- never shown to people, see 6.2
+  redirect_code           text NOT NULL,
+  redirect_disabled_at    timestamptz,            -- the link is extinguished, the offer stays
+  redirect_hits           integer NOT NULL DEFAULT 0,
+  last_checked_at         timestamptz,
+  repeated_from_offer_id  uuid REFERENCES offers(id),
+  discount_until          timestamptz NOT NULL,   -- the discount's term, not the card's
+  status                  text NOT NULL,          -- active | expired | hidden
+  published_at            timestamptz NOT NULL DEFAULT now(),
+  expires_at              timestamptz NOT NULL    -- the card's life in the feed (4:20)
+);
+```
+
+An Article 16 snapshot takes `id, offer_text, discount_value, conditions,
+published_at, venue_id` from here and treats `published_at` as the time of
+publication. This surface has no separate mark of visibility and cannot have one:
+an offer is published in a single step, the column is `NOT NULL`, and a
+"published" condition on it would always be true — so `published` for an offer is
+declared `null` (`relay/node/src/lib/dsa_snapshot.ts`) rather than a column name.
+The boundary is `brand`: this surface's `visibility` is `per_brand`, unlike the
+feed and the tables (`chat_EN.md` §8.3).
 
 ### 3.1. Conditions: the only place a discount is limited
 

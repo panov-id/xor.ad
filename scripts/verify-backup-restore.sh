@@ -34,13 +34,20 @@ value_of() {
 zone="$(value_of BACKUP_STORAGE_ZONE)"
 storage_key="$(value_of BACKUP_STORAGE_KEY)"
 if [ -n "$zone" ] && [ -n "$storage_key" ]; then
+  host_of_zone="$(value_of BACKUP_STORAGE_HOST)"
   echo "== dumps live in their own zone (${zone})"
 else
+  host_of_zone=""
   zone="$(value_of BUNNY_STORAGE_ZONE)"
   storage_key="$(value_of BUNNY_STORAGE_KEY)"
   echo "== dumps share the working zone (${zone}) — BACKUP_STORAGE_ZONE is not set"
 fi
-host="${BUNNY_STORAGE_HOST:-storage.bunnycdn.com}"
+# The backup zone may live on its own endpoint, and backup-postgres.sh reads
+# BACKUP_STORAGE_HOST for exactly that. A drill that ignored it would look in the
+# right zone at the wrong host and report "no dump found" — a stale drill reading
+# as a broken backup, which is what this whole choice exists to avoid.
+host="${host_of_zone:-$(value_of BUNNY_STORAGE_HOST)}"
+host="${host:-storage.bunnycdn.com}"
 prefix="backups/${environment}/postgres"
 
 echo "== newest dump in ${prefix}"

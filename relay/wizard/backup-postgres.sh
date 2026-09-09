@@ -33,7 +33,8 @@ else
   zone="${BUNNY_STORAGE_ZONE}"
   key="${BUNNY_STORAGE_KEY}"
   host="${BUNNY_STORAGE_HOST:-storage.bunnycdn.com}"
-  echo "WARNING: no BACKUP_STORAGE_ZONE — dumps share the working zone and its key," >&2
+  echo "WARNING: BACKUP_STORAGE_ZONE and BACKUP_STORAGE_KEY are not both set —" >&2
+  echo "         dumps share the working zone and its key," >&2
   echo "         so one leak or one mistaken prune takes the data and the backups." >&2
 fi
 stamp="$(date -u +%Y-%m-%dT%H-%M-%SZ)"

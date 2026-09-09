@@ -38,8 +38,21 @@ export const PRUNE_IDEMPOTENCY = "prune_idempotency";
 // mistyped address, a change of mind, every request in a flood — stayed for
 // ever, holding an operator's email address in clear.
 export const PRUNE_MAGIC = "prune_magic_links";
+// Jobs that gave up. Kept as evidence, but not for ever: nothing removed them,
+// and the standing-job index deliberately ignores them, so one kind could hold
+// any number. Found by a review lens, 2026-09-08.
+export const PRUNE_TOMBSTONES = "prune_job_tombstones";
+const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
+// Big enough that an ordinary night is one batch, small enough that the lock a
+// batch holds is not worth noticing.
+const IDEMPOTENCY_BATCH = 5000;
+// A pass deletes at most this many batches and then waits for tomorrow rather
+// than running for an hour on the first night. Twenty-five million rows is well
+// past anything this table can honestly reach in a day.
+const IDEMPOTENCY_BATCHES = 5000;
 const A_DAY_MS = 24 * 60 * 60 * 1000;
+const A_MINUTE_MS = 60 * 1000;
 
 export function registerScheduledJobs(): void {
   handle(PRUNE_OBJECTS, async (payload) => {
@@ -55,21 +68,61 @@ export function registerScheduledJobs(): void {
   });
 
   handle(PRUNE_IDEMPOTENCY, async () => {
+    // In batches, not one statement. The table this sweeps is the one that had
+    // grown without a ceiling, so the very first run on a busy node is the
+    // largest delete it will ever do — one transaction holding a row lock per
+    // row, bloating the table, and outliving the ten-minute lease so another
+    // node claims the job while it is still running. Found by a review lens,
+    // 2026-09-08. Each batch commits on its own, so an interruption keeps the
+    // work already done.
+    let deleted = 0;
+    for (let batch = 0; batch < IDEMPOTENCY_BATCHES; batch++) {
+      const rows = await queryOrThrow<{ count: string }>(
+        `WITH doomed AS (
+           SELECT key FROM idempotency
+            WHERE created_at < now() - interval '${IDEMPOTENCY_DAYS} days'
+            LIMIT ${IDEMPOTENCY_BATCH}
+         ), gone AS (
+           DELETE FROM idempotency WHERE key IN (SELECT key FROM doomed) RETURNING 1
+         )
+         SELECT count(*)::text AS count FROM gone`,
+      );
+      const went = Number(rows[0]?.count ?? 0);
+      deleted += went;
+      if (went < IDEMPOTENCY_BATCH) break;
+    }
+    log("info", "pruned idempotency keys", { deleted });
+    return new Date(Date.now() + A_DAY_MS);
+  });
+
+  handle(PRUNE_TOMBSTONES, async () => {
+    // A job that ran out of attempts stays as `locked_until = 'infinity'`, on
+    // purpose: it is the only record that something never worked, and deleting
+    // it would erase the evidence (db/001, jobs.ts). But the partial index
+    // excludes tombstones, so there is no ceiling on how many of one kind can
+    // pile up, and nothing ever removed them. A month is long enough that
+    // anybody who was going to look has looked.
     const rows = await queryOrThrow<{ count: string }>(
       `WITH gone AS (
-         DELETE FROM idempotency
-          WHERE created_at < now() - interval '${IDEMPOTENCY_DAYS} days'
+         DELETE FROM jobs
+          WHERE locked_until = 'infinity'
+            AND run_at < now() - interval '${TOMBSTONE_DAYS} days'
           RETURNING 1
        )
        SELECT count(*)::text AS count FROM gone`,
     );
-    log("info", "pruned idempotency keys", { deleted: Number(rows[0]?.count ?? 0) });
+    const deleted = Number(rows[0]?.count ?? 0);
+    // Only worth a line when there was something to say: a nightly "deleted: 0"
+    // is how a log stops being read.
+    if (deleted > 0) log("info", "pruned job tombstones", { deleted });
     return new Date(Date.now() + A_DAY_MS);
   });
 
   handle(PRUNE_MAGIC, async () => {
-    await pruneMagicLinks();
-    return new Date(Date.now() + A_DAY_MS);
+    const result = await pruneMagicLinks();
+    // Come straight back while there is more, rather than leaving the rest for
+    // tomorrow: a backlog that only shrinks by one pass a day never shrinks.
+    return new Date(Date.now() + (result.more ? A_MINUTE_MS : A_DAY_MS));
   });
 
   handle(PRUNE_PAGEVIEWS, async (payload) => {
@@ -91,4 +144,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_DSA, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_IDEMPOTENCY, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_MAGIC, {}, new Date(Date.now() + A_DAY_MS));
+  await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
 }

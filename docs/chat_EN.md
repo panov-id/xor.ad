@@ -744,7 +744,13 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
   carries `reaccept`: `required` for the terms and the privacy policy, `silent`
   for the guidelines. `required` means the identity **cannot publish or open a
   chat** until it accepts again; the feed still reads. `silent` means the node
-  writes a new row itself and screen 15 marks the document as changed. The
+  writes a new row itself and screen 15 marks the document as changed. **The mark
+  is held by the device, not by the journal — clarified 2026-09-10:** after a
+  silent write the journal states that the person accepted the new revision, so
+  "changed since" cannot be derived from it. No "accepted silently" column is added
+  here: the journal answers what was accepted and when, and whether somebody read
+  it is not a question about consent. The device remembers the hash of the revision
+  it opened and compares it with the storefront's manifest. The
   difference is deliberate: the guidelines restate mechanics that already apply,
   and stopping a conversation to announce them teaches people to press "accept"
   without reading.
@@ -775,6 +781,12 @@ A person may leave the place for a span — **20 minutes, an hour, or until morn
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a departure "until morning" is survived only by conversations with a long span.
 - **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
 - **A peer in an open chat sees `stepped_away`** instead of the ability to write. This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **Stepping away takes the game cache for a pair with it (2026-09-10).** One person
+  leaving ends the game (§6), and since 2026-09-10 a game for two has a row in
+  `chat_games`. The cascade from `chats` will not take it: stepping away does not
+  kill the conversation. So the departure itself removes the row — not the sweeper
+  on `expires_at`, or between the end of the game and the end of the span the
+  position sits on the node without the game it belonged to.
 - **A table is not deleted; whoever leaves stands up from it (2026-08-27).** Phrases go, the table stays: people are sitting at it, and tearing it down would throw out of the game those who have nothing to do with somebody else's break — and would hand the founder a power they do not have (§6.1).
 - **Leaving early** takes a confirmation; the frequency of departures is not limited.
 

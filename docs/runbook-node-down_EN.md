@@ -84,7 +84,26 @@ with the process, so "the error counter is zero" and "the node just came up" are
 the same reading. `relay_process_start_time_seconds` says when.
 
 `relay_requests_total` by route and status shows whether traffic is arriving and
-with which codes.
+with which codes. **The route here is a pattern, not a path (since 2026-09-10):**
+`POST /admin/dsa-notices/:id/decide`, not a path carrying a real id. The label
+used to be built from the raw path, and a public scrape of production carried
+three real Article 16 notice ids. The method is normalised by the same rule:
+anything outside the known set counts as `<other>`.
+
+**`<unmatched>` is every unrecognised path as one series.** A growing
+`GET <unmatched>` with a 404 means somebody is probing, but **which** paths they
+probe is no longer visible in the metrics: that is the trade for a series map a
+scanner cannot grow. The paths themselves are in the step 2 logs — at `info`, so
+on the box only and with a window of about a day; only `warn` and `error` are
+copied to storage.
+
+**`relay_metrics_series` and `relay_metrics_writes_dropped_total{metric=…}`** are
+the state of the series map itself. The ceiling is 1000 series **per metric
+name**; a non-zero dropped counter means some name hit it, and its label names
+something unbounded. The `metric` label says which one. It counts **writes**, not
+lost series: one hot refused series adds one per request. There is no eviction —
+new series under that name simply stop appearing, and the cure is a node restart
+or a fix to the label in the code.
 
 ## Step 4. Bring it up
 
@@ -120,6 +139,9 @@ Named outright, so nobody hunts at night for something that does not exist:
 - **There is no centralised log shipping.** Anything that is not `warn`/`error`
   lives on the box only, and only until the file rotates.
 - **Metrics do not survive a restart.** There is no history, only a snapshot.
+- **The series map cannot be cleared without restarting the node.** Once a name
+  hits the ceiling, new series under it do not appear until a restart — and a
+  restart zeroes every counter of the incident too.
 - **There is no second node per environment today**
   (`assert_one_box_per_database` in the wizard): traffic cannot be moved to a
   neighbour, because there is no neighbour.

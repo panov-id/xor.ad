@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 189 | storefronts, panel, tenancy, DSA, keys, limits |
+| `relay/node/test` | 194 | storefronts, panel, tenancy, DSA, keys, limits |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **199** | **about chat and feed — 0** |
+| **Total** | **204** | **about chat and feed — 0** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
@@ -280,7 +280,7 @@ through three different wrappers and cannot be counted by eye.
 | 15.4 | Physics converges for both on a shared seed | one flick → the same final position | nothing to check |
 | 15.5 | The word to guess goes through the moderation queue | a forbidden word → "think of another one" | nothing to check |
 | 15.6 | A game is described by primitives: a new game is added by description, not by code | add a set without touching the engine | nothing to check |
-| 15.7 | The board is not written to the database | `SELECT` after a game — empty | nothing to check |
+| 15.7 | The game cache leaves with the conversation | delete `chats` → `SELECT` in `chat_games` empty (cascade, not span) | nothing to check |
 | 15.8 | **Table:** bands are checked each with each | sitting down outside one sitter's band → refused | nothing to check |
 | 15.9 | **Table:** a newcomer gets no history | the board as it stands, talk from the moment of sitting | nothing to check |
 | 15.10 | **Table:** talk is public and goes through the queue | a line shows after the check, not before | nothing to check |

@@ -462,6 +462,15 @@ is asking.
   punish the person who used it, which the decision of 2026-08-26 ("a block does
   not lower the ceiling") rules out. The price: the selection is computed per
   reader, so a shared per-zone cache will not do.
+- **Setting up a table means sitting down at it and standing up from the previous
+  one (a consequence, written down 2026-09-10).** A table with nobody sitting at it
+  does not reach the feed, so setting one up has to seat its author, or they would
+  put up something invisible. And the unique index `table_seats_one_at_a_time` will
+  not let them stay at the previous table either: the same button lifts them from
+  it. The composer screen has to say so **before** the tap — nobody should leave
+  somebody else's game silently by pressing "set up".
+  Whoever sets it up is playing from the first second (`playing_from` is set): they
+  are alone at the table, and there is nobody to ask.
 - **Sitting at a table and playing at it are different things, decided
   2026-09-09.** Someone who sits down gets **the chat and the board**, but not a
   turn: to play, they apply for the next round. A game in progress is not

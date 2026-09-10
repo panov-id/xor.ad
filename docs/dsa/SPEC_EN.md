@@ -62,6 +62,16 @@ Mandatory (Art. 16(2)):
 | `notifier_email` | string | asked for, not required — see below |
 | `bona_fide` | checkbox | "the information is accurate and complete to the best of my knowledge" |
 
+**`table_line` is a person's speech at a table** (an ordinary line, the opening
+words of an application, the explanation of a refusal), but **not a line of
+play**: that one is composed by the engine from the class of board and a
+coordinate, it has no author, and there is nothing to report. The "…" menu is
+therefore not shown on lines of play at all (clarified 2026-09-10, after table
+lines gained a kind on 2026-09-09). The note sits here rather than in the enum
+cell: the cell is read by the `dsa_kinds.test.ts` probe, which counts any
+backticked name inside it as one more target kind — on 2026-09-10 it went red on
+exactly that.
+
 Three fields the form sends that are not the notifier's to fill in, and are
 therefore not in the table above:
 

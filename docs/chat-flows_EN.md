@@ -733,8 +733,11 @@ sequenceDiagram
   into the engine is out — the whole point is the absence of rules; but not
   showing who is currently dragging a piece is equally out: two people tugging the
   same piece blind reads as a breakage, not as freedom.
-- No move validation, no score, no winner. Both may move pieces. The board lives
-  inside the chat and disappears with it; nothing is written to the database.
+- Minimal rules exist since 2026-09-09: the engine checks the turn order and the
+  legality of a move for the board's class, and it keeps the score. The board lives
+  inside the chat and disappears with it; the position and the score sit in the
+  `chat_games` cache and leave by cascade — rewritten 2026-09-10, where this read
+  "no move validation" and "nothing is written to the database".
 
 ### 15.1. A table: playing as a group ([§6.1](chat_EN.md))
 

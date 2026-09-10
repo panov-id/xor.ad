@@ -33,39 +33,41 @@
 #
 # 09.09.2026: table_games и table_scores — состояние игры за столом и счёт.
 # Заведены вместе с минимальными правилами: судить о ходе может только тот,
-# кто доску видит, а за столом всё публично по построению. Вдвоём партия
-# остаётся в памяти узла и в базу не пишется — поэтому таблиц здесь две, а
-# не три.
+# кто доску видит, а за столом всё публично по построению. 10.09.2026 к ним
+# добавилась третья — `chat_games`, кеш партии вдвоём: судья без позиции судить
+# не может, а перезапуск узла бывает при каждом выкате. Здесь стояло «вдвоём
+# партия остаётся в памяти узла и в базу не пишется — поэтому таблиц две».
 table	declared_in	migration	layer
 advertisers	docs/offers/SPEC_RU.md:214	-	product
 api_keys	-	relay/node/db/001_control_state.sql	control
-blocks	docs/chat_RU.md:1786	-	product
+blocks	docs/chat_RU.md:1920	-	product
 brands	-	relay/node/db/001_control_state.sql	control
-chat_key_wraps	docs/chat_RU.md:1994	-	product
-chat_participants	docs/chat_RU.md:1652	-	product
-chat_starters	docs/chat_RU.md:1661	-	product
-chats	docs/chat_RU.md:1643	-	product
+chat_games	docs/chat_RU.md:397	-	product
+chat_key_wraps	docs/chat_RU.md:2128	-	product
+chat_participants	docs/chat_RU.md:1786	-	product
+chat_starters	docs/chat_RU.md:1795	-	product
+chats	docs/chat_RU.md:1777	-	product
 dsa_notices	-	relay/node/db/005_dsa_notices.sql	control
 dsa_statements	-	relay/node/db/005_dsa_notices.sql	control
-feed_messages	docs/chat_RU.md:1093	-	product
-hidden_messages	docs/chat_RU.md:1811	-	product
+feed_messages	docs/chat_RU.md:1227	-	product
+hidden_messages	docs/chat_RU.md:1945	-	product
 idempotency	-	relay/node/db/001_control_state.sql	control
-identities	docs/chat_RU.md:585	-	product
-identity_stats	docs/chat_RU.md:1468	-	product
+identities	docs/chat_RU.md:686	-	product
+identity_stats	docs/chat_RU.md:1602	-	product
 jobs	-	relay/node/db/001_control_state.sql	control
-legal_acceptances	docs/chat_RU.md:606	-	product
-likes	docs/chat_RU.md:1461	-	product
-match_participants	docs/chat_RU.md:1540	-	product
-matches	docs/chat_RU.md:1532	-	product
+legal_acceptances	docs/chat_RU.md:707	-	product
+likes	docs/chat_RU.md:1595	-	product
+match_participants	docs/chat_RU.md:1674	-	product
+matches	docs/chat_RU.md:1666	-	product
 offers	docs/offers/SPEC_RU.md:308	-	product
 pageview_daily	-	relay/node/db/001_control_state.sql	control
 quota_counters	-	relay/node/db/001_control_state.sql	control
 schema_migrations	-	relay/node/db/001_control_state.sql	control
-sessions	docs/chat_RU.md:795	-	product
-table_games	docs/chat_RU.md:343	-	product
-table_lines	docs/chat_RU.md:308	-	product
-table_scores	docs/chat_RU.md:365	-	product
-table_seats	docs/chat_RU.md:289	-	product
-tables	docs/chat_RU.md:274	-	product
-vault_shares	docs/chat_RU.md:932	-	product
+sessions	docs/chat_RU.md:896	-	product
+table_games	docs/chat_RU.md:375	-	product
+table_lines	docs/chat_RU.md:338	-	product
+table_scores	docs/chat_RU.md:428	-	product
+table_seats	docs/chat_RU.md:319	-	product
+tables	docs/chat_RU.md:304	-	product
+vault_shares	docs/chat_RU.md:1056	-	product
 venues	docs/offers/SPEC_RU.md:245	-	product

@@ -44,7 +44,16 @@ green with the code broken.
 
 ## Queue 3 — what is exposed today
 
-Closed in full on 2026-09-08.
+Closed in the code on 2026-09-08 — **which is not the same as closed in
+production**. Measured 2026-09-10: `https://p1-prod.relay.panov.id/metrics` and
+`https://report.relay.panov.id/metrics` both answer **200** and hand over 50884
+bytes of counters, including `relay_requests_total{route="POST /admin/brands"}`;
+on dev the same path gives 404. Production runs an image older than 2026-08-31 and
+knows nothing of the `METRICS_TOKEN` change. This used to read "closed in full",
+and it was untrue in exactly the way the project rule was written against: what
+counted as closed was read in a file rather than measured on the live node. The
+item is open again — `metrics.public.prod`, due "now" — and closes with a
+production deploy.
 
 - ~~**`auth.link.unlimited`**~~ — `/auth/request-link` now has two ceilings, and
   they are not interchangeable. On the caller's address (`SIGN_IN_LIMITS`) it may

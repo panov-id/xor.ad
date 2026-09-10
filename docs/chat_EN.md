@@ -84,13 +84,16 @@ Inside a chat — a shared visual board for two, and beside it a table for compa
 
 | Class | What the engine checks | What is left to the people |
 |---|---|---|
-| **Free table** (dominoes) | a tile may only join a matching end; end of round; score | nothing |
-| **Dot grid** (dots) | the edge is free; a closed area is counted; score | nothing |
-| **Deck and hand** (durak, uno) | whose turn, that the card came from a hand, end of the deal, score | what beats what — there are too many variants |
-| **Square grid** (draughts, chess) | whose turn, the square is not held by your own piece, end of round by agreement, score | whether the move itself is legal |
-| **Dice** (backgammon) | whose turn, the roll is honest, score | how to move what was rolled |
-| **Physics** (flick game) | whose turn, the count of pieces knocked off | everything else — a flick ends where it ends |
-| **Text** (hangman) | the letter is not repeated, the word is guessed, score | nothing |
+| **Free table** (dominoes) | a tile may only join a matching end; end of round; score **by the pips left in hand** | nothing |
+| **Dot grid** (dots) | the edge is free; a closed area is counted; score **by closed areas** | nothing |
+| **Deck and hand** (durak, uno) | whose turn, that the card came from a hand, end of the deal, score **by deals won** | what beats what — there are too many variants |
+| **Square grid** (draughts, chess) | whose turn, the square is not held by your own piece, end of round by agreement, score **by rounds won** | whether the move itself is legal |
+| **Dice** (backgammon) | whose turn, the roll is honest, score **by rounds won** | how to move what was rolled, gammons and backgammons |
+| **Physics** (flick game) | whose turn, score **by pieces knocked off** | everything else — a flick ends where it ends |
+| **Text** (hangman) | the letter is not repeated, the word is guessed, score **by words guessed** | nothing |
+
+**A point means something different in each class — decided 2026-09-10.** There is no single "one point per round": dominoes count the pips left in hand, dots count closed areas, the flick game counts pieces knocked off, and a product score that disagreed with what the players say out loud would be worse than no score at all. The price: seven counting rules in code instead of one.
+**What the engine still does not count are gammons and backgammons:** that is a layer above counting rounds, and every group has its own.
 
 **The price is named and it is real: the behaviour is uneven.** In dominoes the engine stops your hand, in chess it says nothing, and a person cannot know in advance where they will be corrected. This is accepted deliberately — even behaviour is reached either by having no rules at all (overturned above) or by a chess engine inside every board, which is exactly the "separate application per game" §6 walked away from on 2026-08-26.
 
@@ -124,7 +127,17 @@ to be said on the screen: your words are closed, your moves are not.
 
 What the node now sees in a pair: the class of board, the position, whose turn, the score. What that means for a person: **what they are playing and with whom is no longer private from the platform**, and the screen says so plainly, next to what is already written about shuffling a deck (which the node saw anyway — there is no honest randomness otherwise).
 
-**Where the state lives: in memory for a pair, in the database at a table (2026-09-09).** In a pair the game stays transient as before: the node judges as it goes and forgets with it; restarting the node loses the game, and that is the price accepted so that the contents of a private conversation do not settle into the database even unencrypted. At a table it is the other way round — everything there is public anyway, the table already sits in the database with its `last_move_at`, and the game state sits beside it.
+**Where the state lives: in a game cache for a pair, in the database at a table (2026-09-09, clarified 2026-09-10).** At a table everything is public by construction: the table already sits in the database with its `last_move_at`, and `table_games` sits beside it.
+
+For a pair the game was to be held in the node's memory alone — and that did not survive its first check: **the node became the judge, and a judge without the position cannot judge.** Restarting the node happens on every deploy, and "the game is lost" on every deploy is not a price but a fault. The position cannot be taken from a client: a client can be forged, and that is what the rules were introduced against.
+
+**So the position is written to a game cache, and the word "cache" has to be explained rather than hidden behind.** Technically it is a row in the same database — otherwise it would not survive a restart of the process. What sets it apart is not the place but three promises, and they are checkable:
+
+- **it lives no longer than the conversation** — it goes with it, on the same span (§5);
+- **it holds only the position, whose turn and the score** — not one reply, not one word of the conversation; encryption came off the board, not off the messages;
+- **it is swept** along with everything else temporary, rather than lying there until somebody deletes it by hand.
+
+Calling this "we store nothing" would be untrue. The truth is: **we store the position of a game while the conversation lasts, and store nothing of what was said.**
 
 **The score lives as long as the conversation or the table does — decided 2026-09-09.** It accumulates between games: five games played, 3:2 is shown. It goes out with the conversation (on its span from §5) or with the table (on silence). Nothing outlives that: no history of wins, no mark on an identity — §1 promises no trace is left, and the score is no exception. **The price is accepted:** a competition appears inside one conversation, and it can become a reason not to leave. A short one — exactly until the conversation ends.
 
@@ -142,7 +155,7 @@ Adding a game means describing a field, a set of pieces **and the rules of the c
 | Physics | flick-draughts | deterministic simulation |
 | Text | hangman | entering a word and checking it |
 
-**The node shuffles and rolls — and in those games it sees the layout (2026-08-26).** The decision is deliberate and stated out loud because it is the one exception to §8.13: a board without randomness is synchronised encrypted and opaque to the node, while a deck and dice are not. The reason is plain: fair randomness has to belong to somebody, and if a player's client shuffles, it technically sees the others' cards and can stack the deck. Between "a neighbour cheats" and "the node knows what was dealt", the second was chosen — all the more easily because these games have no winner anyway.
+**The node shuffles and rolls — and in those games it sees the layout (2026-08-26).** The decision is deliberate and stated out loud. **The caveat was rewritten on 2026-09-10:** it used to read "it is the one exception to §8.13: a board without randomness is synchronised encrypted and opaque to the node, while a deck and dice are not". Since 2026-09-09 the board is not encrypted at all, so shuffling stopped being an exception — it became a particular case of what the node sees anyway. What still sets it apart is different: in the other games the node **watches**, and here it also **decides** — it shuffles and rolls. The reason is plain: fair randomness has to belong to somebody, and if a player's client shuffles, it technically sees the others' cards and can stack the deck. Between "a neighbour cheats" and "the node knows what was dealt", the second was chosen — all the more easily because these games have no winner anyway.
 
 **A private hand is dealt encrypted to its player**: each sees their own, the others see backs. The node, as above, knows both the deal and its contents.
 
@@ -189,6 +202,15 @@ indicator: the product shows nowhere who is at their screen, and it does not sho
 it here either. **The others see a count without names:** "2 of 4 confirmed" and a
 countdown. A list of who has confirmed, by name, would be exactly the indicator
 that was rejected on this screen on 2026-09-04 after a review.
+
+**In a pair the count is not shown at all — decided 2026-09-10.** Without names it
+is impersonal only at three and above: at two, "1 of 2 confirmed" is a binary
+answer about a named person, "my opponent is at their screen right now" — exactly
+the presence indicator the product promised not to introduce, and repeated every
+game at that. At two there is a button and a countdown, and the other side's
+confirmation shows only as a result: the game started, or it did not. The cost is
+named: thirty seconds of silence in a pair read as a freeze, and screen 19 has to
+draw that.
 
 Thirty seconds are **chosen, not measured**, and that is said plainly: it is enough
 for somebody with the phone in their hand and not enough for somebody who put it
@@ -314,8 +336,10 @@ CREATE TABLE table_lines (
   -- like — which exists nowhere (§11) — and needed a rate limit and a notice
   -- target of its own.
   -- `move` is a move shown in words ("Anya placed a tile on e4"). The line is
-  -- composed by the engine, not by a person, so the moderation queue does not
-  -- apply: there is nothing to check for, the text is assembled from the class of
+  -- composed by the engine, not by a person, so the "…" menu is not shown on it at
+  -- all and it is never the target of an Article 16 notice (docs/dsa/SPEC_EN.md):
+  -- there is nothing to report and no author. The moderation queue does not apply
+  -- either: there is nothing to check for, the text is assembled from the class of
   -- board and a coordinate. It is visible to everyone at the table and cut off by
   -- `joined_at` like any other — somebody who sat down does not see the moves made
   -- before they arrived, exactly as they do not see the speech.
@@ -330,11 +354,11 @@ CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS N
 
 -- Game state at a table — introduced 2026-09-09 along with the minimal rules.
 --
--- In a pair the game stays in the node's memory and is not written here (§8.13):
--- the contents of a private conversation do not settle into the database even
--- unencrypted. At a table it is the other way round — speech, board and stickers
--- are public by construction, the table already sits in the database, and the
--- state sits beside it.
+-- In a pair the game sits in the `chat_games` cache (below) — rewritten
+-- 2026-09-10, where this used to read "is not written here". At a table the state
+-- sits here for a different reason: speech, board and stickers are public by
+-- construction, the table is already in the database, and the state sits beside
+-- it rather than in a cache with a span.
 CREATE TABLE table_games (
   id           uuid PRIMARY KEY,
   table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
@@ -353,6 +377,41 @@ CREATE TABLE table_games (
 -- are looking at different places.
 CREATE UNIQUE INDEX table_games_current ON table_games (table_id) WHERE ended_at IS NULL;
 
+-- The cache of a game for two — introduced 2026-09-10, when it turned out that a
+-- judge without the position cannot judge, and a node restart happens on every
+-- deploy.
+--
+-- This is NOT storage of a conversation: there is not one reply here. Only the
+-- position, whose turn and the score. It lives no longer than the conversation, it
+-- is swept, and in the Article 30 register it stands as temporary game state rather
+-- than as the contents of a conversation.
+CREATE TABLE chat_games (
+  -- A cascade, not a span: "end it" and the death of the conversation take the
+  -- game the same instant, without waiting for `expires_at`. Added 2026-09-10 —
+  -- without it a person would be told "the history is gone" while the position
+  -- and the hands sat there until the span ran out.
+  chat_id      uuid PRIMARY KEY REFERENCES chats(id) ON DELETE CASCADE,
+  class        text NOT NULL,                         -- grid | free | dots | deck | dice | physics | word
+  state        jsonb NOT NULL,                        -- position, stock, whose turn, hands
+  score        jsonb NOT NULL DEFAULT '{}'::jsonb,    -- this pair's score, accumulating between games
+  updated_at   timestamptz NOT NULL DEFAULT now(),
+  -- The earlier of the two spans, not "the end of the conversation": each side has
+  -- its own span (§5), and the board goes out for both at the first death.
+  -- Clarified 2026-09-10 — the previous wording did not say whose end it meant.
+  expires_at   timestamptz NOT NULL
+);
+
+CREATE INDEX chat_games_expiry ON chat_games (expires_at);
+-- The sweeper: a daily `prune_chat_games` job takes rows with `expires_at < now()`
+-- in batches of 5000 and comes back in a minute while a batch comes back full —
+-- the same shape as the idempotency sweep (`scheduled.ts`). The cascade removes
+-- games with their conversation, the sweeper removes those that outlived a live
+-- one by their own span.
+--
+-- Backups live 14 days (the Article 30 register), so a ten-minute conversation's
+-- game lives in them for those two weeks. That is a price, not a footnote: saying
+-- "lives no longer than the conversation" without it would be untrue.
+
 -- The score lives on the TABLE, not on the game: it accumulates between games and
 -- goes out with the table (decided 2026-09-09). A separate table rather than a
 -- column in `table_games` for exactly that reason — a game ends, the score
@@ -370,7 +429,7 @@ CREATE TABLE table_scores (
 );
 ```
 
-**The players' hands live in `state`, and the read cuts them out.** The node sees
+**What is hidden lives in `state`, and the read cuts it out.** There are three hidden kinds, not one — clarified 2026-09-10, where the rule used to speak only of hands: the **hand** (the private part of the stock), the **undrawn part of the stock** (the boneyard in dominoes, the deck in cards) and the **guessed word** of the `word` class. The rule is general: the read hands over exactly what the primitive declared open, the same for `table_games` and `chat_games`. The node sees
 everything — that is accepted and stated plainly for a table — but it may not hand
 over somebody else's hand: the "Hand" primitive is defined as the private part of
 the stock, visible only to its owner (§6), and a spectator and an opponent are
@@ -446,6 +505,17 @@ is asking.
   between two. **The sweeper does not exist yet, and neither does the `tables`
   table in the node** — as with identities (§8.2) —
   and that is written down as an open item rather than passed off as done.
+- **The order when there is not enough room: phrases first, then tables, then
+  offers. Decided 2026-09-10.** The shares are measured against different bases — a
+  table against all delivered cards, an offer against the ordinary ones — and with a
+  small selection both ceilings do not fit. The offer gives way: §3 of the
+  storefront mechanics already calls it a guest in the neighbours' feed, and a table
+  a meeting place of the neighbours themselves.
+  The limit was computed: **no more than 31.8% of the selection is not a phrase**
+  (tables 25%, leaving offers 6.8%). The price is accepted: in a small neighbourhood
+  a café may not appear at all, and the venue will have to be told why. The reverse
+  order is worse: a table with one person sitting at it that misses the selection
+  never gathers company, while an offer waits for the next one.
 - **Which tables reach the quarter of the feed — random ones, and the quarter is
   counted after blocks. Decided 2026-09-09.** The share was named on 2026-09-02
   and the selection rule was not, and without it there is nothing to write the
@@ -492,6 +562,8 @@ is asking.
   (§8.11) — and needed a rate limit and a notice target of its own. The price is
   accepted and it is unpleasant: a public "we are not taking you, because…" is
   read by everyone sitting there, and that stings more than a private no.
+- **One application per game — decided 2026-09-10.** Refused: the next application can be made for the next game, not straight away. No separate number or timer is introduced for this — the game itself is the boundary, the same moment as the line-up confirmation. Without a limit an application would be a channel for persistence **with a compulsory answer**: it is a public line, and a refusal demands a written explanation, so somebody refused could demand one as many times in a row as they liked.
+  The price is accepted: in a long game — dominoes runs round after round — the wait is long, and the person sits as a spectator throughout.
 - **The players decide, and a "no" without words is not cast.** Those whose
   `playing_from` is set vote; spectators do not decide who gets in. The refuse
   button stays inactive while the explanation field is empty: a refusal with no
@@ -502,6 +574,24 @@ is asking.
   did not object. The product does not add a fourth timer beside the phrase, the
   conversation and the table, and "the round" is the one moment the players notice
   anyway.
+  **Silence lets in by the number of seats, not everybody — decided 2026-09-10.**
+  The rule used to mean that anyone unopposed was taken: consent cost nothing, an
+  objection cost a public explanation, and a person got in because nobody noticed
+  them. As it stands now: a game has its own number of seats (chess two, dominoes
+  up to four), and at the start of the round those unopposed sit down **in the
+  order they applied**, while seats last. Whoever does not fit stays an applicant
+  for the next round rather than a refused one — a refusal is still words only,
+  and only from someone playing.
+- **A move has a deadline, and a missed move is a pass: decided 2026-09-10.** Since
+  2026-09-09 the engine checks the turn order, which means the game stops on
+  whoever is not there: left, shown out, or simply put the phone down — the others
+  wait until the table itself dies. As it stands now: **five minutes per move**,
+  then an automatic pass, and **three passes in a row make a spectator** — the same
+  as an unconfirmed roster. The five minutes are **chosen, not measured**
+  (`table.move.window` in `limits.tsv`), and chosen at the upper bound: that is how
+  long a person may think in chess without being absent. The cost is named: in a
+  slow game a pass will land on someone who was thinking, and the game is the worse
+  for it — but it does not stop.
 - **Being shown out is not being locked out — decided 2026-09-08.** The schema
   stays as it is: `table_seats` has `left_at`, no trace of an eviction, and coming
   back is the same `UPDATE ... SET left_at = NULL`. A "this person may not return"
@@ -519,13 +609,18 @@ is asking.
   shown out returns with the same gesture, as often as they like.** Between the
   eviction and the block there is a gap, and in it an eviction is a request to
   leave rather than a lock.
-- **The board is not in the schema.** Board state is transient — in memory,
-  encrypted under the conversation key where there is one, never written to the
-  database (§8.8). A table stores who is seated and what was said, not where the
-  pieces stand.
+- **The board for two is not in the schema — rewritten 2026-09-10.** This used to
+  read "the board is not in the schema: state is transient, encrypted under the
+  conversation key where there is one". Both halves went stale in a single day: on
+  2026-09-09 the board stopped being encrypted, and the table gained `table_games`
+  and `table_scores`. As it stands: **in a pair** the state is transient, in the
+  node's memory and in the `chat_games` cache with the conversation's span; **at a table** it
+  sits in the database beside the table, because everything there is public by
+  construction (§6.1).
 
 - **The majority of those sitting can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
-- **A block hides the table entirely.** If someone blocked is sitting there, the table is not shown at all. The cost is accepted and named: one person can hide someone else's game from another simply by joining it.
+- **A block separates at the seat, it does not tear a game apart — rewritten 2026-09-10.** A table with a blocked person at it is still not shown, but sitting down is refused **both ways**: neither the blocked person into a table where the blocker sits, nor the other way round. This used to read "one person can hide someone else's game from another simply by joining it" — and the cost was larger than that: by joining a game in progress, an outsider cut it off mid-move for whoever was playing, and the others at the table lost a player for no reason.
+  **A block during a game is the only case where a table is torn apart, and the one who blocks tears it.** Before the button a person is told plainly: the game will end, and the one who leaves the table is you. That puts the cost on whoever made the decision, not on the person it was made about, and not on four bystanders.
 - The board lives within the chat and **disappears with it** (ephemerality).
 - Sync in real time (see §7).
 
@@ -945,6 +1040,32 @@ node    compares the hash of auth; match ─► hands over the share, resets the
 device  vault key = HKDF(local ‖ share)
 ```
 
+**An unfinished registration lives an hour and goes out by itself — decided
+2026-09-10.** The share is only handed over once written (`vault_shares` below), so
+by the time the paper code is shown the node already holds `identities`, `sessions`
+and `vault_shares`. Someone who closes the tab between the code being shown and
+confirmed leaves nothing on the device — and those three rows stay, with nothing to
+remove them: the storefront promised "there is no identity" (screen 2), and the
+promise was untrue.
+
+The order of the steps does **not** change. Moving the write to the end would
+either take the offline out of step 2 (the share comes from the node, so whether
+the PIN matched would only be visible from the answer) or have the client generate
+the share — and then both halves of the key sit on it at registration time, and the
+offline-search argument below stops working exactly when it is needed.
+
+As it stands now: until the code is confirmed the identity is marked unfinished and
+**passes no membership check at all** — no feed, no match, no chat. A daily
+`prune_unfinished_signups` job beside `prune_magic_links`
+(`relay/node/src/lib/scheduled.ts`) removes such rows by cascade from `identities`
+after 1 hour (`signup.unfinished.ttl` in `docs/facts/limits.tsv`). An hour is not
+an instant: somebody who went looking for pen and paper has to be able to come back
+and finish writing the code down.
+
+The cost is named: for that hour the half-made row does sit in the database, and
+"there is no identity" is the truth about what that row **is**, not about it being
+absent from the table.
+
 **The node checks the PIN, not the device.** This is the easy thing to get wrong: hand the share to anyone who asks and an attacker takes it once, then brute-forces a million combinations offline, and the whole scheme collapses. Proof of knowing the PIN comes **before** the share is released, and the node keeps the attempt counter.
 
 ```sql
@@ -1032,7 +1153,17 @@ node's other public endpoints (`lib/rate_limit.ts`), and **globally** — a tota
 miss counter that throttles on a spike. The second is not against guessing, which
 the arithmetic already rules out, but against a flood into a public endpoint.
 
-**The old code dies the moment recovery happens.** It used to stay valid: the
+**The old code dies once the new one is confirmed — clarified 2026-09-10.** This
+read "the moment recovery happens", and the moment was never named: between
+unwrapping the long key and typing two groups of the new code there is a step, and
+a break on it left a live identity **with no safety net at all** — the old sheet
+dead, the new one unconfirmed, nothing to raise yourself with next time. Both are
+one transaction: the new code becomes valid and the old one goes out together, or
+nothing happens. The cost is accepted and named: while a person copies out sixteen
+characters both codes are alive, and a photographed old sheet still works in that
+window — minutes of it are cheaper than an identity with no way back.
+
+Why it dies at all. It used to stay valid: the
 rule "replace only by presenting the current one" required no new issue, and a
 photographed sheet worked forever. But people recover precisely when something
 went wrong — including when the paper may have been seen. Leaving it valid keeps
@@ -1811,9 +1942,9 @@ error      — not delivered (offline, drop, timeout) → a "send again" button
 
 The refusal counter and the moderation ladder moved to §8.3: they belong to the feed, and the chat no longer has anything to feed them with.
 
-**The game board** (`game_sessions` from §6) is synced as transient chat state and disappears with the chat; nothing is written to the database. **Encryption was taken off it on 2026-09-09**, together with the introduction of minimal rules: only whoever sees the board can judge the play. The **board, and only the board**, is outside §8.13; messages, stickers and the guessed word are encrypted as before. At a table the game state sits in the database beside the table — everything there is public by construction (§6.1).
+**The game board** (`chat_games` from §6 — the name was corrected 2026-09-10, there is no `game_sessions` in the schema) is synced as chat state and disappears with the chat: by cascade from `chats`, and a row that outlives the conversation by the sweeper on `expires_at`. This used to read "nothing is written to the database"; since 2026-09-10 that is untrue — the position, whose turn and the score sit in the game cache. **Encryption was taken off it on 2026-09-09**, together with the introduction of minimal rules: only whoever sees the board can judge the play. The **board, and only the board**, is outside §8.13; messages, stickers and the guessed word are encrypted as before. At a table the game state sits in the database beside the table — everything there is public by construction (§6.1).
 
-**The exception is named: games with randomness (2026-08-26).** In cards, uno and backgammon the node shuffles and rolls, which means it sees the deck, the hands and the dice — encrypting from it what it deals out itself is impossible. The promise that the node does not read holds for messages and for boards without randomness; for those three classes it does not, and staying quiet about that is not an option. A private hand is still wrapped for its player: the others at the table see backs, the node sees contents.
+**The exception is named: games with randomness (2026-08-26).** In cards, uno and backgammon the node shuffles and rolls, which means it sees the deck, the hands and the dice — encrypting from it what it deals out itself is impossible. **Rewritten 2026-09-10:** this used to say "the promise that the node does not read holds for messages and for boards without randomness", and since 2026-09-09 the second half is untrue — no class of board is encrypted. The promise holds **for messages**, and for nothing else. The difference between classes remains, but a different one: in the other games the node watches, and in these three it also decides — it shuffles and rolls. A private hand is still wrapped for its player: the others at the table see backs, the node sees contents.
 
 ### 8.9. Blocks
 
@@ -1867,7 +1998,7 @@ Hiding is **silent and one-way**: the author is not told, their feed does not ch
 
 - **Feed** — `expires_at` (N hours): the phrase drops out of results, a background job deletes the row, `likes` cascade away. Starters survive — the text was copied.
 - **Match** — `least()` of both phrases; expired means gone.
-- **A conversation** — each participant has their own end: `last_own_message_at + their idle_ttl_minutes` (§8.6). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants` and `chat_starters` cascading.
+- **A conversation** — each participant has their own end: `last_own_message_at + their idle_ttl_minutes` (§8.6). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants`, `chat_starters` and `chat_games` cascading (the last added 2026-09-10 along with the table itself).
 - **Local history** — cleaned by the client, always on the client's initiative:
 
 ```

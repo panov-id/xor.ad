@@ -738,8 +738,9 @@ everyone agrees. Once everyone has declined to play again, the board closes; in 
 pair, one person leaving ends the game; at a table the last one left waits for
 someone to sit down.
 
-The board is transit state of the chat: encrypted with the same key, held in
-memory, gone with the chat, never written to the database (§8.8).
+The board is transit state of the chat: not encrypted since 2026-09-09 (only whoever sees the board can judge the play), with the position held in a game cache on the node
+(`chat_games`) and leaving with the chat by cascade — rewritten 2026-09-10, where
+this read "never written to the database" (§8.8).
 
 ### 5.4. No links, no QR, no clipboard — by construction
 

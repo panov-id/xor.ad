@@ -88,11 +88,23 @@ processing is identical and only the storefront differs, so the record is shared
 - **Recovery code.** An identity stores a hash of half the paper code and its
   long-lived key wrapped under the other half. We do not know the code and can
   neither look it up nor reset it.
+- **Game state — entered 2026-09-10** (`chat_EN.md` §6.1). Since 2026-09-09 the
+  board and the moves are **not encrypted**: the node judges by the rules of the
+  game, and a judge without the position cannot judge. The data: the position, whose
+  turn, the **players' hands**, the undrawn stock, the guessed word of the hangman
+  class and the pair's score. Not one reply of the conversation is here. In a pair
+  this is a game cache (`chat_games`) tied to the conversation and leaving with it by
+  cascade; at a table it is `table_games` and `table_scores`, leaving with the table.
+  The basis is the same — performance of a contract: the game is part of the service,
+  and consent would be worse here, because withdrawing it would cut the game off for
+  the other player.
 - **Recipients.** None.
 - **Retention.** The conversation is **not stored on the servers** — only carried
   until delivered. On the device it lives in IndexedDB, encrypted with the vault
   key, for the shorter of the two chosen times. The share and the hashes live as
-  long as the session or the identity does.
+  long as the session or the identity does. Game state lives no longer than the
+  conversation or the table, and for another 14 days in the backups (see the
+  section on copies).
 
 ### 5. Waitlist
 

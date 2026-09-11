@@ -65,9 +65,22 @@ Sections 1 and 2 know no size exemptions beyond the ones spelled out in them.
 
 ## 3. What the micro-enterprise status lifts
 
-**Art. 19** exempts micro and small enterprises from the whole of Section 3. The
-operator is a private individual with no staff and no revenue, comfortably below
-the threshold (fewer than 10 employed, turnover under €2m).
+**Art. 19** exempts micro and small enterprises from the whole of Section 3.
+
+**The operator's legal form does not stand in the way — recorded 2026-09-10.**
+Article 1 of the Annex to Recommendation 2003/361/EC defines an enterprise as
+**any entity engaged in an economic activity, irrespective of its legal form**,
+and names the self-employed and family businesses among them. The argument that
+could arise here is not about being a private individual, but about whether there
+is an economic activity at all: an entity with no receipts whatsoever might not
+qualify, and then there is nobody for the exemption to apply to.
+
+**Which is why donations work for the status rather than against it.** The PayPal
+button makes the activity economic, while the size stays micro by four orders of
+magnitude: 0 employed of the 10 allowed, receipts in single or double-digit euros
+against a €2m threshold. This used to read "a private individual with no staff and
+**no revenue**", which was both inaccurate (the button works) and weaker than the
+norm itself.
 
 Lifted: Art. 20 (internal complaint handling), Art. 21 (out-of-court dispute
 settlement), Art. 22 (trusted flaggers), Art. 23 (measures against misuse),
@@ -82,7 +95,7 @@ Art. 28 (protection of minors).
 | **Date checked** | 5 August 2026 |
 | **Confirmed by** | the operator, Evgenii Panov |
 | **Persons employed** | 0 — the operator is a private individual with no staff and no standing contractors |
-| **Annual turnover** | €0 — the Service takes money from neither residents nor businesses |
+| **Annual turnover** | donations through PayPal; the Service takes money from neither residents nor businesses. The sum is kept month by month in `docs/donations_EN.md` — clarified 2026-09-10, where this used to read "€0" beside a live button |
 | **Conclusion** | **micro enterprise**: both figures sit below the threshold of Recommendation 2003/361/EC (fewer than 10 employed, turnover or balance sheet not above €2m) |
 | **Next check** | by 5 August 2027, and out of turn on any of the events below |
 

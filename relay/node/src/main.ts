@@ -64,15 +64,22 @@ Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
 
   if (req.method === "OPTIONS") return handlePreflight(origin);
 
-  const route = `${req.method} ${url.pathname}`;
+  // HEAD is GET without a body, not a route of its own (RFC 9110 §9.3.2). The
+  // dispatcher matched the whole string "GET /health", so `HEAD /health` fell
+  // through to 404 — and a load balancer probing with HEAD, which is the common
+  // default, would have read a live node as dead. Measured on production
+  // 2026-09-10: HEAD /health answered 404 while GET answered 200.
+  const isHead = req.method === "HEAD";
+  const lookupMethod = isHead ? "GET" : req.method;
+  const route = `${lookupMethod} ${url.pathname}`;
   const reqId = crypto.randomUUID();
   const started = performance.now();
   const handler: Handler | undefined = routes[route];
-  const patterned = handler === undefined ? match(req.method, url.pathname) : undefined;
+  const patterned = handler === undefined ? match(lookupMethod, url.pathname) : undefined;
   // Both halves of the label are normalised — the path by the pattern, the method
   // by a known set. The rule itself lives in lib/router.ts, where a probe can call
   // it without starting a server.
-  const metricRoute = metricLabel(req.method, url.pathname, {
+  const metricRoute = metricLabel(lookupMethod, url.pathname, {
     exact: handler !== undefined,
     pattern: patterned?.pattern,
   });
@@ -112,6 +119,10 @@ Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
 
   res.headers.set("x-request-id", reqId);
   for (const [k, v] of Object.entries(corsHeaders(origin))) res.headers.set(k, v);
+  // The body is dropped, the headers are kept: RFC 9110 asks a HEAD response to
+  // carry the same header fields a GET would. Dropping the headers too would
+  // make HEAD answer "alive" while saying nothing about what is alive.
+  if (isHead) return new Response(null, { status: res.status, headers: res.headers });
   return res;
 });
 

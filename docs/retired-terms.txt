@@ -252,3 +252,21 @@ quota of 5 posts          | README.md    | four live and four an hour, 2026-08-2
 can detect your position  | README.md    | geolocation is never requested, the point is set by hand, 2026-08-28
 острые углы               | README_RU.md | сдержанные радиусы: 37 объявлений, 17 значений, 31.08.2026
 sharp corners             | README.md    | restrained radii: 37 declarations, 17 values, 2026-08-31
+# --- переезд сжигает долю: история на прежнем устройстве не возвращается --------
+# Решено 11.09.2026 (chat_RU.md §8.2), а в тот же день панель ревью нашла старое
+# обещание в семи местах канона, механики и экранов, включая критерий приёмки —
+# решение вписали в одну строку. Второй проход нашёл ещё два в depth-client.
+вернётся, если вы вернёте личность | chat_RU.md sosed.place/docs/13-devices_RU.md neighbro.place/docs/13-devices_RU.md | нечитаемой навсегда, даже если вернуть личность, 11.09.2026
+возвращается вместе с личностью | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | ключа к переписке больше нет, 11.09.2026
+переписка на месте, вся   | chat_RU.md | окна пустые, старая база не открывается, 11.09.2026
+переписка остаётся здесь  | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | переписка больше не откроется, 11.09.2026
+нечитаемой без личности   | sosed.place/docs/13-devices_RU.md neighbro.place/docs/13-devices_RU.md | нечитаемой навсегда, 11.09.2026
+вернётся вместе           | depth-client_RU.md | там больше не откроется, 11.09.2026
+возвращается вместе с     | depth-client_RU.md | доля сожжена, открыть нечем, 11.09.2026
+they come back if you bring | chat_EN.md | unreadable for good, 2026-09-11
+the history is all there  | chat_EN.md | empty windows, the old database opens by no means, 2026-09-11
+returning if you bring    | sosed.place/docs/13-devices_EN.md neighbro.place/docs/13-devices_EN.md | unreadable for good, 2026-09-11
+becomes unreadable without | sosed.place/docs/13-devices_EN.md neighbro.place/docs/13-devices_EN.md | unreadable for good, 2026-09-11
+come back with the identity if | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | no key opens them any more, 2026-09-11
+correspondence stays here | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | will not open again, 2026-09-11
+comes back with the       | depth-client_EN.md | will not open there again, 2026-09-11

@@ -241,8 +241,8 @@ After the move, the line without which a person will assume their chats are gone
 
 ```
   moved. the conversations are here, the history is not:
-  it stayed on the previous device and comes back with the
-  identity if you bring it back.
+  it stayed on the previous device and will not open
+  there again, even if you bring the identity back.
 ```
 
 The other side, when this terminal is the one showing the code:
@@ -760,7 +760,8 @@ reaches the disk.
 
 Hence the consequence for freezing (§8.2): a frozen `depth` retains
 **nothing** beyond what was in the live process's memory before it exited. A
-browser keeps local history at this point — the terminal is stricter here.
+browser keeps local history at this point, though after a move nothing opens it
+either — the share is burned (§8.2); the terminal keeps not even that.
 
 A forgotten PIN equals a deleted volume — but not a lost identity: the paper code
 raises it again (§2.3). That is said twice: when the identity

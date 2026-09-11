@@ -152,6 +152,7 @@ reason_for() {
     check-docs-pairing)      echo "не самостоятельные ворота: зовётся из check-docs-pairing-all" ;;
     check-node-images)       echo "живые адреса пула; dev и staging закрыты по IP, из CI не пройдёт" ;;
     check-message-limits)    echo "живой узел relay; без сети замер отложен, а не пройден" ;;
+    check-argon2-cost)       echo "качает три движка на каждый прогон; это замер, а не ворота" ;;
     *)                       echo "причина не записана — впишите её сюда" ;;
   esac
 }

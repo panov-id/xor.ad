@@ -1084,13 +1084,13 @@ What this step does not do: if the person has been talked into pressing it, it w
 
 **What freezing does.** A frozen device loses node access at once: its signature is accepted nowhere, delivery subscription included, so it receives no new messages **even in the chats that were open on it**. Nor are the keys of new conversations wrapped for it.
 
-What freezing does **not** do is wipe the disk. The local database stays where it is, encrypted with that device's vault key (below), and that is deliberate: bringing the identity back brings the whole conversation history back with it.
+What freezing does **not** do is wipe the disk. The local database stays where it is, but nothing can open it any more: the move burns this device's vault share (above, decided 2026-09-11), and bringing the identity back does not bring the history back.
 
 ```
 laptop is talking ─► transfer to the phone ─► laptop frozen, disk intact
         ...later...
-the phone shows a code ─► the laptop wakes and asks for ITS old PIN
-                          ─► the history is all there
+the phone shows a code ─► the laptop wakes with a new share
+                          ─► empty windows: the old database opens by no means
 ```
 
 On the phone the chats are the same and the windows are empty: the new device has no history and no way to get any — messages are not in the database (§8.8), there is nothing to download. That is not a loss but "nothing here yet", and it should be said that way.
@@ -1101,7 +1101,7 @@ An empty window is not the whole of it, though: the old conversations are also *
 
 The interface says so plainly, not in small print:
 
-> The identity has moved to another device. Here it is frozen: new messages will stop arriving, and the conversations stay on disk encrypted — they come back if you bring the identity back.
+> The identity has moved to another device. Here it is frozen: new messages will stop arriving, and the conversations on this device become unreadable for good — even if you bring the identity back here.
 
 **A delayed freeze was considered and rejected.** The idea was to keep the previous device alive for a day and show "you are being disconnected — [that's not me]" on it the whole time. Against identity theft that works, but it breaks the main legitimate case: someone talked from a borrowed laptop, walked away, and the laptop stays live for another day — where whoever sits down at that desk can cancel the disconnection. Leaving means closing the door now. The paper code (below) serves as the insurance instead: being locked out for good is not possible anyway.
 
@@ -2581,8 +2581,9 @@ here are the ones without which the chat is not done at all:
   criterion returns the day a shared Postgres does.
 - An identity transferred to a second device shows **the same chats and empty
   windows** there; the previous device freezes and, once the identity comes back,
-  shows its entire history again — **in a browser**. `depth` has nothing to bring
-  back: it writes nothing to disk but keys, so its windows are as empty after a
+  its old history opens by no means — the share was burned by the move (§8.2),
+  and this is tested the same way as ten wrong PINs. `depth` has nothing to bring
+  back anyway: it writes nothing to disk but keys, so its windows are as empty after a
   return as they are on a new device. An empty window is not a defect in either
   case (§8.13).
 - Ten wrong PINs burn the share, and the local database then **opens with

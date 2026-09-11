@@ -130,7 +130,9 @@ Python wizard, runs in a Docker launchpad (`run.sh`). Inventory =
   `METRICS_TOKEN?` (what it takes to read `/metrics`; empty means the endpoint
   answers 404 to everybody, which is the default), `BACKUP_STORAGE_ZONE?` /
   `BACKUP_STORAGE_KEY?` (a zone of their own for the dumps; empty means they share
-  the working zone and its key, and the script says so on every run).
+  the working zone and its key, and the script says so on every run). The zone
+  exists since 2026-09-11: `xor-backups`, region DE replicated to SE — a second
+  copy that survives a lost region without leaving the EU.
 
 ## 9. Security
 

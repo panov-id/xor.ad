@@ -1195,6 +1195,8 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 
 **Shown once as before, confirmation mandatory.** The code is shown a single time and does not let anyone past until two of the four groups are typed back: "next" gets pressed unread, and recovery cannot ask afterwards. A screen that can be skipped is the absence of a code, not its presence.
 
+**This also covers the browser evicting the storage — written down 2026-09-11.** A browser may erase IndexedDB under disk pressure on its own, without asking, and the private half of the key then leaves along with the history — the identity is gone, and the person did nothing they could remember doing. No separate mechanism is needed: the only insurance is the same one, and it is already mandatory. What matters is that the confirmation does not depend on the face — typing two groups back is equally available to a browser and to a terminal — so §13 is not broken here. Asking the platform whether its storage is durable was considered and rejected: `navigator.storage.persist()` exists only in the web, a mount check only in `depth`, and any rule written through them splits into two rules for two faces. Nothing more can be promised: a code written down at registration and lost a year later saves nobody, in either face.
+
 **There is no uninsured window any more.** The earlier text named it plainly and asked for a line on the registration screen; there is nothing left to name — the code is there from the first minute.
 
 **The PIN stays at registration, and the reason is the terminal.** In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history, which does not exist on the first minute. But `depth` writes its key file immediately, and that file is encrypted with the same vault key (below). Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
@@ -1287,7 +1289,7 @@ age changed   → "they changed their age: 39"
 
 Disclaimers (both required in the UI):
 
-> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
+> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session — and the browser itself may do the same when it runs short of disk; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
 
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
@@ -2547,6 +2549,20 @@ for over a mistake in a different field.
 Steps 1–4 are not worth queueing behind one another: each adds a working
 screen, and each is a place one can stop. That screen is a terminal one — the
 web catches up in a single step at the end.
+
+**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
+The set follows from steps 1–4 and is written down here so that it
+is not picked by whoever first sits down to write `db/`: `identities`,
+`sessions`, `vault_shares`, `legal_acceptances`, `feed_messages`, `likes`,
+`identity_stats`, `matches`, `match_participants`, `blocks`. The first four are
+"who this is" together with the consent that cannot be reconstructed after the
+fact. Then the feed, the like and the pair. `blocks` is in because from the very
+first match there has to be a way to end contact, not because step 4 demands it.
+
+The price is named out loud: until step 5 two people who matched see that they
+matched and walk into a wall — there are no conversations yet. That is the price
+of the order itself rather than of this set, and it is accepted together with the
+decision to put the terminal first.
 
 ## 14. Acceptance criteria
 

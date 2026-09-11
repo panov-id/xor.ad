@@ -89,13 +89,19 @@ production deploy.
   the first mistyped whitelist address — both left a public box with no firewall,
   silently. The wizard now reads `ufw status` afterwards and fails if it did not
   come back up.
-- **`backups.same.zone`** — the code is ready: `BACKUP_STORAGE_ZONE`/`KEY` are
-  read by the backup script and by the restore drill alike (a drill looking in
-  the old zone would report a broken backup rather than a stale drill), and
-  without them the script says so every night. Creating the zone and its key in
-  Bunny is left — **a person's action**.
-- **`pool.image.unreported`** — prod and staging do not name their build. It
-  closes by itself the day a release newer than 2026-08-31 reaches them.
+- ~~**`backups.same.zone`**~~ — the zone `xor-backups` exists since 2026-09-11
+  (region DE, replicated to SE: a copy that survives a lost region without
+  leaving the EU). It turned out not to be a person's action at all — the Bunny
+  account key can `POST /storagezone`, so the zone was created by API. All three
+  environments' dumps left the working zone where they sat beside the waitlist:
+  dev 6586 bytes, staging 4951, prod 6725, each run by hand the same day. The
+  restore drill brings both dev and prod up in a throwaway Postgres: 18
+  migrations, key counts matching the live database. And the drill goes red when
+  there is no dump: asked for an environment that has none it says "no dumps yet
+  — has the timer run?" and exits 1.
+- **`pool.image.unreported`** — staging does not name its build; prod named it on
+  2026-09-11 (`image` in `/health` is `v2026.9.11-g8f89e7a`). It closes in full
+  the day the release reaches staging.
 
 ## Queue 5 — decisions the code is waiting for
 

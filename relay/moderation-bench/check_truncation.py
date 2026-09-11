@@ -17,7 +17,7 @@ entry = {"identifier": "philschmid/germeval18", "configuration": None,
 texts = [text for text, _ in sample(entry, 300, 20260804)]
 
 toxic = [i for i, label in enumerate(german["labels"]) if label]
-translator = build_translator("facebook/nllb-200-distilled-600M")
+translator = build_translator()
 english = translator.translate_many([texts[i] for i in toxic], ["deu_Latn"] * len(toxic))
 
 missed, caught = [], []

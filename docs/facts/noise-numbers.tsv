@@ -53,7 +53,7 @@ value	unit	kind	why	example
 25	graphemes	sample.data	вход теста: на графему длиннее предела имени	xor.ad/docs/test-map_EN.md:56
 26	KB	measurement	встречено в: (26 KB) in sosed — one file each, their own unicode-range only, added as	xor.ad/docs/open-work_EN.md:316
 2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:771
-2	m	external.fact	встречено в: the threshold (fewer than 10 employed, turnover under €2m).	xor.ad/docs/dsa/README_EN.md:70
+2	m	external.fact	встречено в: against a €2m threshold. This used to read	xor.ad/docs/dsa/README_EN.md:81
 2	min	sample.data	встречено в: Note over A,B: the code expired after 2 minutes, no move happened	xor.ad/docs/chat-flows_EN.md:144
 300	s	measurement	срок кеша html на краю сети: параметр раздачи, не обязательство перед человеком	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:184
 30	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:251
@@ -75,9 +75,9 @@ value	unit	kind	why	example
 600	m	prose.figure	встречено в: - **Location**: the static "Kolonaki · 600 m" is gone. Distance is **never computed**. Matching 	xor.ad/docs/app-prototype-spec_EN.md:47
 64	bytes	sample.data	длина вывода Argon2id в диаграмме обмена	xor.ad/docs/chat-flows_EN.md:137
 64	MB	external.fact	встречено в: - **Billing:** CPU $0.02/CPU-hr (actual), RAM $0.005/GB-hr in 64 MB blocks	xor.ad/docs/backend-portable-bunny_EN.md:97
-65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:1893
+65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:1996
 6	h	external.fact	глубина восстановления чужой услуги (PITR), не наш предел	xor.ad/docs/backend-free-stack_RU.md:64
-700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1331
+700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1418
 7.86	MB	measurement	встречено в: bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the	xor.ad/docs/open-work_EN.md:1393
 800	m	sample.data	значение в макете терминального клиента, не обязательство	xor.ad/docs/depth-client_EN.md:319
 8	chars	prose.figure	встречено в: There is a transport behind the limit: 256 UTF-8 characters → ~1.4 KB of	xor.ad/docs/open-work_EN.md:1309

@@ -19,8 +19,15 @@ docker run --rm \
   "$image" \
   sh -c 'deno check $(find src tools -name "*.ts")'
 
+# Three suites read the documents they check the code against — the snapshot
+# columns, the length limits and the retention windows — with paths that resolve
+# to /docs from inside the container. Mounting only the node left those six tests
+# failing on every local run since they were written, while CI ran them green off
+# a full checkout: the script and the pipeline were testing different things, and
+# the local half was the one nobody could read. Read-only: tests do not write docs.
 docker run --rm \
   -v "$root/relay/node":/node \
+  -v "$root/docs":/docs:ro \
   -w /node \
   "$image" \
   deno test --allow-env --allow-read --allow-write \
@@ -31,6 +38,7 @@ docker run --rm \
 # everyone else's configuration.
 docker run --rm \
   -v "$root/relay/node":/node \
+  -v "$root/docs":/docs:ro \
   -w /node \
   "$image" \
   deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 test/tenancy.test.ts

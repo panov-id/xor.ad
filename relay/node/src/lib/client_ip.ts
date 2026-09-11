@@ -94,5 +94,19 @@ export function cameThroughEdge(req: Request): boolean {
 // sent. A caller with no key at all shares one bucket, which is the correct
 // answer for traffic that named nobody.
 export function callerBucket(req: Request): string {
-  return `${clientAddress(req).ip}|${req.headers.get("x-api-key") ?? "keyless"}`;
+  // The key is checked for shape before it becomes part of a bucket name, and
+  // that is the whole point: the limiter is asked before anything resolves the
+  // key (routes/pageview.ts), so an unshaped header would let one caller mint a
+  // fresh bucket per request. Fifty thousand of those trip the limiter's own
+  // eviction and wipe every bucket on the node — including the limits on the
+  // waitlist and on Article 16 notices, which is a limiter switched off from
+  // outside. Anything that is not a publishable key id shares one bucket, the
+  // same way a caller with no key at all does.
+  const presented = req.headers.get("x-api-key");
+  const key = presented && KEY_ID.test(presented) ? presented : presented ? "malformed" : "keyless";
+  return `${clientAddress(req).ip}|${key}`;
 }
+
+// The shape publishable ids are minted in (lib/api_key.ts). Kept here rather
+// than imported so the limiter never pulls in key lookup — this runs before it.
+const KEY_ID = /^ak_pub_[a-z0-9]{16,64}$/;

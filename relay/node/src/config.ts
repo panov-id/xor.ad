@@ -71,6 +71,11 @@ function read() {
     envName: env("NODE_ENV_NAME", "dev"), // dev | staging | prod | local
     nodeId: env("NODE_ID", "n0"),
     region: env("NODE_REGION", "unknown"),
+    // The image tag this process was started with, handed in by the wizard. A
+    // container keeps its start-up environment, so this answers "which build is
+    // actually running" and not "which build was asked for" — the difference the
+    // deploy probe exists to catch.
+    imageTag: env("RELAY_IMAGE_TAG", "unknown"),
     port: Number(env("PORT", "8080")),
 
     // Public routes accept an x-api-key that names the tenant. Until every landing
@@ -84,6 +89,15 @@ function read() {
     // the connection actually came from. Empty on a node that is not behind the
     // CDN, which is every node today.
     originToken: env("ORIGIN_TOKEN"),
+
+    // What it takes to read /metrics. The endpoint was open on the node's public
+    // hostname, which was never a decision — /health is deliberately open and
+    // this one simply inherited that; it hands anybody the brand names, request
+    // volumes per route and per tenant, and the mail and quota counters.
+    // Unset means the endpoint answers 404 to everybody: no scraper is
+    // configured against it today, so closed is the honest default, and a 404
+    // does not confirm the route exists.
+    metricsToken: env("METRICS_TOKEN").trim(),
 
     allowedOrigins: env("ALLOWED_ORIGINS")
       .split(",").map((s) => s.trim()).filter(Boolean),

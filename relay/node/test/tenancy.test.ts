@@ -455,6 +455,52 @@ tenancy("the platform role cannot be handed to a tenant's operator", async () =>
   assertEquals(status, 422);
 });
 
+// The same door, opened from the other side. Creating an "admin" was refused
+// since the rule was written; changing an existing operator into one was not,
+// and that made the rule on create decorative: a tenant would add a viewer of
+// its own — same brand, so nothing objects — and PATCH it to "admin", which
+// carries the wildcard and reaches past the brand. Found by a review panel
+// 2026-09-08, closed the same day.
+tenancy({
+  name: "a tenant cannot promote its own operator to the platform role",
+  sanitizeOps: false,
+  async fn() {
+    const created = await callAs(ALPHA, "POST", "/admin/panel-users", {
+      email: "climber@alpha.test",
+      role: "viewer",
+    });
+    assertEquals(created.status, 200, "the tenant must be able to add its own viewer");
+
+    const promoted = await callAs(ALPHA, "PATCH", "/admin/panel-users/climber@alpha.test", {
+      role: "admin",
+    });
+    assertEquals(promoted.status, 403, "a tenant must not be able to mint a platform admin");
+
+    // And the operator is still what it was — a refusal that leaves the role
+    // changed would be worse than no refusal at all.
+    const after = await callAs(ALPHA, "GET", "/admin/panel-users");
+    const row = after.body.find((u: Body) => u.email === "climber@alpha.test");
+    assertEquals(row?.role, "viewer");
+  },
+});
+
+// The platform itself is not blocked by that rule: it has no brand, and somebody
+// has to be able to create the next platform administrator.
+tenancy({
+  name: "the platform can still change a role to admin",
+  sanitizeOps: false,
+  async fn() {
+    await callAs(PLATFORM, "POST", "/admin/panel-users", {
+      email: "successor@platform.test",
+      role: "viewer",
+    });
+    const promoted = await callAs(PLATFORM, "PATCH", "/admin/panel-users/successor@platform.test", {
+      role: "admin",
+    });
+    assertEquals(promoted.status, 200);
+  },
+});
+
 // The last-admin guard keeps a scope reachable. Whether it should bind depends
 // on who is asking: a tenant removing its own last operator locks the tenant out,
 // the platform removing it does not — the platform is the way back in.
@@ -653,5 +699,128 @@ tenancy({
     assertEquals(status, 200);
     assertEquals((body as { invited: boolean }).invited, false);
     assertEquals((await magicTokensFor("unreachable@beta.test")).length, 0);
+  },
+});
+
+// --- what bounds the sign-in route --------------------------------------------
+//
+// It answers 204 to everything and drops an object per request, which made it
+// both the cheapest route to hammer and a way to fill somebody's inbox with
+// letters they did not ask for. Two ceilings, and they are not interchangeable:
+// one counts the caller, one counts the mailbox being asked for, because
+// rotating an address is free and the mail bomb survives it.
+
+async function requestLink(email: string, address = "203.0.113.20"): Promise<number> {
+  const url = new URL("https://relay.test/auth/request-link");
+  const found = match("POST", url.pathname);
+  assert(found);
+  const response = await found.h({
+    req: new Request(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-forwarded-for": address },
+      body: JSON.stringify({ email }),
+    }),
+    params: found.params,
+    url,
+  });
+  return response.status;
+}
+
+tenancy({
+  name: "a flood of sign-in requests is refused by address",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset, SIGN_IN_LIMITS } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const address = "203.0.113.21";
+    // Different mailboxes each time, so it is the caller's ceiling being met and
+    // not the mailbox one standing in for it.
+    for (let i = 0; i < SIGN_IN_LIMITS[0].max; i++) {
+      assertEquals(await requestLink(`nobody${i}@alpha.test`, address), 204);
+    }
+    assertEquals(
+      await requestLink("nobody@alpha.test", address),
+      429,
+      "the caller's own ceiling may say so out loud: it reveals no membership",
+    );
+    reset();
+  },
+});
+
+tenancy({
+  name: "a mail bomb into one inbox stops, and says nothing about it",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset, SIGN_IN_MAILBOX_LIMITS } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const target = "boss@alpha.test";
+    const allowed = SIGN_IN_MAILBOX_LIMITS[0].max;
+    // A rotating address, which is what an attacker has and costs nothing.
+    for (let i = 0; i < allowed + 5; i++) {
+      assertEquals(
+        await requestLink(target, `198.51.100.${i}`),
+        204,
+        "the answer never changes — a 429 here would confirm the address is worth limiting",
+      );
+    }
+    const tokens = await magicTokensFor(target);
+    assertEquals(
+      tokens.length,
+      allowed,
+      `only ${allowed} letters should have been sent, not ${allowed + 5}`,
+    );
+    reset();
+  },
+});
+
+// The ceiling that keeps an operator out was the DAY, not the hour.
+//
+// It was charged at the route, before anything checked whether the address
+// belonged to an operator — so anybody who knew the contact address a storefront
+// publishes could spend twenty requests and shut that operator out of the panel
+// until tomorrow, with Article 16 notices waiting. A review panel found it on
+// 2026-09-08.
+//
+// Two things changed, and only one of them is a defence. The daily window is
+// gone, so the worst case is minutes rather than a day — that is the fix, and it
+// is what this case pins. The check also moved past the membership test in
+// `requestMagicLink`, which stops the limiter filling with strangers' addresses;
+// that is hygiene, has no effect visible from outside, and is deliberately not
+// dressed up as a case here.
+tenancy({
+  name: "the mailbox ceiling is measured in an hour, never a day",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { SIGN_IN_MAILBOX_LIMITS } = await import("../src/lib/rate_limit.ts");
+    const HOUR = 60 * 60 * 1000;
+    assertEquals(SIGN_IN_MAILBOX_LIMITS.length, 1, "one window, so none of them is a day");
+    assertEquals(SIGN_IN_MAILBOX_LIMITS[0].windowMs, HOUR);
+  },
+});
+
+tenancy({
+  name: "sign-in links that were never clicked do not stay for ever",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    const { pruneMagicLinks } = await import("../src/lib/auth.ts");
+    reset();
+    assertEquals(await requestLink("boss@alpha.test"), 204);
+    assertEquals((await magicTokensFor("boss@alpha.test")).length, 1);
+
+    // Nothing is due yet: a link minted a moment ago must survive the sweep, and
+    // so must one whose deadline passed within the grace hour.
+    assertEquals((await pruneMagicLinks()).removed, 0, "a live link is not swept");
+    assertEquals((await magicTokensFor("boss@alpha.test")).length, 1);
+
+    // A day later the same object means nothing to anybody.
+    const result = await pruneMagicLinks(Date.now() + 24 * 60 * 60 * 1000);
+    assertEquals(result.removed, 1, "an expired link is swept");
+    assertEquals((await magicTokensFor("boss@alpha.test")).length, 0);
+    reset();
   },
 });

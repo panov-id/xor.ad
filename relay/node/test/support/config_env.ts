@@ -42,6 +42,7 @@ const CONFIGURED = [
   "PANEL_URL",
   "PANEL_SENDER",
   "ORIGIN_TOKEN",
+  "METRICS_TOKEN",
   "DATABASE_URL",
 ];
 

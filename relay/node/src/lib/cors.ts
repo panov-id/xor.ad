@@ -15,6 +15,12 @@ export function corsHeaders(origin: string | null): Record<string, string> {
     "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
     // The browser drops x-api-key on the preflight without this.
     "access-control-allow-headers": "authorization, content-type, x-api-key",
+    // Without this the browser hands the page a response with the custom headers
+    // stripped, and every reader of them silently falls back. The panel's data
+    // provider reads x-total-count and had been getting null across origins
+    // since it was written — so "how many notices are there" was answering "how
+    // many were on this page". Found by a review lens, 2026-09-08.
+    "access-control-expose-headers": "x-total-count, x-platform-count, x-request-id",
     "access-control-max-age": "86400",
     "vary": "origin",
   };

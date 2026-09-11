@@ -17,6 +17,37 @@ import { sendSmtp } from "./smtp.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
 
+// What a rejected send is allowed to say in a log line.
+//
+// The whole provider body used to go in, five hundred characters of it, at
+// error level — and error lines are copied to storage and kept for thirty days
+// (tools/prune_objects.ts, "server-logs"). Resend quotes the request back when
+// it complains: `Invalid \`to\` field` arrives with the address in it, so one
+// mistyped recipient put somebody's email address in a month-long log, and a
+// provider outage put every recipient of the retry storm there.
+//
+// The machine-readable `name` is what a reader actually acts on — a
+// `validation_error` and a `rate_limit_exceeded` need different things done —
+// and it carries no addresses, because it is a code from a fixed list.
+async function providerFault(res: Response): Promise<string> {
+  try {
+    const body = await res.json();
+    const name = (body as { name?: unknown })?.name;
+    return typeof name === "string" ? name : "unnamed";
+  } catch {
+    // Not JSON at all: a gateway's HTML error page, or nothing. Neither is worth
+    // quoting, and both are described well enough by the status beside this.
+    return "unreadable";
+  }
+}
+
+// Anything built from an exception may still have travelled through a message
+// somebody else wrote. Addresses are the one thing that must not survive into a
+// stored log line, so they are removed by shape rather than by trust.
+export function withoutAddresses(text: string): string {
+  return text.replace(/[\w.+-]+@[\w.-]+\.\w+/g, "<address>");
+}
+
 async function viaResend(
   from: string, to: string, subject: string, html: string, text: string, brandKey: string,
 ) {
@@ -34,7 +65,7 @@ async function viaResend(
       transport: "resend",
       status: res.status,
       brand: brandKey,
-      response: (await res.text()).slice(0, 500),
+      fault: await providerFault(res),
     });
   }
 }
@@ -68,7 +99,7 @@ async function sendPanelMail(
     body: JSON.stringify({ from: config.panel.sender, to: [to], subject, html, text }),
   });
   if (!res.ok) {
-    throw new Error(`panel mail rejected: ${res.status} ${(await res.text()).slice(0, 500)}`);
+    throw new Error(`panel mail rejected: ${res.status} ${await providerFault(res)}`);
   }
 }
 
@@ -98,7 +129,7 @@ export async function sendPanelLink(to: string, link: string): Promise<void> {
     // where an operator will actually look instead.
     log("error", "panel sign-in mail rejected", {
       transport: config.mail.transport,
-      error: String(error),
+      error: withoutAddresses(String(error)),
     });
   }
 }
@@ -150,7 +181,7 @@ export async function sendWelcome(
     inc("relay_mail_total", { transport: config.mail.transport, result: "sent" });
   } catch (e) {
     inc("relay_mail_total", { transport: config.mail.transport, result: "failed" });
-    log("error", "welcome mail failed", { error: String(e) });
+    log("error", "welcome mail failed", { error: withoutAddresses(String(e)) });
   }
 }
 
@@ -201,6 +232,60 @@ export async function sendNoticeReceipt(
   return sent;
 }
 
+// A notice that nobody is told about waits for somebody to open a page.
+//
+// Intake sent a receipt to the notifier and nothing to us: the queue exists, and
+// a moderator finds a report there only by looking. Meanwhile both storefronts
+// promise in public that we examine reports and say what we decided, and the
+// specification sets 72 hours for it. A queue read by chance does not keep a
+// promise with a clock on it — found by a review panel 2026-09-08.
+//
+// What the letter carries is deliberately thin: the reference, what kind of
+// thing it is about, and which queue it landed in. Not the reason text, not the
+// notifier's name or address. Mail is the least private hop in the system, the
+// letter goes to a shared inbox, and everything useful for examining the report
+// is in the panel behind a login.
+export function noticeArrivedBlocks(opts: {
+  id: string | null;
+  kind: string;
+  queue: "platform" | "tenant";
+  receivedVia?: string | null;
+}): Block[] {
+  const reference = opts.id ? opts.id.slice(0, 8) : "—";
+  const where = opts.queue === "platform"
+    ? "It is in the platform queue" +
+      (opts.receivedVia ? ` (filed through ${opts.receivedVia})` : "")
+    : "It is in your queue";
+  return [
+    { kind: "text", value: "A report of illegal content has arrived." },
+    { kind: "reference", value: `Reference: ${reference}` },
+    { kind: "text", value: `About: ${opts.kind.replace(/_/g, " ")}. ${where}.` },
+    {
+      kind: "text",
+      value: "Article 16 gives it a clock: the specification sets 72 hours to examine it " +
+        "and answer. Open the Illegal-content reports page in the panel — the report " +
+        "itself, and whatever copy we hold, are there rather than in this letter.",
+    },
+  ];
+}
+
+// Best-effort, like the receipt: a mail failure must not lose a notice that is
+// already stored. What it must not do is fail silently, so the caller logs.
+export async function sendNoticeArrived(
+  to: string,
+  opts: { id: string | null; kind: string; queue: "platform" | "tenant"; receivedVia?: string | null; brand?: string },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = (opts.brand ? await brandByKey(opts.brand) : undefined) ?? resolveBrand(null);
+  return await deliver(
+    brand,
+    to,
+    `${brand.name}: a report of illegal content is waiting`,
+    "A report is waiting",
+    noticeArrivedBlocks(opts),
+  );
+}
+
 // Article 16(5): the notifier learns what was decided, why, whether a machine
 // took part, and where to go if they disagree. The redress routes are named
 // rather than gestured at — and the one we do not have (a formal internal appeal
@@ -219,10 +304,20 @@ export async function sendNoticeReceipt(
 export function decisionOutcome(
   decision: "upheld" | "rejected",
   snapshotState?: string,
+  snapshotReason?: string,
 ): string {
   if (snapshotState === "target_gone") {
     return "The content was already gone by the time we looked, so there was nothing " +
       "left to restrict. Your report was still examined and recorded.";
+  }
+  // Not every "we could not look" is "we do not hold it". When the target lives
+  // under another storefront the phrase is ours and alive, and the sentence
+  // below would be false — the same kind of falsehood db/014 was written to stop,
+  // reappearing one file over. The other face is never named: what the notifier
+  // learns is where we looked, not where it is.
+  if (snapshotState === "not_accessible" && snapshotReason === "out_of_scope") {
+    return "We did not find it under the storefront your report came through, so we " +
+      "could not examine a copy. Your report was recorded and examined all the same.";
   }
   if (snapshotState === "not_accessible") {
     return "We could not reach the content to examine it — it is not something we " +
@@ -249,11 +344,12 @@ export async function sendNoticeDecision(
     // what happened, and is the exact untruth dsa_snapshot.ts was written to
     // avoid filing.
     snapshotState?: string;
+    snapshotReason?: string;
   },
 ): Promise<void> {
   if (config.mail.transport === "none") return;
   const brand = (opts.brand ? await brandByKey(opts.brand) : null) ?? resolveBrand(null);
-  const outcome = decisionOutcome(opts.decision, opts.snapshotState);
+  const outcome = decisionOutcome(opts.decision, opts.snapshotState, opts.snapshotReason);
   const blocks: Block[] = [
     { kind: "reference", value: `Report ${opts.id.slice(0, 8)}` },
     { kind: "text", value: outcome },
@@ -294,6 +390,9 @@ export function whatWasRestricted(
   targetKind: string | undefined,
   snapshot: unknown,
   snapshotState: string | undefined,
+  // Optional the same way the reason itself is: most outcomes do not have one,
+  // and the callers that predate the column keep working unchanged.
+  snapshotReason?: string,
 ): Block[] {
   // Which columns hold the content is a property of the surface, and the surface
   // is what `targetKind` names — so it is looked up rather than guessed. It used
@@ -323,6 +422,12 @@ export function whatWasRestricted(
       value: "It had already expired by the time the report was examined, so there is no copy to show you.",
     }];
   }
+  if (snapshotState === "not_accessible" && snapshotReason === "out_of_scope") {
+    return [{
+      kind: "text",
+      value: "We did not find it under the storefront the report came through, so there is no copy to show.",
+    }];
+  }
   if (snapshotState === "not_accessible") {
     return [{
       kind: "text",
@@ -344,6 +449,7 @@ export async function sendStatementOfReasons(
     targetKind?: string;
     snapshot?: unknown;
     snapshotState?: string;
+    snapshotReason?: string;
   },
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
@@ -359,7 +465,7 @@ export async function sendStatementOfReasons(
       kind: "text",
       value: "It applies everywhere the Service is available, and it is not time-limited.",
     },
-    ...whatWasRestricted(opts.targetKind, opts.snapshot, opts.snapshotState),
+    ...whatWasRestricted(opts.targetKind, opts.snapshot, opts.snapshotState, opts.snapshotReason),
     { kind: "heading", value: "Facts and circumstances" },
     { kind: "quote", value: opts.facts },
     {
@@ -428,7 +534,7 @@ async function deliver(
     return true;
   } catch (e) {
     inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind: "dsa" });
-    log("error", "dsa mail failed", { error: String(e), subject });
+    log("error", "dsa mail failed", { error: withoutAddresses(String(e)), subject });
     return false;
   }
 }

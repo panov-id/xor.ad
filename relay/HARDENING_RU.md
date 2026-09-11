@@ -11,7 +11,7 @@
   keyless-подпись; **Trivy**-скан уязвимостей (HIGH/CRITICAL, отчёт). Зависимости
   зафиксированы через **`deno.lock`**.
 - **Наблюдаемость (нода):** структурные **JSON-логи** (level/msg/поля, node, env,
-  request id) → готовы под Loki/ELK; **`GET /metrics`** Prometheus-счётчики
+  request id) → готовы под Loki/ELK; **`GET /metrics`** Prometheus-счётчики по токену `METRICS_TOKEN`
   (`relay_requests_total`, `relay_waitlist_total`, `relay_mail_total`); заголовок
   `x-request-id` в каждом ответе.
 - **Доступ/безопасность (см. SPEC §9):** firewall default-deny, SSH только по ключу
@@ -23,7 +23,7 @@
 ## Роадмап (по приоритету)
 
 ### P1 — ближайшее, высокая ценность
-- **Централизованная наблюдаемость.** Слать логи ноды + `/metrics` в **Grafana +
+- **Централизованная наблюдаемость.** Слать логи ноды + `/metrics` (сборщику нужен `METRICS_TOKEN`) в **Grafana +
   Loki + Prometheus** (self-host на маленьком боксе или Grafana Cloud free).
   **Алерты:** нода упала, истечение сертификата, error-rate, сбой почты. Dozzle
   на каждом боксе остаётся для быстрых логов.

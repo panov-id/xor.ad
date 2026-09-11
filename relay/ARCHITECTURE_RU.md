@@ -25,7 +25,7 @@ apiUrl (per env, из config.js):
                    └─→ welcome через Resend (ключ аккаунта бренда,
                           from hello@neighbro.place; на dev вместо Resend — Mailpit)
   POST /client-error ─→ Bunny Storage: client-errors/<env>/<uuid>.json
-  GET  /health, /metrics ─→ статус ноды / Prometheus-счётчики
+  GET  /health, /metrics ─→ статус ноды / Prometheus-счётчики (метрики — по токену)
 ```
 
 ## Компоненты
@@ -33,7 +33,7 @@ apiUrl (per env, из config.js):
 | Компонент | Роль |
 |---|---|
 | Bunny CDN (зоны `neighbro-dev/uat/prod`) | хостинг статики лендинга |
-| relay node-pool (Deno) | бэкенд: `/waitlist`, `/client-error`, `/health`, `/metrics` (слот `/chat` — заглушка 501) |
+| relay node-pool (Deno) | бэкенд: `/waitlist`, `/client-error`, `/health`, `/metrics` (по токену; слот `/chat` — заглушка 501) |
 | Caddy (на каждой ноде) | TLS (Let's Encrypt, DNS-01 через Bunny), маршрутизация по хостнейму |
 | Bunny Storage (зона `sosed-waitlist-dev`) | лиды, просмотры, client-errors и серверные логи, разведены по арендатору и префиксу `tenants/<brand>/…/<env>/` |
 | Postgres рядом с узлом (том на боксе) | управляющее состояние: ключи, бренды, квоты, очередь, идемпотентность, дневные агрегаты. Порт наружу не публикуется; без `DATABASE_URL` узел работает целиком на хранилище. См. `docs/state-decision_RU.md` |

@@ -158,7 +158,7 @@ Bunny. That way portability is proven from day one.
 - `send-waitlist-welcome` → route (Resend already configured)
 - JWT gateway → session-verify middleware
 - magic-link: issue token + email (Resend) + verify → session JWT
-- ~~web-push (VAPID)~~ — cancelled 07.08.2026, see `pwa-push_EN.md`
+- ~~web-push (VAPID)~~ — cancelled 2026-08-07, see `pwa-push_EN.md`
 
 ### Phase 4 — realtime
 - WS server in the container: feed + disappearing chat

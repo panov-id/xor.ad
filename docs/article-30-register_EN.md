@@ -15,7 +15,7 @@ the product's `00-mechanics`, `dsa/SPEC`, `offers/SPEC_EN` and `vendors-dpa`.
 |---|---|
 | **Who** | Evgenii Panov, a private individual, brands PSYTICAN & PEJEDED |
 | **Where** | Limassol, Cyprus (EU) |
-| **Data contact** | `privacy@sosed.place`, `privacy@neighbro.place` |
+| **Data contact** | `support@sosed.place`, `support@neighbro.place` — the address the privacy policy gives. `privacy@` on both domains is an alias to the same mailbox, kept so mail sent there is not lost (reconciled 2026-08-31: the register named one address and the policy another, and a regulator opening the register would have written to the one people are not told about) |
 | **General contact** | `support@sosed.place`, `support@neighbro.place` — English and Greek |
 | **Art. 27 representative** | not required: the controller is established in the EU |
 | **DPO** | not appointed. Art. 37 requires one for large-scale systematic monitoring or large-scale special-category processing; neither applies — the service has not launched and we do no profiling |
@@ -48,7 +48,8 @@ processing is identical and only the storefront differs, so the record is shared
 
 - **Purpose.** Match neighbours by a chosen zone without revealing a point.
 - **Basis.** Performance of a contract; **precise coordinates** rest on consent,
-  Art. 6(1)(a), and are requested only when "where am I" is pressed.
+  Art. 6(1)(a), and are not requested at all — the "where am I" button was
+  retired on 2026-08-28, and no face asks for a precise location.
 - **Data.** An approximate area (time zone, IP, browser language) or a point
   placed by hand; the reach you look at and the precision you are seen with.
 - **Recipients.** None. Precise coordinates place the point once and are not
@@ -87,16 +88,34 @@ processing is identical and only the storefront differs, so the record is shared
 - **Recovery code.** An identity stores a hash of half the paper code and its
   long-lived key wrapped under the other half. We do not know the code and can
   neither look it up nor reset it.
+- **Game state — entered 2026-09-10** (`chat_EN.md` §6.1). Since 2026-09-09 the
+  board and the moves are **not encrypted**: the node judges by the rules of the
+  game, and a judge without the position cannot judge. The data: the position, whose
+  turn, the **players' hands**, the undrawn stock, the guessed word of the hangman
+  class and the pair's score. Not one reply of the conversation is here. In a pair
+  this is a game cache (`chat_games`) tied to the conversation and leaving with it by
+  cascade; at a table it is `table_games` and `table_scores`, leaving with the table.
+  The basis is the same — performance of a contract: the game is part of the service,
+  and consent would be worse here, because withdrawing it would cut the game off for
+  the other player.
 - **Recipients.** None.
 - **Retention.** The conversation is **not stored on the servers** — only carried
   until delivered. On the device it lives in IndexedDB, encrypted with the vault
   key, for the shorter of the two chosen times. The share and the hashes live as
-  long as the session or the identity does.
+  long as the session or the identity does. Game state lives no longer than the
+  conversation or the table, and for another 14 days in the backups (see the
+  section on copies).
 
 ### 5. Waitlist
 
 - **Purpose.** Invite the person when access opens.
-- **Basis.** Consent — Art. 6(1)(a).
+- **Basis.** **Steps at the data subject's request prior to a contract — Art.
+  6(1)(b), moved 2026-09-10.** This used to be consent, Art. 6(1)(a), which
+  required proof of consent under Art. 7(1) — a flag and the revision of the text
+  shown — and the record kept neither. A person leaves an address explicitly asking
+  to be called: that is a step at their request, and there is nothing to prove but
+  the address itself. Art. 8 falls away with it: it applies only to processing on
+  consent.
 - **Data.** Email address, the source of the request.
 - **Recipients.** **Resend** (delivering the letter).
 - **Transfers outside the EEA.** Yes — SCCs plus EU-US DPF certification, see
@@ -119,9 +138,19 @@ processing is identical and only the storefront differs, so the record is shared
 - **Data subjects.** Notifiers and the authors of the content.
 - **Data.** The notifier's name and email (not requested where the report concerns
   the sexual exploitation of children), the reasoning, and a **snapshot of the
-  content** — text, zone, time, author identifier.
-- **Recipients.** Resend (letters to the notifier and the author); law enforcement
-  where life is threatened — Art. 18 DSA.
+  content** — text, time of publication, author identifier, and the face the
+  content was published under. The area it was published to (coordinates and
+  radius) is **not** copied: whether a text is illegal is answered by the text,
+  and a snapshot is kept for a year — a year of someone's locations has no
+  examining value (`relay/node/src/lib/dsa_snapshot.ts`). Until 2026-09-08 this
+  line said "zone", which the copy never contained.
+- **Recipients.** The moderators of the tenant the content belongs to, who examine
+  the notice. Since 2026-09-07 the copy for the feed and tables is taken by the
+  target rather than by the storefront the notice came through, so a notice whose
+  copy belongs to another face is examined by the **platform** rather than by that
+  storefront: one tenant's content is not shown to another tenant's staff. Then
+  Resend (letters to the notifier and the author); law enforcement where life is
+  threatened — Art. 18 DSA.
 - **Retention.** 1 year, then deletion; an anonymous counter remains.
 - **A notifier's identity is never disclosed to the author.**
 
@@ -150,8 +179,19 @@ processing is identical and only the storefront differs, so the record is shared
 ### 9. Storefront analytics
 
 - **Purpose.** Understand site usage.
-- **Basis.** **Consent** in the banner, Art. 6(1)(a). Without it the counter does
-  not load at all.
+- **Withdrawn 2026-09-10: GA4 is removed altogether.** It was the last processing
+  on consent, and consent dragged Art. 8 GDPR along with it — the question of the
+  digital-consent age and of a parent, for which the product has no mechanism. The
+  own page counter (§10) answers the same "how many visits" on legitimate interest
+  and without a banner. The record is kept rather than deleted: it explains why the
+  consent banner disappeared from the pages.
+- **Basis, while it applied.** Consent in the banner, Art. 6(1)(a). Without it the
+  counter did not load at all.
+- 🔴 **Switched off by a deploy, not by editing a file.** In the repository
+  `analyticsId` is empty, while production receives it as the `ANALYTICS_ID`
+  variable at storefront deploy — a measurement on 2026-09-10 found
+  `G-WWHXHZ5QWQ` in the live `config.js`. Until the storefront is deployed with an
+  empty variable, the counter runs in production.
 - **Data.** IP (truncated, anonymisation enabled), page addresses, referrer,
   approximate location from the IP, device and browser data.
 - **Recipients.** **Google Analytics 4**.
@@ -182,8 +222,16 @@ processing is identical and only the storefront differs, so the record is shared
   query string can carry anything, and the markers field accepts only flat short
   values — nested objects are dropped rather than serialised
   (`routes/client_error.ts`, 2026-08-11).
-- **Retention.** Server logs and client errors 30 days. Backups 14 days
-  (`relay/wizard/backup-postgres.sh`, `keep_days`).
+- **Content-security-policy reports.** A browser that refuses to load something
+  the page asked for posts a report, and the node keeps it: the page it happened
+  on, the blocked path, the directive, the source file and line, the user agent
+  (300 chars) and the time (`routes/csp_report.ts`). It carries no identifier and
+  no address, and it exists to show a policy drifting away from the pages it
+  guards. **Added to this register 2026-08-30** — it had been collected since the
+  endpoint was built and swept by nothing, which a review panel found and no
+  check did.
+- **Retention.** Server logs, client errors and CSP reports 30 days. Backups 14
+  days (`relay/wizard/backup-postgres.sh`, `keep_days`).
 
 ### 12. Administering the panel
 
@@ -220,6 +268,15 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
   [`../relay/HARDENING_EN.md`](../relay/HARDENING_EN.md).
 - Backups live 14 days, so anything deleted leaves them within a fortnight.
 
+## Impact assessment and breaches
+
+- **Impact assessment (Art. 35)** — [`dpia_EN.md`](./dpia_EN.md), written 2026-09-11
+  before processing begins, because one written afterwards is the breach itself.
+  Revisited before the first live user and on any new processing in this register.
+- **Personal data breach (Art. 33-34)** — [`breach-procedure_EN.md`](./breach-procedure_EN.md):
+  who decides, where to look, whom to notify and by when. A record of every case is
+  [`incidents_EN.md`](./incidents_EN.md), as Art. 33(5) requires.
+
 ## Open items in this record
 
 - [x] **The Bunny DPA is concluded** — the signed v1 of 2022-12-17 was received on
@@ -240,7 +297,7 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
       to an address plus the styling of the letter. See
       [`legal-archive/bunny-dpa_EN.md`](./legal-archive/bunny-dpa_EN.md). Revisit if
       the waitlist grows or anything beyond it lands in that storage.
-- [x] **Push notifications cancelled — 07.08.2026.** The activity and the
+- [x] **Push notifications cancelled — 2026-08-07.** The activity and the
       "browser's push service" sub-processor are removed from this record. The
       processing **never ran for a day**: the VAPID public key was empty on both
       storefronts, the subscribe offer was hidden, no subscription endpoint ever

@@ -1058,44 +1058,191 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       valid token, then the per-IP limit and the honeypot, and only then repoint
       `api.relay.panov.id` at the zone and turn Shield Basic on. Switching earlier
       leaves the node reachable around the CDN.
-- [ ] **G11. Decide the Shield mode before 2026-09-01.** Four production zones
-      (`xorad-api-prod`, `neighbro-prod`, `sosed-prod`, `panel-prod`) sit in
-      observation. The decision is made from the WAF log, which is readable only
-      in the Bunny dashboard — a person's step. Two things to look for: whether a
-      real `POST /report` was matched (a JSON body looks suspicious to a site
-      profile) and whether panel sign-in was. Until that log is read, **blocking
-      must not be switched on** — the first thing to break would be the intake of
-      illegal-content notices.
+- [x] **G11. The Shield mode was decided 2026-09-01.** The answer came out
+      different for different zones, because the zones are different: one answer
+      for all four was the very mistake six weeks were spent avoiding.
 
-      **The deadline moved from 2026-08-21 to 2026-09-01 by decision, not by
-      forgetting.** Learning ended 2026-08-21 and the log was not read that day.
-      The move means exactly this: until 2026-09-01 the four production zones live
-      in log-only — the WAF watches and does not act. That is accepted knowingly,
-      because the opposite error is dearer: blocking switched on blind takes out
-      the Article 16 notice intake first. Learning itself cannot be extended from
-      here — Bunny's API offers neither the log nor an extension, checked by
-      enumeration. State is read by `deploy/shield_state.py`, which from
-      2026-08-22 reports these zones as awaiting a decision, and rightly so: the
-      decision genuinely has not been made.
+      **Blocking since 2026-09-01 — `sosed-prod` and `neighbro-prod`.** Each
+      serves one self-contained file: the page makes no request to its own
+      origin at all, and the sign-up form goes to `api.relay.panov.id`, another
+      zone. Checked after the switch: `/`, `/robots.txt` and `/sitemap.xml` come
+      back byte for byte as before (199,976 and 140,188 for the two landings),
+      and a 404 stays Bunny's ordinary one, not a Shield page.
+
+      **Blocking since 2026-09-03 — `panel-prod`.** It was switched on
+      2026-09-01 and rolled back within the hour: `/assets/index-*.js` answered
+      `403` with the Shield page (`errorcode: 112`), even though the origin had
+      served the file (`cdn-requestpullcode: 200`). CSS, fonts and `index.html`
+      itself passed — it was exactly the bundle that was cut, which made the
+      panel under blocking a blank page. G12 found the culprit: rule `952100`
+      (Java Source Code Leakage) firing on minified JavaScript. It sits in this
+      zone's `wafLogOnlyRules`, written in the same write as the mode: flipping
+      the mode first would blank the panel for as long as a second write takes.
+      Checked after the switch on 2026-09-03 — `/`, `/login`, `/dsa-notices`,
+      `/brands`, `/waitlist` and both assets answer `200`, the assets with
+      `cdn-cache: MISS`, which is a real pass through the WAF.
+
+      **Blocking since 2026-09-03 — `xorad-api-prod`.** The zone carries `POST
+      /report` and the panel's own API calls, and G13 settled it by measurement
+      rather than by reading a log: under blocking `POST /report` answers `422`
+      from the node, `POST /auth/request-link` `204`, `GET /health` `200`, with
+      a control carrying an injection answering `403`. The zone has no
+      exclusions.
+
+      **The caveat was tested the same day and turned out to be a hole.** On
+      2026-09-03 sixteen realistic notice bodies went through the blocking zone.
+      Thirteen passed — links, quotes, apostrophes, HTML tags, markdown, the
+      words `union`/`select` in an ordinary sentence, 3310 characters of
+      Cyrillic, a body at the 4000 limit, emoji with RTL marks, newlines.
+      **Three were cut:** one quoting `<script>alert(1)</script>`, one naming
+      the path `../../uploads/2026/09/scan.pdf`, and one carrying a
+      `data:…;base64,` URI. A notice that quotes what it complains about — and a
+      report of XSS or of someone's scan is exactly that — was being refused.
+
+      Rules do not fix it. The bisection named `944152` (Log4shell), `930110`
+      (Path Traversal) and `941170` (XSS Attribute Injection), and excluding all
+      three changed nothing: each body is caught by several rules at once,
+      because a quotation of an attack is indistinguishable from an attack.
+      Bunny offers no way around it on this plan: `customWafRulesLimit` is 0,
+      there are no per-route exceptions, and all five WAF profiles are CMS or
+      hosting profiles carrying XSS and SQLi detection.
+
+      **So the intake moved instead of the rules.** On 2026-09-03 the zone
+      `xorad-report-prod` was created with the host `report.relay.panov.id` on
+      the same origin `p1-prod.relay.panov.id`, with no Shield; both edge rules
+      (`X-Origin-Token`, `X-Client-IP`) were copied from the api zone, without
+      which the origin does not trust the request. Checked live: `/health`
+      through the new host answers `200`, a preflight with `Origin:
+      https://sosed.place` answers `204`, and the three cut bodies reach the
+      node through the new host while the old one still answers `403`. The rest
+      of the API stays behind the WAF.
+
+      **What that did not check either.** On the new host the bodies reached the
+      node with `429` — the daily `/report` limit had been spent on the
+      measurements — so the full path "a notice is accepted and stored" has not
+      been walked through the new host. The panel was checked signed out: a
+      signed-in session's API calls go to the zone behind the WAF and were not
+      tried against real data.
+
+      The switch is `deploy/shield_mode.py`: without `--apply` it prints the
+      plan, it refuses `xorad-api-prod` without an explicit `--include-api` and
+      refuses a zone that is still learning, and after writing it re-reads the
+      state — a `200` on a `PATCH` whose body the API quietly ignored looks
+      exactly like a switch that happened. The write shape was measured on
+      2026-09-01: `PATCH /shield/shield-zone`, body `{"shieldZoneId": N,
+      "shieldZone": {"wafExecutionMode": M}}`; a flat body is refused with
+      `model_validation_error.shieldzone`.
+
+      **History of the deadline.** The move from 2026-08-21 to 2026-09-01 was a
+      decision, not forgetting: learning ended 2026-08-21, the log was not read
+      that day, and until 2026-09-01 all four zones knowingly lived in log-only —
+      the opposite error is dearer, and blocking switched on blind takes out the
+      Article 16 intake first. Learning cannot be extended from here: Bunny's API
+      offers neither the log nor an extension — re-checked 2026-09-01 by
+      enumerating twenty-three endpoints across three namespaces, all `404`.
+- [x] **G12. The rule was found on 2026-09-03 — `952100`, and not in the
+      dashboard.** The note saying "the id lives in the log, and the log lives
+      in the dashboard, so this is a person's step" was half right. The log is
+      indeed absent from the API: re-checked on 2026-09-03 with a sweep of its
+      own, thirteen candidate event-log paths, all `404`. But the API does serve
+      the rule catalogue — `GET /shield/waf/rules`, `200` — and the catalogue
+      has a **RESPONSE** section: rules that read the response body, 55 of them
+      against 205 on the request. That section explains the measurement that
+      looked strange: the origin served the file (`cdn-requestpullcode: 200`)
+      and Bunny still answered `403`, because what was inspected was the
+      response, not the request — which is why the CSS and `index.html` passed
+      while the minified bundle was cut.
+
+      The id was cornered instead of read: a set of candidates goes into
+      `wafLogOnlyRules`, the bundle is requested, and the answer says whether
+      the culprit is inside that set. Seven rounds narrowed 55 to one. It is
+      **`952100 — Java Source Code Leakage`**: a Java source-leak heuristic
+      firing on minified JavaScript. Confirmed live on 2026-09-03 — with
+      `wafExecutionMode: 1` and `wafLogOnlyRules: ["952100"]` the panel is
+      served whole: `/`, `/assets/index-44Ca_wX_.css` and
+      `/assets/index-DgdjqIRF.js` all `200`, all `cdn-cache: MISS`. After the
+      measurement the zone was put back to watching (`0`, `[]`): the id is
+      found, switching blocking on is a separate decision, and it has not been
+      taken.
+
+      **The cache nearly forged the answer.** The first run announced that the
+      `403` does not reproduce — with `cdn-cache: HIT`. The edge was serving a
+      stored copy the WAF never looked at, and the query string is not part of
+      the cache key, so a parameter could not get past it. A cached answer is
+      now not counted as a verdict at all, and each probe purges the URL first
+      via `POST /purge`. What caught the substitution was the positive control —
+      the step that demands to see the `403` first and refuses to search in
+      green.
+- [x] **G13. Settled by measurement on 2026-09-03: blocking cuts neither the
+      Article 16 intake nor panel sign-in.** The item was written as reading a
+      log, and the log is not readable — re-checked 2026-09-03. After G12 it does
+      not need to be: the question closes with the same trick, a short announced
+      window of blocking and three requests instead of a read.
+
+      Measured at `wafExecutionMode: 1`: `POST /report` passed (`422` from the
+      node, not `403`), `POST /auth/request-link` passed (`204`). Outside the
+      window both answer the same, and the zone was restored to `0` with an
+      empty `wafLogOnlyRules`.
+
+      **The conclusion rests on the control, not on the green.** The third
+      request was `/report` carrying an obvious injection string in its reason:
+      under blocking it answered `403`, outside it `422`. Without that, "nothing
+      was cut" would have meant only that the WAF was not looking — and it was.
+
+      The boundary, said plainly: one body was tested, realistic in shape and
+      length. A genuine notice may carry links, markup or quotes, and about
+      those this measurement says nothing.
+
+      `requestBodyLoggingEnabled: false` drops out of the framing: it would have
+      obstructed reading the log, and what we read is the response. Turning body
+      logging on is still unnecessary, and its price is unchanged: Bunny would
+      store the bodies of illegal-content notices — a new processor and a row in
+      the Article 30 register.
+
+      **This item took its price from production.** The first run sent the
+      control with `target_kind: "other"` — a real kind — and the node accepted
+      it as a real notice: `202`, row `6c815400-d6e9-407e-bfe7-aaef2e55b463` in
+      `dsa_notices`, with an injection string in its reason field. The safety
+      argument was right — the kind is checked before the database is touched —
+      and the code contradicted it. Fixed: the control now carries a
+      non-existent kind, confirmed by a `422`. The row was closed by deciding it
+      in the panel on 2026-09-03 — rejected on the `/dsa-notices` screen, not
+      deleted: the trace of an Article 16 obligation is not something to tidy
+      away. That closure is recorded on a person's word, not machine-checked:
+      the session held no key with `dsa_notices.read`.
 - [x] **G5. `manifest lang` — won't-fix, closed 2026-08-10.** The decision was
       taken long ago; the checkbox stayed open and counted as work for months. An
       installed PWA's metadata carries a brand name, whose language does not
       change.
 - [ ] **G6. Message length limit — enforcement on the node.** The decision of
-      07.08.2026 was impossible in the shape it was written: the node sees
+      2026-08-07 was impossible in the shape it was written: the node sees
       **ciphertext** and counts no 256 characters in it, exactly or approximately,
       while the spec promised a check on characters in §8.6 and in both flow
       diagrams — even though its own acceptance checklist demanded bytes. Made one
-      on 25.08.2026: the node checks `max_ciphertext_bytes` — **2048 bytes**,
+      on 2026-08-25: the node checks `max_ciphertext_bytes` — **2048 bytes**,
       calculated from the worst case (256 emoji characters → 1024 bytes of UTF-8 →
       1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
       `max_message_length` = **256** stays the counter in the client. The feed
       stays at **128**; that is a different limit and the two should not be merged.
-      **Nothing can close it yet:** checked 25.08.2026 against
-      `api.relay.panov.id` — `GET /chat` answers **501** "chat relay not enabled on
-      this node yet", there is no feed route (**404**), `/health` is 200. The item
-      closes on a measurement made by a request that bypasses the client, once the
-      node has chat code.
+      **Nothing can close it yet, and it was re-measured 2026-09-04:** on
+      `api.relay.panov.id` `GET /chat` still answers **501** "chat relay not
+      enabled on this node yet", there is no feed route (**404**), `/health` is
+      200. Nothing changed in ten days.
+      **The unblocking condition is now stated by machine —
+      `scripts/check-message-limits.sh` (filed 2026-09-04).** The gate asks the
+      node itself and holds two things the limits registry did not. First: 256 and
+      2048 are linked rather than kept apart — the byte ceiling is recomputed from
+      the character ceiling (256 emoji characters → 1024 bytes of UTF-8 → 1052
+      with nonce and tag → **1404** in base64), and either a trimmed ceiling or a
+      grown character count turns the gate red. `check-facts-limits` cannot see
+      that: both numbers still stand everywhere they are written, and the link
+      breaks in silence. Second: while `/chat` answers 501, the gate exits **4** —
+      "measurement deferred", kept apart from zero so a check that never ran is
+      never read as one that passed.
+      **The item closes on the day that answer becomes 200:** the same script
+      pulls `max_message_length` and `max_ciphertext_bytes` out of the node's
+      response and checks them against the registry — a measurement made by a
+      request that bypasses the client, exactly as decided.
 - [x] **G7. Storefront privacy policies — closed 2026-08-10.** Filed 2026-08-07 as
       two gaps; on inspection the first no longer existed and the second was closed
       by a decision rather than by work.
@@ -1114,7 +1261,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       expensive. Whoever needs it in their own language can translate it. The
       decision is recorded in the pointer files themselves, so that in six months it
       is not mistaken for a forgotten translation.
-- [x] **G8. Push fully cancelled — 07.08.2026.** The decision: notifications about
+- [x] **G8. Push fully cancelled — 2026-08-07.** The decision: notifications about
       new messages and matches exist, but **there is no push anywhere** — no Web
       Push in the browser, no system notifications in the terminal, no `BEL`.
 
@@ -1430,7 +1577,7 @@ mistaken for a loss.
       nothing retries the send, so those rows must stay visible. Verified against
       a real database; the test went red on the old insert.
 - [x] **J16. The Article 17(3) statement of reasons — closed 2026-08-11 as
-      already done.** All three gaps were closed on 2026-08-09/10 while the
+      already done.** All three gaps were closed on 2026-08-09–2026-08-10 while the
       letters were being given a common shape, and this list never heard about
       it. Verified in the code rather than from memory:
 
@@ -1487,7 +1634,10 @@ mistaken for a loss.
       Diagram 1 in `chat-flows_EN.md` is redrawn; the invented "PIN → code" order
       went away with the code itself.
 
-- [ ] **J25. The chat spec's own open questions — listed so they are not lost.**
+- [x] **J25. The chat spec's own open questions — listed so they are not lost.**
+      The list was assembled on 2026-08-31 in `docs/facts/open.tsv`; the two
+      remaining questions are kept there as `moderation.model` and
+      `moderation.queue.throughput`.
       They live in the spec but are invisible from this checklist, and they have to
       be settled before any code: which moderation model — **a measurement, not an
       argument** (§8.14) — and the moderation queue's throughput (§8.3).
@@ -1537,8 +1687,16 @@ mistaken for a loss.
       `docs/retired-terms.txt` so it cannot creep back; the check was broken
       against it and repaired — the rule catches.
 
-      **And a fifth, the same day — the set of chat spans.** Three stay: 20
-      minutes, 1 hour, 4:20; there will be no fourth, neither below nor above.
+      **And a fifth, the same day — the set of chat spans. RETIRED 2026-08-26;
+      what follows is what was decided then, not what holds now.** The set in
+      force has four — 10 minutes, 30 minutes, an hour, "while we talk"
+      (`chat_EN.md` §5) — and both arguments below are answered there by name: the
+      `min(20 minutes, span / 3)` counter was replaced by a quarter of the span,
+      and "the smaller of the two" no longer exists, since each side governs only
+      its own. The entry stays as the trace of a decision rather than as a rule;
+      marked 2026-09-08, when the open registry brought it up against the canon.
+      What was retired: three stay — 20 minutes, 1 hour, 4:20; there will be no
+      fourth, neither below nor above.
       Anything shorter than 20 minutes breaks the silence counter it comes with —
       at `min(20 minutes, span / 3)` a five-minute chat would start counting down
       after 1 minute 40 seconds, and since the smaller of the two applies, one

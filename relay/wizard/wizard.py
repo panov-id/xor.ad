@@ -26,7 +26,7 @@ the one whose absence makes a prod deploy fail with the wrong explanation.
   provider   HETZNER_TOKEN (or the provider in use)
   ssh        SSH_PUBLIC_KEY
   node       SESSION_SECRET_DEV / _STAGING / _PROD (one per environment,
-             never shared), POSTGRES_PASSWORD, ORIGIN_TOKEN
+             never shared), POSTGRES_PASSWORD, ORIGIN_TOKEN, METRICS_TOKEN
   images     GHCR_USER, GHCR_TOKEN
   prod gate  GITHUB_TOKEN — read access to the release repo. Without it the
              release check cannot tell "no such release" from "private repo,
@@ -40,6 +40,7 @@ import argparse
 import os
 import re
 import shlex
+import uuid
 import sys
 import tomllib
 from pathlib import Path
@@ -134,6 +135,18 @@ def acting_envs(box: dict) -> list[str]:
     if SELECTED_ENVS is None:
         return list(box["envs"])
     chosen = [env for env in box["envs"] if env in SELECTED_ENVS]
+    # An --env the box does not host used to return nothing, and nothing is not
+    # "no environments" downstream: the services list comes out empty, and
+    # `docker compose up -d` with no services recreates every container on the
+    # box — printed as "(all)". So a typo (`--env dv`, or `--env prod` against
+    # n1) did the widest possible thing while asking for the narrowest, and ran
+    # no migrations at all. Refusing is the only safe reading of a name that
+    # matches nothing. Found by a review panel 2026-09-08.
+    if not chosen:
+        raise SystemExit(
+            f"[error] --env {','.join(SELECTED_ENVS)} matches nothing on this box "
+            f"(it hosts: {', '.join(box['envs'])})"
+        )
     return chosen
 
 
@@ -144,6 +157,13 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "NODE_ID": f"{box['id']}-{env}",
         "NODE_REGION": box.get("region", "unknown"),
         "NODE_ROLE": "relay",
+        # The tag this environment is pinned to, handed to the process so it can
+        # say which build it is. A container keeps the environment it started
+        # with, so when a roll fails before the container is recreated, /health
+        # goes on reporting the old tag — which is the only honest answer and the
+        # one the deploy probe needs. Added 2026-08-31, after a deploy printed
+        # "the new build is live" over a node still running the previous image.
+        "RELAY_IMAGE_TAG": e.get("image_tag", "dev"),
         "PORT": "8080",
         "ALLOWED_ORIGINS": ",".join(e.get("allowed_origins", [])),
         "BUNNY_STORAGE_HOST": os.environ.get("BUNNY_STORAGE_HOST", "storage.bunnycdn.com"),
@@ -170,6 +190,11 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # every environment until the prod switch — and empty means the node
         # never trusts a header, which is the safe default rather than a gap.
         "ORIGIN_TOKEN": os.environ.get("ORIGIN_TOKEN", ""),
+        # What it takes to read GET /metrics. Empty means the endpoint answers
+        # 404 to everybody — the default, because nothing scrapes it today and
+        # open it handed the brand names and per-tenant request volumes to
+        # anyone who knew the path.
+        "METRICS_TOKEN": os.environ.get("METRICS_TOKEN", ""),
     }
     if uses_database(inv, box):
         # Reached by service name on the compose network; the password is the
@@ -232,6 +257,23 @@ def aux_hosts(inv: dict, box: dict) -> list[str]:
     return hosts
 
 
+# Docker's default json-file driver keeps every line forever: nothing rotates it,
+# and the only thing that eventually stops it is the disk. The log viewer on the
+# box reads the same files, so an unbounded log is not extra safety — it is the
+# node and the viewer sharing one way to die. Fifty megabytes across three files
+# per service is roughly a day of ordinary traffic and survives a burst of
+# errors, which is the window someone woken at night actually reads.
+#
+# Written into every service rather than into a daemon-wide default: the daemon
+# config is not ours to own on a shared box, and a compose file that states its
+# own limits is one a person can read without logging in.
+LOG_POLICY = (
+    '    logging:\n'
+    '      driver: json-file\n'
+    '      options: {max-size: "50m", max-file: "3"}\n'
+)
+
+
 def render_compose(inv: dict, box: dict) -> str:
     pool = inv.get("pool", {})
     node_repo = pool.get("node_repo", "ghcr.io/panov-id/edge-node")
@@ -244,7 +286,7 @@ def render_compose(inv: dict, box: dict) -> str:
     restart: unless-stopped
     env_file: [{env}.env]
     expose: ["8080"]
-""" for env in box["envs"])
+{LOG_POLICY}""" for env in box["envs"])
     extra = ""
     # Control state lives beside the node it serves: keys, brands, quotas, the
     # queue. Reachable on the compose network only — the port is never published,
@@ -254,7 +296,7 @@ def render_compose(inv: dict, box: dict) -> str:
     if uses_database(inv, box):
         extra += ('  postgres:\n    image: postgres:16-alpine\n'
                   '    restart: unless-stopped\n'
-                  '    env_file: [postgres.env]\n'
+                  '    env_file: [postgres.env]\n' + LOG_POLICY +
                   '    volumes:\n'
                   '      - pgdata:/var/lib/postgresql/data\n'
                   '      - ./init-databases.sql:/docker-entrypoint-initdb.d/10-databases.sql:ro\n'
@@ -264,9 +306,9 @@ def render_compose(inv: dict, box: dict) -> str:
                   '    expose: ["5432"]\n')
     if uses_mailpit(inv, box):
         extra += ('  mailpit:\n    image: axllent/mailpit:latest\n'
-                  '    restart: unless-stopped\n    expose: ["1025", "8025"]\n')
+                  '    restart: unless-stopped\n    expose: ["1025", "8025"]\n' + LOG_POLICY)
     extra += ('  dozzle:\n    image: amir20/dozzle:latest\n    restart: unless-stopped\n'
-              '    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]\n    expose: ["8080"]\n')
+              '    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]\n    expose: ["8080"]\n' + LOG_POLICY)
     deps = ", ".join([f"node-{e}" for e in box["envs"]]
                      + (["mailpit"] if uses_mailpit(inv, box) else []) + ["dozzle"])
     return f"""services:
@@ -280,6 +322,7 @@ def render_compose(inv: dict, box: dict) -> str:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+{LOG_POLICY}
 volumes:
   caddy_data:
   caddy_config:{"" if not uses_database(inv, box) else chr(10) + "  pgdata:"}
@@ -373,6 +416,13 @@ def sh_out(client, cmd: str) -> str:
     return stdout.read().decode(errors="replace").strip()
 
 
+def sh_out_sudo(client, cmd: str, sudo: bool) -> str:
+    """sh_out with the sudo prefix sh() applies. Reading a root-owned file needs it."""
+    wrapped = ("sudo -n " if sudo else "") + "bash -lc " + shlex.quote(cmd)
+    _stdin, stdout, _stderr = client.exec_command(wrapped)
+    return stdout.read().decode(errors="replace").strip()
+
+
 def _sftp_mkdirs(sftp, remote: str) -> None:
     cur = ""
     for part in remote.strip("/").split("/"):
@@ -421,12 +471,37 @@ def require_secret(name: str, env: str) -> str:
 
 
 def _verify_health(client, host: str, sudo: bool) -> None:
+    """Answering, and then able to work — they are different questions.
+
+    `/health` is liveness and returns 200 unconditionally, so asking it after a
+    deploy asks a light that cannot turn red: a node whose migration failed or
+    whose Postgres never started answers ok, and the roll is announced as
+    successful. `/ready` answers 503 in exactly that case, so it is what decides
+    here. A node older than the route answers 404 — not a failure of this deploy,
+    and said so rather than passed over in silence.
+    """
     for _ in range(6):
         if sh(client, f"curl -fsS -m 5 https://{host}/health", sudo=sudo, check=False) == 0:
             print(f"      {host}/health ok ✓")
-            return
+            break
         sh(client, "sleep 5", check=False)
-    print(f"      [warn] {host}/health not green yet (DNS-01 cert may still be issuing)")
+    else:
+        print(f"      [warn] {host}/health not green yet (DNS-01 cert may still be issuing)")
+        return
+
+    text = sh_out(
+        client,
+        f"curl -sS -m 5 -o /dev/null -w '%{{http_code}}' https://{host}/ready",
+    ).strip()
+    if text == "200":
+        print(f"      {host}/ready 200 ✓ — it can work, not just answer")
+    elif text == "404":
+        print(f"      {host}/ready 404 — this build predates readiness, nothing to check")
+    else:
+        raise SystemExit(
+            f"[error] {host}/ready answered {text or 'nothing'} — the node answers "
+            f"but cannot work (database?). The deploy is not green."
+        )
 
 
 # --- box operations ---------------------------------------------------------
@@ -478,17 +553,90 @@ def firewall(client, inv: dict, box: dict, sudo: bool) -> None:
     allow443 = sorted({ip for e in box["envs"] if inv["env"][e].get("access") != "public"
                        for ip in inv["env"][e].get("whitelist_ips", [])})
 
-    cmds = ["ufw --force reset", "ufw default deny incoming", "ufw default allow outgoing"]
+    rules = ["ufw default deny incoming", "ufw default allow outgoing"]
     for ip in ssh_wl:
-        cmds.append(f"ufw allow from {ip} to any port 22 proto tcp")
+        rules.append(f"ufw allow from {ip} to any port 22 proto tcp")
     if public:
-        cmds.append("ufw allow 443/tcp")
+        rules.append("ufw allow 443/tcp")
     else:
         for ip in allow443:
-            cmds.append(f"ufw allow from {ip} to any port 443 proto tcp")
-    cmds.append("ufw --force enable")
-    sh(client, " && ".join(cmds), sudo=sudo)
-    print(f"      firewall: ssh<-{ssh_wl}  443<-{'ANY' if public else allow443}")
+            rules.append(f"ufw allow from {ip} to any port 443 proto tcp")
+
+    # This used to be one `&&` chain beginning with `ufw --force reset`, run over
+    # the ssh channel — and it had two ways to leave a public box with no
+    # firewall at all, neither of which any check would have noticed.
+    #
+    # The chain started by DISABLING the firewall (that is what reset does) and
+    # only re-enabled it at the very end. Drop the connection in between — a
+    # laptop lid, a flaky link, a Ctrl-C — and the box stays open, quietly, until
+    # somebody runs configure again. And `&&` meant one rejected rule (a typo in
+    # a whitelist address is enough) ended the chain before `ufw --force enable`
+    # was ever reached, with exactly the same result.
+    #
+    # So: a script on the box, detached from the ssh session, that always reaches
+    # `enable` — the trap runs it even when a rule fails, so a bad address costs
+    # that one rule rather than the whole firewall. Losing the connection now
+    # costs the *report*, not the boundary.
+    # A token this run and no other. The check below used to look only for a
+    # non-empty state file, which every box has after its first configure — so on
+    # the second run it read YESTERDAY's "Status: active" and called the run a
+    # success no matter what happened. Found by a review panel on 2026-09-08.
+    run_id = uuid.uuid4().hex
+
+    script = "\n".join([
+        "#!/bin/bash",
+        "# Written by the wizard. The firewall must end up enabled whatever else",
+        "# happens in here, which is what the trap is for.",
+        "umask 077",
+        # A firewall that came up with no way in is worse than one that came up
+        # late: recovery is a provider console, not ssh. So the trap enables only
+        # when a rule for 22 actually landed, and otherwise says so — the wizard
+        # reads this same file and refuses either way.
+        "report() { { echo \"run=" + run_id + "\"; ufw status verbose; } "
+        "> /var/log/relay-firewall.state 2>&1; }",
+        "trap 'if ufw show added 2>/dev/null | grep -q \"port 22\"; then ufw --force enable; "
+        "else echo \"REFUSED: no rule for port 22 — not enabling\" >&2; fi; report' EXIT",
+        "set -x",
+        "ufw --force reset",
+        *rules,
+        "",
+    ])
+    # Not through /tmp. It is world-writable, the file was written 0644, and in
+    # the no-sudo branch it was executed as root straight from there — a local
+    # account that creates the path first owns it and rewrites what root runs.
+    target = f"{REMOTE_ROOT}/relay-firewall.sh"
+    sh(client, f"mkdir -p {REMOTE_ROOT} && chmod 700 {REMOTE_ROOT}", sudo=sudo)
+    sftp = client.open_sftp()
+    try:
+        _write_remote(sftp, target, script, mode=0o700)
+    finally:
+        sftp.close()
+    # setsid + nohup: the script outlives this channel. `wait` afterwards is a
+    # separate command, so a lost connection loses the wait and not the work.
+    sh(client, f"setsid nohup bash {target} > /var/log/relay-firewall.log 2>&1 < /dev/null &",
+       sudo=sudo)
+    # Wait for THIS run's report, not for any file that happens to be there.
+    state = sh_out_sudo(client, "for i in $(seq 1 30); do "
+                                f"grep -q 'run={run_id}' /var/log/relay-firewall.state "
+                                "2>/dev/null && break; sleep 1; done; "
+                                "cat /var/log/relay-firewall.state 2>/dev/null", sudo)
+    if f"run={run_id}" not in state:
+        # Two different things, and they used to be reported as one. This is
+        # "ufw did not answer in time", which may well mean it is still working.
+        raise RuntimeError(
+            "the firewall script did not report within 30s on this box. It may still "
+            "be running, or it may have died — check `ufw status verbose` and "
+            f"/var/log/relay-firewall.log there before assuming either. Last report:\n"
+            f"{state or '(nothing)'}"
+        )
+    if "Status: active" not in state:
+        # And this is "ufw answered, and it is down".
+        raise RuntimeError(
+            "the firewall did not come back up on this box — it is reachable and "
+            f"unprotected right now. See /var/log/relay-firewall.log there. "
+            f"What ufw reports:\n{state}"
+        )
+    print(f"      firewall: ssh<-{ssh_wl}  443<-{'ANY' if public else allow443}  (active)")
 
 
 def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
@@ -523,6 +671,15 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                           f"BUNNY_STORAGE_ZONE={os.environ.get('BUNNY_STORAGE_ZONE', '')}\n"
                           f"BUNNY_STORAGE_KEY={os.environ.get('BUNNY_STORAGE_KEY', '')}\n"
                           f"BUNNY_STORAGE_HOST={os.environ.get('BUNNY_STORAGE_HOST', 'storage.bunnycdn.com')}\n"
+                          # A zone and key of their own for the dumps, when they
+                          # exist. Sharing the working zone means one leaked key
+                          # or one mistaken prune takes the data and the backups
+                          # together — a second copy rather than a backup. Empty
+                          # until the zone is created, and the script says so
+                          # every night it runs without one.
+                          f"BACKUP_STORAGE_ZONE={os.environ.get('BACKUP_STORAGE_ZONE', '')}\n"
+                          f"BACKUP_STORAGE_KEY={os.environ.get('BACKUP_STORAGE_KEY', '')}\n"
+                          f"BACKUP_STORAGE_HOST={os.environ.get('BACKUP_STORAGE_HOST', '')}\n"
                           f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
                           # Quoted: the file is sourced by bash, and a bare
                           # "relay_dev relay_staging" would run the second word.
@@ -578,6 +735,16 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         # and a migration against a database that is not listening yet just fails
         # and leaves the node running on storage — which is survivable, and still
         # not what anyone asked for. --wait blocks until the healthcheck passes.
+        # The image is pulled before anything runs out of it. Migrations go through
+        # `docker compose run node-<env>`, so with the pull left until after them
+        # they were applied by whatever image already sat on the box — the previous
+        # release — and the new code then came up against a schema it did not have.
+        # A review panel found this on 2026-09-01, with db/013 and db/014 fresh:
+        # every Article 16 notice would have answered 503 until the wizard ran twice.
+        pulled = " ".join(f"node-{env}" for env in acting_envs(box))
+        print(f"      docker compose pull ({pulled or 'all'})")
+        sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull {pulled}", sudo=sudo)
+
         print("      waiting for postgres")
         sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d --wait postgres", sudo=sudo)
         for env in acting_envs(box):
@@ -613,9 +780,8 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
     # also recreate the other environment if anything of its configuration had
     # changed, and "deploy dev" must not be a way to restart staging.
     services = " ".join(f"node-{env}" for env in acting_envs(box))
-    print(f"      docker compose pull + up -d ({services or 'all'})")
-    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose pull {services} "
-               f"&& docker compose up -d {services}", sudo=sudo)
+    print(f"      docker compose up -d ({services or 'all'})")
+    sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d {services}", sudo=sudo)
     # The Caddyfile is a bind-mounted file: `up -d` does not restart caddy when only
     # its content changed, so reload it explicitly (graceful; restart as fallback).
     print("      reload caddy (pick up Caddyfile changes)")
@@ -761,15 +927,27 @@ def seed_admin(box: dict, inv: dict, env: str, email: str) -> None:
 
 # --- cli --------------------------------------------------------------------
 
-def run_each(inv: dict, only: str | None, fn) -> None:
+def run_each(inv: dict, only: str | None, fn) -> int:
+    """Run over the boxes and return how many failed.
+
+    A failure on one box still must not abort the others — a pool is a pool. But
+    the process used to exit 0 regardless, so every caller believed a run that
+    had failed: on 2026-08-31 a deploy whose image pull was denied ended with
+    "dev is on sha-eeca165" printed by the calling script. Continuing is right;
+    lying about it afterwards is not, so the count travels back and main() exits
+    with it.
+    """
     bs = boxes(inv, only)
     if not bs:
         print("no matching boxes")
+    failed = 0
     for b in bs:
         try:
             fn(b)
         except Exception as e:  # one box's failure must not abort the run
+            failed += 1
             print(f"  · {b['id']}: ERROR {e}")
+    return failed
 
 
 def main() -> None:
@@ -804,20 +982,21 @@ def main() -> None:
                      f"(known: {', '.join(sorted(known))})")
     assert_one_box_per_database(inv)
 
+    failures = 0
     if args.cmd == "status":
         status(inv)
     elif args.cmd == "provision":
-        run_each(inv, args.box, lambda b: provision(b, inv))
+        failures += run_each(inv, args.box, lambda b: provision(b, inv))
     elif args.cmd == "configure":
-        run_each(inv, args.box, lambda b: configure(b, inv))
+        failures += run_each(inv, args.box, lambda b: configure(b, inv))
     elif args.cmd == "dns":
-        run_each(inv, args.box, lambda b: dns(b, inv))
+        failures += run_each(inv, args.box, lambda b: dns(b, inv))
     elif args.cmd == "pool":
-        run_each(inv, args.box, lambda b: pool(b, inv))
+        failures += run_each(inv, args.box, lambda b: pool(b, inv))
     elif args.cmd == "deploy":
-        run_each(inv, args.box, lambda b: deploy(b, inv))
+        failures += run_each(inv, args.box, lambda b: deploy(b, inv))
     elif args.cmd == "seed-admin":
-        run_each(inv, args.box, lambda b: seed_admin(b, inv, args.env, args.email))
+        failures += run_each(inv, args.box, lambda b: seed_admin(b, inv, args.env, args.email))
     elif args.cmd == "up":
         # dns before configure so DNS-01 can validate the hostnames.
         for b in boxes(inv, args.box):
@@ -827,7 +1006,10 @@ def main() -> None:
                 dns(b, inv)
                 configure(b, inv)
             except Exception as e:
+                failures += 1
                 print(f"  · {b['id']}: ERROR {e}")
+    if failures:
+        raise SystemExit(f"{failures} box(es) failed — see the errors above")
 
 
 if __name__ == "__main__":

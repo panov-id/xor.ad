@@ -18,11 +18,23 @@ on:
       # Documentation inside relay/ is not code. One edit to ARCHITECTURE_RU.md
       # was starting two multi-arch builds with arm64 emulation.
       - "!relay/**.md"
+      # But the specification outside relay/ IS what four suites test against:
+      # dsa_snapshot_columns, dsa_kinds, prune_objects and chat_stub read
+      # docs/**. Without this line a commit that renames a column in
+      # docs/chat_EN.md ran nothing at all and reached dev green — which is how
+      # e9f05a9 (a docs-only change to the feed's contract) would have landed.
+      # The price is named: a docs-only push to dev now builds an image too,
+      # because `paths` is a workflow-level filter and build-push cannot be
+      # excluded from it. One redundant multi-arch build is cheaper than a spec
+      # and a route disagreeing for five days, which is what the alternative
+      # already cost us once.
+      - "docs/**"
       - ".github/workflows/relay.yml"
   pull_request:
     paths:
       - "relay/**"
       - "!relay/**.md"
+      - "docs/**"
       - ".github/workflows/relay.yml"
   # Called by deploy-uat.yml right after it creates the release tag. A tag pushed
   # from a workflow carries GITHUB_TOKEN, and GitHub deliberately does not start

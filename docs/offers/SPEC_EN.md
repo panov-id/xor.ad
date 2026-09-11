@@ -217,6 +217,16 @@ served both on a storefront subdomain and inside the panel; the rights model is 
 
 The account publishes nothing by itself: it only owns venues.
 
+```sql
+CREATE TABLE advertisers (
+  id                  uuid PRIMARY KEY,
+  email               text NOT NULL,           -- sign-in by magic link
+  email_confirmed_at  timestamptz,             -- before it, neither an envelope nor an offer
+  contact             text NOT NULL,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+```
+
 ### venue
 
     id
@@ -239,6 +249,18 @@ own envelope, delivered to exactly that address.
 Only a venue in `verified` status may publish offers. `suspended` belongs to the venue too: one
 place collected complaints, the others keep working.
 
+```sql
+CREATE TABLE venues (
+  id                   uuid PRIMARY KEY,
+  advertiser_id        uuid NOT NULL REFERENCES advertisers(id),
+  name                 text NOT NULL,
+  address              text NOT NULL,           -- the envelope goes here
+  verification_status  text NOT NULL,           -- unverified | verified | suspended
+  verified_at          timestamptz,
+  created_at           timestamptz NOT NULL DEFAULT now()
+);
+```
+
 ### offer
 
 Only **venue offers** live here. A private offer is not a separate entity: it is a
@@ -260,24 +282,79 @@ different objects for the sake of a row half of whose columns are always empty.
     redirect_hits           integer — a counter, tied to no person
     last_checked_at         when the target was last checked
     repeated_from_offer_id  nullable — if created by "Show again"
+    discount_until          timestamptz, required — the moment the discount stops being valid
     status                  enum: active | expired | hidden
     published_at
-    expires_at
+    expires_at              the card's life in the feed (4:20), not the discount's term
 
 Field rules:
 
 - `discount_value` cannot be empty — without it publication is impossible
+- `discount_until` cannot be empty either (decided 2026-08-29): a discount has an
+  end date and time, and eternal discounts do not exist. It is a separate value
+  from `expires_at`: **the card lives 4:20 in the feed, the discount lives until
+  its own term** — two different things that used to be one
+- `discount_until` no further than **90 days** from publication. The number is
+  chosen rather than measured: a saved card is a promise the business is obliged
+  to keep, and three months is the longest such promise worth binding anyone to.
+  Longer than that means "show again" with a new date
 - an empty `conditions` means the discount has no limits and cannot be refused
 - `external_url` is the only place in the product where a link is allowed, and it exists only
   for venues
 - `promo_code` is likewise venues only: a private author has no external system where a code
   means anything
-- a private author fills in exactly the text, `discount_value` and `conditions` — their phrase
-  in the feed simply has no other fields
+- a private author fills in exactly the text, `discount_value` and `conditions` — **and those
+  live on their `feed_messages` row, not here**: `venue_id` in this table is `NOT NULL` and a
+  private person has no venue, so the database would not take such a row at all (clarified
+  2026-09-08)
+
+The fields are described above; below is the same entity as a table, because
+`relay/node/src/lib/dsa_snapshot.ts` already reads columns out of it by name,
+while the registry `docs/facts/schema.tsv` did not know it existed until
+2026-09-08. The code addressed a table no specification declared: an Article 16
+snapshot about an offer rested on names no document was answerable for.
+
+```sql
+CREATE TABLE offers (
+  id                      uuid PRIMARY KEY,
+  brand                   text NOT NULL,          -- every lookup is scoped by it: the storefront is the visibility boundary
+  venue_id                uuid NOT NULL REFERENCES venues(id),
+  offer_text              text NOT NULL,
+  discount_value          text NOT NULL,          -- cannot be empty: without it publication is impossible
+  conditions              text CHECK (conditions IS NULL OR char_length(conditions) <= 128),
+  promo_code              text,                   -- venues only
+  external_url            text,                   -- never shown to people, see 6.2
+  redirect_code           text NOT NULL,
+  redirect_disabled_at    timestamptz,            -- the link is extinguished, the offer stays
+  redirect_hits           integer NOT NULL DEFAULT 0,
+  last_checked_at         timestamptz,
+  repeated_from_offer_id  uuid REFERENCES offers(id),
+  discount_until          timestamptz NOT NULL,   -- the discount's term, not the card's
+  status                  text NOT NULL,          -- active | expired | hidden
+  published_at            timestamptz NOT NULL DEFAULT now(),
+  expires_at              timestamptz NOT NULL    -- the card's life in the feed (4:20)
+);
+```
+
+An Article 16 snapshot takes `id, offer_text, discount_value, conditions,
+published_at, venue_id` from here and treats `published_at` as the time of
+publication. This surface has no separate mark of visibility and cannot have one:
+an offer is published in a single step, the column is `NOT NULL`, and a
+"published" condition on it would always be true — so `published` for an offer is
+declared `null` (`relay/node/src/lib/dsa_snapshot.ts`) rather than a column name.
+The boundary is `brand`: this surface's `visibility` is `per_brand`, unlike the
+feed and the tables (`chat_EN.md` §8.3).
 
 ### 3.1. Conditions: the only place a discount is limited
 
-**Everything that limits a discount lives in `conditions`.** Not in the offer's
+**The term is the one limit with a field of its own (edit of 2026-08-29).** This
+used to say that **everything** lives in `conditions`; with `discount_until` that
+is no longer true, and the reason is not tidiness but that a term does not work
+as free text: you cannot render it as "expires in two hours", cannot grey out a
+saved card with it, and cannot tell "until Friday" from "until Friday next week"
+without parsing prose in seventeen languages.
+
+**Everything else that limits a discount lives in `conditions`.** Not in the offer's
 text, not in the staff's heads, not in code. This rule replaces any limit
 mechanics — redemption counters, quotas, reservations, statuses — and that is
 exactly why none of them appear in §14.
@@ -286,8 +363,11 @@ exactly why none of them appear in §14.
 a statement, not a silence.
 
 **Availability is a condition too.** If you expect to run out, write "while
-stocks last". If you did not, you promised everyone who comes within the offer's
-4:20. The rule is deliberately strict: a person must learn about a limit **before
+stocks last". If you did not, you promised everyone who comes **before
+`discount_until`** (edit of 2026-08-29; [retired] this used to say "within the
+offer's 4:20 of life" — once the discount gained a term of its own that stopped
+being true, and in the direction that costs the business more: the card leaves
+the feed after 4:20, a saved one lives on). The rule is deliberately strict: a person must learn about a limit **before
 setting off**, not at the counter. A venue is burned by this once and writes it
 thereafter.
 
@@ -350,6 +430,12 @@ limit it turns into a free broadcast channel.
 ## 5. The life of an offer
 
     created → active ──── OFFER_LIFETIME expired ────► expired
+
+**A private offer also disappears when its author steps away — added 2026-08-28**
+(screen 20 of the storefronts, decided 2026-08-27). Leaving "for 20 minutes, an
+hour, or until morning" deletes the person's live phrases, and their offer is a
+phrase with a non-empty discount. A venue offer is untouched: there is no person
+behind it who could step away.
                 │
                 └──── 3 complaints from different people ───► hidden → examined within a day
                                                                  │
@@ -465,6 +551,21 @@ lawyer.
   ordinary post, except that a like on it creates a chat request at once (section 2)
 - The quota counts **both** kinds of commercial card together — venue offers and phrases with a
   discount. Otherwise a private author walks around the limit the quota exists for
+- **An offer can be liked without a live phrase of your own — edit of 2026-08-28**
+  (decided 2026-08-27, `chat_EN.md` §8.4, screen 17 of the storefronts). An
+  ordinary like requires the liker to have a live phrase, or no match can ever
+  happen: it counts only when both sides have one. An offer's match is one-sided,
+  so the argument does not apply — and the rule without the exception would cancel
+  the mechanic itself: to claim the free stools you would first have to write
+  something of your own
+- **The language filter never hides an offer — edit of 2026-08-28** (decided
+  2026-08-26, §8 of the storefront mechanics). It is the one exception to the
+  filter: the bakery across the street is just as useful whatever language you
+  read in, and the language filter is meant against speech you cannot read, not
+  against the block you live on
+- **Since 2026-08-27 the feed holds three things**, not two: a phrase, an offer and
+  a **table** (screen 19 of the storefronts). What that does to the quota is a
+  question of the denominator, and the value is open — see §16
 
 ## 8. Repeat placement
 
@@ -708,7 +809,8 @@ argument; this is a deliberate trade, not strictness for its own sake.
 
 **Language is the same.** "We speak Russian, neighbours get a discount" sounds
 friendly and works as a marker of origin. Writing the announcement itself in
-Russian is fine and expected — the storefronts speak six languages; **making
+Russian is fine and expected — the storefronts speak seventeen and ten languages
+(measured on 2026-08-28 from the live sitemaps; this said "six"); **making
 language a condition of the discount is not.**
 
 **A product aimed at someone is not a condition.** A children's portion, a student
@@ -790,3 +892,9 @@ Values to be confirmed in practice:
 - `OFFER_LIFETIME` — tie it to an ordinary post's lifetime, a product-level value
 - `FEED_OFFER_QUOTA` = 1 in 10 — check against a real feed
 - `COMPLAINT_EXAMINATION_HOURS` = 24 — check in practice whether one person keeps up
+- **Whether a table counts towards `FEED_OFFER_QUOTA`'s denominator** — open since
+  2026-08-28. The quota holds commercial load down relative to organic content; a
+  table is organic, so counting it is the natural reading, but it also outlives a
+  phrase, and a single table in the feed would then open the way for one more
+  card. Settled against a real feed together with the quota itself, not by
+  argument

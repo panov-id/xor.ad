@@ -20,6 +20,8 @@ import { acceptClientError } from "./client_error.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { inc } from "../lib/metrics.ts";
 import { EVENTS, exceeded, record, secondsUntilReset } from "../lib/quota.ts";
+import { callerBucket } from "../lib/client_ip.ts";
+import { checkAll, V1_LIMITS } from "../lib/rate_limit.ts";
 
 // One error shape for every answer under /v1. `code` is what a client branches
 // on and never changes; `message` is for a human reading a log and may.
@@ -40,6 +42,31 @@ export function apiError(
 // answer the same way: distinguishing them tells a guesser they got the format
 // right.
 async function authenticate(req: Request): Promise<SecretKey | Response> {
+  // Before the key is even looked at, and deliberately so. The daily quota below
+  // is per key, cached for ten seconds, counted on each node separately, and
+  // switches off when the database is unreachable — which means the moment the
+  // database is unwell this surface has no ceiling at all. This one is in memory
+  // and works exactly then, and it is charged to the caller's address, so a
+  // flood of unauthorized attempts is refused without a key lookup each.
+  // The address AND the key, not the address alone. client_ip.ts says why in as
+  // many words: one tenant's noisy visitor must not silence that address for
+  // another — and behind carrier-grade NAT or a cloud egress that is a single
+  // address carrying several tenants' clients. `callerBucket` only checks the
+  // shape of the key, never resolves it, so this still happens before
+  // authentication; junk and absence share one bucket each, which is what stops
+  // a flood minting fresh buckets.
+  const verdict = checkAll(V1_LIMITS, callerBucket(req));
+  if (!verdict.allowed) {
+    inc("relay_v1_total", { route: "any", result: "address_limited" });
+    return apiError(
+      "rate_limited",
+      "too many requests from this address",
+      429,
+      { retry_after: verdict.retryAfterSeconds },
+      { "retry-after": String(verdict.retryAfterSeconds) },
+    );
+  }
+
   const header = req.headers.get("authorization") ?? "";
   const presented = header.replace(/^Bearer\s+/i, "").trim();
   if (!presented) {

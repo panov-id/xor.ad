@@ -94,6 +94,20 @@ test holds them there (`panel/src/access/access.test.ts`).
 | Logs | the panel audit log and client errors |
 | Panel users | the list and the invitation |
 
+**There is no moderation threshold in the panel either, and it is configurable —
+found 2026-08-27.** The storefront mechanics declare the share and the floor of
+the report threshold configurable ("5% of the audience, but not fewer than
+three"), and the spec declares the model's operating point configurable too: it
+is set by a false-block budget and lives as a node parameter (§8.14). Neither is
+in the panel: a key's daily quota can be edited, moderation cannot. **Decided
+2026-08-27: for now they are deploy-time constants** (`route-to-code_EN.md`,
+decision 2). Building a screen for a number nothing can validate — there are no
+live reports yet — is work done blind. The price is named: the threshold cannot
+be turned on the day the feed goes wrong, that needs a release. The screen comes
+back with the first live reports, and with it a permission and an audit entry:
+who moved the threshold and when is a decision about other people's speech, and
+it has to be visible.
+
 **There is no bans screen, and no ban mechanism exists** — no route, no column.
 An earlier version of this document promised "ban by UID"; what the product has
 instead is hiding by complaints, blocking between people (`chat_EN.md` §8.9) and

@@ -26,7 +26,7 @@ apiUrl (per env, from config.js):
                    └─→ welcome via Resend (the brand's account key,
                           from hello@neighbro.place; on dev, Mailpit instead of Resend)
   POST /client-error ─→ Bunny Storage: client-errors/<env>/<uuid>.json
-  GET  /health, /metrics ─→ node status / Prometheus counters
+  GET  /health, /metrics ─→ node status / Prometheus counters (metrics: token-gated)
 ```
 
 ## Components
@@ -34,7 +34,7 @@ apiUrl (per env, from config.js):
 | Component | Role |
 |---|---|
 | Bunny CDN (zones `neighbro-dev/uat/prod`) | hosts the static landing |
-| relay node pool (Deno) | backend: `/waitlist`, `/client-error`, `/health`, `/metrics` (`/chat` slot — 501 stub) |
+| relay node pool (Deno) | backend: `/waitlist`, `/client-error`, `/health`, `/metrics` (token-gated; `/chat` slot — 501 stub) |
 | Caddy (on each node) | TLS (Let's Encrypt, DNS-01 via Bunny), host-based routing |
 | Bunny Storage (zone `sosed-waitlist-dev`) | leads, page views, client errors and server logs, split per tenant under `tenants/<brand>/…/<env>/` |
 | Postgres beside the node (volume on the box) | control state: keys, brands, quotas, the queue, idempotency, daily aggregates. The port is never published; without `DATABASE_URL` the node runs entirely on storage. See `docs/state-decision_EN.md` |

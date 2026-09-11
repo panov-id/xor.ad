@@ -20,9 +20,24 @@ interface Bucket {
 // Address -> the timestamps of its recent hits, per named limit.
 const buckets = new Map<string, Bucket>();
 
+// Every window ever seen, by limit name. The sweep above decides "expired" per
+// bucket, and a bucket belongs to whichever limit named it — using the current
+// call's window for all of them would evict a day-long counter on a minute's
+// evidence.
+const WINDOWS = new Map<string, number>();
+
+// And every ceiling, by the same names. Eviction weighs buckets against their
+// own limit, so it needs to know what that limit is for a bucket it is not
+// currently checking.
+const MAXIMA = new Map<string, number>();
+
 // Left unbounded, the map is itself a way to exhaust the node: one entry per
-// address. Cleared wholesale rather than swept, because the entries are cheap to
-// rebuild and a sweep is one more thing to get wrong.
+// address. It used to be cleared wholesale — cheap to rebuild, and one less
+// thing to get wrong — until a review panel pointed out on 2026-09-08 what a
+// wholesale clear is from outside: whoever fills the map decides when every
+// counter on the node resets, including the ones on the waitlist and on notices
+// of illegal content. Sweeping the expired entries instead keeps the eviction
+// from being a lever.
 const MAX_TRACKED = 50_000;
 
 export interface Limit {
@@ -76,6 +91,48 @@ export const CLIENT_ERROR_LIMITS: Limit[] = [
   { name: "client-error-day", max: 300, windowMs: DAY },
 ];
 
+// Sign-in links. Two things are being protected and they are not the same one.
+//
+// SIGN_IN_LIMITS counts the caller's address. The route answers 204 to everything
+// and does a storage read per request, so it is cheap to hammer and says nothing
+// back. (An earlier version of this comment claimed every request drops an
+// object holding an operator's address; it does not — `requestMagicLink` returns
+// before minting anything unless the address really belongs to an operator.
+// Corrected 2026-09-08 by a review panel; the numbers were never derived from
+// that claim.)
+//
+// SIGN_IN_MAILBOX_LIMITS counts the address being asked for, because rotating
+// the caller's IP is free and the harm that survives it is a mail bomb into one
+// operator's inbox. Low on purpose: a person signing in asks once, twice if the
+// first letter went to spam. Six in an hour is somebody else asking.
+export const SIGN_IN_LIMITS: Limit[] = [
+  { name: "sign-in", max: 20, windowMs: HOUR },
+  { name: "sign-in-day", max: 60, windowMs: DAY },
+];
+
+// One window, not two, and deliberately: a daily ceiling on a mailbox is a way
+// to keep an operator out of the panel for a day, and the person who wants that
+// only needs to know an address that is usually published as a contact point.
+// An hour is long enough that a flood is not a flood and short enough that a
+// legitimate operator waits minutes rather than until tomorrow.
+export const SIGN_IN_MAILBOX_LIMITS: Limit[] = [
+  { name: "sign-in-mailbox", max: 6, windowMs: HOUR },
+];
+
+// The v1 surface had no per-address limit at all: the only barrier was the daily
+// quota, which is per key rather than per caller, cached for ten seconds, counted
+// on each node separately, and — the part that matters here — switches off
+// entirely when the database is unreachable (lib/quota.ts). So the moment the
+// database is unwell, the public API has no ceiling of any kind. This one is in
+// memory and keeps working exactly then.
+//
+// Generous: a client legitimately walks pages and polls. It is a ceiling against
+// a flood, not a quota — the quota is the thing that prices ordinary use.
+export const V1_LIMITS: Limit[] = [
+  { name: "v1", max: 1200, windowMs: HOUR },
+  { name: "v1-day", max: 20000, windowMs: DAY },
+];
+
 export interface Verdict {
   allowed: boolean;
   remaining: number;
@@ -84,10 +141,59 @@ export interface Verdict {
 
 export function check(limit: Limit, address: string, now = Date.now()): Verdict {
   if (buckets.size > MAX_TRACKED) {
-    log("info", "rate limiter reset: too many tracked addresses", { tracked: buckets.size });
-    buckets.clear();
+    // Two passes, and neither of them is a wholesale clear.
+    //
+    // First the expired: a bucket whose every hit is outside its own window
+    // holds nothing worth keeping.
+    let swept = 0;
+    for (const [name, held] of buckets) {
+      const window = WINDOWS.get(name.slice(0, name.indexOf(":"))) ?? limit.windowMs;
+      if (held.hits.every((at) => at <= now - window)) {
+        buckets.delete(name);
+        swept += 1;
+      }
+    }
+
+    // Then, if the map is still full, the quietest — fewest hits first. A flood
+    // is made of buckets with one hit each; a caller who is actually at their
+    // limit has the most hits in the map and is evicted last. Clearing wholesale
+    // did the opposite: it freed exactly the counters worth keeping, and let
+    // whoever filled the map choose when that happened.
+    if (buckets.size > MAX_TRACKED) {
+      // Fullness, not raw hits — and this is the second version of this line.
+      //
+      // Sorting by `hits.length` compared buckets across limits, and the limits
+      // are not comparable: `report` allows ten an hour, `pageview` six hundred.
+      // A bucket at its report limit holds ten hits and a half-idle pageview
+      // bucket holds twenty, so flooding /pageview evicted every Article 16
+      // counter first — the same prize `buckets.clear()` used to hand out, just
+      // more slowly. Fullness is the share of a bucket's own limit, so "about to
+      // be refused" means the same number whatever the limit. Caught by a review
+      // panel on 2026-09-08, hours after the eviction replaced the clear.
+      const fullness = (name: string, held: Bucket): number => {
+        const max = MAXIMA.get(name.slice(0, name.indexOf(":"))) ?? limit.max;
+        return held.hits.length / max;
+      };
+      const byWeight = [...buckets.entries()].sort((a, b) => {
+        const spread = fullness(a[0], a[1]) - fullness(b[0], b[1]);
+        // Ties go to whoever was quiet longest: a bucket nobody has touched
+        // recently is cheaper to lose than one still being written to.
+        if (spread !== 0) return spread;
+        return (a[1].hits[a[1].hits.length - 1] ?? 0) - (b[1].hits[b[1].hits.length - 1] ?? 0);
+      });
+      const target = buckets.size - Math.floor(MAX_TRACKED / 2);
+      for (let i = 0; i < target && i < byWeight.length; i++) {
+        buckets.delete(byWeight[i][0]);
+        swept += 1;
+      }
+      log("warn", "rate limiter evicted the emptiest buckets", { tracked: buckets.size, swept });
+    } else {
+      log("info", "rate limiter swept expired buckets", { tracked: buckets.size, swept });
+    }
   }
 
+  WINDOWS.set(limit.name, limit.windowMs);
+  MAXIMA.set(limit.name, limit.max);
   const key = `${limit.name}:${address}`;
   const bucket = buckets.get(key) ?? { hits: [] };
   const cutoff = now - limit.windowMs;

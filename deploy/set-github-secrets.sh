@@ -14,4 +14,4 @@ docker run --rm \
   -v "$CONFIG:/config/github-secrets.json:ro" \
   -v "$DEPLOY_DIR/set-github-secrets.py:/app/set-github-secrets.py:ro" \
   -w /app python:3.12-alpine \
-  sh -c "pip install -q PyNaCl requests && python3 set-github-secrets.py"
+  sh -c "pip install -q PyNaCl requests && python3 set-github-secrets.py $*"

@@ -33,6 +33,10 @@ export const PERMISSIONS = [
   // copy of someone's message.
   "dsa_notices.read",
   "dsa_notices.decide",
+  // Article 18: recording that law enforcement was informed. Separate from
+  // deciding, because it is a statement made about a person to the police and
+  // not a decision about their content.
+  "dsa_notices.escalate",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

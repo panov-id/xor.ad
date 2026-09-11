@@ -45,7 +45,7 @@ hostname `<box>-<env>.<dns_zone>` (напр. `n1-dev.relay.panov.id`). Прив�
 | Эндпоинт | Назначение |
 |---|---|
 | `GET /health` | liveness/readiness |
-| `GET /metrics` | Prometheus-счётчики (requests/waitlist/mail) |
+| `GET /metrics` | Prometheus-счётчики (requests/waitlist/mail) — по токену `METRICS_TOKEN`, без него 404 |
 | `POST /waitlist` | валидация → дедуп+запись в Bunny Storage → welcome через Resend |
 | `POST /client-error` | fire-and-forget сток ошибок |
 | `GET /chat` | заглушка → `501`, пока не приедет чат |

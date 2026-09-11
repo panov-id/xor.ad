@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Add dev/uat CNAME records to panov.id via the Namecheap API.
 # Runs in a throwaway Python container; reads creds from deploy/.env.deploy.
-#   deploy/namecheap-dns.sh <dev|uat> [--apply]
+#   deploy/namecheap-dns.sh <dev|uat|prod|www> [--apply]
 # Default is a dry-run (prints the plan); pass --apply to actually write.
 set -euo pipefail
 

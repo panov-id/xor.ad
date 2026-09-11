@@ -15,7 +15,7 @@ below about webhooks and notifications.
 
 | Piece | State |
 | --- | --- |
-| HTTP node | Deno, own router: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /metrics` |
+| HTTP node | Deno, own router: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /ready`, `GET /metrics` (token-gated via `METRICS_TOKEN`; 404 without it) |
 | Public API | `/v1/waitlist`, `/v1/pageview`, `/v1/client-error`, `/v1/me` under a secret key |
 | Admin routes | `/admin/*`: brands, keys, quotas, logs, Article 16 notices |
 | Article 16 notices | intake, queue, decision, letters — built (`docs/dsa/`) |

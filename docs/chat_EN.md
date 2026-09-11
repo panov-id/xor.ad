@@ -51,21 +51,604 @@ Liking again when a chat with that person is already open creates **no new match
 ## 5. Ephemerality
 
 - A chat's TTL is **sliding**: it lives no longer than the chosen span **after the last activity**. Activity means a delivered message or a move in a game.
-- **Each person picks the span** when consenting to the chat — **20 minutes, 1 hour or 4:20** of silence — and the **smaller of the two** applies: one person's caution is not overridden by the other's generosity. The value is visible to both; who set it is not. It cannot be changed inside an open chat.
-- **The silence counter** appears not immediately but after `min(20 minutes, span / 3)` of silence, and counts down to the chat's disappearance. Any message or move resets it.
-- As expiry approaches — visual **fading**; on expiry the chat **disappears for both** with all its content (messages, liked phrases, game board).
+- **Each person picks their span inside the conversation itself, and it is their own — settled 2026-08-26, reversing the pick at consent.** Four values: **10 minutes, 30 minutes, an hour** or **"while we're talking"** (the same 4:20). The handle sits in the conversation header and changes at any time. The count runs from **your own last message**, not from theirs: Petya sets ten minutes, Kolya an hour; Petya stays silent for ten minutes and the conversation disappears **for Petya**. Your own remainder is always visible; the other side's setting and remainder are not. **Since 2026-09-10 that covers the moment of the "ended" mark as well:** the line used to appear the instant their span ran out, and the time of their last message is on your screen — the difference names their setting, and there are only four. The mark is now placed by **your own attempt**: the client learns the conversation is over when you open it or try to write, and draws the line then. The cost is accepted: the list does not tell a live conversation from a dead one until you look into it, which is the same trade the headstone (§1) already makes. Asking for a span before a person has seen who they are talking to demands a decision before there are grounds for one.
+- **The silence counter** appears in the **last quarter of your own span** and counts down to the conversation's disappearance. Any message or move of yours resets it. A fraction rather than fixed minutes: a quarter of an hour for an hour-long conversation, two and a half minutes for a ten-minute one. The old `min(20 minutes, span / 3)` rule is retired along with the pick at consent — on a ten-minute span it lit the counter after 3 minutes 20 seconds, leaving two thirds of the conversation's life in a countdown.
+- As expiry approaches — visual **fading**; on expiry the conversation **disappears for whoever's span ran out**, with all its content (messages, liked phrases, game board). For the other it remains, but it stops **being a conversation**: nothing can be written into it, and one line says so — otherwise an expired span is indistinguishable from taking offence.
 - **The last frame — decided 2026-08-20: only the person who was looking sees a headstone.** A chat open on screen at that moment shows "chat expired" and a "close" button. A chat that was sitting in the list disappears from it silently. The content is erased immediately in both cases — the words stand over emptiness, not over a saved conversation. The difference is not politeness: taking the screen away without a word from someone mid-message is indistinguishable from a crash or a ban, while nobody has a list row under their hands at that instant. The headstone lives until it is closed and **does not return** to the list — otherwise someone who stayed away for a day comes back to a column of "there was a chat with this person here", a trace outliving the thing that was supposed to vanish (§1).
-- The span and last-activity time are stored on the server; the conversation itself lives only in browsers (§8.8), and the client sweeps it via `POST /chats/alive` (§8.10).
+- The span is stored **per participant**, the last-activity time per conversation; the conversation itself lives only in browsers (§8.8), and the client sweeps it via `POST /chats/alive` (§8.10). Hence a consequence for that endpoint: it answers **differently to the two participants of one conversation**, and that is the design rather than a fault (§8.10).
 - The **feed** has its own span — a phrase lives **4 hours 20 minutes**; a **match** has its own — until the first of the two phrases dies. Three different timers for three different reasons.
-- **The set of spans is settled 2026-08-20: these three stay** — 20 minutes, 1 hour, 4:20. There will be no fourth, neither below nor above. Anything shorter than 20 minutes breaks the silence counter it comes with: at `min(20 minutes, span / 3)` a five-minute chat would start counting down after 1 minute 40 seconds — sooner than a person writes a second message — and since the smaller of the two applies, one cautious pick would close the conversation for both. Anything longer than 4:20 outlives its own reason: a phrase in the feed lives exactly 4:20, and a conversation about it should not hang around longer than what started it. Free entry is not considered separately: it turns a choice between three words into a setting with numbers on the consent screen.
+- **The set of spans is four, settled 2026-08-26:** 10 minutes, 30 minutes, an hour, "while we're talking". The previous three (20 minutes, 1 hour, 4:20) stood from 2026-08-20 and rested on two arguments that no longer exist. First: anything shorter than 20 minutes breaks the `min(20 minutes, span / 3)` counter — that counter is now a quarter of the span, and ten minutes give a calm 2:30. Second, [retired]: "since the smaller of the two applies, one cautious pick would close the conversation for both" — there is no smaller of the two any more; each side governs only its own, and one person's caution closes nothing for anyone else. The ceiling stands for the old reason: **"while we're talking" is 4:20**, exactly as long as a phrase lives in the feed, and a conversation about it should not hang around longer than what started it. Free entry is not considered: it turns a choice between four words into a setting with numbers.
 
-## 6. Rules-free shared games
+## 6. Shared games with minimal rules
 
-Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. The twist: **no hard-coded rules** — the engine only draws the board and lets players move/place pieces freely; players invent and enforce the rules themselves. It is an ice-breaker, not a competition.
+Inside a chat — a shared visual board for two, and beside it a table for company (§6.1).
+
+**Minimal rules are introduced — decided 2026-09-09, overriding "no hard-coded rules" of 2026-08-26.** The earlier decision read: the engine only draws the field and lets players move pieces, and the players invent and enforce the rules themselves. It held for two weeks and was overturned by one argument that outweighed the rest: **watching the rules by hand is work, and putting it on somebody who came to play is wrong.** The product stays an excuse to start talking rather than a competition, but it owes the players help in running the game.
+
+**What was overturned is kept here verbatim, so the decision reads together with what it replaced** [retired]: "no hard-coded rules — the engine only draws the field and lets players move pieces freely; players invent and enforce the rules themselves".
+
+**A game is still described by primitives (2026-08-26), and now a class also has rules.** The primitives have not gone anywhere — they describe what a game is made of; the rules describe what is allowed in it. There are eight primitives:
+
+| Primitive | What it is |
+|---|---|
+| **Field** | a grid N×M, a grid of points, or a free table with no cells |
+| **Pieces** | a set with two sides and, where needed, ownership |
+| **Stock** | what is not yet placed: empty in draughts, the whole pile in dominoes, infinite in go |
+| **Hand** | the private part of the stock, visible only to its owner |
+| **Operations** | take, place, rotate, flip — and nothing else |
+| **Randomness** | shuffling a deck and rolling dice |
+| **Physics** | a flick with momentum and rebounds — only where a game cannot exist without it |
+| **Text input** | a word somebody guesses that another will see |
+
+**The scope of the rules differs by class of board (2026-09-09).** There is deliberately no single set: where a rule is cheap and unambiguous the engine checks everything; where it is expensive or contested it checks only turn order, the end of a round and the score. Three classes of seven get full checking, and the heaviest do not drag a chess engine in behind them.
+
+| Class | Seats | What the engine checks | What is left to the people |
+|---|---|---|---|
+| **Free table** (dominoes) | **2–4** | a tile may only join a matching end; end of round; score **by the pips left in hand** | nothing |
+| **Dot grid** (dots) | **2** | the edge is free; a closed area is counted; score **by closed areas** | nothing |
+| **Deck and hand** (durak, uno) | **2–6** | whose turn, that the card came from a hand, end of the deal, score **by deals won** | what beats what — there are too many variants |
+| **Square grid** (draughts, chess) | **2** | whose turn, the square is not held by your own piece, end of round by agreement, score **by rounds won** | whether the move itself is legal |
+| **Dice** (backgammon) | **2** | whose turn, the roll is honest, score **by rounds won** | how to move what was rolled, gammons and backgammons |
+| **Physics** (flick game) | **2–4** | whose turn, score **by pieces knocked off** | everything else — a flick ends where it ends |
+| **Text** (hangman) | **2** | the letter is not repeated, the word is guessed, score **by words guessed** | nothing |
+
+**The number of seats belongs to the set, not to the class, and the table gives the
+bounds (recorded 2026-09-10).** The application rule of 2026-09-10 — "those unopposed
+sit down in the order they applied, while seats last" (§6.1) — leaned on that number,
+and there was nowhere to take it from: the class table had no such column, and the
+rule was unimplementable as written. The range here is the class's ceiling; a
+particular set names its own within it: chess is always two, dominoes happens both
+with two and with four, and that is chosen when the board is put down.
+
+**A point means something different in each class — decided 2026-09-10.** There is no single "one point per round": dominoes count the pips left in hand, dots count closed areas, the flick game counts pieces knocked off, and a product score that disagreed with what the players say out loud would be worse than no score at all. The price: seven counting rules in code instead of one.
+**What the engine still does not count are gammons and backgammons:** that is a layer above counting rounds, and every group has its own.
+
+**The price is named and it is real: the behaviour is uneven.** In dominoes the engine stops your hand, in chess it says nothing, and a person cannot know in advance where they will be corrected. This is accepted deliberately — even behaviour is reached either by having no rules at all (overturned above) or by a chess engine inside every board, which is exactly the "separate application per game" §6 walked away from on 2026-08-26.
+
+**A "see the basic rules" button — decided 2026-09-09.** Every class has a short text: what we are playing, what the product checks, what is left to agreement. It opens over the board without interrupting the game. Without it "minimal rules" would be a guessing game — a person would hit a refusal from the engine and not know where it came from.
+
+**The play is shown in the conversation — decided 2026-09-09.** Every move becomes a
+line: "Anya placed a tile on e4", "Petya flicked". These words used to exist **for
+the screen reader only** (screen 18, 2026-08-29) — now everybody sees them, for
+three reasons at once.
+
+First: **a spectator at a table sees the board but could not tell what had
+happened** — the position changes silently, and an opponent's move is
+indistinguishable from a slip. Second: **somebody returning to a table starts from
+nothing** and catches up through the lines of moves. Third: **the announcement is
+already written** — the vocabulary of coordinates per class of board was made for
+accessibility, and there is no need to invent it twice.
+
+**At a table a move is a `table_lines` row of kind `move`.** The moderation queue
+does not apply to it: the text is assembled by the engine from the class of board
+and a coordinate, and there is nothing to check. It is cut off by `joined_at` like
+any other: somebody who sat down does not see the moves made before they arrived.
+
+**In a pair a move is a system line in the conversation**, and it is **not
+encrypted**, unlike the messages beside it: it is part of the game state, and that
+is open to the node from this day on. The difference is visible to a person and has
+to be said on the screen: your words are closed, your moves are not.
+
+**Moves and game state are not encrypted — decided 2026-09-09.** Only whoever sees the board can check the rules, and until that day nobody saw it but the two of them: the state was encrypted with the conversation key (§8.13). The **board, and only the board**, is now outside end-to-end encryption.
+
+**The conversation stays encrypted.** The node comes to know what two people are playing and how — and still does not know what they are saying. That is the whole price, and it has to be stated precisely rather than as "encryption was dropped": §8.13 continues to hold for messages, stickers and the guessed word.
+
+What the node now sees in a pair: the class of board, the position, whose turn, the score. What that means for a person: **what they are playing and with whom is no longer private from the platform**, and the screen says so plainly, next to what is already written about shuffling a deck (which the node saw anyway — there is no honest randomness otherwise).
+
+**Where the state lives: in a game cache for a pair, in the database at a table (2026-09-09, clarified 2026-09-10).** At a table everything is public by construction: the table already sits in the database with its `last_move_at`, and `table_games` sits beside it.
+
+For a pair the game was to be held in the node's memory alone — and that did not survive its first check: **the node became the judge, and a judge without the position cannot judge.** Restarting the node happens on every deploy, and "the game is lost" on every deploy is not a price but a fault. The position cannot be taken from a client: a client can be forged, and that is what the rules were introduced against.
+
+**So the position is written to a game cache, and the word "cache" has to be explained rather than hidden behind.** Technically it is a row in the same database — otherwise it would not survive a restart of the process. What sets it apart is not the place but three promises, and they are checkable:
+
+- **it lives no longer than the conversation** — it goes with it, on the same span (§5);
+- **it holds only the position, whose turn and the score** — not one reply, not one word of the conversation; encryption came off the board, not off the messages;
+- **it is swept** along with everything else temporary, rather than lying there until somebody deletes it by hand.
+
+Calling this "we store nothing" would be untrue. The truth is: **we store the position of a game while the conversation lasts, and store nothing of what was said.**
+
+**The score lives as long as the conversation or the table does — decided 2026-09-09.** It accumulates between games: five games played, 3:2 is shown. It goes out with the conversation (on its span from §5) or with the table (on silence). Nothing outlives that: no history of wins, no mark on an identity — §1 promises no trace is left, and the score is no exception. **The price is accepted:** a competition appears inside one conversation, and it can become a reason not to leave. A short one — exactly until the conversation ends.
+
+Adding a game means describing a field, a set of pieces **and the rules of the class**. The first two are data, the third is code, and that is the cost of today's decision.
+
+**The classes and what falls into them:**
+
+| Class | Games | Needed beyond the four operations |
+|---|---|---|
+| Grid board | draughts, chess, giveaway, corners, big-board noughts and crosses | nothing |
+| Free table | dominoes | nothing |
+| Grid of points | dots | drawing along edges |
+| Deck and hand | durak, poker, uno | shuffling, a private hand, a discard pile |
+| Dice | backgammon | a roll |
+| Physics | flick-draughts | deterministic simulation |
+| Text | hangman | entering a word and checking it |
+
+**The node shuffles and rolls — and in those games it sees the layout (2026-08-26).** The decision is deliberate and stated out loud. **The caveat was rewritten on 2026-09-10:** it used to read "it is the one exception to §8.13: a board without randomness is synchronised encrypted and opaque to the node, while a deck and dice are not". Since 2026-09-09 the board is not encrypted at all, so shuffling stopped being an exception — it became a particular case of what the node sees anyway. What still sets it apart is different: in the other games the node **watches**, and here it also **decides** — it shuffles and rolls. The reason is plain: fair randomness has to belong to somebody, and if a player's client shuffles, it technically sees the others' cards and can stack the deck. Between "a neighbour cheats" and "the node knows what was dealt", the second was chosen — all the more easily because these games have no winner anyway.
+
+**A private hand is dealt encrypted to its player**: each sees their own, the others see backs. The node, as above, knows both the deal and its contents.
+
+**Physics is synchronised by a shared seed.** A flick is not "place a piece in a cell" but a simulation, and without a shared seed the result diverges: one player's piece is in the pocket, the other's is still on the board.
+
+**A guessed word goes through the moderation queue**, like a phrase (§8.3): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one".
+
+**Six shared buttons sit above any class:** **play again**, pass or hand over the
+turn, **put it back**, **resign**, **offer a draw** and **congratulate the winner**
+(the last four were added or rewritten on 2026-09-09). They belong to no particular
+board and live in the common frame.
+
+**A game, a round and a move are three different things, and must not be confused
+(2026-09-09).** A move is one piece moved. A round is a deal or a hand inside a
+game; in dominoes and cards there are many of them in a row, and they run without
+asking the people anything. A game is what starts with "play again" and ends when
+the people agree it has. **The line-up is confirmed per game, not per round:**
+otherwise dominoes would turn into a questionnaire.
+
+**"Play again" asks what to play — the same game or another one (2026-09-09).**
+These used to be two buttons, "play again" and "suggest another game", doing the
+same thing in the same second: the game ended and the people are deciding whether
+to go on and with what. Now there is one button with the choice inside it; the
+same game comes first, because that is what is wanted most often. The proposal
+stays a proposal: **whoever agrees, plays**.
+
+**There are three ways to answer a proposal, not two (2026-09-09):** agree, finish,
+or **propose your own** — another board instead of the one named. A counter-proposal
+passes the ball back, and the exchange can run as many rounds as it likes: this is a
+conversation about what to play, not a vote. "Finish" is said separately from
+"propose your own" on purpose — otherwise declining one game would be
+indistinguishable from declining to play at all, and a person would have to explain
+in words what a button should be saying.
+
+**The line-up for the next game is confirmed — decided 2026-09-09.** Once "play
+again" is pressed, everyone who was playing and everyone whose application was
+accepted gets a confirmation: **30 seconds** to say "I am here". Whoever does
+not confirm is not thrown out of the table — they **become a spectator**
+(`playing_from` is cleared again) and can return to the game by applying, like
+anybody else.
+
+This is the only way to learn who is present without introducing a presence
+indicator: the product shows nowhere who is at their screen, and it does not show
+it here either. **The others see a count without names:** "2 of 4 confirmed" and a
+countdown. A list of who has confirmed, by name, would be exactly the indicator
+that was rejected on this screen on 2026-09-04 after a review.
+
+**In a pair the count is not shown at all — decided 2026-09-10.** Without names it
+is impersonal only at three and above: at two, "1 of 2 confirmed" is a binary
+answer about a named person, "my opponent is at their screen right now" — exactly
+the presence indicator the product promised not to introduce, and repeated every
+game at that. At two there is a button and a countdown, and the other side's
+confirmation shows only as a result: the game started, or it did not. The cost is
+named: thirty seconds of silence in a pair read as a freeze, and screen 19 has to
+draw that.
+
+Thirty seconds are **chosen, not measured**, and that is said plainly: it is enough
+for somebody with the phone in their hand and not enough for somebody who put it
+down — and the second is what needs filtering out. The number lives in
+`docs/facts/limits.tsv` (`table.confirm.window`).
+
+**"Resign", "draw" and "congratulate the winner" are statements by players, not
+verdicts of the engine.** The
+engine knows no rules and must not: it can neither award a win nor check that a
+position is drawn. "I resign" is a unilateral announcement — whoever presses it says
+so out loud, and for the people the game is over. "Draw" is a proposal accepted by
+agreement, like "play again". **"Congratulate the winner" is an addressed
+gesture:** whoever presses it picks who they are congratulating, and a line about
+it appears at the table. The winner is decided by the people, not the engine, and
+anyone can be congratulated — including somebody the others think did not win.
+**No result is recorded anywhere**: there is no score,
+no history of games, no mark on an identity — none of those exist by construction
+(§1), and adding them for two buttons would be adding a competition where the game
+exists as an excuse to start talking.
+
+**Three of them are proposals rather than actions (2026-08-29).** "Play again"
+and "put it back" send a request to the others and fire **once everyone agrees**;
+none of them is unilateral, for the same reason there is no turn order and no
+table owner. What follows:
+
+- **the board does not go out by itself.** The engine knows no rules, so it
+  cannot know when a game ended; it ended when the people agreed it did. **In a
+  pair the board stays up even after a refusal to play again — clarified
+  2026-09-09:** it lives inside the conversation and goes out with it (§8.13),
+  not with the outcome of a game. This used to say "once everyone has declined,
+  the board closes", which in a pair meant one "not again" took the board away
+  from both. **At a table there is nothing to close for a different reason:**
+  whoever declines stays as a spectator, and the table goes out on silence;
+- **in a pair, one person leaving ends the game**, because there is nobody to
+  wait for;
+- **at a table the last person left waits** for someone to sit down (§6.1);
+- **behind "put it back" the engine keeps exactly one previous snapshot**, in
+  memory, under the same key and past the database. There is no move history and
+  there will not be: it would outlive the board, and the board is transient
+  state.
+
+**The board is operable from a keyboard too (2026-08-29).** The grammar is taken
+from the terminal client, where it existed from the start: select, take-and-put,
+rotate, flip. The other person's move is **announced in words** — "put a piece on
+e4" rather than "made a move": the vocabulary of coordinates belongs to each
+class, a free table announces adjacency instead of coordinates, and the "physics"
+class has no coordinate at all.
 
 - Start/switch is **request-based**: the 🎲 "propose a game" button → pick a board → the other person gets a request → they accept → the board opens for both. Switching games is the same request.
 - No move validation, no score, no winner — only board state + dragging.
-- Both players can move pieces (there are no rules).
+- Both players can move pieces (there are no rules). **Turn-taking is an agreement, not a rule (2026-08-26):** the interface carries a "take turns" toggle that both switch on if it suits them. Wiring turns into the engine is not allowed — the whole point is the absence of rules; but neither is hiding who is dragging a piece right now: two people tugging at one piece blindly reads as a fault rather than as freedom.
+
+### 6.1. Tables: playing as a group (2026-08-26)
+
+The board for two lives inside a chat. A group game **does not fit** inside one: `pair_key` is unique per pair (§8.5) and the chat key is derived for two (§8.13) — a third participant would mean different cryptography and a key reissue on every departure. So a table is **a thing of its own beside the feed**, not a group chat, and private talk between two stays as it was.
+
+- **Visible in the feed** to those whose viewing circle overlaps the table's zone — by the same rules as a phrase (§8.3).
+- **Anyone within the radius may join**, with no invitation and no application; there is no hard cap on numbers.
+- **A table takes no posting quota and is itself unlimited — decided 2026-08-30.** Not one of the four slots, no per-identity count of tables, no share of the feed: a table is a meeting place, not an utterance. The price is accepted and recorded: the only brake against feeds filling with tables is the sliding silence span, and if that is not enough, a limiter will have to be built separately.
+- **Stickers work at a table as they do in a conversation, but the node sees them (2026-08-30).** The catalogue and the names are the same (screen 16 on the storefronts); the difference is that a table has no end-to-end encryption, so the sticker's identifier is as visible to the node as the lines and the board. This is said to the person on screen rather than left as a consequence for them to derive.
+- **It lives from its last move — on one span shared by everyone (clarified 2026-08-27).** The TTL slides, and a move or a line from any sitter pushes it alike. This is a **difference from a conversation**, where since 2026-08-26 each side has its own count: there two people are involved, and each one's silence is their own business; at a table the company changes, and a per-person count would mean the table exists in different states for those sitting at it, with the board drifting apart. The cost is accepted: one active player keeps the table alive for everybody, including those who have not moved in a while.
+- **A table with one sitter is a normal state.** It is visible in the feed, people can pull up a chair, and that person is precisely waiting for company; it disappears on the same shared silence span. Closing it the moment the last guest stands up would take the table away from whoever set it up and is waiting for the first.
+- **A table is not encrypted, and that is a consequence rather than an omission.** The conversation key is derived for two and does not apply here (above), while speech at a table is public and goes through the moderation queue — there is nothing to check in ciphertext. So **the node sees both the board and the lines**, as it sees the feed. The end-to-end encryption of §8.13 is about a conversation between two; a table is outside it, and a person has to be told plainly, because they will carry the expectation over from a conversation.
+- **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
+- **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
+- **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
+- **A table's own band is its current sitters', and it is recomputed. Decided 2026-09-08.** The feed shows a table to whoever would pass "everyone with everyone" against the people sitting at it now; somebody joins or leaves and the table's band is a different one. Taking it from whoever started the table (`created_by`) was simpler and wrong on the substance: a table has no owner — its own schema says so — and a band inherited from someone long gone describes nobody at the table. Dropping bands for tables altogether was rejected outright: a teenager would then see a table in the feed and be turned away at the seat, which is a refusal in place of an absence. **The price is accepted and it is real:** a table can vanish from somebody's feed mid-game because a person sat down. It does not touch those already at the table — the rule works on retrieval, not on seating, and lifts nobody out of a chair. **A table with nobody at it has no band and is not shown at all:** everyone may stand up (`table_seats.left_at`) while the table itself lives on for up to an hour by `last_move_at`, until the sweeper takes it. An empty table is not an invitation, it is something about to disappear; showing it to everyone would bring back the rejected "no bands" option through the back door, since the first to sit could be anyone and the second anyone else.
+
+**The table's schema — established 2026-08-31.** Until that day a table existed as
+paragraphs: no table, no columns, no zone, although it stands in the same feed as
+a phrase and since 2026-08-28 its lines have a notice target under Article 16. A
+review panel named this the first gap; screen 19 cannot be drawn without it.
+
+```sql
+CREATE TABLE tables (
+  id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- attribution ONLY, as on a phrase
+  game             text NOT NULL,                             -- board class: grid | free | dots | deck | dice | physics | word
+  lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
+  lon              double precision NOT NULL,
+  area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- the phrase's steps: a table is published by the same rule
+  created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- not part of any response; a table has no owner
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  last_move_at     timestamptz NOT NULL DEFAULT now(),        -- the sliding span: a move or a line from anyone seated
+  closed_at        timestamptz                                -- everyone left, or everyone declined to play again
+);
+
+CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
+
+CREATE TABLE table_seats (
+  table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  joined_at        timestamptz NOT NULL DEFAULT now(),        -- lines are shown from here on, and no earlier
+  playing_from     timestamptz,                               -- NULL = sitting but not playing: the application is not accepted yet
+  left_at          timestamptz,
+  PRIMARY KEY (table_id, identity)
+);
+
+CREATE INDEX table_seats_by_identity ON table_seats (identity) WHERE left_at IS NULL;
+
+-- One table at a time — decided 2026-09-09. Sitting down at a second table
+-- without standing up from the first is refused, and this is the only guard
+-- against burying the feed under tables that does not put an identity into the
+-- ranking: set up as many as you like, but sit at one, and a table with nobody
+-- sitting at it does not appear at all. Without it one person would take the
+-- whole quarter of the cards with their own tables, because `created_by` takes no
+-- part in the feed and the ranking may not tell them apart by author.
+CREATE UNIQUE INDEX table_seats_one_at_a_time ON table_seats (identity) WHERE left_at IS NULL;
+
+CREATE TABLE table_lines (
+  id               uuid PRIMARY KEY,
+  brand            text NOT NULL,                             -- attribution ONLY: an Article 16 target is found without it (the world is one)
+  table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
+  text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
+  -- What kind of line this is. `line` is ordinary speech. `application` is the
+  -- opening words of somebody asking to play, `refusal` the explanation of
+  -- somebody who said no. Both were made ordinary lines rather than an entity of
+  -- their own on 2026-09-09: they are visible to everyone at the table, go
+  -- through the same moderation queue, fit the same 128 characters and are
+  -- reported under the same `table_line` target. A separate addressed entity
+  -- would have introduced a message from one stranger to another with no mutual
+  -- like — which exists nowhere (§11) — and needed a rate limit and a notice
+  -- target of its own.
+  -- `move` is a move shown in words ("Anya placed a tile on e4"). The line is
+  -- composed by the engine, not by a person, so the "…" menu is not shown on it at
+  -- all and it is never the target of an Article 16 notice (docs/dsa/SPEC_EN.md):
+  -- there is nothing to report and no author. The moderation queue does not apply
+  -- either: there is nothing to check for, the text is assembled from the class of
+  -- board and a coordinate. It is visible to everyone at the table and cut off by
+  -- `joined_at` like any other — somebody who sat down does not see the moves made
+  -- before they arrived, exactly as they do not see the speech.
+  kind             text NOT NULL DEFAULT 'line'
+                     CHECK (kind IN ('line', 'application', 'refusal', 'move')),
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
+);
+
+CREATE INDEX table_lines_feed  ON table_lines (table_id, created_at) WHERE visible_at IS NOT NULL;
+CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS NULL;
+
+-- Game state at a table — introduced 2026-09-09 along with the minimal rules.
+--
+-- In a pair the game sits in the `chat_games` cache (below) — rewritten
+-- 2026-09-10, where this used to read "is not written here". At a table the state
+-- sits here for a different reason: speech, board and stickers are public by
+-- construction, the table is already in the database, and the state sits beside
+-- it rather than in a cache with a span.
+CREATE TABLE table_games (
+  id           uuid PRIMARY KEY,
+  table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  class        text NOT NULL,                        -- grid | free | dots | deck | dice | physics | word
+  -- The position, the stock, whose turn it is and the players' hands. jsonb rather
+  -- than columns: the seven classes of board hold state of different shapes, and
+  -- laying it out in columns would mean seven tables for the sake of one "whose
+  -- turn".
+  state        jsonb NOT NULL,
+  started_at   timestamptz NOT NULL DEFAULT now(),
+  ended_at     timestamptz                           -- the game is over, the table remains
+);
+
+-- One game in progress per table. Any number of games in a row, none at the same
+-- time: a table has one board, and a second would mean the people sitting there
+-- are looking at different places.
+CREATE UNIQUE INDEX table_games_current ON table_games (table_id) WHERE ended_at IS NULL;
+
+-- The cache of a game for two — introduced 2026-09-10, when it turned out that a
+-- judge without the position cannot judge, and a node restart happens on every
+-- deploy.
+--
+-- This is NOT storage of a conversation: there is not one reply here. Only the
+-- position, whose turn and the score. It lives no longer than the conversation, it
+-- is swept, and in the Article 30 register it stands as temporary game state rather
+-- than as the contents of a conversation.
+CREATE TABLE chat_games (
+  -- A cascade, not a span: "end it" and the death of the conversation take the
+  -- game the same instant, without waiting for `expires_at`. Added 2026-09-10 —
+  -- without it a person would be told "the history is gone" while the position
+  -- and the hands sat there until the span ran out.
+  chat_id      uuid PRIMARY KEY REFERENCES chats(id) ON DELETE CASCADE,
+  class        text NOT NULL,                         -- grid | free | dots | deck | dice | physics | word
+  state        jsonb NOT NULL,                        -- position, stock, whose turn, hands
+  score        jsonb NOT NULL DEFAULT '{}'::jsonb,    -- this pair's score, accumulating between games
+  updated_at   timestamptz NOT NULL DEFAULT now(),
+  -- The earlier of the two spans, not "the end of the conversation": each side has
+  -- its own span (§5), and the board goes out for both at the first death.
+  -- Clarified 2026-09-10 — the previous wording did not say whose end it meant.
+  expires_at   timestamptz NOT NULL
+);
+
+CREATE INDEX chat_games_expiry ON chat_games (expires_at);
+-- The sweeper: a daily `prune_chat_games` job takes rows with `expires_at < now()`
+-- in batches of 5000 and comes back in a minute while a batch comes back full —
+-- the same shape as the idempotency sweep (`scheduled.ts`). The cascade removes
+-- games with their conversation, the sweeper removes those that outlived a live
+-- one by their own span.
+--
+-- Backups live 14 days (the Article 30 register), so a ten-minute conversation's
+-- game lives in them for those two weeks. That is a price, not a footnote: saying
+-- "lives no longer than the conversation" without it would be untrue.
+
+-- The score lives on the TABLE, not on the game: it accumulates between games and
+-- goes out with the table (decided 2026-09-09). A separate table rather than a
+-- column in `table_games` for exactly that reason — a game ends, the score
+-- continues.
+--
+-- What goes out is a score by seats at the table, not by identities: `identity`
+-- lives here by the same rule as everywhere — present in the database, absent from
+-- the API answer (§8).
+CREATE TABLE table_scores (
+  table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  identity     uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  points       integer NOT NULL DEFAULT 0,
+  updated_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (table_id, identity)
+);
+```
+
+**What is hidden lives in `state`, and the read cuts it out.** There are three hidden kinds, not one — clarified 2026-09-10, where the rule used to speak only of hands: the **hand** (the private part of the stock), the **undrawn part of the stock** (the boneyard in dominoes, the deck in cards) and the **guessed word** of the `word` class. The rule is general: the read hands over exactly what the primitive declared open, the same for `table_games` and `chat_games`. The node sees
+everything — that is accepted and stated plainly for a table — but it may not hand
+over somebody else's hand: the "Hand" primitive is defined as the private part of
+the stock, visible only to its owner (§6), and a spectator and an opponent are
+equally non-owners here. The rule is simple: **your own hand and the backs of the
+others go out**, and this is the only place where reading the state depends on who
+is asking.
+
+- **The zone and radius are a phrase's**, because a table is seen by the same
+  circle-overlap rule. It introduces no geography of its own — and **the same
+  rounding applies on the way out**: a cell stepped by `area_radius`, by the
+  formula in §8.3. A table is a stronger pseudonym than a phrase, not a weaker
+  one: it lives until silence rather than 4:20, it carries no quota at all
+  (2026-08-30), and one person may put up any number of tables sharing a centre.
+  The exact coordinates stay in the database — the overlap is computed from them.
+- **`table_lines.brand` and `tables.brand` are independent, and nothing holds them
+  equal — decided 2026-09-08.** It stood open from 2026-08-31 as a suspected
+  missing constraint; there should be no constraint there. `brand` on both tables
+  is **attribution only**: on a table it is the face it was set up under, on a
+  line the face its author arrived under, and those are different questions about
+  different people. A neighbour who came through one storefront sits down at a
+  table set up through another — the world is one (§8.3), and a table is seen by
+  intersecting circles, not by a face. A `CHECK (brand = (SELECT brand FROM tables
+  …))` would forbid exactly what shared faces exist for.
+  The price is named: **one table's lines may carry different `brand` values**, so
+  a report of "how much speech under our face" counts such a table once per
+  storefront. That is the right answer — speech did happen under each face — but
+  it reads as "lines", not "tables".
+
+- **`created_by` exists and grants nothing.** Moderation and abuse work need it —
+  tables carry no limit at all (2026-08-30), and when a limiter is needed there
+  will be nothing to count without this column. It is part of no response. The
+  price is named: a fresh table usually has one sitter, and that sitter is the
+  one who started it — "it never goes out" protects the column, not the inference.
+- **`ON DELETE SET NULL`, not `CASCADE` — decided 2026-08-31 by a review panel.**
+  §8.2 promises a closed identity a real `DELETE` after 30 days; with no
+  behaviour named it would fail on the foreign key, and the irreversible erasure
+  screen 12 promises would not happen. `CASCADE` is wrong here: it would take
+  away the very line a notice under Article 16 was filed against, while the
+  snapshot of it lives a year and points at the row. `SET NULL` erases the person
+  and keeps the evidence. **The six older columns were brought under the same rule
+  on 2026-09-02, in one pass.** The rule reads: a row that is content or evidence
+  loses its author — `SET NULL`; a row that is only about the person goes with
+  them — `CASCADE`. Under it `feed_messages.author_identity` becomes nullable and
+  takes `SET NULL` (a phrase can be the subject of an Article 16 notice), while
+  `likes.liker_identity`, `identity_stats.identity`, `match_participants.identity`,
+  `chat_participants.identity` and `hidden_messages.identity` take `CASCADE`: a
+  like, a counter, a place in a match, a place in a conversation and a personal
+  hidden list mean nothing without the person, and the first two also sit in a
+  primary key, where `NULL` is impossible. The price is named: code reading
+  `feed_messages` must expect a `NULL` author — a phrase without an author is not
+  a fault, it is an erased person. And the delivery queries of §8.3 and §8.5 that
+  join `identities` by author must do so with an outer join or filter such authors
+  out explicitly: an inner join drops that phrase from the feed silently, and the
+  silence will look like a disappearance.
+- **`joined_at` *is* the "a newcomer sees nothing from before" rule**: the line
+  feed is cut by it rather than by a flag of its own.
+- **`visible_at` without `expires_at`**, unlike a phrase: a line at a table has no
+  span of its own and goes with the table. The span is single and shared, and it
+  lives in `tables.last_move_at`.
+- **The span of silence is 60 minutes — the number named on 2026-08-31.** Until
+  that day there was only the adjective "sliding", and no sweep could be written
+  from it: `last_move_at` exists, and there was nothing to subtract. Sixty is not
+  invented but taken from the conversation, where `chat_participants.idle_ttl_minutes`
+  stands at `DEFAULT 60`; the difference is that a table's span is one for
+  everyone (2026-08-27) rather than each sitter's own. The price is named: a table
+  where a move is pondered for over an hour closes under the people at it — and if
+  that turns out to be short, the number changes here, not in the code.
+- **One statement removes a table**, and both cascades above exist for it:
+  `DELETE FROM tables WHERE closed_at IS NOT NULL OR last_move_at < now() -
+  interval '60 minutes'`. `closed_at` on its own sweeps nothing — it is a mark,
+  not a deletion — and without this statement public speech at a table would sit
+  in plaintext forever, while §8.8 promises the opposite for a conversation
+  between two. **The sweeper does not exist yet, and neither does the `tables`
+  table in the node** — as with identities (§8.2) —
+  and that is written down as an open item rather than passed off as done.
+- **The order when there is not enough room: phrases first, then tables, then
+  offers. Decided 2026-09-10.** The shares are measured against different bases — a
+  table against all delivered cards, an offer against the ordinary ones — and with a
+  small selection both ceilings do not fit. The offer gives way: §3 of the
+  storefront mechanics already calls it a guest in the neighbours' feed, and a table
+  a meeting place of the neighbours themselves.
+  The limit was computed: **no more than 31.8% of the selection is not a phrase**
+  (tables 25%, leaving offers 6.8%). The price is accepted: in a small neighbourhood
+  a café may not appear at all, and the venue will have to be told why. The reverse
+  order is worse: a table with one person sitting at it that misses the selection
+  never gathers company, while an offer waits for the next one.
+- **Which tables reach the quarter of the feed — random ones, and the quarter is
+  counted after blocks. Decided 2026-09-09.** The share was named on 2026-09-02
+  and the selection rule was not, and without it there is nothing to write the
+  ranking from.
+  **Random rather than by recency of a move:** a table with one person sitting at
+  it makes no moves by definition — it is waiting for its first guest — and any
+  "liveliest first" order would bury exactly the tables the screen exists for. The
+  price is accepted: the selection is not stable between refreshes and a table you
+  saw can be lost; the feed refreshes itself anyway, and there is a way back to
+  your own table — the line in the feed's header.
+  **The quarter is counted against what a person can actually see**, that is,
+  after blocks have removed other people's tables. Otherwise whoever blocked
+  somebody would see fewer tables than their neighbour — a block would quietly
+  punish the person who used it, which the decision of 2026-08-26 ("a block does
+  not lower the ceiling") rules out. The price: the selection is computed per
+  reader, so a shared per-zone cache will not do.
+- **Setting up a table means sitting down at it and standing up from the previous
+  one (a consequence, written down 2026-09-10).** A table with nobody sitting at it
+  does not reach the feed, so setting one up has to seat its author, or they would
+  put up something invisible. And the unique index `table_seats_one_at_a_time` will
+  not let them stay at the previous table either: the same button lifts them from
+  it. The composer screen has to say so **before** the tap — nobody should leave
+  somebody else's game silently by pressing "set up".
+  Whoever sets it up is playing from the first second (`playing_from` is set): they
+  are alone at the table, and there is nobody to ask.
+- **Sitting at a table and playing at it are different things, decided
+  2026-09-09.** Someone who sits down gets **the chat and the board**, but not a
+  turn: to play, they apply for the next round. A game in progress is not
+  interrupted by somebody arriving, and that is the whole argument — otherwise
+  "sit down" would mean stepping into another people's game halfway through. The
+  distinction is held by `playing_from` in `table_seats`: `NULL` means sitting and
+  talking, a timestamp means playing from that moment.
+  **A spectator sees the whole board except the hands.** Nothing new is needed for
+  that: the "Hand" primitive is already defined as the private part of the stock,
+  visible only to its owner (§6), and a spectator is simply one more non-owner. So
+  they cannot whisper somebody's cards to a partner — nobody but the holder sees
+  them.
+- **The application is opening words, the refusal is an explanation, and both are
+  ordinary lines.** They are visible to everyone at the table, go through the same
+  moderation queue, fit the same 128 characters and are reported under the same
+  `table_line` target (`docs/dsa/SPEC_EN.md`). Deliberately so: an addressed
+  application "to the players only" would have introduced a message from one
+  stranger to another **with no mutual like** — a channel that exists nowhere
+  (§8.11) — and needed a rate limit and a notice target of its own. The price is
+  accepted and it is unpleasant: a public "we are not taking you, because…" is
+  read by everyone sitting there, and that stings more than a private no.
+- **One application per game — decided 2026-09-10.** Refused: the next application can be made for the next game, not straight away. No separate number or timer is introduced for this — the game itself is the boundary, the same moment as the line-up confirmation. Without a limit an application would be a channel for persistence **with a compulsory answer**: it is a public line, and a refusal demands a written explanation, so somebody refused could demand one as many times in a row as they liked.
+  The price is accepted: in a long game — dominoes runs round after round — the wait is long, and the person sits as a spectator throughout.
+- **The players decide, and a "no" without words is not cast.** Those whose
+  `playing_from` is set vote; spectators do not decide who gets in. The refuse
+  button stays inactive while the explanation field is empty: a refusal with no
+  reason is not accepted, exactly as a moderation refusal without a statement of
+  reasons is not (§5 of the storefront mechanics).
+  **The deadline is the start of the next round, not a timer.** The application is
+  made "for the next round" and is settled by it: whoever has not objected by then
+  did not object. The product does not add a fourth timer beside the phrase, the
+  conversation and the table, and "the round" is the one moment the players notice
+  anyway.
+  **An application is only made for a free seat — decided on the evening of
+  2026-09-10.** The button is inactive while there are no seats, and says why: "no
+  seats, wait for the game to end". It used to be available always, and a table for
+  two with twenty hopefuls collected twenty public lines through the moderation queue
+  — the conversation at the table drowned in applications, and those playing were
+  left to write eighteen explanations or to stay silent. The cost is accepted and it
+  is honest: **whoever taps at the right moment sits down**, not whoever waited
+  longest. There is no queue as an entity — introducing one would promise a number, a
+  deadline and a fairness that a table of neighbours does not have.
+  **Silence lets in by the number of seats, not everybody — decided 2026-09-10.**
+  The rule used to mean that anyone unopposed was taken: consent cost nothing, an
+  objection cost a public explanation, and a person got in because nobody noticed
+  them. As it stands now: a game has its own number of seats (chess two, dominoes
+  up to four), and at the start of the round those unopposed sit down **in the
+  order they applied**, while seats last. Whoever does not fit stays an applicant
+  for the next round rather than a refused one — a refusal is still words only,
+  and only from someone playing.
+- **A move has a deadline, and a missed move is a pass: decided 2026-09-10.** Since
+  2026-09-09 the engine checks the turn order, which means the game stops on
+  whoever is not there: left, shown out, or simply put the phone down — the others
+  wait until the table itself dies. As it stands now: **five minutes per move**,
+  then an automatic pass, and **three passes in a row make a spectator** — the same
+  as an unconfirmed roster. The five minutes are **chosen, not measured**
+  (`table.move.window` in `limits.tsv`), and chosen at the upper bound: that is how
+  long a person may think in chess without being absent. The cost is named: in a
+  slow game a pass will land on someone who was thinking, and the game is the worse
+  for it — but it does not stop.
+- **Being shown out is not being locked out — decided 2026-09-08.** The schema
+  stays as it is: `table_seats` has `left_at`, no trace of an eviction, and coming
+  back is the same `UPDATE ... SET left_at = NULL`. A "this person may not return"
+  column is deliberately not added — that is a trace about a person, and §1
+  promises no trace is left; the table itself outlives neither party for long, it
+  ends at silence.
+  What guards against an insistent return is already there, and guards harder
+  than it looks: **a block hides the table entirely** (§8.9), and the block check
+  is **symmetric** — one row in either direction is enough. So one person at the
+  table suffices: they block, and the table disappears not only for them but
+  **for the person shown out**, who then has nowhere to come back to. What locks
+  the door is not a "may not return" list but the ordinary block, built for
+  something else and working here without a single new column.
+  The price is accepted and stated plainly: **until somebody blocks, the person
+  shown out returns with the same gesture, as often as they like.** Between the
+  eviction and the block there is a gap, and in it an eviction is a request to
+  leave rather than a lock.
+- **The board for two is not in the schema — rewritten 2026-09-10.** This used to
+  read "the board is not in the schema: state is transient, encrypted under the
+  conversation key where there is one". Both halves went stale in a single day: on
+  2026-09-09 the board stopped being encrypted, and the table gained `table_games`
+  and `table_scores`. As it stands: **in a pair** the state is transient, in the
+  node's memory and in the `chat_games` cache with the conversation's span; **at a table** it
+  sits in the database beside the table, because everything there is public by
+  construction (§6.1).
+
+- **The majority of those sitting can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
+- **A block separates at the seat, it does not tear a game apart — rewritten 2026-09-10.** A table with a blocked person at it is still not shown, but sitting down is refused **both ways**: neither the blocked person into a table where the blocker sits, nor the other way round. This used to read "one person can hide someone else's game from another simply by joining it" — and the cost was larger than that: by joining a game in progress, an outsider cut it off mid-move for whoever was playing, and the others at the table lost a player for no reason.
+  **This rule has no instant recomputation — decided 2026-09-10.** A block is
+  symmetric and can be toggled any number of times, and a table would appear and
+  disappear with it at once — so "block, look, unblock" answers whether a named
+  person is at a table **right now**, and in which area. The unique index of one
+  table at a time (§6.1) makes the answer unambiguous, while the product shows
+  nowhere who is at their screen. As it stands now: **the set of visible tables is
+  computed when the feed is opened and holds until the next opening**, rather than
+  being recomputed on every change of a block. The cost is accepted and it is
+  unpleasant: whoever lifts a block will not see the table straight away — not until
+  the feed refreshes — and that has to be said to them in a line, not left looking
+  like a fault.
+  **A block during a game is the only case where a table is torn apart, and the one who blocks tears it.** Before the button a person is told plainly: the game will end, and the one who leaves the table is you. That puts the cost on whoever made the decision, not on the person it was made about, and not on four bystanders.
 - The board lives within the chat and **disappears with it** (ephemerality).
 - Sync in real time (see §7).
 
@@ -78,11 +661,11 @@ Inside a chat — a shared visual board for two: **dominoes, checkers, chess**. 
 
 ## 8. Data model
 
-Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/011_chat.sql`, applied by `tools/migrate_db.ts` — 005 through 010 are taken, and the runner sorts by name).
+Requirements level — schema as sketches; implementation is a separate step (migration `relay/node/db/018_chat.sql`, applied by `tools/migrate_db.ts` — 001–010, 012–017 and 020–021 are taken; 011 is held for step 1's identity, and 018–019 for the chat and whatever arrives with it. The reservation of 015–017 for the session, the share and the acceptances was lifted on 2026-09-08: those numbers went to DSA records, and keeping a reservation already broken means believing the document instead of the directory; the runner sorts by name).
 
 **Core principle: no user identifier ever leaves the server.** A client knows exactly two kinds of UUID — a feed phrase id and a chat id. Who wrote a phrase, who liked it, who is in a chat with whom, how many chats someone has — all of it stays inside the database and never appears in an API response.
 
-**Second principle: a brand is a face, not a boundary of visibility.** `identities` and `feed_messages` have no `brand` column and never will. There is one world, divided only by geography and the age band.
+**Second principle: a brand is a face, not a boundary of visibility.** `identities` has no `brand` column and never will, while `feed_messages` does have one and must — but it is not a boundary of visibility. There is one world, divided only by geography and the age band.
 
 This is a decision, not an oversight. A neighbourhood network split by which website you arrived from stops being a neighbourhood network: two people on the same street must see each other whether they came through one storefront, the other, or the terminal. And for a face whose own storefront is only just starting, the shared feed is the only thing standing between a person and an empty screen.
 
@@ -123,13 +706,30 @@ The limit to remember: the bus works within one database. The node pool in 8.1 a
 - **v1: one node per environment.** The room lives on it, and no stickiness is required for the same reason no choice is required: there is one node. `NOTIFY` is still needed — it connects handlers inside the node rather than nodes to each other, and it survives a worker restart.
 - **The pool is a precondition, not a consequence.** Before §14 can check "reconnecting to a neighbour", the environment needs a shared networked Postgres (TLS, firewall, a connection budget = pool size × node count) and `assert_one_box_per_database` lifted. That is separate work, and it must not be discovered at step 5.
 
+**So v1 fans out from process memory — decided 2026-09-11.** The `LISTEN`/`NOTIFY`
+bus remains the right answer and stays in the specification, but today there is
+nothing to build it from: the driver delivers no asynchronous notifications (below),
+and a second Postgres client for the sake of one `LISTEN` means a second driver in
+the node's build and its own semantics for a dropped subscription — one more decision
+nobody has taken.
+
+As it stands now: the room lives in one process's memory, and that is **true by
+construction** rather than by luck — `assert_one_box_per_database` in the pool wizard
+refuses a second node on the same database. So the in-memory fan-out cannot quietly
+drift out of step with reality: the day there are two nodes begins with switching
+that check off.
+
+The cost is named plainly and it is large: **that day the delivery layer is rewritten
+whole** — accepted deliberately, because the alternative costs a second driver today,
+for a node that does not exist yet.
+
 **Today's driver does not deliver asynchronous notifications at all.** The node talks to Postgres through `jsr:@db/postgres@0.19`, which has no `LISTEN/NOTIFY` support implemented. So the bus needs either a different client or a dedicated long-lived connection **outside the pool** — plus a described behaviour on a dropped `LISTEN`: reconnect, and an admission that whatever was delivered during the gap is lost. That, too, is a precondition of step 5 rather than an implementation detail.
 - **No RLS needed**: the client never talks to Postgres directly, a handler always sits in between. "Participants only" is a plain check in code.
 - **Geo without PostGIS**: circles are computed from `lat`/`lon` + haversine (see 8.3). PostGIS is only needed once arbitrary polygons replace circles.
 
 ### 8.2. Identity and sessions
 
-An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for not at registration but when the first chat opens (below).
+An identity lives **on the device**: `identity_id` and a key pair whose private half signs every request. **The node keeps only the public half** — no secret and no hash of one — so a leaked database does not let anybody impersonate people. Where the keys live depends on the face: in the web it is IndexedDB, in the terminal client `depth` it is a file in the mounted volume. There is no email and no password by construction; the only way back after losing the device is the **paper recovery code**, which the person carries away and which we can neither look up nor reset. It is asked for **at registration** (below: restored there on 2026-08-26).
 
 This used to read "a secret, and the server stores the secret's hash" — a leftover from an earlier design, incompatible with the rest of §8: a public key has no hash, and a shared secret would mean the node can sign as the person. Corrected 2026-08-12, before it reached any code.
 
@@ -138,12 +738,12 @@ This used to read "a secret, and the server stores the secret's hash" — a left
 ```sql
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
-  name             text NOT NULL,
-  age              integer NOT NULL,
+  name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
+  age              integer NOT NULL CHECK (age >= 13),  -- no upper bound: 2026-08-28
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
-                                        -- both NULL until the first chat opens — the code is issued there (§8.2)
+                                        -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
@@ -154,15 +754,90 @@ CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
   WHERE recovery_auth_hash IS NOT NULL AND closed_at IS NULL;
 ```
 
-**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns became nullable: the code is issued when the first chat opens, and `NOT NULL` made it impossible to create an identity at all. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
+**What a person accepted is a table of its own, not a column (decided 2026-08-29).**
+
+```sql
+CREATE TABLE legal_acceptances (
+  id               bigserial PRIMARY KEY,
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  document         text NOT NULL,        -- terms | privacy | guidelines
+  revision_date    date NOT NULL,        -- the date the document declares about itself
+  revision_sha256  text NOT NULL,        -- sha256 of the substance: the file with its date line blanked
+  accepted_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, accepted_at DESC);
+```
+
+- **A pair (date, hash), not a version number.** A number is raised by a person,
+  and people forget: the guidelines were edited on 2026-08-27 and went on
+  declaring themselves the 13 August revision until 2026-08-29. A hash cannot be
+  forgotten — it is computed from the very file the person read.
+- **The hash is taken with the date line blanked out.** The date lives inside the
+  file, so hashing the file whole would make every date edit a text edit, and
+  "the date moved while the text did not" would be indistinguishable from a real
+  new revision. The substance hash plus the date beside it cover the whole file
+  and tell those cases apart.
+- **Only the three English originals are hashed.** The clause inside every
+  translation says the English version governs; that is what was accepted. The
+  price is accepted: someone who read a translation is signed under a text they
+  never saw — but that is exactly the legal position the document already takes.
+- **A log, not a current value.** An `accepted_legal jsonb` column on
+  `identities` would be one table cheaper and would answer only "what is
+  accepted now". A dispute asks something else: what was accepted then and when,
+  the previous revision included — and only a row per acceptance answers that.
+- **What a change costs is stated in the manifest itself.** Each document
+  carries `reaccept`: `required` for the terms and the privacy policy, `silent`
+  for the guidelines. `required` means the identity **cannot publish or open a
+  chat** until it accepts again; the feed still reads. `silent` means the node
+  writes a new row itself and screen 15 marks the document as changed. **The mark
+  is held by the device, not by the journal — clarified 2026-09-10:** after a
+  silent write the journal states that the person accepted the new revision, so
+  "changed since" cannot be derived from it. No "accepted silently" column is added
+  here: the journal answers what was accepted and when, and whether somebody read
+  it is not a question about consent. The device remembers the hash of the revision
+  it opened and compares it with the storefront's manifest. The
+  difference is deliberate: the guidelines restate mechanics that already apply,
+  and stopping a conversation to announce them teaches people to press "accept"
+  without reading.
+- **The manifest reaches the node from the storefront**
+  (`/legal-manifest.json`, built by the storefront deploy out of
+  `deploy/legal-revisions.json`). The node stores no texts and computes no
+  hashes: the documents live where the person reads them.
+
+**Three edits in this table, all made 2026-08-21 from the review.** The recovery columns were made nullable back when the code was issued at the first chat: `NOT NULL` made it impossible to create an identity at all. Since 2026-08-26 the code is issued at registration again and they are filled straight away — the nullability is left as it is rather than rewriting the schema for a column that is always populated anyway. The partial unique index is there because this hash is what a public endpoint searches by, and two codes pointing at two rows would have been resolved silently, taking the first. `name_state` is there because the rule "while the name stands rejected, no match opens" needs a state that the schema had nowhere to keep.
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
 - **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
 - **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name the queue rejected: that one is always editable.** Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
-- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. A rejected name **does not cancel the post** — they are checked separately; the author is offered to go and update the name. **A consequence derived from §8.11:** the name becomes visible to another person only from the first match, so while the name stands rejected no match opens — otherwise a rejected name would reach the peer's screen before its owner fixed it.
+- **The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20).** By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". [retired] Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling.
+
+**A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
+- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. Thirty days is not a convenience delay but a window for someone who pressed it in anger and wants back in with the paper code; after it, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
+
+#### The "stepped away" state (2026-08-26)
+
+A person may leave the place for a span — **20 minutes, an hour, or until morning** — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. **A phrase awaiting the queue's verdict is deleted along with the published ones (2026-08-30)** — there is no "accepted but held until return" state; **the hour counter behind the step-away prompt is reset by leaving**, because it counts continuous use. The point is not an errand but giving someone caught in the pull a real way out.
+
+- **Phrases are deleted** (`DELETE`, not hidden) along with their likes: quota slots free immediately, and whoever returns has nothing to catch up on.
+- **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
+- **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a departure "until morning" is survived only by conversations with a long span.
+- **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
+- **A peer in an open chat sees `stepped_away`** instead of the ability to write. This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **Stepping away takes the game cache for a pair with it (2026-09-10).** One person
+  leaving ends the game (§6), and since 2026-09-10 a game for two has a row in
+  `chat_games`. The cascade from `chats` will not take it: stepping away does not
+  kill the conversation. So the departure itself removes the row — not the sweeper
+  on `expires_at`, or between the end of the game and the end of the span the
+  position sits on the node without the game it belonged to.
+- **A table is not deleted; whoever leaves stands up from it (2026-08-27).** Phrases go, the table stays: people are sitting at it, and tearing it down would throw out of the game those who have nothing to do with somebody else's break — and would hand the founder a power they do not have (§6.1).
+- **Leaving early** takes a confirmation; the frequency of departures is not limited.
+
+**The time-in-app counter never reaches the node.** It lives in the browser and counts like this: a visible tab plus a touch within the last three minutes. The offer to step away after an hour is the client's decision; the node has no business knowing how long somebody sat there, and no such record belongs beside an identity.
+
+> **The measurement is incomplete (2026-08-26).** `visibilitychange` behaves differently across mobile browsers and there were no devices to check with. Captured in desktop Chromium: a page in a background tab starts at `visibilityState=hidden` with `hasFocus=false` and receives no events until activation — hence the rule that loading a page does not start the count. The `visible ↔ hidden` transitions could not be captured: there was no way to activate the window. Marked as unverified.
 
 **A name goes through the same check as a phrase.** It is published text: the
 other person sees it on the match card and in an open chat, so anything forbidden
@@ -341,7 +1016,40 @@ first        decrypted the envelope ─► so the code was typed correctly
              ASKS THE PERSON (below) ─► only after "that's me":
              puts the identity's long-lived key into the reply envelope
              and sets its own frozen_at — the identity has left
+node         DELETE FROM vault_shares WHERE session = <previous> — the share burns
+node        DELETE FROM vault_shares WHERE session = <previous> — the share burns
 ```
+
+**Freezing burns the vault share — decided 2026-09-11.** `frozen_at` only put out the
+network half: the node stopped accepting the old device's signature. The local half
+stayed — `vault_shares` hangs off the session by cascade, and a session is marked
+rather than deleted — so the old phone went on decrypting everything it had
+accumulated, with its own PIN. Somebody who lost a device and raised their identity
+with the paper code believed they had shut the door; the door stayed open.
+
+As it stands now: **any move of an identity burns the previous device's share** —
+both recovery by paper code and a voluntary transfer. One rule instead of two is a
+deliberate choice: only the person can tell "lost" from "just moving", and they are
+asked at exactly the moment they are typing sixteen characters and inventing a new
+PIN — the worst moment for a choice with an irreversible outcome.
+
+The cost is named plainly and it is real: **move to a laptop for an evening and come
+back, and the history on the phone is dead for good.** The disk is not wiped, the
+files are there, but half of the key to them exists nowhere any more. In exchange, "I
+lost my phone" really does mean a closed door rather than the appearance of one.
+
+**64 MB and t=3 are measured as of 2026-09-11, not guessed.** Until that day the
+numbers sat in the specification four times and had never been checked: WebCrypto
+does not do Argon2id — it is WASM, and the existing gate said nothing about it. The
+measurement across three engines (`scripts/check-argon2-cost.sh`, probe
+`testing/argon2-cost.mjs`): **Chromium 272 ms, Firefox 272 ms, WebKit 296 ms** at
+64 MB; at 32 MB, 143, 156 and 150 ms. No tab died for memory.
+
+So 64 MB stays. The caveat is named plainly: **this was a laptop, not a phone** —
+there it will take several times longer, and it is still a once-per-sign-in operation
+rather than a per-message one. It had to be checked now: the parameters go into the
+key derivation of every device, and changing them after launch would void every vault
+share and every paper code at once.
 
 **Stretching is not hardening, it is the precondition.** Nine characters are 45 bits: under a plain hash they fall in hours, and the server, which holds `lookup_id`, would derive `secret_key` itself. Argon2id makes each attempt cost about 0.1 s, turning an offline search into hundreds of thousands of years. The online one is closed by the server: **five attempts per invite**, after which it burns.
 
@@ -353,7 +1061,6 @@ first        decrypted the envelope ─► so the code was typed correctly
   a device is asking to take the identity
 
   called itself   Chrome, Android
-  network         different from this device's
   when            just now
 
   Nobody from support will ever ask for this code.
@@ -361,11 +1068,11 @@ first        decrypted the envelope ─► so the code was typed correctly
   [ that's me ]                        [ decline ]
 ```
 
-Three lines, chosen because each can be substantiated and none pretends to be more than it is.
+Two lines, chosen because neither pretends to be more than it is.
+
+**The "network" line was removed — decided 2026-08-29, and the price is named.** [retired] It used to compare the addresses of both sides: "a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another". That signal was the **only verifiable one** on this screen: the label is sent by the same side that is asking for the move, and anything can be written in it. Without it the confirmation rests on a pause and a time rather than on data. What goes with it is a false signal — a phone on mobile data next to you also read "different" — and the requirement for the node to compare two devices' addresses.
 
 **"Called itself", not "device".** The label is sent by the other side, is backed by nothing, and can say anything. Presenting it as fact would be lying on the very screen built against deception.
-
-**"Network"** compares the addresses of both sides, both of which the node sees. No geo database and no new dependency. It is the most useful signal there is: a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another. And it is **a hint, not a verdict**: a phone on mobile data next to you also reads "different", so the text reports an observation rather than passing judgement.
 
 Until "that's me" is pressed, the other side receives nothing. Silence or a closed tab means the code expired in two minutes and no transfer happened.
 
@@ -404,9 +1111,15 @@ The interface says so plainly, not in small print:
 
 #### The PIN and local storage
 
+**The name limit is 24 graphemes, and it lives on the node (settled 2026-08-26).** The number came from layout — that is what fits the conversation header and the match card at 375px without an ellipsis — but until this decision it existed only in the storefront, which made it a hint to the author rather than a rule: the client is open, and a ten-thousand-character name reached somebody else's conversation header. Longer is now **refused** rather than silently truncated: the name is the only thing by which a peer recognises who they agreed to talk to (§8.11), and handing a person a stump instead of what they typed substitutes their own name without their knowledge.
+
+Counted in **graphemes**, not bytes and not code points: an emoji with a modifier and a letter with a diacritic are one character to a person, and the limit must match what they see.
+
 **A PIN is mandatory and asked at registration** — six digits, twice. It does two things at once: it locks an open tab against whoever picks the device up, and it takes part in encrypting everything on disk.
 
 Six digits are a million combinations, and on their own they are not protection: whoever copies the profile brute-forces them at home in minutes. So the vault key **cannot be assembled from the disk alone**: half of it comes from the node.
+
+**An obvious PIN warns but does not lock — settled 2026-08-26.** A short list — repeats (`000000`), runs (`123456`, `654321`) and four-digit birth years inside the six — produces one line, "this PIN is easy to guess", and the "next" button stays live. A ban here would hit exactly the person who barely made it to the end of the single registration screen, and the gain would be smaller than it looks: a million options are no defence with or without the list; the node's share and the ten-attempt counter are. The list lives on the node, because another client will not draw the warning — but even on the node it stays a warning rather than a refusal.
 
 ```
 device  material = Argon2id(pin, device salt, 64 MB, t=3)
@@ -416,6 +1129,32 @@ node    compares the hash of auth; match ─► hands over the share, resets the
                                   no    ─► counter minus one
 device  vault key = HKDF(local ‖ share)
 ```
+
+**An unfinished registration lives an hour and goes out by itself — decided
+2026-09-10.** The share is only handed over once written (`vault_shares` below), so
+by the time the paper code is shown the node already holds `identities`, `sessions`
+and `vault_shares`. Someone who closes the tab between the code being shown and
+confirmed leaves nothing on the device — and those three rows stay, with nothing to
+remove them: the storefront promised "there is no identity" (screen 2), and the
+promise was untrue.
+
+The order of the steps does **not** change. Moving the write to the end would
+either take the offline out of step 2 (the share comes from the node, so whether
+the PIN matched would only be visible from the answer) or have the client generate
+the share — and then both halves of the key sit on it at registration time, and the
+offline-search argument below stops working exactly when it is needed.
+
+As it stands now: until the code is confirmed the identity is marked unfinished and
+**passes no membership check at all** — no feed, no match, no chat. A daily
+`prune_unfinished_signups` job beside `prune_magic_links`
+(`relay/node/src/lib/scheduled.ts`) removes such rows by cascade from `identities`
+after 1 hour (`signup.unfinished.ttl` in `docs/facts/limits.tsv`). An hour is not
+an instant: somebody who went looking for pen and paper has to be able to come back
+and finish writing the code down.
+
+The cost is named: for that hour the half-made row does sit in the database, and
+"there is no identity" is the truth about what that row **is**, not about it being
+absent from the table.
 
 **The node checks the PIN, not the device.** This is the easy thing to get wrong: hand the share to anyone who asks and an attacker takes it once, then brute-forces a million combinations offline, and the whole scheme collapses. Proof of knowing the PIN comes **before** the share is released, and the node keeps the attempt counter.
 
@@ -448,15 +1187,15 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 
 **Shown exactly once, and mandatory.** With a single live session, losing the device is the end of the identity, and the piece of paper is the only way out; it cannot be made optional.
 
-**But not at registration — moved 2026-08-18.** It stood at the entrance and wrote the insurance before there was anything to insure: on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The only thing lost with the identity was the nameless counters in `identity_stats`. For that we asked somebody to copy sixteen characters and type them back — the one act in the physical world anywhere in the entry flow, and it stood **before** they had even seen the product.
+**It is asked for at registration — restored 2026-08-26, overriding the move of 2026-08-18.** August's argument ran like this: the insurance was written before there was anything to insure; on the first minute a person has no chats and no messages, and a name and an age are retyped in ten seconds. The argument is sound — but it is about property, not about identity, and the cost of being wrong is not symmetric in the two directions.
 
-**It is now asked for the moment the first chat opens.** Both pressed "open", the room exists — and before the first message the person goes through the same screen: the code, copied down, confirmed by typing two groups of four. From that second they hold something that exists nowhere else, and the insurance arrives with it.
+**What outweighed it.** Someone the explanation failed to convince, who walked away, lost nothing: they come back a day later and carry on where they left off. Someone who lost their device inside the uninsured window comes back **never** — not in a day, not in a year, because they have nothing to present. The first mends itself, the second mends by nothing at all, and keeping open a window with no way out to save one screen at the entrance is not worth it.
 
-**Why after the opening rather than before it.** A gate "before the first chat" lands on the consent screen, which already carries the notice and the span choice, with the match timer running above it — `least()` of both phrases, and in the worst case a few minutes. A first-ever match with three minutes on the clock and a request to copy sixteen characters would end either in "later" or in a lost match. After the opening the timer no longer presses: a chat lives from its last activity.
+**So the whole weight moves onto the explanation.** The screen must answer "what for", not "what is this": there is no email and no password, we cannot look the code up — we do not hold it; lose the device or clear the data, and there is nothing to bring you back with. The word "paper" stands in the first line deliberately: a screenshot lives on the very device that gets lost.
 
-**The screen cannot be skipped.** It is the same "exactly once, and mandatory", only in a different place: until the code is confirmed, nothing can be written in the chat. Otherwise moving it would amount to abolishing it.
+**Shown once as before, confirmation mandatory.** The code is shown a single time and does not let anyone past until two of the four groups are typed back: "next" gets pressed unread, and recovery cannot ask afterwards. A screen that can be skipped is the absence of a code, not its presence.
 
-**The uninsured window is named plainly.** Between registration and the first chat a person lives without the paper, and losing the device then means losing the identity — along with the accumulated counters and the published phrases. We accept that because the price is measurable and small, but it must not go unsaid: one line on the registration screen, not a footnote.
+**There is no uninsured window any more.** The earlier text named it plainly and asked for a line on the registration screen; there is nothing left to name — the code is there from the first minute.
 
 **The PIN stays at registration, and the reason is the terminal.** In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history, which does not exist on the first minute. But `depth` writes its key file immediately, and that file is encrypted with the same vault key (below). Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
 
@@ -466,6 +1205,8 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 ```
 
 The same two-halves trick: `Argon2id(code)` yields one half by which the node **finds** the identity, and one half that **wraps the long-lived key**. The node stores the wrapped key and cannot open it.
+
+**The code is born on the device — recorded 2026-08-28.** The spec named the code's composition and both of its halves but said nothing about **who generates it**, and that is not an implementation detail: had the node generated the code, it would have known both halves at the moment of issue and could have unwrapped the long-lived key itself — so the promise one line above would cease to exist. The sixteen characters therefore come from `crypto.getRandomValues` on the device, only the derivatives leave it — the hash half for lookup and the key wrapped by the other — and the node never sees the code itself. Hence the honest "we cannot remind you of it": we do not have it. The same holds for the transfer code: the nine characters are generated by the device handing the identity over.
 
 ```
 recovery  code typed on a clean device
@@ -502,7 +1243,17 @@ node's other public endpoints (`lib/rate_limit.ts`), and **globally** — a tota
 miss counter that throttles on a spike. The second is not against guessing, which
 the arithmetic already rules out, but against a flood into a public endpoint.
 
-**The old code dies the moment recovery happens.** It used to stay valid: the
+**The old code dies once the new one is confirmed — clarified 2026-09-10.** This
+read "the moment recovery happens", and the moment was never named: between
+unwrapping the long key and typing two groups of the new code there is a step, and
+a break on it left a live identity **with no safety net at all** — the old sheet
+dead, the new one unconfirmed, nothing to raise yourself with next time. Both are
+one transaction: the new code becomes valid and the old one goes out together, or
+nothing happens. The cost is accepted and named: while a person copies out sixteen
+characters both codes are alive, and a photographed old sheet still works in that
+window — minutes of it are cheaper than an identity with no way back.
+
+Why it dies at all. It used to stay valid: the
 rule "replace only by presenting the current one" required no new issue, and a
 photographed sheet worked forever. But people recover precisely when something
 went wrong — including when the paper may have been seen. Leaving it valid keeps
@@ -536,9 +1287,8 @@ age changed   → "they changed their age: 39"
 
 Disclaimers (both required in the UI):
 
-> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down when your first chat opened. The conversations do not come back: they exist nowhere else, including with us.
+> Your identity lives on one device — this one. You can move it to another yourself, and then it freezes here. Clearing browser data or deleting the volume erases both the conversations and the session; after that the only way back is the paper code you wrote down at registration. The conversations do not come back: they exist nowhere else, including with us.
 
-> Before your first chat you have no paper code yet, and there would be nothing to bring the identity back with: lose the device and you start a new one. There is nothing to lose at that point beyond a name and some counters.
 
 > Creating a new identity loses every chat — yours and your peers'. Nothing can be restored: conversations live only on the participants' devices, never on the server.
 
@@ -565,9 +1315,12 @@ Asymmetry is unacceptable here: one side would like a phrase the other cannot se
 
 On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, wider is not.
 
+**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old may narrow the filter to 21–22 and see adults only: formally they are inside their own band, and symmetry holds — `band(22) = [20, ∞)` contains them. This is allowed deliberately; forbidding it would mean a second ceiling on top of the formula and would diverge from §8.5. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
+
+**What a person sees is in the storefront screens:** the handle does not pass the band, an adult's right end is labelled "no limit", and a band shifted by a birthday is announced in one line.
+
 ```sql
 ALTER TABLE identities
-  ADD COLUMN age CHECK (age BETWEEN 13 AND 120),
   ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write
   ADD COLUMN filter_age_max integer;
 ```
@@ -576,18 +1329,18 @@ Age is self-declared, with no verification whatsoever. The bands separate teenag
 
 ### 8.3. Feed and geography
 
-A phrase is tied not to a city but to **an area the person picks on a map** — not to where they are. So there is nothing to coarsen: the point does not reveal a location anyway.
+A phrase is tied not to a city but to **an area the person chooses themselves** — not to where they are. They choose it on a **diagram** rather than a map: no face draws a map (decided 2026-08-28), because a tile tells whoever serves it which square is being looked at. So the point does not reveal a location anyway. **Coarsening is still needed, for a different reason — decided 2026-08-31:** not against "where is he", but against joining up one author's phrases. The reasoning is below, in the paragraph on what goes out.
 
 ```sql
 CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ATTRIBUTION ONLY: which face the author arrived through
-  author_identity  uuid NOT NULL REFERENCES identities(id),   -- never exposed
-  text             text NOT NULL,                             -- ≤128
+  author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- never exposed, NULL = the author was erased
+  text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
   mode             text NOT NULL,                             -- alone | company | party
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
-  area_radius      integer NOT NULL,                          -- metres, 100 .. 10000
+  area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- metres, in steps
   like_count       integer NOT NULL DEFAULT 0,
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
@@ -599,9 +1352,23 @@ CREATE TABLE feed_messages (
 CREATE INDEX feed_expiry ON feed_messages (expires_at) WHERE visible_at IS NOT NULL;
 ```
 
-**`brand` is attribution, and only that (clarified 2026-08-21 from the review).** The column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The comment is corrected and the column stays: **it takes part in no condition of the feed query, the like or the match**, but the DSA snapshot scopes its copy of a row by it — otherwise a notice carrying somebody else's identifier would pull another tenant's row into the reporter's moderator view (`relay/node/src/lib/dsa_snapshot.ts`; the test `dsa_snapshot_columns.test.ts` holds that contract and caught the first, too-broad edit).
+**`brand` is attribution, and only that (clarified 2026-08-21 from the review).** The column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The comment is corrected and the column stays: **it takes part in no condition of the feed query, the like or the match**, while the boundary of the DSA snapshot is set not by the column itself but by `visibility` next to each surface (decided 2026-09-07, discussed below): for an offer the face is the boundary, for the feed and tables it is not. The fear this sentence used to carry — a notice carrying somebody else's identifier pulling another tenant's row into the reporter's moderator view — is answered by routing rather than by narrowing the lookup: a notice whose copy belongs to another face is examined by the platform, not by the storefront it was filed through (`relay/node/src/lib/dsa_snapshot.ts`; the test `dsa_snapshot_columns.test.ts` holds that contract and caught the first, too-broad edit).
 
-**An open question visible from here.** The world is one, while a notice arrives under a brand. So a complaint filed through one storefront about a phrase whose author arrived through another will, by the present rule, find no copy and be filed as "there was nothing to copy". Renaming the column does not fix that: either the snapshot is scoped by the phrase's visibility to the reporter rather than by brand, or notices get a boundary of their own. To be settled before the first line of snapshot code.
+**The snapshot is bounded by what the notifier could see. Decided 2026-09-07.** The world is one while a notice arrives under a brand, and until this day it was unclear what the copy should follow: the storefront it was filed through, or the target. The answer is one rule for every surface, in one sentence: **the copy is bounded by what the notifier could see.** It lands differently per surface only because the surfaces differ.
+
+For the **feed and tables** the world is one: `brand` there is attribution and takes no part in retrieval (see earlier in this same section). A phrase is visible to everyone whichever face they arrived through — so the notifier really did see it, and the lookup is not narrowed by a storefront. The notice follows the target. There is a price, accepted deliberately: **a moderator on the filing storefront will see a row attributed to another tenant.** That is not a leak — the row was public to the whole world before any notice — and refusing to examine it would mean answering "we cannot look at what you are looking at".
+
+For a **venue's offer** it is the opposite: `docs/offers/SPEC_EN.md` declares `brand` the column "any search is bounded by", so there the storefront *is* the visibility boundary. An offer published under another face never existed for this reporter, and the right answer is `out_of_scope`, "we did not look under this face" — not "the target expired".
+
+**How this was reached.** The snapshot code was written before the decision (`relay/node/src/lib/dsa_snapshot.ts`, 2026-09-01) and scoped the copy by the storefront the notice arrived through — not because that was decided, but because there was no time to decide. **A review panel on 2026-09-03 showed that one boundary cannot serve all three surfaces**, and in doing so changed the question: not "storefront or target", but "what bounds visibility on each surface". The answer of 2026-09-07 settles both — one rule, with the per-surface split derived from it rather than enumerated.
+
+**The untrue answer was removed before the boundary was settled, on 2026-08-31** (`relay/node/db/014_dsa_notice_out_of_scope.sql`): the case used to be filed as "there was nothing to copy", telling the notifier the phrase had expired while it was alive and one query away. Since 2026-09-07 that case cannot arise on the feed at all — there is nothing left to narrow — while for an offer `out_of_scope` stays and means exactly what it says.
+
+**It is written next to the surface rather than as one scope over every copy:** each `SNAPSHOTTABLE` entry now carries `visibility` — `world` for the feed and tables, `per_brand` for the offer (`relay/node/src/lib/dsa_snapshot.ts`). A surface added without it would compile and slip silently into the widest branch, so `dsa_snapshot_columns.test.ts` holds the field present, and `database.test.ts` holds both halves against a real database: a phrase under another face **is copied**, an offer under another face answers `out_of_scope`.
+
+**An unattributed notice** — no face determined at all — is no longer refused on a world surface: there is nothing to narrow to, and the phrase was public. For an offer the `unattributed` reason stays: with no face, there is no boundary to look within.
+
+Separate from the boundary, and by the panel's account costlier than it: **what happens when the owner cannot be determined at all** — for a chat, for a notice with no `target_id`, for an expired target, and for a surface the schema does not yet have. Today that is the entire flow. Answering "then it is the platform's notice" means a tenant stops seeing its own complaints; answering "then the storefront it came through" keeps the present behaviour as the fallback. The boundary was settled on 2026-09-07; this was not. Part of it went with the same decision: when the owner **is** determined and differs from the filing storefront, the notice goes to the platform. What remains open is the case where no owner can be determined at all.
 
 `expires_at` was declared `NOT NULL` while being derived from `visible_at`, which is empty at insert. Checked by experiment in a container: `INSERT ... visible_at = NULL` fails the constraint, and `GENERATED ALWAYS AS (visible_at + interval '4:20') STORED` is rejected by Postgres — the expression is not `IMMUTABLE`. So the column is empty until the verdict and is filled by one `UPDATE` together with `visible_at`; the `CHECK` keeps them in step so that "published" and "has a deadline" cannot drift apart.
 
@@ -614,11 +1381,47 @@ UPDATE feed_messages
 
 **A private offer is a phrase with a discount, not a separate entity.** The neighbour giving away two stools writes the same phrase into the same feed; a non-empty `discount_value` is what makes it an offer. Everything else — geography, lifetime, likes, matching, chat — works without a single new line, because it is a post. What a private author may put in an offer (text, discount, conditions — and nothing else: no link, no promo code) is decided in `offers/SPEC_EN.md` §2.
 
-**A business offer does not live in this table.** There is no identity behind it, and `author_identity` is `NOT NULL`. It stays a separate object (`offers/SPEC_EN.md` §3) and joins the feed when the delivery is assembled, by its venue's coordinates. It carries no like by construction: a like leads to a match, a match to a conversation, and there is nobody to converse with.
+**A business offer does not live in this table.** There is no identity behind it, and an empty author here already means something else: since 2026-09-02 `author_identity` is nullable, and a `NULL` there reads as "the person was erased", not "there was no author". An offer placed here would be indistinguishable from an erased neighbour. It stays a separate object (`offers/SPEC_EN.md` §3) and joins the feed when the delivery is assembled, by its venue's coordinates. It carries no like by construction: a like leads to a match, a match to a conversation, and there is nobody to converse with.
 
 The quota counts **both** kinds of commercial card together — phrases with a discount and business offers alike: no more than one per ten ordinary phrases in a given person's feed. Otherwise "selling a stool" walks around the very limit the quota exists for.
 
-What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}` — **a circle, not a point**, and nothing about the author. The client draws an area, not a pin.
+What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}`, where **`lat`/`lon` are not what the database holds**: the node rounds them to a grid node before sending. It stores the exact ones — the intersection is computed from them — and publishes a cell.
+
+**Why — decided 2026-08-31.** The exact `double precision` centre used to go out, and an author's four live phrases carried one and the same triple `(lat, lon, area_radius)`. That is a stable pseudonym for as long as they live, while §8.11 promises the opposite: "what an interceptor does not see: … whether two phrases belong to one person". The promise was broken not by a leak but by the response itself.
+
+**The cell is not only about what is handed out, but about what is computed —
+added 2026-09-10.** Rounding a coordinate on the way out while checking visibility
+against the exact one meant rounding precisely what was being measured: the radius
+handle is a free instrument, and "visible / not visible" is the instrument's
+reading. So the overlap in §8.4 is measured from the cell. The cost is accepted and
+it is visible: at the edge of the circle a phrase appears and disappears in steps
+the size of a cell rather than smoothly, and two people standing ten metres apart on
+either side of a grid node will see different things.
+
+**The grid step equals the phrase's radius.** Everyone who published with the same radius inside one cell then sends out **identical** coordinates, and equality stops being a signal. A random offset was considered and rejected: an attacker joins by proximity rather than equality, and four points within a couple of hundred metres group together after any jitter.
+
+**How the cell is computed — written down on 2026-08-31, because a naive implementation cancels this whole paragraph.** The radius is in metres, `lat`/`lon` are in degrees, and the bridge between them is the one place where the decision breaks silently:
+
+```
+Δφ    = r / 111320
+lat_q = round(lat / Δφ) · Δφ
+Δλ    = r / (111320 · cos(lat_q))      ← cosine of the ALREADY ROUNDED latitude
+lon_q = round(lon / Δλ) · Δλ
+```
+
+The grid is anchored at (0°, 0°) and what goes out is a grid node. The cosine is taken from the rounded latitude, and that is not pedantry: take it from the exact one and the longitude step becomes a function of an unpublished quantity. A thousand people in one cell would then get a thousand **different** longitudes, equality would vanish, and the exact latitude itself would be recoverable from the published pair by searching one integer — measured: 25–30 bits with a cautious float tolerance, 36–43 at full `double` precision, and the leak falls to zero only on the prime meridian. So the naive variant does not leak a little; it leaves exactly the unique pseudonym all of this is written against. The trap sits nearby: the query below has `cos(radians(:lat))` on the exact latitude — that is the coarse index filter, and it must not be carried into the rounding.
+
+**The radius became stepped too — and that is the other half of the same hole.** A free integer from 100 to 10000 is 9901 values, which is close to a unique mark on its own.
+
+**Every phrase has a zone of its own** — the circle, the radius and the "district or city" field live in the composer and are chosen at each publication, not once per identity. So the join is not guaranteed by construction: it appears **on repetition**, when a person publishes from the same place with a similar circle, which is both natural and convenient. How often that happens is decided by an open question — whether the placed point is remembered between openings (`00-mechanics_EN.md`, "Open") — and while it is open, the worst case is what counts.
+
+Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark. **By how much was computed on 2026-08-31, and the earlier wording "shared with hundreds of neighbours" did not survive it.** On the most favourable reading (10% of residents in the app, each holding all four live phrases, steps equally likely) a cell in Paris holds 16 other phrases at 100 metres, 144 at 300 and 1600 at a kilometre; on sober assumptions (1% of residents, one publication a day) — 0.07, 0.65 and 7.2. For a 100-metre cell to hold two hundred neighbours you would need 250,000 people per km², denser than anywhere on Earth. So, honestly: **hundreds begin at a kilometre and up, and at 100 and 300 metres a cell holds single digits** — the lower steps hide weakly. The price is named twice: whoever wanted 700 metres gets 1000 and the control on screen 4 becomes five positions instead of a continuum — and whoever took 100 metres for precision hides less well than the word "cell" suggests.
+
+**What this does not fix, second: the steps are not nested.** Publishing from one point at 300 metres and then at a kilometre sends out two cells, and their intersection is sometimes narrower than the smaller of them: simulated over 2 million points — 30% of positions narrow, in the worst case to 50 metres instead of 300. The pairs 100/300 and 1000/3000 are nested and never narrow; 300/10000 narrows for 3% of positions. A divisibility chain — 100/300/900/2700/8100 — would close the channel outright, but it would move the ceiling off the 10 km reconciled with the filter rectangle above; keeping five steps and naming the remainder was chosen instead. The one consolation is thin and worth knowing: to intersect the cells you must already know the phrases belong to one person, so this sharpens a join rather than making one.
+
+**What this does not fix, first.** In a sparse area a cell may hold one person, and then the join is back. A grid cannot help there by construction, and the honest answer is not to obscure but not to send: **no screen today draws another phrase's area** (checked across all twenty), so the field stays in the response only against the day such a screen exists.
+
+**The viewing radius in the feed (screen 3) gets no steps** — it is not published to other people and so cannot be a joining signal. The node does see it: `GET /feed` and `GET /feed/density` are built on it, and as a measuring instrument in someone else's hands it is discussed separately.
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 
@@ -654,7 +1457,9 @@ Two consequences of the queue, settled together with it:
 ALTER TABLE identity_stats ADD COLUMN rejected_count integer NOT NULL DEFAULT 0;
 ```
 
-The counter grows on every `rejected` and **resets on the first successful publication**. Five refusals in a row — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+The counter grows on every `rejected` and counts **over a sliding hour**, the same one the publishing limit uses. Five refusals in an hour — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Only sending is blocked — the feed, likes and reading chats stay available, so the penalty fits the offence.
+
+**Edited 2026-09-07 after a review panel.** This said "resets on the first successful publication" and "five refusals in a row" — so the limit came undone by alternating: four probes, one deliberately clean phrase, four more. At four publications an hour that is sixteen probes against the filter instead of five. A window in place of a run adds no control at all: the period is the same hour. The counter and whatever is left of the block **survive a departure** (`sosed.place/docs/00-mechanics_EN.md` §13): a twenty-minute step away is longer than a fifteen-minute pause, and would otherwise put it out.
 
 **Five and fifteen are deliberately mild.** A refusal from the model is not proof of ill intent: mixed languages, a rare word, quoting somebody else's text — it makes mistakes, and the first person to hit the threshold will not be a troll but someone who was misunderstood. The threshold exists to **break the rhythm of hunting for a wording that gets through**, not to punish; anyone hunting in earnest hits it five times in a row, while anyone merely misunderstood does not lose an evening over fifteen minutes. Resetting on the first successful publication matters as much as the number: without it the counter accrues for months and one day fires out of nowhere.
 
@@ -700,7 +1505,10 @@ where it sits is the whole of the choice.
 Visibility is **circle intersection** plus the age band (8.2): if I can see you, you can see me.
 
 ```sql
-SELECT f.id, f.text, f.mode, f.lat, f.lon, f.area_radius, f.like_count, f.created_at
+SELECT f.id, f.text, f.mode,
+       grid_round_lat(f.lat, f.area_radius)        AS lat,   -- outwards: the grid node,
+       grid_round_lon(f.lon, f.lat, f.area_radius) AS lon,   -- not what the database holds
+       f.area_radius, f.like_count, f.created_at
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
 WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text
@@ -709,7 +1517,16 @@ WHERE f.visible_at IS NOT NULL                                      -- passed th
   AND f.lat BETWEEN :lat - :deg AND :lat + :deg                     -- cheap index prefilter
   AND f.lon BETWEEN :lon - :deg / cos(radians(:lat))
                 AND :lon + :deg / cos(radians(:lat))
-  AND haversine(f.lat, f.lon, :lat, :lon) <= :viewer_radius + f.area_radius
+  -- The overlap is measured from the ROUNDED centre — decided 2026-09-10. This used
+  -- to read haversine(f.lat, f.lon, ...) over the exact coordinates, which made the
+  -- feed a rangefinder: "visible at radius r" is an inequality with one unknown, a
+  -- binary search on the handle gives the distance to the unrounded centre, and
+  -- three points give the centre itself. §8.3 was rounding exactly what was being
+  -- measured here. The exact coordinates stay in the table: the cell is computed
+  -- from them.
+  AND haversine(grid_round_lat(f.lat, f.area_radius),
+                grid_round_lon(f.lon, f.lat, f.area_radius),
+                :lat, :lon) <= :viewer_radius + f.area_radius
   AND author.age BETWEEN :band_low AND :band_high                   -- the viewer's band
   AND :viewer_age BETWEEN band_low(author.age) AND band_high(author.age)
   AND author.age BETWEEN :filter_age_min AND :filter_age_max        -- the viewer's filter
@@ -732,14 +1549,16 @@ per-address limit works alongside, separately).
 ```
 likes     64 per 32 minutes
 phrases   at most 4 live at a time
-          and at most 8 published per 64 minutes
+          and at most 4 published per hour
 ```
 
-**Why phrases have two numbers instead of one.** The main one is "four live": it
-is the natural limit, because a phrase occupies space in the neighbours' feed and
-a person sees their four rather than counting minutes. But a phrase lives 4:20
-while the ceiling's window is 64 minutes: none would expire by itself in that
-time, so the second number would never fire. It exists for exactly one case —
+**Why phrases have two numbers instead of one.** The main one is "four live"
+(edit of 2026-08-28; [retired] "five live" stood here from 2026-08-26, when it was
+reconciled with the storefronts). It is the natural limit, because a phrase
+occupies space in the neighbours' feed and a person sees their four rather than
+counting minutes. But a phrase lives 4:20 while the ceiling's window is an hour:
+none would expire by itself in that time, so the second number would never
+fire. It exists for exactly one case —
 when a person **takes their own phrase down** to free a slot, and repeats that in
 a loop.
 
@@ -747,7 +1566,7 @@ Hence a consequence worth naming outright: **a phrase can be taken down by its
 author**. The spec did not describe this before — a phrase only expired. A phrase
 taken down disappears exactly as an expired one does (§8.10): the text is
 deleted, the likes cascade away, `chat_starters` survive as copies. The slot frees
-immediately; the 64-minute ceiling does not.
+immediately; the hourly ceiling does not.
 
 Likes are counted with room to spare: 64 in half an hour is one every thirty
 seconds without a break. No living person keeps that up, while automation hits it
@@ -759,11 +1578,19 @@ A private author may have at most one live phrase **with a discount** at a time
 (`offers/SPEC_EN.md` §4, `PRIVATE_ACTIVE_OFFERS`): the limit of four is about
 phrases in general, the limit of one about the commercial ones among them.
 
+**The feed has a size — 30 cards, then paging by time (decided 2026-09-10).** The
+quota limits a person; an area is limited by nothing. Somewhere dense a phrase leaves
+the visible part within minutes, and `expires_at` stops answering "how long am I
+heard". The number lives in `docs/facts/limits.tsv` (`feed.page.size`) and is
+**chosen, not measured**. The order stays chronological: ranking would decide for
+people who they get to hear, and that is a separate decision nobody has taken.
+
 **When the band and the radius come up empty, the feed widens the radius — and
 only the radius.** An empty screen says nothing: broken, nobody here, or a
 delivery the person narrowed themselves — indistinguishable. So on an empty
-result the radius grows in steps up to **10 km**, the same ceiling a person could
-have set for themselves (§8.3).
+result the radius grows in steps up to **25 km**, the same ceiling a person could
+have set for themselves (§8.3; the number follows the storefront's control, checked
+2026-08-26 — it used to say 10 km, from the control as it was before).
 
 **The band is never widened.** It separates teenagers from adults, and touching
 it to fill a feed is exactly the door it exists to close. A sparse sandbox at
@@ -772,8 +1599,26 @@ launch is an accepted price, not a problem to be fixed with age.
 **The widening is visible and does not change the setting.** Every such card is
 marked "further than you asked", and the person's own radius stays where they
 left it: this is a temporary answer to an empty result, not a quiet edit of their
-preferences. If 10 km is empty too, we say so: "nobody here yet. Write first — a
+preferences. If 25 km is empty too, we say so: "nobody here yet. Write first — a
 phrase lives 4:20", with the number of people in range beside it.
+
+**How many are in the circle — the node answers with a step, not a number (settled
+2026-08-26).** The radius handle says how many live phrases are inside:
+`nobody here yet` · `a few` (1–4) · `about a dozen` (5–14) · `dozens` (15–99) ·
+`hundreds` (100+). Without it the handle is dragged blind and lands either in
+emptiness or in somebody else's district.
+
+There is no exact number here, and the reason is not rounding for looks. A counter
+tied to a radius is **a measuring instrument**: stepping the handle and reading
+exact numbers, a person builds a density profile of their surroundings, and from
+the increment on a single step works out the ring holding one particular phrase —
+going around the blur its author chose for themselves. Steps do not forbid that,
+they make it coarse enough to stop being worth the effort; only the absence of a
+counter would close the question, and its price is a blind handle.
+
+Hence two requirements: the answer is computed **on release**, one request per
+gesture, and the route carries **a rate limit of its own** — a hundred requests in a
+row is not a person with a slider but a density profile being taken.
 
 **A consequence worth knowing up front: a like across a widened radius often will
 not become a match.** Mutuality requires the other person to see your phrase in
@@ -880,18 +1725,30 @@ something illegal into a public feed. Thresholds are set per direction; a single
 
 ### 8.4. Likes and counters
 
+**A like is available only to someone with a live phrase in the feed — settled 2026-08-26.** The rule is derived from §8.5 rather than added to it: a match counts only while **both** phrases are alive, so a like from a person without one of their own could never become a match — it was placed and went quietly nowhere, and the one who placed it never learned that. The check runs on the node, because the client is open: `EXISTS (SELECT 1 FROM feed_messages WHERE author_identity = :me AND visible_at IS NOT NULL AND expires_at > now())`.
+
+**An offer is an exception, and it is named (2026-08-27).** The check does not apply to a like on a phrase **with a discount**: there the match is born one-sided (§8.5), and the argument "a like could never become a match" is simply false for an offer — it becomes one at once. Without this proviso the rule would cancel the offer mechanism itself: to collect stools somebody is giving away you would first have to write something of your own into the feed, so the barrier would remain, merely a different one. The node-side condition becomes
+
+```sql
+EXISTS (SELECT 1 FROM feed_messages
+         WHERE author_identity = :me AND visible_at IS NOT NULL AND expires_at > now())
+OR (SELECT discount_value IS NOT NULL FROM feed_messages WHERE id = :target)
+```
+
+The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
+
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
 
 ```sql
 CREATE TABLE likes (
-  liker_identity   uuid NOT NULL REFERENCES identities(id),
+  liker_identity   uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (liker_identity, feed_message_id)
 );
 
 CREATE TABLE identity_stats (
-  identity        uuid PRIMARY KEY REFERENCES identities(id),
+  identity        uuid PRIMARY KEY REFERENCES identities(id) ON DELETE CASCADE,
   likes_received  integer NOT NULL DEFAULT 0,
   likes_given     integer NOT NULL DEFAULT 0,
   matches         integer NOT NULL DEFAULT 0,
@@ -964,12 +1821,13 @@ CREATE TABLE matches (
 
 CREATE TABLE match_participants (
   match_id          uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
-  identity          uuid NOT NULL REFERENCES identities(id),
+  identity          uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   message_id        uuid NOT NULL,
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
   mode              text NOT NULL,      -- alone | company | party
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
-  idle_ttl_minutes  integer,            -- chosen chat lifetime
+  declined_at       timestamptz,        -- "not now" (2026-08-28): the refusal is visible to its own side only;
+                                        -- written at once, cleared by an undo while the match lives
   ephemeral_public_key text,            -- this chat's key, wrapped to the other side (8.13)
   PRIMARY KEY (match_id, identity)
 );
@@ -982,16 +1840,16 @@ Flow:
 ```
 mutual like     → INSERT matches + two match_participants rows
                   both see: "match — open chat?" + peer's phrase and mode
-one presses     → the "not checked" disclaimer + the idle_ttl choice
+one presses     → the "not checked" disclaimer — and that is all, no span here
                   → generates an EPHEMERAL pair for this chat (§8.13)
                   → UPDATE match_participants SET accepted_at = now(),
-                      idle_ttl_minutes = :n, ephemeral_public_key = :epk
+                      ephemeral_public_key = :epk
 both press      → INSERT chats + chat_participants + chat_starters, matches.chat_id = <new>
                   both get chat_id and the system line "you both liked this — chat is open"
 expired         → the match quietly disappears; there was no chat
 ```
 
-**The disclaimer at consent.** Right here, beside the choice of span, a person reads what they are stepping into:
+**The disclaimer at consent.** It is the only thing on this screen — a person reads what they are stepping into:
 
 ```
 This chat is not checked. Nobody reads what you write here —
@@ -1004,7 +1862,9 @@ If someone behaves badly, block them and report them, attaching
 a copy from your own device.
 ```
 
-This is **not** another consent or a checkbox: the text sits on the same screen as the span choice, and "open chat" stays the single press. It is said here because this is the last moment at which nothing has been opened yet.
+This is **not** another consent or a checkbox: "open chat" stays the single press on the screen. The disclaimer is said here because this is the last moment at which nothing has been opened yet.
+
+**There is no span on this screen — settled 2026-08-26.** An `idle_ttl` choice used to stand here, and the column behind it in `match_participants` outlived the decision by two days, marked "not filled"; now it is gone. The span is picked inside the conversation, one per person (§5, §8.6), because deciding it before a person has seen who they are talking to demands a decision before there are grounds for one.
 
 - **Match TTL** = `least()` of both phrases' `expires_at`, with no safety floor. Either phrase dies and the match dies with it, even if one side already accepted; a new mutual like does **not** extend it. The consequence is accepted deliberately: a match born on a dying phrase may leave a pair only minutes for two presses, and then burn out. The rule matters more than the match count — the reason died, so the invitation dies too.
 - **The text snapshot is taken at match time**, not at opening: otherwise a phrase can expire between "match" and "both pressed", and someone would consent without seeing why.
@@ -1066,15 +1926,18 @@ the inbox shows only what survived. That follows directly from dropping push
 CREATE TABLE chats (
   id                uuid PRIMARY KEY,
   pair_key          text NOT NULL UNIQUE,
-  idle_ttl_minutes  integer NOT NULL,      -- min() of both choices
   last_activity_at  timestamptz NOT NULL DEFAULT now(),
   created_at        timestamptz NOT NULL DEFAULT now()
-  -- expires_at is not a column but a derivation: last_activity_at + idle_ttl_minutes
+  -- expires_at is neither a column nor one number: each participant has their own,
+  -- last_activity_at + their idle_ttl_minutes (see chat_participants)
 );
 
 CREATE TABLE chat_participants (
   chat_id   uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-  identity  uuid NOT NULL REFERENCES identities(id),
+  identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  idle_ttl_minutes integer NOT NULL DEFAULT 60,  -- 10 | 30 | 60 | 260, ONE PER PERSON (§5)
+  last_own_message_at timestamptz,               -- their span counts from here
+  gone_at   timestamptz,                         -- the conversation ended for this participant
   PRIMARY KEY (chat_id, identity)
 );
 
@@ -1091,13 +1954,15 @@ CREATE TABLE chat_starters (
 
 - Access check is "is there a row": `SELECT 1 FROM chat_participants WHERE chat_id = :id AND identity = :me`.
 - `chat_starters` stores a **copy** of the text rather than a reference to `feed_messages`: the phrase lives N hours, the chat lives by its own clock, and the header must not empty out mid-conversation. `feed_message_id` is deliberately not stored — the link "this phrase → this chat" is better off not existing in the database at all.
-- Opening a chat returns: `idle_ttl_minutes`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
+- Opening a chat returns: **your own** `idle_ttl_minutes` and `last_own_message_at`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
 
 **Message length is a server parameter, not a client constant.** `max_message_length` arrives when the chat opens, defaults to **256 characters**, and changes without shipping a client. The client draws the counter and will not let you send more.
 
 **The node, however, counts bytes and not characters.** What it sees is ciphertext: 256 characters cannot be counted in it, exactly or approximately. So the chat opens with a second parameter — `max_ciphertext_bytes`, **2048 bytes** by default — and whatever does not fit it is refused with `error`, delivered to nobody. Two parameters, and the division of labour is this: the counter in the client is a convenience, the rule of the system is bytes at the node (edit of 2026-08-25; §8.6 promised a check on characters while the acceptance checklist of the same spec already required bytes, and the promise was impossible to keep).
 
 2048 is calculated from the worst case rather than chosen: 256 emoji characters are 1024 bytes of UTF-8, 1052 with an AES-GCM nonce and tag, 1404 in base64. That leaves 46% of headroom and a quarter of the `NOTIFY` payload.
+
+**An honest client never reaches that limit — recomputed 2026-08-26.** 1404 bytes against 2048: hitting the refusal takes **378** emoji characters, one and a half counters. So `max_ciphertext_bytes` guards against a forged client rather than bounding a real conversation, and there is no point showing it to a person: the interface keeps one counter, at 256 characters.
 
 The separation is not pedantry. Our client is **open**: the `depth` image can be rebuilt by anyone, and the web script is edited in the debugger in a minute. Any check that lives only on the client is a hint to its author, not a rule of the system. Treating it as a defence would be self-deception, so the limit is enforced where it cannot be rewritten.
 
@@ -1112,21 +1977,25 @@ The limit is not cosmetic — it holds up the arithmetic in §8.1 and §8.13. 25
 
 Moves count deliberately: a game (§6) is an ice-breaker where staying silent in words is the point, and it would be absurd for the chat to die under the hands of two people happily pushing checkers around. Activity is any shared action, not text alone.
 
-Each side picks `idle_ttl_minutes` on consent; the **smaller of the two** wins — one person's caution cannot be overridden by the other's generosity. The value is visible to both (`chat fades after 1h of silence`), **who set it is not**. It cannot be changed inside an open chat: it is a rule that was agreed to, not a setting.
+Each side picks `idle_ttl_minutes` **inside the conversation**, with the handle in the header, and changes it at any time; the value lives in `chat_participants`, one row per person. The other side's value is never handed out — neither the number nor the remainder computed from it: knowing that it is time to answer is needed, knowing someone's character from the span they chose is not. Your own is always visible (`fades after 1h of your silence`).
+
+**It counts from your own last message**, not from the last activity in the conversation: reading is not talking, and someone who reads silently for an hour loses the conversation exactly as if they had left. `last_activity_at` stays on the conversation itself but does a different job — it moves the game board and the ordering of the list (§8.10).
+
+**There is no smaller-of-the-two any more — settled 2026-08-26.** The old rule took `min()` of the two picks so that one person's caution was not overridden by the other's generosity; now there is nothing to override, because each side governs only its own. Petya's conversation dies on Petya's span and does not touch Kolya's.
 
 **The silence counter** — two different thresholds:
 
 ```
-threshold = min(20 min, idle_ttl_minutes / 3)
+threshold = idle_ttl_minutes / 4   (your own span, from your own last message)
 
 silence < threshold   → no timer
 silence ≥ threshold   → counter: chat deletes in Nm
-last_activity + ttl   → the chat disappears for both
+my silence + my ttl   → the conversation ends FOR ME
 ```
 
-20 minutes is a **display** threshold, not a deadline — and it is not taken literally, but against the chosen TTL: at `ttl = 20 min` a fixed twenty would light the counter only as the chat died, which is to say never show it at all. A third of the span feels the same on an hour-long chat and on a twenty-minute one: the counter appears after 6 minutes 40 seconds of silence. The example used to be written on `ttl = 30 min` — a span that does not exist since the set was closed (§5).
+A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fixed number: on a ten-minute conversation any "twenty minutes" would light the counter after its death, which is to say never show it at all. A quarter feels the same across all four spans: 2:30 on a ten-minute conversation, a quarter of an hour on an hour-long one, 65 minutes on "while we're talking". The previous rule — a third of `min(20 min, ttl)` — is retired along with the pick at consent (§5).
 
-Any delivered message resets both the counter and the countdown. The server pushes nothing: the client knows `last_activity_at` and `idle_ttl_minutes` and computes the rest.
+Any **of your own** delivered messages resets both the counter and the countdown; theirs does not. **Your own move in a game counts the same as your own message** (settled 2026-08-27): the game exists so that two people can be silent in words, and without this rule a game played in silence would kill the conversation in the middle of itself. Their move, like their line, does not move your count. The server pushes nothing: the client knows `last_own_message_at` and its own `idle_ttl_minutes` and computes the rest.
 
 A chat can outlive its originating phrases by a long way if people keep talking — that is fine: the texts are already copied, and the feed has nothing to do with the conversation any more.
 
@@ -1149,7 +2018,20 @@ relay: a special message to both, worded per viewer                             
 }
 ```
 
-Rendered as a centred card (like `sys`) holding the quote and a number matching the one in the `Liked, in order` header. Styling is the starters' styling: it is the same thing, arriving later. Wordings: "they liked one more of yours" / "you liked one more of theirs". The bubble goes away with the local history; the `chat_starters` row does not.
+Rendered as a centred card (like `sys`) holding the quote and a number matching the one in the `Liked, in order` header. Styling is the starters' styling: it is the same thing, arriving later.
+
+**And the fact that it is shared is a protection, not a delivery detail (recorded
+2026-09-10).** The feed is anonymous as to its author (§8.11), while this like answers
+"is this phrase theirs" exactly: the card arrived, so it is. What keeps that from
+being an oracle is that the answer lands **in the shared list of starters**, visible
+to both from the first minute of the conversation: every check is a line the checked
+person sees. Sixty-four likes in half an hour (§8.4) would be sixty-four cards on
+their screen.
+
+One-sided delivery is therefore ruled out — "to the initiator now, to the author
+sometime", "skip whoever is offline". It looks like an optimisation and makes a quiet
+oracle over 128 phrases an hour. If a row reached `chat_starters`, both see it, and
+that is a condition of the mechanic rather than a property of the transport. Wordings: "they liked one more of yours" / "you liked one more of theirs". The bubble goes away with the local history; the `chat_starters` row does not.
 
 ### 8.8. Messages: not in the database
 
@@ -1188,7 +2070,9 @@ error      — not delivered (offline, drop, timeout) → a "send again" button
 
 The refusal counter and the moderation ladder moved to §8.3: they belong to the feed, and the chat no longer has anything to feed them with.
 
-**The game board** (`game_sessions` from §6) is synced as transient chat state, encrypted with the same key, and disappears with the chat; nothing is written to the database.
+**The game board** (`chat_games` from §6 — the name was corrected 2026-09-10, there is no `game_sessions` in the schema) is synced as chat state and disappears with the chat: by cascade from `chats`, and a row that outlives the conversation by the sweeper on `expires_at`. This used to read "nothing is written to the database"; since 2026-09-10 that is untrue — the position, whose turn and the score sit in the game cache. **Encryption was taken off it on 2026-09-09**, together with the introduction of minimal rules: only whoever sees the board can judge the play. The **board, and only the board**, is outside §8.13; messages, stickers and the guessed word are encrypted as before. At a table the game state sits in the database beside the table — everything there is public by construction (§6.1).
+
+**The exception is named: games with randomness (2026-08-26).** In cards, uno and backgammon the node shuffles and rolls, which means it sees the deck, the hands and the dice — encrypting from it what it deals out itself is impossible. **Rewritten 2026-09-10:** this used to say "the promise that the node does not read holds for messages and for boards without randomness", and since 2026-09-09 the second half is untrue — no class of board is encrypted. The promise holds **for messages**, and for nothing else. The difference between classes remains, but a different one: in the other games the node watches, and in these three it also decides — it shuffles and rolls. A private hand is still wrapped for its player: the others at the table see backs, the node sees contents.
 
 ### 8.9. Blocks
 
@@ -1221,7 +2105,7 @@ The effect applies at all three levels at once: phrases are hidden from both sid
 
 ```sql
 CREATE TABLE hidden_messages (
-  identity         uuid NOT NULL REFERENCES identities(id),
+  identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (identity, feed_message_id)
@@ -1242,7 +2126,7 @@ Hiding is **silent and one-way**: the author is not told, their feed does not ch
 
 - **Feed** — `expires_at` (N hours): the phrase drops out of results, a background job deletes the row, `likes` cascade away. Starters survive — the text was copied.
 - **Match** — `least()` of both phrases; expired means gone.
-- **Chat** — `last_activity_at + idle_ttl_minutes`; the node closes the room and deletes `chats`, with `chat_participants` and `chat_starters` cascading.
+- **A conversation** — each participant has their own end: `last_own_message_at + their idle_ttl_minutes` (§8.6). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants`, `chat_starters` and `chat_games` cascading (the last added 2026-09-10 along with the table itself).
 - **Local history** — cleaned by the client, always on the client's initiative:
 
 ```
@@ -1251,9 +2135,11 @@ POST /chats/alive  { ids: [uuid, ...] }  →  { alive: [uuid, ...] }
 
 Anything missing from `alive` is deleted from IndexedDB along with its messages. This covers, in one move: an expired TTL, a peer's closed identity, a block, and "hasn't opened the app in a month" — the very next session sweeps the dead away.
 
+**The endpoint answers differently to the two participants of one conversation — a consequence of §8.6, written down here so it is not discovered during debugging.** `alive` is computed **for the caller**: a conversation is alive for them until **their** span runs out. The same `chats` row lands in Kolya's `alive` and not in Petya's — and that is the correct answer to both, not a desync. Separately: a conversation whose peer has `gone_at` set **stays alive** for the caller — they still see their own history — but is marked as **ended**, and nothing can be written into it (§8.6). Otherwise a person sends words into emptiness and waits for an answer.
+
 **Three rules for this endpoint, all from 2026-08-21 — it is the only destruction command the system has.** The reply contains only those `id`s for which a `chat_participants` row exists with the caller: other people's and non-existent ones are silently absent and therefore indistinguishable from dead. The array length is capped. And above all: **the list of the living is valid only on a confirmed read of the database** — on error the node answers 503, not an empty list. The node's policy of "the query failed, carry on without an answer" would mean here that five minutes of unavailable Postgres wipe the conversations of everyone who opened the app in those minutes.
 
-**The client does not delete what its own clock still calls alive.** If a chat has not expired by `last_activity_at + idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
+**The client does not delete what its own clock still calls alive.** If a conversation has not expired by `last_own_message_at + its own idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
 
 **Local history is encrypted with the vault key of §8.2** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
 
@@ -1286,10 +2172,18 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
 | Level | Available |
 |---|---|
-| Feed | `feed_message.id`, text, `mode`, circle (centre + radius), `like_count`, time |
+| Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
 | Match | `match_id`, peer's phrase + `mode`, name, age, timer |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
-| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text |
+| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text, **when other phrases expire** |
+
+**Expiry of other people's phrases was added to "Never" on 2026-09-08.** The
+promise was already being cited as obvious — in the reasoning for why the quota
+screen does not show the time a slot frees (`refusal-wordings_EN.md`) — and it
+was not in the list. Obvious does not survive in a list like this one: the list
+is what people read when deciding what may go out. Same device as §8.3, where the
+centre is rounded to a cell: the feed must not work as a measuring instrument on
+other people's spans.
 
 **The line runs at the chat, not at the phrase.** In the feed the author is never shown — that is the core rule. But once a chat is open, authorship inside it is known by construction: the peer sees a name and age and knows whose phrases sit in `chat_starters`. Every `extra_like` (8.7) adds one more phrase by the same person to that list.
 
@@ -1314,7 +2208,7 @@ WHERE m.expires_at > now() AND me.accepted_at IS NULL;
 -- "waiting for you": I accepted, they have not  (and the reverse)
 -- chat opened: a chats row that is missing from my local database
 -- one more phrase liked: chat_starters with a position beyond what I have seen
--- chat fading: last_activity_at + idle_ttl_minutes is close
+-- the conversation fades FOR ME: my last_own_message_at + my idle_ttl_minutes is close
 ```
 
 This is the rare case of a feature that adds not a single line to the schema: everything derives from `matches`, `chats`, `chat_starters` and `last_activity_at`. The inbox honestly survives a closed tab, a reload and a node switch — because it lives in the data, not in memory.
@@ -1440,7 +2334,11 @@ the old K       cannot be recovered by anything
 
 **A schema consequence.** The ephemeral halves need somewhere to sit between the two presses — at consent that is `match_participants.ephemeral_public_key`; a reissue has no such place, and one has to be created.
 
-**Forward secrecy holds.** The ephemeral keys and `K` are wiped when the chat dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
+**Forward secrecy holds.** The ephemeral keys and `K` are wiped when the conversation dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
+
+**When the spans diverge, `K` goes out on the first of them — settled 2026-08-26.** Participants have their own spans (§5, §8.6), so "the death of a conversation" stopped being a single moment: it ended for Petya while it still runs for Kolya. The key is nevertheless destroyed **for both at once**, together with both `chat_key_wraps` and the game board.
+
+This does not undo the per-person count, because the count is about history and the key is about transit. The local history sits under the **vault key** (§8.2), not under `K`: Kolya's reads exactly as it read and lives until his own span. Putting `K` out later would be a cost with nothing bought — nothing can be written into the conversation by either side any more, while the key from which intercepted ciphertext could be decrypted would stay derivable for hours. Forward secrecy must fire at the **earliest** of the two moments, not the latest.
 
 **A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away.
 
@@ -1460,13 +2358,69 @@ the old K       cannot be recovered by anything
 
 **Edge cases.** The peer closed their identity — the chat is killed like an expired one. Reconnecting to a different node does not touch the keys: they live on the clients, and the node holds only public halves and wraps, from which nothing can be derived.
 
-### 8.14. Open
+### 8.14. The moderation model: measured
 
-- Which moderation model exactly — **a measurement, not an argument**: the frame is fixed in §8.3, and the numbers are run against our own phrase set on the day the queue exists.
+**Settled 2026-08-27 by numbers rather than by argument.** The `relay/moderation-bench`
+stand collected 300 human-labelled examples per language across nine languages and
+read each of them two ways: **natively**, with a multilingual classifier on the
+original, and **through translation** into English with an English classifier.
+Three languages (ru, es, fr) are excluded from the conclusion: the model was
+trained on those very sets, and the number there is flattering.
+
+Across the six honest languages (en, el, tr, ar, de, uk):
+
+| | native | through translation |
+|---|---|---|
+| mean F1, threshold tuned per language | **0.784** | 0.737 |
+| F1 at **one** threshold for all | 0.741 | 0.720 |
+| worst language at one threshold | **de 0.404** | de 0.669 |
+
+**We take translation, although its mean F1 is lower.** The gap in the mean is
+0.047, and it evaporates as soon as the threshold is one for all languages — and
+in production it is one, because the language is identified by the same pipeline
+and with error, and tuning per language means trusting that identifier more than
+it deserves.
+
+What decides is not the mean but the **worst case**: on German the native arm
+collapses to F1 0.404 — at its tuned threshold it flags nearly everything (0.50
+precision at 1.00 recall). The translation arm holds 0.669 on the same language.
+Moderation is a place where being good on average matters less than never
+collapsing: a collapse means either a feed full of abuse or blocking the innocent,
+and both cost more than forty-seven thousandths of a mean.
+
+**The cost is named:** translation adds a step and time, and machine translation
+launders abuse — which is why the lexicon over the original stays the first layer
+and stands **before** the translator (§8.3). That ordering is what makes this
+choice work.
+
+**The operating point is set by the cost of a mistake, not by peak F1 — edit of
+2026-08-27.** The table above compares the arms where each shows its best F1, and
+for moderation that point is unusable: there the translation arm wrongly blocks
+**41%** of ordinary messages, and the native arm 22%. F1 is symmetric, the two
+mistakes are not, and the product has already named its price out loud: "0.07 of
+ordinary messages are blocked for nothing" (§5 of the storefront mechanics). So
+the arms have to be compared at an equal price:
+
+| at 7% false blocks | native | translated |
+|---|---|---|
+| caught overall | 0.55 | 0.46 |
+| caught in the worst language (de) | 0.13 | **0.26** |
+
+The conclusion has not changed, but it no longer rests on F1: at the same cost of
+a mistake, the translation arm catches **twice as much** in German. Two
+consequences did change. First, **the threshold is set by a false-block budget**
+and therefore lives as a node parameter rather than a constant of the model — it
+is moved without retraining anything. Second, the published promise "0.55 is
+caught, 0.07 blocked for nothing" describes the **native** arm, the one we did
+not take; for the arm we did, the honest numbers are **0.46 and 0.07**, and they
+are corrected in both storefronts' mechanics.
+
+**What stays open:** the queue's throughput (§8.3) — a separate measurement on
+live hardware, made on the day the queue appears.
 
 ## 9. UI states and breakpoints
 
-- **`≥900px`** — three-column workspace: **[Feed] | [Open chats] | [Active chat]** (feed `flex:1`, chats `300px`, active chat `400px`). Columns collapse into vertical rails. Before a chat is picked, the active column shows an empty `Pick a chat` state.
+- **`≥900px`** — three-column workspace: **[Feed] | [Offers and conversations] | [Active chat]** (the second column gained two tabs on 2026-08-26: matches waiting for an answer, and open conversations — until then matches were shown nowhere, though the inbox collects them first, §8.12) (feed `flex:1`, chats `300px`, active chat `400px`). Columns collapse into vertical rails. Before a chat is picked, the active column shows an empty `Pick a chat` state.
 - **`≤899px`** — single column, bottom navigation (`Feed` / `Chats` / `Say` / `Me`); the conversation is a full-screen overlay (`position:fixed`), "back" → list.
 - **`≤560px`** — compact header.
 
@@ -1536,13 +2490,13 @@ order would produce an API the terminal would have to be bent to fit.
 
 1. **Identity and session** (§8.2) — `identities`, `sessions`, `vault_shares`,
    request signing, the code transfer with confirmation. Registration: **name and
-   age, then the PIN and the exchange with the node for a share**. Two steps,
-   both mandatory — without the share the local database sits unencrypted.
-   **There is no paper code here**: it moved to the opening of the first chat
-   (§8.2, decided 2026-08-18), and this item used to carry the retired order
-   together with its reasoning — and the build order is what people write code
-   from, so that is what would have been built. The window without insurance is
-   named plainly there. Everything else rests on "who is this".
+   age, then the PIN and the exchange with the node for a share, then the paper
+   code**. Three steps, all mandatory — without the share the local database sits
+   unencrypted, and without the code a lost device means a lost identity. **The
+   code came back here on 2026-08-26** (§8.2): the move to the first chat is
+   overridden, because a window without insurance has no way out, while a screen
+   that fails to convince mends itself — the person returns a day later.
+   Everything else rests on "who is this".
 **There is no unchecked-name window — decided 2026-08-20.** A gap used to stand
 here: a name goes through the same moderation queue as a phrase, the queue only
 arrives at step 2, and so between steps 1 and 2 a name was accepted unchecked.
@@ -1557,8 +2511,8 @@ name **on every change**.
 ```
 step 1  name accepted, seen by nobody     nothing to check and no reason to
 step 2  first post → the queue exists     the name rides into it with the phrase
-        name rejected → the post lives,   checked separately; the author is
-        the author is asked to fix it     offered to go and update the name
+        name rejected → the phrase WAITS  only both together reach the feed;
+        the author is asked to fix it     fix the name and it publishes itself
 step 4  first match                       the name is first seen by another
 ```
 
@@ -1596,7 +2550,9 @@ web catches up in a single step at the end.
 
 ## 14. Acceptance criteria
 
-What "the chat is done" means, checkable rather than eyeballed:
+What "the chat is done" means, checkable rather than eyeballed. Broken down by flow
+and turned into queries, these criteria live in [`test-map_EN.md`](test-map_EN.md);
+here are the ones without which the chat is not done at all:
 
 - Two clients hold a conversation and in at least one pair one of them is
   `depth`: that tests that the face does not affect the protocol.
@@ -1632,10 +2588,16 @@ What "the chat is done" means, checkable rather than eyeballed:
   **ciphertext bytes** (`max_ciphertext_bytes`), not by characters: the node sees
   ciphertext and cannot count 256 characters in it, exactly or approximately.
   `max_message_length` = 256 stays what §8.6 calls it — a counter in the client.
-- An expired chat disappears **for both**, together with the game board and the
-  local history, on the first `alive` sweep. Whoever had the chat open on screen
-  at that moment keeps a headstone reading "chat expired" until they press
-  "close", and it does not return to the list (§5).
+- A conversation disappears **for whoever's span ran out**, along with their local
+  history, on the first `alive` sweep; for the other it remains until their own
+  span, marked as ended, and sending into it is refused **by the node**. Checked
+  with a pair on different spans: ten minutes for one, an hour for the other.
+- **The game board and the key go out for both at the first death** (§8.13), while
+  the other person's history keeps reading: it sits under the vault key, not under
+  the conversation key. Checked on a live node, not by reasoning.
+- Whoever had the conversation open on screen at that moment keeps a headstone
+  reading "conversation ended" until they press "close", and it does not return to
+  the list (§5).
 - **A node with an unreachable database does not cause local history to be
   deleted.** `POST /chats/alive` answers with a list of the living only on a
   confirmed read of the database; on error it answers 503 and the client deletes

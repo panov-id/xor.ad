@@ -61,6 +61,11 @@ no build step, only page generation and upload:
 | `deploy-uat.yml` | push to `main` | cuts `vYYYY.MM.DD-<sha7>` and deploys that tag to uat |
 | `deploy-prod.yml` | manual, with a tag | the same script with `LANDING_ENV=prod` |
 
+**`docs/deploy-prod_EN.md` is history, not a runbook** (noted 2026-09-02). The
+name looks like the row above, while the document describes the retired Supabase
+stack; at night people open the first thing the name matches. The deployment
+order in force is here and in `relay/ARCHITECTURE_EN.md`.
+
 **Panel (`xor.ad`)** — `deploy-dev/uat/prod.yml` call the shared `_deploy.yml`:
 `npm ci && npm run build` in `panel/` with `VITE_RELAY_API_URL`, then
 `deploy/deploy-panel-ci.sh` into the panel's zone.
@@ -105,7 +110,8 @@ Provisioned and rolled by the wizard, not by Actions:
 
 ```bash
 relay/wizard/run.sh status                            # what sits where
-relay/wizard/run.sh --node n1 deploy                  # dev/staging
+relay/wizard/run.sh --node n1 --env dev deploy       # --env is required: without it the wizard acts on every env on the box
+relay/wizard/run.sh --node n1 --env staging deploy   # n1 hosts both (fixed 2026-09-08)
 relay/wizard/run.sh --node p1 --confirm-prod deploy   # prod
 ```
 
@@ -122,6 +128,21 @@ gitignored — hence open item `A9` in `open-work_EN.md`.
 Database backups: `backup-postgres.sh` is laid down on the box by the wizard and
 runs from a systemd timer; the restore is exercised by
 `scripts/verify-backup-restore.sh`.
+
+**The drill first reached its end on 2026-09-08, and until that day this line
+was a lie.** The script asked for a secret named `SESSION_SECRET`, which does
+not exist — the secrets are per environment (`SESSION_SECRET_DEV` and its
+siblings) — and under `set -euo pipefail` it died on the assignment itself, one
+line after printing "restored without error". The dump was being restored; the
+comparison with the live database, the entire point, had never run. Three more
+things came out with it: the token was minted without `NODE_ENV_NAME` and would
+have been refused by the node; the node's status was never checked, so a 401
+read as a list of keys; and the wait used `pg_isready`, which answers during
+initdb, before the database exists.
+
+That day's measurement, dev: dump `2026-09-08T03-33-51Z.sql.gz`, 5668 bytes,
+restored as `brands=2 keys=4 live_keys=2 migrations=14`, live database
+`keys=4 live_keys=2` — they match.
 
 **Background work lives inside the node.** The queue is the `jobs` table in the
 same database; the worker starts with the node and stays silent without
@@ -155,7 +176,7 @@ Both files carry live keys and belong to their machine rather than to the
 repository, so their permissions are a property of the machine and nothing in
 git can enforce them: `chmod 600` on each after cloning. `secrets.env` was
 already 0600; `.env.deploy` was 0664 — readable by every account on the host —
-until 13.08.2026.
+until 2026-08-13.
 
 A template with every name and no values: `relay/wizard/secrets.env.example`. An
 empty value counts as absent — the wizard will say it could not check.
@@ -219,9 +240,16 @@ page itself lives for minutes, and an edge rule shortens the TTL:
    GA4 id too.
 3. The node's `/health` answers; a preflight from the landing's domain allows
    `x-api-key`; a keyless request gets 401 wherever `require_api_key=true`.
+   **Since 2026-09-08 `/health` carries a `database` field** — `ok`, `down` or
+   `off` — and it is what the database answered a second ago rather than a line
+   of configuration. `/health` itself still always returns 200: the balancer
+   reads it, and steering traffic away is **`/ready`**'s decision, which answers
+   503 when the database is gone. Until that day `status: "ok"` was a constant,
+   and the runbook's case "answers, but no work is getting done" had no signal
+   at all.
 4. The panel opens, magic-link sign-in works, Waitlist and the logs are visible.
 
-Items 3–4 are automated in `relay/test/smoke.sh`.
+Items 3–4 are automated in `relay/test/smoke.sh`. **Since 2026-09-08 the smoke test, the dev roll and the wizard ask `/ready`, not only `/health`:** the latter is always 200 by design, and judging a deploy by it is asking a light that cannot turn red. A node older than the route answers 404 — not a failure, and the output says so.
 
 ### Bunny Shield
 

@@ -149,7 +149,7 @@ def main() -> int:
 
     identifier = LanguageIdentifier(CACHE_DIRECTORY / "lid218e.bin")
     native, english = build_classifiers()
-    translator = build_translator("facebook/nllb-200-distilled-600M")
+    translator = build_translator()
     for name, failure in (("определитель", identifier.failure), ("классификатор оригинала", native.failure),
                           ("классификатор английского", english.failure),
                           (f"переводчик ({translator.name})", translator.failure)):

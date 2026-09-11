@@ -1,0 +1,114 @@
+# The ontology of facts and memory
+
+The facts layer answers one question: **where else is this fact written down, and does
+it agree with itself?** The group holds 190 documents under `docs/`, the same fact lives in two
+language halves and across as many as three repositories, and such copies drift apart
+in silence.
+
+## Nodes
+
+The four memory node types are fixed by the format of memory itself — they are the
+labels by which a note reaches the context, and they cannot be extended:
+
+| Type | What it holds |
+|---|---|
+| `user` | who the user is: role, expectations, habits |
+| `feedback` | how to work: corrections and confirmed approaches, with the reason |
+| `project` | decisions, goals and constraints not derivable from the code or history |
+| `reference` | external resources: addresses, dashboards, tickets |
+
+A fifth type — `fact` — lives not in memory but in the registries under `docs/facts`.
+It is a leaf of the graph: it has no outgoing edges, things rest on it. A link to it is
+written `[[fact:phrase.length]]`, and when the name occurs in more than one registry it
+is qualified as `[[fact:limits/phrase.length]]`.
+
+## Edges
+
+An edge is a list line of the form `- <kind>: [[name]]`. A bare `[[name]]` is an edge
+too, of the kind "mentions": it binds weakly and does not save a note from orphanhood.
+
+| Kind | What one is to the other | From | To |
+|---|---|---|---|
+| follows from | a decision arising from another decision or constraint | project, feedback | project, feedback, fact |
+| supersedes | a new decision in place of an earlier one | project, feedback | project, feedback, fact |
+| verified by | what confirms the fact mechanically | project, feedback | project, reference, fact |
+| described in | where the detail lives | project, feedback, user | reference, project, fact |
+| contradicts | a known divergence, not yet resolved | project, reference | project, reference, fact |
+| constrains | a constraint narrowing a decision or the work | project, user, feedback | project, feedback, fact |
+| mentions | a bare link in the text | any | any |
+
+The type pairs are restricted deliberately: a "verified by" edge from `reference` to
+`user` would mean the author got confused, not that the edge is rare.
+
+## Registries
+
+| Registry | One row is | Checked by |
+|---|---|---|
+| `decisions.tsv` | a decision anchored in both language halves | `check-facts-decisions.sh` |
+| `limits.tsv` | a limit's number and every file it must appear in | `check-facts-limits.sh` |
+| `open.tsv` | an open question: weight, area, deadline | `check-facts-open.sh` |
+| `noise-numbers.tsv` | a number that is not a limit, and why | `check-facts-coverage.sh` |
+| `noise-open.tsv` | how many of a file's items are kept by its own list | `check-facts-coverage.sh` |
+| `schema.tsv` | a table: where it is declared and whether it exists in the database | `check-facts-schema.sh` |
+| `noise.tsv` | a date that is not a decision, and why | `check-facts-coverage.sh` |
+
+**A fourth kind of due date — `с запуском`, "on launch" — was added on 2026-09-03.**
+Two cells were not enough, and one of them lied: an obligation written into legal
+documents has either a date or the word "сейчас" (now), and "-" is forbidden at `legal`
+weight. An item there is nothing to implement on — no feed, no offers, no messages in the
+node's schema — was kept permanently alight by "now", next to items alight for a reason.
+The difference between overdue and cannot-start-yet is not bookkeeping: the first asks
+for work today, the second only to be remembered on launch day, and merging them drowns a
+real overdue in a list of the impossible.
+
+**An open item's address is held by an anchor, not by a line number — since 2026-09-03.**
+The registry promises `file:line`, and the gate only ever looked at the file, so numbers
+drifted in silence: a document is edited, lines move, and the address keeps pointing at
+whatever landed there. Checking the number came first — it caught the obvious nonsense, a
+number past the end of the file or on a blank line, but not whether it landed in the
+right paragraph; that same day thirteen of the twenty-nine addresses turned out to point
+elsewhere, and a fourteenth was broken by inserting a paragraph into this very file an
+hour before the check. So the item gained an `anchor` column — a piece of the target line
+itself, as in the decisions registry. An anchor must be unique within its file: a
+non-unique one finds the wrong line and restores exactly the uncertainty it exists to
+remove. The number is reconciled against the anchor and corrected from it.
+
+The noise registry is the second half of coverage. Without it "coverage" is achieved by
+silence: an uncovered date is indistinguishable from an unnoticed one. A row in
+`noise.tsv` costs more than a skip — it shows up in the diff, and adding one requires
+explaining in writing why that date is not a decision.
+
+## Two different claims
+
+The table registry holds two claims, and they are checked differently:
+
+- `declared_in` — the table is declared by the specification. That is about text, and
+  a grep checks it.
+- `migration` — the table is created by a migration. That is about the database, and it
+  is checked by querying the live database, not by grepping the migration's text.
+
+On 2026-08-31 the difference turned out not to be theoretical: the stand was running an
+image built before the fifth migration and saw 4 files out of 11.
+
+**Since 2026-09-03 the line number in `declared_in` is reconciled against the
+declaration.** Grepping for the table's name was enough to say "the declaration is there",
+and nothing checked the number: fifteen of the eighteen addresses pointed elsewhere, all
+off by 11 to 14 lines — the document grew above them while the registry was filled in
+once and never revisited. No separate anchor column is needed here, unlike in `open.tsv`:
+the anchor follows from the table's name, the line `CREATE TABLE <name>` occurs once in
+the document, and keeping a copy of it would duplicate the very first column. Should
+there ever be several declarations, the address is called ambiguous rather than resolved
+to the first one found.
+
+## The rule of negative control
+
+A check becomes a check the moment its failure has been seen. Since 2026-09-03 all six gates have a probe that
+breaks what they guard and shows red: `test_ontology.sh`, `test_check-facts-schema.sh`,
+`test_check-facts-coverage.sh`, `test_check-facts-open.sh`, and the two added that
+day, `test_check-facts-decisions.sh` and `test_check-facts-limits.sh`. The open item
+`gates.without.probe` is closed by them. Every branch of both new suites was dropped
+red on its own — a disabled check must redden its case and no other; the negative
+control over the live files was dropped too, by pointing the probes at a live file
+with its restore removed. A green report on an empty
+place is the worst thing a check can do, which is why `check-facts-schema.sh` exits with
+code 2 when there is no database, rather than with zero.

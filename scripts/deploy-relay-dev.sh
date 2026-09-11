@@ -57,26 +57,54 @@ open(path, "w").write(new_text)
 PYTHON
 git -C "$root" --no-pager diff -- relay/wizard/environments.toml
 
-# The wizard runs in Docker (nothing installed here) and rolls every stack on the
-# box; staging keeps its own pinned release, so only dev moves.
+# The wizard runs in Docker (nothing installed here). Without --env it acts on
+# every environment the box hosts, and n1 hosts dev AND staging — so "deploy dev"
+# recreated the staging container and ran migrations against the staging database
+# as well. The wizard's own help says as much; the flag existed and this, its
+# only caller, did not pass it. Measured 07.09.2026 in a deploy log: twelve
+# staging lines in a dev rollout, including "migrate staging database".
 #
-# --node before the subcommand: it belongs to the top-level parser, and argparse
-# rejects it after `deploy`.
-echo "== wizard --node $box deploy"
-SECRETS_ENV="$secrets_file" bash "$root/relay/wizard/run.sh" --node "$box" deploy
+# --node and --env before the subcommand: they belong to the top-level parser,
+# and argparse rejects them after `deploy`.
+echo "== wizard --node $box --env $environment deploy"
+SECRETS_ENV="$secrets_file" bash "$root/relay/wizard/run.sh" --node "$box" --env "$environment" deploy
 
-# Health says a node answers; this says it is THIS node. /v1/client-error only
-# exists in the build being rolled out, so 404 means the old image is still up —
-# and it needs no credential to ask, unlike /waitlist on a keyed environment.
+# Health says a node answers; this says it is THIS build. It used to ask whether
+# /v1/client-error existed, on the reasoning that the route was new — which
+# stopped identifying anything the moment the route landed in an older image. On
+# 2026-08-31 that probe reported "the new build is live" over a node whose image
+# pull had been denied, and the run before it had reported the same. Now the node
+# names its own tag (RELAY_IMAGE_TAG, handed in by the wizard and kept by the
+# running container), and the probe compares it with the tag being rolled.
 base="https://$box-$environment.relay.panov.id"
 echo "== probe $base"
 curl -fsS -m 10 "$base/health" | grep -q '"status":"ok"' || { echo "FAIL: health"; exit 1; }
-status="$(curl -sS -o /dev/null -w '%{http_code}' -m 10 -X POST "$base/v1/client-error" \
-  -H 'content-type: application/json' -d '{}')"
-case "$status" in
-  401) echo "   /v1/client-error -> 401: the new build is live" ;;
-  404) echo "FAIL: /v1/client-error -> 404 — the old image is still running" >&2; exit 1 ;;
-  *)   echo "FAIL: /v1/client-error -> $status, expected 401" >&2; exit 1 ;;
+
+# `status` is a constant by design — /health is liveness and always 200. Asking
+# it whether the deploy worked is asking a light that cannot turn red: a node
+# whose migration failed or whose Postgres never came up answers ok, and the
+# roll was reported successful. /ready is the one that can refuse (503), so the
+# gate reads that.
+ready_code="$(curl -sS -m 10 -o /tmp/ready_body.$$ -w '%{http_code}' "$base/ready" || echo 000)"
+case "$ready_code" in
+  200) echo "   /ready 200: the node can work, not just answer" ;;
+  404) echo "   /ready 404: the node predates readiness — nothing to check here" ;;
+  *)   echo "FAIL: /ready answered $ready_code — the node answers but cannot work" >&2
+       head -c 200 "/tmp/ready_body.$$" >&2; echo >&2
+       rm -f "/tmp/ready_body.$$"
+       exit 1 ;;
+esac
+rm -f "/tmp/ready_body.$$"
+running="$(curl -fsS -m 10 "$base/health" |
+  python3 -c 'import json,sys; print(json.load(sys.stdin).get("image", ""))')"
+case "$running" in
+  "$tag")   echo "   /health image -> $running: this build is live" ;;
+  ""|unknown)
+    echo "FAIL: the node does not report an image tag — it predates RELAY_IMAGE_TAG," >&2
+    echo "      which means it is older than this probe and certainly not $tag" >&2
+    exit 1 ;;
+  *)  echo "FAIL: the node is running $running, not $tag — the roll did not take" >&2
+      exit 1 ;;
 esac
 
 echo

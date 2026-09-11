@@ -24,7 +24,16 @@ interface NoticeRow {
   // Nullable since migration 007: a notice can arrive naming no storefront.
   // The type said `string` and the compiler believed it, which is why the
   // statement insert below was written as if a brand were always there.
+  //
+  // Since 2026-09-07 there is a second way to be null: the copy belongs to a
+  // face other than the one the notice was filed through, so the platform
+  // examines it instead of that face (db/015). Null therefore no longer means
+  // "nobody knows whose this is" — it means "the platform's", for one of two
+  // reasons, and `received_via` is what tells them apart.
   brand: string | null;
+  // The face it arrived through. Attribution: never filtered on, and shown so a
+  // platform moderator can see whose storefront the reporter was using.
+  received_via: string | null;
   target_kind: string;
   target_id: string | null;
   snapshot: unknown;
@@ -33,6 +42,7 @@ interface NoticeRow {
   notifier_email: string | null;
   status: string;
   snapshot_state: string;
+  snapshot_reason: string | null;
   created_at: string;
   decided_at: string | null;
 }
@@ -67,8 +77,8 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
     conditions.push(`brand = $${args.length}`);
   }
   const rows = await query<NoticeRow>(
-    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, reason_text,
-            notifier_name, notifier_email, status, created_at, decided_at
+    `SELECT id, brand, received_via, target_kind, target_id, snapshot, snapshot_state, snapshot_reason,
+            reason_text, notifier_name, notifier_email, status, created_at, decided_at
        FROM dsa_notices
       ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
       ORDER BY created_at ASC
@@ -77,8 +87,27 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
   );
   if (rows === null) return json({ error: "database unavailable" }, 503);
 
-  // A plain array plus the count header: what the panel's data provider reads.
-  return json(rows, 200, { "x-total-count": String(rows.length) });
+  // How many there really are, and how many of those the platform must decide
+  // itself. Counted here rather than over the page: the panel used to count the
+  // rows it had been given, so `x-total-count` was the size of the slice and the
+  // queue picker's number was "how many of the first two hundred" — which shrinks
+  // as the queue overflows and reads as good news. Found by a review lens on
+  // 2026-09-08.
+  const totals = await query<{ total: string; platform: string }>(
+    `SELECT count(*)::text AS total,
+            count(*) FILTER (WHERE brand IS NULL)::text AS platform
+       FROM dsa_notices
+      ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}`,
+    args,
+  );
+  const total = totals?.[0]?.total ?? String(rows.length);
+  const platform = totals?.[0]?.platform ?? "0";
+
+  // A plain array plus the count headers: what the panel's data provider reads.
+  return json(rows, 200, {
+    "x-total-count": total,
+    "x-platform-count": platform,
+  });
 });
 
 interface DecisionBody {
@@ -94,6 +123,80 @@ const RESTRICTIONS = new Set(["removed", "hidden", "offer_taken_down", "access_r
 
 const trimmed = (value: unknown, max: number): string | null =>
   typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+
+// Article 18: informing law enforcement, and leaving something behind that says
+// it happened.
+//
+// The obligation is on the provider — where information gives rise to a
+// suspicion of a criminal offence involving a threat to life or safety, inform
+// the authorities promptly and give all relevant information available. The
+// judgement is a person's: a notice carries no label saying it is that one, by
+// design (SPEC §5.1), so nothing here decides anything on its own.
+//
+// What this route does is the part a person cannot do reliably: record that it
+// happened. Until 2026-09-08 the fact of such a report existed nowhere, which
+// means it could not be shown afterwards. The recipient is written down rather
+// than assumed, because the article names more than one — the Member State
+// concerned first, and Cyprus or Europol only when that State cannot be
+// identified.
+const RECIPIENTS = new Set(["cy_police_cybercrime", "europol", "other_member_state"]);
+
+route("POST", "/admin/dsa-notices/:id/escalate", async ({ req, params }) => {
+  const access = await requirePermission(req, "dsa_notices.escalate");
+  if (isDenied(access)) return access.response;
+
+  const body = await readJson<{ recipient?: unknown; sent_at?: unknown; note?: unknown }>(req);
+  if (!body) return json({ error: "invalid body" }, 422);
+
+  const recipient = typeof body.recipient === "string" ? body.recipient : "";
+  if (!RECIPIENTS.has(recipient)) {
+    // A free-text recipient would fill up with "reported" and prove nothing. The
+    // set is small on purpose and matches the article's own list.
+    return json({
+      error: "recipient must be one of: " + [...RECIPIENTS].join(", "),
+    }, 422);
+  }
+
+  // Which authority, and — when it is another Member State — which one. The
+  // article asks for the State concerned, and "some other country" is not an
+  // answer anybody can act on a year later.
+  const note = trimmed(body.note, 2000);
+  if (recipient === "other_member_state" && !note) {
+    return json({ error: "name the Member State and the channel in `note`" }, 422);
+  }
+
+  const rows = await query<NoticeRow>(
+    `SELECT id, brand, target_kind, target_id, status FROM dsa_notices WHERE id = $1`,
+    [params.id],
+  );
+  if (rows === null) return json({ error: "database unavailable" }, 503);
+  const notice = rows[0];
+  if (!notice) return json({ error: "no such notice" }, 404);
+  // Same rule as deciding: another tenant's notice is answered as if it did not
+  // exist, and an unattributed one belongs to the platform.
+  if (access.user.brand && notice.brand !== access.user.brand) {
+    return json({ error: "no such notice" }, 404);
+  }
+
+  recordAuditEvent({
+    actor: access.user,
+    action: "dsa_notice.escalated",
+    target: notice.id,
+    outcome: "applied",
+    after: {
+      recipient,
+      note,
+      // What was reported about, without repeating the report itself into a
+      // second store: the audit log keeps who and when, the notice keeps what.
+      target_kind: notice.target_kind,
+      target_id: notice.target_id,
+      brand: notice.brand,
+    },
+  });
+  log("info", "article 18 report recorded", { id: notice.id, recipient });
+
+  return json({ ok: true, id: notice.id, recipient });
+});
 
 route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
   const access = await requirePermission(req, "dsa_notices.decide");
@@ -118,7 +221,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     // their posts this is about. Without them the letter opens with "something
     // you posted has been restricted" and never says which — useless to anybody
     // with more than one.
-    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state,
+    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, snapshot_reason,
             notifier_email, status, decided_at
        FROM dsa_notices WHERE id = $1`,
     [params.id],
@@ -174,16 +277,25 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       if (rows[0].decided_at) return { ok: false as const, reason: "already" as const };
 
       const created = await tx<{ id: string }>(
+        // `automated_used` is written, not defaulted. Article 17(3)(c) asks
+        // whether automated means were used to reach this decision, and the
+        // answer is a statement we make rather than a column nobody touched:
+        // until 2026-09-08 the DEFAULT supplied it, and an exported statement
+        // could not tell "we say no" from "nobody considered it". The value
+        // itself is unchanged and matches the letter — a person decides every
+        // notice (lib/mailer.ts). The day a decision is ever made by anything
+        // else, this is the line that has to change, and it is findable.
         `INSERT INTO dsa_statements
            (brand, notice_id, target_id, recipient_identity, restriction,
-            facts, ground_kind, ground_text)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            facts, ground_kind, ground_text, automated_used)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)
          RETURNING id`,
         [notice.brand, notice.id, notice.target_id ?? "", recipient, restriction,
          facts, groundKind, groundText],
       );
       await tx(
-        `UPDATE dsa_notices SET status = $1, decided_at = now() WHERE id = $2`,
+        `UPDATE dsa_notices SET status = $1, decided_at = now(), automated_used = false
+          WHERE id = $2`,
         [decision, notice.id],
       );
       return { ok: true as const, id: created[0]?.id ?? null };
@@ -208,6 +320,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       targetKind: notice.target_kind,
       snapshot: notice.snapshot,
       snapshotState: notice.snapshot_state,
+      snapshotReason: notice.snapshot_reason ?? undefined,
     });
     if (delivered && statementId) {
       await queryOrThrow(`UPDATE dsa_statements SET delivered_at = now() WHERE id = $1`, [statementId]);
@@ -234,6 +347,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       // Article 16(5) asks what was decided, and "we disagreed" is the wrong
       // answer when the content had expired before anyone looked.
       snapshotState: notice.snapshot_state,
+      snapshotReason: notice.snapshot_reason ?? undefined,
     });
   }
 

@@ -58,6 +58,16 @@ jobs:
       - name: the release tag survives a re-run
         run: python3 deploy/test_release_tag.py
 
+      # Both WAF tools spend their measurements on a live zone under blocking,
+      # so what is pinned is the part that decides: the bisection must land on
+      # the culprit from every position, and "nothing was cut" must not be
+      # reported when the control never fired.
+      - name: the WAF rule search lands on the right rule
+        run: python3 deploy/test_waf_rule_search.py
+
+      - name: a clean route is only a finding when the control fired
+        run: python3 deploy/test_waf_route_probe.py
+
       # The wizard is a deploy script too: it decides what permissions the
       # secrets land with on a node, and which secret signs that node's sessions.
       - name: what the wizard writes to a node

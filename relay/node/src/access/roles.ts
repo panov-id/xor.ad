@@ -26,6 +26,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     // a new one does not arrive on its own the way it does for admin.
     "dsa_notices.read",
     "dsa_notices.decide",
+    "dsa_notices.escalate",
   ],
   viewer: ["waitlist.read"],
   // A tenant's own administrator: full reach inside their brand, and no reach

@@ -63,3 +63,16 @@ configured("a notice with an unknown api key is not refused", async () => {
   // otherwise this test would pass for the wrong reason the day storage returns.
   assertEquals(response.status, 503);
 });
+
+Deno.test("a well-formed identifier still reaches the lookup", async () => {
+  const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
+  const capture = await captureTarget(
+    "feed_message",
+    "00000000-0000-4000-8000-000000000001",
+    "sosed",
+  );
+  // No database here, so the honest answer is "the surface is not built" — what
+  // matters is that it is not the free-form answer of "nothing to look for".
+  assertEquals(capture.status, "not_accessible");
+  assertEquals(capture.reason, "surface_absent");
+});

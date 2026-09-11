@@ -5,10 +5,12 @@
 
 import { config } from "../config.ts";
 import { isRole, type Role } from "../access/index.ts";
-import { del, get, put } from "./storage.ts";
+import { del, get, list, put } from "./storage.ts";
 import { sha256hex } from "./hash.ts";
 import { sign, verify } from "./jwt.ts";
 import { sendPanelInvite, sendPanelLink } from "./mailer.ts";
+import { log } from "./log.ts";
+import { checkAll, SIGN_IN_MAILBOX_LIMITS } from "./rate_limit.ts";
 
 // Roles are owned by the access core; re-exported so route modules keep importing
 // the panel vocabulary from one place.
@@ -51,6 +53,27 @@ export async function requestMagicLink(email: string): Promise<void> {
   const e = email.trim().toLowerCase();
   if (!e) return;
   if (!await getUser(e)) return; // invite-only: never reveal membership
+
+  // The mailbox ceiling, and it is checked HERE rather than at the route on
+  // purpose. Charged before this line, a stranger's address spent a budget of
+  // its own — which is harmless — but the same call spent it under whatever
+  // address it named, so twenty requests naming the one operator locked that
+  // operator out of the panel while notices waited (found by a review panel,
+  // 2026-09-08). Past this line the budget belongs to a real operator and is
+  // spent only on letters that would actually be sent.
+  //
+  // Hashed, because the limiter's keys live in memory as plain strings and an
+  // operator's address does not need to be one of them.
+  const mailbox = await sha256hex(e);
+  if (!checkAll(SIGN_IN_MAILBOX_LIMITS, mailbox).allowed) {
+    // Said out loud in the log, because the person being flooded cannot be told:
+    // the route answers 204 whatever happens, and a 429 there would confirm the
+    // address is worth limiting. The hash, never the address.
+    log("warn", "sign-in mail withheld: mailbox over its hourly ceiling", {
+      mailbox: mailbox.slice(0, 12),
+    });
+    return;
+  }
   await sendPanelLink(e, linkFor(await issueToken(e, TOKEN_TTL_MS)));
 }
 
@@ -126,4 +149,68 @@ export async function authed(req: Request): Promise<PanelUser | null> {
     brand: typeof claims.brand === "string" ? claims.brand : null,
     created_at: "",
   };
+}
+
+// Expired sign-in links, which nothing removed.
+//
+// `issueToken` writes one object per request and `redeem` deletes it on use. A
+// link that is never clicked — a mistyped address, a change of mind, or every
+// request in a flood — was written and then kept for ever: storage bought one
+// object at a time, each holding an operator's email address in clear.
+//
+// The general object prune cannot do this. It works by object age and refuses
+// any window shorter than a week (tools/prune_objects.ts, MINIMUM_DAYS), while a
+// sign-in link lives fifteen minutes. So the window here is not age at all — it
+// is the token's own `exp`, the only honest statement of when the object stopped
+// meaning anything. It lives in this file because this is where the key layout
+// is owned, and because reaching storage directly is allowed here and nowhere
+// else (test/imports.test.ts).
+export interface MagicPruneResult {
+  removed: number;
+  kept: number;
+  /** True when the pass stopped at its ceiling and there is more to do. */
+  more: boolean;
+}
+
+// A grace period past `exp`: a token whose deadline passed a minute ago may
+// still be in flight towards `redeem`, and deleting it early turns "your link
+// has expired" into "invalid link" — the same outcome in a more alarming word.
+const MAGIC_GRACE_MS = 60 * 60 * 1000;
+
+// A ceiling on one pass, because the lease is not.
+//
+// The job holds its row for ten minutes (lib/jobs.ts). This walk is two storage
+// calls per object with no bound on the objects, so a backlog turns it into a
+// job that overruns, gets claimed by another node, and climbs `attempts` on
+// every overrun until it becomes a tombstone — at which point the sweep is off
+// for good and one log line is all that says so. Found by a review lens,
+// 2026-09-08. A bounded pass that asks to run again is slower to catch up and
+// cannot switch itself off.
+const MAGIC_PER_PASS = 2000;
+
+export async function pruneMagicLinks(now = Date.now()): Promise<MagicPruneResult> {
+  const dir = `panel/${config.envName}/magic`;
+  let removed = 0;
+  let kept = 0;
+  let seen = 0;
+  for (const name of await list(dir)) {
+    if (seen >= MAGIC_PER_PASS) {
+      log("info", "magic sweep hit its per-pass ceiling", { removed, kept, ceiling: MAGIC_PER_PASS });
+      return { removed, kept, more: true };
+    }
+    seen += 1;
+    const path = `${dir}/${name}`;
+    const token = await get<{ exp?: number }>(path);
+    // Unreadable or shapeless: `redeem` requires an `exp`, so such an object can
+    // never be redeemed and keeping it keeps nothing. It goes with the expired.
+    const exp = typeof token?.exp === "number" ? token.exp : 0;
+    if (exp + MAGIC_GRACE_MS < now) {
+      await del(path);
+      removed += 1;
+    } else {
+      kept += 1;
+    }
+  }
+  log("info", "pruned magic links", { removed, kept });
+  return { removed, kept, more: false };
 }

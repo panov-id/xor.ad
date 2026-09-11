@@ -16,6 +16,7 @@ verified on prod byte for byte.
 
 import io
 import os
+import re
 import pathlib
 import sys
 
@@ -63,6 +64,9 @@ class FakeSftp:
 
     def chmod(self, path, mode):
         self.events.append(("chmod", path, mode))
+
+    def close(self):
+        self.events.append(("close",))
 
 
 # --- the mode is set before the content lands --------------------------------
@@ -166,6 +170,22 @@ try:
     check("the old shared value reaches neither",
           "the-old-shared-one" not in dev_file and "the-old-shared-one" not in prod_file)
 
+    # The tag a node runs is the only thing a deploy can honestly ask about
+    # afterwards, and it gets there through this file: the container keeps the
+    # environment it started with, so a roll that failed before the container was
+    # recreated goes on reporting the previous tag. Without this line the probe
+    # in scripts/deploy-relay-dev.sh has nothing to compare and every deploy
+    # reports success — which is what happened on 2026-08-31.
+    pinned = {"env": {"dev": {"database": False, "image_tag": "sha-abc1234"},
+                      "prod": {"database": False}}}
+    tagged = wizard.env_file(pinned, box, "dev")
+    check("the node is told which image tag it runs",
+          "RELAY_IMAGE_TAG=sha-abc1234" in tagged,
+          [line for line in tagged.splitlines() if "IMAGE_TAG" in line] or "no such line")
+    untagged = wizard.env_file(pinned, box, "prod")
+    check("an environment with no pin still names one, rather than nothing",
+          "RELAY_IMAGE_TAG=dev" in untagged)
+
     os.environ.pop("SESSION_SECRET_PROD", None)
     try:
         wizard.env_file(inventory, box, "prod")
@@ -189,6 +209,26 @@ finally:
 box = {"id": "n1", "envs": ["dev", "staging"], "region": "test"}
 
 wizard.SELECTED_ENVS = None
+
+# --- every service caps its own log --------------------------------------------
+#
+# Docker's default keeps every line until the disk says otherwise, and the log
+# viewer on the box reads those same files: an unbounded log takes down the node
+# and the only way to look at it, together. Checked per service rather than once
+# for the file, because the policy is repeated in five places and four of them
+# are string concatenation - exactly the shape that loses a line in an edit.
+import yaml as _yaml
+
+_inv = {"pool": {}, "env": {"dev": {"image_tag": "sha-x", "mail": "mailpit", "database": True}},
+        "dns": {"zone": "relay.panov.id"}}
+_box = {"id": "n1", "envs": ["dev"], "database": True}
+_services = _yaml.safe_load(wizard.render_compose(_inv, _box))["services"]
+_without = sorted(name for name, svc in _services.items() if not svc.get("logging"))
+check("every service in the compose file caps its own log",
+      _without == [], f"no logging policy on: {_without}")
+_limits = {name: svc["logging"]["options"]["max-size"] for name, svc in _services.items()}
+check("the cap is a size, not a promise",
+      set(_limits.values()) == {"50m"}, str(_limits))
 check("without a filter, every environment is acted on",
       wizard.acting_envs(box) == ["dev", "staging"], str(wizard.acting_envs(box)))
 
@@ -196,9 +236,22 @@ wizard.SELECTED_ENVS = ["dev"]
 check("with --env dev, only dev is acted on",
       wizard.acting_envs(box) == ["dev"], str(wizard.acting_envs(box)))
 
+# It used to yield an empty list, and this test used to assert that. An empty
+# list is not "no environments" downstream: the services list comes out empty and
+# `docker compose up -d` with no services recreates every container on the box.
+# So `--env prod` against a box that hosts dev and staging asked for the
+# narrowest thing and did the widest, running no migrations at all. Refusing is
+# the only safe reading of a name that matches nothing (2026-09-08).
 wizard.SELECTED_ENVS = ["prod"]
-check("an environment the box does not host yields nothing to act on",
-      wizard.acting_envs(box) == [], str(wizard.acting_envs(box)))
+try:
+    wizard.acting_envs(box)
+    _refused = ""
+except SystemExit as stop:
+    _refused = str(stop)
+check("an environment the box does not host is refused, not silently widened",
+      "matches nothing on this box" in _refused, _refused or "no refusal at all")
+check("the refusal says what the box does host",
+      "dev, staging" in _refused, _refused)
 
 # The compose file is rendered from the box, not from the selection: a filtered
 # render would delete the other service.
@@ -225,6 +278,7 @@ wizard.SELECTED_ENVS = None
 
 migrate_calls = []
 create_calls = []
+pull_calls = []
 for node in ast.walk(tree):
     if not (isinstance(node, ast.Call) and getattr(node.func, "id", "") == "sh"):
         continue
@@ -233,6 +287,8 @@ for node in ast.walk(tree):
         migrate_calls.append((node, rendered))
     if "createdb" in rendered:
         create_calls.append((node, rendered))
+    if "compose pull" in rendered:
+        pull_calls.append((node, rendered))
 
 check("the migration is run", len(migrate_calls) == 1, f"{len(migrate_calls)} calls")
 if migrate_calls:
@@ -255,7 +311,205 @@ if create_calls and migrate_calls:
           "no existence check — Postgres has no CREATE DATABASE IF NOT EXISTS")
 
 print()
+
+# Migrations run out of the image, through `docker compose run node-<env>`. Pull
+# it afterwards and they are applied by the image already on the box — the
+# previous release — while the new code comes up against a schema without its
+# columns. That is a 503 on every Article 16 notice until someone runs the wizard
+# again, and it is invisible in a green deploy.
+check("the image is pulled", len(pull_calls) >= 1, f"{len(pull_calls)} calls")
+if pull_calls and migrate_calls:
+    check("it is pulled before the migration runs",
+          pull_calls[0][0].lineno < migrate_calls[0][0].lineno,
+          f"pull at line {pull_calls[0][0].lineno}, "
+          f"migrate at {migrate_calls[0][0].lineno}")
+
+print()
+
+# --- the firewall is never left down ------------------------------------------
+#
+# `firewall()` used to be one `&&` chain over the ssh channel that began with
+# `ufw --force reset` — which disables the firewall — and re-enabled it at the
+# end. Two ways to leave a public box open, and no check would have seen either:
+# lose the connection in between, or have one rule rejected (a typo in a
+# whitelist address does it) so `&&` never reaches the enable.
+#
+# The box is not touched here. What is asserted is what gets *written* and *run*,
+# because that is where both failures lived.
+
+
+class FakeChannel:
+    def recv_exit_status(self):
+        return 0
+
+
+class FakeStream(io.BytesIO):
+    """Bytes, because paramiko's streams are bytes and the wizard decodes them."""
+
+    channel = FakeChannel()
+
+
+class FakeClient:
+    """Records commands and answers reads with whatever the box would say.
+
+    The state file is answered with THIS run's token, the way a box that actually
+    ran the script would: the wizard now waits for its own `run=<id>` rather than
+    for any non-empty file, because a box configured twice already has one from
+    last time. `stale=True` makes the fake behave like that older box — it answers
+    without the token, and the wizard must refuse.
+    """
+
+    def __init__(self, answer="", stale=False):
+        self.commands = []
+        self.answer = answer
+        self.stale = stale
+        self.sftp = FakeSftp()
+
+    def _run_id(self):
+        script = self.sftp.contents.get(f"{wizard.REMOTE_ROOT}/relay-firewall.sh", "")
+        found = re.search(r"run=([0-9a-f]{32})", script)
+        return found.group(1) if found else ""
+
+    def exec_command(self, command):
+        self.commands.append(command)
+        answer = self.answer
+        if "relay-firewall.state" in command and not self.stale:
+            answer = f"run={self._run_id()}\n{self.answer}"
+        return None, FakeStream(answer.encode()), FakeStream(b"")
+
+    def open_sftp(self):
+        return self.sftp
+
+
+INVENTORY = {
+    "pool": {"ssh_whitelist": ["203.0.113.5"]},
+    "env": {"dev": {"access": "private", "whitelist_ips": ["198.51.100.7"]}},
+}
+BOX = {"id": "n1", "envs": ["dev"]}
+
+client = FakeClient("Status: active\nTo  Action  From\n")
+wizard.firewall(client, INVENTORY, BOX, sudo=True)
+
+script = client.sftp.contents.get(f"{wizard.REMOTE_ROOT}/relay-firewall.sh", "")
+check("the rules are written as a script on the box", bool(script), repr(client.sftp.contents))
+trap_lines = [line for line in script.splitlines() if line.startswith("trap ")]
+check("the script always reaches the enable",
+      len(trap_lines) == 1 and "ufw --force enable" in trap_lines[0],
+      "a rejected rule must cost that rule, not the whole firewall; "
+      f"trap lines: {trap_lines}")
+check("the script never passes through world-writable /tmp",
+      not any("/tmp/relay-firewall" in path for path in client.sftp.contents)
+      and not any("/tmp/relay-firewall" in c for c in client.commands),
+      "a local account that creates the path first owns what root then runs")
+check("the script masks its own files",
+      "umask 077" in script,
+      "the log carries the whole ssh whitelist and the firewall policy")
+check("the enable is refused when no rule for 22 landed",
+      "port 22" in script.split("trap", 1)[1].split("EXIT", 1)[0],
+      "a firewall up with no way in is recovered from a provider console, not ssh")
+check("the reset is inside the script, not on the ssh channel",
+      "ufw --force reset" in script
+      and not any("ufw --force reset" in c for c in client.commands),
+      str(client.commands))
+check("both whitelists reach the rules",
+      "203.0.113.5" in script and "198.51.100.7" in script, script)
+check("a private box does not open 443 to everybody",
+      "ufw allow 443/tcp" not in script, script)
+check("the script is detached from the ssh session",
+      any("setsid" in c and "nohup" in c for c in client.commands), str(client.commands))
+
+# And the wizard refuses to call it a success on a box whose firewall did not
+# come back — silence there was the whole defect.
+refused = False
+try:
+    wizard.firewall(FakeClient("Status: inactive"), INVENTORY, BOX, sudo=True)
+except RuntimeError:
+    refused = True
+check("a firewall that stayed down is an error, not a quiet success", refused)
+
+# A box configured before: the state file is already there, from last time.
+stale = FakeClient("Status: active", stale=True)
+refused_stale = False
+try:
+    wizard.firewall(stale, INVENTORY, BOX, sudo=True)
+except RuntimeError:
+    refused_stale = True
+check("a report from a previous run is not accepted as this run's", refused_stale,
+      "the second configure of any box would otherwise always look successful")
+
+public_client = FakeClient("Status: active")
+wizard.firewall(public_client,
+                {"pool": {"ssh_whitelist": []}, "env": {"prod": {"access": "public"}}},
+                {"id": "p1", "envs": ["prod"]}, sudo=True)
+check("a public box still opens 443",
+      "ufw allow 443/tcp" in public_client.sftp.contents.get(
+          f"{wizard.REMOTE_ROOT}/relay-firewall.sh", ""))
+
+print()
+
+# --- the dumps do not share a key with the thing they back up -----------------
+#
+# They lived in the same storage zone as the node's working objects, reachable
+# with the same key: one leaked key, or one mistaken prune with a wrong prefix,
+# took the data and the backups together. That is a second copy, not a backup.
+#
+# The zone itself is a person's action. What is checked here is that the script
+# uses it when it exists, falls back loudly when it does not, and — the part that
+# broke while this was being written — that the fallback still names a real key.
+
+import re  # noqa: E402
+import subprocess  # noqa: E402
+import tempfile  # noqa: E402
+
+backup = (pathlib.Path(__file__).parent / "backup-postgres.sh").read_text(encoding="utf-8")
+
+check("the uploads read the chosen zone, not a hardcoded one",
+      "${BUNNY_STORAGE_ZONE}/backups" not in backup,
+      "an upload path still names the working zone directly")
+check("nothing addresses the working key directly any more",
+      len(re.findall(r'AccessKey: \$\{BUNNY_STORAGE_KEY\}', backup)) == 0, backup[:200])
+
+# The fallback branch assigning key="${key}" is a real edit that happened here,
+# and it would have sent every dump with an empty AccessKey — a nightly failure
+# that looks like a provider problem.
+check("the fallback names the working key, not itself",
+      'key="${BUNNY_STORAGE_KEY}"' in backup and 'key="${key}"' not in backup,
+      "the fallback assignment is circular")
+
+# And run the selection for real, both ways, with the rest of the script cut off:
+# a shell reading is not a check.
+selection = backup.split("stamp=")[0].replace("cd /opt/relay/compose", "")
+selection = selection.replace("set -a; . ./backup.env; set +a", "")
+for label, env, expect_zone in [
+    ("its own zone", {"BACKUP_STORAGE_ZONE": "relay-backups", "BACKUP_STORAGE_KEY": "k2",
+                      "BUNNY_STORAGE_ZONE": "relay-live", "BUNNY_STORAGE_KEY": "k1"}, "relay-backups"),
+    ("the working zone", {"BUNNY_STORAGE_ZONE": "relay-live", "BUNNY_STORAGE_KEY": "k1"}, "relay-live"),
+]:
+    with tempfile.NamedTemporaryFile("w", suffix=".sh", delete=False) as handle:
+        handle.write(selection + '\necho "ZONE=$zone KEY=$key"\n')
+        path = handle.name
+    result = subprocess.run(["bash", path], capture_output=True, text=True,
+                            env={**os.environ, **env})
+    os.unlink(path)
+    check(f"it picks {label}", f"ZONE={expect_zone}" in result.stdout,
+          f"stdout={result.stdout!r} stderr={result.stderr!r}")
+    check(f"and a key to go with it ({label})",
+          "KEY=" in result.stdout and "KEY=\n" not in result.stdout
+          and result.stdout.split("KEY=")[1].strip() != "",
+          f"stdout={result.stdout!r}")
+
+check("a shared zone is reported, not passed over in silence",
+      "WARNING:" in backup
+      # Both names, because the fallback needs both set and an operator who set
+      # only the zone would otherwise read a warning denying what they can see.
+      and "BACKUP_STORAGE_ZONE and BACKUP_STORAGE_KEY" in backup,
+      "the warning must name both variables")
+check("the wizard puts the variables in backup.env",
+      all(name in (pathlib.Path(__file__).parent / "wizard.py").read_text(encoding="utf-8")
+          for name in ("BACKUP_STORAGE_ZONE", "BACKUP_STORAGE_KEY")))
+
 if failed:
     print(f"FAILED: {failed}")
     sys.exit(1)
 print("wizard: every case passed")
+

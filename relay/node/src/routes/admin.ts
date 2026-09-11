@@ -49,6 +49,9 @@ import {
 import { usedToday } from "../lib/quota.ts";
 import { sha256hex } from "../lib/hash.ts";
 import { config } from "../config.ts";
+import { withoutAddresses } from "../lib/mailer.ts";
+import { clientAddress } from "../lib/client_ip.ts";
+import { checkAll, SIGN_IN_LIMITS } from "../lib/rate_limit.ts";
 
 // Load every object under a prefix (small collections; leads are in the low
 // hundreds). Returns parsed records, dropping any that failed to read.
@@ -212,6 +215,22 @@ function readWindow(url: URL): LogWindow | null {
 
 route("POST", "/auth/request-link", async ({ req }) => {
   const body = await readJson<{ email?: string }>(req);
+
+  // The caller's own ceiling is allowed to say 429: it reveals nothing about who
+  // is a member, only that this address is asking too often.
+  const { ip } = clientAddress(req);
+  const caller = checkAll(SIGN_IN_LIMITS, ip);
+  if (!caller.allowed) {
+    return json(
+      { error: "too many sign-in requests from here — try later" },
+      429,
+      { "retry-after": String(caller.retryAfterSeconds) },
+    );
+  }
+
+  // The mailbox ceiling lives inside requestMagicLink, past the membership
+  // check: charged here it would have let anybody spend a named operator's
+  // budget and lock them out of the panel.
   if (body?.email) await requestMagicLink(body.email);
   return new Response(null, { status: 204 }); // always 204, no body — never reveal membership
 });
@@ -751,7 +770,7 @@ async function tryInvite(user: PanelUser, actor: PanelUser): Promise<boolean> {
     // refused delivery is neither — nobody decided anything. It goes to the
     // node's log, which the panel shows, and the caller sees `invited: false`.
     log("error", "panel invitation failed",
-        { role: user.role, brand: user.brand, error: String(error) });
+        { role: user.role, brand: user.brand, error: withoutAddresses(String(error)) });
     return false;
   }
 }
@@ -777,6 +796,26 @@ route("PATCH", "/admin/panel-users/:email", async ({ req, params }) => {
     return json({ error: "invalid role" }, 422);
   }
   const nextRole = (body?.role as PanelUser["role"]) ?? existing.role;
+
+  // The same rule as on create, and it was missing here — which made the rule on
+  // create decorative. A tenant would grant "viewer" to an operator of its own,
+  // then PATCH that operator to "admin": same brand, so `visible()` allows it,
+  // and `isLastAdmin` does not fire because the target is not an administrator.
+  // The wildcard that comes with "admin" reaches past the brand, and the only
+  // thing that kept the blast radius small was a belt of separate brand checks
+  // on individual routes.
+  if (access.user.brand !== null && nextRole === "admin") {
+    recordAuditEvent({
+      actor: access.user,
+      action: "panel_users.role_change",
+      target: email,
+      outcome: "denied",
+      reason: "a tenant cannot grant the platform administrator role",
+      before: existing,
+    });
+    return json({ error: "role not available to a tenant" }, 403);
+  }
+
   if (nextRole !== existing.role && await isLastAdmin(access.user, existing)) {
     recordAuditEvent({
       actor: access.user,
@@ -866,7 +905,7 @@ route("POST", "/admin/panel-users/:email/invite", async ({ req, params }) => {
   try {
     await sendInvitation(existing);
   } catch (error) {
-    log("error", "panel invitation failed", { error: String(error) });
+    log("error", "panel invitation failed", { error: withoutAddresses(String(error)) });
     return json({ error: "could not send the invitation" }, 502);
   }
   recordAuditEvent({ actor: access.user, action: "panel_users.invite", target: email });

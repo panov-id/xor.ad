@@ -66,6 +66,34 @@ problems, notes = judge({"wafEnabled": True, "wafExecutionMode": 0,
                          "learningMode": True, "learningModeUntil": None})
 check("learning with no end date is not treated as expired", not problems, str(problems))
 
+# A zone held on purpose is not a decision nobody made. What has to stay true is
+# that HELD covers exactly the named zones: a map that quietly silenced everything
+# would turn this report into the thing it was written to catch.
+problems, notes = shield.judge(
+    [{"name": "panel-prod", "pullZoneId": 2, "wafEnabled": True, "wafExecutionMode": 0,
+      "learningMode": True, "learningModeUntil": EARLIER}], now=NOW)
+check("a held zone is a note, not a problem", not problems and len(notes) == 1, str(problems))
+check("and the note names the item that carries its deadline",
+      notes and "G12" in notes[0] and "держим сознательно" in notes[0], str(notes))
+
+problems, _ = shield.judge(
+    [{"name": "some-other-prod", "pullZoneId": 3, "wafEnabled": True, "wafExecutionMode": 0,
+      "learningMode": True, "learningModeUntil": EARLIER}], now=NOW)
+check("a zone that is NOT held is still reported", len(problems) == 1, str(problems))
+
+# Holding is about log-only. A held zone that is in fact blocking must report as
+# blocking, or the map would hide a zone that changed under us.
+_, notes = shield.judge(
+    [{"name": "panel-prod", "pullZoneId": 2, "wafEnabled": True, "wafExecutionMode": 1,
+      "learningMode": False, "learningModeUntil": EARLIER}], now=NOW)
+check("a held zone that is actually blocking says so",
+      notes and "блокирует" in notes[0], str(notes))
+
+# Every held zone must name an item, or "held" becomes a place to hide a delay.
+check("every held zone carries an item and a reason",
+      all(len(value) == 2 and value[0] and value[1] for value in shield.HELD.values()),
+      str(shield.HELD))
+
 # Bunny returns both shapes for the same field; a parser that only knows one of
 # them would silently treat the other as "no date" and stay quiet forever.
 check("both time shapes parse",

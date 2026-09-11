@@ -7,15 +7,26 @@
 // will send anything. What the moderator writes here is what the author reads.
 
 import { useState } from "react";
+import { useGetIdentity } from "@refinedev/core";
+import type { PanelIdentity } from "../../providers/auth";
 import { useList } from "@refinedev/core";
 import { Badge } from "../../components/badge";
 import { DataTable } from "../../components/data-table";
 import { EmptyState } from "../../components/states";
 import { api } from "../../providers/api";
+import { copyCell, longReason } from "./reasons";
 
 type Notice = {
   id: string;
-  brand: string;
+  // Null means the platform examines it, and there are two ways to get there:
+  // the notice arrived with no usable key (db/007), or its copy belongs to a
+  // face other than the one it was filed through (db/015, 2026-09-07). Rendering
+  // null as an empty badge said neither, and an empty cell in a queue reads as a
+  // rendering bug rather than as "this one is ours".
+  brand: string | null;
+  // The face the notice came through. Only interesting when it differs from
+  // `brand` — that is exactly the case the platform is holding.
+  received_via: string | null;
   target_kind: string;
   target_id: string | null;
   snapshot: { table?: string; captured_at?: string; row?: Record<string, unknown> } | null;
@@ -24,9 +35,23 @@ type Notice = {
   notifier_email: string | null;
   status: string;
   snapshot_state: string;
+  // Sent by the list endpoint since db/013 (routes/dsa.ts returns the rows as
+  // they are). Null on notices older than that migration — a real absence of
+  // knowledge, not a missing label.
+  snapshot_reason: string | null;
   created_at: string;
   decided_at: string | null;
 };
+
+// The same closed set the node accepts (routes/dsa.ts). Article 18 names the
+// Member State concerned first; Cyprus or Europol only where that State cannot
+// be identified — so the options are worded to make that order visible rather
+// than putting the home country at the top out of habit.
+const AUTHORITIES = [
+  { value: "other_member_state", label: "The Member State concerned — name it below" },
+  { value: "cy_police_cybercrime", label: "Cyprus Police — Office for Combating Cybercrime" },
+  { value: "europol", label: "Europol" },
+];
 
 const RESTRICTIONS = [
   { value: "removed", label: "Removed" },
@@ -45,13 +70,18 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: "Rejected",
 };
 
-// Whether a copy exists, and when it does not, why — the two reasons are not
-// interchangeable and decide what can be examined at all. They used to live in
-// `status`, which kept such notices out of the queue entirely (see db/006).
-const COPY_LABEL: Record<string, string> = {
-  target_gone: "gone before we looked",
-  not_accessible: "never held",
-};
+// Which queue a notice belongs to, as one rule in one place.
+//
+// A platform reader sees every tenant's notices in one list — correct, since the
+// platform examines what no tenant can — but "which of these are mine to decide"
+// was a question answered by eye down two hundred rows. `brand IS NULL` is
+// exactly the platform's own queue, and it gets there two ways: the notice
+// arrived with no usable key (db/007), or its copy belongs to a face other than
+// the one it was filed through (db/015).
+export type QueueFilter = "all" | "platform" | "tenant";
+
+export const inQueue = (row: { brand: string | null }, queue: QueueFilter): boolean =>
+  queue === "all" || (queue === "platform" ? row.brand === null : row.brand !== null);
 
 export const DsaNoticesList = () => {
   const { result, query } = useList<Notice>({
@@ -60,6 +90,20 @@ export const DsaNoticesList = () => {
   });
 
   const [open, setOpen] = useState<Notice | null>(null);
+  // A tenant operator never sees a platform notice: the endpoint adds
+  // `brand = $1` for them, so the platform queue is empty by construction and
+  // offering it is offering a filter that can only ever show nothing.
+  const { data: me } = useGetIdentity<PanelIdentity>();
+  const isPlatform = me?.brand === null || me?.brand === undefined;
+  // Which queue is being read; the rule itself is `inQueue` above.
+  const [queue, setQueue] = useState<QueueFilter>("all");
+
+  const rows = (result?.data ?? []).filter((row) => inQueue(row, queue));
+  // The server's count over the whole queue, not this page's. Counting the rows
+  // in hand made the number "how many of the first two hundred", which shrinks
+  // as the queue overflows and reads as good news.
+  const platformCount = (query.data as { meta?: { platformCount?: number } } | undefined)
+    ?.meta?.platformCount ?? (result?.data ?? []).filter((row) => row.brand === null).length;
 
   return (
     <div className="panel-card">
@@ -70,6 +114,23 @@ export const DsaNoticesList = () => {
         went. The reporter's name is never shown to the author.
       </p>
 
+      {isPlatform ? (
+      <div className="log-controls">
+        <label>
+          Queue{" "}
+          <select
+            value={queue}
+            onChange={(event) => setQueue(event.target.value as QueueFilter)}
+            aria-label="Which queue to show"
+          >
+            <option value="all">every notice</option>
+            <option value="platform">the platform's own ({platformCount})</option>
+            <option value="tenant">a storefront's</option>
+          </select>
+        </label>
+      </div>
+      ) : null}
+
       <DataTable<Notice>
         columns={[
           {
@@ -77,7 +138,25 @@ export const DsaNoticesList = () => {
             label: "Arrived",
             render: (row) => new Date(row.created_at).toLocaleString(),
           },
-          { key: "brand", label: "Brand", render: (row) => <Badge>{row.brand}</Badge> },
+          {
+            key: "brand",
+            label: "Queue",
+            render: (row) =>
+              row.brand
+                ? <Badge>{row.brand}</Badge>
+                : (
+                  <>
+                    <Badge>Platform</Badge>
+                    {row.received_via
+                      ? (
+                        <span className="panel-hint">
+                          {" "}filed through {row.received_via}
+                        </span>
+                      )
+                      : null}
+                  </>
+                ),
+          },
           {
             key: "target_kind",
             label: "About",
@@ -101,7 +180,8 @@ export const DsaNoticesList = () => {
             // three clicks away — and "no copy" is worth its reason: content that
             // expired before anyone looked is a different problem from content we
             // could never have copied.
-            render: (row) => (row.snapshot ? "yes" : COPY_LABEL[row.snapshot_state] ?? "—"),
+            render: (row) =>
+              copyCell(Boolean(row.snapshot), row.snapshot_state, row.snapshot_reason),
           },
           {
             key: "id",
@@ -113,7 +193,7 @@ export const DsaNoticesList = () => {
             ),
           },
         ]}
-        rows={result?.data ?? []}
+        rows={rows}
         rowId={(row) => row.id}
         loading={query.isLoading}
         error={query.isError ? "Loading the reports failed." : null}
@@ -121,8 +201,10 @@ export const DsaNoticesList = () => {
         caption="Article 16 notices"
         empty={
           <EmptyState
-            title="No reports."
-            hint="The form on the storefronts writes here, and so does anything sent to support."
+            title={queue === "all" ? "No reports." : "No reports in this queue."}
+            hint={queue === "all"
+              ? "The form on the storefronts writes here, and so does anything sent to support."
+              : "There are notices, but none in the queue selected above."}
           />
         }
       />
@@ -157,8 +239,37 @@ const NoticeDetail = ({
   const [groundKind, setGroundKind] = useState<"legal" | "contractual">("contractual");
   const [groundText, setGroundText] = useState("");
   const [recipient, setRecipient] = useState("");
+  // Article 18 lives beside the decision, not inside it: informing police about a
+  // person is a different act from deciding what happens to their content, and it
+  // can be right whichever way that decision goes — including on a notice that
+  // will be rejected.
+  const [authority, setAuthority] = useState("");
+  const [authorityNote, setAuthorityNote] = useState("");
+  const [escalated, setEscalated] = useState(false);
+  const [escalateError, setEscalateError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const escalate = async () => {
+    setBusy(true);
+    setEscalateError(null);
+    try {
+      const response = await api(`/admin/dsa-notices/${notice.id}/escalate`, {
+        method: "POST",
+        body: JSON.stringify({ recipient: authority, note: authorityNote || undefined }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setEscalateError(body.error ?? `The record was refused (${response.status}).`);
+        return;
+      }
+      setEscalated(true);
+    } catch {
+      setEscalateError("The record could not be written.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const send = async () => {
     setBusy(true);
@@ -227,10 +338,47 @@ const NoticeDetail = ({
         <pre className="snapshot">{JSON.stringify(notice.snapshot.row ?? notice.snapshot, null, 2)}</pre>
       ) : (
         <p className="panel-hint">
-          None. Either the content had already expired before the report arrived, or
-          it is something we never hold — a chat is carried, not stored. Say so in
-          the answer rather than implying it was examined.
+          {longReason(notice.snapshot_reason)}
         </p>
+      )}
+
+      <h3>Reported to law enforcement</h3>
+      <p className="panel-hint">
+        Article 18: where this gives you reason to suspect an offence threatening
+        someone's life or safety, inform the authorities now — the obligation is
+        immediate and does not wait for the decision below. This form does not
+        send anything; it records that you did, so it can be shown later.
+      </p>
+      {escalated ? (
+        <p className="panel-hint">Recorded. The audit log has who, when and to whom.</p>
+      ) : (
+        <>
+          <label className="field">
+            <span>Who you informed</span>
+            <select value={authority} onChange={(event) => setAuthority(event.target.value)}>
+              <option value="">—</option>
+              {AUTHORITIES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>
+              Channel, reference, and — for another Member State — which one
+            </span>
+            <input
+              value={authorityNote}
+              onChange={(event) => setAuthorityNote(event.target.value)}
+              placeholder="cybercrime@police.gov.cy, ref 2026-…"
+            />
+          </label>
+          {escalateError ? <p className="panel-error">{escalateError}</p> : null}
+          <button type="button" onClick={escalate} disabled={busy || !authority}>
+            Record the report
+          </button>
+        </>
       )}
 
       {decided ? (

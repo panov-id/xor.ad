@@ -570,6 +570,84 @@ Deno.test({
 });
 
 Deno.test({
+  // Found 2026-09-07 by a review panel, not by a failure: nothing about this is
+  // visible while it happens. A job out of attempts keeps its row with
+  // `locked_until = 'infinity'` as the record of work that never succeeded —
+  // deliberate, and right. What was wrong is that `enqueueOnce` asked only
+  // whether a row of that kind exists, so the tombstone answered "one is already
+  // waiting" for ever. The daily chain lives inside the successful handler, so
+  // once a job gave up nothing re-armed it: every later restart of every node
+  // quietly enqueued nothing, and the retention windows the privacy policy
+  // promises stopped being kept with one line in the log.
+  //
+  // Storage being unreachable for long enough is all it takes: prune_objects
+  // throws "storage is not configured", eight attempts pass in about two hours,
+  // and the pruning is over until somebody deletes the row by hand.
+  name: "a job that gave up does not block the next arming",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const kind = `test-gaveup-${Date.now()}`;
+    // The state a job is left in by `fail()` once attempts run out.
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, attempts, max_attempts, locked_until, last_error)
+       VALUES ($1, '{}'::jsonb, 8, 8, 'infinity', 'storage is not configured')`,
+      [kind],
+    );
+
+    await jobs.enqueueOnce(kind, {}, new Date(Date.now() + 86_400_000));
+
+    const rows = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs
+        WHERE kind = $1 AND locked_until IS DISTINCT FROM 'infinity'`,
+      [kind],
+    );
+    assertEquals(
+      rows[0].count,
+      "1",
+      "the tombstone must not be mistaken for a job that is still coming",
+    );
+
+    // And the tombstone itself stays: it is the only evidence of what broke.
+    const dead = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs
+        WHERE kind = $1 AND locked_until = 'infinity'`,
+      [kind],
+    );
+    assertEquals(dead[0].count, "1", "a job that gave up is not deleted by re-arming");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+Deno.test({
+  // The other half of the same question: a row that is merely leased right now
+  // (a node is running it) is still a job that is coming, and re-arming must not
+  // add a second one beside it.
+  name: "a leased job still counts as enqueued",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const kind = `test-leased-${Date.now()}`;
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, locked_until)
+       VALUES ($1, '{}'::jsonb, now() + interval '10 minutes')`,
+      [kind],
+    );
+
+    await jobs.enqueueOnce(kind, {}, new Date(Date.now() + 86_400_000));
+
+    const rows = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(rows[0].count, "1", "a job in flight is not a job that is missing");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+Deno.test({
   // The failure this guards was invisible from every direction: the notice was
   // stored, acknowledged under Article 16(4), and absent from the only screen a
   // moderator has. It happened because the snapshot outcome was written into
@@ -715,6 +793,55 @@ Deno.test({
     for (const id of [mine, theirs, nobodys]) {
       assert(allIds.includes(id), "the platform cannot see every notice");
     }
+  },
+});
+
+// A notice held by the platform says why it is held there.
+//
+// Since 2026-09-07 `brand IS NULL` has two meanings: the notice arrived with no
+// usable key, or its copy belongs to a face other than the one it was filed
+// through. The queue is the only place a person sees the difference, and the
+// difference is `received_via` — which the list route did not return at all,
+// so a platform moderator got a row with an empty brand cell and no way to tell
+// the two apart.
+Deno.test({
+  name: "a notice the platform holds names the face it came through",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const rows = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, received_via, target_kind, target_id, reason_text, bona_fide,
+          status, snapshot_state, acknowledged_at)
+       VALUES (NULL, 'beta', 'feed_message', NULL, $1, true, 'received', 'received', now())
+       RETURNING id`,
+      [`routed notice ${uniqueId()}`],
+    );
+    const routed = rows[0].id;
+    const ownedByAlpha = await seedNotice("alpha", `alpha notice ${uniqueId()}`);
+
+    const seen = await callAs(PLATFORM, "GET", "/admin/dsa-notices");
+    assertEquals(seen.status, 200);
+    const row = seen.body.find((r: Body) => r.id === routed);
+    assert(row, "the platform cannot see a notice routed to it");
+    assertEquals(row.brand, null, "a routed notice belongs to the platform queue");
+    assertEquals(
+      row.received_via,
+      "beta",
+      "without this the moderator sees an empty cell and cannot tell why it is here",
+    );
+
+    // A tenant's own notice still names its own queue, and beta — whose face the
+    // routed notice came through — must not get it back through that column.
+    const mine = seen.body.find((r: Body) => r.id === ownedByAlpha);
+    assertEquals(mine.brand, "alpha");
+
+    const beta = await callAs({ role: "moderator", brand: "beta" }, "GET", "/admin/dsa-notices");
+    const betaIds = beta.body.map((r: Body) => r.id);
+    assert(
+      !betaIds.includes(routed),
+      "the face a notice was filed through must not read the copy it was routed away from",
+    );
   },
 });
 
@@ -902,6 +1029,51 @@ Deno.test({
   },
 });
 
+// Every kind the route accepts has to survive the INSERT, not just the route's own
+// check. Added 2026-08-31: `table_line` passed KINDS and died on the CHECK in
+// db/005, which listed four kinds and not that one, so lib/db.ts swallowed the
+// PostgresError and the reporter got 503 where Article 16(4) requires a receipt.
+// The suite had no test that sent it — the three notices below used 'chat',
+// 'feed_message' and 'other', which is why five days of green proved nothing.
+//
+// Looping over KINDS rather than naming the kinds keeps the next one honest: a
+// value added to the set with no migration behind it fails here.
+Deno.test({
+  name: "every kind the route accepts reaches the database",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { report, KINDS } = await import("../src/routes/report.ts");
+    for (const kind of KINDS) {
+      const marker = `kind-${kind}-${uniqueId()}`;
+      const response = await report(
+        new Request("https://relay.test/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            target_kind: kind,
+            reason_text: `[${marker}] a notice about ${kind}, filed to prove it is storable`,
+            bona_fide: true,
+          }),
+        }),
+      );
+      const body = await response.json();
+      assertEquals(
+        response.status,
+        202,
+        `a notice about ${kind} was refused with ${response.status}: ${JSON.stringify(body)}`,
+      );
+      const rows = await database.queryOrThrow<{ target_kind: string }>(
+        "SELECT target_kind FROM dsa_notices WHERE id = $1",
+        [body.id],
+      );
+      assertEquals(rows.length, 1, `a notice about ${kind} answered 202 and stored nothing`);
+      assertEquals(rows[0].target_kind, kind);
+      await database.queryOrThrow("DELETE FROM dsa_notices WHERE id = $1", [body.id]);
+    }
+  },
+});
+
 // --- a native key is a different kind of key ----------------------------------
 //
 // The terminal client ships one publishable key inside its image, shared by every
@@ -969,5 +1141,840 @@ Deno.test({
     for (let i = 0; i < 3; i++) assertEquals(await ask(native.id, null), 200);
     await quota.flush();
     assertEquals(await ask(native.id, null), 200);
+  },
+});
+
+// The boundary, exercised where it actually decides something: a database.
+//
+// Since 2026-09-07 the snapshot is bounded by what the notifier could see, and
+// the feed is one world — `brand` there is attribution and takes no part in what
+// is shown. So a notice that arrives through one face about a phrase attributed
+// to another is examined, not refused: the person reporting it was looking at
+// it. The offer is the other half of the same rule and is checked below.
+//
+// Only a database can tell an empty scoped lookup from a missing row, so this is
+// the one suite where the branch actually runs. It builds the surface it needs —
+// feed_messages does not exist yet, and the day it does, this test stops
+// building and starts using it.
+
+// A probe surface, and the promise that it is ours.
+//
+// These suites build the product's tables to exercise branches that need them —
+// feed_messages and offers exist in no migration yet. They did it with
+// `CREATE TABLE IF NOT EXISTS` and dropped unconditionally in `finally`, which is
+// safe exactly until the day the product is migrated: then a probe silently takes
+// the real table, works against it, and deletes it with every row in it. The only
+// guard was that `scripts/run-relay-database-tests.sh` hands the suite a
+// throwaway database — a property of the runner, not of the test, and `deno test`
+// with somebody's DATABASE_URL in the environment behaves the same way.
+//
+// Finding the table already there is not a reason to carry on quietly: it means
+// that day has arrived, and the suite says so instead of deleting anything. The
+// DDL below also lost its `IF NOT EXISTS` for the same reason — a probe that
+// silently accepts an existing table is the whole problem in one clause.
+async function refuseIfSurfaceExists(name: string): Promise<void> {
+  const { query } = await import("../src/lib/db.ts");
+  const rows = await query<{ exists: boolean }>(
+    "SELECT to_regclass($1) IS NOT NULL AS exists",
+    [name],
+  );
+  assert(rows !== null, "the database did not answer");
+  if (rows[0]?.exists) {
+    throw new Error(
+      `${name} already exists in this database. The product has been migrated, so ` +
+        `this probe must stop building its own surface — and must certainly not drop ` +
+        `the real one. Rewrite the suite to use the migrated table.`,
+    );
+  }
+}
+
+Deno.test({
+  name: "a phrase attributed to another face is still examined, because the world is one",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
+
+    await refuseIfSurfaceExists("feed_messages");
+    const built = await query(
+      // The columns are the ones SNAPSHOTTABLE asks for, not a plausible
+      // guess: the first version of this probe omitted created_at and
+      // author_identity, and the branch under test answered lookup_failed —
+      // which is what a wrong column is supposed to produce.
+      `CREATE TABLE feed_messages (
+         id uuid PRIMARY KEY,
+         brand text,
+         text text,
+         mode text,
+         created_at timestamptz DEFAULT now(),
+         visible_at timestamptz,
+         author_identity uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    const id = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'alpha', 'фраза из альфы', now())`,
+      [id],
+    );
+
+    // Waiting in the moderation queue: public to nobody, so no notifier could
+    // have seen it, so it is never copied — the boundary is time as well as face.
+    const unpublished = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'alpha', 'ещё не пропущена', NULL)`,
+      [unpublished],
+    );
+
+    try {
+      const elsewhere = await captureTarget("feed_message", id, "beta");
+      assertEquals(elsewhere.status, "received");
+      assertEquals(elsewhere.reason, null);
+      assertEquals(
+        (elsewhere.snapshot?.row as Record<string, unknown>)?.text,
+        "фраза из альфы",
+        "the copy has to be the phrase itself, not an empty shell",
+      );
+
+      const home = await captureTarget("feed_message", id, "alpha");
+      assertEquals(home.status, "received");
+      assertEquals(home.reason, null);
+
+      // A notice that names no face at all: on a world surface there is nothing
+      // to scope to, and refusing would mean refusing to look at something
+      // public.
+      const faceless = await captureTarget("feed_message", id, null);
+      assertEquals(faceless.status, "received");
+      assertEquals(faceless.reason, null);
+
+      // The face of the row comes back with the copy: that is what routes the
+      // notice away from whoever chose to send it.
+      assertEquals(elsewhere.owner, "alpha");
+      assertEquals(home.owner, "alpha");
+
+      const waiting = await captureTarget("feed_message", unpublished, "alpha");
+      assertEquals(waiting.status, "target_gone");
+      assertEquals(
+        waiting.snapshot,
+        null,
+        "a phrase nobody could see must never be copied, not even for its own face",
+      );
+
+      const missing = await captureTarget("feed_message", crypto.randomUUID(), "alpha");
+      assertEquals(missing.status, "target_gone");
+      assertEquals(missing.reason, null);
+    } finally {
+      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+    }
+  },
+});
+
+// The other half of the same rule. An offer exists only under the face it was
+// published through, so a notice arriving through another face is about
+// something that was never visible to its sender — `out_of_scope`, and never
+// `target_gone`, which would say the offer had expired while it is alive.
+Deno.test({
+  name: "an offer under another face is out_of_scope, because it was never visible",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
+
+    await refuseIfSurfaceExists("offers");
+    const built = await query(
+      `CREATE TABLE offers (
+         id uuid PRIMARY KEY,
+         brand text,
+         offer_text text,
+         discount_value text,
+         conditions text,
+         published_at timestamptz DEFAULT now(),
+         venue_id uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    const id = crypto.randomUUID();
+    await query(
+      `INSERT INTO offers (id, brand, offer_text) VALUES ($1, 'alpha', 'кофе за полцены')`,
+      [id],
+    );
+
+    try {
+      const elsewhere = await captureTarget("offer", id, "beta");
+      assertEquals(elsewhere.status, "not_accessible");
+      assertEquals(elsewhere.reason, "out_of_scope");
+
+      const home = await captureTarget("offer", id, "alpha");
+      assertEquals(home.status, "received");
+      assertEquals(home.reason, null);
+
+      const faceless = await captureTarget("offer", id, null);
+      assertEquals(faceless.status, "not_accessible");
+      assertEquals(faceless.reason, "unattributed");
+
+      const missing = await captureTarget("offer", crypto.randomUUID(), "alpha");
+      assertEquals(missing.status, "target_gone");
+      assertEquals(missing.reason, null);
+    } finally {
+      await query(`DROP TABLE IF EXISTS offers`, []);
+    }
+  },
+});
+
+// The whole route, end to end: who ends up examining a notice about a row that
+// belongs to another face.
+//
+// The two suites above hold the copy — what may be taken. This one holds the
+// consequence decided with it on 2026-09-07: the notice is filed for the
+// platform, not for the face that sent it. Without this, a tenant could name
+// another tenant's identifiers and read the copies in their own queue, which is
+// the exact hole the pre-boundary code closed by refusing to look at all.
+//
+// The face is set through the `source` hint rather than a key: publishable keys
+// live in object storage, which this suite does not have, while the hint is the
+// transitional path the storefronts still use (lib/tenant.ts). Either way it is
+// the sender who chooses it, which is the whole reason routing cannot trust it.
+Deno.test({
+  name: "a notice about another face's row is filed for the platform, not the sender",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { report } = await import("../src/routes/report.ts");
+
+    await refuseIfSurfaceExists("feed_messages");
+    const built = await query(
+      `CREATE TABLE feed_messages (
+         id uuid PRIMARY KEY,
+         brand text,
+         text text,
+         mode text,
+         created_at timestamptz DEFAULT now(),
+         visible_at timestamptz,
+         author_identity uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    const filed = async (targetId: string, source: string) => {
+      const response = await report(
+        new Request("https://node.test/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            target_kind: "feed_message",
+            target_id: targetId,
+            reason_text: "This phrase names a private address and invites people to go there.",
+            bona_fide: true,
+            source,
+          }),
+        }),
+      );
+      assertEquals(response.status, 202, "a report of illegal content is never refused");
+      const body = await response.json();
+      const rows = await query<
+        { brand: string | null; received_via: string | null; snapshot: unknown }
+      >(
+        `SELECT brand, received_via, snapshot FROM dsa_notices WHERE id = $1`,
+        [body.id],
+      );
+      assert(rows !== null && rows.length === 1, "the notice was not stored");
+      return rows[0];
+    };
+
+    const theirs = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'beta', 'фраза, живущая под бетой', now())`,
+      [theirs],
+    );
+    const mine = crypto.randomUUID();
+    await query(
+      `INSERT INTO feed_messages (id, brand, text, visible_at)
+       VALUES ($1, 'alpha', 'своя фраза', now())`,
+      [mine],
+    );
+
+    try {
+      // Sent through alpha, about a row belonging to beta.
+      const foreign = await filed(theirs, "alpha.test");
+      assertEquals(
+        foreign.brand,
+        null,
+        "alpha must not examine a row belonging to beta — the platform does",
+      );
+      assertEquals(
+        foreign.received_via,
+        "alpha",
+        "the face it arrived through is kept: an Article 16 reply is sent from somewhere",
+      );
+      assert(
+        foreign.snapshot !== null,
+        "the copy is still taken — the notifier saw the phrase, the world is one",
+      );
+
+      // Same face on both sides: nothing to route away, and a tenant keeps
+      // seeing complaints about its own rows.
+      const own = await filed(mine, "alpha.test");
+      assertEquals(own.brand, "alpha", "a tenant still examines its own rows");
+      assertEquals(own.received_via, "alpha");
+    } finally {
+      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+    }
+  },
+});
+
+// A malformed identifier is not a failure to look — it is not an identifier.
+//
+// This needs a database, and that is the whole point: without one the surface
+// check answers first and a broken id looks exactly like a fixed one. With the
+// surface built, anything that is not a uuid used to reach Postgres, break the
+// query, and be filed `lookup_failed` — "we could not look", a statement about
+// our code — while writing an error-level line a stranger could produce at will.
+Deno.test({
+  name: "a target id that is not an identifier is free-form, not a failed lookup",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { query } = await import("../src/lib/db.ts");
+    const { report } = await import("../src/routes/report.ts");
+
+    await refuseIfSurfaceExists("feed_messages");
+    const built = await query(
+      `CREATE TABLE feed_messages (
+         id uuid PRIMARY KEY,
+         brand text,
+         text text,
+         mode text,
+         created_at timestamptz DEFAULT now(),
+         visible_at timestamptz,
+         author_identity uuid
+       )`,
+      [],
+    );
+    assert(built !== null, "the probe surface could not be created");
+
+    try {
+      const response = await report(
+        new Request("https://node.test/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            target_kind: "feed_message",
+            target_id: "не помню, где-то в ленте",
+            reason_text: "This phrase names a private address and invites people to go there.",
+            bona_fide: true,
+            source: "alpha.test",
+          }),
+        }),
+      );
+      assertEquals(response.status, 202, "a report of illegal content is never refused");
+      const body = await response.json();
+
+      const rows = await query<
+        { target_id: string | null; snapshot_state: string; snapshot_reason: string | null }
+      >(
+        `SELECT target_id, snapshot_state, snapshot_reason FROM dsa_notices WHERE id = $1`,
+        [body.id],
+      );
+      assert(rows !== null && rows.length === 1, "the notice was not stored");
+      assertEquals(
+        rows[0].snapshot_reason,
+        null,
+        "a typo must not be recorded as our failure to look",
+      );
+      assertEquals(rows[0].snapshot_state, "received");
+      assertEquals(rows[0].target_id, null, "what was sent was never an identifier");
+    } finally {
+      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+    }
+  },
+});
+
+// A year-old notice takes its statement with it.
+//
+// The two deletes used to run on their own ages, and `dsa_statements.notice_id`
+// is ON DELETE SET NULL (db/005): a statement younger than a year survived the
+// first delete and had its link nulled by the second. What remained was an
+// Article 17 statement that could not name the notice that produced it — the
+// record kept for defending a decision, with the decision's cause gone.
+Deno.test({
+  name: "pruning a year-old notice removes its statement rather than orphaning it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { pruneDsaRecords } = await import("../tools/prune_dsa_records.ts");
+
+    // Old notice, young statement: the exact pair that used to come apart.
+    const old = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state,
+          created_at)
+       VALUES ('alpha', 'feed_message', NULL, $1, true, 'upheld', 'received',
+               now() - interval '400 days')
+       RETURNING id`,
+      [`aged notice ${uniqueId()}`],
+    );
+    const noticeId = old[0].id;
+    const statement = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_statements
+         (brand, notice_id, target_id, recipient_identity, restriction, facts,
+          ground_kind, ground_text, created_at)
+       VALUES ('alpha', $1, 'x', 'someone', 'removed', 'facts', 'legal', 'ground', now())
+       RETURNING id`,
+      [noticeId],
+    );
+    const statementId = statement[0].id;
+
+    // A young pair that must survive untouched.
+    const fresh = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices
+         (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state)
+       VALUES ('alpha', 'feed_message', NULL, $1, true, 'received', 'received')
+       RETURNING id`,
+      [`fresh notice ${uniqueId()}`],
+    );
+
+    try {
+      await pruneDsaRecords({ apply: true });
+
+      const survived = await database.queryOrThrow<{ id: string; notice_id: string | null }>(
+        `SELECT id, notice_id FROM dsa_statements WHERE id = $1`,
+        [statementId],
+      );
+      assertEquals(
+        survived.length,
+        0,
+        "the statement of a pruned notice must go with it, not stay with a null link",
+      );
+
+      const gone = await database.queryOrThrow<{ id: string }>(
+        `SELECT id FROM dsa_notices WHERE id = $1`,
+        [noticeId],
+      );
+      assertEquals(gone.length, 0, "the year-old notice itself must be gone");
+
+      const kept = await database.queryOrThrow<{ id: string }>(
+        `SELECT id FROM dsa_notices WHERE id = $1`,
+        [fresh[0].id],
+      );
+      assertEquals(kept.length, 1, "a notice younger than a year must survive");
+    } finally {
+      await database.queryOrThrow(`DELETE FROM dsa_notices WHERE id = $1`, [fresh[0].id]);
+    }
+  },
+});
+
+// The other half of the health probe: with a database, it must say so.
+//
+// The suite without one covers "off"; this covers "ok", and together they are
+// what makes the field worth reading. A balancer rule written against "down"
+// is only as good as the two states it can tell apart.
+Deno.test({
+  name: "health reports the database it can actually reach",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { health, ready } = await import("../src/routes/health.ts");
+
+    const body = await (await health()).json();
+    assertEquals(body.status, "ok");
+    assertEquals(body.database, "ok", "with DATABASE_URL set and answering, this is 'ok'");
+
+    const readiness = await ready();
+    assertEquals(readiness.status, 200);
+    assertEquals((await readiness.json()).status, "ready");
+  },
+});
+
+// The prune takes more than one batch, and takes all of it.
+//
+// Batching was added because a year in one transaction holds locks on both
+// tables until the last row is gone and pins autovacuum's horizon across the
+// database. The risk it introduces is the opposite one: a loop that stops after
+// the first batch leaves records that were supposed to be gone, quietly, and the
+// only way to notice is to count. So this seeds more than a batch's worth — with
+// a batch size lowered for the test — and checks that nothing old survives.
+Deno.test({
+  name: "the prune keeps going past the first batch",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { pruneDsaRecords } = await import("../tools/prune_dsa_records.ts");
+    const marker = `batched ${uniqueId()}`;
+
+    // Twelve old notices, each with a young statement: enough to need three
+    // passes at a batch of five, and every statement is the case that used to be
+    // orphaned rather than removed.
+    for (let i = 0; i < 12; i++) {
+      const rows = await database.queryOrThrow<{ id: string }>(
+        `INSERT INTO dsa_notices
+           (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state,
+            created_at)
+         VALUES ('alpha', 'feed_message', NULL, $1, true, 'upheld', 'received',
+                 now() - interval '400 days')
+         RETURNING id`,
+        [`${marker} ${i}`],
+      );
+      await database.queryOrThrow(
+        `INSERT INTO dsa_statements
+           (brand, notice_id, target_id, recipient_identity, restriction, facts,
+            ground_kind, ground_text, created_at)
+         VALUES ('alpha', $1, 'x', 'someone', 'removed', 'facts', 'legal', 'ground', now())`,
+        [rows[0].id],
+      );
+    }
+
+    const before = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_notices WHERE reason_text LIKE $1`,
+      [`${marker}%`],
+    );
+    assertEquals(before[0].count, "12", "the fixture did not land");
+
+    const result = await pruneDsaRecords({ apply: true, batch: 5 });
+    assert(result.notices >= 12, `expected at least 12 notices deleted, got ${result.notices}`);
+
+    const left = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_notices WHERE reason_text LIKE $1`,
+      [`${marker}%`],
+    );
+    assertEquals(left[0].count, "0", "the loop stopped before taking everything");
+
+    const orphans = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_statements
+        WHERE notice_id IS NULL AND facts = 'facts' AND recipient_identity = 'someone'`,
+    );
+    assertEquals(orphans[0].count, "0", "a statement was left without its notice");
+  },
+});
+
+// Article 18 leaves a trace, and the trace names a recipient.
+//
+// The obligation is to inform law enforcement promptly where a suspicion of an
+// offence threatening life or safety arises. The judgement is a person's — a
+// notice carries no label for it by design — but until 2026-09-08 the fact that
+// a report had been made existed nowhere at all, so it could not be shown
+// afterwards. That is what this route is for, and the recipient is a closed set
+// because a free-text field fills up with "reported" and proves nothing.
+Deno.test({
+  name: "an Article 18 report is recorded with its recipient, and refuses to be vague",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const id = await seedNotice("alpha", `article 18 ${uniqueId()}`);
+    const MOD = { role: "moderator", brand: "alpha" } as const;
+
+    const vague = await callAs(MOD, "POST", `/admin/dsa-notices/${id}/escalate`, {
+      recipient: "somebody",
+    });
+    assertEquals(vague.status, 422, "an unknown recipient is not a recipient");
+
+    // Another Member State is a legitimate answer, but not on its own: the
+    // article asks for the State concerned, and "abroad" is not one.
+    const unnamed = await callAs(MOD, "POST", `/admin/dsa-notices/${id}/escalate`, {
+      recipient: "other_member_state",
+    });
+    assertEquals(unnamed.status, 422, "another State has to be named");
+
+    const done = await callAs(MOD, "POST", `/admin/dsa-notices/${id}/escalate`, {
+      recipient: "cy_police_cybercrime",
+      note: "cybercrime@police.gov.cy",
+    });
+    assertEquals(done.status, 200);
+    assertEquals(done.body.recipient, "cy_police_cybercrime");
+
+    // A tenant cannot escalate somebody else's notice, for the same reason it
+    // cannot decide one: whether it exists is not their business.
+    const theirs = await seedNotice("beta", `article 18 beta ${uniqueId()}`);
+    const trespass = await callAs(MOD, "POST", `/admin/dsa-notices/${theirs}/escalate`, {
+      recipient: "cy_police_cybercrime",
+    });
+    assertEquals(trespass.status, 404);
+  },
+});
+
+// Two nodes arming the same standing job, and a worker that lost its lease.
+//
+// Both used to end the same way: two prune chains instead of one, each re-arming
+// itself the next day, and neither visible as a duplicate because only a
+// successful run deletes a row. The first came from enqueueOnce reading and then
+// writing with nothing in between; the second from finish() deleting a row by id
+// alone, so a worker whose ten-minute lease had been taken by another node still
+// deleted the row and rescheduled tomorrow.
+Deno.test({
+  name: "a standing job cannot be armed twice, even by two nodes at once",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const jobs = await import("../src/lib/jobs.ts");
+    const { query } = await import("../src/lib/db.ts");
+    const kind = `probe-standing-${uniqueId()}`;
+
+    // Simultaneous, not sequential: sequential would pass on the read alone and
+    // prove nothing about the race this fixes.
+    await Promise.all([
+      jobs.enqueueOnce(kind),
+      jobs.enqueueOnce(kind),
+      jobs.enqueueOnce(kind),
+    ]);
+
+    const rows = await query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(rows?.[0]?.count, "1", "three simultaneous armings must leave one job");
+
+    // A tombstone is not a standing job: a kind that gave up must be armable
+    // again, which is the defect the unique index must not resurrect.
+    await query(`UPDATE jobs SET locked_until = 'infinity' WHERE kind = $1`, [kind]);
+    await jobs.enqueueOnce(kind);
+    const after = await query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(after?.[0]?.count, "2", "a headstone must not block the next arming");
+
+    await query(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+Deno.test({
+  name: "a worker whose lease was taken cannot finish the job",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { handle, enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    const kind = `probe-lease-${uniqueId()}`;
+
+    // The handler stands in for a worker that overran its ten minutes: while it
+    // is running, another node claims the row and the lease token changes. The
+    // worker then returns and tries to finish a job that is no longer its own.
+    let stolen = "";
+    handle(kind, async () => {
+      const rows = await database.queryOrThrow<{ lease: string }>(
+        `UPDATE jobs SET lease = gen_random_uuid() WHERE kind = $1 RETURNING lease`,
+        [kind],
+      );
+      stolen = rows[0].lease;
+    });
+
+    await enqueue(kind);
+    assertEquals(await runOnce(), true, "the job was picked up");
+
+    const survived = await database.queryOrThrow<{ lease: string }>(
+      `SELECT lease FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(survived.length, 1, "the row belongs to whoever holds it now");
+    assertEquals(survived[0].lease, stolen, "and its lease is the new one");
+
+    // Nobody stole it this time, so the worker's own finish clears the row.
+    const quiet = `probe-lease-${uniqueId()}`;
+    handle(quiet, async () => {});
+    await enqueue(quiet);
+    assertEquals(await runOnce(), true, "the second job was picked up");
+    const gone = await database.queryOrThrow<{ id: number }>(
+      `SELECT id FROM jobs WHERE kind = $1`,
+      [quiet],
+    );
+    assertEquals(gone.length, 0, "the lease holder finishes normally");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = ANY($1)`, [[kind, quiet]]);
+  },
+});
+
+// The idempotency table stops growing.
+//
+// A key exists so a retry minutes later gets the same answer; after a day nobody
+// will look one up again. Nothing deleted them until 2026-09-08 — the table was
+// written and read and never swept — so with a client sending keys it grows one
+// row per request, each holding a whole response, for ever.
+Deno.test({
+  name: "old idempotency keys are swept, recent ones are not",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { PRUNE_IDEMPOTENCY, registerScheduledJobs } = await import("../src/lib/scheduled.ts");
+    const { runOnce } = await import("../src/lib/jobs.ts");
+    // The handlers are registered at start-up in main.ts; a suite that only
+    // imports the module has none, and runOnce would quietly find no handler.
+    registerScheduledJobs();
+    const stale = `stale-${uniqueId()}`;
+    const fresh = `fresh-${uniqueId()}`;
+
+    await database.queryOrThrow(
+      `INSERT INTO idempotency (key, brand, response, created_at)
+       VALUES ($1, 'alpha', '{"ok":true}'::jsonb, now() - interval '3 days'),
+              ($2, 'alpha', '{"ok":true}'::jsonb, now())`,
+      [stale, fresh],
+    );
+
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, '{}'::jsonb, now())`,
+      [PRUNE_IDEMPOTENCY],
+    );
+    await runOnce();
+
+    const left = await database.queryOrThrow<{ key: string }>(
+      `SELECT key FROM idempotency WHERE key IN ($1, $2)`,
+      [stale, fresh],
+    );
+    const keys = left.map((row) => row.key);
+    assert(!keys.includes(stale), "a three-day-old key must be gone");
+    assert(keys.includes(fresh), "today's key must survive — that is what it is for");
+
+    await database.queryOrThrow(`DELETE FROM idempotency WHERE key = $1`, [fresh]);
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_IDEMPOTENCY]);
+  },
+});
+
+// The chain has to survive its own first success.
+//
+// Every prune re-arms tomorrow's run, and it used to do that with an `enqueue`
+// from inside the handler — while its own row was still in the table, holding
+// `locked_until = now() + 10 minutes`, which puts it squarely in the
+// `jobs_standing` index (db/020). Postgres refused the second row, `enqueue`
+// swallowed the refusal because `query` swallows everything, and `finish` then
+// deleted the row. So the daily chain died after ONE successful pass, silently,
+// for all five prunes — including the one that deletes operators' email
+// addresses. Found by three review lenses on 2026-09-08 and reproduced against
+// this database before the fix.
+Deno.test({
+  name: "a daily job is still standing after it has run",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { handle, enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    const kind = `probe-chain-${uniqueId()}`;
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    let runs = 0;
+    // Not async: the handler's whole job here is to say when to run again, and
+    // `deno lint` refuses an async function with nothing to await in it.
+    handle(kind, () => {
+      runs += 1;
+      return Promise.resolve(tomorrow);
+    });
+
+    await enqueue(kind);
+    assertEquals(await runOnce(), true, "the job was picked up");
+    assertEquals(runs, 1, "and the handler ran");
+
+    const standing = await database.queryOrThrow<
+      { run_at: string; locked_until: string | null; lease: string | null; attempts: number }
+    >(
+      `SELECT run_at, locked_until, lease, attempts FROM jobs WHERE kind = $1`,
+      [kind],
+    );
+    assertEquals(standing.length, 1, "exactly one row stands: not zero, and not two");
+    assert(
+      new Date(standing[0].run_at).getTime() > Date.now() + 23 * 60 * 60 * 1000,
+      "and it is due tomorrow, not now",
+    );
+    assertEquals(standing[0].locked_until, null, "claimable again");
+    assertEquals(standing[0].lease, null, "by whichever node gets there");
+    assertEquals(standing[0].attempts, 0, "with a fresh count, so a long chain never gives up");
+
+    // And nothing is left holding it: the very next claim finds it only when due.
+    assertEquals(await runOnce(), false, "tomorrow's run does not happen today");
+    assertEquals(runs, 1);
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+  },
+});
+
+// A job that gave up is evidence, not litter — but not for ever.
+//
+// `locked_until = 'infinity'` marks a job that ran out of attempts, and the
+// standing-job index deliberately ignores those rows so a dead job cannot block
+// the next arming. The consequence nobody had written down: there is no ceiling
+// on how many of one kind can accumulate, and nothing ever deleted one. A review
+// lens found it on 2026-09-08.
+Deno.test({
+  name: "job tombstones are kept for a month and then let go",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { registerScheduledJobs, PRUNE_TOMBSTONES } = await import("../src/lib/scheduled.ts");
+    const { enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    registerScheduledJobs();
+
+    const old = `probe-tomb-old-${uniqueId()}`;
+    const fresh = `probe-tomb-fresh-${uniqueId()}`;
+    const live = `probe-tomb-live-${uniqueId()}`;
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, run_at, locked_until) VALUES
+         ($1, '{}'::jsonb, now() - interval '40 days', 'infinity'),
+         ($2, '{}'::jsonb, now() - interval '3 days',  'infinity'),
+         ($3, '{}'::jsonb, now() + interval '1 day',   NULL)`,
+      [old, fresh, live],
+    );
+
+    await enqueue(PRUNE_TOMBSTONES);
+    assertEquals(await runOnce(), true, "the sweep ran");
+
+    const left = await database.queryOrThrow<{ kind: string }>(
+      `SELECT kind FROM jobs WHERE kind = ANY($1)`,
+      [[old, fresh, live]],
+    );
+    const kinds = left.map((row) => row.kind);
+    assert(!kinds.includes(old), "a tombstone older than a month is let go");
+    assert(kinds.includes(fresh), "a recent one is still evidence");
+    assert(kinds.includes(live), "and a job that is merely waiting is not a tombstone at all");
+
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = ANY($1)`, [[old, fresh, live]]);
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_TOMBSTONES]);
+  },
+});
+
+// The idempotency sweep deletes in batches, and the batches are what keeps the
+// first run on a busy node from being one enormous transaction that outlives its
+// own lease. What is checked here is that batching does not lose rows: the
+// window is still the window, however many passes it takes.
+Deno.test({
+  name: "sweeping in batches still sweeps exactly the old keys",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { registerScheduledJobs, PRUNE_IDEMPOTENCY } = await import("../src/lib/scheduled.ts");
+    const { enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    registerScheduledJobs();
+
+    const tag = uniqueId();
+    const stale = Array.from({ length: 12 }, (_, i) => `probe-batch-old-${tag}-${i}`);
+    const recent = `probe-batch-new-${tag}`;
+    for (const key of stale) {
+      await database.queryOrThrow(
+        `INSERT INTO idempotency (key, brand, response, created_at)
+         VALUES ($1, 'probe', '{}'::jsonb, now() - interval '3 days')`,
+        [key],
+      );
+    }
+    await database.queryOrThrow(
+      `INSERT INTO idempotency (key, brand, response) VALUES ($1, 'probe', '{}'::jsonb)`,
+      [recent],
+    );
+
+    await enqueue(PRUNE_IDEMPOTENCY);
+    assertEquals(await runOnce(), true, "the sweep ran");
+
+    const left = await database.queryOrThrow<{ key: string }>(
+      `SELECT key FROM idempotency WHERE key LIKE $1`,
+      [`probe-batch-%${tag}%`],
+    );
+    assertEquals(left.length, 1, "every old key went, in however many batches");
+    assertEquals(left[0].key, recent, "and the recent one stayed");
+
+    await database.queryOrThrow(`DELETE FROM idempotency WHERE key LIKE $1`, [`probe-batch-%${tag}%`]);
+    await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_IDEMPOTENCY]);
   },
 });

@@ -1,4 +1,20 @@
-# Design system
+# The panel's design system
+
+**What it covers — clarified 2026-08-28.** Everything below describes the
+**panel**: tables, logs, toolbars, the kit in `panel/ui-kit.html`. It does not
+apply to the storefronts' twenty screens, and the title used to hide that — the
+document was called simply "Design system", and drawing an application by it was
+an invitation.
+
+**The application's screens have no source of tokens today.** There are three
+partial ones and none of them is authoritative: the storefront landings
+(Unbounded / Golos Text / JetBrains Mono, a dark base with an accent),
+`app-prototype-spec_EN.md` §1–2 (the tokens of the prototype built in July, system
+fonts, 11 accents), and this system (the panel, its own colour roles and a 6px
+radius against the storefronts' sharp corners). Choosing between them is the first
+decision of the drawing stage (`route-to-code_EN.md`), and until it is made no
+screen gets drawn: otherwise twenty mock-ups land in three different systems.
+
 
 The 2026-07-07 draft set the direction. This revision — 2026-07-31 — records what
 has since become code: the panel is built, the values are measured, several of the

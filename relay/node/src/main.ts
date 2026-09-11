@@ -7,7 +7,7 @@ import { corsHeaders, handlePreflight } from "./lib/cors.ts";
 import { json } from "./lib/http.ts";
 import { log } from "./lib/log.ts";
 import { inc } from "./lib/metrics.ts";
-import { health } from "./routes/health.ts";
+import { health, ready } from "./routes/health.ts";
 import { metrics } from "./routes/metrics.ts";
 import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
@@ -18,7 +18,8 @@ import { rememberRemote } from "./lib/client_ip.ts";
 // Registers its own routes on import, like the admin module does.
 import "./routes/dsa.ts";
 import { relayUpgrade } from "./chat/relay.ts";
-import { match } from "./lib/router.ts";
+import { match, metricLabel } from "./lib/router.ts";
+import { withoutAddresses } from "./lib/mailer.ts";
 import { startWorker } from "./lib/jobs.ts";
 import { armScheduledJobs, registerScheduledJobs } from "./lib/scheduled.ts";
 import "./routes/admin.ts"; // registers /auth/* + /admin/* on the pattern router
@@ -28,7 +29,8 @@ type Handler = (req: Request) => Response | Promise<Response>;
 
 const routes: Record<string, Handler> = {
   "GET /health": () => health(),
-  "GET /metrics": () => metrics(),
+  "GET /ready": () => ready(),
+  "GET /metrics": (req) => metrics(req),
   "POST /waitlist": (req) => waitlist(req),
   "POST /client-error": (req) => clientError(req),
   "POST /pageview": (req) => pageview(req),
@@ -67,6 +69,13 @@ Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
   const started = performance.now();
   const handler: Handler | undefined = routes[route];
   const patterned = handler === undefined ? match(req.method, url.pathname) : undefined;
+  // Both halves of the label are normalised — the path by the pattern, the method
+  // by a known set. The rule itself lives in lib/router.ts, where a probe can call
+  // it without starting a server.
+  const metricRoute = metricLabel(req.method, url.pathname, {
+    exact: handler !== undefined,
+    pattern: patterned?.pattern,
+  });
   let res: Response;
   try {
     if (typeof handler === "function") {
@@ -77,14 +86,27 @@ Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
       res = json({ error: "not found" }, 404);
     }
   } catch (e) {
-    log("error", "handler threw", { route, req_id: reqId, error: String(e) });
+    // The stored line carries the ROUTE, not the raw path. `error` is copied to
+    // object storage (lib/log.ts) and read from the panel, and among the patterns
+    // is `/admin/panel-users/:email` — so a raw path put somebody's address into a
+    // log kept for a year. The path is still there for the person debugging, with
+    // addresses scrubbed by the same function the mail side uses.
+    log("error", "handler threw", {
+      route: metricRoute,
+      path: withoutAddresses(url.pathname),
+      req_id: reqId,
+      error: withoutAddresses(String(e)),
+    });
     res = json({ error: "internal" }, 500);
   }
 
   // Don't log/count the scrape endpoint itself (avoids self-referential noise).
   if (url.pathname !== "/metrics") {
     const ms = Math.round(performance.now() - started);
-    inc("relay_requests_total", { route, status: String(res.status) });
+    // The label is the ROUTE, not the path: an id in a label becomes part of a
+    // series name, and series never go away. An unknown path collapses to one
+    // series per method — otherwise any scanner grows the map without a ceiling.
+    inc("relay_requests_total", { route: metricRoute, status: String(res.status) });
     log("info", "request", { route, status: res.status, ms, req_id: reqId });
   }
 

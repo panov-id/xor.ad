@@ -16,6 +16,39 @@ What stays open is **any language**. People write in whatever they write in, and
 guard models know few languages: Llama Guard 3 1B knows eight, and neither Russian
 nor Greek is among them.
 
+## The translator is chosen, not baked in — 2026-09-11
+
+Licences checked against the model registry rather than from memory:
+
+| Model | Role | Licence |
+|---|---|---|
+| `facebook/nllb-200-distilled-600M` | translation | **cc-by-nc-4.0** — non-commercial |
+| `textdetox/xlmr-large-toxicity-classifier` | toxicity | openrail++ |
+| Llama Guard 3 1B | guard | llama3.2, requires "Built with Llama" |
+| `facebook/m2m100_418M` | translator replacement | MIT |
+| `google/madlad400-3b-mt` | translator replacement | Apache 2.0 |
+
+Only one is a problem — the translator — and it is the one holding up the branch
+the whole measurement of 2026-08-04 rests on. The product is free, but it carries
+neighbourhood offers and a donations button, and the micro-enterprise status under
+Art. 19 DSA rests on that being an economic activity
+(`xor.ad/docs/dsa/README_EN.md`) — the same argument works against us on the
+question of non-commercial use.
+
+So the translator model is no longer baked into `evaluate.py`: it arrives in the
+`TRANSLATION_MODEL` variable, and what differs between families — how the source
+language is named, how "translate into English" is said — lives in
+`translators.py`. The language identifier always returns NLLB codes like
+`rus_Cyrl`, so translating the code is part of the family.
+
+```bash
+TRANSLATION_MODEL=facebook/m2m100_418M TRANSLATOR_BACKEND=transformers python3 evaluate.py
+```
+
+The fast `ctranslate2` engine is converted for NLLB only and **refuses** another
+model rather than serving it NLLB's weights: a silent substitution would measure
+something other than what was asked for.
+
 ## What is being measured
 
 A pipeline of five layers, where none of them lets anything through silently:
@@ -62,7 +95,12 @@ runs, and that a language nobody declared (Thai, Arabic) still goes through the
 pipeline. Its labels are mine, and quality must not be measured against them: that
 would be marking a model against an exam written by the marker.
 
-Real numbers come from human-labelled datasets — step 2.
+Real numbers come from human-labelled datasets — and they **already exist**:
+`evaluation.json` has held 300 labelled examples per language across nine
+languages since 2026-08-04. The conclusion was drawn from them on 2026-08-27 with
+`summarize.py`, and the decision is written into `xor.ad/docs/chat_EN.md` §8.14:
+we take the **translation** arm, because at one threshold for all languages it
+does not collapse where the native arm falls to F1 0.404.
 
 ## What we actually measure, and what we do not know
 
@@ -84,9 +122,12 @@ public labelled data at all. For those, only levels 2–4 exist.
 
 ## What is not here yet
 
-- **Transliteration** of Greeklish and of latinized Russian back into their own
-  alphabets. The most valuable addition to the first layer; not done, and the code
-  says so plainly rather than hiding it.
+- ~~**Transliteration** of Greeklish and of latinized Russian~~ — **done**, and
+  done from the very start: `transliterate.py` arrived in the same commit of
+  2026-08-04 as this section. For six weeks the document said "not done yet"
+  about a file sitting next to it. Verified 2026-08-27 by running it:
+  `eisai malakas` → `εισαι μαλακας`, `ty durak` → `ты дурак`; a candidate beats
+  the original only when the identifier is markedly more confident about it.
 - The Toxicity-200 lists are fetched by [`fetch_resources.py`](./fetch_resources.py);
   if they cannot be fetched it fails loudly — it will not quietly run on four
   layers instead of five.

@@ -55,12 +55,22 @@ Mandatory (Art. 16(2)):
 
 | Field | Type | Note |
 |---|---|---|
-| `target_kind` | enum | `feed_message` \| `offer` \| `chat` \| `other` |
+| `target_kind` | enum | `feed_message` \| `offer` \| `table_line` \| `chat` \| `other` |
 | `target_id` | string | pre-filled when opened from a card |
 | `reason_text` | text | **the reasoning** why the notifier believes the content is illegal |
 | `notifier_name` | string | asked for, not required — see below |
 | `notifier_email` | string | asked for, not required — see below |
 | `bona_fide` | checkbox | "the information is accurate and complete to the best of my knowledge" |
+
+**`table_line` is a person's speech at a table** (an ordinary line, the opening
+words of an application, the explanation of a refusal), but **not a line of
+play**: that one is composed by the engine from the class of board and a
+coordinate, it has no author, and there is nothing to report. The "…" menu is
+therefore not shown on lines of play at all (clarified 2026-09-10, after table
+lines gained a kind on 2026-09-09). The note sits here rather than in the enum
+cell: the cell is read by the `dsa_kinds.test.ts` probe, which counts any
+backticked name inside it as one more target kind — on 2026-09-10 it went red on
+exactly that.
 
 Three fields the form sends that are not the notifier's to fill in, and are
 therefore not in the table above:
@@ -114,6 +124,7 @@ On **creation** of a notice, before any examination:
     if the target still exists → store a snapshot:
         phrase  id, text, mode, created_at, author_identity
         offer   id, offer_text, discount_value, conditions, published_at, venue_id
+        line    id, text, created_at, author_identity, table_id
         (names per chat_EN.md §8.3 and offers/SPEC_EN.md §3; a test holds them there)
     if the target already expired → snapshot = null, snapshot_state = target_gone
 
@@ -123,6 +134,16 @@ notices never reached the moderator's queue (`WHERE status IN
 ('received','in_review')`) and were never examined at all — contrary to Art. 16.
 `status` answers "what did we decide", `snapshot_state` answers "did we manage to
 take a copy", and the two must not be mixed.
+
+**The table was added on 2026-08-28 — a consequence, not a new decision.** The
+table was introduced on 2026-08-27 (screen 19 of the storefronts), and speech at
+it is **public**: lines go through the same moderation queue as the feed, and the
+node sees both the board and the text, because the conversation key does not
+extend to a table. Public content has to have an Article 16 path — otherwise a
+notice about an unlawful line would land in `other`, which has neither a target
+nor a snapshot shape. What is captured is the **line**, not the whole table: it is
+the text that can be unlawful, not the game, and capturing the board would mean
+keeping someone's match for a year.
 
 **The area is not copied into a snapshot.** A notice asks whether a text is
 illegal, and the text is what answers; where the phrase was shown has no bearing
@@ -134,6 +155,38 @@ exists but the `SELECT` breaks — a renamed column, a changed schema — the ol
 returned `received` with an empty snapshot, filing the notice as though a copy had
 never been required. That case now logs an error and tells the notifier plainly
 that we could not look.
+
+**Six reasons, not one — `snapshot_reason` (2026-08-31).** The notifier hears the
+same sentence in every case: we could not look. To us the cases are not the same.
+A chat is never stored (`chat_not_stored`) and that is by design; a kind with no
+snapshot rule (`unknown_kind`) is a surface nobody taught this file about; a
+surface not built yet (`surface_absent`) waits on the product; a notice with no
+face (`unattributed`) has no scope to search within; and a broken query
+(`lookup_failed`) is a defect that otherwise ships in silence. Before this column
+the night's review could not tell the first from the last, and a broken `SELECT`
+looked exactly like an ordinary chat report. The column is null whenever the
+status already says everything: a copy was taken, or the target was gone.
+
+The sixth, `out_of_scope`, is about the honesty of the answer rather than the
+completeness of the copy. It survives on exactly one surface — the venue offer,
+where the storefront *is* the boundary of visibility: a complaint filed through
+another face finds nothing under it, because for that reporter the offer never
+existed. The earlier code called that "target gone" — telling the notifier, in an
+Article 16 reply, that the offer had expired while it was alive. An empty scoped
+lookup now checks whether the record exists at all, reading no columns and naming
+no other face: if it does, the answer is "not found here", not "gone".
+
+**The boundary was settled on 2026-09-07** (`docs/chat_EN.md`, "The snapshot is
+bounded by what the notifier could see"): the copy is bounded by what the notifier
+could see, and that is a property of each surface — the `visibility` field in
+`SNAPSHOTTABLE`. On the feed and at tables the world is one, the copy is not
+narrowed by a storefront, and `out_of_scope` cannot arise there at all. Settled
+with it: who reads the copy. A notice whose copy belongs to another face is
+examined by the **platform** (`brand IS NULL`, migration `015`) rather than by the
+storefront it was filed through — otherwise a tenant could read other tenants'
+rows by naming their identifiers. The face it arrived through is kept in its own
+column, `received_via`: an Article 16 reply is sent from somewhere, but the queue
+is never filtered by it.
 
 The snapshot is held inside the notice record. There is no separate table of
 "retained messages": a snapshot does not outlive its notice and is used for
@@ -181,8 +234,57 @@ That is deliberate. A separate path would have a person label their own notice
 mistakes are easiest. And refusing a notice over a missing name is precisely what
 Art. 16(2)(c) does not allow — so nothing is mandatory anywhere, ordinary cases
 included. The price is stated plainly: some notices arrive with no return
-address, and there is nobody to answer under Art. 16(4). Such a notice jumps the queue and is accompanied by a report to law
-enforcement under Art. 18.
+address, and there is nobody to answer under Art. 16(4).
+
+**Neither the queue jump nor the report to law enforcement is done by the system —
+and neither can be.** This said "such a notice jumps the queue and is accompanied
+by a report to law enforcement under Art. 18", which contradicted the paragraph
+above it: with no label by design, the node has no way to know a notice is "such".
+There is one queue, ordered by arrival (`routes/dsa.ts`), and the words "Art. 18"
+appear nowhere in `relay/node/src`. The promise was withdrawn on 2026-09-08 after
+a review panel — not because the obligation went away, but because the document
+described a mechanism that does not exist.
+
+**What actually happens.** The notice lands in the ordinary queue like any other,
+and a person gives it priority — the person who opens it and sees what it is
+about. The Art. 18 obligation (inform law enforcement immediately where a crime
+threatening life or safety is suspected) is discharged by that same person, by
+hand.
+
+#### Who to inform — details, found 2026-09-08
+
+The article itself (18(1)–(2)) names more than one recipient and not always the
+Cypriot one: inform the authorities of **the Member State concerned**; where that
+State cannot be identified with reasonable certainty, inform the authorities of
+the State of establishment (Cyprus for us) **and/or** Europol.
+
+| | |
+|---|---|
+| **Primary recipient** | Office for Combating Cybercrime (Cybercrime Subdivision), Cyprus Police |
+| Email | `cybercrime@police.gov.cy` |
+| Telephone | +357 22808200 (the site states 07:00–14:30) |
+| Fax | +357 22808465 |
+| Address | Police Headquarters, Evangelos Florakis Street, P.C. 1478, Nicosia |
+| Online | the "Report Crime" form on `cyberalert.cy` — the police's own portal |
+| **Where the State cannot be identified** | Europol, the industry channel for reporting CSAM ("Industry reporting of child sexual abuse material") — **address unverified**, the form would not load |
+| **A content channel, not an Article 18 one** | SafenetCY / Cyberethics (`cyberethics.info`), hotline 7000 0 116, an INHOPE member: forwards to the hosting country. This does **not** replace informing the police |
+
+**What goes into the report.** Article 18(2) asks for "all relevant information
+available", which here is: the notice identifier (`dsa_notices.id`) and when it
+arrived; the kind of target and its identifier; the snapshot if one was taken —
+text, time of publication, author identifier and the face it was published under;
+what gave rise to the suspicion; our operator details and a contact for replies.
+The notifier's name and email only where they exist: §5.1 does not ask for them.
+
+**What we record.** The fact of the report goes into the audit log as
+`dsa_notice.escalated`: who reported, when, to which recipient. The log lives a
+year — as long as the notice does — so the proof and the record it belongs to
+expire together.
+
+**A caveat, and a real one:** the details above come from open sources (the
+Cyprus Police site and the `cyberalert.cy` portal) and were cross-checked between
+two of them, but have **not been confirmed by contacting anyone**. A first real
+Article 18 report is not the moment to discover an address is wrong.
 
 ### 5.2. A notice about chat content
 
@@ -198,6 +300,39 @@ content is unreachable for us, so we cannot examine it. What we do instead:
 - act under Art. 18 where life is threatened, regardless of our inability to check.
 
 Refusing to examine without an explanation is forbidden: a reply is always owed.
+
+### 5.2a. Advertising: Article 26 and why it may not apply here
+
+**Recorded 2026-08-29, and this is not a lawyer's conclusion.** Until that day
+there was no section at all, although the product has exactly one form of
+advertising — the neighbourhood offer — and a blank where the article should be
+reads as an oversight rather than a decision.
+
+**First reading — the article does not apply.** The Regulation ties advertising
+to **remuneration for promotion**: an advertisement is information placed in
+return for payment specifically for promoting it. Our placement is free, with no
+money and no barter of any kind (`xor.ad/docs/offers/SPEC_EN.md`), and by the
+letter of the definition an offer falls outside it.
+
+**Second reading — it applies in substance.** An offer looks like advertising,
+works like advertising and is commercial by design. Leaning on the fact that we
+take no money is a defence that holds exactly until somebody tests it.
+
+**What we do regardless of which reading is right:**
+
+- an offer is **labelled with the word "offer"** and the discount amount right on
+  the card — not with a frame and not with an icon, because a venue's icon reads
+  as a neighbour's avatar, which is advertising disguised as a person (screen 17);
+- **whose it is, is visible**: the venue's name on the card, verified by an
+  envelope sent to its physical address;
+- **there are no targeting parameters** — placement is decided by location, not
+  behaviour, which is also what §5.3 records about Article 28(2);
+- **paid placement does not exist**, so "who paid" has no answer by construction
+  rather than by omission.
+
+**What is left for a lawyer:** which reading is right, and whether a separate
+advertising repository under Article 39 is needed (it is required of very large
+platforms, which we are not, but it hangs on the same definition).
 
 ### 5.3. Protection of minors (Article 28)
 
@@ -305,7 +440,7 @@ the feed mechanic.
 
     notice
         id
-        target_kind             # feed_message | offer | chat | other
+        target_kind             # feed_message | offer | table_line | chat | other
         target_id
         snapshot                # null if the content was already gone
         reason_text

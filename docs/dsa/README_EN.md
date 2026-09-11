@@ -57,13 +57,30 @@ Sections 1 and 2 know no size exemptions beyond the ones spelled out in them.
 - **Art. 16** — the notice-and-action mechanism. **Applies.**
 - **Art. 17** — a statement of reasons for any restriction. **Applies.**
 - **Art. 18** — suspicion of an offence threatening life or safety must be
-  reported to law enforcement. **Applies.**
+  reported to law enforcement. **Applies, and is discharged by hand:** a notice
+  carries no "this is about children" label by design (`SPEC_EN.md` §5.1), so the
+  node cannot recognise such a notice and gives it no priority; the judgement and
+  the report itself rest with the person who read it. No recipient is named and
+  the fact of a report is recorded nowhere — open item `dsa.article18.route`.
 
 ## 3. What the micro-enterprise status lifts
 
-**Art. 19** exempts micro and small enterprises from the whole of Section 3. The
-operator is a private individual with no staff and no revenue, comfortably below
-the threshold (fewer than 10 employed, turnover under €2m).
+**Art. 19** exempts micro and small enterprises from the whole of Section 3.
+
+**The operator's legal form does not stand in the way — recorded 2026-09-10.**
+Article 1 of the Annex to Recommendation 2003/361/EC defines an enterprise as
+**any entity engaged in an economic activity, irrespective of its legal form**,
+and names the self-employed and family businesses among them. The argument that
+could arise here is not about being a private individual, but about whether there
+is an economic activity at all: an entity with no receipts whatsoever might not
+qualify, and then there is nobody for the exemption to apply to.
+
+**Which is why donations work for the status rather than against it.** The PayPal
+button makes the activity economic, while the size stays micro by four orders of
+magnitude: 0 employed of the 10 allowed, receipts in single or double-digit euros
+against a €2m threshold. This used to read "a private individual with no staff and
+**no revenue**", which was both inaccurate (the button works) and weaker than the
+norm itself.
 
 Lifted: Art. 20 (internal complaint handling), Art. 21 (out-of-court dispute
 settlement), Art. 22 (trusted flaggers), Art. 23 (measures against misuse),
@@ -78,7 +95,7 @@ Art. 28 (protection of minors).
 | **Date checked** | 5 August 2026 |
 | **Confirmed by** | the operator, Evgenii Panov |
 | **Persons employed** | 0 — the operator is a private individual with no staff and no standing contractors |
-| **Annual turnover** | €0 — the Service takes money from neither residents nor businesses |
+| **Annual turnover** | donations through PayPal; the Service takes money from neither residents nor businesses. The sum is kept month by month in `docs/donations_EN.md` — clarified 2026-09-10, where this used to read "€0" beside a live button |
 | **Conclusion** | **micro enterprise**: both figures sit below the threshold of Recommendation 2003/361/EC (fewer than 10 employed, turnover or balance sheet not above €2m) |
 | **Next check** | by 5 August 2027, and out of turn on any of the events below |
 
@@ -173,8 +190,12 @@ That runs straight into the principle that nothing is kept.
 
 **Decision — a snapshot only on notice.** Until somebody reports it, nothing is
 saved and everything expires on the timer as before. The moment a notice arrives,
-the system stores a minimal snapshot: the message id, its text, its zone and its
-time. The snapshot exists for exactly two purposes — to take the decision and to
+the system stores a minimal snapshot: the message id, its text, the time it was
+published, the author identifier and the face it was published under. **The area
+it was published to — coordinates and radius — is not copied** (corrected
+2026-09-08: this said "zone", which the copy never contained). Whether a text is
+illegal is answered by the text, and the snapshot lives a year — a year of
+someone's locations has no purpose here. The snapshot exists for exactly two purposes — to take the decision and to
 defend it — and lives for a year alongside the notice.
 
 Why not otherwise:

@@ -88,16 +88,34 @@ processing is identical and only the storefront differs, so the record is shared
 - **Recovery code.** An identity stores a hash of half the paper code and its
   long-lived key wrapped under the other half. We do not know the code and can
   neither look it up nor reset it.
+- **Game state — entered 2026-09-10** (`chat_EN.md` §6.1). Since 2026-09-09 the
+  board and the moves are **not encrypted**: the node judges by the rules of the
+  game, and a judge without the position cannot judge. The data: the position, whose
+  turn, the **players' hands**, the undrawn stock, the guessed word of the hangman
+  class and the pair's score. Not one reply of the conversation is here. In a pair
+  this is a game cache (`chat_games`) tied to the conversation and leaving with it by
+  cascade; at a table it is `table_games` and `table_scores`, leaving with the table.
+  The basis is the same — performance of a contract: the game is part of the service,
+  and consent would be worse here, because withdrawing it would cut the game off for
+  the other player.
 - **Recipients.** None.
 - **Retention.** The conversation is **not stored on the servers** — only carried
   until delivered. On the device it lives in IndexedDB, encrypted with the vault
   key, for the shorter of the two chosen times. The share and the hashes live as
-  long as the session or the identity does.
+  long as the session or the identity does. Game state lives no longer than the
+  conversation or the table, and for another 14 days in the backups (see the
+  section on copies).
 
 ### 5. Waitlist
 
 - **Purpose.** Invite the person when access opens.
-- **Basis.** Consent — Art. 6(1)(a).
+- **Basis.** **Steps at the data subject's request prior to a contract — Art.
+  6(1)(b), moved 2026-09-10.** This used to be consent, Art. 6(1)(a), which
+  required proof of consent under Art. 7(1) — a flag and the revision of the text
+  shown — and the record kept neither. A person leaves an address explicitly asking
+  to be called: that is a step at their request, and there is nothing to prove but
+  the address itself. Art. 8 falls away with it: it applies only to processing on
+  consent.
 - **Data.** Email address, the source of the request.
 - **Recipients.** **Resend** (delivering the letter).
 - **Transfers outside the EEA.** Yes — SCCs plus EU-US DPF certification, see
@@ -161,8 +179,19 @@ processing is identical and only the storefront differs, so the record is shared
 ### 9. Storefront analytics
 
 - **Purpose.** Understand site usage.
-- **Basis.** **Consent** in the banner, Art. 6(1)(a). Without it the counter does
-  not load at all.
+- **Withdrawn 2026-09-10: GA4 is removed altogether.** It was the last processing
+  on consent, and consent dragged Art. 8 GDPR along with it — the question of the
+  digital-consent age and of a parent, for which the product has no mechanism. The
+  own page counter (§10) answers the same "how many visits" on legitimate interest
+  and without a banner. The record is kept rather than deleted: it explains why the
+  consent banner disappeared from the pages.
+- **Basis, while it applied.** Consent in the banner, Art. 6(1)(a). Without it the
+  counter did not load at all.
+- 🔴 **Switched off by a deploy, not by editing a file.** In the repository
+  `analyticsId` is empty, while production receives it as the `ANALYTICS_ID`
+  variable at storefront deploy — a measurement on 2026-09-10 found
+  `G-WWHXHZ5QWQ` in the live `config.js`. Until the storefront is deployed with an
+  empty variable, the counter runs in production.
 - **Data.** IP (truncated, anonymisation enabled), page addresses, referrer,
   approximate location from the IP, device and browser data.
 - **Recipients.** **Google Analytics 4**.
@@ -238,6 +267,15 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 - Node hardening: closed ports, hardened SSH, secret rotation —
   [`../relay/HARDENING_EN.md`](../relay/HARDENING_EN.md).
 - Backups live 14 days, so anything deleted leaves them within a fortnight.
+
+## Impact assessment and breaches
+
+- **Impact assessment (Art. 35)** — [`dpia_EN.md`](./dpia_EN.md), written 2026-09-11
+  before processing begins, because one written afterwards is the breach itself.
+  Revisited before the first live user and on any new processing in this register.
+- **Personal data breach (Art. 33-34)** — [`breach-procedure_EN.md`](./breach-procedure_EN.md):
+  who decides, where to look, whom to notify and by when. A record of every case is
+  [`incidents_EN.md`](./incidents_EN.md), as Art. 33(5) requires.
 
 ## Open items in this record
 

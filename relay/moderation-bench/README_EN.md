@@ -16,6 +16,39 @@ What stays open is **any language**. People write in whatever they write in, and
 guard models know few languages: Llama Guard 3 1B knows eight, and neither Russian
 nor Greek is among them.
 
+## The translator is chosen, not baked in — 2026-09-11
+
+Licences checked against the model registry rather than from memory:
+
+| Model | Role | Licence |
+|---|---|---|
+| `facebook/nllb-200-distilled-600M` | translation | **cc-by-nc-4.0** — non-commercial |
+| `textdetox/xlmr-large-toxicity-classifier` | toxicity | openrail++ |
+| Llama Guard 3 1B | guard | llama3.2, requires "Built with Llama" |
+| `facebook/m2m100_418M` | translator replacement | MIT |
+| `google/madlad400-3b-mt` | translator replacement | Apache 2.0 |
+
+Only one is a problem — the translator — and it is the one holding up the branch
+the whole measurement of 2026-08-04 rests on. The product is free, but it carries
+neighbourhood offers and a donations button, and the micro-enterprise status under
+Art. 19 DSA rests on that being an economic activity
+(`xor.ad/docs/dsa/README_EN.md`) — the same argument works against us on the
+question of non-commercial use.
+
+So the translator model is no longer baked into `evaluate.py`: it arrives in the
+`TRANSLATION_MODEL` variable, and what differs between families — how the source
+language is named, how "translate into English" is said — lives in
+`translators.py`. The language identifier always returns NLLB codes like
+`rus_Cyrl`, so translating the code is part of the family.
+
+```bash
+TRANSLATION_MODEL=facebook/m2m100_418M TRANSLATOR_BACKEND=transformers python3 evaluate.py
+```
+
+The fast `ctranslate2` engine is converted for NLLB only and **refuses** another
+model rather than serving it NLLB's weights: a silent substitution would measure
+something other than what was asked for.
+
 ## What is being measured
 
 A pipeline of five layers, where none of them lets anything through silently:

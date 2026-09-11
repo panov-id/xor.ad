@@ -29,6 +29,87 @@ CACHE_DIRECTORY = Path("/cache")
 CONVERTED_DIRECTORY = CACHE_DIRECTORY / "nllb-ctranslate2-int8"
 
 
+# --- Семейства моделей -------------------------------------------------------
+#
+# Переводчик перестал быть одной моделью 11.09.2026: у NLLB-200 лицензия
+# cc-by-nc-4.0 (проверено в реестре моделей), то есть некоммерческая, а лента
+# несёт соседские офферы и рядом живёт кнопка донатов — на том же доводе об
+# экономической деятельности держится статус микропредприятия по ст. 19 DSA.
+# Значит выбор переводчика должен стать замером, а не допущением, и стенд обязан
+# уметь сравнивать модели с разной лицензией.
+#
+# Различаются они тремя вещами, и только ими: как называется язык-источник, как
+# сказать «переведи на английский» и надо ли что-то дописать в сам текст.
+# Определитель языка (lid218e) всегда отдаёт коды NLLB вида `rus_Cyrl`, поэтому
+# перевод кода — часть семейства, а не вызывающего кода.
+
+NLLB_TO_ISO = {
+    "eng_Latn": "en", "rus_Cyrl": "ru", "deu_Latn": "de", "ell_Grek": "el",
+    "spa_Latn": "es", "fra_Latn": "fr", "pol_Latn": "pl", "ukr_Cyrl": "uk",
+    "ron_Latn": "ro", "bel_Cyrl": "be", "kaz_Cyrl": "kk", "uzn_Latn": "uz",
+    "azj_Latn": "az", "hye_Armn": "hy", "kat_Geor": "ka", "tgk_Cyrl": "tg",
+    "kir_Cyrl": "ky", "tur_Latn": "tr", "ita_Latn": "it", "por_Latn": "pt",
+}
+
+
+class NllbFamily:
+    """Коды вида `rus_Cyrl`, целевой язык — принудительным первым токеном."""
+
+    name = "nllb"
+    english = "eng_Latn"
+
+    def source(self, language: str) -> str:
+        return language
+
+    def prepare(self, text: str, language: str) -> str:
+        return text
+
+    def forced_token(self, tokenizer):
+        return tokenizer.convert_tokens_to_ids(self.english)
+
+
+class M2M100Family:
+    """Коды ISO (`ru`), целевой язык — через get_lang_id."""
+
+    name = "m2m100"
+    english = "en"
+
+    def source(self, language: str) -> str:
+        return NLLB_TO_ISO.get(language, language)
+
+    def prepare(self, text: str, language: str) -> str:
+        return text
+
+    def forced_token(self, tokenizer):
+        return tokenizer.get_lang_id(self.english)
+
+
+class MadladFamily:
+    """Языка-источника не спрашивает вовсе: цель пишется префиксом в текст."""
+
+    name = "madlad"
+    english = "en"
+
+    def source(self, language: str) -> str:
+        return ""
+
+    def prepare(self, text: str, language: str) -> str:
+        return f"<2{self.english}> {text}"
+
+    def forced_token(self, tokenizer):
+        return None
+
+
+def family_of(model_name: str):
+    lowered = model_name.lower()
+    if "m2m100" in lowered:
+        return M2M100Family()
+    if "madlad" in lowered:
+        return MadladFamily()
+    return NllbFamily()
+
+
+
 class TransformersTranslator:
     """The reference engine: whatever transformers does out of the box."""
 
@@ -38,6 +119,8 @@ class TransformersTranslator:
         self.model = None
         self.tokenizer = None
         self.failure = None
+        self.family = family_of(model_name)
+        self.model_name = model_name
         try:
             from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -53,14 +136,17 @@ class TransformersTranslator:
         try:
             import torch
 
-            self.tokenizer.src_lang = language
-            encoded = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=256)
+            source = self.family.source(language)
+            if source:
+                self.tokenizer.src_lang = source
+            prepared = self.family.prepare(text, language)
+            encoded = self.tokenizer(prepared, return_tensors="pt", truncation=True, max_length=256)
+            forced = self.family.forced_token(self.tokenizer)
+            arguments = {"max_new_tokens": 128}
+            if forced is not None:
+                arguments["forced_bos_token_id"] = forced
             with torch.no_grad():
-                produced = self.model.generate(
-                    **encoded,
-                    forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(ENGLISH),
-                    max_new_tokens=128,
-                )
+                produced = self.model.generate(**encoded, **arguments)
             return self.tokenizer.batch_decode(produced, skip_special_tokens=True)[0]
         except Exception:  # noqa: BLE001 - an unknown source language is normal
             return None
@@ -155,8 +241,24 @@ class CTranslate2Translator:
         return results
 
 
-def build_translator(model_name: str):
+# Модель по умолчанию остаётся прежней, чтобы старый замер воспроизводился, но
+# вызывающий больше не вшивает её: TRANSLATION_MODEL перекрывает всё, и это
+# единственный способ сравнить лицензионно чистые модели с той, что мерили в
+# августе (11.09.2026).
+DEFAULT_MODEL = "facebook/nllb-200-distilled-600M"
+
+
+def build_translator(model_name: str = ""):
+    model_name = os.environ.get("TRANSLATION_MODEL") or model_name or DEFAULT_MODEL
     backend = os.environ.get("TRANSLATOR_BACKEND", "transformers")
     if backend == "ctranslate2":
+        # Конвертация в int8 сделана для NLLB и лежит в своей папке. Для другой
+        # модели её нет — молча подсунуть чужие веса хуже, чем отказаться.
+        if family_of(model_name).name != "nllb":
+            translator = TransformersTranslator(model_name)
+            translator.failure = (
+                f"ctranslate2 сконвертирован только для NLLB, а просят {model_name} — "
+                "запускать с TRANSLATOR_BACKEND=transformers")
+            return translator
         return CTranslate2Translator(model_name)
     return TransformersTranslator(model_name)

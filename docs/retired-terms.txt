@@ -292,3 +292,15 @@ conversation is **not stored on the servers** — only carried | article-30-regi
 Two statuses: delivered and error | sosed.place/docs/08-chat-screen_EN.md neighbro.place/docs/08-chat-screen_EN.md | accepted and error, 2026-09-12
 not stored at all         | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | kept only until delivered, 2026-09-12
 never stored on our servers | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | kept only until delivered, 2026-09-12
+# --- закрытую личность не вернуть, слово виселицы не шифруется (11–12.09.2026) --
+# D1: индекс по бумажному коду и так не находил закрытую личность, а канон и
+# механика обещали окно возврата. D4: слово лежит в state и проходит очередь
+# модерации, то есть узел его видит, — «шифруется как прежде» было неправдой.
+хочет вернуться бумажным кодом | chat_RU.md | возврата нет, 11.09.2026
+хотят вернуться бумажным кодом | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | возврата нет, 11.09.2026
+wants back in with the paper code | chat_EN.md sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | no way back, 2026-09-11
+стикеров и загаданного слова | chat_RU.md | слово видит узел, 12.09.2026
+загаданное слово шифруются  | chat_RU.md | слово видит узел, 12.09.2026
+stickers and the guessed word | chat_EN.md | the node sees the word, 2026-09-12
+ходы и доску сервер видит   | sosed.place/docs/06-match-and-chat_RU.md neighbro.place/docs/06-match-and-chat_RU.md | и загаданное слово тоже, 12.09.2026
+sees the moves and the board | sosed.place/docs/06-match-and-chat_EN.md neighbro.place/docs/06-match-and-chat_EN.md | and the word set in hangman, 2026-09-12

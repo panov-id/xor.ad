@@ -49,7 +49,10 @@ for database in ${DATABASES}; do
   # --clean --if-exists so the dump restores onto a non-empty database without a
   # manual drop; the restore drill depends on that being true.
   docker compose exec -T -e PGPASSWORD="${POSTGRES_PASSWORD}" postgres \
-    pg_dump --clean --if-exists --no-owner --username relay "${database}" \
+    # Транзит в копию не идёт: недоставленный шифротекст живёт до доставки,
+    # а в дампе пролежал бы ещё keep_days дней (chat_RU.md §8.8, 12.09.2026).
+    pg_dump --clean --if-exists --no-owner --username relay \
+      --exclude-table-data=pending_deliveries "${database}" \
     | gzip -9 > "${file}"
 
   size="$(stat -c %s "${file}")"

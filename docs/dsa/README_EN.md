@@ -22,12 +22,12 @@ But not for everything. The role differs across three surfaces:
 | Surface | Role | Why |
 |---|---|---|
 | Feed, offers | hosting + platform | stored and publicly disseminated |
-| Chat | **not hosting for that content** | not stored on the server, only carried until delivered |
+| Chat | **not hosting for that content** | not stored on the server beyond delivery: the undelivered waits as ciphertext nobody can read |
 | On-device profile | not our content | the identity lives in the user's browser |
 
 The chat distinction is not an excuse but a consequence of the architecture: the
-privacy policy states plainly that a chat is **not stored on our servers**, only
-carried, and is not moderated. A notice about chat content cannot be executed by
+privacy policy states plainly that a chat is **not kept on our servers beyond
+delivery**, and is not moderated. A notice about chat content cannot be executed by
 deletion — we do not hold it. What we **can** do instead is in the spec: measures
 against the account, not against text we cannot reach.
 

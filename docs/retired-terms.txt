@@ -270,3 +270,25 @@ becomes unreadable without | sosed.place/docs/13-devices_EN.md neighbro.place/do
 come back with the identity if | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | no key opens them any more, 2026-09-11
 correspondence stays here | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | will not open again, 2026-09-11
 comes back with the       | depth-client_EN.md | will not open there again, 2026-09-11
+# --- узел хранит недоставленное, и «доставлено» не сигналится (12.09.2026) -----
+# Решение 11.09.2026, уточнённое 12.09.2026: шифротекст ждёт получателя в очереди,
+# а отправителю узел отвечает только «принял». Панель по плану нашла старое
+# обещание в каноне, картах тестов, DPIA, реестре ст. 30 и в опубликованных
+# политике и условиях обеих витрин — то есть везде, где его не искали.
+второй участник принял    | chat_RU.md | узел принял, 12.09.2026
+сообщения в БД не пишутся | chat_RU.md dpia_RU.md | в БД только недоставленное, 12.09.2026
+Таблицы `messages` не существует. | chat_RU.md | таблицы нет, но очередь есть, 12.09.2026
+Автоповтора при возвращении | chat_RU.md | доставка при возвращении есть, 12.09.2026
+офлайн-собеседнику не сохраняется | chat_RU.md | ждёт в очереди, 12.09.2026
+Переписка **на серверах не хранится** — только переносится | article-30-register_RU.md | не хранится дольше доставки, 12.09.2026
+Статусы — два: доставлено и ошибка | sosed.place/docs/08-chat-screen_RU.md neighbro.place/docs/08-chat-screen_RU.md | принято и ошибка, 12.09.2026
+the peer accepted it      | chat_EN.md | the node accepted, 2026-09-12
+messages are never written to the database | chat_EN.md | only the undelivered, 2026-09-12
+There is no `messages` table. | chat_EN.md | no table, but there is a queue, 2026-09-12
+There will be no automatic resend | chat_EN.md | delivery on return does happen, 2026-09-12
+peer is not stored (8.8)  | chat_EN.md | waits in the queue, 2026-09-12
+no messages in the database | dpia_EN.md | only undelivered ciphertext, 2026-09-12
+conversation is **not stored on the servers** — only carried | article-30-register_EN.md | not stored beyond delivery, 2026-09-12
+Two statuses: delivered and error | sosed.place/docs/08-chat-screen_EN.md neighbro.place/docs/08-chat-screen_EN.md | accepted and error, 2026-09-12
+not stored at all         | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | kept only until delivered, 2026-09-12
+never stored on our servers | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | kept only until delivered, 2026-09-12

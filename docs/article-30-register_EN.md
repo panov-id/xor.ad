@@ -99,8 +99,10 @@ processing is identical and only the storefront differs, so the record is shared
   and consent would be worse here, because withdrawing it would cut the game off for
   the other player.
 - **Recipients.** None.
-- **Retention.** The conversation is **not stored on the servers** — only carried
-  until delivered. On the device it lives in IndexedDB, encrypted with the vault
+- **Retention.** The conversation is **not stored on the servers beyond delivery** —
+  clarified 2026-09-12. What is undelivered sits as ciphertext in `pending_deliveries`
+  until delivery, the end of the conversation or the recipient's freeze, whichever
+  comes first, and is kept out of the backups. On the device it lives in IndexedDB, encrypted with the vault
   key, for the shorter of the two chosen times. The share and the hashes live as
   long as the session or the identity does. Game state lives no longer than the
   conversation or the table, and for another 14 days in the backups (see the

@@ -228,12 +228,12 @@ through three different wrappers and cannot be counted by eye.
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
-| 12.1 | **After all of it there is not one message in the database** (§14) | a direct `SELECT` over every table, not trust in the schema | nothing to check |
+| 12.1 | **No plaintext in the database, and the queue is empty after delivery** (§14) | a direct `SELECT` over every table, `pending_deliveries` empty | nothing to check |
 | 12.2 | The only database read on the path is the membership check | the query log during delivery | nothing to check |
 | 12.3 | A non-participant cannot post into a chat | another session's signature → refused | nothing to check |
 | 12.4 | **The ciphertext byte limit is enforced by the node** (§14, `max_ciphertext_bytes` = 2048) | a request around the client with 2049 bytes → refused | nothing to check |
 | 12.5 | `max_message_length` = 256 is a client counter, not a node rule | 300 characters that fit into 2048 bytes are accepted | nothing to check |
-| 12.6 | **A message to an offline peer yields `error` rather than vanishing** (§14) | the recipient is on no node → `ack {error}` | nothing to check |
+| 12.6 | **A message to an offline peer yields `accepted` and waits for their return** (§14) | the recipient is on no node → `ack {accepted}`, a queue row, handed over on connect | nothing to check |
 | 12.7 | A retry with the same `local_id` produces no duplicate | two sends → one message on screen | nothing to check |
 | 12.8 | The pause grows ×3: at once, 5 s, 15 s, 45 s, 135 s, ceiling ~10 min | measure the intervals in a row | nothing to check |
 

@@ -68,11 +68,11 @@ on 2026-09-10 along with the last basis resting on consent.
 |---|---|---|
 | **Working out where an author lives** | the rounding grid; visibility computed from the cell; steps instead of exact counters | in a thinly populated place a neighbour is recognisable anyway — the cost is named in §8.3 |
 | **Learning when somebody is at their screen** | no presence indicators; the "ended" mark is placed by your own attempt; the confirmation count is hidden at two; the table list is not recomputed on a block | the "stepped away" line is the one exception, and the person declares it themselves |
-| **Reading the correspondence** | encryption on the devices, no keys on the node, no messages in the database | a game board is not encrypted, and the policy and the rules say so |
+| **Reading the correspondence** | encryption on the devices, no keys on the node, only undelivered ciphertext in the database (§8.8) | a game board is not encrypted, and the policy and the rules say so |
 | **Getting the history off a lost device** | a PIN plus the node's share; since 2026-09-11 any move of an identity burns the previous device's share | while the phone is in hand and unlocked, nothing helps |
 | **An automated refusal with no review** | the refusal names a class; the false-block budget is a published number | there is no appeal against a refusal, and since 2026-09-10 the terms say so plainly |
 | **An adult pursuing a teenager** | age bands, the sandbox, symmetric blocking, seating refused both ways | age is self-declared, and that is admitted out loud |
-| **A leak from the database** | the vault share sits under the node's key; there is no correspondence in the database; backups live 14 days | a dump plus a device allows a PIN search — the condition is named in §8.2 |
+| **A leak from the database** | the vault share sits under the node's key; the database holds only undelivered ciphertext, which is kept out of the copies; backups live 14 days | a dump plus a device allows a PIN search — the condition is named in §8.2 |
 
 ## 5. Residual risk
 

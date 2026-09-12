@@ -288,7 +288,7 @@ Article 18 report is not the moment to discover an address is wrong.
 
 ### 5.2. A notice about chat content
 
-A chat is not stored on the server, is not moderated and is **encrypted** with a key
+A chat is not kept on the server beyond delivery, is not moderated and is **encrypted** with a key
 we do not hold (`chat_EN.md` §8.13) — there is nothing to
 execute a removal against. The reply to the notifier says so plainly: chat
 content is unreachable for us, so we cannot examine it. What we do instead:

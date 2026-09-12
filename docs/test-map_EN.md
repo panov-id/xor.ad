@@ -305,7 +305,7 @@ through three different wrappers and cannot be counted by eye.
 | 16.4 | A like under a block yields no match | mutual likes → no match | nothing to check |
 | 16.5 | A report closes nothing by itself | after the report the phrase is alive | nothing to check |
 | 16.5c | **Neither reporting nor blocking changes the author's quota** | before and after: the live-phrase ceiling is the same, so is the 64-minute one | nothing to check |
-| 16.6 | A report carries its copy from the reporter's device | the node has no copy and nowhere to take one from | nothing to check |
+| 16.6 | A report carries the reporter's words, not a copy of the conversation | the client uploads nothing, `snapshot_state = not_accessible` | nothing to check |
 | 16.7 | **A content report through support lands in the same register** | a message describing something illegal → a record in the notices register, not in the support table | nothing to check |
 | 16.8 | **The answer is shown in the app at the next visit, with no email** | a message with no address → the answer waits with the identity and appears on entry | nothing to check |
 

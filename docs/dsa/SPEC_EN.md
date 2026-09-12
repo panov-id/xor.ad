@@ -106,8 +106,9 @@ under Art. 16(3) and gives nothing to examine. The form does not submit without 
 
 **The form says something about chat specifically, and it is not decoration.**
 Choosing "in a chat" reveals a warning: a conversation is stored nowhere, us
-included, so a description in one's own words will not be enough — **the quote
-has to be pasted from your own device**, and it will be the only copy.
+included, so there will be no snapshot: **the person describes what happened in their own
+words** and quotes it themselves if they see fit (2026-09-11). The client uploads
+no copy on their behalf.
 
 A permanent notice would be wrong here: a warning shown to everyone about a case
 that applies to one kind in four stops being read. It appears with the choice and
@@ -406,6 +407,17 @@ Contains:
   check, including AI models). We state that distinction explicitly;
 - the redress routes: reply to us, the Digital Services Coordinator, the courts
   (README §7).
+
+**It goes by email only — decided 2026-09-11.** The reply to a notifier has no
+"in the app" path and will not get one: that path exists only for the statement
+of reasons to the author (§7), because an author is an identity it can be tied
+to. A notice holds no notifier identity, neither in the `notice` entity nor in
+the node's schema, and adding one would bind "who reported" to an identity for a
+year. So the form says it plainly: with no email, no decision will reach you. The
+cost is named and filed as an open item (`dsa.article16.no-email` in
+`docs/facts/open.tsv`): Art. 16(4) is conditional in its own text, while the
+conditionality of 16(5) follows only from the link to it — and that is not a
+lawyer's conclusion.
 
 ## 7. The statement of reasons to the author (Art. 17)
 

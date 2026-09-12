@@ -8,8 +8,8 @@
 # угаданная пара хуже отсутствующей.
 #
 id	date	ru	en	subject_ru	subject_en
-chat.2026-08-12.1840	2026-08-12	xor.ad/docs/chat_RU.md:2455	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
-chat.2026-08-17.1840	2026-08-17	xor.ad/docs/chat_RU.md:2455	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
+chat.2026-08-12.1840	2026-08-12	xor.ad/docs/chat_RU.md:2451	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
+chat.2026-08-17.1840	2026-08-17	xor.ad/docs/chat_RU.md:2451	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
 chat.2026-08-18.686	2026-08-18	xor.ad/docs/chat_RU.md:1178	xor.ad/docs/chat_EN.md:699	Он спрашивается при регистрации — возвращено 26.08.2026, отменяет пере	It is asked for at registration — restored 2026-08-26, overriding the 
 chat.2026-08-18.729	2026-08-18	xor.ad/docs/chat_RU.md:1223	xor.ad/docs/chat_EN.md:743	Счётчик попыток снят с личности — исправлено 18.08.2026.	The attempt counter has been taken off the identity — corrected 2026-0
 chat.2026-08-19.444	2026-08-19	xor.ad/docs/chat_RU.md:881	xor.ad/docs/chat_EN.md:456	ECDSA P-256, решено 19.08.2026 по замеру ниже.	ECDSA P-256, decided 2026-08-19 on the measurement below.
@@ -21,7 +21,7 @@ chat.2026-08-20.375	2026-08-20	xor.ad/docs/chat_RU.md:807	xor.ad/docs/chat_EN.md
 chat.2026-08-20.376	2026-08-20	xor.ad/docs/chat_RU.md:808	xor.ad/docs/chat_EN.md:386	Имя проходит ту же очередь модерации, что и фраза, — в момент первой п	The name goes through the same moderation queue as a phrase — at the f
 chat.2026-08-20.403	2026-08-20	xor.ad/docs/chat_RU.md:808	xor.ad/docs/chat_EN.md:520	Имя проходит ту же очередь модерации	The name goes through the same moderation queue
 chat.2026-08-20.770	2026-08-20	xor.ad/docs/chat_RU.md:1274	xor.ad/docs/chat_EN.md:785	Про имя такого сообщения нет и быть не может	There is no such message for a name, and there cannot be
-chat.2026-08-20.1897	2026-08-20	xor.ad/docs/chat_RU.md:2512	xor.ad/docs/chat_EN.md:1937	Окна с непроверенным именем нет — решено 20.08.2026.	There is no unchecked-name window — decided 2026-08-20.
+chat.2026-08-20.1897	2026-08-20	xor.ad/docs/chat_RU.md:2508	xor.ad/docs/chat_EN.md:1937	Окна с непроверенным именем нет — решено 20.08.2026.	There is no unchecked-name window — decided 2026-08-20.
 chat.2026-08-25.1389	2026-08-25	xor.ad/docs/chat_RU.md:1931	xor.ad/docs/chat_EN.md:1419	Но узел считает не символы, а байты.	The node, however, counts bytes and not characters.
 chat.2026-08-28.705	2026-08-28	xor.ad/docs/chat_RU.md:1199	xor.ad/docs/chat_EN.md:718	Код рождается на устройстве — записано 28.08.2026.	The code is born on the device — recorded 2026-08-28.
 chat.2026-08-28.817	2026-08-28	xor.ad/docs/chat_RU.md:1320	xor.ad/docs/chat_EN.md:832	области, которую человек выбирает сам	an area the person chooses themselves
@@ -123,6 +123,6 @@ chat.2026-09-11.706	2026-09-11	xor.ad/docs/chat_RU.md:710	xor.ad/docs/chat_EN.md
 chat.2026-09-11.1010	2026-09-11	xor.ad/docs/chat_RU.md:1014	xor.ad/docs/chat_EN.md:1023	**Заморозка сжигает долю хранилища — решено 11.09.2026.**	**Freezing burns the vault share — decided 2026-09-11.**
 chat.2026-09-11.1028	2026-09-11	xor.ad/docs/chat_RU.md:1032	xor.ad/docs/chat_EN.md:1041	**64 МБ и t=3 — замерено 11.09.2026, а не выбрано на глаз.**	**64 MB and t=3 are measured as of 2026-09-11, not guessed.**
 chat.2026-09-11.1182	2026-09-11	xor.ad/docs/chat_RU.md:1186	xor.ad/docs/chat_EN.md:1198	**Этим же закрыто вытеснение хранилища браузером — записано 11.09.2026.**	**This also covers the browser evicting the storage — written down 2026-09-11.**
-chat.2026-09-11.2520	2026-09-11	xor.ad/docs/chat_RU.md:2561	xor.ad/docs/chat_EN.md:2553	**Первая миграция несёт десять таблиц, а не двадцать четыре — решено 11.09.2026.**	**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
+chat.2026-09-11.2520	2026-09-11	xor.ad/docs/chat_RU.md:2557	xor.ad/docs/chat_EN.md:2553	**Первая миграция несёт десять таблиц, а не двадцать четыре — решено 11.09.2026.**	**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
 chat.2026-09-12.2044	2026-09-12	xor.ad/docs/chat_RU.md:2046	xor.ad/docs/chat_EN.md:2064	**Состояния «доставлено» и «прочитано» не существует — решено 12.09.2026.**	**There is no "delivered" and no "read" state — decided 2026-09-12.**
-chat.2026-09-11.2255	2026-09-11	xor.ad/docs/chat_RU.md:2260	xor.ad/docs/chat_EN.md:2279	**Доставка при возвращении собеседника есть — решено 11.09.2026, уточнено	**Delivery when the other person returns does happen — decided 2026-09-11,
+chat.2026-09-11.2255	2026-09-11	xor.ad/docs/chat_RU.md:2256	xor.ad/docs/chat_EN.md:2279	**Доставка при возвращении собеседника есть — решено 11.09.2026, уточнено	**Delivery when the other person returns does happen — decided 2026-09-11,

@@ -304,3 +304,20 @@ wants back in with the paper code | chat_EN.md sosed.place/docs/00-mechanics_EN.
 stickers and the guessed word | chat_EN.md | the node sees the word, 2026-09-12
 ходы и доску сервер видит   | sosed.place/docs/06-match-and-chat_RU.md neighbro.place/docs/06-match-and-chat_RU.md | и загаданное слово тоже, 12.09.2026
 sees the moves and the board | sosed.place/docs/06-match-and-chat_EN.md neighbro.place/docs/06-match-and-chat_EN.md | and the word set in hangman, 2026-09-12
+# --- жалоба на беседу идёт словами заявителя, а не копией (11.09.2026) ---------
+# Клиент не выгружает расшифрованную реплику собеседника: иначе сквозное
+# шифрование кончалось бы ровно на жалобе. Процитировать можно руками.
+Жалоба несёт свою копию   | chat_RU.md chat-flows_RU.md | слово заявителя, 11.09.2026
+приложив копию            | chat_RU.md sosed.place/docs/06-match-and-chat_RU.md neighbro.place/docs/06-match-and-chat_RU.md | своими словами, 11.09.2026
+копию приложит ваше устройство | sosed.place/landing/legal/community-guidelines_RU.md neighbro.place/landing/legal/community-guidelines_RU.md | своими словами, 11.09.2026
+цитату надо вставить со своего | dsa/SPEC_RU.md | описание своими словами, 11.09.2026
+A report carries its own copy | chat_EN.md chat-flows_EN.md | the reporter's words, 2026-09-11
+attaching a copy          | chat_EN.md sosed.place/docs/06-match-and-chat_EN.md neighbro.place/docs/06-match-and-chat_EN.md | in your own words, 2026-09-11
+your device attaches the copy | sosed.place/landing/legal/community-guidelines_EN.md neighbro.place/landing/legal/community-guidelines_EN.md | in your own words, 2026-09-11
+their own device attaches the copy | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | in their own words, 2026-09-11
+quote has to be pasted    | dsa/SPEC_EN.md | a description in their own words, 2026-09-11
+# --- без почты решения по уведомлению не будет (11.09.2026) --------------------
+# Путь «в приложение» есть только у мотивировки автору: она привязана к личности,
+# а у уведомления личности заявителя нет и заводить её мы не стали.
+Без почты подтверждение придёт в приложение | sosed.place/docs/05-message-actions_RU.md neighbro.place/docs/05-message-actions_RU.md | без почты решения не будет, 11.09.2026
+With no email, the acknowledgement is shown in the app | sosed.place/docs/05-message-actions_EN.md neighbro.place/docs/05-message-actions_EN.md | no email, no decision, 2026-09-11

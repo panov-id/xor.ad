@@ -585,7 +585,7 @@ stateDiagram-v2
   participants may sit on different ones, and a node falling over drops only its
   own sockets. The limit — the bus works within one database.
 - **The chat is not moderated.** Four things work instead: entry by mutual like
-  with double consent, blocking, a report carrying its own copy, and ephemerality.
+  with double consent, blocking, a report in the reporter's own words, and ephemerality.
 
 ---
 
@@ -794,8 +794,8 @@ personally** again they need a fresh mutual like on live phrases and your consen
 to open a chat: **the door to a conversation is guarded by the entry model, not by
 the block**.
 
-**A report carries its own copy**, because the server has no text. So a report is
-one side's word, and must be treated as a signal rather than as evidence.
+**A report carries the reporter's words**, because the server has no text and the
+client uploads none (2026-09-11). So a report is one side's word, and must be treated as a signal rather than as evidence.
 
 ---
 

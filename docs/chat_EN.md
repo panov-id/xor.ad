@@ -1860,8 +1860,8 @@ not us, not a filter.
 It is encrypted on your devices: our server carries it and
 cannot read it.
 
-If someone behaves badly, block them and report them, attaching
-a copy from your own device.
+If someone behaves badly, block them and report them, describing
+in your own words what happened.
 ```
 
 This is **not** another consent or a checkbox: "open chat" stays the single press on the screen. The disclaimer is said here because this is the last moment at which nothing has been opened yet.
@@ -2188,20 +2188,16 @@ This paragraph used to say the key came from "the same secret that signs request
 
 **A pair can match again.** `pair_key` is freed when the `chats` row is deleted, so after a chat dies a new match is possible — but only under the usual rules: both phrases must be alive, and both people must consent again. That is intended, not a side effect.
 
-**A report carries its own copy.** There is no text on the server, so reporting "a message" is technically only possible by attaching a local copy from the reporter's device. Which means a report is one side's word, and should be treated accordingly: as a signal, not as evidence.
+**A report carries one side's word, and nothing else — decided 2026-09-11.** There is no text on the server, and the client does not upload any: the other person's decrypted message never reaches the node in any form, or end-to-end encryption would end exactly at the report. The earlier wording described the opposite — the client took the last N messages from local history and showed them to the reporter before sending [retired]. A person can still quote: by their own hand, in the description, as much or as little as they choose.
 
-**What it looks like.** Reporting a conversation is its own path in the form,
-because the copy has to come from the reporter:
+**What it looks like.**
 
 ```
 "report" inside the chat
-  → the client takes the last N messages around the disputed one from local history
-  → shows them to the reporter BEFORE sending: "this is what goes, trim what you want"
-  → sends {kind: chat, chat_id, the attached copy, reason, good faith}
+  → the reporter describes what happened and quotes whatever they choose
+  → sends {kind: chat, chat_id, the reporter's text, reason, good faith}
+  → snapshot_state = not_accessible: we have no snapshot and can have none
 ```
-
-The reporter sees and edits what they send: otherwise a report about one line
-drags half a private conversation along, including their own words.
 
 **In the panel it is marked as one side's word.** The copy came from the
 reporter and we have nothing to check it against — no original, no second
@@ -2394,7 +2390,7 @@ This does not undo the per-person count, because the count is about history and 
 - **That promise has a condition, and it is named in §8.2 (2026-08-21).** "A seized database" is safe exactly as long as the vault shares sit in it **encrypted under the node's key**, and the key does not travel in the dump. Without that condition a dump plus one device gave an offline PIN search and a read of the local history — precisely the reading-after-the-fact promised not to happen. The condition is met by the `vault_shares` schema, and the day it stops being met this line is the first one to remove.
 - **A message reflected by the node.** The chat key `K` is one and symmetric for both, so ciphertext by itself does not say who created it: a dishonest node can return a sender's own message as an incoming one. The safety code (below) does not catch that — it is about key substitution at the opening of a chat, whereas reflection works at any point in the life of an already-open one. It is closed by splitting the key per direction (§8.13 above), and until then this is an honest boundary.
 - **Metadata remains.** The node knows `chat_id`, both participants, when something moved and how long the messages were. What is encrypted is the content, not the fact of the conversation.
-- **Encryption does not protect you from the person you are talking to.** They have the plaintext on their screen: they can keep it and attach it to a report. That is by design (§8.10) — otherwise there would be nothing to report with.
+- **Encryption does not protect you from the person you are talking to.** They have the plaintext on their screen: they can keep it and quote it in a report by their own hand. That is by design (§8.10) — otherwise there would be nothing to report with; the client will not upload the conversation on their behalf (2026-09-11).
 
 **Us substituting a key.** The public halves are handed out by our server, so in theory we could slip in our own and read a conversation live. Cryptography does not stop that; comparison does: a **safety code** derived from both identities' long-lived keys and shown in the chat header, which two people can check in person or over a call. Using it is optional, but without it one has to trust us regardless.
 

@@ -279,8 +279,8 @@ The Article 16 path has to exist in every face, this one included. From the feed
 it is `r` on an entry; as a command it is for when the client is closed and
 something needs saying.
 
-The notice carries a copy of what is being reported: the server has no copy and
-cannot have one (§8.8).
+The notice carries the reporter's words: the server has no copy and cannot have
+one, and the client uploads none (§8.8, 2026-09-11). Quoting is done by hand.
 
 ### 3.5. What is **not** a command
 

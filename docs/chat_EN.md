@@ -1016,8 +1016,10 @@ first        decrypted the envelope ─► so the code was typed correctly
              ASKS THE PERSON (below) ─► only after "that's me":
              puts the identity's long-lived key into the reply envelope
              and sets its own frozen_at — the identity has left
-node         DELETE FROM vault_shares WHERE session = <previous> — the share burns
-node        DELETE FROM vault_shares WHERE session = <previous> — the share burns
+node         UPDATE vault_shares SET share_enc = NULL, burned_at = now()
+             WHERE session = <previous> — the share burns
+node        UPDATE vault_shares SET share_enc = NULL, burned_at = now()
+            WHERE session = <previous> — the share burns
 ```
 
 **Freezing burns the vault share — decided 2026-09-11.** `frozen_at` only put out the
@@ -1162,7 +1164,7 @@ absent from the table.
 CREATE TABLE vault_shares (
   session       uuid PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
   auth_hash     text NOT NULL,       -- hash of half the material; the PIN itself is unknown to the node
-  share_enc     bytea NOT NULL,      -- 32 random bytes UNDER the node's key, not as they are
+  share_enc     bytea,               -- 32 random bytes UNDER the node's key; NULL = burned
   attempts_left smallint NOT NULL DEFAULT 10,
   burned_at     timestamptz,
   last_used_at  timestamptz NOT NULL DEFAULT now()
@@ -1171,7 +1173,15 @@ CREATE TABLE vault_shares (
 
 **The share is stored encrypted under the node's key — decided 2026-08-21 from the review, and it is not a detail.** This used to read `share bytea NOT NULL`, commented "meaningless to the node". They are meaningless only while there is no device. Put a database dump (a backup, an injection, a contractor, a seizure) together with one copied browser profile and `HKDF(Argon2id(pin, device salt) ‖ share)` can be computed offline for each of a million PINs. Neither `auth_hash` nor `attempts_left` takes part: they live on the node, and the node is out of the loop in that scenario. In other words **the whole design collapsed by exactly the route the paragraph above calls inadmissible**, only through a dump rather than through the endpoint.
 
-The key comes from the node's existing mechanism (`relay/node/db/004_secret_keys.sql`) and does not travel in a database dump. Burning a share writes `share_enc = NULL` rather than only a date; otherwise the bytes stay. The price is stated plainly: **losing the node's key equals losing every local history at once** — the same price as losing the share table, and it must be handled the same way.
+The key comes from the node's existing mechanism (`relay/node/db/004_secret_keys.sql`) and does not travel in a database dump. Burning a share writes `share_enc = NULL` **and** `burned_at`, not one of the two: otherwise either the bytes stay or the row lies about its own state. There is **one** way to do it — clarified 2026-09-12: a move used to delete the row outright (`DELETE`), which left nowhere to write `burned_at`, while `NOT NULL` on `share_enc` forbade writing `NULL`. Now it is an `UPDATE` everywhere, and a `CHECK` keeps the two from drifting apart. The price is stated plainly: **losing the node's key equals losing every local history at once** — the same price as losing the share table, and it must be handled the same way.
+
+**The PIN is asked for before every irreversible action — decided 2026-09-11.** Moving an identity, changing the PIN and starting over are carried out by the node only with a fresh proof of the PIN — the same `auth` as when the share is handed out, and with the same counter of ten. The proof is derived from the typed PIN afresh for every action, sits inside the signed body of the request and is never cached: otherwise unlocking the tab once would buy the right to everything until the end of the day. Changing the PIN requires the **old** one and, in a single transaction, rewrites `auth_hash`, `share_enc` and returns the counter to ten.
+
+The counter is decremented in its own short transaction, before the action itself: otherwise rolling back a refused action would roll the attempt back with it, and brute force would come free.
+
+**"Erase conversation history" is not on that list.** History lives only on the device (§8.8), the node has nothing to execute, and a PIN check on the node would be theatre here: whoever holds an unlocked tab can clear the site's data without us. The check stays on the client, and the screen says so.
+
+**With the share burned, all three actions refuse.** That is the price, said out loud: a device with a burned share does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: recovery mints a new share and a new PIN and returns the counter to ten (§8.2 below). Without this rule the hole would be the exact opposite: in the web the signing key sits outside the share, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
 
 **A share belongs to a device, not to an identity.** Otherwise changing the PIN on a new device would break the previous device's database, and whoever took the identity and set their own PIN would read someone else's old conversations. So each device has its own share, its own PIN and its own counter, and nothing reaches another device's share — including a live session of the same identity.
 

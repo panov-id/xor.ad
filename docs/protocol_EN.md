@@ -77,7 +77,9 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 |---|---|---|
 | `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id` | **proposed** (§8.2) |
 | `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts burn the share | **proposed** (§8.2) |
-| `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use | **spec** |
+| `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use; **requires a PIN proof** (§8.2, 2026-09-11) | **spec** |
+| `POST /vault/pin` | changing the PIN: the old PIN, a new `auth_hash`, a reissued share — **proposed 2026-09-11**, the handle does not exist yet | **spec** |
+| `POST /identities/close` | "start over": closing an identity with a PIN proof — **proposed 2026-09-11**, the handle does not exist yet | **spec** |
 | `POST /sessions/claim` | using the code on the new device; the old one goes still | **spec** |
 | `POST /recovery/claim` | raising an identity from the paper code | **proposed** (§8.2, §13) |
 | `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy | **proposed** (2026-08-29) |

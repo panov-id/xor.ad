@@ -321,3 +321,9 @@ quote has to be pasted    | dsa/SPEC_EN.md | a description in their own words, 2
 # а у уведомления личности заявителя нет и заводить её мы не стали.
 Без почты подтверждение придёт в приложение | sosed.place/docs/05-message-actions_RU.md neighbro.place/docs/05-message-actions_RU.md | без почты решения не будет, 11.09.2026
 With no email, the acknowledgement is shown in the app | sosed.place/docs/05-message-actions_EN.md neighbro.place/docs/05-message-actions_EN.md | no email, no decision, 2026-09-11
+# --- ПИН перед необратимым, и сжигание доли одно (11–12.09.2026) ---------------
+# В вебе ключ подписи лежит вне доли: без правила «доля сожжена — отказ» ПИН
+# обходился бы десятью нарочно неверными вводами. Сжигание было записано тремя
+# несовместимыми способами сразу.
+DELETE FROM vault_shares  | chat_RU.md | UPDATE … share_enc = NULL, burned_at, 12.09.2026
+share_enc     bytea NOT NULL | chat_RU.md chat_EN.md | share_enc bytea, NULL = сожжена, 12.09.2026

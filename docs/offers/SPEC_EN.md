@@ -395,7 +395,7 @@ was meant is what was written.
     notifier_email          string, required — the only way to reply (10.2)
     text                    string, nullable
     status                  enum: pending | resolved | rejected
-    counts_towards_autohide bool — false if the user is over the monthly limit
+    counts_towards_autohide bool — false if the user is over the monthly limit or their first publication is not old enough (`chat_EN.md` §8.3); frozen at the time of the complaint (2026-09-14)
     created_at
 
 ### business_response
@@ -468,7 +468,7 @@ Performed instantly, with no person involved:
 | Stop-words for forbidden categories (section 12) | Publication refused |
 | `external_url` on reputation lists of phishing and malicious domains | Publication refused |
 | `external_url` is a link shortener (bit.ly and any equivalent) | Publication refused |
-| The text duplicates an offer the same author published before | Publication refused |
+| The text duplicates a live offer of the same author (since 2026-09-14; "published before" [retired] — an expired text is not stored, there is nothing to compare with) | Publication refused |
 | The identity already has `PRIVATE_ACTIVE_OFFERS` live phrases with a discount | Publication refused |
 
 The checks on publishing a phrase with a discount are performed by the **node**, on the same
@@ -700,9 +700,11 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
 - **two complaints from different people are enough**, and the second extinguishes the link
   immediately and automatically: `redirect_disabled_at` is set with no person involved. The
   offer stays in the feed, but the jump no longer works.
-  **Only complaints from identities that have had a publication accepted count — decided
-  2026-09-14 after the review panel (S14).** Other complaints reach a moderator at the same
-  high priority but extinguish nothing by themselves.
+  **Only complaints from people whose first accepted publication came out at least two
+  dates earlier and before the day the offer came out count — decided 2026-09-14 after the
+  review panel (S14), refined the same day.** Other complaints reach a moderator at the same
+  high priority but extinguish nothing by themselves. [retired] This said "that have had a
+  publication accepted" — which cost one harmless phrase per identity.
 
   Why two rather than one: one would let a single irritated neighbour or a competitor take down
   an honest link with a single tap. Two independently is no longer a coincidence, **provided the

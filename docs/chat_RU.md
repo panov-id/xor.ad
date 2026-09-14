@@ -2662,7 +2662,8 @@ API, к которому терминал пришлось бы подгонят
 
 ```sql
 CREATE TABLE support_requests (
-  id           bigserial PRIMARY KEY,                              -- номер обращения, который видит человек
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),         -- внутренний; bigserial [retired] 14.09.2026
+  public_no    text NOT NULL UNIQUE CHECK (public_no ~ '^[0-9A-HJKMNP-TV-Z]{10}$'),  -- номер, который видит человек: Crockford base32 из CSPRNG узла
   identity     uuid REFERENCES identities(id) ON DELETE SET NULL,  -- «начать заново» обнуляет в закрывающей транзакции (§8.2); SET NULL — страховка на DELETE
   body         text NOT NULL,
   email        text,                                               -- необязательна
@@ -2670,9 +2671,14 @@ CREATE TABLE support_requests (
   created_at   timestamptz NOT NULL DEFAULT now(),
   answer       text,
   answered_at  timestamptz,
-  seen_at      timestamptz                                         -- точка в «Я» горит, пока ответ есть, а seen_at пуст
+  answer_seen  boolean NOT NULL DEFAULT false,                      -- точка в «Я» горит, пока ответ есть, а answer_seen ложно; seen_at [retired] 14.09.2026
+  CHECK (answer_seen = false OR answer IS NOT NULL)
 );
+CREATE INDEX support_by_identity ON support_requests (identity, created_at DESC) WHERE identity IS NOT NULL;  -- свой список и предел в сутки
+CREATE INDEX support_by_created ON support_requests (created_at);  -- чистка через год и суточная сводка
 ```
+
+**Номер обращения случайный, ответ — только владельцу, предел — три в сутки со строкой почты — решено 14.09.2026.** Прежде номером служил `bigserial` [retired]: по нему видно, сколько обращений пришло за день, и соседний номер угадывается. Теперь `id` — внутренний `uuid`, а человек видит `public_no` — десять знаков Crockford base32 из CSPRNG узла (50 бит); совпадение при вставке даёт `23505`, и узел повторяет с новым номером (проверено в `postgres:16`: дубль — `23505`, буква `I` вне алфавита — `23514`). **Номер ключом не служит:** список и ответ отдаются только на запрос, подписанный сессией личности, у которой `identity` совпадает; по номеру без подписи узел не отвечает ничего, и это же сказано на экране. `seen_at` заменён на `answer_seen` [retired]: момент прочтения никому не нужен, а точке в «Я» хватает признака. **Предел — три обращения в сутки на личность** (`limits.tsv` `support.requests.day`) плюс общий предел частоты по адресу (`protocol_RU.md` §3); четвёртое не принимается, и отказ несёт строку с адресом поддержки витрины — канал к человеку не отрезается (ст. 12(1) DSA). Замороженной сессии свой предел — одно в сутки (§8.2). **Команде уходит не письмо на каждое обращение, а суточная сводка** — число новых и число ждущих ответа, без текста обращений: письмо на каждое превращало бы почтовый ящик в копию таблицы, которая живёт год. Исполнителя у сводки, как и у чистки, пока нет — открытый пункт `support.sweeper`. Цена названа: срочное обращение команда видит не раньше сводки или открытия панели; жалоба на незаконное эту цену не платит — она уходит в реестр уведомлений со своими сроками.
 
 Срок хранения — год от `created_at` (`sosed.place/docs/00-mechanics_RU.md` §7; точка отсчёта названа 14.09.2026 по панели ревью), и **исполнителя у
 него по-прежнему нет**: чистка появится вместе с таблицей, не раньше — открытый пункт `support.sweeper`.

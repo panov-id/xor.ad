@@ -2698,7 +2698,8 @@ appear in no other document:
 
 ```sql
 CREATE TABLE support_requests (
-  id           bigserial PRIMARY KEY,                              -- the request number the person sees
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),         -- internal; bigserial [retired] 2026-09-14
+  public_no    text NOT NULL UNIQUE CHECK (public_no ~ '^[0-9A-HJKMNP-TV-Z]{10}$'),  -- the number the person sees: Crockford base32 from the node's CSPRNG
   identity     uuid REFERENCES identities(id) ON DELETE SET NULL,  -- "start over" nulls it in the closing transaction (§8.2); SET NULL is the backstop for DELETE
   body         text NOT NULL,
   email        text,                                               -- optional
@@ -2706,9 +2707,14 @@ CREATE TABLE support_requests (
   created_at   timestamptz NOT NULL DEFAULT now(),
   answer       text,
   answered_at  timestamptz,
-  seen_at      timestamptz                                         -- the dot under "Me" shows while there is an answer and seen_at is empty
+  answer_seen  boolean NOT NULL DEFAULT false,                      -- the dot under "Me" shows while there is an answer and answer_seen is false; seen_at [retired] 2026-09-14
+  CHECK (answer_seen = false OR answer IS NOT NULL)
 );
+CREATE INDEX support_by_identity ON support_requests (identity, created_at DESC) WHERE identity IS NOT NULL;  -- own list and the daily cap
+CREATE INDEX support_by_created ON support_requests (created_at);  -- the sweep after a year and the daily digest
 ```
+
+**The request number is random, the answer goes only to its owner, the cap is three a day with an email line — decided 2026-09-14.** The number used to be a `bigserial` [retired]: it showed how many requests came in a day, and a neighbouring number could be guessed. Now `id` is an internal `uuid`, and the person sees `public_no` — ten Crockford base32 characters from the node's CSPRNG (50 bits); a collision on insert raises `23505` and the node retries with a new number (checked in `postgres:16`: a duplicate — `23505`, the letter `I` outside the alphabet — `23514`). **The number is not a key:** the list and the answer are returned only to a request signed by a session of the identity that `identity` matches; given a number without a signature the node answers nothing, and the screen says so. `seen_at` is replaced by `answer_seen` [retired]: nobody needs the moment of reading, and a flag is enough for the dot under "Me". **The cap is three requests a day per identity** (`limits.tsv` `support.requests.day`) plus the general per-address rate limit (`protocol_EN.md` §3); a fourth is not accepted, and the refusal carries a line with the storefront's support address — the channel to a person is not cut off (DSA Art. 12(1)). A frozen session has its own cap — one a day (§8.2). **The team gets not a letter per request but a daily digest** — the number of new ones and of those awaiting an answer, with no request text: a letter per request would turn the mailbox into a copy of a table that lives a year. The digest, like the sweep, has no one to carry it out yet — open item `support.sweeper`. The price is named: the team sees an urgent request no earlier than the digest or opening the panel; a report of illegal content does not pay this price — it goes to the notice register with its own deadlines.
 
 It is kept for a year from `created_at` (`sosed.place/docs/00-mechanics_EN.md` §7; the starting point named 2026-09-14 after the review panel), and **it still has
 no one to carry that out**: the sweep arrives together with the table, not before — open item `support.sweeper`.

@@ -316,6 +316,9 @@ through three different wrappers and cannot be counted by eye.
 | 16.6 | A report carries the reporter's words, not a copy of the conversation | the client uploads nothing, `snapshot_state = not_accessible` | nothing to check |
 | 16.7 | **A content report through support lands in the same register** | a message describing something illegal → a record in the notices register, not in the support table | nothing to check |
 | 16.8 | **The answer is shown in the app at the next visit, with no email** | a message with no address → the answer waits with the identity and appears on entry | nothing to check |
+| 16.8a | **The request number is not a key** (§13, 2026-09-14) | `GET` of an answer by `public_no` unsigned or signed by another identity → empty; the numbers of two consecutive requests are not neighbours | nothing to check |
+| 16.8b | **Three requests a day, a fourth refused with an email address** (§13, 2026-09-14) | three `POST` → accepted; a fourth → refused, the storefront's support address in the body; a day later — accepted | nothing to check |
+| 16.8c | **The team gets a daily digest with no text** (§13, 2026-09-14) | ten requests in a day → one letter with two numbers, not a line from `body` | nothing to check |
 
 ## 17. Changing the name and the age (step 1, fully — from step 2)
 

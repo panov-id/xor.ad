@@ -985,7 +985,7 @@ flowchart TD
   away --> sock["this session's sockets are closed<br/>the same way as on a freeze #40;§7#41;"]
   away --> chats["chats are NOT frozen:<br/>last_activity_at does not move, the TTL runs"]
   chats --> price(["only conversations with a long span<br/>survive an 8-hour break"])
-  sock --> peer["the other side in an open chat sees stepped_away<br/>instead of being able to write"]
+  sock --> peer["the other side in an open chat sees a stepped_away label<br/>above a live input; lifted by the returner's first message"]
   del --> back{"back, or leaving early?"}
   back -- "early" --> confirm["a confirmation; the frequency is not capped"]
   back -- "the span ran out" --> clean(["back to a clean place:<br/>there is nothing to catch up on"])

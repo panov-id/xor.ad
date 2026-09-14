@@ -67,7 +67,7 @@ on 2026-09-10 along with the last basis resting on consent.
 | Risk to a person | What closes it | What remains |
 |---|---|---|
 | **Working out where an author lives** | the rounding grid; visibility computed from the cell; steps instead of exact counters | in a thinly populated place a neighbour is recognisable anyway — the cost is named in §8.3 |
-| **Learning when somebody is at their screen** | no presence indicators; the "ended" mark is placed by your own attempt; the confirmation count is hidden at two; the table list is not recomputed on a block | the "stepped away" line is the one exception, and the person declares it themselves |
+| **Learning when somebody is at their screen** | no presence indicators; the "ended" mark is placed by your own attempt; the confirmation count is hidden at two; the table list is not recomputed on a block | the "stepped away" label is the one exception, the person declares it themselves, and it is lifted by their message rather than by the span: the moment it goes does not give away the chosen span (2026-09-14) |
 | **Reading the correspondence** | encryption on the devices, no keys on the node, only undelivered ciphertext in the database (§8.8) | a game board is not encrypted, and the policy and the rules say so |
 | **Getting the history off a lost device** | a PIN plus the node's share; since 2026-09-11 any move of an identity burns the previous device's share | while the phone is in hand and unlocked, nothing helps |
 | **An automated refusal with no review** | the refusal names a class; the false-block budget is a published number | there is no appeal against a refusal, and since 2026-09-10 the terms say so plainly |

@@ -374,7 +374,7 @@ through three different wrappers and cannot be counted by eye.
 | 22.2 | Matches go out and the other side learns no reason | the offer vanished with no explanation | nothing to check |
 | 22.3 | Chats are not frozen: the TTL runs | `last_activity_at` did not move | nothing to check |
 | 22.4 | The session's sockets close the same way as on a freeze | the connection is torn down by the node | nothing to check |
-| 22.5 | The peer in an open chat sees `stepped_away` | the only exception to "we do not report presence" | nothing to check |
+| 22.5 | The peer in an open chat sees a `stepped_away` label above a live input | the only exception to "we do not report presence"; lifted by the first message, not by the span (2026-09-14) | the span ran out with no message — the label stays; the returner wrote — no label; the peer's message sent during the step-away is delivered on connection |
 | 22.6 | The in-app timer never reaches the node | neither a column nor a request next to the identity | nothing to check |
 | 22.7 | Leaving early works, the frequency is not capped | three departures in a row → no refusal | nothing to check |
 | 22.8 | **A table survives its founder's break while they stand up from it** | "step away" → the table is in the feed, the leaver is not among the sitters | nothing to check |

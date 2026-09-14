@@ -749,6 +749,8 @@ CREATE TABLE identities (
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
                                         -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
+  stepped_away_at    timestamptz,       -- start of the last step-away; the "stepped away" label in a chat stays while one's own message there is older (§8.2, 2026-09-14)
+  stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
 );
@@ -829,7 +831,7 @@ A person may leave the place for a span — **20 minutes, an hour, or 8 hours** 
 - **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: an eight-hour departure is survived only by conversations with a long span.
 - **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
-- **A peer in an open chat sees `stepped_away`** instead of the ability to write. This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **A peer in an open chat sees a `stepped_away` label above the input, and the input stays live — edited 2026-09-14.** The label is lifted not by the span but by the returning person's first message in that conversation: the node shows it while `chat_participants.last_own_message_at` is earlier than `identities.stepped_away_at`. The reason is the 2026-09-11 review panel (S18): with three fixed spans, the moment the line vanished gave away which one was chosen. Opening the conversation does not lift it: the node does not know about visits and must not learn. The peer's messages wait in `pending_deliveries` and arrive on connection (§8.8). The price is named: people write to someone who is not there, and the label may hang until the conversation ends if the returning person stays silent in it. (This said "instead of the ability to write" [retired] — on the argument "so nobody spends words on emptiness"; the words are not lost, they wait for delivery.) This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
 - **Stepping away takes the game cache for a pair with it (2026-09-10).** One person
   leaving ends the game (§6), and since 2026-09-10 a game for two has a row in
   `chat_games`. The cascade from `chats` will not take it: stepping away does not

@@ -72,10 +72,18 @@ The same place as `relay-node`. The tag is a version, but the right way to run i
 is **by digest**: tags move, digests do not.
 
 ```
-docker run --rm -it \
+docker run --rm -it --log-driver none \
   -v depth-identity:/data \
   ghcr.io/panov-id/depth@sha256:…
 ```
+
+**`--log-driver none` is mandatory — added 2026-09-14** after the review panel (S16).
+Docker writes a container's output through its log driver even with `-it`: by
+default that is `json-file` under `/var/lib/docker/containers/<id>/`, and while the
+client runs, the decrypted conversation sits there on the host's disk. `--rm` erases
+the file only on exit, and the `journald` and `syslog` drivers never erase it.
+Measured in a container: without the flag the output was found in `…-json.log`, with
+it there is no log file at all.
 
 To check that what runs is what was published:
 
@@ -562,9 +570,11 @@ them.
 - **The conversation ended for the peer** — a line replaces the input: neither of
   you can write, the key is out for both (§8.13). Your own history stays — exactly
   until your own span.
-- **The other person has stepped away** — a line saying "away" instead of the
-  input field, with no time of leaving and no time of return (screen 8, §13 of the
-  mechanics). It is the only place in the whole product where someone else's
+- **The other person has stepped away** — a label saying "away" above a live input
+  field, with no time of leaving and no time of return (screen 8, §13 of the
+  mechanics). The label is lifted by the returning person's first message in that
+  conversation, not by the span (edited 2026-09-14, `chat_EN.md` §8.2; this said
+  "instead of the input field" [retired]). It is the only place in the whole product where someone else's
   presence is reported, and it is allowed because the person declared it rather
   than the system inferring it.
 - **You can step away too** — `a`: 20 minutes, an hour, or 8 hours. It is a
@@ -758,7 +768,8 @@ sake of a long link, and left with it.
 terms revision with its date.
 
 **Not in the volume:** conversations, feed, matches, game boards, logs. None of it
-reaches the disk.
+reaches the disk — **when run with `--log-driver none`** (§2.1): without the flag
+all output settles in Docker's log (clarified 2026-09-14).
 
 Hence the consequence for freezing (§8.2): a frozen `depth` retains
 **nothing** beyond what was in the live process's memory before it exited. A

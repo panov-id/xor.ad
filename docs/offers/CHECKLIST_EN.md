@@ -81,7 +81,8 @@ Rationale: [README_EN.md](README_EN.md).
 - [ ] 3.2. In the letter: activation creates an obligation to grant the discount as announced
 - [ ] 3.3. In the envelope, a sticker and a card for the staff — a gift, with no obligation
 - [ ] 3.4. The fallback path: a call to the public phone number from an open listing
-- [ ] 3.5. A "this is not us" button for the business → instant `suspended`
+- [ ] 3.5. A "this is not us" button for the business → instant `suspended`; lifted only by a new envelope with a code, leaves no address hash
+- [ ] 3.5a. A deleted venue suspended over systematic complaints cannot verify at the same address for a year (keyed hash); one suspended by "this is not us" can
 - [ ] 3.6. A change of address repeats the verification
 
 ## 4. Moderation and complaints
@@ -109,7 +110,7 @@ Rationale: [README_EN.md](README_EN.md).
 - [ ] 4.6. A monthly complaint limit per user; beyond it the weight drops
 - [ ] 4.7. The business sees the text and the date, without the identity and without the time
 - [ ] 4.8. Automatic hiding of the **offer** (not the profile) on repeated complaints, with
-      an examination within a day
+      an examination within `COMPLAINT_EXAMINATION_HOURS` — for the record; the offer expires on its own
 - [ ] 4.9. Systematic complaints after examination → `suspended` for the **venue**, not for
       the account: one place collected complaints, the others keep working
 
@@ -137,7 +138,7 @@ Rationale: [README_EN.md](README_EN.md).
 - Not building redemption codes or caps on the number of discounts
 - Not giving the business metrics
 - Not requiring a photo of the sticker — it proves nothing
-- Not setting a minimum discount — that is pre-moderation's job
+- Not setting a minimum discount and not judging a token one: the only condition is a non-empty `discount_value` (edited 2026-09-14: "that is pre-moderation's job" [retired])
 - Not building auto-repeat and schedules
 - Not building public reviews, ratings and stars
 - Not building a self-service cabinet: the first businesses are handled by hand

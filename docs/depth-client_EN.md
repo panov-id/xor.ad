@@ -72,7 +72,7 @@ The same place as `relay-node`. The tag is a version, but the right way to run i
 is **by digest**: tags move, digests do not.
 
 ```
-docker run --rm -it --log-driver none \
+docker run --rm -it --log-driver none -e DEPTH_WRAPPED=1 \
   -v depth-identity:/data \
   ghcr.io/panov-id/depth@sha256:…
 ```
@@ -91,7 +91,10 @@ built in whole, and the client checks at start for `DEPTH_WRAPPED=1`, which only
 sets, and without it refuses to start and says why. This guards against a mistake, not intent:
 the variable can be set by hand without the flag, and that is said. **The whole interface, not
 only the transfer screen, is drawn in the alternate buffer** of the terminal and cleared on exit:
-otherwise the conversation stays in the scrollback and in the multiplexer's log.
+otherwise the conversation stays in the scrollback. **The buffer does not keep it out of a multiplexer's log:**
+`tmux pipe-pane` writes the raw stream, alternate buffer included (container experiment 2026-09-14: a
+marker from the alternate buffer is in the `pipe-pane` log and absent from the scrollback). A multiplexer
+log that is switched on keeps the conversation, and the client cannot know — `depth --help` says so.
 
 To check that what runs is what was published:
 
@@ -310,7 +313,7 @@ DEPTH_CODE=K7Q-M3F-2X9        ✗ `docker inspect` shows the variable
 
 Standard input only. The transfer screen is drawn in the terminal's **alternate
 buffer** and cleared on exit — otherwise those nine characters stay in the
-scrollback and in the multiplexer's log.
+scrollback (a multiplexer's log is not kept out by the buffer, §2.1).
 
 The PIN and the paper code follow the same rules, and are never echoed.
 

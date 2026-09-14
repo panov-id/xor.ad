@@ -111,11 +111,11 @@ counter is also fed by table lines and a refused name. **Each further refusal wi
 the same hour — another 15 minutes** (decided 2026-09-14). An expired queue wait is
 not a refusal.
 
-**A table hold is not a pause (2026-09-14).** If something of one's own is being checked and,
-together with the refusals within the hour, it makes five or more, a new line waits for the verdicts:
+**A hold is not a pause (2026-09-14).** If something of one's own is being checked — a line, an application,
+a phrase or a name — and together with the refusals within the hour it makes five or more, a new send waits for the verdicts:
 
 ```
-Checking your earlier lines — the new one goes after the verdict.
+Checking what you sent earlier — the new one goes after the verdict.
 ```
 
 **"Within an hour" rather than "in a row" — edited 2026-09-07 after a review
@@ -149,6 +149,13 @@ which count is holding the person.
 
 The last row is not an omission. A table outside the age bands is not shown **at
 all**: a card with an explanation would itself report who is sitting where.
+
+**A fourth support request in a day (2026-09-14, `chat_EN.md` §13).** The channel to a person is not
+cut off: the address is the storefront's own.
+
+```
+That is enough requests for today — if it is urgent, write to support by email: support@…
+```
 
 ## 6. The Article 17 statement of reasons
 

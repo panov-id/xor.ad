@@ -98,6 +98,7 @@ through three different wrappers and cannot be counted by eye.
 | 4.6 | The old device freezes at the same moment | `frozen_at` set before the new one is answered | nothing to check |
 | 4.7 | The old device's disk is not wiped | move the identity back → its own PIN opens the whole history (§14) | nothing to check |
 | 4.8 | The move works across faces: code shown in `depth`, typed in the web, and back (§14) | a pair of clients, both directions | nothing to check |
+| 4.8a | **`depth` does not start without its wrapper** (`depth-client_EN.md` §2.1, 2026-09-14) | the image without `DEPTH_WRAPPED=1` → refuses and says why; through the wrapper → starts, `docker inspect` gives `LogConfig.Type = none` | nothing to check |
 | 4.9 | **No link and no QR: no separate page exists for the pairing** | there is no route for an invitation; the node accepts only a `lookup_id` | nothing to check |
 | 4.10 | The second half of the code never leaves for the server | intercept the move traffic: only `lookup_id` and envelopes in the requests | nothing to check |
 
@@ -128,7 +129,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.3d | **The operating point lives in the node's config, not in code** (2026-08-28) | changing the false-block budget moves the threshold with no rebuild and no retraining | nothing to check |
 | 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
 | 6.4 | The fifth refusal **within an hour** gives 15 minutes in which nothing goes to checking; another refusal in the same hour — another 15 minutes; feed, likes on phrases and conversations keep working (edited 2026-09-14: "15 minutes without posting" [retired]) | five refusals → `POST /feed`, a table line, a name change and an offer like with a name not yet accepted refused, `GET /feed` 200; a sixth refusal in the same hour → a new pause; an expired queue wait does not touch the counter | nothing to check |
-| 6.4a | **A phrase goes to checking one at a time** (§8.3, 2026-09-14) | two parallel sends → one row in the queue; "four per hour" counts the waiting one | nothing to check |
+| 6.4a | **A phrase goes to checking one at a time** (§8.3, 2026-09-14) | two parallel sends → one row in the queue, the second insert gets `23505` from `feed_one_waiting`; "four per hour" counts the waiting one | nothing to check |
 | 6.4b | **The table hold does not outlive the pause** (§8.3, 2026-09-14) | five refusals 50 minutes ago, empty queue → a line accepted; four refusals and one's own line in checking → a new one waits for the verdict | nothing to check |
 | 6.4c | **The first publication is written as a UTC date, "long ago" is 24 to 48 hours** (§8.3, 2026-09-14) | a publication at 23:58 UTC → a report a day later does not count, two days later it does; a publication on the offer's day does not count | nothing to check |
 | 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
@@ -320,7 +321,9 @@ through three different wrappers and cannot be counted by eye.
 | 16.8 | **The answer is shown in the app at the next visit, with no email** | a message with no address → the answer waits with the identity and appears on entry | nothing to check |
 | 16.8a | **The request number is not a key** (§13, 2026-09-14) | `GET` of an answer by `public_no` unsigned or signed by another identity → empty; the numbers of two consecutive requests are not neighbours | nothing to check |
 | 16.8b | **Three requests a day, a fourth refused with an email address** (§13, 2026-09-14) | three `POST` → accepted; a fourth → refused, the storefront's support address in the body; a day later — accepted | nothing to check |
-| 16.8c | **The team gets a daily digest with no text** (§13, 2026-09-14) | ten requests in a day → one letter with two numbers, not a line from `body` | nothing to check |
+| 16.8c | **The team gets a daily digest with no text** (§13, 2026-09-14) | ten requests in a day, one from a frozen session → one letter with three numbers, not a line from `body` | nothing to check |
+| 16.8d | **The request cap holds under parallel requests** (§13, 2026-09-14) | two requests exist, two parallel `POST` → one accepted | nothing to check |
+| 16.8e | **A second answer lights the dot again** (§13, 2026-09-14) | an answer read, a second one written → `answer_seen = false` | nothing to check |
 
 ## 17. Changing the name and the age (step 1, fully — from step 2)
 

@@ -262,7 +262,7 @@ beyond it the weight drops.
 | Condition | What happens |
 |---|---|
 | Isolated complaints | A private notice to the business |
-| Repeated complaints about one offer | The offer is hidden, examined within a day. The profile is untouched |
+| Repeated complaints about one offer | The offer is hidden; examined within `COMPLAINT_EXAMINATION_HOURS` — for the record, the offer expires on its own. The profile is untouched |
 | Systematic, after examination | `suspended` — publication is closed |
 
 The offer is hidden, not the profile: neighbours do not walk to a discount that does not exist,
@@ -324,7 +324,7 @@ All of this was considered and dropped — so that it is not revisited in circle
 | A venue PIN, a word of the day, tear-off codes | Friction for the staff for the sake of a number nobody needs when placement is free |
 | Metrics for the business | An unverifiable number breeds argument; free placement creates no obligation |
 | A photo of the sticker as proof | An image is generated in seconds and confirms nothing |
-| A minimum discount | A threshold does not tell a sincere offer from a formal one; that is pre-moderation's job |
+| A minimum discount | A threshold does not tell a sincere offer from a formal one, and there is nobody and nothing to judge formality by: the only condition is a non-empty `discount_value` (edited 2026-09-14: "that is pre-moderation's job" [retired]) |
 | Auto-repeat and scheduled offers | It turns the feed into wallpaper; a manual press also filters out dead venues |
 | Public reviews and ratings | Defamation, trolling, pressure on the moderator, accumulation instead of ephemerality |
 | Commission on sales, vouchers | Taking other people's money and payment regulation |

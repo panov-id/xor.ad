@@ -176,7 +176,8 @@ processing is identical and only the storefront differs, so the record is shared
 - **Recipients.** The email goes out through the mail sender — see "Recipients and
   contracts".
 - **Retention.** Account, venues and complaints — **one year from the last
-  offer**, then deletion.
+  offer**, then deletion. For a venue suspended over systematic complaints, a keyed hash of the address
+  and the date of suspension — one more year, up to two in all (2026-09-14, `offers/SPEC_EN.md` §13).
 
 ### 9. Storefront analytics
 

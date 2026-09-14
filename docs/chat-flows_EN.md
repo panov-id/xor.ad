@@ -101,7 +101,7 @@ flowchart TD
   check -- "yes" --> give["the node hands over the share<br/>and resets the counter"]
   give --> key["vault key = HKDF#40;local ‖ share#41;"]
   key --> open(["local history becomes readable"])
-  check -- "no" --> dec["attempts_left − 1"]
+  check -- "no" --> dec["attempts_left − 1;<br/>from the sixth attempt — a growing wait"]
   dec --> burn{"was it the tenth?"}
   burn -- "yes" --> dead(["the share is burnt — this device's<br/>messages are gone for good"])
   burn -- "no" --> warn{"3 or fewer left?"}

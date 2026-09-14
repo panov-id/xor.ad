@@ -168,7 +168,7 @@ CREATE TABLE vault_shares (
 
 `feed_messages`, `likes`, `identity_stats`, `matches`, `match_participants`,
 `chats`, `chat_participants`, `chat_starters`, `blocks`, `hidden_messages`,
-`chat_key_wraps` — одиннадцать таблиц шагов 2–7. Их DDL уже написан в спеке и
+`chat_key_wraps` — одиннадцать таблиц шагов 2–7 по плану до 11.09.2026 (не путать со срезом первой миграции в шапке — там одиннадцать по другому счёту). Их DDL уже написан в спеке и
 переносится сюда по мере шагов. Начинать с них нельзя по §13: без личности нет
 ленты, без ленты нет лайка, без лайка нет мэтча.
 

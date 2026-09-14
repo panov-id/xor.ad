@@ -749,8 +749,8 @@ CREATE TABLE identities (
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
                                         -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
-  stepped_away_at    timestamptz,       -- start of the last step-away; the "stepped away" label in a chat stays while one's own message there is older (§8.2, 2026-09-14)
-  stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person
+  -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
+  stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person; early return — now(), a past span is cleared by the session's first request
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
 );
@@ -831,7 +831,7 @@ A person may leave the place for a span — **20 minutes, an hour, or 4 hours** 
 - **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a four-hour departure is survived only by a 260-minute conversation, and only if one's own message in it was no more than 20 minutes earlier; an hour — only that one too, twenty minutes — the 60 and 260 ones, and a 30 one if one's own message was under 10 minutes earlier (edited 2026-09-14: "eight hours" [retired] was survived by no conversation — the longest span is 4:20).
 - **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
-- **A peer in an open chat sees a `stepped_away` label above the input, and the input stays live — edited 2026-09-14.** The label is lifted not by the span but by the returning person's first message in that conversation: the node shows it while `chat_participants.last_own_message_at` is earlier than `identities.stepped_away_at`. The reason is the 2026-09-11 review panel (S18): with three fixed spans, the moment the line vanished gave away which one was chosen. Opening the conversation does not lift it: the node does not know about visits and must not learn. The peer's messages wait in `pending_deliveries` and arrive on connection, if the conversation lives until the return: the queue is wiped at the conversation's first death (§8.8). The price is named: people write to someone who is not there, and the label may hang until the conversation ends if the returning person stays silent in it. (This said "instead of the ability to write" [retired] — on the argument "so nobody spends words on emptiness"; the words are not lost while the conversation lives — they wait for delivery.) This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **A peer in an open chat sees a `stepped_away` label above the input, and the input stays live — edited 2026-09-14.** The label is lifted not by the span but by the returning person's first message in that conversation: the node holds it as the boolean `chat_participants.away_marked`: the step-away transaction sets it in all of the leaver's live conversations, and one's own message or move in that conversation clears it (clarified 2026-09-14 after the review panel: comparing `last_own_message_at` with the time of leaving was undefined when there had been no own message, and kept the time of the step-away on the identity indefinitely). The peer gets a single field, `peer_stepped_away` — in the open-chat response and as a socket event; no one else's timestamps go out. The reason is the 2026-09-11 review panel (S18): with three fixed spans, the moment the line vanished gave away which one was chosen. Opening the conversation does not lift it: the node does not know about visits and must not learn. The peer's messages wait in `pending_deliveries` and arrive on connection, if the conversation lives until the return: the queue is wiped at the conversation's first death (§8.8). The price is named: people write to someone who is not there, and the label may hang until the conversation ends if the returning person stays silent in it. (This said "instead of the ability to write" [retired] — on the argument "so nobody spends words on emptiness"; the words are not lost while the conversation lives — they wait for delivery.) This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
 - **Stepping away takes the game cache for a pair with it (2026-09-10).** One person
   leaving ends the game (§6), and since 2026-09-10 a game for two has a row in
   `chat_games`. The cascade from `chats` will not take it: stepping away does not
@@ -839,7 +839,7 @@ A person may leave the place for a span — **20 minutes, an hour, or 4 hours** 
   on `expires_at`, or between the end of the game and the end of the span the
   position sits on the node without the game it belonged to.
 - **A table is not deleted; whoever leaves stands up from it (2026-08-27).** Phrases go, the table stays: people are sitting at it, and tearing it down would throw out of the game those who have nothing to do with somebody else's break — and would hand the founder a power they do not have (§6.1).
-- **Leaving early** takes a confirmation; the frequency of departures is not limited.
+- **Leaving early** takes a confirmation; the frequency of departures is not limited. The node writes `stepped_away_until = now()` and leaves the `away_marked` labels alone — one's own messages clear them (clarified 2026-09-14).
 
 **The time-in-app counter never reaches the node.** It lives in the browser and counts like this: a visible tab plus a touch within the last three minutes. The offer to step away after an hour is the client's decision; the node has no business knowing how long somebody sat there, and no such record belongs beside an identity.
 
@@ -1986,10 +1986,12 @@ CREATE TABLE chat_participants (
   chat_id   uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
   identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   idle_ttl_minutes integer NOT NULL DEFAULT 60,  -- 10 | 30 | 60 | 260, ONE PER PERSON (§5)
-  last_own_message_at timestamptz,               -- their span counts from here
+  last_own_message_at timestamptz,               -- their span counts from here; NULL — from chats.created_at (2026-09-14)
+  away_marked boolean NOT NULL DEFAULT false,    -- the "stepped away" label for the peer: set by leaving, cleared by one's own message or move (§8.2, 2026-09-14)
   gone_at   timestamptz,                         -- the conversation ended for this participant
   PRIMARY KEY (chat_id, identity)
 );
+CREATE INDEX chat_participants_by_identity ON chat_participants (identity);  -- the step-away transaction and the identity sweeper go by identity (2026-09-14)
 
 CREATE TABLE chat_starters (
   chat_id        uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
@@ -2004,7 +2006,7 @@ CREATE TABLE chat_starters (
 
 - Access check is "is there a row": `SELECT 1 FROM chat_participants WHERE chat_id = :id AND identity = :me`.
 - `chat_starters` stores a **copy** of the text rather than a reference to `feed_messages`: the phrase lives N hours, the chat lives by its own clock, and the header must not empty out mid-conversation. `feed_message_id` is deliberately not stored — the link "this phrase → this chat" is better off not existing in the database at all.
-- Opening a chat returns: **your own** `idle_ttl_minutes` and `last_own_message_at`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), and the peer's name and age. **That is all** — the history comes from the client's own local storage under the same `chat_id`.
+- Opening a chat returns: **your own** `idle_ttl_minutes` and `last_own_message_at`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), the peer's name and age, and `peer_stepped_away` (since 2026-09-14). **That is all** — the history comes from the client's own local storage under the same `chat_id`.
 
 **Message length is a server parameter, not a client constant.** `max_message_length` arrives when the chat opens, defaults to **256 characters**, and changes without shipping a client. The client draws the counter and will not let you send more.
 
@@ -2215,7 +2217,7 @@ Hiding is **silent and one-way**: the author is not told, their feed does not ch
 
 - **Feed** — `expires_at` (N hours): the phrase drops out of results, a background job deletes the row, `likes` cascade away. Starters survive — the text was copied.
 - **Match** — `least()` of both phrases; expired means gone.
-- **A conversation** — each participant has their own end: `last_own_message_at + their idle_ttl_minutes` (§8.6). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants`, `chat_starters` and `chat_games` cascading (the last added 2026-09-10 along with the table itself).
+- **A conversation** — each participant has their own end: `COALESCE(last_own_message_at, chats.created_at) + their idle_ttl_minutes` (§8.6; clarified 2026-09-14 after the review panel — for someone who never wrote, the span otherwise never came). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants`, `chat_starters` and `chat_games` cascading (the last added 2026-09-10 along with the table itself).
 - **Local history** — cleaned by the client, always on the client's initiative:
 
 ```

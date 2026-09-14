@@ -174,7 +174,7 @@ the paper code).
 
 `feed_messages`, `likes`, `identity_stats`, `matches`, `match_participants`,
 `chats`, `chat_participants`, `chat_starters`, `blocks`, `hidden_messages`,
-`chat_key_wraps` — eleven tables belonging to steps 2 through 7. Their DDL is
+`chat_key_wraps` — eleven tables belonging to steps 2 through 7 under the plan before 2026-09-11 (not to be confused with the first-migration set in the header — eleven by a different count). Their DDL is
 already written in the spec and moves here as the steps come. Starting with them
 is impossible by §13: without an identity there is no feed, without a feed no
 like, without a like no match.

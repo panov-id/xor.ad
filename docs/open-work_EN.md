@@ -1750,7 +1750,9 @@ mistaken for a loss.
       other side. Until then both cases left a chat listed as live and mute.
 
       **What to test once it is built** (§14 of the spec): ten wrong PINs really do
-      burn the share and the database then opens with **nothing**; the paper code
+      lock access until the paper code, the database opens with **nothing** until then,
+      and after the code on the same device it opens with the old PIN (edited
+      2026-09-14: "burn the share" [retired]); the paper code
       raises the identity on a clean device; without "that's me" no transfer
       happens.
 

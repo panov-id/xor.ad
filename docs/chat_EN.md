@@ -977,7 +977,8 @@ CREATE TABLE sessions (
   label           text,                -- "Chrome, Android" — what the device called itself
   created_at      timestamptz NOT NULL DEFAULT now(),
   last_seen_at    timestamptz NOT NULL DEFAULT now(),
-  frozen_at       timestamptz          -- NULL = live; set on transfer and when the share burns (§8.2)
+  frozen_at       timestamptz,         -- NULL = live; set on transfer, on closing and on the tenth PIN mistake (§8.2)
+  frozen_reason   text CHECK (frozen_reason IN ('transfer', 'closed', 'pin_limit'))  -- why it froze; exceptions apply to pin_limit only (2026-09-14)
 );
 CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
 ```
@@ -1173,6 +1174,7 @@ CREATE TABLE vault_shares (
   share_enc     bytea,               -- 32 random bytes UNDER the node's key; NULL = burned
   attempts_left smallint NOT NULL DEFAULT 10,
   next_attempt_at timestamptz,        -- the node takes no attempt before it: the delay grows after the fifth (2026-09-14)
+  locked_at     timestamptz,         -- the tenth mistake: access locked until the paper code, the share kept (2026-09-14)
   burned_at     timestamptz,
   last_used_at  timestamptz NOT NULL DEFAULT now()
 );
@@ -1188,17 +1190,35 @@ The counter is decremented in its own short transaction, before the action itsel
 
 **"Erase conversation history" is not on that list.** History lives only on the device (§8.8), the node has nothing to execute, and a PIN check on the node would be theatre here: whoever holds an unlocked tab can clear the site's data without us. The check stays on the client, and the screen says so.
 
-**With the share burned, all three actions refuse.** That is the price, said out loud: a device with a burned share does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: recovery mints a new share and a new PIN and returns the counter to ten (§8.2 below). Without this rule the hole would be the exact opposite: in the web the signing key sits outside the share, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
+**With access locked by the PIN limit, all three actions refuse.** That is the price, said out loud: a device locked by the tenth mistake does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: on the same device recovery lifts `locked_at` and the freeze and returns the counter to ten, and the old PIN opens the history again; a forgotten PIN is replaced by a new one with a new share, and this device's history is lost; on a clean device — a new session, as before (§8.2 below; clarified 2026-09-14, this said "with the share burned… recovery mints a new share" [retired]). Without this rule the hole would be the exact opposite: in the web the signing key sits outside the share, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
 
-**Burning the share sets `frozen_at` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3).** Forbidding the three irreversible actions is not enough: in the web the signing key sits outside the share and the tab lock is client-side, so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses a frozen session everywhere except paper-code recovery and a new support request that reads no earlier answers — the same rule as on a move (below), in the opposite direction. **In the same transaction burning takes down what is live, as a step-away does** (the "stepped away" state below): phrases are deleted with their likes, table seats are freed — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose phone was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; during an attack on the node code entry may wait up to 15 minutes (`protocol_EN.md` §8, item 7).
+**The tenth mistake sets `frozen_at` with the reason `pin_limit` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3, SEC-A).** Forbidding the three irreversible actions is not enough: in the web the signing key sits outside the share and the tab lock is client-side, so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses such a session everywhere except paper-code recovery and a new support request — at most 1 request a day, flagged `from_frozen` for the team, while the identity has no other live session and without reading earlier answers. A device frozen by a move or by closing the identity (`frozen_reason` — `transfer`, `closed`) gets no such exception: otherwise a lost phone would write to support on the identity's behalf after recovery. **In the same transaction the freeze takes down what is live, as a step-away does** (the "stepped away" state below): phrases, those still being checked too, are deleted with their likes, queued table lines are deleted, table seats are freed, matches go out, `chat_games` rows are deleted — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose phone was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; a holder of a stolen signing key locks access remotely but no longer erases the correspondence; while the node is under attack, code entry is closed — the pause renews and has no end (`protocol_EN.md` §8, item 7).
 
-**The delay between PIN attempts grows after the fifth — decided 2026-09-14 after the review panel (SEC2).** A counter of ten is not enough: without a delay other hands get through it in a minute. Attempts one to five — at once; the sixth after 30 seconds, the seventh after 2 minutes, the eighth after 10 minutes, the ninth after 1 hour, the tenth after 4 hours. The node holds it (`vault_shares.next_attempt_at`), not the client; an attempt before its time is refused and does not spend the counter. The numbers are in `docs/facts/limits.tsv` (`pin.delay.*`). An honest person who mistyped six times waits half a minute; burning someone else's share takes more than five hours at their device.
+**The delay between PIN attempts grows after the fifth — decided 2026-09-14 after the review panel (SEC2).** A counter of ten is not enough: without a delay other hands get through it in a minute. Attempts one to five — at once; the sixth after 30 seconds, the seventh after 2 minutes, the eighth after 10 minutes, the ninth after 1 hour, the tenth after 4 hours. The node holds it (`vault_shares.next_attempt_at`), not the client; an attempt before its time is refused and does not spend the counter — a correct one too, or the wait would test the PIN. An attempt is one transaction under `SELECT … FROM vault_shares … FOR UPDATE` (below): without the lock parallel attempts got around the counter. A correct PIN returns the counter to ten and clears the wait. The numbers are in `docs/facts/limits.tsv` (`pin.delay.*`). An honest person who mistyped five times waits half a minute; locking someone else's access takes more than five hours — at the device or remotely, with a stolen signing key, and then the wait locks out the owner's correct PIN too. A wait the person did not cause is a sign that someone else is using their session; storefront screen 12 says so, and the way out is the paper code.
+
+```sql
+-- a PIN attempt — one transaction (checked in postgres:16, 2026-09-14)
+SELECT auth_hash, attempts_left, next_attempt_at, locked_at
+  FROM vault_shares WHERE session = :s FOR UPDATE;
+-- locked_at IS NOT NULL → "locked"; next_attempt_at > now() → "too early", a correct PIN too
+-- the hash matched:
+UPDATE vault_shares SET attempts_left = 10, next_attempt_at = NULL WHERE session = :s;
+-- it did not (every SET expression sees the old row):
+UPDATE vault_shares
+   SET attempts_left   = attempts_left - 1,
+       next_attempt_at = now() + CASE attempts_left - 1
+           WHEN 5 THEN interval '30 seconds' WHEN 4 THEN interval '2 minutes'
+           WHEN 3 THEN interval '10 minutes' WHEN 2 THEN interval '1 hour'
+           WHEN 1 THEN interval '4 hours' ELSE interval '0' END,
+       locked_at       = CASE WHEN attempts_left - 1 = 0 THEN now() END
+ WHERE session = :s;
+```
 
 **A share belongs to a device, not to an identity.** Otherwise changing the PIN on a new device would break the previous device's database, and whoever took the identity and set their own PIN would read someone else's old conversations. So each device has its own share, its own PIN and its own counter, and nothing reaches another device's share — including a live session of the same identity.
 
-**The tenth wrong attempt burns the share, and that device's conversations are gone for good** — there is nothing left to decrypt them with. The identity itself is unharmed. Burning someone's conversations silently is not acceptable, so from the seventh attempt the screen says it outright:
+**The tenth wrong attempt locks access on this device until the paper code, but does not burn the share — decided 2026-09-14 after the review panel (SEC-A).** [retired] This said "burns the share, and that device's conversations are gone for good": with a stolen signing key that let someone erase another person's correspondence without touching the device. Guessing is closed just the same: the node hands nothing out for a locked share. The price is named: ten mistakes no longer erase the history, and whoever counted on that as a self-destruct will not get it. From the seventh attempt the screen says it outright:
 
-> 3 attempts left. After that the conversations on this device are gone — neither we nor you can bring them back.
+> 3 attempts left. After that this device is locked until the paper code.
 
 Two prices are stated plainly. **Without a network the chat does not open at all**: no share, no key, nothing old to read and nothing new to see. And **the node now holds the thing without which people lose their conversations**: losing the share table means everyone loses their history at once, so its backups deserve stricter handling than the rest.
 
@@ -2136,8 +2156,8 @@ CREATE INDEX ON pending_deliveries (recipient_session, created_at);
 - Every insert is `ON CONFLICT DO NOTHING`: a retry with the same `local_id` creates no
   duplicate.
 - A row dies before the conversation does in three cases, and they matter more than the
-  cascade: the recipient acknowledged receipt; their session was frozen (burning
-  the share freezes it too, §8.2) — there is nothing to read it with anyway; the conversation ended for
+  cascade: the recipient acknowledged receipt; their session was frozen (a PIN-limit
+  freeze too, §8.2) — there is nothing to read it with anyway; the conversation ended for
   **either** of the two, because the key `K` dies on the first death (§8.13). The
   cascade from `chats` is the last net rather than the main janitor: a `chats` row lives
   until `gone_at` stands for both (§8.10).
@@ -2666,6 +2686,7 @@ CREATE TABLE support_requests (
   identity     uuid REFERENCES identities(id) ON DELETE SET NULL,  -- "start over" nulls it in the closing transaction (§8.2); SET NULL is the backstop for DELETE
   body         text NOT NULL,
   email        text,                                               -- optional
+  from_frozen  boolean NOT NULL DEFAULT false,                       -- written from a session frozen by the PIN limit (§8.2, 2026-09-14)
   created_at   timestamptz NOT NULL DEFAULT now(),
   answer       text,
   answered_at  timestamptz,
@@ -2709,8 +2730,10 @@ here are the ones without which the chat is not done at all:
   back anyway: it writes nothing to disk but keys, so its windows are as empty after a
   return as they are on a new device. An empty window is not a defect in either
   case (§8.13).
-- Ten wrong PINs burn the share, and the local database then **opens with
-  nothing** — tested against a live node, not by reasoning.
+- Ten wrong PINs lock access until the paper code, and the local database **opens with
+  nothing** until then; after recovery on the same device the old PIN opens it again
+  — tested against a live node, not by reasoning (edited 2026-09-14: "burn the share"
+  [retired]).
 - A frozen session stops receiving messages **immediately**, including in the
   chat that was open on it, and receives no keys for new chats. Tested by
   transferring during a live conversation.

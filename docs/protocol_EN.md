@@ -76,7 +76,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 | Route | What it does | Origin |
 |---|---|---|
 | `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id` | **proposed** (§8.2) |
-| `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts burn the share | **proposed** (§8.2) |
+| `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **proposed** (§8.2) |
 | `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use; **requires a PIN proof** (§8.2, 2026-09-11) | **spec** |
 | `POST /vault/pin` | changing the PIN: the old PIN, a new `auth_hash`, a reissued share — **proposed 2026-09-11**, the handle does not exist yet | **spec** |
 | `POST /identities/close` | "start over": closing an identity with a PIN proof — **proposed 2026-09-11**, the handle does not exist yet | **spec** |
@@ -163,7 +163,7 @@ or takes a live identity for a dead one.
 | publications | 4 per hour | the node |
 | a phrase's area radius | five steps: 100, 300, 1000, 3000, 10000 metres | a `CHECK` in the database |
 | coordinate rounding in a response | to a grid node stepped by the phrase's radius | the node |
-| PIN attempts | 10, then the share burns | the node |
+| PIN attempts | 10, then access locked until the paper code, the share kept | the node |
 | transfer code attempts | 5, then the invitation burns | the node |
 | queue throughput | ~20 phrases per minute, **not yet measured** | the node |
 | false-block budget | 7% — the moderation threshold is derived from it | the node's config |
@@ -251,8 +251,10 @@ it has to be settled before the first line of step 1.
    are an order of magnitude lower and per address, not per node.
 
    **Since 2026-09-14 the pause has a second price, and it is accepted too.** The
-   paper code became the only way out for a session frozen by a burned share as well
+   paper code became the only way out for a session frozen by the PIN limit as well
    (`chat_EN.md` §8.2), so distributed guessing, even unsuccessful, keeps that way out
-   closed for everyone — for roughly two hundred requests an hour. The review panel of
+   closed for everyone — for roughly fifty misses an hour: while the sliding hour holds
+   fifty or more, the pause renews right after the previous one ends and has no end
+   (clarified 2026-09-14; this said "two hundred requests" [retired]). The review panel of
    2026-09-14 proposed replacing the pause with a growing cost; it was decided to keep
    the pause and name the price on storefront screen 12.

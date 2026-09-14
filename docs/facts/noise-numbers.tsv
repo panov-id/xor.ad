@@ -37,7 +37,7 @@ value	unit	kind	why	example
 10	KB	measurement	встречено в: `landing/legal/`, and that is where the real texts sit (privacy 10 KB, terms	xor.ad/docs/open-work_EN.md:1253
 10	MB	measurement	встречено в: to one region/node, single-writer, ≤100 GB, 10 MB/s, NO managed backups or	xor.ad/docs/backend-portable-bunny_EN.md:75
 10	s	prose.figure	встречено в: Batched every 10 seconds, like quotas: a page view is a request a visitor	xor.ad/docs/open-work_EN.md:410
-11	min	sample.data	встречено в: | 13.1 | **У каждого свой срок, и он считается от своего последнего сообщения** | Петя 10 мин, К	xor.ad/docs/test-map_RU.md:247
+11	min	sample.data	встречено в: | 13.1 | **У каждого свой срок, и он считается от своего последнего сообщения** | Петя 10 мин, К	xor.ad/docs/test-map_RU.md:248
 128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:882
 15	KB	measurement	встречено в: 15 KB). The item described a state that was gone by the time it was re-read.	xor.ad/docs/open-work_EN.md:1254
 16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:879
@@ -75,9 +75,9 @@ value	unit	kind	why	example
 600	m	prose.figure	встречено в: - **Location**: the static "Kolonaki · 600 m" is gone. Distance is **never computed**. Matching 	xor.ad/docs/app-prototype-spec_EN.md:47
 64	bytes	sample.data	длина вывода Argon2id в диаграмме обмена	xor.ad/docs/chat-flows_EN.md:137
 64	MB	external.fact	встречено в: - **Billing:** CPU $0.02/CPU-hr (actual), RAM $0.005/GB-hr in 64 MB blocks	xor.ad/docs/backend-portable-bunny_EN.md:97
-65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2048
+65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2068
 6	h	external.fact	глубина восстановления чужой услуги (PITR), не наш предел	xor.ad/docs/backend-free-stack_RU.md:64
-700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1441
+700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1461
 7.86	MB	measurement	встречено в: bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the	xor.ad/docs/open-work_EN.md:1393
 800	m	sample.data	значение в макете терминального клиента, не обязательство	xor.ad/docs/depth-client_EN.md:319
 8	chars	prose.figure	встречено в: There is a transport behind the limit: 256 UTF-8 characters → ~1.4 KB of	xor.ad/docs/open-work_EN.md:1309

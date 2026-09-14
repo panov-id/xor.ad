@@ -68,7 +68,7 @@ sequenceDiagram
   else
     N->>N: is the session live #40;frozen_at IS NULL#41;?
     alt frozen
-      N-->>K: refused — this signature is accepted nowhere,<br/>except a new support request after the share burns
+      N-->>K: refused — this signature is accepted nowhere,<br/>except a new support request<br/>when frozen by the PIN limit
     else
       N-->>K: answer
     end
@@ -103,7 +103,7 @@ flowchart TD
   key --> open(["local history becomes readable"])
   check -- "no" --> dec["attempts_left − 1;<br/>from the sixth attempt — a growing wait"]
   dec --> burn{"was it the tenth?"}
-  burn -- "yes" --> dead(["the share is burnt — this device's<br/>messages are gone for good"])
+  burn -- "yes" --> dead(["locked until the paper code —<br/>the share kept, the old PIN reopens the history"])
   burn -- "no" --> warn{"3 or fewer left?"}
   warn -- "yes" --> say["the screen says it plainly:<br/>«after this the messages are gone»"]
   warn -- "no" --> pin

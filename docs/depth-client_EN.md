@@ -128,8 +128,8 @@ open at all** — no share, no key.
 
 The price is stated plainly, before the identity is created rather than after:
 
-> Forget the PIN and you lose access to this volume: ten wrong attempts burn the
-> share, and nothing is left to decrypt the keys in the file with. The paper code
+> Forget the PIN and you lose access to this volume: ten wrong attempts lock it until
+> the paper code, and without the old PIN nothing decrypts the keys in the file. The paper code
 > brings the identity back on any device — it is issued right here, when the
 > identity is created, and must be copied onto paper: a screenshot lives on the
 > very device that gets lost.

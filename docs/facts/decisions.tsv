@@ -59,7 +59,7 @@ test-map.2026-08-26.275	2026-08-26	xor.ad/docs/test-map_RU.md:286	xor.ad/docs/te
 test-map.2026-08-27.126	2026-08-27	xor.ad/docs/test-map_RU.md:130	xor.ad/docs/test-map_EN.md:125	Число, обещанное правилами сообщества, совпадает с конфигом	The number promised by the community rules matches the config
 test-map.2026-08-28.125	2026-08-28	xor.ad/docs/test-map_RU.md:129	xor.ad/docs/test-map_EN.md:124	Рабочая точка живёт в конфиге узла, а не в коде	The operating point lives in the node's config, not in code
 test-map.2026-08-28.175	2026-08-28	xor.ad/docs/test-map_RU.md:184	xor.ad/docs/test-map_EN.md:174	«Не сейчас» гасит карточку только у отказавшегося	"Not now" clears the card for the refuser only
-test-map.2026-08-28.290	2026-08-28	xor.ad/docs/test-map_RU.md:301	xor.ad/docs/test-map_EN.md:289	Уведомление по ст. 16 принимается на реплику за столом	An Article 16 notice is accepted about a line at a table
+test-map.2026-08-28.290	2026-08-28	xor.ad/docs/test-map_RU.md:302	xor.ad/docs/test-map_EN.md:289	Уведомление по ст. 16 принимается на реплику за столом	An Article 16 notice is accepted about a line at a table
 test-map.2026-08-29.176	2026-08-29	xor.ad/docs/test-map_RU.md:185	xor.ad/docs/test-map_EN.md:175	Принятая редакция сверяется хэшем	The accepted revision is checked by hash
 test-map.2026-08-29.177	2026-08-29	xor.ad/docs/test-map_RU.md:186	xor.ad/docs/test-map_EN.md:176	Дата документа держится против его текста	A document's date is held against its text
 test-map.2026-08-29.178	2026-08-29	xor.ad/docs/test-map_RU.md:187	xor.ad/docs/test-map_EN.md:177	Отказ `legal_reacceptance_required`	The `legal_reacceptance_required` refusal

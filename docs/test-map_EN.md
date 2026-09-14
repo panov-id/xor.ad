@@ -284,6 +284,7 @@ through three different wrappers and cannot be counted by eye.
 | 15.1 | The board syncs encrypted and stays opaque to the node | intercept: the board state is unreadable | nothing to check |
 | 15.2 | **The exception is named: the node sees decks and dice** (2026-08-26) | shuffling happens on the node, the one place where §8.13 does not hold | nothing to check |
 | 15.2a | **A sticker is invisible to the node: its id sits inside the ciphertext** | intercept a line with a sticker → no identifier in the clear | nothing to check |
+| 15.2b | **Sticker packs are fetched at app start** (2026-09-14) | network log: catalogue requests only in the first seconds after start; opening a conversation and receiving a sticker produce none | nothing to check |
 | 15.3 | A private hand arrives encrypted to its own player | the other sees backs, not cards | nothing to check |
 | 15.4 | Physics converges for both on a shared seed | one flick → the same final position | nothing to check |
 | 15.5 | The word to guess goes through the moderation queue | a forbidden word → "think of another one" | nothing to check |
@@ -298,6 +299,7 @@ through three different wrappers and cannot be counted by eye.
 | 15.14 | **Table:** speech and board travel in the clear, the node sees them | a line at a table is readable by the node — otherwise the queue has nothing to check | nothing to check |
 | 15.15 | **Table:** the band is its current sitters' and is recomputed (2026-09-08) | two adults at a table → a teenager gets no table in the feed; one leaves and the band differs → the table appears; a table with nobody at it is shown to no one. In both cases the feed **has no table**, rather than "has it, greyed out" | nothing to check |
 | 15.16 | **An Article 16 notice is accepted about a line at a table** (2026-08-28) | `target_kind = table_line` goes through; the snapshot holds the line's text and `table_id` | nothing to check |
+| 15.16a | **A table report without the box only hides for oneself** (2026-09-14) | a report without the box → the line hidden for the reporter, no new row in the notice register; with the box → a `table_line` row exists | nothing to check |
 | 15.17 | **The board does not go into a notice's snapshot** | the line's snapshot holds no state of the match: it is the text that can be unlawful, not the game | nothing to check |
 
 ## 16. Three different actions against a person (step 7)

@@ -85,6 +85,14 @@ the file only on exit, and the `journald` and `syslog` drivers never erase it.
 Measured in a container: without the flag the output was found in `…-json.log`, with
 it there is no log file at all.
 
+**Launch only through the `depth` wrapper — added 2026-09-14 (S10).** A flag that has to be
+remembered will be forgotten. So the `depth` command is a short script with the line above
+built in whole, and the client checks at start for `DEPTH_WRAPPED=1`, which only the wrapper
+sets, and without it refuses to start and says why. This guards against a mistake, not intent:
+the variable can be set by hand without the flag, and that is said. **The whole interface, not
+only the transfer screen, is drawn in the alternate buffer** of the terminal and cleared on exit:
+otherwise the conversation stays in the scrollback and in the multiplexer's log.
+
 To check that what runs is what was published:
 
 ```

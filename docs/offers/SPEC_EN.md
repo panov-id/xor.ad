@@ -437,7 +437,7 @@ hour, or 4 hours" deletes the person's live phrases, and their offer is a
 phrase with a non-empty discount. A venue offer is untouched: there is no person
 behind it who could step away.
                 │
-                └──── 3 complaints from different people ───► hidden → examined within a day
+                └──── 3 complaints from different people ───► hidden → examined for the record (10.2)
                                                                  │
                                        complaints rejected ──────┴──► active (if time is left)
 
@@ -617,7 +617,7 @@ Rules:
 - a complaint beyond `COMPLAINT_MONTHLY_LIMIT` is accepted but gets
   `counts_towards_autohide = false` and takes no part in automatic hiding
 - `AUTOHIDE_COMPLAINTS` complaints from different users → the offer moves to `hidden`, examined
-  within a day
+  for the record and its consequences, not to bring it back: the offer expires on its own (10.2; clarified 2026-09-14)
 
 The dispute:
 
@@ -780,7 +780,8 @@ Additionally:
 
 - **The fallback path:** a call to the venue's public phone number from an open listing
 - **A "this is not us" button** for the venue → immediate `suspended` for that venue; the
-  owner's other places keep working
+  owner's other places keep working. **It is lifted only by re-verification** — a new envelope with a code
+  to the venue's address (added 2026-09-14): there is nobody to decide "is it really them" from correspondence, and nothing to decide it by
 - A change of address repeats the verification
 - A photo of the sticker is **not** used as proof — an image is generated and proves nothing
 
@@ -812,7 +813,7 @@ An offer is refused, or hidden by a moderator, if it:
 - carries a condition that tells apart a person rather than an action (12.1)
 - has an `external_url` leading to a phishing or knowingly malicious domain
 
-There is no minimum discount. Whether an offer is token is judged by a moderator.
+There is no minimum discount, and nobody judges whether a discount is token: the only condition is a non-empty `discount_value` (edited 2026-09-14: "whether an offer is token is judged by a moderator" [retired] — a promise with no rule and no doer; a tiny discount harms only the venue itself).
 
 ### 12.1. A condition may depend on what a person does — never on who they are
 
@@ -833,8 +834,8 @@ understandable, and we still do not allow them.
 
 The reason is what we have to work with. Telling "for pensioners, because they
 have less money" from "under thirty only, because we want a younger crowd"
-requires a judgement about motive, and offers are examined by one person within a
-day (§10.2). A rule that demands reading motives becomes a lottery at that scale —
+requires a judgement about motive, and complaints about offers are examined by one
+person (§10.2). A rule that demands reading motives becomes a lottery at that scale —
 and the first to be hit is whoever phrased it badly, not whoever was screening
 people. A simple checkable line is stricter than the law and cheaper than an
 argument; this is a deliberate trade, not strictness for its own sake.
@@ -867,6 +868,10 @@ A year, because a beach café publishes nothing in winter, and an envelope costs
 Less, and a seasonal advertiser pays for nothing; more is justified by nothing.
 
 - The account, venues and complaints: one year from the last offer, then deletion
+- **For a venue in `suspended`, a hash of the address and the `suspended` date remain for one more year after deletion — decided 2026-09-14.**
+  Otherwise a suspended venue only had to wait a year without offers and verify again.
+  Verification at an address with such a hash does not go through in that year. The hash is a pseudonym, not anonymisation:
+  addresses can be enumerated, so the period is named and finite. Up to two years from the last offer in all
 - The complainant's identity is never disclosed to the author, under any circumstances
 - Copied promo codes are kept only on the user's device
 - The Terms must state plainly that an offer is the author's proposal, the contract arises

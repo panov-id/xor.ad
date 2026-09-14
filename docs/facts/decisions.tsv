@@ -32,7 +32,7 @@ chat.2026-08-29.595	2026-08-29	xor.ad/docs/chat_RU.md:1070	xor.ad/docs/chat_EN.m
 chat.2026-08-30.135	2026-08-30	xor.ad/docs/chat_RU.md:309	xor.ad/docs/chat_EN.md:138	Стол не занимает квоту публикаций и сам ничем не ограничен — решено 30	A table takes no posting quota and is itself unlimited — decided 2026-
 chat.2026-08-30.136	2026-08-30	xor.ad/docs/chat_RU.md:310	xor.ad/docs/chat_EN.md:139	Стикеры за столом работают, как в беседе, но видны узлу (30.08.2026).	Stickers work at a table as they do in a conversation, but the node se
 chat.2026-08-30.381	2026-08-30	xor.ad/docs/chat_RU.md:818	xor.ad/docs/chat_EN.md:391	Закрытая личность удаляется через 30 дней — решено 30.08.2026 по ревью	A closed identity is deleted after 30 days — decided 2026-08-30 from a
-chat.2026-08-30.386	2026-08-30	xor.ad/docs/chat_RU.md:823	xor.ad/docs/chat_EN.md:396	20 минут, час или 8 часов	20 minutes, an hour, or 8 hours
+chat.2026-08-30.386	2026-08-30	xor.ad/docs/chat_RU.md:823	xor.ad/docs/chat_EN.md:396	20 минут, час или 4 часа	20 minutes, an hour, or 4 hours
 chat.2026-08-31.144	2026-08-31	xor.ad/docs/chat_RU.md:319	xor.ad/docs/chat_EN.md:147	Схема стола — заведена 31.08.2026.	The table's schema — established 2026-08-31.
 chat.2026-08-31.200	2026-08-31	xor.ad/docs/chat_RU.md:491	xor.ad/docs/chat_EN.md:204	`ON DELETE SET NULL`, а не `CASCADE` — решено 31.08.2026 по панели рев	`ON DELETE SET NULL`, not `CASCADE` — decided 2026-08-31 by a review p
 chat.2026-08-31.215	2026-08-31	xor.ad/docs/chat_RU.md:516	xor.ad/docs/chat_EN.md:220	Срок молчания — 60 минут, число названо 31.08.2026.	The span of silence is 60 minutes — the number named on 2026-08-31.

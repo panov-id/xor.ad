@@ -980,18 +980,18 @@ person.
 
 ## 22. Stepping away ([§8.2](chat_EN.md))
 
-A person can leave the place for a span — **20 minutes, an hour, or 8
+A person can leave the place for a span — **20 minutes, an hour, or 4
 hours**. This is not an interface pause but a state of the account on the node:
 `stepped_away_until` in `identities`. The point is not the absence but giving
 somebody who is stuck a way to actually leave.
 
 ```mermaid
 flowchart TD
-  away["«step away»: 20 min / an hour / 8 hours"] --> del["phrases are DELETED #40;DELETE, not hidden#41;<br/>along with their likes — quota slots free at once"]
+  away["«step away»: 20 min / an hour / 4 hours"] --> del["phrases are DELETED #40;DELETE, not hidden#41;<br/>along with their likes — quota slots free at once"]
   away --> match["matches go out as if the phrase expired;<br/>the other side sees the offer vanish<br/>with NO reason given"]
   away --> sock["this session's sockets are closed<br/>the same way as on a freeze #40;§7#41;"]
   away --> chats["chats are NOT frozen:<br/>last_activity_at does not move, the TTL runs"]
-  chats --> price(["only conversations with a long span<br/>survive an 8-hour break"])
+  chats --> price(["only a 260-minute conversation<br/>survives a 4-hour break"])
   sock --> peer["the other side in an open chat sees a stepped_away label<br/>above a live input; lifted by the returner's first message"]
   del --> back{"back, or leaving early?"}
   back -- "early" --> confirm["a confirmation; the frequency is not capped"]

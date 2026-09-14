@@ -846,7 +846,7 @@ flowchart TD
   cold --> q3["a chat opened: a row in chats<br/>that my local database does not have"]
   cold --> q4["one more phrase was liked:<br/>chat_starters past the position I have seen"]
   cold --> q5["a conversation fades for me:<br/>my silence + my span is near"]
-  q1 --> tabs["the counters on the Chats N / Matches N tabs"]
+  q1 --> tabs["the counter on the «Offers» tab<br/>and the dot on «Conversations»"]
   q2 --> tabs
   q3 --> tabs
   q4 --> tabs

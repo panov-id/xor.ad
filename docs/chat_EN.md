@@ -17,9 +17,9 @@ Path from feed to an open chat (data model — §8.5):
 
 1. **Like** — tap the logo button on a feed phrase.
 2. **Mutual like** — if that person once liked your phrase and **both phrases are still alive in the feed** → a match appears. An expired phrase produces no more matches.
-3. **`Matches`** — the match card: the peer's phrase, its mode (`alone` / `company` / `party`), name and age, a `match expires · Nh Nm` timer. The chat is **not open yet**.
+3. **"Offers"** — the match card: the peer's phrase, its mode (`alone` / `company` / `party`), name and age, **the remainders of both phrases** — the match dies with the first. The chat is **not open yet**. (Edited 2026-09-14: this said `Matches` and a single `match expires · Nh Nm` timer [retired] — screens 6 and 7 of the storefronts decided otherwise on 2026-08-27–28.)
 4. **Double consent** — **both** press "open chat". Once one does, the other sees "waiting for you". This is also where each picks the chat's lifetime (§5).
-5. **Open chat** — it appears in `Chats` and the sliding timer starts.
+5. **Open chat** — it appears in "Conversations" and the sliding timer starts.
 
 A match lives until the first of the two phrases dies. If both did not press in time, the match disappears and there was no chat.
 
@@ -32,7 +32,7 @@ Liking again when a chat with that person is already open creates **no new match
 - Tabs: **"Offers N"** / **"Conversations"** — a counter only on offers, a dot for a new conversation on conversations (screen 7 of the storefronts, decided 2026-08-27; edited 2026-09-14: this said `Chats N` / `Matches N` [retired]).
 - **No sub-sections — decided 2026-08-20.** There are exactly two tabs. "Fading" is not a section but a state of the row: the timer and the fading are already described in §5 and visible in the thread itself. A "Fading" section could only be filled by moving a chat there on a timer, which means the other person would drop out of sight in the very minute when the least time is left; on top of that the inbox counters (§8.12) would have to be split three ways. The list does not grow by construction — chats live for minutes and hours, not months.
 - **Thread** (`.thread`): letter avatar, name, last-activity time, **last-message preview** (its own line), **timer** (accent, its own line), a `›` chevron as a click-affordance.
-- **`Matches`** — match cards: phrase + mode + name and age, a timer to expiry, an "open chat" button; after your own press, "waiting for you".
+- **"Offers"** — match cards: phrase + mode + name and age, the remainders of both phrases, an "open chat" button; after your own press, "waiting for you" (edited 2026-09-14: this said `Matches` and "a timer to expiry" [retired]).
 - Click a thread → opens the conversation.
 - The counter and the dot on the tabs *are* the inbox (§8.12): matches awaiting a decision and new conversations are derived from state, and there is no separate notifications screen. **There is no "unread"** — it would mean the node knows who opened a conversation when (screen 7).
 
@@ -1886,7 +1886,7 @@ This is **not** another consent or a checkbox: "open chat" stays the single pres
 
 - **Match TTL** = `least()` of both phrases' `expires_at`, with no safety floor. Either phrase dies and the match dies with it, even if one side already accepted; a new mutual like does **not** extend it. The consequence is accepted deliberately: a match born on a dying phrase may leave a pair only minutes for two presses, and then burn out. The rule matters more than the match count — the reason died, so the invitation dies too.
 - **The text snapshot is taken at match time**, not at opening: otherwise a phrase can expire between "match" and "both pressed", and someone would consent without seeing why.
-- The card shows a `match expires · Nh Nm` timer; once one accepts, the other sees "waiting for you".
+- The card shows **the remainders of both phrases**, one per phrase; once one accepts, the other sees "waiting for you". (Edited 2026-09-14: this was a single `match expires · Nh Nm` timer [retired] — it never said which phrase was ending, screen 6 of the storefronts.)
 
 **A match born from an offer is one-sided.** A like on a phrase with a discount creates the match immediately, without waiting for one back.
 

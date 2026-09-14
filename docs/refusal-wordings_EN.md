@@ -96,12 +96,19 @@ Fix the name and it will go by itself while the offer is alive.
 ## 4. The fifth refusal within an hour
 
 ```
-Five refusals in an hour. Posting is unavailable for 15 minutes —
+Five refusals in an hour. For 15 minutes nothing goes to checking:
+phrases, table lines and name changes —
 the feed, likes and conversations work.
 ```
 
 What exactly stopped working is named: a silent refusal of everything reads as a
 ban.
+
+**What exactly stops — clarified 2026-09-14 after the review panel.** This said
+"posting is unavailable" [retired], and screen 11 read it as "only new phrases"; the
+counter is also fed by table lines and a refused name. **Each further refusal within
+the same hour — another 15 minutes** (decided 2026-09-14). An expired queue wait is
+not a refusal.
 
 **"Within an hour" rather than "in a row" — edited 2026-09-07 after a review
 panel.** "In a row" means any successful publication resets the run, and the

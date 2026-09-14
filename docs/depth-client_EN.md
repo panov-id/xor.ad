@@ -572,7 +572,7 @@ them.
   until your own span.
 - **The other person has stepped away** — a label saying "away" above a live input
   field, with no time of leaving and no time of return (screen 8, §13 of the
-  mechanics). The label is lifted by the returning person's first message in that
+  mechanics). The label is lifted by the returning person's first message or move in that
   conversation, not by the span (edited 2026-09-14, `chat_EN.md` §8.2; this said
   "instead of the input field" [retired]). It is the only place in the whole product where someone else's
   presence is reported, and it is allowed because the person declared it rather

@@ -606,7 +606,7 @@ stateDiagram-v2
   alive --> counting: my silence ≥ 3/4 of my span
   counting --> alive: my movement resets it
   counting --> fading: the last quarter
-  fading --> ended: last_own_message_at + my idle_ttl<br/>gone_at set for me
+  fading --> ended: COALESCE(last_own_message_at, created_at) + my idle_ttl<br/>gone_at set for me
   ended --> [*]: my history erased,<br/>a headstone if I was looking
 ```
 
@@ -906,7 +906,7 @@ flowchart TD
   f2 --> f3["chat_starters do NOT break:<br/>the text is copied, not referenced"]
   match["a match"] --> m1["least#40;#41; of both phrases"]
   m1 --> m2["expired — gone, there was no chat"]
-  chat["a conversation"] --> c1["ONE PER PERSON:<br/>last_own_message_at + their idle_ttl"]
+  chat["a conversation"] --> c1["ONE PER PERSON:<br/>COALESCE(last_own_message_at, created_at) + their idle_ttl"]
   c1 --> c2["first to expire → gone_at for them,<br/>key and board go out for both"]
   c2 --> c3["both expired → the node strikes out chats;<br/>chat_participants, chat_starters,<br/>chat_key_wraps cascade"]
 ```
@@ -992,7 +992,7 @@ flowchart TD
   away --> sock["this session's sockets are closed<br/>the same way as on a freeze #40;§7#41;"]
   away --> chats["chats are NOT frozen:<br/>last_activity_at does not move, the TTL runs"]
   chats --> price(["only a 260-minute conversation<br/>survives a 4-hour break"])
-  sock --> peer["the other side in an open chat sees a stepped_away label<br/>above a live input; lifted by the returner's first message"]
+  sock --> peer["the other side in an open chat sees a stepped_away label<br/>above a live input; lifted by the returner's first message or move"]
   del --> back{"back, or leaving early?"}
   back -- "early" --> confirm["a confirmation; the frequency is not capped"]
   back -- "the span ran out" --> clean(["back to a clean place:<br/>there is nothing to catch up on"])

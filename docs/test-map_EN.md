@@ -127,7 +127,10 @@ through three different wrappers and cannot be counted by eye.
 | 6.3c | Latin script is returned to its own alphabet before language identification | `ty durak` is identified as Russian, not Slovak | **have** |
 | 6.3d | **The operating point lives in the node's config, not in code** (2026-08-28) | changing the false-block budget moves the threshold with no rebuild and no retraining | nothing to check |
 | 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
-| 6.4 | The fifth refusal **within an hour** gives 15 minutes in which nothing goes to checking; another refusal in the same hour — another 15 minutes; feed, likes on phrases and conversations keep working (edited 2026-09-14: "15 minutes without posting" [retired]) | five refusals → `POST /feed`, a table line, a name change and an offer like refused, `GET /feed` 200; a sixth refusal in the same hour → a new pause; an expired queue wait does not touch the counter | nothing to check |
+| 6.4 | The fifth refusal **within an hour** gives 15 minutes in which nothing goes to checking; another refusal in the same hour — another 15 minutes; feed, likes on phrases and conversations keep working (edited 2026-09-14: "15 minutes without posting" [retired]) | five refusals → `POST /feed`, a table line, a name change and an offer like with a name not yet accepted refused, `GET /feed` 200; a sixth refusal in the same hour → a new pause; an expired queue wait does not touch the counter | nothing to check |
+| 6.4a | **A phrase goes to checking one at a time** (§8.3, 2026-09-14) | two parallel sends → one row in the queue; "four per hour" counts the waiting one | nothing to check |
+| 6.4b | **The table hold does not outlive the pause** (§8.3, 2026-09-14) | five refusals 50 minutes ago, empty queue → a line accepted; four refusals and one's own line in checking → a new one waits for the verdict | nothing to check |
+| 6.4c | **The first publication is written as a UTC date, "long ago" is 24 to 48 hours** (§8.3, 2026-09-14) | a publication at 23:58 UTC → a report a day later does not count, two days later it does; a publication on the offer's day does not count | nothing to check |
 | 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
 | 6.5b | **The "checking…" line becomes "taking longer than usual" after 60 seconds** (2026-09-08) | a phrase in the queue, 60 seconds pass → the copy changes, no refusal arrives, the phrase is still queued | nothing to check |
 | 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, twenty minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
@@ -262,6 +265,8 @@ through three different wrappers and cannot be counted by eye.
 | 13.10 | **"End it" closes for both at once, unlike expiry** | one presses → `gone_at` is set for the other too | nothing to check |
 | 13.11 | The safety code derives from both identities' long-term keys | it matches on both sides; a chat-key re-issue does not change it (§8.13) | nothing to check |
 | 13.12 | With the peer stepped away a label sits above a live input, and a send is accepted and waits in the queue (edited 2026-09-14: "the input is replaced and the node refuses sends" [retired]) | a send to the stepped-away peer → accepted into `pending_deliveries`; the conversation ended for them before the return → the queue rows are deleted | nothing to check |
+| 13.12a | **The "stepped away" label is a participant boolean** (§8.2, 2026-09-14) | leaving → `away_marked` in all live conversations; early return does not clear it; a message or move in the conversation does; only `peer_stepped_away` goes out | nothing to check |
+| 13.12b | **A silent participant's span counts from the conversation's creation** (§8.6, 2026-09-14) | no own message → `gone_at` arrives at `created_at + idle_ttl_minutes`; the client receives `created_at` on opening | nothing to check |
 
 ## 14. An extra like into an open chat (step 7)
 
@@ -377,7 +382,7 @@ through three different wrappers and cannot be counted by eye.
 | 22.2 | Matches go out and the other side learns no reason | the offer vanished with no explanation | nothing to check |
 | 22.3 | Chats are not frozen: the TTL runs | `last_activity_at` did not move | nothing to check |
 | 22.4 | The session's sockets close the same way as on a freeze | the connection is torn down by the node | nothing to check |
-| 22.5 | The peer in an open chat sees a `stepped_away` label above a live input | the only exception to "we do not report presence"; lifted by the first message, not by the span (2026-09-14) | the span ran out with no message — the label stays; the returner wrote — no label; the peer's message sent during the step-away is delivered on connection |
+| 22.5 | The peer in an open chat sees a `stepped_away` label above a live input | the only exception to "we do not report presence"; lifted by the first message or move, not by the span (2026-09-14) | the span ran out with no message — the label stays; the returner wrote — no label; the peer's message sent during the step-away is delivered on connection |
 | 22.6 | The in-app timer never reaches the node | neither a column nor a request next to the identity | nothing to check |
 | 22.7 | Leaving early works, the frequency is not capped | three departures in a row → no refusal | nothing to check |
 | 22.8 | **A table survives its founder's break while they stand up from it** | "step away" → the table is in the feed, the leaver is not among the sitters | nothing to check |

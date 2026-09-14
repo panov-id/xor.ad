@@ -363,6 +363,7 @@ CREATE TABLE table_lines (
 
 CREATE INDEX table_lines_feed  ON table_lines (table_id, created_at) WHERE visible_at IS NOT NULL;
 CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS NULL;
+CREATE INDEX table_lines_queue_by_author ON table_lines (author_identity) WHERE visible_at IS NULL;  -- the table hold counts one's own items in checking (2026-09-14)
 
 -- Game state at a table — introduced 2026-09-09 along with the minimal rules.
 --
@@ -831,7 +832,7 @@ A person may leave the place for a span — **20 minutes, an hour, or 4 hours** 
 - **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a four-hour departure is survived only by a 260-minute conversation, and only if one's own message in it was no more than 20 minutes earlier; an hour — only that one too, twenty minutes — the 60 and 260 ones, and a 30 one if one's own message was under 10 minutes earlier (edited 2026-09-14: "eight hours" [retired] was survived by no conversation — the longest span is 4:20).
 - **That session's sockets are closed** the same way as on freezing (§7): a `NOTIFY` inside the transaction, and the node drops its connections.
-- **A peer in an open chat sees a `stepped_away` label above the input, and the input stays live — edited 2026-09-14.** The label is lifted not by the span but by the returning person's first message in that conversation: the node holds it as the boolean `chat_participants.away_marked`: the step-away transaction sets it in all of the leaver's live conversations, and one's own message or move in that conversation clears it (clarified 2026-09-14 after the review panel: comparing `last_own_message_at` with the time of leaving was undefined when there had been no own message, and kept the time of the step-away on the identity indefinitely). The peer gets a single field, `peer_stepped_away` — in the open-chat response and as a socket event; no one else's timestamps go out. The reason is the 2026-09-11 review panel (S18): with three fixed spans, the moment the line vanished gave away which one was chosen. Opening the conversation does not lift it: the node does not know about visits and must not learn. The peer's messages wait in `pending_deliveries` and arrive on connection, if the conversation lives until the return: the queue is wiped at the conversation's first death (§8.8). The price is named: people write to someone who is not there, and the label may hang until the conversation ends if the returning person stays silent in it. (This said "instead of the ability to write" [retired] — on the argument "so nobody spends words on emptiness"; the words are not lost while the conversation lives — they wait for delivery.) This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
+- **A peer in an open chat sees a `stepped_away` label above the input, and the input stays live — edited 2026-09-14.** The label is lifted not by the span but by the returning person's first message or move in that conversation: the node holds it as the boolean `chat_participants.away_marked`: the step-away transaction sets it in all of the leaver's live conversations, and one's own message or move in that conversation clears it (clarified 2026-09-14 after the review panel: comparing `last_own_message_at` with the time of leaving was undefined when there had been no own message, and kept the time of the step-away on the identity indefinitely). The peer gets a single field, `peer_stepped_away` — in the open-chat response and as a socket event; no one else's timestamps go out. The reason is the 2026-09-11 review panel (S18): with three fixed spans, the moment the line vanished gave away which one was chosen. Opening the conversation does not lift it: the node does not know about visits and must not learn. The peer's messages wait in `pending_deliveries` and arrive on connection, if the conversation lives until the return: the queue is wiped at the conversation's first death (§8.8). The price is named: people write to someone who is not there, and the label may hang until the conversation ends if the returning person stays silent in it. (This said "instead of the ability to write" [retired] — on the argument "so nobody spends words on emptiness"; the words are not lost while the conversation lives — they wait for delivery.) This is the one exception to "we do not report someone's presence", allowed because the person declared the state themselves rather than the system inferring it.
 - **Stepping away takes the game cache for a pair with it (2026-09-10).** One person
   leaving ends the game (§6), and since 2026-09-10 a game for two has a row in
   `chat_games`. The cascade from `chats` will not take it: stepping away does not
@@ -1176,7 +1177,8 @@ CREATE TABLE vault_shares (
   next_attempt_at timestamptz,        -- the node takes no attempt before it: the delay grows after the fifth (2026-09-14)
   locked_at     timestamptz,         -- the tenth mistake: access locked until the paper code, the share kept (2026-09-14)
   burned_at     timestamptz,
-  last_used_at  timestamptz NOT NULL DEFAULT now()
+  last_used_at  timestamptz NOT NULL DEFAULT now(),
+  CHECK ((burned_at IS NULL) = (share_enc IS NOT NULL))
 );
 ```
 
@@ -1393,6 +1395,7 @@ CREATE TABLE feed_messages (
   CONSTRAINT feed_published CHECK ((visible_at IS NULL) = (expires_at IS NULL))
 );
 CREATE INDEX feed_expiry ON feed_messages (expires_at) WHERE visible_at IS NOT NULL;
+CREATE INDEX feed_by_author ON feed_messages (author_identity) WHERE author_identity IS NOT NULL;  -- "one at a time" and "four per hour" at send time (2026-09-14)
 ```
 
 **`brand` is attribution, and only that (clarified 2026-08-21 from the review).** The column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The comment is corrected and the column stays: **it takes part in no condition of the feed query, the like or the match**, while the boundary of the DSA snapshot is set not by the column itself but by `visibility` next to each surface (decided 2026-09-07, discussed below): for an offer the face is the boundary, for the feed and tables it is not. The fear this sentence used to carry — a notice carrying somebody else's identifier pulling another tenant's row into the reporter's moderator view — is answered by routing rather than by narrowing the lookup: a notice whose copy belongs to another face is examined by the platform, not by the storefront it was filed through (`relay/node/src/lib/dsa_snapshot.ts`; the test `dsa_snapshot_columns.test.ts` holds that contract and caught the first, too-broad edit).
@@ -1504,7 +1507,7 @@ ALTER TABLE identity_stats
   ADD COLUMN first_published_at  date;                                 -- first accepted publication, a UTC date
 ```
 
-**Moments, not a number — decided 2026-09-14 after the review panel (D4, D5, S7).** A single `integer` cannot "drop out" after an hour, and after phrases are `DELETE`d — taken down, a step-away — the "four per hour" limit had nothing left to count from. The arrays are cleaned on write and cut to the six and four latest moments — the write expression itself holds the length, not a `CHECK`: a constraint would make the verdict write fail. The window is filtered in the query too: there is no sweeper here, and a failed cleanup does not turn the window into a history. The pause and the next slot are expressions at read time (below). `first_published_at` is written at the first `visible_at` as a UTC date: it serves only the rule "the reporter posted long ago" (offers spec §10.1, storefront mechanics §5). The `identity_stats` row is created in the signup transaction — without it a conditional `UPDATE` silently refuses forever (experiment in `postgres:16`). Handles that send text for checking start with `SELECT … FROM identity_stats WHERE identity = :me FOR UPDATE`, and the check at send time counts what is still being checked: moments are written at the verdict, and without this parallel sends passed the limit before the first verdict (review panel 2026-09-14, `PANEL_2026-09-14_stage2-part1.md`). **A feed phrase goes to checking one at a time — decided 2026-09-14.** While one's own phrase is being checked the next cannot be sent — as it already was while waiting for the name (§8.2); so "four per hour" counts the moments of publications plus the one that waits. **Table lines and applications go in parallel, but the pause counts each one still being checked as a possible refusal:** refusals within the hour together with those in the queue at five or more — nothing more is accepted for checking until the verdicts. The price is named: someone typing fast at a table hits the pause for a few seconds while the verdicts come. The expressions were checked in `postgres:16` on 2026-09-14: nine refusals in a row keep six; refusals at 12:00–12:04, 12:30 and 12:55 hold the pause until 13:10; a sixth refusal after the pause within the same hour sets a new one; a publication on the same day as the offer does not count. The price of the date: "older than a day" is in fact 24 to 48 hours.
+**Moments, not a number — decided 2026-09-14 after the review panel (D4, D5, S7).** A single `integer` cannot "drop out" after an hour, and after phrases are `DELETE`d — taken down, a step-away — the "four per hour" limit had nothing left to count from. The arrays are cleaned on write and cut to the six and four latest moments — the write expression itself holds the length, not a `CHECK`: a constraint would make the verdict write fail. The window is filtered in the query too: there is no sweeper here, and a failed cleanup does not turn the window into a history. The pause and the next slot are expressions at read time (below). `first_published_at` is written at the first `visible_at` as a UTC date: it serves only the rule "the reporter posted long ago" (offers spec §10.1, storefront mechanics §5). The `identity_stats` row is created in the signup transaction — without it a conditional `UPDATE` silently refuses forever (experiment in `postgres:16`). Handles that send text for checking start with `SELECT … FROM identity_stats WHERE identity = :me FOR UPDATE`, and the check at send time counts what is still being checked: moments are written at the verdict, and without this parallel sends passed the limit before the first verdict (review panel 2026-09-14, `PANEL_2026-09-14_stage2-part1.md`). **A feed phrase goes to checking one at a time — decided 2026-09-14.** While one's own phrase is being checked the next cannot be sent — as it already was while waiting for the name (§8.2); so "four per hour" counts the moments of publications plus the one that waits. **Table lines and applications go in parallel, but the pause counts each one still being checked as a possible refusal:** while a pause is on — refused; outside a pause, if something of one's own is already being checked and together with the refusals within the hour it makes five or more, a new send waits for the verdicts — a **hold** of seconds, not a pause (clarified 2026-09-14 after the review panel: the former "refusals within the hour together with those in the queue at five or more" [retired] held sending until the end of the hour with an empty queue — experiment in `postgres:16`). A row whose checking wait expired is deleted and not counted as queued. **A verdict is one transaction:** deleting the queue row and appending the refusal moment go together, or a send between them would see the queue already empty and the refusal not yet written. The price is named: someone typing fast at a table hits the hold for a few seconds while the verdicts come. The expressions were checked in `postgres:16` on 2026-09-14: nine refusals in a row keep six; refusals at 12:00–12:04, 12:30 and 12:55 hold the pause until 13:10; a sixth refusal after the pause within the same hour sets a new one; a publication on the same day as the offer does not count. The price of the date: "older than a day" is in fact 24 to 48 hours.
 
 ```sql
 -- writing a verdict: a one-hour window, at most the six latest moments (four for publications, `- 3`)
@@ -1515,7 +1518,8 @@ rejected_at_recent = (SELECT (x)[greatest(1, cardinality(x) - 5):]
 -- paused until: five refusals within the hour ending at the latest refusal, and 15 minutes from it
 SELECT CASE WHEN (SELECT count(*) FROM unnest(rejected_at_recent) t WHERE t > m - interval '1 hour') >= 5
              AND now() < m + interval '15 min' THEN m + interval '15 min' END
-FROM (SELECT max(t) AS m FROM unnest(rejected_at_recent) t) s
+FROM identity_stats, LATERAL (SELECT max(t) AS m FROM unnest(rejected_at_recent) t) s
+WHERE identity = :me
 
 -- the next "four per hour" slot: the earliest moment in the window plus an hour
 SELECT min(t) + interval '1 hour' FROM unnest(published_at_recent) t WHERE t > now() - interval '1 hour'
@@ -1523,6 +1527,18 @@ SELECT min(t) + interval '1 hour' FROM unnest(published_at_recent) t WHERE t > n
 -- "posted long ago" — 24 to 48 hours, all in UTC
 first_published_at <= (now() AT TIME ZONE 'UTC')::date - 2
 AND first_published_at < (offers.published_at AT TIME ZONE 'UTC')::date
+
+-- writing the first publication — at the first visible_at, as a UTC date
+first_published_at = COALESCE(first_published_at, (visible_at AT TIME ZONE 'UTC')::date)
+
+-- "four per hour" when sending a phrase: moments of publications plus one's own waiting phrase
+(SELECT count(*) FROM unnest(published_at_recent) t WHERE t > now() - interval '1 hour')
+  + (SELECT count(*) FROM feed_messages WHERE author_identity = :me AND visible_at IS NULL) < 4
+
+-- nothing more is accepted for checking: a pause is on, or a table hold
+pause_until > now()
+  OR (queued > 0 AND refusals_in_hour + queued >= 5)
+-- queued — one's own items in checking: table_lines and feed_messages with visible_at IS NULL, a name with name_state = 'pending'
 ```
 
 The counter grows on every `rejected` and counts **over a sliding hour**, the same one the publishing limit uses. Five refusals in an hour — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Everything that goes to checking is blocked — feed phrases, table lines and applications, a name change and an offer like that sends the name; the feed, likes on phrases, conversations and reading stay available, so the penalty fits the offence (clarified 2026-09-14 after the review panel: the screens said "only new phrases", while table lines feed the counter too). **Each further refusal within the same sliding hour — another 15 minutes** (decided 2026-09-14): the pause is computed from the moments of refusals and has no separate deadline. **An expired queue waiting limit is not a refusal:** the outcome "the check did not happen" does not touch the counter, or a model outage would pause everyone.
@@ -1999,7 +2015,7 @@ CREATE TABLE chats (
   last_activity_at  timestamptz NOT NULL DEFAULT now(),
   created_at        timestamptz NOT NULL DEFAULT now()
   -- expires_at is neither a column nor one number: each participant has their own,
-  -- last_activity_at + their idle_ttl_minutes (see chat_participants)
+  -- COALESCE(last_own_message_at, chats.created_at) + their idle_ttl_minutes (see chat_participants; clarified 2026-09-14)
 );
 
 CREATE TABLE chat_participants (
@@ -2026,7 +2042,7 @@ CREATE TABLE chat_starters (
 
 - Access check is "is there a row": `SELECT 1 FROM chat_participants WHERE chat_id = :id AND identity = :me`.
 - `chat_starters` stores a **copy** of the text rather than a reference to `feed_messages`: the phrase lives N hours, the chat lives by its own clock, and the header must not empty out mid-conversation. `feed_message_id` is deliberately not stored — the link "this phrase → this chat" is better off not existing in the database at all.
-- Opening a chat returns: **your own** `idle_ttl_minutes` and `last_own_message_at`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), the peer's name and age, and `peer_stepped_away` (since 2026-09-14). **That is all** — the history comes from the client's own local storage under the same `chat_id`.
+- Opening a chat returns: **your own** `idle_ttl_minutes` and `last_own_message_at`, `last_activity_at`, `max_message_length`, `max_ciphertext_bytes`, the `chat_starters` list by `position` labelled `you liked` / `they liked` (resolved per viewer), the peer's name and age, `peer_stepped_away` and the conversation's `created_at` (since 2026-09-14: without it the client cannot count the span while it has no message of its own). **That is all** — the history comes from the client's own local storage under the same `chat_id`.
 
 **Message length is a server parameter, not a client constant.** `max_message_length` arrives when the chat opens, defaults to **256 characters**, and changes without shipping a client. The client draws the counter and will not let you send more.
 
@@ -2250,7 +2266,7 @@ Anything missing from `alive` is deleted from IndexedDB along with its messages.
 
 **Three rules for this endpoint, all from 2026-08-21 — it is the only destruction command the system has.** The reply contains only those `id`s for which a `chat_participants` row exists with the caller: other people's and non-existent ones are silently absent and therefore indistinguishable from dead. The array length is capped. And above all: **the list of the living is valid only on a confirmed read of the database** — on error the node answers 503, not an empty list. The node's policy of "the query failed, carry on without an answer" would mean here that five minutes of unavailable Postgres wipe the conversations of everyone who opened the app in those minutes.
 
-**The client does not delete what its own clock still calls alive.** If a conversation has not expired by `last_own_message_at + its own idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
+**The client does not delete what its own clock still calls alive.** If a conversation has not expired by `COALESCE(last_own_message_at, created_at) + its own idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
 
 **Local history is encrypted with the vault key of §8.2** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
 

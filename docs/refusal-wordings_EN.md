@@ -97,7 +97,7 @@ Fix the name and it will go by itself while the offer is alive.
 
 ```
 Five refusals in an hour. For 15 minutes nothing goes to checking:
-phrases, table lines, a name change, an offer like.
+phrases, table lines, a name change, an offer like while the name is not accepted.
 Another refusal this hour — another 15 minutes.
 The feed, likes on phrases and conversations work.
 ```
@@ -110,6 +110,13 @@ ban.
 counter is also fed by table lines and a refused name. **Each further refusal within
 the same hour — another 15 minutes** (decided 2026-09-14). An expired queue wait is
 not a refusal.
+
+**A table hold is not a pause (2026-09-14).** If something of one's own is being checked and,
+together with the refusals within the hour, it makes five or more, a new line waits for the verdicts:
+
+```
+Checking your earlier lines — the new one goes after the verdict.
+```
 
 **"Within an hour" rather than "in a row" — edited 2026-09-07 after a review
 panel.** "In a row" means any successful publication resets the run, and the

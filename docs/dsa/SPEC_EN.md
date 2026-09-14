@@ -402,9 +402,10 @@ Contains:
 
 - what was decided: removed / kept / the content was already gone / unreachable;
 - why — briefly and to the point;
-- **whether automated means were used.** Here a human takes the decision on the
-  notice; automated means were applied only to publication (the pre-publication
-  check, including AI models). We state that distinction explicitly;
+- **whether automated means were used** — as the decision actually was. A person reads the notice
+  today, and automated means were applied to publication (the pre-publication check, including AI
+  models); if a decision was automatic, that is said, and a person looks at it again on a reply.
+  There is no longer a promise that "a person always decides" — decided 2026-09-14 (R4 of plan v1, Art. 16(6) DSA);
 - the redress routes: reply to us, the Digital Services Coordinator, the courts
   (README §7).
 

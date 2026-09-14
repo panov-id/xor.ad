@@ -60,7 +60,7 @@ likes	docs/chat_RU.md:1814	-	product
 match_participants	docs/chat_RU.md:1893	-	product
 matches	docs/chat_RU.md:1885	-	product
 offers	docs/offers/SPEC_RU.md:308	-	product
-offer_link_reports	docs/offers/SPEC_RU.md:690	-	product
+offer_link_reports	docs/offers/SPEC_RU.md:693	-	product
 pageview_daily	-	relay/node/db/001_control_state.sql	control
 pending_deliveries	docs/chat_RU.md:2160	-	product
 quota_counters	-	relay/node/db/001_control_state.sql	control

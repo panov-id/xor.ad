@@ -714,7 +714,11 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
   alone — their complaint waits for a moderator. The threshold
   is deliberately low: the cost of a mistake is asymmetric here — a link extinguished for
   nothing is repaired by an examination, a deceived neighbour is repaired by nothing
-- it is not shown to the author
+- it is not shown to the author, **but the venue gets an email the moment the link goes dark**, to
+  the verification address — what went dark, that the decision was automatic (two reports from
+  people who have posted for a while), that the offer itself stays live, and how to contest it: by
+  replying, and a person looks. Decided 2026-09-14: with a known address this is required by DSA
+  Art. 17(1)(a), 17(2) and 17(3); whether P2B Art. 4(1) applies is a question for the lawyer
 
 **How it is stored — decided 2026-09-14 after the review panel.** The condition "had an
 accepted publication" cost one harmless phrase per identity and had no column, and two

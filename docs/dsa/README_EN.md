@@ -84,7 +84,7 @@ norm itself.
 
 Lifted: Art. 20 (internal complaint handling), Art. 21 (out-of-court dispute
 settlement), Art. 22 (trusted flaggers), Art. 23 (measures against misuse),
-Art. 24 (reporting and the Commission's decision database), Art. 25 (dark
+Art. 24 **except 24(3)** (reporting and the Commission's decision database; information on average active recipients on the coordinator's request stays — Art. 19(1), checked against EUR-Lex 2026-09-14), Art. 25 (dark
 patterns), Art. 26 (advertising transparency), Art. 27 (recommender systems),
 Art. 28 (protection of minors).
 

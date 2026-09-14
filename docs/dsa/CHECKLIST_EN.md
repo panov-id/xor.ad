@@ -78,7 +78,7 @@ are gone and what follows is only what is genuinely unbuilt.
       built" true on paper and false in practice.
 
       Three remarks on the statement's content are in J16.
-- [x] **Notification of material changes** to the documents, Art. 14(6) — done
+- [x] **Notification of material changes** to the documents, Art. 14(2) — done (edited 2026-09-14: "14(6)" [retired] — per EUR-Lex that is the languages of very large platforms)
       2026-08-09. More of it existed than the record showed: the bar's markup, the
       translations (10 locales on neighbro, 17 on sosed), the display logic and the
       storage keys (`nb-legal` / `ss-legal`) were already on both storefronts. A
@@ -101,7 +101,7 @@ are gone and what follows is only what is genuinely unbuilt.
       `legalAccept` key stays — renaming it would cost 27 edits for a name nobody
       sees.
 
-      **The panel gets no such mechanism.** Art. 14(6) addresses recipients of the
+      **The panel gets no such mechanism.** Art. 14(2) addresses recipients of the
       service; the panel is a tool for operators, bound by a different
       relationship. A bar there would be noise, not compliance.
 

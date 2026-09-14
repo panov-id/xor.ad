@@ -110,11 +110,19 @@ away" button would put it out.
 
 | Refusal | What is said | Action |
 |---|---|---|
-| quota | Four phrases are already live. The next slot frees in a few minutes. | Wait, or take one down |
+| quota | Four phrases are already live. The next slot frees at HH:MM. | Wait, or take one down |
+| four this hour | Four phrases already said this hour. The next one can go at HH:MM. | Wait |
 | no network | There is no connection. What you wrote is saved. | We will send it when there is |
 | the conversation expired | The span ran out; the conversation is gone. | Back to the feed |
 | the other person closed it | The conversation has ended. | Back to the feed |
 | a table outside your bands | *(nothing)* | — |
+
+**The time in the first two rows is one's own, not someone else's (added 2026-09-14
+after the review panel).** A slot is freed by one's own phrase, and its span is
+already visible on screen 9; the hourly ceiling is counted from one's own
+publications too. "In a few minutes" [retired] was untrue — the next phrase may live
+up to 4:20 — and the hourly limit had no row at all, although a refusal must name
+which count is holding the person.
 
 The last row is not an omission. A table outside the age bands is not shown **at
 all**: a card with an explanation would itself report who is sitting where.

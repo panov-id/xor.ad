@@ -2238,6 +2238,15 @@ is what people read when deciding what may go out. Same device as §8.3, where t
 centre is rounded to a cell: the feed must not work as a measuring instrument on
 other people's spans.
 
+**Clarified 2026-09-14: there was no "reasoning" in `refusal-wordings_EN.md`, and
+one's own spans are shown.** The paragraph above cited a reasoning for why the quota
+screen does not show when a slot frees; the review panel of 2026-09-11 found one line
+saying "in a few minutes" and not a single argument in that file. A slot is freed by
+**one's own** phrase, whose span the person already sees on screen 9 of the
+storefronts, so a quota refusal and an hourly-limit refusal now name the time ("frees
+at HH:MM"). The "Never" list does not change: other people's spans are still given
+out by no answer at all.
+
 **The line runs at the chat, not at the phrase.** In the feed the author is never shown — that is the core rule. But once a chat is open, authorship inside it is known by construction: the peer sees a name and age and knows whose phrases sit in `chat_starters`. Every `extra_like` (8.7) adds one more phrase by the same person to that list.
 
 So over a long conversation a peer will accumulate a set of one author's phrases with a name and age — and that is not a leak but the very point of an open chat: these people chose to meet. What matters is the other half — **that set never leaves the chat**: it is not published, not handed to third parties, and it dies with the chat.

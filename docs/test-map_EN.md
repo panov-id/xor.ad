@@ -69,7 +69,7 @@ through three different wrappers and cannot be counted by eye.
 | 2.1 | An unsigned request does not pass | a bare `curl` at a guarded route → refused | nothing to check |
 | 2.2 | A signature outside the ±5 minute window is not accepted | client clock moved 6 minutes → refused | nothing to check |
 | 2.3 | The signature covers method, path, sha256 of the body and time | one byte of the body changed under the same signature → refused | nothing to check |
-| 2.4 | A frozen session is accepted **nowhere**, delivery subscription included | `frozen_at` set → both REST and WS refuse | nothing to check |
+| 2.4 | A frozen session is accepted **nowhere**, delivery subscription included — except a new support request after the share burns (2026-09-14, §8.2) | `frozen_at` set → both REST and WS refuse | nothing to check |
 | 2.5 | ECDSA P-256 works in engines without Ed25519 | `scripts/check-webcrypto-support.sh` across three engines | **have** |
 
 ## 3. The PIN, the node's share and the vault key (step 1)
@@ -79,7 +79,8 @@ through three different wrappers and cannot be counted by eye.
 | 3.1 | The node checks the PIN, not the device | no share is handed out before the `auth` half is verified | nothing to check |
 | 3.2 | **Ten wrong PINs burn the share, and the database opens with nothing** (§14) | on a live node: ten misses, then the right PIN → the base is dead | nothing to check |
 | 3.3 | The counter resets only on a correct PIN | nine misses, one hit, nine more → the share survives | nothing to check |
-| 3.4 | **A burned share freezes the session** (§8.2, 2026-09-14) | ten misses → a signed `POST /feed` from that session is refused; the recovery handle accepts the paper code and issues a new share | nothing to check |
+| 3.3a | **A burned share freezes the session** (§8.2, 2026-09-14) | ten misses → a signed `POST /feed` from that session is refused; live phrases taken down, table seats free; a new support request is accepted, the list of earlier ones is not; the recovery handle accepts the paper code and issues a new share | nothing to check |
+| 3.3b | **The PIN delay grows after the fifth attempt** (§8.2, 2026-09-14) | five misses → a sixth attempt before 30 seconds is refused and `attempts_left` does not drop; ninth miss → a tenth before 4 hours is refused | nothing to check |
 | 3.4 | The `local` half never leaves the device | intercept the registration traffic: only `auth` in the body | nothing to check |
 | 3.5 | A share belongs to a device, not to an identity | another live session of the same identity cannot reach it | nothing to check |
 | 3.6 | The warning appears with three attempts left | the seventh miss → a warning flag in the response | nothing to check |

@@ -68,7 +68,7 @@ sequenceDiagram
   else
     N->>N: is the session live #40;frozen_at IS NULL#41;?
     alt frozen
-      N-->>K: refused — this signature is accepted nowhere
+      N-->>K: refused — this signature is accepted nowhere,<br/>except a new support request after the share burns
     else
       N-->>K: answer
     end

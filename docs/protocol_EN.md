@@ -249,3 +249,10 @@ it has to be settled before the first line of step 1.
    brute force over the whole base; the band was picked so ordinary typos do not
    reach it — the neighbouring numbers (10 PIN attempts, 5 transfer-code attempts)
    are an order of magnitude lower and per address, not per node.
+
+   **Since 2026-09-14 the pause has a second price, and it is accepted too.** The
+   paper code became the only way out for a session frozen by a burned share as well
+   (`chat_EN.md` §8.2), so distributed guessing, even unsuccessful, keeps that way out
+   closed for everyone — for roughly two hundred requests an hour. The review panel of
+   2026-09-14 proposed replacing the pause with a growing cost; it was decided to keep
+   the pause and name the price on storefront screen 12.

@@ -977,7 +977,7 @@ CREATE TABLE sessions (
   label           text,                -- "Chrome, Android" — what the device called itself
   created_at      timestamptz NOT NULL DEFAULT now(),
   last_seen_at    timestamptz NOT NULL DEFAULT now(),
-  frozen_at       timestamptz          -- NULL = live; set on transfer
+  frozen_at       timestamptz          -- NULL = live; set on transfer and when the share burns (§8.2)
 );
 CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
 ```
@@ -1172,6 +1172,7 @@ CREATE TABLE vault_shares (
   auth_hash     text NOT NULL,       -- hash of half the material; the PIN itself is unknown to the node
   share_enc     bytea,               -- 32 random bytes UNDER the node's key; NULL = burned
   attempts_left smallint NOT NULL DEFAULT 10,
+  next_attempt_at timestamptz,        -- the node takes no attempt before it: the delay grows after the fifth (2026-09-14)
   burned_at     timestamptz,
   last_used_at  timestamptz NOT NULL DEFAULT now()
 );
@@ -1189,7 +1190,9 @@ The counter is decremented in its own short transaction, before the action itsel
 
 **With the share burned, all three actions refuse.** That is the price, said out loud: a device with a burned share does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: recovery mints a new share and a new PIN and returns the counter to ten (§8.2 below). Without this rule the hole would be the exact opposite: in the web the signing key sits outside the share, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
 
-**Burning the share sets `frozen_at` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3).** Forbidding the three irreversible actions is not enough: in the web the signing key sits outside the share and the tab lock is client-side, so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses a frozen session everywhere except the paper-code recovery handle — the same rule as on a move (below), in the opposite direction. The price is named: someone who forgot the PIN themselves can use nothing until the code is entered, and without the code loses the identity on this device.
+**Burning the share sets `frozen_at` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3).** Forbidding the three irreversible actions is not enough: in the web the signing key sits outside the share and the tab lock is client-side, so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses a frozen session everywhere except paper-code recovery and a new support request that reads no earlier answers — the same rule as on a move (below), in the opposite direction. **In the same transaction burning takes down what is live, as a step-away does** (the "stepped away" state below): phrases are deleted with their likes, table seats are freed — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose phone was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; during an attack on the node code entry may wait up to 15 minutes (`protocol_EN.md` §8, item 7).
+
+**The delay between PIN attempts grows after the fifth — decided 2026-09-14 after the review panel (SEC2).** A counter of ten is not enough: without a delay other hands get through it in a minute. Attempts one to five — at once; the sixth after 30 seconds, the seventh after 2 minutes, the eighth after 10 minutes, the ninth after 1 hour, the tenth after 4 hours. The node holds it (`vault_shares.next_attempt_at`), not the client; an attempt before its time is refused and does not spend the counter. The numbers are in `docs/facts/limits.tsv` (`pin.delay.*`). An honest person who mistyped six times waits half a minute; burning someone else's share takes more than five hours at their device.
 
 **A share belongs to a device, not to an identity.** Otherwise changing the PIN on a new device would break the previous device's database, and whoever took the identity and set their own PIN would read someone else's old conversations. So each device has its own share, its own PIN and its own counter, and nothing reaches another device's share — including a live session of the same identity.
 

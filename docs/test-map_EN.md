@@ -79,6 +79,7 @@ through three different wrappers and cannot be counted by eye.
 | 3.1 | The node checks the PIN, not the device | no share is handed out before the `auth` half is verified | nothing to check |
 | 3.2 | **Ten wrong PINs burn the share, and the database opens with nothing** (§14) | on a live node: ten misses, then the right PIN → the base is dead | nothing to check |
 | 3.3 | The counter resets only on a correct PIN | nine misses, one hit, nine more → the share survives | nothing to check |
+| 3.4 | **A burned share freezes the session** (§8.2, 2026-09-14) | ten misses → a signed `POST /feed` from that session is refused; the recovery handle accepts the paper code and issues a new share | nothing to check |
 | 3.4 | The `local` half never leaves the device | intercept the registration traffic: only `auth` in the body | nothing to check |
 | 3.5 | A share belongs to a device, not to an identity | another live session of the same identity cannot reach it | nothing to check |
 | 3.6 | The warning appears with three attempts left | the seventh miss → a warning flag in the response | nothing to check |

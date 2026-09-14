@@ -1189,6 +1189,8 @@ The counter is decremented in its own short transaction, before the action itsel
 
 **With the share burned, all three actions refuse.** That is the price, said out loud: a device with a burned share does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: recovery mints a new share and a new PIN and returns the counter to ten (§8.2 below). Without this rule the hole would be the exact opposite: in the web the signing key sits outside the share, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
 
+**Burning the share sets `frozen_at` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3).** Forbidding the three irreversible actions is not enough: in the web the signing key sits outside the share and the tab lock is client-side, so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses a frozen session everywhere except the paper-code recovery handle — the same rule as on a move (below), in the opposite direction. The price is named: someone who forgot the PIN themselves can use nothing until the code is entered, and without the code loses the identity on this device.
+
 **A share belongs to a device, not to an identity.** Otherwise changing the PIN on a new device would break the previous device's database, and whoever took the identity and set their own PIN would read someone else's old conversations. So each device has its own share, its own PIN and its own counter, and nothing reaches another device's share — including a live session of the same identity.
 
 **The tenth wrong attempt burns the share, and that device's conversations are gone for good** — there is nothing left to decrypt them with. The identity itself is unharmed. Burning someone's conversations silently is not acceptable, so from the seventh attempt the screen says it outright:
@@ -2104,8 +2106,8 @@ CREATE INDEX ON pending_deliveries (recipient_session, created_at);
 - Every insert is `ON CONFLICT DO NOTHING`: a retry with the same `local_id` creates no
   duplicate.
 - A row dies before the conversation does in three cases, and they matter more than the
-  cascade: the recipient acknowledged receipt; their session was frozen or its share
-  burned (§8.2) — there is nothing to read it with anyway; the conversation ended for
+  cascade: the recipient acknowledged receipt; their session was frozen (burning
+  the share freezes it too, §8.2) — there is nothing to read it with anyway; the conversation ended for
   **either** of the two, because the key `K` dies on the first death (§8.13). The
   cascade from `chats` is the last net rather than the main janitor: a `chats` row lives
   until `gone_at` stands for both (§8.10).

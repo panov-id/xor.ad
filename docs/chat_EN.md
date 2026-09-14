@@ -29,12 +29,12 @@ Liking again when a chat with that person is already open creates **no new match
 
 ## 3. Chat list
 
-- Tabs: **`Chats N`** / **`Matches N`** (brutalist blocks, active one has an accent fill).
+- Tabs: **"Offers N"** / **"Conversations"** — a counter only on offers, a dot for a new conversation on conversations (screen 7 of the storefronts, decided 2026-08-27; edited 2026-09-14: this said `Chats N` / `Matches N` [retired]).
 - **No sub-sections — decided 2026-08-20.** There are exactly two tabs. "Fading" is not a section but a state of the row: the timer and the fading are already described in §5 and visible in the thread itself. A "Fading" section could only be filled by moving a chat there on a timer, which means the other person would drop out of sight in the very minute when the least time is left; on top of that the inbox counters (§8.12) would have to be split three ways. The list does not grow by construction — chats live for minutes and hours, not months.
 - **Thread** (`.thread`): letter avatar, name, last-activity time, **last-message preview** (its own line), **timer** (accent, its own line), a `›` chevron as a click-affordance.
 - **`Matches`** — match cards: phrase + mode + name and age, a timer to expiry, an "open chat" button; after your own press, "waiting for you".
 - Click a thread → opens the conversation.
-- The tab counters *are* the inbox (§8.12): unread items and matches awaiting a decision are derived from state, and there is no separate notifications screen.
+- The counter and the dot on the tabs *are* the inbox (§8.12): matches awaiting a decision and new conversations are derived from state, and there is no separate notifications screen. **There is no "unread"** — it would mean the node knows who opened a conversation when (screen 7).
 
 ## 4. Conversation
 
@@ -2282,11 +2282,11 @@ server.last_activity_at > the time of my last local message
    → "something happened here and you do not have it"
 ```
 
-The client shows a line — "you missed a message, ask them to send it again" — and a button that nudges the peer with an "I'm here" signal. The text itself is never recovered, which follows directly from 8.8.
+The client shows a line — "you missed a message, ask them to send it again". The text itself is never recovered, which follows directly from 8.8. **There is no "I'm here" signal button — removed 2026-09-14** [retired]: asking works with an ordinary reply, and a signal would be a second report of presence beside "stepped away" (§8.2).
 
 **While the tab is open the inbox works in real time** — events arrive over the same WebSocket (8.1), with no extra request. The initial `GET /inbox` is only for a cold start.
 
-In the UI this is the counters on the `Chats N` / `Matches N` tabs (§3) and highlighted threads, not a separate notifications screen: there are few events and they all live in those two lists anyway.
+In the UI this is the counter on the "Offers" tab and the dot on "Conversations" (§3) and highlighted threads, not a separate notifications screen: there are few events and they all live in those two lists anyway.
 
 **A burnt-out match will not appear in the inbox.** The `matches` row is deleted on expiry, so there is nothing to show — and that is for the better: instead of a graveyard ("you had three matches, all dead") a person sees only what is alive. The price is honest and worth knowing: **what was missed disappears silently and for good**.
 

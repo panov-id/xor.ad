@@ -1,5 +1,12 @@
 # Step 1 migrations: identity and session
 
+> **A plan from before 2026-09-11 — the first migration's set has been revised since**
+> (note of 2026-09-14 after the review panel). The first migration carries eleven
+> tables (`chat_EN.md` §13: ten from 2026-09-11 and `support_requests` from
+> 2026-09-14), while this document describes step 1's three tables and assigns the
+> feed, likes, the pair and blocks to "steps 2–7". The order and the checks below
+> still hold for the tables described here; take the set itself from the chat spec.
+
 The chat spec (`chat_EN.md` §8.2) describes step 1's three tables in three
 different sections, interleaved with the reasoning. Here they are gathered in the
 shape they will reach the database in: **what, in which order, and what proves

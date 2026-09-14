@@ -1248,3 +1248,39 @@ CREATE TABLE offer_link_reports (
 5. Исправлены факты v0 (языки, P4, L6, J9/DSA-turnover, пропуски S10/S12/D12).
 
 Детальный план — `PLAN_2026-09-14_legal-mechanics_v1_RU.md` / `_EN.md`.
+
+## Сверка норм с первоисточником — пункт 0.1 плана v1
+
+Сделана 14.09.2026. Тексты на английском скачаны с EUR-Lex в одноразовом контейнере
+(`curlimages/curl:8.10.1`, CELEX 32022R2065, 32016R0679, 32019R1150; HTTP 200, 840 / 809 / 193 КБ),
+статьи извлечены скриптом без правки. Прежние выводы панели опирались на вторичные сайты —
+этот раздел их заменяет. Цитаты — не длиннее, чем нужно для вывода.
+
+| Норма | Цитата EUR-Lex | Вывод панели | Итог |
+|---|---|---|---|
+| DSA 4(2) | «not stored for any period longer than is reasonably necessary for the transmission» | транзит держится, только пока хранение недоставленного разумно необходимо для передачи | подтверждён; граница «до 260 минут» — вопрос юристу (4.1) |
+| DSA 12(1) | «which shall not solely rely on automated tools» | канал к человеку не отрезается пределом поддержки | подтверждён; запасная строка с почтой при пределе держит норму |
+| DSA 14(1) | «including algorithmic decision-making and human review» | соглашение раскрывает автоматику решений (Р4) | подтверждён |
+| DSA 14(2) | «shall inform the recipients of the service of any significant change» | об изменениях уведомляем, согласия норма не требует (LAW5) | подтверждён |
+| DSA 14(6) | «very large online platforms … official languages of all the Member States» | ссылка на 14(6) в `dsa/CHECKLIST_*` про уведомление об изменениях | **ошибка документа**: 14(6) — языки очень крупных платформ; нужно 14(2) |
+| DSA 16(4) | «Where the notice contains the electronic contact information … without undue delay, send a confirmation of receipt» | подтверждение обязательно только при контакте | подтверждён |
+| DSA 16(5) | «without undue delay, notify … of its decision … providing information on the possibilities for redress» | решение по уведомлению — «без неоправданной задержки», числа нет | подтверждён; 72 часа — наша цель, не норма |
+| DSA 16(6) | «timely, diligent, non-arbitrary and objective manner»; «Where they use automated means … include information on such use» | автоматика в решении называется в уведомлении | подтверждён; сутки задержки через поддержку названы ценой (пачка 8) |
+| DSA 17(1)(a) | «any restrictions of the visibility of specific items of information … including removal» | гашение ссылки и отказ до публикации — ограничения, требующие мотивировки | подтверждён |
+| DSA 17(2) | «shall only apply where the relevant electronic contact details are known to the provider» | пользователю без контакта мотивировка по ст. 17 не обязательна; заведению с почтой — обязательна | подтверждён; текст паузы на экране — добровольно, но по составу 17(3) |
+| DSA 17(3)(c) | «information on the use made of automated means in taking the decision» | мотивировка говорит, что решение автоматическое | подтверждён |
+| DSA 17(3)(f) | «where applicable through internal complaint-handling mechanisms, out-of-court dispute settlement and judicial redress» | пути — «где применимо»; внутреннего обжалования (ст. 20) у малого предприятия нет | подтверждён вместе с 19(1) |
+| DSA 18(1) | «promptly inform the law enforcement or judicial authorities» | обязанность не снята исключением для малых | подтверждён: ст. 18 в разделе 2, исключение ст. 19 — только для раздела 3 |
+| DSA 18(2) | «inform the law enforcement authorities of the Member State in which it is established … or inform Europol, or both» | при неясном государстве — Кипр или Европол | подтверждён; адрес Европола — 4.2 |
+| DSA 19(1) | «This Section, with the exception of Article 24(3) thereof, shall not apply to … micro or small enterprises» | ст. 20–28 сняты, **24(3) остаётся** (LAW8) | подтверждён; `dsa/README_*` перечисляет ст. 24 целиком как снятую — ошибка |
+| DSA 24(3) | «upon their request and without undue delay, the information referred to in paragraph 2» | сведения о среднем числе активных получателей — по запросу координатора | подтверждён; нужен счётчик (`open.tsv`) |
+| GDPR 13(2)(a) | «the period for which the personal data will be stored» | каждый срок хранения назван в политике | подтверждён |
+| GDPR 13(2)(f) | «the existence of automated decision-making … referred to in Article 22(1) and (4)» | упоминание обязательно только для решений ст. 22 | подтверждён |
+| GDPR 22(1) | «based solely on automated processing … legal effects … or similarly significantly affects» | пауза 15 минут и отказ в публикации фразы вряд ли «существенно затрагивают»; гашение ссылки заведению — спорнее | подтверждён как оценка, не как вывод юриста; в письмо юристу (4.1) |
+| GDPR 22(3) | «at least the right to obtain human intervention … to express his or her point of view and to contest the decision» | если 22(1) применим — нужен путь к человеку | подтверждён; путь через поддержку уже есть |
+| P2B 2(2)(c) | «provided to business users on the basis of contractual relationships» | применимость P2B к бесплатным офферам заведений зависит от договора с заведением | подтверждён как открытый вопрос (4.1) |
+| P2B 4(1) | «prior to or at the time of the restriction or suspension taking effect, with a statement of reasons … on a durable medium» | если P2B применим — гашение ссылки требует письма заведению в момент гашения | подтверждён; письмо заведению (3.3) закрывает оба случая |
+
+**Что меняет сверка в этапе 3:** 3.5 — `dsa/CHECKLIST_*` 14(6) → 14(2) и `dsa/README_*` ст. 24 → «кроме 24(3)»
+подтверждены первоисточником; 3.3 — письмо заведению обязательно по DSA 17(2) при известном адресе
+независимо от P2B; 3.2 — текст паузы следует составу 17(3), хотя сама норма к пользователю без контакта не обязывает.

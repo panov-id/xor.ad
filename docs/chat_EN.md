@@ -2611,6 +2611,31 @@ is not picked by whoever first sits down to write `db/`: `identities`,
 fact. Then the feed, the like and the pair. `blocks` is in because from the very
 first match there has to be a way to end contact, not because step 4 demands it.
 
+**The eleventh is `support_requests`, added 2026-09-14** (screen 14 of the
+storefronts). The screen promised a list of one's own requests and an answer kept
+with the identity, and there was nothing to hold them: the table existed neither in
+the set nor in any build step. The columns below are introduced by this decision and
+appear in no other document:
+
+```sql
+CREATE TABLE support_requests (
+  id           bigserial PRIMARY KEY,                              -- the request number the person sees
+  identity     uuid REFERENCES identities(id) ON DELETE SET NULL,  -- "start over" breaks the link, the review record stays
+  body         text NOT NULL,
+  email        text,                                               -- optional
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  answer       text,
+  answered_at  timestamptz,
+  seen_at      timestamptz                                         -- the dot under "Me" shows while there is an answer and seen_at is empty
+);
+```
+
+It is kept for a year (`sosed.place/docs/00-mechanics_EN.md` §7), and **it still has
+no one to carry that out**: the sweep arrives together with the table, not before.
+The price of the decision: the set that was deliberately narrowed to ten on
+2026-09-11 is one table wider, and in return support works in `depth` already at
+steps 1–4.
+
 The price is named out loud: until step 5 two people who matched see that they
 matched and walk into a wall — there are no conversations yet. That is the price
 of the order itself rather than of this set, and it is accepted together with the

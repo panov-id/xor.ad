@@ -232,11 +232,10 @@ flowchart TD
   name -- "no" --> hold(["the phrase LIES AND WAITS<br/>until the name is fixed;<br/>a second one cannot be sent"])
   hold --> name
   name -- "yes" --> live["visible_at = now#40;#41;<br/>expires_at = visible_at + 4:20"]
-  live --> zero["rejected_count = 0"]
   live --> shown(["the phrase is in the feed"])
   verdict -- "rejected" --> del["the row is deleted,<br/>the author gets a reason"]
-  del --> count["rejected_count + 1"]
-  count --> block{"fifth in a row?"}
+  del --> count["the refusal is recorded with a timestamp<br/>#40;a success does not reset the count#41;"]
+  count --> block{"fifth within a sliding hour?"}
   block -- "yes" --> mute(["15 minutes without posting;<br/>feed, likes and chats keep working"])
   verdict -- "nothing to check with" --> wait(["the phrase WAITS<br/>#40;fail-closed#41;"])
 ```
@@ -974,18 +973,18 @@ person.
 
 ## 22. Stepping away ([§8.2](chat_EN.md))
 
-A person can leave the place for a span — **20 minutes, an hour, or until
-morning**. This is not an interface pause but a state of the account on the node:
+A person can leave the place for a span — **20 minutes, an hour, or 8
+hours**. This is not an interface pause but a state of the account on the node:
 `stepped_away_until` in `identities`. The point is not the absence but giving
 somebody who is stuck a way to actually leave.
 
 ```mermaid
 flowchart TD
-  away["«step away»: 20 min / an hour / until morning"] --> del["phrases are DELETED #40;DELETE, not hidden#41;<br/>along with their likes — quota slots free at once"]
+  away["«step away»: 20 min / an hour / 8 hours"] --> del["phrases are DELETED #40;DELETE, not hidden#41;<br/>along with their likes — quota slots free at once"]
   away --> match["matches go out as if the phrase expired;<br/>the other side sees the offer vanish<br/>with NO reason given"]
   away --> sock["this session's sockets are closed<br/>the same way as on a freeze #40;§7#41;"]
   away --> chats["chats are NOT frozen:<br/>last_activity_at does not move, the TTL runs"]
-  chats --> price(["only conversations with a long span<br/>survive an «until morning»"])
+  chats --> price(["only conversations with a long span<br/>survive an 8-hour break"])
   sock --> peer["the other side in an open chat sees stepped_away<br/>instead of being able to write"]
   del --> back{"back, or leaving early?"}
   back -- "early" --> confirm["a confirmation; the frequency is not capped"]

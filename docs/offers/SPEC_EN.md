@@ -433,7 +433,7 @@ limit it turns into a free broadcast channel.
 
 **A private offer also disappears when its author steps away — added 2026-08-28**
 (screen 20 of the storefronts, decided 2026-08-27). Leaving "for 20 minutes, an
-hour, or until morning" deletes the person's live phrases, and their offer is a
+hour, or 8 hours" deletes the person's live phrases, and their offer is a
 phrase with a non-empty discount. A venue offer is untouched: there is no person
 behind it who could step away.
                 │

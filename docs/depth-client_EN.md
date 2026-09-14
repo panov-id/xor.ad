@@ -648,9 +648,11 @@ shows and what it is obliged to say out loud:
   itself report who is sitting where.
 - **A majority of those seated removes someone**, and whoever put the table up
   does not own it. Nobody holds sole power over a table.
-- **A block hides the whole table**: if someone you blocked is sitting at it, you
-  do not see the table. The price is named — one person can hide someone else's
-  game from you simply by sitting down at it.
+- **A block separates at the seat**: if someone you blocked is sitting at a table,
+  you do not see it, and sitting beside each other is refused both ways. If you are
+  already at one table, whoever blocked leaves and the game goes on for the others
+  (screen 19, 2026-09-14; the old price "one person can hide someone else's game
+  from you simply by sitting down at it" [retired] was lifted on 2026-09-10).
 - **A table is not in the conversation list**, because it is not a conversation.
   While you are at one, the `signal` header carries a line "you are at a table —
   [enter] to return": narrow your circle or leave the radius and the line will

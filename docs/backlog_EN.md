@@ -7,7 +7,7 @@ Short notes for later — not in current work, kept so they aren't lost.
 holding descriptions the product has since revised. What replaced them:
 
 - **The freeze** → screen 20 of the storefronts, "Step away" (2026-08-26–2026-08-27):
-  three spans — 20 minutes, an hour, until morning — with the price of leaving
+  three spans — 20 minutes, an hour, 8 hours (until 2026-09-14, "until morning") — with the price of leaving
   counted on the spot before the confirmation, live phrases deleted, the table
   left standing while the person sitting at it gets up. The server side is §8.2 of
   the chat spec: `frozen_at` and a `NOTIFY session_frozen` that cuts the session's

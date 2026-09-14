@@ -90,7 +90,7 @@ Inside a chat — a shared visual board for two, and beside it a table for compa
 | **Square grid** (draughts, chess) | **2** | whose turn, the square is not held by your own piece, end of round by agreement, score **by rounds won** | whether the move itself is legal |
 | **Dice** (backgammon) | **2** | whose turn, the roll is honest, score **by rounds won** | how to move what was rolled, gammons and backgammons |
 | **Physics** (flick game) | **2–4** | whose turn, score **by pieces knocked off** | everything else — a flick ends where it ends |
-| **Text** (hangman) | **2** | the letter is not repeated, the word is guessed, score **by words guessed** | nothing |
+| **Text** (hangman) | **2** | whose turn (since 2026-09-14); the letter is not repeated, the word is guessed, score **by words guessed** | nothing |
 
 **The number of seats belongs to the set, not to the class, and the table gives the
 bounds (recorded 2026-09-10).** The application rule of 2026-09-10 — "those unopposed
@@ -242,7 +242,7 @@ would be adding a competition where the game exists as an excuse to start talkin
 **The engine does keep the round score** — in the game cache for a pair, in
 `table_scores` at a table (edited 2026-09-14: this said "there is no score" [retired]).
 
-**Three of them are proposals rather than actions (2026-08-29).** "Play again"
+**Three of them are proposals rather than actions (2026-08-29).** "Play again" (renamed 2026-09-09)
 and "put it back" send a request to the others and fire **once everyone agrees**;
 none of them is unilateral, for the same reason there is no table owner. What follows:
 
@@ -620,7 +620,7 @@ is asking.
   promises no trace is left; the table itself outlives neither party for long, it
   ends at silence.
   What guards against an insistent return is already there, and guards harder
-  than it looks: **a block hides the table entirely** (§8.9), and the block check
+  than it looks: **a table with the blocked person is not shown** (§8.9; since 2026-09-14 a block separates at the seat, this said "hides the table entirely" [retired]), and the block check
   is **symmetric** — one row in either direction is enough. So one person at the
   table suffices: they block, and the table disappears not only for them but
   **for the person shown out**, who then has nowhere to come back to. What locks
@@ -652,7 +652,7 @@ is asking.
   unpleasant: whoever lifts a block will not see the table straight away — not until
   the feed refreshes — and that has to be said to them in a line, not left looking
   like a fault.
-  **A block during a game: whoever blocks leaves the table, and the game goes on for the others (decided 2026-09-14).** Before the button a person is told plainly: you will leave the table, and the game will go on without you. Their move becomes a pass on `table.move.window`, like anyone absent. That puts the cost on whoever made the decision, not on the person it was made about, and not on four bystanders. [retired] This said "the only case where a table is torn apart… the game will end" — and that was exactly what landed on the bystanders: the game was cut off for everyone seated.
+  **A block during a game: whoever blocks leaves the table, and the game goes on for the others (decided 2026-09-14).** Before the button a person is told plainly: you will leave the table, and the game will go on without you. Their move becomes a pass on `table.move.window`, like anyone absent: the seat stays empty until the game ends, three such passes do not make them a spectator — they are no longer at this table, and cannot come back to it while the blocked person is there (clarified 2026-09-14 after the review panel: "leaves" and "passes" read as a contradiction). That puts the cost on whoever made the decision, not on the person it was made about, and not on four bystanders. [retired] This said "the only case where a table is torn apart… the game will end" — and that was exactly what landed on the bystanders: the game was cut off for everyone seated.
 - The board lives within the chat and **disappears with it** (ephemerality).
 - Sync in real time (see §7).
 
@@ -820,7 +820,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 **A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
-- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares and clears the queue of the undelivered: there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
+- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered and nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days): there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
 #### The "stepped away" state (2026-08-26)
@@ -1755,7 +1755,7 @@ OR (SELECT discount_value IS NOT NULL FROM feed_messages WHERE id = :target)
 
 The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
 
-**For a like on an offer without a phrase of one's own this is ensured separately — decided 2026-09-14 after the review panel (S7).** The exception above lets that like past publication, and so past the name queue, which made the promise a paragraph up untrue: the offer's author saw a name nobody had checked. Such a like now first sends the unchecked name to the queue, and the match appears only after the verdict. Name refused — no match, and the liker sees the same text as when a phrase is waiting (`xor.ad/docs/refusal-wordings_EN.md` §3).
+**For a like on an offer without a phrase of one's own this is ensured separately — decided 2026-09-14 after the review panel (S7).** The exception above lets that like past publication, and so past the name queue, which made the promise a paragraph up untrue: the offer's author saw a name nobody had checked. Such a like now first sends the unchecked name to the queue, and the match appears only after the verdict. Name refused — no match, and the liker sees the line for a like on an offer (`xor.ad/docs/refusal-wordings_EN.md` §3; clarified 2026-09-14 — this said "the same text as when a phrase is waiting" [retired]: the liker has no phrase). The like waits meanwhile, as a phrase would (§8.2): the corrected name goes through the queue, and the match appears by itself if the offer is still alive.
 
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
 
@@ -1888,7 +1888,7 @@ This is **not** another consent or a checkbox: "open chat" stays the single pres
 
 - **Match TTL** = `least()` of both phrases' `expires_at`, with no safety floor. Either phrase dies and the match dies with it, even if one side already accepted; a new mutual like does **not** extend it. The consequence is accepted deliberately: a match born on a dying phrase may leave a pair only minutes for two presses, and then burn out. The rule matters more than the match count — the reason died, so the invitation dies too.
 - **The text snapshot is taken at match time**, not at opening: otherwise a phrase can expire between "match" and "both pressed", and someone would consent without seeing why.
-- The card shows **the remainders of both phrases**, one per phrase; once one accepts, the other sees "waiting for you". (Edited 2026-09-14: this was a single `match expires · Nh Nm` timer [retired] — it never said which phrase was ending, screen 6 of the storefronts.)
+- The card shows **the remainders of both phrases**, one per phrase; once one accepts, the other sees "waiting for you". (Edited 2026-09-14: this was a single `match expires · Nh Nm` timer [retired] — it never said which phrase was ending, screen 6 of the storefronts.) **A match from an offer has one remainder — the offer's own** (clarified 2026-09-14 after the review panel): whoever liked it may have no phrase (screen 6 of the storefronts, flow 10).
 
 **A match born from an offer is one-sided.** A like on a phrase with a discount creates the match immediately, without waiting for one back.
 
@@ -2228,13 +2228,13 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 | Level | Available |
 |---|---|
 | Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
-| Match | `match_id`, peer's phrase + `mode`, name, age, timer |
+| Match | `match_id`, peer's phrase + `mode`, name, age, the remainders of both phrases (since 2026-09-14; "timer" [retired]) — the one exception to "when other phrases expire" below: the span of a phrase that has already led to a mutual like is disclosed to its counterpart |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
 | Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text, **when other phrases expire** |
 
 **Expiry of other people's phrases was added to "Never" on 2026-09-08.** The
 promise was already being cited as obvious — in the reasoning for why the quota
-screen does not show the time a slot frees (`refusal-wordings_EN.md`) — and it
+screen does not show the time a slot frees (`refusal-wordings_EN.md`) [retired: there was no such reasoning, see the clarification below] — and it
 was not in the list. Obvious does not survive in a list like this one: the list
 is what people read when deciding what may go out. Same device as §8.3, where the
 centre is rounded to a cell: the feed must not work as a measuring instrument on
@@ -2613,7 +2613,7 @@ Steps 1–4 are not worth queueing behind one another: each adds a working
 screen, and each is a place one can stop. That screen is a terminal one — the
 web catches up in a single step at the end.
 
-**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
+**The first migration carries ten tables, not twenty-four — decided 2026-09-11.** Eleven since 2026-09-14, see below.
 The set follows from steps 1–4 and is written down here so that it
 is not picked by whoever first sits down to write `db/`: `identities`,
 `sessions`, `vault_shares`, `legal_acceptances`, `feed_messages`, `likes`,
@@ -2631,7 +2631,7 @@ appear in no other document:
 ```sql
 CREATE TABLE support_requests (
   id           bigserial PRIMARY KEY,                              -- the request number the person sees
-  identity     uuid REFERENCES identities(id) ON DELETE SET NULL,  -- "start over" breaks the link, the review record stays
+  identity     uuid REFERENCES identities(id) ON DELETE SET NULL,  -- "start over" nulls it in the closing transaction (§8.2); SET NULL is the backstop for DELETE
   body         text NOT NULL,
   email        text,                                               -- optional
   created_at   timestamptz NOT NULL DEFAULT now(),
@@ -2641,8 +2641,11 @@ CREATE TABLE support_requests (
 );
 ```
 
-It is kept for a year (`sosed.place/docs/00-mechanics_EN.md` §7), and **it still has
-no one to carry that out**: the sweep arrives together with the table, not before.
+It is kept for a year from `created_at` (`sosed.place/docs/00-mechanics_EN.md` §7; the starting point named 2026-09-14 after the review panel), and **it still has
+no one to carry that out**: the sweep arrives together with the table, not before — open item `support.sweeper`.
+
+**A report moved into the notice register is deleted from `support_requests` — decided 2026-09-14 after the review panel.** A request in which support recognised a report of illegal content (screen 14 of the storefronts) becomes a notice with no notifier identity (`docs/dsa/SPEC_EN.md`, "It goes by email only"), and the request row is deleted in the same transaction. Otherwise the link "who reported ↔ identity", which the DSA spec refused, would live for a year in the neighbouring table and be recoverable by simply matching the text. That the report was passed on, the person sees from the state of their own device, not from the list of requests. The price: the record of how such a report was handled lives in the notice register, not in support.
+
 The price of the decision: the set that was deliberately narrowed to ten on
 2026-09-11 is one table wider, and in return support works in `depth` already at
 steps 1–4.

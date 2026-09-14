@@ -85,6 +85,14 @@ Fix the name and it will publish itself.
 The rule of 2026-08-26: a phrase reaches the feed only when **both** are accepted.
 Its lifetime counts from publication, so waiting does not cost it its 4:20.
 
+**A like on an offer with no phrase of one's own — line added 2026-09-14** (review
+panel, S7). There is no phrase to wait; the like waits:
+
+```
+Your name did not pass the check — your interest was not sent.
+Fix the name and it will go by itself while the offer is alive.
+```
+
 ## 4. The fifth refusal within an hour
 
 ```
@@ -191,7 +199,7 @@ the application at the next sign-in.
   honest and lies about the substance: the check has not stopped, and calling the
   phrase rejected asks for it to be sent again, doubling the very queue that
   stalled. Sixty seconds is where waiting stops reading as the interface working.
-- **The time a slot frees is not shown. Decided 2026-09-08.** "In a few minutes"
+- [retired] **The time a slot frees is not shown. Decided 2026-09-08, reversed 2026-09-14** (§5: a slot is freed by one's own phrase, whose span the person already sees; `chat_EN.md` §8.11, clarification of 2026-09-14). "In a few minutes"
   rather than "at 14:32". The exact time is computed from the spans of other
   people's phrases, and §8.11 of `chat_EN.md` promises outright that the feed does
   not let anyone reconstruct when other phrases expire. Rounding to five minutes

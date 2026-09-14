@@ -52,7 +52,7 @@ value	unit	kind	why	example
 256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:883
 25	graphemes	sample.data	вход теста: на графему длиннее предела имени	xor.ad/docs/test-map_EN.md:56
 26	KB	measurement	встречено в: (26 KB) in sosed — one file each, their own unicode-range only, added as	xor.ad/docs/open-work_EN.md:316
-2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:770
+2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:773
 2	m	external.fact	встречено в: against a €2m threshold. This used to read	xor.ad/docs/dsa/README_EN.md:81
 2	min	sample.data	встречено в: Note over A,B: the code expired after 2 minutes, no move happened	xor.ad/docs/chat-flows_EN.md:144
 300	s	measurement	срок кеша html на краю сети: параметр раздачи, не обязательство перед человеком	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:184

@@ -424,7 +424,7 @@ have to wait for the neighbour giving them away to like some phrase of yours.
 ```mermaid
 flowchart LR
   a["an ordinary phrase"] --> a1["I liked theirs"] --> a2["they liked mine"] --> a3["a match"]
-  b["a phrase with a discount"] --> b1["I liked theirs"] --> b3["a match"]
+  b["a phrase with a discount"] --> b1["I liked theirs"] --> b2["my name passed the queue"] --> b3["a match"]
 ```
 
 From there the same machine runs unchanged: two `match_participants` rows, the
@@ -433,6 +433,9 @@ decline**, and then there is no chat.
 
 - The one who liked has no phrase of their own → `message_id` and `text_snapshot`
   became nullable.
+- No phrase means no publication to take the name through the queue. So the like
+  sends the name for checking itself, and the match appears after the verdict; name
+  refused — no match, the like waits for a corrected name (S7, 2026-09-14).
 - The reason in such a match is **one for both** — the offer itself. Its author
   sees their own listing and "is interested in your offer", plus name and age.
 - The `TTL` follows the single live phrase — the offer.
@@ -768,8 +771,12 @@ flowchart TD
 - **Talk at a table is checked**, because "a conversation between two is not a
   publication" does not hold at a table of strangers. The cost is named: a median
   of 2.8 seconds per line is more noticeable here than in the feed.
-- **A block hides the whole table.** The cost is accepted and named: one person can
-  hide somebody else's game from another simply by sitting down at it.
+- **A block separates at the seat rather than breaking up a game (rewritten
+  2026-09-14 after screen 19).** A table with the blocked person is not shown, the
+  two cannot sit down with each other either way, and if they are already at one
+  table, whoever blocked leaves and the game goes on for the others. [retired] This
+  said "a block hides the whole table: one person can hide somebody else's game from
+  another simply by sitting down at it" (`sosed.place/docs/00-mechanics_EN.md` §12).
 
 ---
 

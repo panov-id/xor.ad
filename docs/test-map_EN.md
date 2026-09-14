@@ -196,7 +196,7 @@ through three different wrappers and cannot be counted by eye.
 | 9.8 | A block on a pending match puts it out immediately | block → the match is gone, as if expired | nothing to check |
 | 9.9 | **The paper code is not asked for at this step** (2026-08-26) | an identity's first chat opens with no extra screen | nothing to check |
 | 9.10 | **Whoever accepted first is told nothing about the other's action** | their response carries neither the peer's `accepted_at` nor any sign of a view | nothing to check |
-| 9.11 | The card returns name, age, mode and timer — and nothing else | the response holds neither the peer's `identity_id` nor their other phrases | nothing to check |
+| 9.11 | The card returns name, age, mode and the remainders of both phrases (one for a match from an offer) — and nothing else (edited 2026-09-14: "timer" [retired]) | the response holds neither the peer's `identity_id` nor their other phrases | nothing to check |
 | 9.12 | No match opens while the name stands rejected | `name_state = rejected` → a mutual like creates no card | nothing to check |
 
 ## 10. A match from an offer is one-sided (step 4)
@@ -208,7 +208,7 @@ through three different wrappers and cannot be counted by eye.
 | 10.3 | `message_id` and `text_snapshot` are optional | a match from an offer with no phrase of one's own passes | nothing to check |
 | 10.4 | The TTL follows the only live phrase — the offer | the offer expired → the match went out | nothing to check |
 | 10.5 | Venue offers carry no like at all | an attempt to like → refused | nothing to check |
-| 10.6 | **An offer can be liked with no live phrase of one's own** | an identity with no phrases likes an offer → a match is created; the same identity likes an ordinary phrase → refused | nothing to check |
+| 10.6 | **An offer can be liked with no live phrase of one's own** | an identity with no phrases likes an offer → the name goes to the queue, the match is created after an "accepted" verdict; name refused → no match (S7, 2026-09-14); the same identity likes an ordinary phrase → refused | nothing to check |
 | 10.7 | **Age bands do not cut venue offers** | a 15-year-old and a 40-year-old see the same offer in range | nothing to check |
 | 10.8 | A private offer disappears on stepping away, with the phrases | "step away" → the offer is gone from the feed | nothing to check |
 
@@ -285,7 +285,7 @@ through three different wrappers and cannot be counted by eye.
 | 15.9 | **Table:** a newcomer gets no history | the board as it stands, talk from the moment of sitting | nothing to check |
 | 15.10 | **Table:** talk is public and goes through the queue | a line shows after the check, not before | nothing to check |
 | 15.11 | **Table:** the majority removes a sitter, nobody owns it | whoever set up the table cannot remove alone | nothing to check |
-| 15.12 | **Table:** a blocked person at a table hides the whole table | the table is not shown at all | nothing to check |
+| 15.12 | **Table:** a block separates at the seat (edited 2026-09-14: "hides the whole table" [retired]) | a table with the blocked person is not shown; you cannot sit with them nor they with you; already at one table → whoever blocked leaves, the game goes on for the others, their move is a pass on `table.move.window` | nothing to check |
 | 15.13 | **Table:** one span for everyone, from anyone's last move | one plays while others stay quiet for an hour → the table lives for all | nothing to check |
 | 15.14 | **Table:** speech and board travel in the clear, the node sees them | a line at a table is readable by the node — otherwise the queue has nothing to check | nothing to check |
 | 15.15 | **Table:** the band is its current sitters' and is recomputed (2026-09-08) | two adults at a table → a teenager gets no table in the feed; one leaves and the band differs → the table appears; a table with nobody at it is shown to no one. In both cases the feed **has no table**, rather than "has it, greyed out" | nothing to check |

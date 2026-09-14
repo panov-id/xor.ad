@@ -411,7 +411,7 @@ was meant is what was written.
 |---|---|---|
 | `OFFER_LIFETIME` | Equal to an ordinary post's lifetime | Fixed by the system; the author does not choose |
 | `FEED_OFFER_QUOTA` | 1 offer per 10 ordinary posts | Systemic, not configurable by the advertiser |
-| `AUTOHIDE_COMPLAINTS` | 3 | Complaints from **different** users |
+| `AUTOHIDE_COMPLAINTS` | 3 | Complaints from **different** users whose first publication is older than a day and earlier than the offer (since 2026-09-14) |
 | `COMPLAINT_MONTHLY_LIMIT` | 5 | Per user |
 | `ACTIVATION_CODE_TTL` | 30 days | The lifetime of the code from the letter |
 | ~~`COMPLAINT_RETENTION`~~ | — | Removed 2026-08-10: complaints have no period of their own, they share the profile's (§13) |
@@ -713,6 +713,28 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
   is deliberately low: the cost of a mistake is asymmetric here — a link extinguished for
   nothing is repaired by an examination, a deceived neighbour is repaired by nothing
 - it is not shown to the author
+
+**How it is stored — decided 2026-09-14 after the review panel.** The condition "had an
+accepted publication" cost one harmless phrase per identity and had no column, and two
+simultaneous reports without a lock did not disable the link (experiment in `postgres:16`):
+
+```sql
+CREATE TABLE offer_link_reports (
+  offer_id   uuid NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
+  reporter   uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  counts     boolean NOT NULL,  -- frozen at report time
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (offer_id, reporter)
+);
+```
+
+- `counts` = the reporter's first publication (`identity_stats.first_published_at`) is
+  **older than a day and earlier than the offer**; otherwise the report goes to a moderator
+  and disables nothing.
+- The transaction starts with `SELECT … FROM offers WHERE id = :offer FOR UPDATE`, then
+  `INSERT … ON CONFLICT DO NOTHING`, then `redirect_disabled_at = now()` once two `counts`
+  are in.
+- The "who reported" link lives until the offer dies and goes by cascade.
 
 ### 10.3. Complaints are not deleted on request — only by time
 

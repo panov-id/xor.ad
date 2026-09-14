@@ -1474,8 +1474,14 @@ Two consequences of the queue, settled together with it:
 **A rejection has consequences.** Otherwise moderation can be hammered endlessly and for free:
 
 ```sql
-ALTER TABLE identity_stats ADD COLUMN rejected_count integer NOT NULL DEFAULT 0;
+-- edited 2026-09-14 after the review panel: one number cannot hold a sliding hour [retired: rejected_count integer]
+ALTER TABLE identity_stats
+  ADD COLUMN rejected_at_recent  timestamptz[] NOT NULL DEFAULT '{}',  -- moments of refusals within the last hour, at most 6
+  ADD COLUMN published_at_recent timestamptz[] NOT NULL DEFAULT '{}',  -- moments of publications within the last hour, at most 4
+  ADD COLUMN first_published_at  date;                                 -- first accepted publication, to the day
 ```
+
+**Moments, not a number — decided 2026-09-14 after the review panel (D4, D5, S7).** A single `integer` cannot "drop out" after an hour, and after phrases are `DELETE`d — taken down, a step-away — the "four per hour" limit had nothing left to count from. The arrays are bounded and cleaned on write (`ARRAY(SELECT t FROM unnest(…) t WHERE t > now() - interval '1 hour') || now()`), and the window is filtered in the query too: there is no sweeper here, and a failed cleanup does not turn the window into a history. The pause is an expression over `rejected_at_recent` at read time. `first_published_at` is written at the first `visible_at` and rounded to the day: it serves only the rule "the reporter posted long ago" (offers spec §10.1, storefront mechanics §5). The `identity_stats` row is created in the signup transaction — without it a conditional `UPDATE` silently refuses forever (experiment in `postgres:16`). Handles that send text for checking start with `SELECT … FROM identity_stats WHERE identity = :me FOR UPDATE`: otherwise two parallel sends both pass the limit.
 
 The counter grows on every `rejected` and counts **over a sliding hour**, the same one the publishing limit uses. Five refusals in an hour — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Everything that goes to checking is blocked — feed phrases, table lines and applications, a name change and an offer like that sends the name; the feed, likes on phrases, conversations and reading stay available, so the penalty fits the offence (clarified 2026-09-14 after the review panel: the screens said "only new phrases", while table lines feed the counter too). **Each further refusal within the same sliding hour — another 15 minutes** (decided 2026-09-14): the pause is computed from the moments of refusals and has no separate deadline. **An expired queue waiting limit is not a refusal:** the outcome "the check did not happen" does not touch the counter, or a model outage would pause everyone.
 
@@ -1485,7 +1491,7 @@ The counter grows on every `rejected` and counts **over a sliding hour**, the sa
 
 The block used to hang on the browser fingerprint so that a new identity would not lift it. There is no fingerprint any more (§8.2), and there is no point pretending: an identity takes ten seconds to make, and an address changes by switching to mobile data. This is **a speed bump, not a wall**. The feed's real defence is the check before publication: refused text is never published, however many identities are created.
 
-The counter is fed **by everything that passes the moderation queue**: feed phrases, lines and applications at a table (§6.1), and a refused name (since 2026-09-14 after the review panel: an offer like sends the name to the queue, and without this a name could be hunted for without limit). A conversation between two is not moderated (§8.8), so there is nothing there to refuse. **Edited 2026-09-14 after the review panel (S11):** this said "by the feed alone" [retired], while table lines go through the same queue and get the same refusal with its reason named — at your own empty table a wording could be hunted for without limit. This is the only place where the server remembers something bad about a person, and what it remembers is a number, not a text: the rejected message itself is never written anywhere.
+The counter is fed **by everything that passes the moderation queue**: feed phrases, lines and applications at a table (§6.1), and a refused name (since 2026-09-14 after the review panel: an offer like sends the name to the queue, and without this a name could be hunted for without limit). A conversation between two is not moderated (§8.8), so there is nothing there to refuse. **Edited 2026-09-14 after the review panel (S11):** this said "by the feed alone" [retired], while table lines go through the same queue and get the same refusal with its reason named — at your own empty table a wording could be hunted for without limit. This is the only place where the server remembers something bad about a person, and what it remembers is the moments of refusals within the last hour, not a text (edited 2026-09-14: "a number" [retired]): the rejected message itself is never written anywhere.
 
 **What does the moderating.** Two steps, both on the node:
 
@@ -1586,7 +1592,7 @@ Hence a consequence worth naming outright: **a phrase can be taken down by its
 author**. The spec did not describe this before — a phrase only expired. A phrase
 taken down disappears exactly as an expired one does (§8.10): the text is
 deleted, the likes cascade away, `chat_starters` survive as copies. The slot frees
-immediately; the hourly ceiling does not.
+immediately; the hourly ceiling does not: it is held by `identity_stats.published_at_recent`, not by live phrases, or taking down and stepping away would reset it (clarified 2026-09-14).
 
 Likes are counted with room to spare: 64 in half an hour is one every thirty
 seconds without a break. No living person keeps that up, while automation hits it
@@ -1779,7 +1785,7 @@ CREATE TABLE identity_stats (
 );
 ```
 
-In the same transaction as the like: `INSERT ... ON CONFLICT DO NOTHING` (a double tap must not inflate anything), and on an actual insert — `feed_messages.like_count + 1` plus the `identity_stats` increments.
+In the same transaction as the like: `INSERT ... ON CONFLICT DO NOTHING` (a double tap must not inflate anything), and on an actual insert — `feed_messages.like_count + 1` plus the `identity_stats` increments. The `identity_stats` row itself is created at signup (§8.2), not by the first like: the publication limits rest on it too (§8.3).
 
 - **`like_count` is visible to everyone** — it is an aggregate, it gives nobody away, and it makes the feed feel alive.
 - **`identity_stats` outlives the feed**: phrases expire, likes are deleted, the numbers remain. It is the only "history" the server keeps about a person, and it is nameless — how many, never with whom or for what. A new identity starts from zero — whatever was accumulated dies with the old one, and that is accepted deliberately.

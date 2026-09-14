@@ -567,7 +567,7 @@ them.
   mechanics). It is the only place in the whole product where someone else's
   presence is reported, and it is allowed because the person declared it rather
   than the system inferring it.
-- **You can step away too** — `a`: 20 minutes, an hour, or until morning. It is a
+- **You can step away too** — `a`: 20 minutes, an hour, or 8 hours. It is a
   real absence, not a pause: live phrases go with their likes, offers to talk burn
   out, short-span conversations will not survive it, and the price is counted on
   the spot, before the confirmation. A table you were sitting at stays: the person

@@ -48,7 +48,9 @@ Shown on the posting screen; the text **stays in the field**.
 | rudeness | This looks like an insult. Neighbours will read it. | Edit it and send again |
 | danger | This looks like a threat or a call to harm. | Edit it and send again |
 | explicitness | Too explicit for a shared feed. | Edit it and send again |
-| spam | This looks like an advert. A discount for neighbours is an offer. | Edit it, or add a discount |
+| spam | This looks like an advert. A discount for neighbours is an offer. | Edit it, or add a discount if you have no offer right now |
+| second offer | You already have an offer. One at a time. | Take the other one down, or wait until it leaves |
+| duplicate offer | This offer has been posted before. Change the text or the discount. | Edit it |
 
 - **"Looks like"** is not a softener but precision: the decision was made by a
   classifier with a measured error rate, and a confident tone would be a lie about
@@ -56,6 +58,10 @@ Shown on the posting screen; the text **stays in the field**.
 - **Spam leads into an offer**, because we do not forbid advertising, we give it a
   form: a phrase with a non-empty discount is a private person's offer
   (`offers/SPEC_EN.md`).
+- **Second offer and duplicate — lines added 2026-09-14 after the review panel.**
+  Both limits stood in `offers/SPEC_EN.md` §6.1 with no text, and the "add a
+  discount" advice led straight into the first: someone with a live offer got a
+  refusal with no explanation.
 
 ## 2. Waiting for the queue
 

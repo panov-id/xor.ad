@@ -493,7 +493,8 @@ publication is worth nothing if the target changes after it.
 
 What it buys: **any link can be extinguished instantly**, without deleting the offer and without
 waiting for an examination. Two complaints from the interstitial are enough, and the
-extinguishing happens by itself (section 10.1).
+extinguishing happens by itself, **provided both complainants have had a publication accepted**
+(section 10.1, clarified 2026-09-14).
 
 **Only the number of click-throughs per offer is counted.** Not who went, not when, not from
 what address — a counter and nothing else. We keep the ability to extinguish; no knowledge about
@@ -699,9 +700,16 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
 - **two complaints from different people are enough**, and the second extinguishes the link
   immediately and automatically: `redirect_disabled_at` is set with no person involved. The
   offer stays in the feed, but the jump no longer works.
+  **Only complaints from identities that have had a publication accepted count — decided
+  2026-09-14 after the review panel (S14).** Other complaints reach a moderator at the same
+  high priority but extinguish nothing by themselves.
 
   Why two rather than one: one would let a single irritated neighbour or a competitor take down
-  an honest link with a single tap. Two independently is no longer a coincidence. The threshold
+  an honest link with a single tap. Two independently is no longer a coincidence, **provided the
+  two are two people**: an identity costs nothing, and without the publication condition a
+  competitor could extinguish someone else's link from two private windows in a minute. The
+  price of the condition: a neighbour who has never written in the feed cannot extinguish a link
+  alone — their complaint waits for a moderator. The threshold
   is deliberately low: the cost of a mistake is asymmetric here — a link extinguished for
   nothing is repaired by an examination, a deceived neighbour is repaired by nothing
 - it is not shown to the author

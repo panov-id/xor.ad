@@ -1753,6 +1753,8 @@ OR (SELECT discount_value IS NOT NULL FROM feed_messages WHERE id = :target)
 
 The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
 
+**For a like on an offer without a phrase of one's own this is ensured separately — decided 2026-09-14 after the review panel (S7).** The exception above lets that like past publication, and so past the name queue, which made the promise a paragraph up untrue: the offer's author saw a name nobody had checked. Such a like now first sends the unchecked name to the queue, and the match appears only after the verdict. Name refused — no match, and the liker sees the same text as when a phrase is waiting (`xor.ad/docs/refusal-wordings_EN.md` §3).
+
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
 
 ```sql

@@ -61,10 +61,14 @@ processing is identical and only the storefront differs, so the record is shared
 - **Purpose.** Keep rude, dangerous and explicit content out of the feed.
 - **Basis.** Legitimate interests — Art. 6(1)(f): the safety of the place and its
   people.
-- **Data.** The text of the message being published.
+- **Data.** The text of the message being published; the moments of publications and refusals within the
+  last hour and the date of the first publication (`identity_stats`, 2026-09-14) — for the posting limit, the pause and the weight of link reports.
 - **Recipients.** **None.** The classifiers run inside the node and the text never
   leaves it; moderation uses no external processor.
-- **Retention.** The result of a check is not stored beside the message.
+- **Retention.** The result of a check is not stored beside the message; the moments — an hour, the
+  first-publication date — as long as the identity lives.
+- **Automated decisions.** A refusal to publish and a 15-minute pause are taken automatically; the
+  decision says so, and a person looks on a support request.
 - **Chats are not checked at all.**
 
 ### 4. Chat
@@ -128,9 +132,11 @@ processing is identical and only the storefront differs, so the record is shared
 
 - **Purpose.** Answer a request, including GDPR rights requests.
 - **Basis.** Performance of a contract and legal obligation — Art. 6(1)(c).
-- **Data.** Email address and the text of the request.
+- **Data.** The text of the request, an optional email address, the link to the identity (cut on
+  "start over"), a flag for a request from a frozen session.
 - **Recipients.** Resend (delivering the reply).
-- **Retention.** 1 year.
+- **Retention.** 1 year from `created_at`; a report of illegal content moved to the notice register
+  is deleted from support at once (2026-09-14).
 
 ### 7. Notices of illegal content (Art. 16 DSA)
 

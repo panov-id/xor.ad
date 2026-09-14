@@ -96,14 +96,22 @@ Fix the name and it will go by itself while the offer is alive.
 ## 4. The fifth refusal within an hour
 
 ```
-Five refusals in an hour. For 15 minutes nothing goes to checking:
+Five refusals in an hour — paused until 14:35. The decision is automatic.
+Until then nothing goes to checking:
 phrases, table lines, a name change, an offer like while the name is not accepted.
 Another refusal this hour — another 15 minutes.
 The feed, likes on phrases and conversations work.
+Ground: the Terms, §8 and §15. The pause ends by itself; if you disagree — the Digital Services Coordinator or a court.
 ```
 
 What exactly stopped working is named: a silent refusal of everything reads as a
 ban.
+
+**Composition — per DSA Art. 17(3), since 2026-09-14:** the fact (five refusals within an hour), an
+automated decision, the ground (the Terms §8 and §15), the duration — when the pause ends by the
+device clock (`14:35` in the example), the routes — the coordinator and a court; a small enterprise
+has no internal complaint handling (Art. 19(1)). Art. 17 itself does not bind toward a person with no
+contact (17(2), checked against EUR-Lex), but the text keeps its composition.
 
 **What exactly stops — clarified 2026-09-14 after the review panel.** This said
 "posting is unavailable" [retired], and screen 11 read it as "only new phrases"; the

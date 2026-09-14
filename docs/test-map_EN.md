@@ -126,7 +126,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.3c | Latin script is returned to its own alphabet before language identification | `ty durak` is identified as Russian, not Slovak | **have** |
 | 6.3d | **The operating point lives in the node's config, not in code** (2026-08-28) | changing the false-block budget moves the threshold with no rebuild and no retraining | nothing to check |
 | 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
-| 6.4 | The fifth refusal **within an hour** gives 15 minutes without posting; feed, likes and chats keep working | five refusals → `POST /feed` refused, `GET /feed` 200 | nothing to check |
+| 6.4 | The fifth refusal **within an hour** gives 15 minutes in which nothing goes to checking; another refusal in the same hour — another 15 minutes; feed, likes on phrases and conversations keep working (edited 2026-09-14: "15 minutes without posting" [retired]) | five refusals → `POST /feed`, a table line, a name change and an offer like refused, `GET /feed` 200; a sixth refusal in the same hour → a new pause; an expired queue wait does not touch the counter | nothing to check |
 | 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
 | 6.5b | **The "checking…" line becomes "taking longer than usual" after 60 seconds** (2026-09-08) | a phrase in the queue, 60 seconds pass → the copy changes, no refusal arrives, the phrase is still queued | nothing to check |
 | 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, twenty minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
@@ -260,7 +260,7 @@ through three different wrappers and cannot be counted by eye.
 | 13.9 | The server knows only **when** there was movement | `chats` holds no text, no author, no count | nothing to check |
 | 13.10 | **"End it" closes for both at once, unlike expiry** | one presses → `gone_at` is set for the other too | nothing to check |
 | 13.11 | The safety code derives from both identities' long-term keys | it matches on both sides; a chat-key re-issue does not change it (§8.13) | nothing to check |
-| 13.12 | With the peer stepped away the input is replaced and the node refuses sends | an attempt around the client → refused | nothing to check |
+| 13.12 | With the peer stepped away a label sits above a live input, and a send is accepted and waits in the queue (edited 2026-09-14: "the input is replaced and the node refuses sends" [retired]) | a send to the stepped-away peer → accepted into `pending_deliveries`; the conversation ended for them before the return → the queue rows are deleted | nothing to check |
 
 ## 14. An extra like into an open chat (step 7)
 

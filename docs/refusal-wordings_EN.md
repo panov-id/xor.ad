@@ -97,8 +97,9 @@ Fix the name and it will go by itself while the offer is alive.
 
 ```
 Five refusals in an hour. For 15 minutes nothing goes to checking:
-phrases, table lines and name changes —
-the feed, likes and conversations work.
+phrases, table lines, a name change, an offer like.
+Another refusal this hour — another 15 minutes.
+The feed, likes on phrases and conversations work.
 ```
 
 What exactly stopped working is named: a silent refusal of everything reads as a

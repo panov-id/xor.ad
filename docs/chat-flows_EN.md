@@ -236,7 +236,7 @@ flowchart TD
   verdict -- "rejected" --> del["the row is deleted,<br/>the author gets a reason"]
   del --> count["the refusal is recorded with a timestamp<br/>#40;a success does not reset the count#41;"]
   count --> block{"fifth within a sliding hour?"}
-  block -- "yes" --> mute(["15 minutes without posting;<br/>feed, likes and chats keep working"])
+  block -- "yes" --> mute(["15 minutes with nothing going to checking;<br/>each further refusal this hour — again;<br/>feed, likes on phrases and conversations work"])
   verdict -- "nothing to check with" --> wait(["the phrase WAITS<br/>#40;fail-closed#41;"])
 ```
 

@@ -38,9 +38,9 @@ value	unit	kind	why	example
 10	MB	measurement	встречено в: to one region/node, single-writer, ≤100 GB, 10 MB/s, NO managed backups or	xor.ad/docs/backend-portable-bunny_EN.md:75
 10	s	prose.figure	встречено в: Batched every 10 seconds, like quotas: a page view is a request a visitor	xor.ad/docs/open-work_EN.md:410
 11	min	sample.data	встречено в: | 13.1 | **У каждого свой срок, и он считается от своего последнего сообщения** | Петя 10 мин, К	xor.ad/docs/test-map_RU.md:245
-128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:869
+128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:871
 15	KB	measurement	встречено в: 15 KB). The item described a state that was gone by the time it was re-read.	xor.ad/docs/open-work_EN.md:1254
-16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:866
+16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:868
 180	KB	measurement	встречено в: now has `rel="preload"`. Image weight is moderate (the hero, at 180 KB, is the	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:203
 1	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:353
 1	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:251
@@ -49,16 +49,16 @@ value	unit	kind	why	example
 20	s	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
 236	KB	measurement	встречено в: 236 KB. No keys and no secrets are in them, but publishing the design of an	xor.ad/docs/open-work_EN.md:872
 24	chars	prose.figure	поле июльского прототипа в символах; действующий предел — name.length в графемах, см. open.tsv: app.july.prototype	xor.ad/docs/app-prototype-spec_EN.md:49
-256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:870
+256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:872
 25	graphemes	sample.data	вход теста: на графему длиннее предела имени	xor.ad/docs/test-map_EN.md:56
 26	KB	measurement	встречено в: (26 KB) in sosed — one file each, their own unicode-range only, added as	xor.ad/docs/open-work_EN.md:316
-2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:771
+2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:770
 2	m	external.fact	встречено в: against a €2m threshold. This used to read	xor.ad/docs/dsa/README_EN.md:81
 2	min	sample.data	встречено в: Note over A,B: the code expired after 2 minutes, no move happened	xor.ad/docs/chat-flows_EN.md:144
 300	s	measurement	срок кеша html на краю сети: параметр раздачи, не обязательство перед человеком	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:184
 30	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:251
-32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:867
-32	min	sample.data	встречено в: alive -- "yes" --> rate{"64 likes<br/>in 32 minutes?"}	xor.ad/docs/chat-flows_EN.md:328
+32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:869
+32	min	sample.data	встречено в: alive -- "yes" --> rate{"64 likes<br/>in 32 minutes?"}	xor.ad/docs/chat-flows_EN.md:327
 3	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:353
 3	min	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
 400	m	external.fact	встречено в: capitalisation had fallen below $400m — 97% down from the IPO. The causes: a deep discount was	xor.ad/docs/offers/README_EN.md:338
@@ -75,9 +75,9 @@ value	unit	kind	why	example
 600	m	prose.figure	встречено в: - **Location**: the static "Kolonaki · 600 m" is gone. Distance is **never computed**. Matching 	xor.ad/docs/app-prototype-spec_EN.md:47
 64	bytes	sample.data	длина вывода Argon2id в диаграмме обмена	xor.ad/docs/chat-flows_EN.md:137
 64	MB	external.fact	встречено в: - **Billing:** CPU $0.02/CPU-hr (actual), RAM $0.005/GB-hr in 64 MB blocks	xor.ad/docs/backend-portable-bunny_EN.md:97
-65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2008
+65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2012
 6	h	external.fact	глубина восстановления чужой услуги (PITR), не наш предел	xor.ad/docs/backend-free-stack_RU.md:64
-700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1430
+700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1434
 7.86	MB	measurement	встречено в: bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the	xor.ad/docs/open-work_EN.md:1393
 800	m	sample.data	значение в макете терминального клиента, не обязательство	xor.ad/docs/depth-client_EN.md:319
 8	chars	prose.figure	встречено в: There is a transport behind the limit: 256 UTF-8 characters → ~1.4 KB of	xor.ad/docs/open-work_EN.md:1309

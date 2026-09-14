@@ -664,8 +664,9 @@ thing, arriving later.
 
 **A game is described by primitives, not by its name — decided 2026-08-26.**
 Otherwise every new game is a separate application, and the list already holds
-more than a dozen. The engine draws the field and moves the pieces; it knows not
-one rule.
+more than a dozen. The engine draws the field and moves the pieces, and each class
+has its own rules (the §6 table of the canon; edited 2026-09-14: this said "it knows
+not one rule" [retired]).
 
 ```mermaid
 flowchart TD
@@ -727,11 +728,10 @@ sequenceDiagram
   sees the piece in the pocket, the other on the board.
 - **The word to guess goes through the moderation queue like a phrase** (§8.3):
   another person will see it, and everything published is checked before it shows.
-- **Turn order is an agreement, not a rule (2026-08-26).** The interface carries a
-  "take turns" switch that both sides turn on if it suits them. Building turns
-  into the engine is out — the whole point is the absence of rules; but not
-  showing who is currently dragging a piece is equally out: two people tugging the
-  same piece blind reads as a breakage, not as freedom.
+- **The engine holds turn order in every class (decided 2026-09-14).** There is no
+  "take turns" switch; the highlight on the piece the other person is dragging stays.
+  [retired] This said "turn order is an agreement, not a rule (2026-08-26)… building
+  turns into the engine is out — the whole point is the absence of rules".
 - Minimal rules exist since 2026-09-09: the engine checks the turn order and the
   legality of a move for the board's class, and it keeps the score. The board lives
   inside the chat and disappears with it; the position and the score sit in the

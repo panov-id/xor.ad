@@ -84,8 +84,8 @@ Inside a chat — a shared visual board for two, and beside it a table for compa
 
 | Class | Seats | What the engine checks | What is left to the people |
 |---|---|---|---|
-| **Free table** (dominoes) | **2–4** | a tile may only join a matching end; end of round; score **by the pips left in hand** | nothing |
-| **Dot grid** (dots) | **2** | the edge is free; a closed area is counted; score **by closed areas** | nothing |
+| **Free table** (dominoes) | **2–4** | whose turn (since 2026-09-14); a tile may only join a matching end; end of round; score **by the pips left in hand** | nothing |
+| **Dot grid** (dots) | **2** | whose turn (since 2026-09-14); the edge is free; a closed area is counted; score **by closed areas** | nothing |
 | **Deck and hand** (durak, uno) | **2–6** | whose turn, that the card came from a hand, end of the deal, score **by deals won** | what beats what — there are too many variants |
 | **Square grid** (draughts, chess) | **2** | whose turn, the square is not held by your own piece, end of round by agreement, score **by rounds won** | whether the move itself is legal |
 | **Dice** (backgammon) | **2** | whose turn, the roll is honest, score **by rounds won** | how to move what was rolled, gammons and backgammons |
@@ -227,25 +227,29 @@ down — and the second is what needs filtering out. The number lives in
 
 **"Resign", "draw" and "congratulate the winner" are statements by players, not
 verdicts of the engine.** The
-engine knows no rules and must not: it can neither award a win nor check that a
-position is drawn. "I resign" is a unilateral announcement — whoever presses it says
+engine watches turn order, the end of a round and the score (the class table above),
+but does not judge the outcome of a game: it neither awards a win nor checks that a
+position is drawn. Edited 2026-09-14: this said "the engine knows no rules and must
+not" [retired]. "I resign" is a unilateral announcement — whoever presses it says
 so out loud, and for the people the game is over. "Draw" is a proposal accepted by
 agreement, like "play again". **"Congratulate the winner" is an addressed
 gesture:** whoever presses it picks who they are congratulating, and a line about
 it appears at the table. The winner is decided by the people, not the engine, and
 anyone can be congratulated — including somebody the others think did not win.
-**No result is recorded anywhere**: there is no score,
-no history of games, no mark on an identity — none of those exist by construction
-(§1), and adding them for two buttons would be adding a competition where the game
-exists as an excuse to start talking.
+**No result of a game is recorded anywhere**: no history of games, no mark on an
+identity — none of those exist by construction (§1), and adding them for two buttons
+would be adding a competition where the game exists as an excuse to start talking.
+**The engine does keep the round score** — in the game cache for a pair, in
+`table_scores` at a table (edited 2026-09-14: this said "there is no score" [retired]).
 
 **Three of them are proposals rather than actions (2026-08-29).** "Play again"
 and "put it back" send a request to the others and fire **once everyone agrees**;
-none of them is unilateral, for the same reason there is no turn order and no
-table owner. What follows:
+none of them is unilateral, for the same reason there is no table owner. What follows:
 
-- **the board does not go out by itself.** The engine knows no rules, so it
-  cannot know when a game ended; it ended when the people agreed it did. **In a
+- **the board does not go out by itself.** The engine sees the end of a round,
+  but the outcome of a game is the people's, and the engine does not close the board
+  on it (edited 2026-09-14: this said "the engine knows no rules, so it cannot know
+  when a game ended" [retired]). **In a
   pair the board stays up even after a refusal to play again — clarified
   2026-09-09:** it lives inside the conversation and goes out with it (§8.13),
   not with the outcome of a game. This used to say "once everyone has declined,
@@ -268,8 +272,8 @@ class, a free table announces adjacency instead of coordinates, and the "physics
 class has no coordinate at all.
 
 - Start/switch is **request-based**: the 🎲 "propose a game" button → pick a board → the other person gets a request → they accept → the board opens for both. Switching games is the same request.
-- No move validation, no score, no winner — only board state + dragging.
-- Both players can move pieces (there are no rules). **Turn-taking is an agreement, not a rule (2026-08-26):** the interface carries a "take turns" toggle that both switch on if it suits them. Wiring turns into the engine is not allowed — the whole point is the absence of rules; but neither is hiding who is dragging a piece right now: two people tugging at one piece blindly reads as a fault rather than as freedom.
+- The engine checks what the class table above lists for the class and keeps the score; it does not decide a winner. [retired] This said "no move validation, no score, no winner — only board state + dragging" — the description from before 2026-09-09 (edited 2026-09-14).
+- **Whoever's turn it is moves: the engine holds turn order in every class (decided 2026-09-14).** There is no "take turns" toggle any more — since 2026-09-09 it had contradicted the class table, where the engine already checked whose turn it was. The highlight on the piece the other person is dragging stays: two people must not tug at one piece blindly. [retired] This said "both players can move pieces (there are no rules). Turn-taking is an agreement, not a rule (2026-08-26)… wiring turns into the engine is not allowed".
 
 ### 6.1. Tables: playing as a group (2026-08-26)
 

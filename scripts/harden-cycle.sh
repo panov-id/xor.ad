@@ -38,7 +38,11 @@ run() {  # run <имя> <каталог> <команда...>
     passed=$((passed + 1)); printf '  ✓ %-34s %s\n' "$name" "${last:0:110}"
   else
     failed=$((failed + 1)); printf '  ✗ %-34s (код %s)\n' "$name" "$code"
-    printf '%s\n' "$output" | tail -15 | sed 's/^/      | /'
+    # Сначала сами провалы вложенного прогона — строка с ✗ и отступ под ней, — потом хвост.
+    # Один хвост в 15 строк 15.09.2026 отрезал ✗ внутри check-all: было видно «провалено 1»,
+    # а какие ворота — нет.
+    printf '%s\n' "$output" | awk '/✗|FAIL|MISMATCH/{show=6} show>0{print; show--}' | head -40 | sed 's/^/      | /'
+    printf '%s\n' "$output" | grep -v '^\s*$' | tail -3 | sed 's/^/      | /'
   fi
 }
 

@@ -278,7 +278,8 @@ what gave rise to the suspicion; our operator details and a contact for replies.
 The notifier's name and email only where they exist: §5.1 does not ask for them.
 
 **What we record.** The fact of the report goes into the audit log as
-`dsa_notice.escalated`: who reported, when, to which recipient. The log lives a
+`dsa_notice.escalated`: who reported, when, to which recipient, by which channel (email, form, phone), the
+recipient's reference number if one was given, and the list of fields passed on — not a copy of the content (added 2026-09-14). The log lives a
 year — as long as the notice does — so the proof and the record it belongs to
 expire together.
 
@@ -409,16 +410,17 @@ Contains:
 - the redress routes: reply to us, the Digital Services Coordinator, the courts
   (README §7).
 
-**It goes by email only — decided 2026-09-11.** The reply to a notifier has no
-"in the app" path and will not get one: that path exists only for the statement
-of reasons to the author (§7), because an author is an identity it can be tied
-to. A notice holds no notifier identity, neither in the `notice` entity nor in
-the node's schema, and adding one would bind "who reported" to an identity for a
-year. So the form says it plainly: with no email, no decision will reach you. The
-cost is named and filed as an open item (`dsa.article16.no-email` in
-`docs/facts/open.tsv`): Art. 16(4) is conditional in its own text, while the
-conditionality of 16(5) follows only from the link to it — and that is not a
-lawyer's conclusion.
+**The decision reaches you without email too, by a receipt on the device — decided 2026-09-14 (R2 of plan v1).**
+On sending, the device creates a random receipt code — 128 bits — and keeps it; the node keeps
+only `receipt_hash`, the SHA-256 of that code, beside the notice. The notice still carries no
+notifier identity. The decision and its reason are shown on that device by the code: the request
+is not signed by an identity, the address is not logged, and "no such receipt" and "not decided
+yet" get the same answer after the same delay, so the code cannot be guessed from a difference in
+replies. The hash goes with the notice after a year (`prune_dsa_records`). Email is optional and
+for whoever may clear their browser data: the line by the field says "clear your browser data and
+you will not see the decision — leave an email". [retired] This said "It goes by email only —
+decided 2026-09-11": with no email no decision arrived at all, and Art. 16(5) rested on a
+non-lawyer's reading; open item `dsa.article16.no-email` is closed by this edit.
 
 ## 7. The statement of reasons to the author (Art. 17)
 
@@ -464,6 +466,7 @@ the feed mechanic.
         snapshot_state          # received | target_gone | not_accessible
         brand                   # which face it came through
         automated_used          # boolean, for the Art. 16(6) reply
+        receipt_hash            # SHA-256 of the device's receipt code; null if there is none (§6, 2026-09-14)
         created_at
         acknowledged_at
         decided_at

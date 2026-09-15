@@ -327,3 +327,5 @@ With no email, the acknowledgement is shown in the app | sosed.place/docs/05-mes
 # несовместимыми способами сразу.
 DELETE FROM vault_shares  | chat_RU.md | UPDATE … share_enc = NULL, burned_at, 12.09.2026
 share_enc     bytea NOT NULL | chat_RU.md chat_EN.md | share_enc bytea, NULL = сожжена, 12.09.2026
+Без почты решение не придёт | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | квитанция на устройстве, 14.09.2026
+Without an email the decision will not reach you | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | a receipt on the device, 2026-09-14

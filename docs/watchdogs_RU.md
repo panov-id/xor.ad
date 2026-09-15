@@ -76,5 +76,6 @@
 
 ## Открыто
 
-- Сторожа С1–С3 и С5 не построены — пункт `watchdogs.unbuilt` в `docs/facts/open.tsv`.
+- Сторожа С1–С3 и С5 не построены — пункты `watchdogs.unbuilt` (С1–С2, правовой) и
+  `watchdogs.jobs.unbuilt` (С3, эксплуатация) в `docs/facts/open.tsv`.
 - Сервис внешнего пингера не выбран — `node.external.pinger`.

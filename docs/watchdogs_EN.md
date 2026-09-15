@@ -80,5 +80,6 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdogs W1–W3 and W5 are not built — item `watchdogs.unbuilt` in `docs/facts/open.tsv`.
+- Watchdogs W1–W3 and W5 are not built — items `watchdogs.unbuilt` (W1–W2, legal) and
+  `watchdogs.jobs.unbuilt` (W3, operations) in `docs/facts/open.tsv`.
 - The external pinger service is not chosen — `node.external.pinger`.

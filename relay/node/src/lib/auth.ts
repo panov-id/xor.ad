@@ -108,11 +108,10 @@ export async function redeem(token: string): Promise<string | null> {
     {
       sub: user.email,
       role: user.role,
-      // Records predating tenancy carry no brand. Baked into the token rather
-      // than read per request: moving an operator to another brand therefore
-      // takes effect on their next sign-in, not immediately. Acceptable because
-      // moving one is rare and the session is short; if that stops being true,
-      // this is the line to revisit.
+      // What was true at sign-in, for the panel's convenience only. authed()
+      // does not trust it: role and brand are read from the record on every
+      // request, so a change to either applies at once rather than at the next
+      // sign-in.
       brand: user.brand ?? null,
       // Named in the token, so a session cannot travel between environments
       // even if their secrets ever coincide again. Belt beside the braces: the
@@ -141,13 +140,22 @@ export async function authed(req: Request): Promise<PanelUser | null> {
   // intended: they were signed with the secret every environment shared, and
   // that secret is exactly what is being retired.
   if (claims.env !== config.envName) return null;
+  // The token says who signed in; the record says what they are now. A session
+  // lives a week, and trusting the role and brand it was minted with meant that
+  // deleting an operator or taking a role away left every session already issued
+  // exactly as powerful as before, until it expired (SEC-1, review panel
+  // 2026-09-15). So the record is read on every request, with no cache: a removal
+  // or a role change applies on the very next request, with no window. The cost
+  // is one storage read per authenticated request, on panel routes that already
+  // read several objects each.
+  const user = await getUser(claims.sub);
+  if (!user || !isRole(user.role)) return null;
   return {
-    email: claims.sub,
-    role: claims.role,
-    // A session predating tenancy carries no brand — platform scope, same as
-    // the user record it was minted from.
-    brand: typeof claims.brand === "string" ? claims.brand : null,
-    created_at: "",
+    email: user.email,
+    role: user.role,
+    // Records written before tenancy carry no brand — platform scope.
+    brand: user.brand ?? null,
+    created_at: user.created_at ?? "",
   };
 }
 

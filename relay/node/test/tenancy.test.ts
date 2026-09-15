@@ -213,19 +213,37 @@ function tenancy(
 // deno-lint-ignore no-explicit-any
 type Body = any;
 
+// A session exactly as redeem() would mint it for this operator at this moment.
+// Kept as a value so a test can hold on to it while the operator's record changes
+// underneath — which is the whole point of the revocation cases below.
+async function sessionFor(
+  operator: { email: string; role: string; brand: string | null },
+): Promise<string> {
+  return await sign({
+    sub: operator.email,
+    role: operator.role,
+    brand: operator.brand,
+    env: config.envName,
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  }, SECRET);
+}
+
 async function callAs(
   subject: { role: string; brand: string | null },
   method: string,
   path: string,
   body?: unknown,
 ): Promise<{ status: number; body: Body }> {
-  const token = await sign({
-    sub: `boss@${subject.brand ?? "platform"}.test`,
-    role: subject.role,
-    brand: subject.brand,
-    env: config.envName,
-    exp: Math.floor(Date.now() / 1000) + 3600,
-  }, SECRET);
+  const token = await sessionFor({ email: `boss@${subject.brand ?? "platform"}.test`, ...subject });
+  return await callWithSession(token, method, path, body);
+}
+
+async function callWithSession(
+  token: string,
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<{ status: number; body: Body }> {
   const url = new URL(`https://relay.test${path}`);
   const found = match(method, url.pathname);
   assert(found, `no route for ${method} ${url.pathname}`);
@@ -554,6 +572,70 @@ tenancy({
   },
 });
 
+// --- a session is only as good as the record behind it ------------------------
+//
+// A session lives a week, and it used to carry the operator's role and brand as
+// settled facts: deleting an operator or taking a role away changed the record
+// and left every session already issued exactly as powerful as before, until it
+// expired. authed() now reads the record on every request, with no cache, so both
+// take effect on the very next request. Found by a review panel, 2026-09-15
+// (SEC-1).
+
+tenancy("a deleted operator's session is refused on the next request", async () => {
+  const created = await callAs(ALPHA, "POST", "/admin/panel-users", {
+    email: "leaver@alpha.test",
+    role: "tenant_admin",
+  });
+  assertEquals(created.status, 200);
+  const session = await sessionFor({ email: "leaver@alpha.test", role: "tenant_admin", brand: "alpha" });
+  assertEquals(
+    (await callWithSession(session, "GET", "/admin/panel-users")).status,
+    200,
+    "the session must work while its operator exists",
+  );
+
+  assertEquals((await callAs(PLATFORM, "DELETE", "/admin/panel-users/leaver@alpha.test")).status, 200);
+
+  assertEquals(
+    (await callWithSession(session, "GET", "/admin/panel-users")).status,
+    401,
+    "a deleted operator's session must be refused now, not honoured until it expires",
+  );
+});
+
+tenancy("a demoted operator's session loses the old role on the next request", async () => {
+  const created = await callAs(ALPHA, "POST", "/admin/panel-users", {
+    email: "demoted@alpha.test",
+    role: "tenant_admin",
+  });
+  assertEquals(created.status, 200);
+  const session = await sessionFor({ email: "demoted@alpha.test", role: "tenant_admin", brand: "alpha" });
+  assertEquals(
+    (await callWithSession(session, "POST", "/admin/panel-users", {
+      email: "before@alpha.test",
+      role: "viewer",
+    })).status,
+    200,
+    "as tenant_admin the session may add an operator",
+  );
+
+  const patched = await callAs(ALPHA, "PATCH", "/admin/panel-users/demoted@alpha.test", {
+    role: "moderator",
+  });
+  assertEquals(patched.status, 200);
+
+  const me = await callWithSession(session, "GET", "/auth/me");
+  assertEquals(me.body.role, "moderator", "the session must report the role the record holds now");
+  assertEquals(
+    (await callWithSession(session, "POST", "/admin/panel-users", {
+      email: "after@alpha.test",
+      role: "viewer",
+    })).status,
+    403,
+    "a moderator holds no panel_users.write — the old role must not outlive the demotion",
+  );
+});
+
 // --- invitations ---------------------------------------------------------------
 //
 // Self-service tenant registration is deliberately absent: a tenant is
@@ -573,6 +655,22 @@ async function magicTokensFor(email: string): Promise<{ email: string; exp: numb
   return tokens.filter((token): token is { email: string; exp: number } =>
     token !== null && token.email === email
   );
+}
+
+// The sign-in route answers before it issues anything (SEC-6), so a test that
+// reads the token straight after the 204 is racing the very work it checks.
+async function tokensEventually(
+  email: string,
+  count: number,
+  timeoutMs = 2000,
+): Promise<{ email: string; exp: number }[]> {
+  const deadline = Date.now() + timeoutMs;
+  let tokens = await magicTokensFor(email);
+  while (tokens.length < count && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    tokens = await magicTokensFor(email);
+  }
+  return tokens;
 }
 
 const daysUntil = (exp: number): number => (exp - Date.now()) / 86_400_000;
@@ -640,7 +738,7 @@ tenancy({
     // nothing to say back.
     assertEquals(response.status, 204);
 
-    const tokens = await magicTokensFor("boss@alpha.test");
+    const tokens = await tokensEventually("boss@alpha.test", 1);
     assertEquals(tokens.length, 1);
     const minutes = (tokens[0].exp - Date.now()) / 60_000;
     assert(minutes > 14 && minutes <= 15, `expected ~15 minutes, got ${minutes}`);
@@ -688,6 +786,9 @@ tenancy({
     const deadPort = String((probe.addr as Deno.NetAddr).port);
     probe.close();
     useEnvironment(environment({ MAIL_SMTP_PORT: deadPort }));
+    // A fresh environment is a fresh directory; the platform's operator has to
+    // exist in it, because a session is only honoured for a stored operator.
+    await seed();
 
     const { status, body } = await callAs(PLATFORM, "POST", "/admin/panel-users", {
       email: "unreachable@beta.test",
@@ -765,6 +866,10 @@ tenancy({
         "the answer never changes — a 429 here would confirm the address is worth limiting",
       );
     }
+    // The letters are issued after the answers. Wait for the allowed ones, then a
+    // little longer, so a letter past the ceiling would have had time to land.
+    await tokensEventually(target, allowed);
+    await new Promise((resolve) => setTimeout(resolve, 200));
     const tokens = await magicTokensFor(target);
     assertEquals(
       tokens.length,
@@ -801,6 +906,70 @@ tenancy({
   },
 });
 
+// The clock was the leak. For an operator the route waited on a storage write and
+// a letter; for a stranger, on one read. The status was the same 204 either way
+// and the time was not, so anybody with a stopwatch could tell who is a member.
+// Found by a review panel, 2026-09-15 (SEC-6). The mail server here holds its
+// greeting back, so a route that waits for the letter cannot answer in time.
+tenancy({
+  name: "the sign-in route answers before the letter is sent",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const GREETING_DELAY_MS = 1500;
+    let delivered = false;
+    const slow = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+    (async () => {
+      for await (const conn of slow) {
+        (async () => {
+          const encoder = new TextEncoder();
+          const buffer = new Uint8Array(8192);
+          try {
+            await new Promise((resolve) => setTimeout(resolve, GREETING_DELAY_MS));
+            await conn.write(encoder.encode("220 slow\r\n"));
+            while ((await conn.read(buffer)) !== null) {
+              await conn.write(encoder.encode("250 ok\r\n"));
+            }
+          } catch {
+            // The client closes mid-dialogue; nothing here to report.
+          } finally {
+            delivered = true;
+            try {
+              conn.close();
+            } catch { /* already closed by the client */ }
+          }
+        })();
+      }
+    })();
+    // A fresh directory comes with a fresh environment, so the operators are
+    // seeded into it again.
+    useEnvironment(environment({ MAIL_SMTP_PORT: String((slow.addr as Deno.NetAddr).port) }));
+    await seed();
+
+    const started = performance.now();
+    assertEquals(await requestLink("boss@alpha.test"), 204);
+    const elapsed = performance.now() - started;
+    assert(
+      elapsed < GREETING_DELAY_MS / 2,
+      `the route answered after ${Math.round(elapsed)} ms, i.e. it waited for the letter — ` +
+        "a member and a stranger are told apart by the clock",
+    );
+
+    // Answering early must not mean doing nothing: the link is still issued and
+    // the letter still reaches the mail server, after the answer.
+    assertEquals((await tokensEventually("boss@alpha.test", 1)).length, 1, "the link was never issued");
+    const deadline = Date.now() + GREETING_DELAY_MS + 2000;
+    while (!delivered && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    assert(delivered, "the letter never reached the mail server");
+    slow.close();
+    reset();
+  },
+});
+
 tenancy({
   name: "sign-in links that were never clicked do not stay for ever",
   sanitizeOps: false,
@@ -810,7 +979,7 @@ tenancy({
     const { pruneMagicLinks } = await import("../src/lib/auth.ts");
     reset();
     assertEquals(await requestLink("boss@alpha.test"), 204);
-    assertEquals((await magicTokensFor("boss@alpha.test")).length, 1);
+    assertEquals((await tokensEventually("boss@alpha.test", 1)).length, 1);
 
     // Nothing is due yet: a link minted a moment ago must survive the sweep, and
     // so must one whose deadline passed within the grace hour.

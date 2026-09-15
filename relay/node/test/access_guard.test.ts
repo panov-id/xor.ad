@@ -12,21 +12,48 @@ import { suite } from "./support/config_env.ts";
 
 // The guard reads config.session.secret, so this suite names it rather than
 // hoping the process still holds it.
-const configured = suite({ SESSION_SECRET: SECRET });
+// authed() reads the operator's record behind every session (SEC-1), so the
+// suite needs somewhere to keep records: a temp directory of its own.
+const configured = suite({
+  SESSION_SECRET: SECRET,
+  STORAGE_TRANSPORT: "fs",
+  STORAGE_DIR: await Deno.makeTempDir(),
+});
 
 const { config } = await import("../src/config.ts");
 const { isDenied, requirePermission } = await import("../src/lib/access_guard.ts");
 const { sign } = await import("../src/lib/jwt.ts");
+const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
+const { sha256hex } = await import("../src/lib/hash.ts");
+const { usersDir } = await import("../src/lib/auth.ts");
 
 const HOUR_FROM_NOW = () => Math.floor(Date.now() / 1000) + 3600;
 
 async function requestAs(
   role: string,
-  options: { secret?: string; exp?: number; email?: string; brand?: string | null; env?: string } = {},
+  options: {
+    secret?: string;
+    exp?: number;
+    email?: string;
+    brand?: string | null;
+    env?: string;
+    // The stored operator behind the session. By default it agrees with the
+    // token; a test may make it disagree, or pass null for "no such operator".
+    record?: { role: string; brand: string | null } | null;
+  } = {},
 ): Promise<Request> {
+  const email = options.email ?? `${role}@example.com`;
+  const record = options.record === undefined ? { role, brand: options.brand ?? null } : options.record;
+  if (record) {
+    await scopedForBrand(null).put(`${usersDir()}/${await sha256hex(email)}.json`, {
+      email,
+      ...record,
+      created_at: "2026-09-15T00:00:00.000Z",
+    });
+  }
   const token = await sign(
     {
-      sub: options.email ?? `${role}@example.com`,
+      sub: email,
       role,
       brand: options.brand ?? null, // default: a platform operator, as before tenancy
       // The environment that minted it; authed() refuses a token from another.
@@ -93,6 +120,24 @@ configured("guard answers 401 to a session from another environment", async () =
 
   const local = await requestAs("admin", { env: config.envName });
   assertEquals(await status(local, "waitlist.read"), 200);
+});
+
+// A session names an operator; the operator's record says what they are now. The
+// token's role and brand are what was true at sign-in, and a week is a long time
+// for that to stay true (SEC-1, 2026-09-15).
+configured("guard takes role and brand from the operator's record, not the session", async () => {
+  const moved = { email: "moved@example.com", record: { role: "viewer", brand: "alpha" } };
+  const result = await requirePermission(await requestAs("admin", moved), "waitlist.read");
+  assert(!isDenied(result));
+  if (isDenied(result)) return;
+  assertEquals(result.user.role, "viewer");
+  assertEquals(result.user.brand, "alpha");
+  assertEquals(await status(await requestAs("admin", moved), "panel_users.write"), 403);
+});
+
+configured("guard answers 401 to a session whose operator no longer exists", async () => {
+  const gone = await requestAs("admin", { email: "gone@example.com", record: null });
+  assertEquals(await status(gone, "waitlist.read"), 401);
 });
 
 // Sessions minted before the claim existed carry no environment at all. They

@@ -53,6 +53,9 @@ const secretKeys = await import("../src/lib/secret_key.ts");
 const quota = await import("../src/lib/quota.ts");
 const aggregate = await import("../src/lib/pageview_daily.ts");
 const jobs = await import("../src/lib/jobs.ts");
+const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
+const { sha256hex } = await import("../src/lib/hash.ts");
+const { usersDir } = await import("../src/lib/auth.ts");
 await import("../src/routes/admin.ts"); // registers the routes as a side effect
 await import("../src/routes/v1.ts"); // the public API, on the same router
 await import("../src/routes/dsa.ts"); // the moderator's queue and decision
@@ -69,8 +72,19 @@ async function callAs(
   path: string,
   body?: unknown,
 ): Promise<{ status: number; body: Body }> {
+  // authed() reads the operator's record on every request (SEC-1), so a session
+  // stands for somebody only if that somebody exists. Written here, idempotently,
+  // because the subjects are ad hoc — and one address per role and brand, so a
+  // moderator of alpha is not read back as alpha's administrator.
+  const email = `${subject.role}@${subject.brand ?? "platform"}.test`;
+  await scopedForBrand(null).put(`${usersDir()}/${await sha256hex(email)}.json`, {
+    email,
+    role: subject.role,
+    brand: subject.brand,
+    created_at: "2026-09-15T00:00:00.000Z",
+  });
   const token = await sign({
-    sub: `boss@${subject.brand ?? "platform"}.test`,
+    sub: email,
     role: subject.role,
     brand: subject.brand,
     env: config.envName,

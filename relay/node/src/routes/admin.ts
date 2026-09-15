@@ -231,7 +231,19 @@ route("POST", "/auth/request-link", async ({ req }) => {
   // The mailbox ceiling lives inside requestMagicLink, past the membership
   // check: charged here it would have let anybody spend a named operator's
   // budget and lock them out of the panel.
-  if (body?.email) await requestMagicLink(body.email);
+  //
+  // Not awaited. For an operator the work is a storage write and a letter, for
+  // a stranger a single read, so waiting for it made the answer's timing say
+  // what its status refuses to: who is a member (SEC-6, review panel
+  // 2026-09-15). The answer now leaves first and the work follows. Not through
+  // lib/jobs.ts: that queue lives in the database, and a node without one must
+  // still send sign-in links. A failure goes to the log with the address
+  // stripped, never to the caller.
+  if (body?.email) {
+    requestMagicLink(body.email).catch((error) => {
+      log("error", "sign-in link request failed", { error: withoutAddresses(String(error)) });
+    });
+  }
   return new Response(null, { status: 204 }); // always 204, no body — never reveal membership
 });
 

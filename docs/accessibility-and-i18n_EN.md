@@ -18,7 +18,8 @@ repeating.
 |---|---|---|
 | Contrast — **three steps**, not a slider | screen 10, 2026-08-26 | a continuous control inevitably offers positions below the threshold |
 | A 4.5:1 contrast threshold, computed arithmetically | the panel and the landings | `landing/check-contrast.mjs`, gates the deploy |
-| Theme: light, dark, as in the system | screen 10 | applied at once, reverted with one tap |
+| Accent — from the storefront's set, not a free colour | screen 22, 2026-09-15 | every combination of theme, step and accent is checked before deploy |
+| Theme: light, dark, as in the system | screen 22 (until 2026-09-15 — screen 10) | applied at once, reverted with one tap |
 | `prefers-reduced-motion` disables animation | the landings | done |
 | `:focus-visible` on everything interactive | the landings | done |
 | Feed languages — **up to three**, from the browser by default | §8 of the mechanics, 2026-08-26 | plus the line "N more in other languages" |
@@ -108,7 +109,7 @@ Two checks exist and both already gate a deploy: the landing's contrast and dead
 translation keys. The application will need two more, and they have to be written
 **with the first screen** rather than after the twentieth:
 
-- the contrast of the application's tokens across all three steps and both themes;
+- the contrast of the application's tokens across all three steps, both themes and each storefront accent (screen 22, added 2026-09-15);
 - a keyboard pass: from the first element to submitting a form without a mouse.
 
 ## Part three: languages
@@ -154,7 +155,8 @@ somebody translated into seventeen languages for nothing**.
 - **Who translates the application's strings.** For legal texts the decision is
   made (machine translation under the clause); for an interface no such clause
   exists, and a bad string in a button is seen every day.
-- **Contrast steps in the terminal.** The web has three; a terminal depends on the
-  emulator's theme, and what "increased contrast" means there is undecided.
+- ~~Contrast steps in the terminal~~ — **normal is colour, raised is colour and
+  bold, maximum is no colour** (decided 2026-09-15, storefront screen 22): the
+  emulator's theme is unknown, so a step changes weight and the presence of colour, not a shade.
 - **The three `depth-client` questions** above: the screen reader, 60 columns,
   `NO_COLOR`.

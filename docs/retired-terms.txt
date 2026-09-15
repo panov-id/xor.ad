@@ -338,3 +338,10 @@ writing does not work until you do | sosed.place/docs/11-empty-and-edge-states_E
 We will send it when there is | refusal-wordings_EN.md | retry once there is — mechanics §10, 2026-09-15
 Осталось 3 попытки | chat_RU.md sosed.place/docs/12-identity-and-security_RU.md neighbro.place/docs/12-identity-and-security_RU.md sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | осталось попыток: N, 15.09.2026
 3 attempts left | chat_EN.md sosed.place/docs/12-identity-and-security_EN.md neighbro.place/docs/12-identity-and-security_EN.md sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | attempts left: N, 2026-09-15
+newest at the bottom, like a chat | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | feed shows newest at the top since screen 03 decision of 28.08.2026; terms corrected 15.09.2026
+меняет тему (как сейчас) | chat_RU.md | домик перебирает акцент и в приложении, 15.09.2026
+changes the theme (as now) | chat_EN.md | the house mark cycles the accent in the app too, 2026-09-15
+Поведение домика не меняется | chat_RU.md | в приложении домик теперь перебирает акцент, 15.09.2026
+The house behavior does not change | chat_EN.md | in the app the house mark now cycles the accent, 2026-09-15
+Тема живёт в двух местах | sosed.place/docs/10-settings-screen_RU.md neighbro.place/docs/10-settings-screen_RU.md | в двух местах живёт акцент, тема — на экране 22, 15.09.2026
+The theme lives in two places | sosed.place/docs/10-settings-screen_EN.md neighbro.place/docs/10-settings-screen_EN.md | the accent lives in two places, the theme on screen 22, 2026-09-15

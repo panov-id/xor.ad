@@ -751,6 +751,11 @@ CREATE TABLE identities (
                                         -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
   -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
+  appearance_theme    text CHECK (appearance_theme IN ('light', 'dark', 'system')),
+  appearance_contrast text CHECK (appearance_contrast IN ('normal', 'raised', 'max')),
+  appearance_accent   text CHECK (appearance_accent IN ('terra', 'amber', 'gold', 'crimson', 'teal', 'azure', 'violet')),
+                                        -- appearance (storefront screen 22, decided 2026-09-15): NULL = the storefront default;
+                                        -- never given to other people; an accent outside the storefront's set draws as its default
   stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person; early return — now(), a past span is cleared by the session's first request
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
@@ -2586,7 +2591,8 @@ live hardware, made on the day the queue appears.
 
 The logo has two clickable parts with **different** actions. The rule is identical on the landings (sosed.place / neighbro.place) and in the app.
 
-- **House mark** — changes the theme (as now). On the landing this is the accent-color cycle (button `#logoBtn`); light/dark is a separate ☀/🌙 button. The house behavior does not change.
+- **House mark** — cycles the accent colour round the storefront's set, the same on the landing (button `#logoBtn`) and in the app (decided 2026-09-15). Light and dark are a separate ☀/🌙 button on the landing and storefront screen 22 in the app. In the app the choice is kept with the identity (§8.2, the `appearance_*` columns).
+  [retired] This said "changes the theme (as now)" and "The house behavior does not change": on the landing the house mark cycled the accent even then, so the shared behaviour promised by the section heading did not hold.
 - **Name text** (`SOSED` / `NEIGHBRO`) — navigates **"home"**, where "home" depends on auth:
   - **has an identity** (`identity_id` and the private half of the key in the browser, see §8.2) → the app's **chat window**;
   - **no identity** → the **landing**.

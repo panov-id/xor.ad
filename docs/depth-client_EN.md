@@ -211,6 +211,7 @@ recorded as a separate principle in §8 of the chat spec.
 | `depth move` | move the identity here from the device it is on now |
 | `depth restore` | raise an identity with the paper recovery code |
 | `depth device` | this session, and the code to move it |
+| `depth appearance` | appearance: the accent and the contrast step (§9, storefront screen 22; added 2026-09-15) |
 | `depth report` | a notice of illegal content (DSA Article 16) |
 
 Everything except `depth` is also reachable from inside the running client: the
@@ -878,7 +879,7 @@ such a contract.
   often not the language a person speaks to their neighbours in, and choosing
   silently is the same thing as the feed's language shares, already retired. Price:
   one more step in a long registration.
-- **Colour.** `NO_COLOR` support and behaviour in a terminal without 256 colours.
+- ~~Colour~~ — **the emulator's sixteen colours** (decided 2026-09-15, storefront screen 22): 256 colours are not needed. The identity's accent becomes an ANSI name, and the contrast steps are colour, colour and bold, no colour; `NO_COLOR` switches on the last. The choice is kept with the identity on the node and is not written to the volume.
 - **Narrow terminals.** What exactly breaks at 60 columns, and what to show.
 - **Accessibility.** Behaviour under a screen reader in a terminal has not been
   studied.

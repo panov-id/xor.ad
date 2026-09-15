@@ -120,7 +120,9 @@ is not an argument against the scale, because there is nothing to convert.
 (Recounted 2026-08-31: the previous wording said "30 distinct values across 164
 uses" and never named what it measured; it could not be reproduced under any of
 four corpora.)
-- **A light theme for the application.** Both storefronts are dark; the panel has
-  a light theme, the application has not decided.
-- **What to do with the July prototype.** It is closest of the three to the shape
-  of an app and furthest in vocabulary; what it gives is layout by eye, not tokens.
+- ~~A light theme for the application~~ — **there is one: light, dark and as in the
+  system, with three contrast steps and an accent from the storefront's set**
+  (storefront screen 22, 2026-09-15). The theme sat on screen 10 from 2026-08-26, and this line did not see it.
+- ~~What to do with the July prototype~~ — **it stays a reference for layout by eye,
+  and no tokens are taken from it** (decided 2026-09-15: this followed from this very line;
+  the light mode of its §2 is replaced by storefront screen 22).

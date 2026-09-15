@@ -90,3 +90,4 @@ value	unit	kind	why	example
 6725	bytes	measurement	размер дампа prod в том же прогоне 11.09.2026 — не предел	xor.ad/docs/plan-open-items_RU.md:88
 50	min	sample.data	вход теста 6.4b: пять отказов 50 минут назад, пауза уже кончилась	xor.ad/docs/test-map_EN.md:133
 8	h	prose.figure	снятая третья ступень отлучки, названа в истории правки 14.09.2026	xor.ad/docs/backlog_EN.md:10
+25	h	sample.data	вход проверки сторожа С1: уведомление на 25 часов старше, чем порог напоминания	xor.ad/docs/watchdogs_EN.md:71

@@ -80,3 +80,5 @@ table.move.window	5	минут	срок на ход за столом, даль�
 table.pass.limit	3	паса	подряд пропущенных хода переводят играющего в зрители	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/19-table_RU.md,sosed.place/docs/19-table_EN.md,neighbro.place/docs/19-table_RU.md,neighbro.place/docs/19-table_EN.md
 chat.pending.max	200	сообщений	потолок очереди недоставленного на пару (беседа, получатель); сверх — вытесняется старейшее, молча	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
 chat.pending.ttl	260	минут	предельный срок жизни строки очереди, дальше её уносит уборщик	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md
+watchdog.notice.remind	24	часа	возраст неразобранного уведомления по ст. 16, после которого напоминание (спецификация сторожа С1, не построено)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md
+watchdog.notice.escalate	48	часов	возраст неразобранного уведомления по ст. 16, после которого эскалация на личные адреса (спецификация сторожа С1, не построено)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md

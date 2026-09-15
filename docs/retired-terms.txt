@@ -345,3 +345,7 @@ changes the theme (as now) | chat_EN.md | the house mark cycles the accent in th
 The house behavior does not change | chat_EN.md | in the app the house mark now cycles the accent, 2026-09-15
 Тема живёт в двух местах | sosed.place/docs/10-settings-screen_RU.md neighbro.place/docs/10-settings-screen_RU.md | в двух местах живёт акцент, тема — на экране 22, 15.09.2026
 The theme lives in two places | sosed.place/docs/10-settings-screen_EN.md neighbro.place/docs/10-settings-screen_EN.md | the accent lives in two places, the theme on screen 22, 2026-09-15
+у приложения он один | design-system-app_RU.md | набор акцентов у витрины, выбор внутри — экран 22, 15.09.2026
+the application has one | design-system-app_EN.md | a set of accents per storefront, the choice within it — screen 22, 2026-09-15
+newest at the bottom like a chat | README.md | feed shows newest at the top since 28.08.2026, 2026-09-15
+новые — внизу, как в чате | README_RU.md | новые сверху с 28.08.2026, 15.09.2026

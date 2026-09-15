@@ -16,7 +16,7 @@ repeating.
 
 | What | Where it was settled | State |
 |---|---|---|
-| Contrast — **three steps**, not a slider | screen 10, 2026-08-26 | a continuous control inevitably offers positions below the threshold |
+| Contrast — **three steps**, not a slider | screen 22 (settled 2026-08-26 on screen 10) | a continuous control inevitably offers positions below the threshold |
 | A 4.5:1 contrast threshold, computed arithmetically | the panel and the landings | `landing/check-contrast.mjs`, gates the deploy |
 | Accent — from the storefront's set, not a free colour | screen 22, 2026-09-15 | every combination of theme, step and accent is checked before deploy |
 | Theme: light, dark, as in the system | screen 22 (until 2026-09-15 — screen 10) | applied at once, reverted with one tap |
@@ -91,15 +91,17 @@ that is recorded rather than passed over.
 
 ## The terminal: what we do not know
 
-The three open questions of `depth-client` stay open honestly, and here is what is
-known about them:
+Two open questions of `depth-client` stay open honestly, the third — `NO_COLOR` — was
+decided on 2026-09-15, and here is what is known about them:
 
 - **A screen reader in a terminal.** The behaviour has not been studied. What is
   known: readers handle the alternative buffer poorly — and that is precisely the
   screen where moving an identity happens, where a mistake costs the identity.
 - **60 columns.** The width is designed for 80; what exactly breaks at 60 has not
   been checked. It is checked by running, not by reasoning.
-- **`NO_COLOR`.** The variable is a standard and the support is not written. While
+- **`NO_COLOR` — decided 2026-09-15, not built** (storefront screen 22, `depth-client_EN.md` §9):
+  it switches on the maximum step — no colour, with icons and words carrying the meaning. The
+  variable is a standard and the support is not written. While
   colour carries meaning (fading, mine versus theirs), ignoring it means losing
   state.
 
@@ -158,5 +160,5 @@ somebody translated into seventeen languages for nothing**.
 - ~~Contrast steps in the terminal~~ — **normal is colour, raised is colour and
   bold, maximum is no colour** (decided 2026-09-15, storefront screen 22): the
   emulator's theme is unknown, so a step changes weight and the presence of colour, not a shade.
-- **The three `depth-client` questions** above: the screen reader, 60 columns,
-  `NO_COLOR`.
+- **The two `depth-client` questions** above: the screen reader and 60 columns
+  (`NO_COLOR` decided 2026-09-15).

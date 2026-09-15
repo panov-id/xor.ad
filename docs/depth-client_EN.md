@@ -879,7 +879,7 @@ such a contract.
   often not the language a person speaks to their neighbours in, and choosing
   silently is the same thing as the feed's language shares, already retired. Price:
   one more step in a long registration.
-- ~~Colour~~ — **the emulator's sixteen colours** (decided 2026-09-15, storefront screen 22): 256 colours are not needed. The identity's accent becomes an ANSI name, and the contrast steps are colour, colour and bold, no colour; `NO_COLOR` switches on the last. The choice is kept with the identity on the node and is not written to the volume.
+- ~~Colour~~ — **the emulator's sixteen colours** (decided 2026-09-15, storefront screen 22): 256 colours are not needed. The accent — the `depth` face's own appearance row (chat spec §8.2), any of the seven names — becomes an ANSI name, and the contrast steps are colour, colour and bold, no colour; `NO_COLOR` switches on the last. The choice is kept with the identity on the node and is not written to the volume; before the node answers and with no connection the terminal draws the default — normal contrast, no accent.
 - **Narrow terminals.** What exactly breaks at 60 columns, and what to show.
 - **Accessibility.** Behaviour under a screen reader in a terminal has not been
   studied.

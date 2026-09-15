@@ -751,11 +751,6 @@ CREATE TABLE identities (
                                         -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
   -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
-  appearance_theme    text CHECK (appearance_theme IN ('light', 'dark', 'system')),
-  appearance_contrast text CHECK (appearance_contrast IN ('normal', 'raised', 'max')),
-  appearance_accent   text CHECK (appearance_accent IN ('terra', 'amber', 'gold', 'crimson', 'teal', 'azure', 'violet')),
-                                        -- appearance (storefront screen 22, decided 2026-09-15): NULL = the storefront default;
-                                        -- never given to other people; an accent outside the storefront's set draws as its default
   stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person; early return — now(), a past span is cleared by the session's first request
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
@@ -765,6 +760,22 @@ CREATE TABLE identities (
 CREATE UNIQUE INDEX identities_recovery ON identities (recovery_auth_hash)
   WHERE recovery_auth_hash IS NOT NULL AND closed_at IS NULL;
 ```
+
+**Appearance — one row per face, not columns on the identity (decided 2026-09-15 after the review panel).**
+
+```sql
+CREATE TABLE identity_appearance (
+  identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  brand     text NOT NULL,         -- the face from the API key, as feed_messages.brand
+  theme     text CHECK (theme IN ('light', 'dark', 'system')),      -- NULL = the storefront default
+  contrast  text CHECK (contrast IN ('normal', 'raised', 'max')),
+  accent    text CHECK (accent IN ('terra', 'amber', 'gold', 'crimson', 'teal', 'azure', 'violet')),
+  PRIMARY KEY (identity, brand)
+);
+```
+
+- **Why a row per face.** One identity serves every face, while the storefronts' accent sets differ (storefront screen 22). Columns on `identities` would make a choice on one storefront the look of the other: amber chosen on sosed.place would turn into gold on neighbro.place, and a tap on the house mark there would overwrite it back. The price is accepted: one more table and one more cascade.
+- **Never given to other people**; the node reads it only to answer the identity itself. Closing the identity deletes its rows at once, not after 30 days (below).
 
 **What a person accepted is a table of its own, not a column (decided 2026-08-29).**
 
@@ -826,7 +837,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 **A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
-- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered and nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days): there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
+- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered, deletes the `identity_appearance` rows (added 2026-09-15 after the review panel: the privacy policy promises appearance goes on closing) and nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days): there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
 #### The "stepped away" state (2026-08-26)
@@ -2591,7 +2602,7 @@ live hardware, made on the day the queue appears.
 
 The logo has two clickable parts with **different** actions. The rule is identical on the landings (sosed.place / neighbro.place) and in the app.
 
-- **House mark** — cycles the accent colour round the storefront's set, the same on the landing (button `#logoBtn`) and in the app (decided 2026-09-15). Light and dark are a separate ☀/🌙 button on the landing and storefront screen 22 in the app. In the app the choice is kept with the identity (§8.2, the `appearance_*` columns).
+- **House mark** — cycles the accent colour round the storefront's set, the same on the landing (button `#logoBtn`) and in the app (decided 2026-09-15). Light and dark are a separate ☀/🌙 button on the landing and storefront screen 22 in the app. In the app the choice is kept with the identity, one row per face (§8.2, the `identity_appearance` table).
   [retired] This said "changes the theme (as now)" and "The house behavior does not change": on the landing the house mark cycled the accent even then, so the shared behaviour promised by the section heading did not hold.
 - **Name text** (`SOSED` / `NEIGHBRO`) — navigates **"home"**, where "home" depends on auth:
   - **has an identity** (`identity_id` and the private half of the key in the browser, see §8.2) → the app's **chat window**;

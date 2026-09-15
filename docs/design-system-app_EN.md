@@ -83,8 +83,10 @@ The delta is kept here and only here. Every difference carries its reason.
   not at all and points `--disp` at the same stack as `--sans`. The application
   inherits that as it is: `--disp` always exists, and whether it equals `--sans`
   is the brand's decision.
-- **The accent is a brand, not a setting.** The panel offers eleven accents to
-  choose from; the application has one and it arrives with the storefront.
+- **The set of accents is a brand, the choice within it a setting** (decided
+  2026-09-15, storefront screen 22). The panel offers eleven accents to choose from;
+  for the application the set arrives with the storefront — six on sosed.place, five
+  on neighbro.place — and the person chooses within it. [retired] This said "the application has one".
 
 ## What is taken from the panel unchanged
 

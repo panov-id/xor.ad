@@ -51,6 +51,28 @@ why they are recorded here rather than on a wishlist:
 4. **Every field is labelled by a word, not by a hint inside it.** A placeholder
    disappears on typing, and someone returning to the form loses the question.
 
+### Numbers for the drawing (added 2026-09-15)
+
+The rules above are named in words, and whoever draws needs numbers. The level is
+WCAG 2.2 AA; where our rule is stricter than the standard, ours applies.
+
+| What | Number | Why |
+|---|---|---|
+| Text of any size against its ground | at least 4.5:1 in all three steps, both themes and with each storefront accent | the landings are already checked this way (`landing/check-contrast.mjs`); no 3:1 allowance for large text — one rule is easier to check |
+| A control's border, the focus ring, an icon that carries state | at least 3:1 against the adjacent ground | WCAG 1.4.11; the panel holds the same threshold (`design-system_EN.md` §1) |
+| Focus ring | 2px, solid, in the accent colour, 2px offset | as in the panel (`brutalism_EN.md` §7) |
+| Touch target | at least 44×44 px; the exception is the cells of a game board | rule 3 above |
+| Body text | at least 16px; line height a multiplier of at least 1.5; text blocks have no fixed height | with a field font under 16px Safari on iOS zooms the page on focus (known behaviour, not checked in a container); 1.5 is WCAG 1.4.12, and that vertical room is what survives Georgian, Armenian and Greek script |
+| Zoom | the layout survives 200% text zoom and a 320 CSS px width with no horizontal scrolling | WCAG 1.4.4 and 1.4.10. The feed in columns by `column-width: 330px` (`app-prototype-spec_EN.md` §4): below 330px there is one column, and that it narrows to the screen rather than running off sideways is checked on the mock-up — so far checked only at 375px |
+| Label length | labels and buttons have no fixed width; the layout is checked on the longest string among the translations; a label is never cut with an ellipsis | German runs about a third longer than Russian (part three) |
+| Motion | no `transition` by default; with `prefers-reduced-motion` no animation at all | `design-system-app_EN.md`, the landings |
+| Terminal | a working width of 80 columns; 60 not checked | below, "The terminal: what we do not know" |
+
+**The lifespans of phrases and conversations do not breach WCAG 2.2.1.** The rule
+asks for a way to extend or remove a time limit, except where the limit is the
+essence of the activity. Disappearing is the essence of the product. In return the
+span is always shown by a word or a number, not by fading colour alone (rule 1).
+
 ### A sticker is a line, not a picture (added 2026-08-29)
 
 The rule is short: **anything that occupies the place of a line must carry a

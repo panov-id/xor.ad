@@ -17,7 +17,7 @@
 #
 # Колонки: file, count, kind, why
 file	count	kind	why
-xor.ad/docs/offers/CHECKLIST_RU.md	37	checklist.own	чеклист офферов ведёт свою работу сам; в реестр идут только развилки из него
+xor.ad/docs/offers/CHECKLIST_RU.md	38	checklist.own	чеклист офферов ведёт свою работу сам; в реестр идут только развилки из него
 xor.ad/docs/panel-refactor_RU.md	23	checklist.own	план рефакторинга панели: пункты — шаги работы, а не открытые вопросы
 xor.ad/docs/roadmap_RU.md	22	historical	дорожная карта объявлена историческим документом (снимок на 7 июля 2026)
 xor.ad/docs/app-ui-notes_RU.md	16	checklist.own	заметки по интерфейсу: пункты правятся вместе с экранами

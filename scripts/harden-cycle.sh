@@ -43,6 +43,9 @@ run() {  # run <имя> <каталог> <команда...>
     # а какие ворота — нет.
     printf '%s\n' "$output" | awk '/✗|FAIL|MISMATCH/{show=6} show>0{print; show--}' | head -40 | sed 's/^/      | /'
     printf '%s\n' "$output" | grep -v '^\s*$' | tail -3 | sed 's/^/      | /'
+    # 15.09.2026 оба теста заголовков вышли кодом 2 без единой строки — сбой случился до запуска
+    # проверки, и глазу было не за что зацепиться. Пустоту называем словами.
+    [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] && printf '      | (вывода нет — сбой до запуска проверки: контейнер, сеть, пакеты)\n'
   fi
 }
 
@@ -84,7 +87,7 @@ for face in $faces; do
   run "$face legal-bar"            "$dir" bash deploy/run-node.sh landing/check-legal-bar.mjs landing/index.html
   run "$face i18n"                 "$dir" bash deploy/run-node.sh landing/check-i18n.mjs landing/index.html
   run "$face security-headers"     "$dir" docker run --rm -v "$dir:/work:ro" -w /work node:22-alpine \
-        sh -c 'apk add --no-cache bash python3 >/dev/null 2>&1 && bash landing/test-security-headers.sh'
+        sh -c 'apk add --no-cache bash python3 >/tmp/apk.log 2>&1 || { echo "apk add не прошёл — проверка не запускалась:"; tail -3 /tmp/apk.log; exit 2; }; bash landing/test-security-headers.sh'
   run "$face no-secrets-in-argv"   "$dir" python3 deploy/test-no-secrets-in-argv.py
   run "$face shipped-files"        "$dir" python3 deploy/test-check-shipped-files.py
 done

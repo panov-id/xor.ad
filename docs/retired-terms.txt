@@ -332,3 +332,5 @@ Without an email the decision will not reach you | sosed.place/docs/11-empty-and
 придёт только на почту | sosed.place/docs/08-chat-screen_RU.md neighbro.place/docs/08-chat-screen_RU.md sosed.place/docs/14-support_RU.md neighbro.place/docs/14-support_RU.md | квитанция на устройстве, 15.09.2026
 arrives only by email | sosed.place/docs/08-chat-screen_EN.md neighbro.place/docs/08-chat-screen_EN.md | a receipt on the device, 2026-09-15
 reaches them only by email | sosed.place/docs/14-support_EN.md neighbro.place/docs/14-support_EN.md | a receipt on the device, 2026-09-15
+иначе не получится писать | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | не публиковать и не открывать новые беседы, начатые идут, 15.09.2026
+writing does not work until you do | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | cannot publish or open new conversations, ongoing ones carry on, 2026-09-15

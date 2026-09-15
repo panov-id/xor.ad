@@ -24,15 +24,15 @@ Product documents in scope: `xor.ad/docs/chat_*`, `chat-flows_*`, `protocol_*`,
 
 Every round is the same and runs without questions:
 
-1. **Pick a batch.** From what is open (panel records, plan v1, `open.tsv`) — a batch
+1. **Pick a batch.** Since 2026-09-15 — by the stage of the route `ROADMAP_2026-09-15_to-drawing_EN.md`; within a stage — from what is open (panel records, plan v1, `open.tsv`) — a batch
    on one topic, ~30–60 minutes of editing. Order: 🔴 → what others depend on → 🟡 → ⚪.
-2. **Edit.** Replacements by script with an "exactly one match" check; each changed
+2. **Edit.** Since 2026-09-15 — a batch through `scripts/batch-edit.py` (all or nothing, RU/EN pair, mirrored storefronts, brand in legal texts, retired wordings into `docs/retired-terms.txt`); each changed
    paragraph is reread whole afterwards. Superseded text — `[retired]` with a date. RU
    and EN as a pair, storefronts as mirrors.
-3. **Machine checks.** `readdress-facts.py --write`, `check-facts-{decisions,limits,schema,open}.sh`,
-   `ontology.py --check`, byte comparison of storefronts, a control grep for retired
-   wordings. Red is fixed within the same round.
-4. **Commit** to the day branch in every touched repository. **No push** — a push to a
+3. **Machine checks.** `readdress-facts.py --write`, then one command `scripts/harden-cycle.sh` — every gate of the three
+   repositories with one verdict and an exit code (since 2026-09-15; the manual list of checks and the control grep [retired]:
+   they missed red twice). Red is fixed within the same round.
+4. **Commit** to the day branch in every touched repository — only if `harden-cycle.sh` exited zero. **No push** — a push to a
    shared branch only on a separate word.
 5. **A panel over the batch** — every two or three batches, or after any batch with new
    mechanics: three lenses for the subject (security mandatory) and a refuter; the record

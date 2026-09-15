@@ -349,3 +349,7 @@ The theme lives in two places | sosed.place/docs/10-settings-screen_EN.md neighb
 the application has one | design-system-app_EN.md | a set of accents per storefront, the choice within it — screen 22, 2026-09-15
 newest at the bottom like a chat | README.md | feed shows newest at the top since 28.08.2026, 2026-09-15
 новые — внизу, как в чате | README_RU.md | новые сверху с 28.08.2026, 15.09.2026
+третья из четырёх | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | свободно N из 4, 15.09.2026
+third of four | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | N of 4 free, 2026-09-15
+Колонки сворачиваются в вертикальные рейлы | chat_RU.md | третья колонка по открытию, рейлов нет, 15.09.2026
+Columns collapse into vertical rails | chat_EN.md | a third column on opening, no rails, 2026-09-15

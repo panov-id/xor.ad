@@ -459,7 +459,7 @@ longer shows:
   › does anyone know if the bakery on the corner
     opens on sunday                        ♥ 3   14:22
 
-  ⊞ table · dominoes · three seated                14:19
+  ⊞ table · dominoes · 2 playing · 1 watching      14:19
     [enter] sit down
 
   ₪ offer · −20% · the bakery on the corner
@@ -491,8 +491,8 @@ looking. The terminal was showing phrases only.
   2026-08-27). An ordinary like requires a live phrase on both sides or no match
   can ever happen; an offer's match is one-sided, and without the exception you
   would have to write something of your own before claiming the free chairs.
-- **A table is marked by its game and how many are seated**, and you can sit down
-  right from here (4.9).
+- **A table is marked by its game and two numbers — playing and watching** (storefront
+  screen 19, 2026-09-10), and you can sit down right from here (4.9).
 
 **There are three actions on a phrase, not one — edit of 2026-08-27** (screen 5):
 `h` hide, `b` block, `r` report. A single report used to stand here, which meant

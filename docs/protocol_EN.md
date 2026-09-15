@@ -108,6 +108,7 @@ created_at}` — **a circle, not a point**, and nothing about the author. `lat`/
 | Route | What it does | Origin |
 |---|---|---|
 | `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own | **proposed** (§8.4) |
+| `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **proposed 2026-09-15** (§8.4) | **spec** |
 | `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **proposed** (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
 | `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |

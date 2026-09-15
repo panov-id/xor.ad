@@ -59,8 +59,9 @@ answers are worth keeping next to this file:
   `chat_EN.md`). A fifth does not fit a narrow screen, so the "Offers" and
   "Conversations" tabs live inside the section (screen 7).
 - **The per-message "mechanic"** — a like by tapping the logo button, plus a "…"
-  menu with three actions: hide, block, report (screen 5). Swipe actions were
-  considered and rejected: they fight the scroll.
+  menu with three actions: hide, block, report (screen 5). Swipe actions on a
+  card were considered and rejected: they fight the scroll (the phrase viewer has a swipe,
+  screen 23, 2026-09-15).
 - **How strong the "scatter" is** — columns are set by width
   (`column-width: 330px`), cards never shrink below ~330px, and horizontal
   overflow is zero in every state (§4 and §10 of `app-prototype-spec_EN.md`).
@@ -74,16 +75,16 @@ answers are worth keeping next to this file:
 
 | # | Wish | Outcome |
 |---|---|---|
-| 1 | a concrete palette next to dark and gold, grain | grain accepted (above); the prototype's grey tokens — refused: neutrals come from the storefronts (`design-system-app_EN.md`, "Open", 2026-09-15) |
-| 2 | 3–5px borders, sharp corners, unblurred shadows | unblurred shadows accepted; the borders and radii are not: a border as in the panel, radii from the landings' measurement (`design-system-app_EN.md`, "Tokens") |
+| 1 | a concrete palette next to dark and gold, grain | grain accepted (above); the prototype's grey tokens — refused: neutrals come from the storefronts (`design-system-app_EN.md`, "Tokens"; decided 2026-09-15) |
+| 2 | 3–5px borders, sharp corners, unblurred shadows | unblurred shadows accepted; the borders and radii are not: a 2px border as in the panel (`brutalism_EN.md` §7; the app has no border-width token yet), radii from the landings' measurement (`design-system-app_EN.md`, "Tokens") |
 | 3 | exposed structure, mono captions | accepted: `--mono` (`design-system-app_EN.md`) |
 | 4 | gold as a spot accent, not a fill | accepted: the accent marks the active and the main action; gold is neighbro.place's default (screen 22) |
-| 5 | two columns: feed and chats | changed: three columns from 900px (screen 3, "Wide screen", 2026-09-15) |
+| 5 | two columns: feed and chats | accepted with an addition: from 900px the feed and conversations, an open conversation as a third column (screen 3, "Wide screen", 2026-09-15) |
 | 6 | tabs on the right | accepted: "Offers" and "Conversations" (above, screen 7) |
 | 7 | columns scroll independently | accepted (screen 3, "Wide screen") |
 | 8 | a width threshold below which there is one column | accepted: 900px |
 | 9 | a "scattered" feed, tilt and offset | width-based columns accepted (above); card tilt is settled by the drawing and does not change reading order (`accessibility-and-i18n_EN.md`, rule 2) |
-| 10 | a like via the logo button | accepted (screen 5) |
+| 10 | a like via the logo button | accepted: the chat canon — "a tap on the logo button" (`xor.ad/docs/chat_EN.md`); screen 5 calls it the like icon |
 | 11 | scroll to browse | accepted |
 | 12 | a tap opens full screen, swipe between messages | accepted with a change: screen 23 — swipe right like, left hide, touch screens only (2026-09-15) |
 | 13 | full screen: large text, distance, timer, "how many of us" | text, mode and remaining time — yes (screen 23); no distance and no "how many of us": a number by place is a measuring instrument (§4 of the mechanics) |

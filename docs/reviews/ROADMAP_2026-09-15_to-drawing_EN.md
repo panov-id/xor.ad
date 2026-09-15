@@ -1,6 +1,6 @@
 # The road to drawing, 2026-09-15
 
-The goal the owner named on 2026-09-14/15: close the screens and the mechanics and move on to
+The goal the owner named on 2026-09-14 and 2026-09-15: close the screens and the mechanics and move on to
 drawing — but before drawing, reach **100%** on documentation, mechanics, screens, legal texts,
 facts, patterns and rules: everything the start needs. This document is the route the process
 follows without asking. The cycle rules are `PROCESS_2026-09-14_spec-hardening_EN.md`, still in force.

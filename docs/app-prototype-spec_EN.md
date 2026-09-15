@@ -145,6 +145,9 @@ a divergence is not mistaken for a decision:
 | tabs `Chats N` / `Requests N`, a count on both | "Offers" with a count and "Conversations" **without one** (screen 7, 2026-08-27); a conversation row carries the name, a fragment of the last line and your own remaining span |
 | swipe left in the viewer = "minus", the phrase is gone for good | there is one reaction, the like; hide, block and report live in the "…" menu, and swiping was considered and rejected: it fights the scroll (screen 5, 2026-08-26) |
 | "Set location" and a `34 nearby` indicator in the header | a radius circle in the filter panel with a **band** of density under it (`nobody here yet` … `hundreds`), shown only once the handle is released: exact counts per radius are an instrument for working out where an author stands (screen 3, 2026-08-26) |
+| 11 accents cycled silently by the house mark; Dark / Light in the profile pop-up (§2) | an accent from the storefront's set — six on sosed.place, five on neighbro.place; theme, contrast and accent — screen 22, one row per face (2026-09-15) |
+| swipe in the viewer = plus / minus, "minus" removes for good (§5) | right is like, left is an undoable "hide", touch screens only, the first swipe explains (screen 23, 2026-09-15) |
+| column rails, `Refresh` and `Auto` (§6.1) | three columns from 900px with no rails and no auto-refresh; "Say" and "Me" in the feed header (screen 3, 2026-09-15) |
 | `maxlength=256` hard-coded in the client | the limit arrives from the server (`max_message_length`, 256 by default), and the system's rule is ciphertext bytes (`max_ciphertext_bytes`, 2048): the node does not see characters (§8.6, 2026-08-25) |
 
 None of these is a defect of the prototype: it was built earlier. Carrying any of

@@ -33,7 +33,7 @@ is translated is the landing and the legal texts.
 
 ### The minimum that cannot wait
 
-These four cost little at the drawing stage and a great deal after it, which is
+These five cost little at the drawing stage and a great deal after it, which is
 why they are recorded here rather than on a wishlist:
 
 1. **Colour is never the only carrier of state.** A fading conversation, a
@@ -50,6 +50,10 @@ why they are recorded here rather than on a wishlist:
    report.
 4. **Every field is labelled by a word, not by a hint inside it.** A placeholder
    disappears on typing, and someone returning to the form loses the question.
+5. **An icon button has a worded name** (added 2026-09-15 by the screen cross-check). The
+   "next" button on screen 2 and the language switcher on the splash are drawn with no
+   visible label; without a name a screen reader says "button", and the person does not
+   learn where it leads. The name is the same word a label would carry, translated with the strings.
 
 ### Numbers for the drawing (added 2026-09-15)
 

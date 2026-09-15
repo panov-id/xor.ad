@@ -92,7 +92,8 @@ Drawing starts when all seven hold, each checked by a machine or a panel:
 
 ### S4. Facts
 
-- `check-facts-coverage` green; `count-tests` agrees.
+- `check-facts-coverage` green; `count-tests` agrees; the "period without a doer" gate from
+  `docs/watchdogs_EN.md` §W4 built and probed red.
 - Every `open.tsv` item marked: blocks drawing, blocks publication, blocks code, blocks nothing.
   Zero block drawing.
 

@@ -37,6 +37,7 @@
 import argparse
 import difflib
 import json
+import os
 import pathlib
 import sys
 
@@ -51,7 +52,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--root", default=str(pathlib.Path(__file__).resolve().parents[2]))
     args = ap.parse_args()
-    root = pathlib.Path(args.root)
+    root = pathlib.Path(args.root).resolve()
 
     try:
         batch = json.loads(pathlib.Path(args.batch).read_text())
@@ -71,7 +72,12 @@ def main():
 
     errors, texts, originals = [], {}, {}
     for rel, old, new in ops:
-        p = root / rel
+        p = (root / rel).resolve()
+        # Путь из пачки не выходит за корень группы: 15.09.2026 панель ревью переписала
+        # файл снаружи через "../" — пачку пишет агент, и её содержимое не заслуживает доверия.
+        if root not in p.parents:
+            errors.append(f"путь выходит за корень группы: {rel}")
+            continue
         if not p.exists():
             errors.append(f"нет файла: {rel}")
             continue
@@ -104,7 +110,8 @@ def main():
         current = reg.read_text() if reg.exists() else ""
         if not reg.exists():
             errors.append(f"нет реестра {REGISTRY}")
-        elif not any(l.split("|")[0].strip() == r["phrase"].strip() for l in current.splitlines() if "|" in l and not l.startswith("#")):
+        elif not any(l.split("|")[0].strip() == r["phrase"].strip() for l in current.splitlines() if "|" in l and not l.startswith("#")) \
+                and not any(x.split("|")[0].strip() == r["phrase"].strip() for x in retired_lines):
             retired_lines.append(line)
 
     if errors:
@@ -113,20 +120,32 @@ def main():
             print("  ✗ " + e, file=sys.stderr)
         return 1
 
-    for p, t in texts.items():
-        if t == originals[p]:
-            continue
-        rel = str(p.relative_to(root))
-        if args.dry_run:
-            sys.stdout.writelines(difflib.unified_diff(originals[p].splitlines(True), t.splitlines(True), rel, rel, n=1))
-        else:
-            p.write_text(t)
+    writes = {p: t for p, t in texts.items() if t != originals[p]}
     if retired_lines:
-        if args.dry_run:
-            print(f"+ в {REGISTRY}:\n  " + "\n  ".join(retired_lines))
-        else:
-            reg = root / REGISTRY
-            reg.write_text(reg.read_text().rstrip("\n") + "\n" + "\n".join(retired_lines) + "\n")
+        reg = root / REGISTRY
+        writes[reg] = reg.read_text().rstrip("\n") + "\n" + "\n".join(retired_lines) + "\n"
+    if args.dry_run:
+        for p, t in writes.items():
+            rel = str(p.relative_to(root))
+            before = originals.get(p, (root / REGISTRY).read_text() if p == root / REGISTRY else "")
+            sys.stdout.writelines(difflib.unified_diff(before.splitlines(True), t.splitlines(True), rel, rel, n=1))
+    else:
+        # Всё или ничего и на записи: сначала каждый файл во временный рядом, потом os.replace
+        # подряд. Сбой при подготовке не трогает ни одного файла (панель ревью 15.09.2026: запись
+        # по очереди оставляла половину пачки при отказе на реестре).
+        staged = []
+        try:
+            for p, t in writes.items():
+                tmp = p.with_name(p.name + ".batch-edit.tmp")
+                tmp.write_text(t)
+                staged.append((tmp, p))
+        except OSError as e:
+            for tmp, _ in staged:
+                tmp.unlink(missing_ok=True)
+            print(f"пачка не записана, файлы не тронуты: {e}", file=sys.stderr)
+            return 1
+        for tmp, p in staged:
+            os.replace(tmp, p)
 
     verb = "показано" if args.dry_run else "применено"
     print(f"{verb}: замен {len(ops)} в файлах {len(texts)}, снятых формулировок в реестр {len(retired_lines)}")

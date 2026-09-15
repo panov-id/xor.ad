@@ -72,8 +72,8 @@ test-map.2026-08-30.184	2026-08-30	xor.ad/docs/test-map_RU.md:194	xor.ad/docs/te
 test-map.2026-08-31.134	2026-08-31	xor.ad/docs/test-map_RU.md:144	xor.ad/docs/test-map_EN.md:133	Зона — только одна из пяти ступеней	A zone is one of five steps and nothing else
 test-map.2026-08-31.185	2026-08-31	xor.ad/docs/test-map_RU.md:195	xor.ad/docs/test-map_EN.md:184	Координаты в выдаче округлены до клетки	Coordinates in a response are rounded to a cell
 test-map.2026-08-31.186	2026-08-31	xor.ad/docs/test-map_RU.md:196	xor.ad/docs/test-map_EN.md:185	Радиус — только ступень	The radius is a step and nothing else
-neighbro-legal.2026-08-29.12	2026-08-29	neighbro.place/docs/15-legal-documents_RU.md:22	neighbro.place/docs/15-legal-documents_EN.md:12	Кто оператор и куда писать	Who the operator is and where to write
-sosed-legal.2026-08-29.12	2026-08-29	sosed.place/docs/15-legal-documents_RU.md:22	sosed.place/docs/15-legal-documents_EN.md:12	Кто оператор и куда писать	Who the operator is and where to write
+neighbro-legal.2026-08-29.12	2026-08-29	neighbro.place/docs/15-legal-documents_RU.md:22	neighbro.place/docs/15-legal-documents_EN.md:23	Кто оператор и куда писать	Who the operator is and where to write
+sosed-legal.2026-08-29.12	2026-08-29	sosed.place/docs/15-legal-documents_RU.md:22	sosed.place/docs/15-legal-documents_EN.md:23	Кто оператор и куда писать	Who the operator is and where to write
 dsa-README.2027-08-05.81	2027-08-05	xor.ad/docs/dsa/README_RU.md:97	xor.ad/docs/dsa/README_EN.md:83	Следующая проверка	Next check
 neighbro-seo.2026-07-27.42	2026-07-27	neighbro.place/docs/SEO_AND_ANALYTICS_RU.md:42	neighbro.place/docs/SEO_AND_ANALYTICS_EN.md:45	Свой счётчик просмотров	Our own page counter
 open-work.2026-07-28.56	2026-07-28	xor.ad/docs/open-work_RU.md:56	xor.ad/docs/open-work_EN.md:59	включён во всех средах	in every environment

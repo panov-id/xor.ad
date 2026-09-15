@@ -77,6 +77,21 @@ python3 "$tool" "$work/ok.json" --root "$work/g" --dry-run >"$work/out" 2>&1
 grep -q "^+Пауза 15 минут" "$work/out" && grep -q "Пауза пять минут" "$work/g/xor.ad/docs/chat_RU.md" \
   && pass "dry run shows the diff and writes nothing" || fail "dry run" "$(cat "$work/out")"
 
+# 5a. путь за пределы корня группы — отказ, файл снаружи не тронут
+stand
+mkdir -p "$work/outside"; printf 'SECRET\n' > "$work/outside/t_EN.md"
+echo '{"edits": [{"file": "../outside/t_EN.md", "old": "SECRET", "new": "PWNED"}], "unpaired": {"../outside/t_EN.md": "проба"}}' > "$work/escape.json"
+code=$(run "$work/escape.json")
+[ "$code" = 1 ] && grep -q "за корень" "$work/out" && grep -q "SECRET" "$work/outside/t_EN.md" \
+  && pass "a path escaping the group root refuses and the outside file stays" || fail "path escape" "code $code: $(cat "$work/out")"
+
+# 5b. одна и та же снятая формулировка дважды в пачке — одна строка в реестре
+stand
+echo '{"retired": [{"phrase": "двойная фраза", "files": "chat_RU.md", "why": "a"}, {"phrase": "двойная фраза", "files": "chat_RU.md", "why": "b"}]}' > "$work/twice.json"
+code=$(run "$work/twice.json")
+[ "$code" = 0 ] && [ "$(grep -c 'двойная фраза' "$work/g/xor.ad/docs/retired-terms.txt")" = 1 ] \
+  && pass "a phrase repeated inside one batch is registered once" || fail "in-batch duplicate" "code $code: $(cat "$work/out")"
+
 # 7a. снятая формулировка с файлом, которого нет, — отказ, реестр не тронут
 stand
 echo '{"retired": [{"phrase": "новая снятая фраза", "files": "11-x_RU.md", "why": "проба"}]}' > "$work/badretired.json"

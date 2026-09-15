@@ -24,9 +24,12 @@ The platform's promises rest on people and jobs, and they can break without a so
 - **Threshold.** Over 24 hours — a reminder; over 48 hours — an escalation. 72 hours is the DSA
   spec's internal target, not a norm; the thresholds sit before it.
 - **Who sends.** A scheduler job `dsa_notice_age`, hourly, re-arming itself like the others.
+  **One letter per threshold**: the notice gets `reminded_at` and `escalated_at`, and no repeat goes —
+  a letter every hour would make the channel unreadable (added 2026-09-15 after the review panel).
 - **Where to.** The reminder — to the `support@` of the face the notice came through (as the
   new-notice letter does); the escalation — to the personal addresses in `DSA_ESCALATION_EMAILS`,
-  not a shared inbox.
+  not a shared inbox, and over the fallback transport `MAIL_FALLBACK_TRANSPORT`: the main one may have
+  failed for the same reason as in W2.
 - **What the letter holds.** The notice number, the target kind, the age. No complaint text, no
   notifier data.
 
@@ -42,7 +45,8 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 - The worker calls `armScheduledJobs()` hourly: a standing job that is missing is created again.
 - A `prune_dsa_records` tombstone — an urgent letter to `DSA_ESCALATION_EMAILS`: that job's period
-  is promised in the privacy policy.
+  is promised in the privacy policy. A letter per **new** tombstone (by `id`), not per pass: an
+  always-failing job, once re-armed, yields a new tombstone about once a day.
 - Tombstones of other jobs — a line in the team's daily digest (the same digest as support's,
   `chat_EN.md` §13).
 - A gauge `relay_jobs_tombstones{kind}` in `GET /metrics`.
@@ -70,7 +74,7 @@ Each watchdog is broken on purpose and must reach the channel:
 |---|---|---|
 | W1 | a notice with `created_at` 25 hours ago | a reminder to `support@` |
 | W2 | the mail transport unavailable | a retry in the queue, then a letter over the fallback transport |
-| W3 | `prune_dsa_records` throws until out of attempts | an urgent letter and `relay_jobs_tombstones{kind="prune_dsa_records"} 1` |
+| W3 | `prune_dsa_records` throws until out of attempts | one urgent letter per tombstone and `relay_jobs_tombstones{kind="prune_dsa_records"}` ≥ 1 |
 | W4 | delete the job name from `scheduled.ts` | a red gate |
 | W5 | stop the node container | a letter after three minutes |
 

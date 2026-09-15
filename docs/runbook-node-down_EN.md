@@ -135,7 +135,8 @@ incident; red sends you back to step 2 with fresher logs.
 Named outright, so nobody hunts at night for something that does not exist:
 
 - **There is no alerting.** Nobody will wake you: a node that fell is discovered
-  by someone going to look. That is open work, not forgotten work.
+  by someone going to look. That is open work, not forgotten work: specified in `docs/watchdogs_EN.md`
+  §W5, item `node.external.pinger`.
 - **There is no centralised log shipping.** Anything that is not `warn`/`error`
   lives on the box only, and only until the file rotates.
 - **Metrics do not survive a restart.** There is no history, only a snapshot.

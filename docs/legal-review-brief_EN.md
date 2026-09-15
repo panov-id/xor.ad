@@ -266,6 +266,15 @@ mandatory discount, published for free.
   under DSA Art. 4(2)?
 - **Cost of the answer.** If it is hosting — Articles 16 and 17 apply to the queue.
 
+**31. A receipt without email as notification under Art. 16(5).**
+- **Fact.** A notifier with no email sees the decision on their device by a receipt: the device asks
+  when the storefront opens and shows a dot; no letters.
+- **Where.** `docs/dsa/SPEC_EN.md` §6.
+- **Question.** Is this "notify … without undue delay" or only "make available"? If a person does not
+  open the storefront for a month, is Art. 16(5) breached?
+- **Cost of the answer.** If it is not enough — email becomes required for the decision, and the receipt
+  stays only an acknowledgement.
+
 ## What we have already done so there would be fewer questions
 
 - Article 16 notices work end to end: form, intake, acknowledgement, an answer to

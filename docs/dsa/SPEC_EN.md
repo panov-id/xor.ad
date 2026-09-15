@@ -416,7 +416,18 @@ only `receipt_hash`, the SHA-256 of that code, beside the notice. The notice sti
 notifier identity. The decision and its reason are shown on that device by the code: the request
 is not signed by an identity, the address is not logged, and "no such receipt" and "not decided
 yet" get the same answer after the same delay, so the code cannot be guessed from a difference in
-replies. The hash goes with the notice after a year (`prune_dsa_records`). Email is optional and
+replies. The hash goes with the notice after a year (`prune_dsa_records`). **How exactly — added
+2026-09-15 after the review panel.** The code lives in the storefront's browser storage under
+`ss-receipts` / `nb-receipts` — a list "notice number — code", apart from the identity: "start over"
+does not erase it, moving the identity does not move it. The decision is requested by `POST` with the
+code in the body, not in the address: an address settles in delivery logs and the Referer header.
+"No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte,
+`Cache-Control: no-store`, one minimum response time for both branches; the per-address rate limit is
+held in the node's memory and not logged. The device asks about the decision itself when the
+storefront opens and puts a dot on "my notices"; the decision and its reason are shown only after a
+tap, and the reason does not quote the reported content — on a shared device the next person sees a
+dot, not a text. Whether such showing is "notifying" under Art. 16(5) when a person does not open the
+storefront for a long time is question 31 for the lawyer. Email is optional and
 for whoever may clear their browser data: the line by the field says "clear your browser data and
 you will not see the decision — leave an email". [retired] This said "It goes by email only —
 decided 2026-09-11": with no email no decision arrived at all, and Art. 16(5) rested on a
@@ -488,7 +499,7 @@ the feed mechanic.
 
 | What | Period | Then |
 |---|---|---|
-| Notice and snapshot | 1 year | deleted, an anonymous counter remains |
+| Notice and snapshot | 1 year | deleted; an anonymous monthly counter remains — the number of notices per target kind, without the receipt hash and without people. The counter is not in the code yet: `prune_dsa_records` only deletes (item `dsa.notice.counter`) |
 | Statement of reasons | 1 year | deleted |
 | Notifier's name and email | with the notice | deleted |
 

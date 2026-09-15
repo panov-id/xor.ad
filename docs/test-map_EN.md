@@ -325,7 +325,7 @@ through three different wrappers and cannot be counted by eye.
 | 16.8d | **The request cap holds under parallel requests** (§13, 2026-09-14) | two requests exist, two parallel `POST` → one accepted | nothing to check |
 | 16.8e | **A second answer lights the dot again** (§13, 2026-09-14) | an answer read, a second one written → `answer_seen = false` | nothing to check |
 | 16.9 | **A notice decision is visible by receipt with no email** (`dsa/SPEC_EN.md` §6, 2026-09-14) | a notice with no email → the node holds only `receipt_hash`; once decided → a request with the code shows it | nothing to check |
-| 16.9a | **A receipt cannot be guessed** (§6) | an unknown code and "not decided yet" → the same body and the same delay; no address in the log | nothing to check |
+| 16.9a | **A receipt cannot be guessed** (§6) | an unknown code and "not decided yet" → status 200 for both, bodies identical byte for byte, `Cache-Control: no-store`, response time no less than one shared minimum on both branches; the code sent in a `POST` body; no address in the log | nothing to check |
 | 16.9b | **The receipt hash goes with the notice** (§9) | `prune_dsa_records` after a year → neither the notice nor `receipt_hash` remains | nothing to check |
 
 ## 17. Changing the name and the age (step 1, fully — from step 2)

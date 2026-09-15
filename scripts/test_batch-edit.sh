@@ -77,6 +77,13 @@ python3 "$tool" "$work/ok.json" --root "$work/g" --dry-run >"$work/out" 2>&1
 grep -q "^+Пауза 15 минут" "$work/out" && grep -q "Пауза пять минут" "$work/g/xor.ad/docs/chat_RU.md" \
   && pass "dry run shows the diff and writes nothing" || fail "dry run" "$(cat "$work/out")"
 
+# 7a. снятая формулировка с файлом, которого нет, — отказ, реестр не тронут
+stand
+echo '{"retired": [{"phrase": "новая снятая фраза", "files": "11-x_RU.md", "why": "проба"}]}' > "$work/badretired.json"
+code=$(run "$work/badretired.json")
+[ "$code" = 1 ] && grep -q "не находится" "$work/out" && ! grep -q "новая снятая фраза" "$work/g/xor.ad/docs/retired-terms.txt" \
+  && pass "a retired wording whose file is not found refuses and leaves the registry alone" || fail "retired file not found" "code $code: $(cat "$work/out")"
+
 # 7. нечитаемая пачка — код 2
 echo '{' > "$work/bad.json"
 code=$(run "$work/bad.json")

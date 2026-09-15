@@ -94,6 +94,11 @@ def main():
 
     retired_lines = []
     for r in batch.get("retired", []):
+        # Каждый файл правила обязан находиться так же, как его ищет check-retired-terms:
+        # 15.09.2026 правило с голым именем экрана витрины легло в реестр и не нашло ни одного файла.
+        for token in r["files"].split():
+            if not (list((root / "xor.ad/docs").glob(token)) or list((root / "xor.ad").glob(token)) or list(root.glob(token))):
+                errors.append(f"снятая формулировка «{r['phrase'][:40]}»: файл «{token}» не находится — пишите путь от корня группы, например sosed.place/docs/…")
         line = f"{r['phrase']} | {r['files']} | {r['why']}"
         reg = root / REGISTRY
         current = reg.read_text() if reg.exists() else ""

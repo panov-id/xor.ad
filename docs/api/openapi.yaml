@@ -1,0 +1,963 @@
+openapi: 3.1.0
+info:
+  title: xor.ad relay node
+  version: "2026-09-15"
+  description: |-
+    The contract of the relay node, spec first (route to drawing, stage S4a, decided by the owner on 2026-09-15).
+    x-status built — the route exists in relay/node/src (main.ts, routes/*.ts); its shapes were read from the code on 2026-09-15 and not exercised live.
+    x-status spec or proposed — described in docs/protocol_EN.md §4 and the chat canon, not built. Where the canon names no body, none is invented here.
+    Checked by scripts/check-openapi.sh against the protocol tables, the code and the rendered pages.
+  x-description-ru: |-
+    Контракт узла relay, спецификация первая (маршрут до отрисовки, этап Э4а, решение владельца 15.09.2026).
+    x-status built — маршрут есть в relay/node/src (main.ts, routes/*.ts); формы прочитаны из кода 15.09.2026 и живым запросом не проверены.
+    x-status spec или proposed — описано в docs/protocol_RU.md §4 и каноне чата, не построено. Где канон тела не называет, здесь его не выдумывают.
+    Сверяется scripts/check-openapi.sh с таблицами протокола, кодом и собранными страницами.
+tags:
+  - name: node
+    description: Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).
+    x-description-ru: Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (main.ts).
+  - name: intake
+    description: Public intake from the storefronts, keyed by a publishable key or none.
+    x-description-ru: Публичный приём с витрин, по публикуемому ключу или без него.
+  - name: v1
+    description: The public API for third parties, by secret key. Errors have the form {error:{code,message}}.
+    x-description-ru: Публичный API для третьих сторон, по секретному ключу. Ошибки в форме {error:{code,message}}.
+  - name: auth
+    description: Sign-in to the panel by an emailed link.
+    x-description-ru: Вход в панель по ссылке из письма.
+  - name: admin
+    description: The panel's routes, by panel session and permission.
+    x-description-ru: Маршруты панели, по сессии панели и пермишену.
+  - name: identity
+    description: Identity and session (protocol §4.1). Not built.
+    x-description-ru: Личность и сессия (протокол §4.1). Не построено.
+  - name: feed
+    description: The feed (protocol §4.2). Not built.
+    x-description-ru: Лента (протокол §4.2). Не построено.
+  - name: chat
+    description: Like, match, chat (protocol §4.3). Not built.
+    x-description-ru: Лайк, мэтч, чат (протокол §4.3). Не построено.
+components:
+  securitySchemes:
+    publishableKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Publishable storefront key ak_pub_…, public by design; answers "which face", nothing more.
+      x-description-ru: Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только.
+    secretKey:
+      type: http
+      scheme: bearer
+      description: Secret key "ak_live_….secret" in Authorization. Scopes are permissions of access/.
+      x-description-ru: Секретный ключ «ak_live_….секрет» в Authorization. Скоупы — пермишены access/.
+    panelSession:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission.
+      x-description-ru: Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен.
+    metricsToken:
+      type: http
+      scheme: bearer
+      description: METRICS_TOKEN in Authorization or x-metrics-token; without it the route answers 404.
+      x-description-ru: METRICS_TOKEN в Authorization или x-metrics-token; без него маршрут отвечает 404.
+    identitySignature:
+      type: apiKey
+      in: header
+      name: x-identity-sign
+      description: 'Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window.'
+      x-description-ru: 'Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут.'
+  schemas:
+    Error:
+      type: object
+      description: The node's flat error.
+      x-description-ru: Плоская ошибка узла.
+      required: [error]
+      properties:
+        error: {type: string}
+    V1Error:
+      type: object
+      description: The error form of /v1.
+      x-description-ru: Форма ошибки /v1.
+      required: [error]
+      properties:
+        error:
+          type: object
+          properties:
+            code: {type: string, enum: [rate_limited, unauthorized, forbidden, unknown_brand, invalid_body]}
+            message: {type: string}
+    LegalReacceptance:
+      type: object
+      description: 409 for any signed request that publishes or opens a chat while an accepted revision is stale (protocol §6).
+      x-description-ru: 409 на подписанный запрос, который публикует или открывает чат при разошедшейся редакции (протокол §6).
+      properties:
+        error: {type: string, const: legal_reacceptance_required}
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              document: {type: string, enum: [terms, privacy]}
+              revision_date: {type: string, format: date}
+              revision_sha256: {type: string}
+    Ok:
+      type: object
+      properties:
+        ok: {type: boolean}
+    Health:
+      type: object
+      properties:
+        status: {type: string, const: ok}
+        node: {type: string}
+        region: {type: string}
+        env: {type: string}
+        image: {type: string}
+        storage: {type: boolean}
+        storage_transport: {type: string}
+        mail: {type: string}
+        brands: {type: array, items: {type: string}}
+        database: {type: string, enum: [ok, down, "off"]}
+        ts: {type: string}
+    Ready:
+      type: object
+      properties:
+        status: {type: string, enum: [ready, not_ready]}
+        node: {type: string}
+        env: {type: string}
+        database: {type: string}
+        ts: {type: string}
+    WaitlistLead:
+      type: object
+      required: [email]
+      properties:
+        email: {type: string, maxLength: 254, description: Checked by isEmail.}
+        website: {type: string, description: Bot trap; a non-empty value answers 202 before any check.}
+        source: {type: string, maxLength: 120}
+        lang: {type: string, maxLength: 8}
+        accent: {type: string, maxLength: 16}
+        mode: {type: string, maxLength: 16}
+        early_access: {type: boolean}
+    ClientError:
+      type: object
+      properties:
+        kind: {type: string, maxLength: 64}
+        message: {type: string, maxLength: 1000}
+        stack: {type: string, maxLength: 2000}
+        page_url: {type: string, maxLength: 300}
+        user_agent: {type: string, maxLength: 300}
+        source: {type: string, maxLength: 120}
+        extra: {type: object, description: Flat, at most 12 keys.}
+    Pageview:
+      type: object
+      properties:
+        path: {type: string, maxLength: 200}
+        lang: {type: string, maxLength: 8}
+        referrer: {type: string, description: Only the host of an http(s) referrer is kept.}
+        viewport: {type: number, description: Reduced to mobile, tablet or desktop.}
+        first_in_tab: {type: boolean}
+        source: {type: string, maxLength: 120}
+    Notice:
+      type: object
+      description: An Article 16 DSA notice.
+      x-description-ru: Уведомление по ст. 16 DSA.
+      required: [target_kind, reason_text, bona_fide]
+      properties:
+        target_kind: {type: string, enum: [feed_message, offer, table_line, chat, other]}
+        reason_text: {type: string, maxLength: 4000}
+        bona_fide: {type: boolean, const: true}
+        notifier_name: {type: string, maxLength: 200}
+        notifier_email: {type: string}
+        target_id: {type: string, maxLength: 400}
+        lang: {type: string, maxLength: 8}
+        source: {type: string, maxLength: 120}
+    KeySelf:
+      type: object
+      properties:
+        id: {type: string}
+        brand: {type: string}
+        name: {type: string}
+        scopes: {type: array, items: {type: string}}
+    FeedItem:
+      type: object
+      description: A feed item — a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).
+      x-description-ru: Карточка ленты — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).
+      properties:
+        id: {type: string, format: uuid}
+        text: {type: string, maxLength: 128}
+        mode: {type: string}
+        lat: {type: number}
+        lon: {type: number}
+        area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
+        like_count: {type: integer}
+        created_at: {type: integer, description: Unix seconds.}
+    LikeResult:
+      type: object
+      properties:
+        state: {type: string, enum: [liked, matched, spent]}
+        match_id: {type: string, format: uuid}
+    SessionsInvite:
+      type: object
+      properties:
+        lookup_id: {type: string, description: First 32 bytes of Argon2id over the nine-character code.}
+        ttl: {type: integer, const: 120}
+    SessionsClaim:
+      type: object
+      properties:
+        lookup_id: {type: string}
+        enc_secret: {type: string, description: 'An envelope: the new device''s signing and wrapping public keys and a label.'}
+    ChatsAlive:
+      type: object
+      properties:
+        ids: {type: array, items: {type: string, format: uuid}}
+    ChatsAliveResult:
+      type: object
+      properties:
+        alive: {type: array, items: {type: string, format: uuid}}
+paths:
+  /health:
+    get:
+      tags: [node]
+      summary: Node health, always 200
+      x-summary-ru: Состояние узла, всегда 200
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: []
+      responses:
+        "200": {description: The node answers., x-description-ru: Узел отвечает., content: {application/json: {schema: {$ref: "#/components/schemas/Health"}}}}
+  /ready:
+    get:
+      tags: [node]
+      summary: Readiness, 503 while the database is down
+      x-summary-ru: Готовность, 503 пока база недоступна
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: []
+      responses:
+        "200": {description: Ready., x-description-ru: Готов., content: {application/json: {schema: {$ref: "#/components/schemas/Ready"}}}}
+        "503": {description: Database down., x-description-ru: База недоступна.}
+  /metrics:
+    get:
+      tags: [node]
+      summary: Prometheus counters by token
+      x-summary-ru: Счётчики Prometheus по токену
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/main.ts
+      security: [{metricsToken: []}]
+      responses:
+        "200": {description: text/plain; version=0.0.4, x-description-ru: text/plain; version=0.0.4}
+        "404": {description: No token or a wrong one — not 401, so the path is not confirmed., x-description-ru: Нет токена или не тот — не 401, чтобы путь не подтверждался.}
+  /chat:
+    get:
+      tags: [node]
+      summary: Chat relay slot, not enabled
+      x-summary-ru: Слот релея чата, не включён
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: []
+      responses:
+        "501": {description: chat relay not enabled on this node yet, x-description-ru: релей чата на этом узле ещё не включён}
+  /waitlist:
+    post:
+      tags: [intake]
+      summary: A waitlist lead from a storefront
+      x-summary-ru: Заявка в лист ожидания с витрины
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: [{publishableKey: []}, {}]
+      description: Rate limit 20 per hour and 60 per day by address; the key is optional unless REQUIRE_API_KEY=true.
+      x-description-ru: Предел 20 в час и 60 в сутки по адресу; ключ необязателен, если не REQUIRE_API_KEY=true.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/WaitlistLead"}}}}
+      responses:
+        "200": {description: Stored, a duplicate, or storage off., x-description-ru: Сохранено, дубль или хранилище выключено., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+        "202": {description: Bot trap filled., x-description-ru: Заполнена ловушка для ботов.}
+        "401": {description: Missing or invalid key., x-description-ru: Нет ключа или ключ неверен., content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
+        "403": {description: Origin not allowed for this key., x-description-ru: Источник не разрешён для ключа.}
+        "422": {description: invalid email, x-description-ru: неверная почта}
+        "429": {description: Address limit or daily quota., x-description-ru: Предел адреса или суточная квота.}
+        "503": {description: brand unavailable, x-description-ru: бренд недоступен}
+  /client-error:
+    post:
+      tags: [intake]
+      summary: A client error report, always 200
+      x-summary-ru: Отчёт об ошибке клиента, всегда 200
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: [{publishableKey: []}, {}]
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ClientError"}}}}
+      responses:
+        "200": {description: Accepted or silently dropped., x-description-ru: Принято или молча отброшено., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+  /pageview:
+    post:
+      tags: [intake]
+      summary: A page view for our own counter, always 200
+      x-summary-ru: Просмотр страницы для своего счётчика, всегда 200
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: [{publishableKey: []}]
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/Pageview"}}}}
+      responses:
+        "200": {description: Accepted or silently dropped., x-description-ru: Принято или молча отброшено., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+  /report:
+    post:
+      tags: [intake]
+      summary: An Article 16 notice, public by design
+      x-summary-ru: Уведомление по ст. 16, публично по замыслу
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: [{publishableKey: []}, {}]
+      description: Rate limit 10 per hour and 40 per day by address; a key only names the brand and never refuses the notice.
+      x-description-ru: Предел 10 в час и 40 в сутки по адресу; ключ только называет бренд и уведомление не отклоняет.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/Notice"}}}}
+      responses:
+        "202": {description: Accepted with an id., x-description-ru: Принято, с номером.}
+        "422": {description: invalid body or a required field missing, x-description-ru: неверное тело или нет обязательного поля}
+        "429": {description: Address limit., x-description-ru: Предел адреса.}
+        "503": {description: could not store the notice, x-description-ru: не удалось сохранить уведомление}
+  /csp-report:
+    post:
+      tags: [intake]
+      summary: A content-security-policy violation, always 204
+      x-summary-ru: Нарушение политики безопасности контента, всегда 204
+      x-status: built
+      x-source: relay/node/src/main.ts
+      security: []
+      responses:
+        "204": {description: No body, even over the limit., x-description-ru: Без тела, даже сверх предела.}
+  /v1/waitlist:
+    post:
+      tags: [v1]
+      summary: A waitlist lead by secret key
+      x-summary-ru: Заявка в лист ожидания по секретному ключу
+      x-status: built
+      x-source: relay/node/src/routes/v1.ts
+      security: [{secretKey: []}]
+      description: Scope waitlist.write. Idempotency-Key replays a stored response when key and body hash match.
+      x-description-ru: Скоуп waitlist.write. Idempotency-Key повторяет сохранённый ответ при совпадении ключа и хэша тела.
+      parameters:
+        - {name: Idempotency-Key, in: header, required: false, schema: {type: string}}
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/WaitlistLead"}}}}
+      responses:
+        "200": {description: Stored., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+        "401": {description: No secret key, or unknown or revoked., x-description-ru: Нет секретного ключа или он неизвестен или отозван., content: {application/json: {schema: {$ref: "#/components/schemas/V1Error"}}}}
+        "403": {description: Key not scoped., x-description-ru: У ключа нет скоупа.}
+        "409": {description: unknown_brand, x-description-ru: unknown_brand}
+        "422": {description: invalid_body, x-description-ru: invalid_body}
+        "429": {description: Address limit or daily quota., x-description-ru: Предел адреса или суточная квота.}
+  /v1/pageview:
+    post:
+      tags: [v1]
+      summary: A page view by secret key
+      x-summary-ru: Просмотр страницы по секретному ключу
+      x-status: built
+      x-source: relay/node/src/routes/v1.ts
+      security: [{secretKey: []}]
+      description: Scope pageviews.write.
+      x-description-ru: Скоуп pageviews.write.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/Pageview"}}}}
+      responses:
+        "200": {description: Accepted., x-description-ru: Принято., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+        "401": {description: No or unknown secret key., x-description-ru: Нет или неизвестен секретный ключ., content: {application/json: {schema: {$ref: "#/components/schemas/V1Error"}}}}
+        "403": {description: Key not scoped., x-description-ru: У ключа нет скоупа.}
+        "429": {description: Address limit or daily quota., x-description-ru: Предел адреса или суточная квота.}
+  /v1/client-error:
+    post:
+      tags: [v1]
+      summary: A client error by secret key
+      x-summary-ru: Ошибка клиента по секретному ключу
+      x-status: built
+      x-source: relay/node/src/routes/v1.ts
+      security: [{secretKey: []}]
+      description: Scope client_errors.write.
+      x-description-ru: Скоуп client_errors.write.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ClientError"}}}}
+      responses:
+        "200": {description: Accepted., x-description-ru: Принято., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+        "401": {description: No or unknown secret key., x-description-ru: Нет или неизвестен секретный ключ., content: {application/json: {schema: {$ref: "#/components/schemas/V1Error"}}}}
+        "403": {description: Key not scoped., x-description-ru: У ключа нет скоупа.}
+        "429": {description: Address limit or daily quota., x-description-ru: Предел адреса или суточная квота.}
+  /v1/me:
+    get:
+      tags: [v1]
+      summary: What this key is
+      x-summary-ru: Что это за ключ
+      x-status: built
+      x-source: relay/node/src/routes/v1.ts
+      security: [{secretKey: []}]
+      responses:
+        "200": {description: The key describing itself., x-description-ru: Ключ описывает сам себя., content: {application/json: {schema: {$ref: "#/components/schemas/KeySelf"}}}}
+        "401": {description: No or unknown secret key., x-description-ru: Нет или неизвестен секретный ключ., content: {application/json: {schema: {$ref: "#/components/schemas/V1Error"}}}}
+        "429": {description: Address limit., x-description-ru: Предел адреса.}
+  /auth/request-link:
+    post:
+      tags: [auth]
+      summary: Ask for a sign-in link, always 204
+      x-summary-ru: Запросить ссылку для входа, всегда 204
+      x-status: built
+      x-source: relay/node/src/routes/admin.ts
+      security: []
+      description: The letter goes only to an existing operator, at most 6 an hour per mailbox; the answer never says which.
+      x-description-ru: Письмо уходит только существующему оператору, не больше 6 в час на ящик; ответ этого не выдаёт.
+      responses:
+        "204": {description: Accepted., x-description-ru: Принято.}
+        "429": {description: Address limit., x-description-ru: Предел адреса.}
+  /auth/callback:
+    get:
+      tags: [auth]
+      summary: Exchange a one-time link for a session
+      x-summary-ru: Обменять одноразовую ссылку на сессию
+      x-status: built
+      x-source: relay/node/src/routes/admin.ts
+      security: []
+      parameters:
+        - {name: token, in: query, required: true, schema: {type: string, pattern: "^[0-9a-f]{64}$"}}
+      responses:
+        "200": {description: A panel session JWT., x-description-ru: JWT сессии панели.}
+        "401": {description: invalid or expired link, x-description-ru: ссылка неверна или истекла}
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Who is signed in
+      x-summary-ru: Кто вошёл
+      x-status: built
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Email, role, brand and permissions., x-description-ru: Почта, роль, бренд и пермишены.}
+        "401": {description: unauthorized, x-description-ru: не авторизован}
+  /admin/waitlist:
+    get:
+      tags: [admin]
+      summary: Waitlist leads
+      x-summary-ru: Заявки листа ожидания
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, maximum: 500}}
+        - {name: from, in: query, schema: {type: string}}
+        - {name: to, in: query, schema: {type: string}}
+        - {name: before, in: query, schema: {type: string}}
+      responses:
+        "200": {description: Rows with x-total-count; a tenant sees its own brand., x-description-ru: Строки с x-total-count; арендатор видит свой бренд.}
+        "401": {description: unauthorized, x-description-ru: не авторизован}
+        "403": {description: forbidden, x-description-ru: запрещено}
+        "422": {description: invalid from/to/before, x-description-ru: неверные from/to/before}
+  /admin/logs-client-errors:
+    get: &adminLog
+      tags: [admin]
+      summary: Client error log
+      x-summary-ru: Журнал ошибок клиента
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: limit, in: query, schema: {type: integer}}
+        - {name: before, in: query, schema: {type: string}}
+        - {name: brand, in: query, schema: {type: string}}
+      responses:
+        "200": {description: Rows, totals and 32 time buckets., x-description-ru: Строки, итоги и 32 корзины по времени.}
+        "403": {description: forbidden, x-description-ru: запрещено}
+  /admin/logs-pageviews:
+    get:
+      <<: *adminLog
+      summary: Page view log
+      x-summary-ru: Журнал просмотров
+  /admin/logs-server:
+    get:
+      <<: *adminLog
+      summary: Server log, platform only
+      x-summary-ru: Журнал сервера, только платформа
+  /admin/logs-audit:
+    get:
+      <<: *adminLog
+      summary: Audit log
+      x-summary-ru: Журнал аудита
+  /admin/brands:
+    get:
+      tags: [admin]
+      summary: Brands
+      x-summary-ru: Бренды
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Brands from the registry and the environment., x-description-ru: Бренды из реестра и окружения.}
+    post:
+      tags: [admin]
+      summary: Create or update a brand, platform only
+      x-summary-ru: Завести или обновить бренд, только платформа
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Updated., x-description-ru: Обновлено.}
+        "201": {description: Created., x-description-ru: Заведено.}
+        "403": {description: A tenant., x-description-ru: Арендатор.}
+        "409": {description: The brand is set in the environment., x-description-ru: Бренд задан в окружении.}
+        "422": {description: invalid body, x-description-ru: неверное тело}
+  /admin/api-keys:
+    get:
+      tags: [admin]
+      summary: Publishable keys
+      x-summary-ru: Публикуемые ключи
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Keys with quotas and today's use., x-description-ru: Ключи с квотами и расходом за сегодня.}
+    post:
+      tags: [admin]
+      summary: Create a publishable key
+      x-summary-ru: Выпустить публикуемый ключ
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "201": {description: Created., x-description-ru: Выпущен.}
+        "403": {description: Another brand., x-description-ru: Чужой бренд.}
+        "404": {description: unknown brand, x-description-ru: неизвестный бренд}
+        "422": {description: invalid body or origins, x-description-ru: неверное тело или источники}
+  /admin/api-keys/{id}/quota:
+    patch: &quota
+      tags: [admin]
+      summary: Set a publishable key's daily quota, platform only
+      x-summary-ru: Задать суточную квоту публикуемого ключа, только платформа
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: The key with its quotas., x-description-ru: Ключ с квотами.}
+        "403": {description: A tenant., x-description-ru: Арендатор.}
+        "404": {description: not found, x-description-ru: не найден}
+        "422": {description: Exactly one quota field, a positive number or null., x-description-ru: Ровно одно поле квоты, положительное число или null.}
+  /admin/secret-keys/{id}/quota:
+    patch:
+      <<: *quota
+      summary: Set a secret key's daily quota, platform only
+      x-summary-ru: Задать суточную квоту секретного ключа, только платформа
+  /admin/secret-keys:
+    get:
+      tags: [admin]
+      summary: Secret keys
+      x-summary-ru: Секретные ключи
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Keys without their secrets., x-description-ru: Ключи без секретов.}
+    post:
+      tags: [admin]
+      summary: Create a secret key, shown once
+      x-summary-ru: Выпустить секретный ключ, показывается один раз
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "201": {description: The key with its secret, shown_once true., x-description-ru: Ключ с секретом, shown_once true.}
+        "403": {description: Scopes beyond your own permissions., x-description-ru: Скоупы сверх собственных пермишенов.}
+        "404": {description: unknown brand, x-description-ru: неизвестный бренд}
+        "422": {description: invalid body, name or scopes, x-description-ru: неверное тело, имя или скоупы}
+  /admin/secret-keys/{id}/revoke:
+    post:
+      tags: [admin]
+      summary: Revoke a secret key
+      x-summary-ru: Отозвать секретный ключ
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Revoked., x-description-ru: Отозван.}
+        "404": {description: not found, x-description-ru: не найден}
+        "409": {description: already revoked, x-description-ru: уже отозван}
+  /admin/api-keys/{id}/revoke:
+    post:
+      tags: [admin]
+      summary: Revoke a publishable key, effective within 60 seconds
+      x-summary-ru: Отозвать публикуемый ключ, действует в течение 60 секунд
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Revoked., x-description-ru: Отозван.}
+        "404": {description: not found, x-description-ru: не найден}
+  /admin/panel-users:
+    get:
+      tags: [admin]
+      summary: Panel operators
+      x-summary-ru: Операторы панели
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Operators; a tenant sees its own., x-description-ru: Операторы; арендатор видит своих.}
+    post:
+      tags: [admin]
+      summary: Add or overwrite an operator
+      x-summary-ru: Добавить или перезаписать оператора
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      responses:
+        "200": {description: Stored; an existing record is overwritten., x-description-ru: Сохранено; существующая запись перезаписывается.}
+        "403": {description: role not available to a tenant, x-description-ru: роль недоступна арендатору}
+        "404": {description: unknown brand, x-description-ru: неизвестный бренд}
+        "422": {description: invalid email or role, x-description-ru: неверная почта или роль}
+  /admin/panel-users/{email}:
+    patch:
+      tags: [admin]
+      summary: Change an operator's role
+      x-summary-ru: Сменить роль оператора
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: email, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Changed., x-description-ru: Изменено.}
+        "404": {description: not found, x-description-ru: не найден}
+        "409": {description: the last administrator cannot be demoted, x-description-ru: последнего администратора нельзя понизить}
+        "422": {description: invalid role, x-description-ru: неверная роль}
+    delete:
+      tags: [admin]
+      summary: Remove an operator
+      x-summary-ru: Удалить оператора
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: email, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Removed., x-description-ru: Удалён.}
+        "404": {description: not found, x-description-ru: не найден}
+        "409": {description: the last administrator cannot be deleted, x-description-ru: последнего администратора нельзя удалить}
+  /admin/panel-users/{email}/invite:
+    post:
+      tags: [admin]
+      summary: Send an operator an invitation
+      x-summary-ru: Отправить оператору приглашение
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/admin.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: email, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Invited., x-description-ru: Приглашён.}
+        "404": {description: not found, x-description-ru: не найден}
+        "502": {description: could not send the invitation, x-description-ru: не удалось отправить приглашение}
+  /admin/dsa-notices:
+    get:
+      tags: [admin]
+      summary: Article 16 notices awaiting a decision
+      x-summary-ru: Уведомления по ст. 16, ждущие решения
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/dsa.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: state, in: query, schema: {type: string, enum: [all]}}
+      responses:
+        "200": {description: At most 200, oldest first., x-description-ru: Не больше 200, старые первыми.}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/dsa-notices/{id}/escalate:
+    post:
+      tags: [admin]
+      summary: Record an Article 18 report to an authority
+      x-summary-ru: Записать сообщение в органы по ст. 18
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/dsa.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Recorded in the audit log., x-description-ru: Записано в журнал аудита.}
+        "404": {description: no such notice, x-description-ru: нет такого уведомления}
+        "422": {description: invalid recipient or note, x-description-ru: неверный адресат или примечание}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/dsa-notices/{id}/decide:
+    post:
+      tags: [admin]
+      summary: Decide on a notice
+      x-summary-ru: Решить по уведомлению
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/dsa.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Decided, with a statement id when upheld., x-description-ru: Решено, с номером мотивировки при удовлетворении.}
+        "404": {description: no such notice, x-description-ru: нет такого уведомления}
+        "409": {description: already decided, x-description-ru: уже решено}
+        "422": {description: invalid decision fields, x-description-ru: неверные поля решения}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /identities:
+    post:
+      tags: [identity]
+      summary: Create an identity
+      x-summary-ru: Завести личность
+      x-status: proposed
+      security: [{publishableKey: []}]
+      description: The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon.
+      x-description-ru: Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано.
+      responses:
+        "200": {description: identity_id, x-description-ru: identity_id}
+  /vault/share:
+    post:
+      tags: [identity]
+      summary: Exchange a PIN proof for the node's share of the vault key
+      x-summary-ru: Обменять доказательство ПИНа на долю ключа хранилища
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: Ten wrong attempts lock access until the paper code; the share is kept.
+      x-description-ru: Десять неверных попыток закрывают вход до бумажного кода; доля цела.
+      responses:
+        "200": {description: The share., x-description-ru: Доля.}
+  /sessions/invite:
+    post:
+      tags: [identity]
+      summary: A transfer code for another device
+      x-summary-ru: Код переноса на другое устройство
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: Nine characters, two minutes, one use; requires a PIN proof.
+      x-description-ru: Девять символов, две минуты, одно применение; требует доказательства ПИНа.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsInvite"}}}}
+      responses:
+        "200": {description: Invitation stored., x-description-ru: Приглашение записано.}
+  /vault/pin:
+    post:
+      tags: [identity]
+      summary: Change the PIN
+      x-summary-ru: Сменить ПИН
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: The old PIN, a new auth_hash, a reissued share.
+      x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
+      responses:
+        "200": {description: Changed., x-description-ru: Сменён.}
+  /identities/close:
+    post:
+      tags: [identity]
+      summary: Start over — close the identity
+      x-summary-ru: Начать заново — закрыть личность
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: With a PIN proof; appearance rows are deleted in the same transaction.
+      x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
+      responses:
+        "200": {description: Closed., x-description-ru: Закрыта.}
+  /identities/appearance:
+    put:
+      tags: [identity]
+      summary: The identity's appearance for this face
+      x-summary-ru: Оформление личности для этого лица
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: One row per face named by the API key — theme, contrast step, an accent from that face's set.
+      x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
+      responses:
+        "200": {description: Saved., x-description-ru: Сохранено.}
+  /sessions/claim:
+    post:
+      tags: [identity]
+      summary: Use the transfer code on the new device
+      x-summary-ru: Применить код переноса на новом устройстве
+      x-status: spec
+      security: [{publishableKey: []}]
+      description: The old device goes still once the person confirms.
+      x-description-ru: Прежнее устройство замирает, когда человек подтвердит.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsClaim"}}}}
+      responses:
+        "200": {description: Claimed., x-description-ru: Принято.}
+  /recovery/claim:
+    post:
+      tags: [identity]
+      summary: Raise an identity with the paper code
+      x-summary-ru: Поднять личность бумажным кодом
+      x-status: proposed
+      security: [{publishableKey: []}]
+      responses:
+        "200": {description: Raised., x-description-ru: Поднята.}
+  /legal/manifest:
+    get:
+      tags: [identity]
+      summary: The documents' current revisions
+      x-summary-ru: Нынешние редакции документов
+      x-status: proposed
+      security: [{publishableKey: []}]
+      description: Date, substance sha256 and re-acceptance policy of the three documents.
+      x-description-ru: Дата, sha256 существа и политика повторного принятия трёх документов.
+      responses:
+        "200": {description: The manifest., x-description-ru: Манифест.}
+  /legal/accept:
+    post:
+      tags: [identity]
+      summary: Record an acceptance
+      x-summary-ru: Записать принятие
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: Document, date, hash; one row each.
+      x-description-ru: Документ, дата, хэш; по строке на каждое.
+      responses:
+        "200": {description: Recorded., x-description-ru: Записано.}
+  /feed:
+    post:
+      tags: [feed]
+      summary: Publish a phrase
+      x-summary-ru: Опубликовать фразу
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: Answers 202 at once; visible_at stays empty until the queue's verdict.
+      x-description-ru: Отвечает 202 сразу; visible_at пуст до вердикта очереди.
+      responses:
+        "202": {description: Accepted into the queue., x-description-ru: Принято в очередь.}
+        "409": {description: Re-acceptance required., x-description-ru: Нужно принять документы заново., content: {application/json: {schema: {$ref: "#/components/schemas/LegalReacceptance"}}}}
+    get:
+      tags: [feed]
+      summary: The feed by intersecting circles
+      x-summary-ru: Лента по пересечению кругов
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: With language, mode and age filters; 30 cards, then more (screen 3).
+      x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё (экран 3).
+      responses:
+        "200": {description: Feed items., x-description-ru: Карточки ленты., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/FeedItem"}}}}}
+  /feed/{id}:
+    delete:
+      tags: [feed]
+      summary: Take down your own phrase
+      x-summary-ru: Снять свою фразу
+      x-status: proposed
+      security: [{identitySignature: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: Taken down; the slot is freed, not the hourly ceiling., x-description-ru: Снята; слот освобождён, часовой потолок — нет.}
+  /feed/density:
+    get:
+      tags: [feed]
+      summary: The density band under the radius handle
+      x-summary-ru: Ступень плотности под ручкой радиуса
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number.
+      x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число.
+      responses:
+        "200": {description: The band., x-description-ru: Ступень.}
+  /feed/{id}/like:
+    post:
+      tags: [chat]
+      summary: Like a phrase or an offer
+      x-summary-ru: Лайкнуть фразу или оффер
+      x-status: proposed
+      security: [{identitySignature: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
+    delete:
+      tags: [chat]
+      summary: Take a like back until a match
+      x-summary-ru: Снять лайк, пока нет мэтча
+      x-status: spec
+      security: [{identitySignature: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: Taken back, or state spent once a match exists., x-description-ru: Снят или state spent, если мэтч уже есть., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
+  /matches/{id}/consent:
+    post:
+      tags: [chat]
+      summary: Consent to talk
+      x-summary-ru: Согласиться поговорить
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: The chat opens when both have consented.
+      x-description-ru: Чат открывается, когда согласились оба.
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: Consent recorded., x-description-ru: Согласие записано.}
+        "409": {description: Re-acceptance required., x-description-ru: Нужно принять документы заново., content: {application/json: {schema: {$ref: "#/components/schemas/LegalReacceptance"}}}}
+  /inbox:
+    get:
+      tags: [chat]
+      summary: Offers and conversations in one answer
+      x-summary-ru: Предложения и беседы одним ответом
+      x-status: spec
+      security: [{identitySignature: []}]
+      responses:
+        "200": {description: A count only on offers., x-description-ru: Счётчик только на предложениях.}
+  /chats/{id}/ticket:
+    post:
+      tags: [chat]
+      summary: A one-time ticket for the socket
+      x-summary-ru: Одноразовый билет для сокета
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: The ticket goes in Sec-WebSocket-Protocol, not the query string (protocol §4.4).
+      x-description-ru: Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: The ticket., x-description-ru: Билет.}
+  /chats/alive:
+    post:
+      tags: [chat]
+      summary: Which chats are still alive
+      x-summary-ru: Какие чаты ещё живы
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: Only on a confirmed database read — 503 rather than an empty list, or local history would be wiped.
+      x-description-ru: Только при подтверждённом чтении базы — 503, а не пустой список, иначе стёрлась бы локальная история.
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAlive"}}}}
+      responses:
+        "200": {description: The live ids., x-description-ru: Живые id., content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAliveResult"}}}}
+        "503": {description: The database read was not confirmed., x-description-ru: Чтение базы не подтверждено.}
+  /chats/{id}:
+    delete:
+      tags: [chat]
+      summary: Close a conversation by hand, for both
+      x-summary-ru: Закрыть беседу руками, сразу у обоих
+      x-status: proposed
+      security: [{identitySignature: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: Closed., x-description-ru: Закрыта.}
+    patch:
+      tags: [chat]
+      summary: Your own span handle
+      x-summary-ru: Своя ручка срока
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: 10, 30 or 60 minutes, or while we talk (260 minutes).
+      x-description-ru: 10, 30 или 60 минут либо «пока говорим» (260 минут).
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: Saved., x-description-ru: Сохранено.}

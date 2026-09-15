@@ -43,7 +43,7 @@ value	unit	kind	why	example
 16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:891
 180	KB	measurement	встречено в: now has `rel="preload"`. Image weight is moderate (the hero, at 180 KB, is the	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:203
 1	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:359
-1	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:251
+1	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
 1	min	prose.figure	встречено в: after 1 minute 40 seconds, and since the smaller of the two applies, one	xor.ad/docs/open-work_EN.md:1702
 20	m	prose.figure	встречено в: - Panel head: `City feed` / `Newest · fades in 4h 20m` (ephemerality).	xor.ad/docs/app-prototype-spec_EN.md:58
 20	s	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
@@ -56,7 +56,7 @@ value	unit	kind	why	example
 2	m	external.fact	встречено в: against a €2m threshold. This used to read	xor.ad/docs/dsa/README_EN.md:81
 2	min	sample.data	встречено в: Note over A,B: the code expired after 2 minutes, no move happened	xor.ad/docs/chat-flows_EN.md:144
 300	s	measurement	срок кеша html на краю сети: параметр раздачи, не обязательство перед человеком	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:184
-30	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:251
+30	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
 32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:892
 32	min	sample.data	встречено в: alive -- "yes" --> rate{"64 likes<br/>in 32 minutes?"}	xor.ad/docs/chat-flows_EN.md:327
 3	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:359
@@ -70,7 +70,7 @@ value	unit	kind	why	example
 500	m	prose.figure	встречено в: from 500 m to 25 km and reading exact numbers, a person builds a density map of	sosed.place/docs/00-mechanics_EN.md:434
 512	MB	measurement	встречено в: | RAM / size | 512 MB / deploy ≤ 1 GB |	xor.ad/docs/backend-free-stack_EN.md:75
 5	d	external.fact	встречено в: - **Subprocessors** (§3): written notice in advance, **5 days** to object, silence	xor.ad/docs/legal-archive/bunny-dpa_EN.md:28
-5	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:251
+5	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
 5	min	prose.figure	встречено в: agree: 256 characters, 20 minutes / 1 hour / 4:20, the ±5 minute signature	xor.ad/docs/AUDIT_EN.md:596
 600	m	prose.figure	встречено в: - **Location**: the static "Kolonaki · 600 m" is gone. Distance is **never computed**. Matching 	xor.ad/docs/app-prototype-spec_EN.md:47
 64	bytes	sample.data	длина вывода Argon2id в диаграмме обмена	xor.ad/docs/chat-flows_EN.md:137

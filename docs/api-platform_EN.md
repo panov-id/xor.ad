@@ -15,9 +15,10 @@ below about webhooks and notifications.
 
 | Piece | State |
 | --- | --- |
-| HTTP node | Deno, own router: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /ready`, `GET /metrics` (token-gated via `METRICS_TOKEN`; 404 without it) |
+| HTTP node | Deno, own router: `POST /waitlist`, `POST /report`, `POST /pageview`, `POST /client-error`, `GET /health`, `GET /ready`, `GET /metrics` (token-gated via `METRICS_TOKEN`; 404 without it), `POST /csp-report`; HEAD answers every GET, OPTIONS answers 204 on any path |
 | Public API | `/v1/waitlist`, `/v1/pageview`, `/v1/client-error`, `/v1/me` under a secret key |
-| Admin routes | `/admin/*`: brands, keys, quotas, logs, Article 16 notices |
+| Admin routes | `/admin/*`: waitlist leads, brands, publishable and secret keys with quotas and revocation, panel operators with invitations, logs, Article 16 notices and Article 18 escalation; sign-in — `/auth/request-link`, `/auth/callback`, `/auth/me` |
+| The full list | `docs/api/openapi.yaml` and the page `docs/api/index_EN.html` — 39 built operations and the described ones, checked by `scripts/check-openapi.sh` against the code and the protocol (added 2026-09-15) |
 | Article 16 notices | intake, queue, decision, letters — built (`docs/dsa/`) |
 | Chat | stub slot `GET /chat` → 501 |
 | Storage | an "object per record" abstraction: Bunny Storage on the pool, `fs` on the local stand |
@@ -163,12 +164,15 @@ cannot invite anyone into a brand it cannot see.
 
 ## 1. Public API
 
-The endpoints today are flat and unversioned. A public API freezes that forever, so
-the shape comes before the content.
+When this section was written the endpoints were flat and unversioned; `/v1` has been
+built since (`relay/node/src/routes/v1.ts`, inventory of 2026-09-15). A public API freezes
+the shape forever, so the shape comes before the content.
 
 **Versioning.** A `/v1/…` prefix. The existing `POST /waitlist` and
-`POST /client-error` stay as they are (the landings call them) and are aliased under
-`/v1`.
+`POST /client-error` stay as they are (the landings call them). They did not become
+aliases of `/v1` (clarified 2026-09-15 by the route inventory): the old ones take a
+publishable `x-api-key` and never refuse, `/v1` takes a secret key, scopes and the
+`{error:{code}}` error form. [retired] This said "are aliased under `/v1`".
 
 **`GET /v1/me`** — what this key is. It answers with the key's own id, the brand
 it speaks for, its name and its scopes:

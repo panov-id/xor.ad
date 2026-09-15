@@ -1,0 +1,566 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Node API · 2026-09-15</title><style>
+:root{--bg:#f6f5f2;--panel:#ffffff;--fg:#1c1b19;--muted:#5b5853;--line:#d9d6cf;--accent:#8a3b1f;
+--built:#1f6b3a;--built-bg:#e3f1e7;--spec:#7a5300;--spec-bg:#fbf0d6;--prop:#4a4f57;--prop-bg:#e8eaee;
+--get:#1e5aa8;--post:#1f6b3a;--put:#7a5300;--patch:#6a3d9a;--delete:#a12a24}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--panel:#1d1f24;--fg:#ecebe8;
+--muted:#a8a59e;--line:#34363d;--accent:#e08a66;--built:#7fd49b;--built-bg:#1d3326;--spec:#f0c06a;--spec-bg:#3a2f16;
+--prop:#b9bec7;--prop-bg:#2c2f36;--get:#8db8f2;--post:#7fd49b;--put:#f0c06a;--patch:#c3a3ee;--delete:#f09a93}}
+:root[data-theme="dark"]{--bg:#15161a;--panel:#1d1f24;--fg:#ecebe8;--muted:#a8a59e;--line:#34363d;--accent:#e08a66;
+--built:#7fd49b;--built-bg:#1d3326;--spec:#f0c06a;--spec-bg:#3a2f16;--prop:#b9bec7;--prop-bg:#2c2f36;--get:#8db8f2;
+--post:#7fd49b;--put:#f0c06a;--patch:#c3a3ee;--delete:#f09a93}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+padding-inline:16px;padding-block:24px 64px}
+main{max-width:980px;margin:0 auto}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:21px;margin:40px 0 12px;padding-top:8px;border-top:2px solid var(--line)}
+h3{font-size:15px;margin:18px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+p{margin:6px 0}a{color:var(--accent)}
+code,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:14px}
+.lead{color:var(--muted)}.top{display:flex;gap:16px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:16px 0}
+.op{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:12px 0}
+.op-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.method{font:700 13px/1 ui-monospace,Menlo,monospace;text-transform:uppercase;padding:5px 8px;border-radius:5px;
+border:2px solid currentColor;min-width:64px;text-align:center}
+.m-get{color:var(--get)}.m-post{color:var(--post)}.m-put{color:var(--put)}.m-patch{color:var(--patch)}.m-delete{color:var(--delete)}
+.path{font-weight:600;word-break:break-all}
+.chip{font-size:13px;padding:2px 8px;border-radius:999px}
+.s-built{color:var(--built);background:var(--built-bg)}.s-spec{color:var(--spec);background:var(--spec-bg)}
+.s-proposed{color:var(--prop);background:var(--prop-bg)}.internal{color:var(--muted);border:1px dashed var(--line)}
+.table{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:6px 8px}th{color:var(--muted);font-weight:600}
+.src{color:var(--muted);font-size:13px}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-x:auto;margin:6px 0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style></head><body><main>
+<div class="top"><h1>Node API</h1><a href="index_RU.html">Русский</a></div>
+<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 61 operations, OpenAPI 3.1.0, 2026-09-15.</p>
+<nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#schemas">Schemas</a></nav>
+<h2 id="tag-node">node</h2>
+<p>Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).</p>
+<section class="op" id="get-health">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/health</code><span class="chip s-built">built</span></div>
+<p><strong>Node health, always 200</strong></p>
+<h3>Access</h3><p>no access control</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The node answers.</td><td><a href="#schema-health"><code>Health</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="get-ready">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/ready</code><span class="chip s-built">built</span></div>
+<p><strong>Readiness, 503 while the database is down</strong></p>
+<h3>Access</h3><p>no access control</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Ready.</td><td><a href="#schema-ready"><code>Ready</code></a></td></tr><tr><td><code>503</code></td><td>Database down.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="get-metrics">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/metrics</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Prometheus counters by token</strong></p>
+<h3>Access</h3><p>METRICS_TOKEN in Authorization or x-metrics-token; without it the route answers 404</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>text/plain; version=0.0.4</td><td></td></tr><tr><td><code>404</code></td><td>No token or a wrong one — not 401</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="get-chat">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/chat</code><span class="chip s-built">built</span></div>
+<p><strong>Chat relay slot, not enabled</strong></p>
+<h3>Access</h3><p>no access control</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>501</code></td><td>chat relay not enabled on this node yet</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<h2 id="tag-intake">intake</h2>
+<p>Public intake from the storefronts, keyed by a publishable key or none.</p>
+<section class="op" id="post-waitlist">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/waitlist</code><span class="chip s-built">built</span></div>
+<p><strong>A waitlist lead from a storefront</strong></p>
+<p>Rate limit 20 per hour and 60 per day by address; the key is optional unless REQUIRE_API_KEY=true.</p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-waitlistlead"><code>WaitlistLead</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Stored</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>202</code></td><td>Bot trap filled.</td><td></td></tr><tr><td><code>401</code></td><td>Missing or invalid key.</td><td><a href="#schema-error"><code>Error</code></a></td></tr><tr><td><code>403</code></td><td>Origin not allowed for this key.</td><td></td></tr><tr><td><code>422</code></td><td>invalid email</td><td></td></tr><tr><td><code>429</code></td><td>Address limit or daily quota.</td><td></td></tr><tr><td><code>503</code></td><td>brand unavailable</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-client-error">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/client-error</code><span class="chip s-built">built</span></div>
+<p><strong>A client error report, always 200</strong></p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-clienterror"><code>ClientError</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Accepted or silently dropped.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-pageview">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/pageview</code><span class="chip s-built">built</span></div>
+<p><strong>A page view for our own counter, always 200</strong></p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-pageview"><code>Pageview</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Accepted or silently dropped.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-report">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/report</code><span class="chip s-built">built</span></div>
+<p><strong>An Article 16 notice, public by design</strong></p>
+<p>Rate limit 10 per hour and 40 per day by address; a key only names the brand and never refuses the notice.</p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-notice"><code>Notice</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>202</code></td><td>Accepted with an id.</td><td></td></tr><tr><td><code>422</code></td><td>invalid body or a required field missing</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr><tr><td><code>503</code></td><td>could not store the notice</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-csp-report">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/csp-report</code><span class="chip s-built">built</span></div>
+<p><strong>A content-security-policy violation, always 204</strong></p>
+<h3>Access</h3><p>no access control</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>204</code></td><td>No body</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<h2 id="tag-v1">v1</h2>
+<p>The public API for third parties, by secret key. Errors have the form {error:{code,message}}.</p>
+<section class="op" id="post-v1-waitlist">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/v1/waitlist</code><span class="chip s-built">built</span></div>
+<p><strong>A waitlist lead by secret key</strong></p>
+<p>Scope waitlist.write. Idempotency-Key replays a stored response when key and body hash match.</p>
+<h3>Access</h3><p>Secret key &quot;ak_live_…</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>Idempotency-Key</code></td><td>header</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-waitlistlead"><code>WaitlistLead</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Stored.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>401</code></td><td>No secret key</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>403</code></td><td>Key not scoped.</td><td></td></tr><tr><td><code>409</code></td><td>unknown_brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid_body</td><td></td></tr><tr><td><code>429</code></td><td>Address limit or daily quota.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<section class="op" id="post-v1-pageview">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/v1/pageview</code><span class="chip s-built">built</span></div>
+<p><strong>A page view by secret key</strong></p>
+<p>Scope pageviews.write.</p>
+<h3>Access</h3><p>Secret key &quot;ak_live_…</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-pageview"><code>Pageview</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Accepted.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>401</code></td><td>No or unknown secret key.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>403</code></td><td>Key not scoped.</td><td></td></tr><tr><td><code>429</code></td><td>Address limit or daily quota.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<section class="op" id="post-v1-client-error">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/v1/client-error</code><span class="chip s-built">built</span></div>
+<p><strong>A client error by secret key</strong></p>
+<p>Scope client_errors.write.</p>
+<h3>Access</h3><p>Secret key &quot;ak_live_…</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-clienterror"><code>ClientError</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Accepted.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>401</code></td><td>No or unknown secret key.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>403</code></td><td>Key not scoped.</td><td></td></tr><tr><td><code>429</code></td><td>Address limit or daily quota.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<section class="op" id="get-v1-me">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/v1/me</code><span class="chip s-built">built</span></div>
+<p><strong>What this key is</strong></p>
+<h3>Access</h3><p>Secret key &quot;ak_live_…</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The key describing itself.</td><td><a href="#schema-keyself"><code>KeySelf</code></a></td></tr><tr><td><code>401</code></td><td>No or unknown secret key.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<h2 id="tag-auth">auth</h2>
+<p>Sign-in to the panel by an emailed link.</p>
+<section class="op" id="post-auth-request-link">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/auth/request-link</code><span class="chip s-built">built</span></div>
+<p><strong>Ask for a sign-in link, always 204</strong></p>
+<p>The letter goes only to an existing operator, at most 6 an hour per mailbox; the answer never says which.</p>
+<h3>Access</h3><p>no access control</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>204</code></td><td>Accepted.</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-auth-callback">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/auth/callback</code><span class="chip s-built">built</span></div>
+<p><strong>Exchange a one-time link for a session</strong></p>
+<h3>Access</h3><p>no access control</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>token</code></td><td>query</td><td><code>string</code> <span class="src">pattern: &quot;^[0-9a-f]{64}$&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>A panel session JWT.</td><td></td></tr><tr><td><code>401</code></td><td>invalid or expired link</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-auth-me">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/auth/me</code><span class="chip s-built">built</span></div>
+<p><strong>Who is signed in</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Email</td><td></td></tr><tr><td><code>401</code></td><td>unauthorized</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<h2 id="tag-admin">admin</h2>
+<p>The panel&#x27;s routes, by panel session and permission.</p>
+<section class="op" id="get-admin-waitlist">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/waitlist</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Waitlist leads</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code> <span class="src">maximum: 500</span></td><td>no</td><td></td></tr><tr><td><code>from</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>to</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Rows with x-total-count; a tenant sees its own brand.</td><td></td></tr><tr><td><code>401</code></td><td>unauthorized</td><td></td></tr><tr><td><code>403</code></td><td>forbidden</td><td></td></tr><tr><td><code>422</code></td><td>invalid from/to/before</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-client-errors">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-client-errors</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Client error log</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Rows</td><td></td></tr><tr><td><code>403</code></td><td>forbidden</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-pageviews">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-pageviews</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Page view log</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Rows</td><td></td></tr><tr><td><code>403</code></td><td>forbidden</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-server">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-server</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Server log, platform only</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Rows</td><td></td></tr><tr><td><code>403</code></td><td>forbidden</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-audit">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-audit</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Audit log</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Rows</td><td></td></tr><tr><td><code>403</code></td><td>forbidden</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-brands">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/brands</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Brands</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Brands from the registry and the environment.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-brands">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/brands</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Create or update a brand, platform only</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Updated.</td><td></td></tr><tr><td><code>201</code></td><td>Created.</td><td></td></tr><tr><td><code>403</code></td><td>A tenant.</td><td></td></tr><tr><td><code>409</code></td><td>The brand is set in the environment.</td><td></td></tr><tr><td><code>422</code></td><td>invalid body</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-api-keys">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/api-keys</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Publishable keys</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Keys with quotas and today&#x27;s use.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-api-keys">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/api-keys</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Create a publishable key</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>201</code></td><td>Created.</td><td></td></tr><tr><td><code>403</code></td><td>Another brand.</td><td></td></tr><tr><td><code>404</code></td><td>unknown brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid body or origins</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="patch-admin-api-keys--id--quota">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/admin/api-keys/{id}/quota</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Set a publishable key&#x27;s daily quota, platform only</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The key with its quotas.</td><td></td></tr><tr><td><code>403</code></td><td>A tenant.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr><tr><td><code>422</code></td><td>Exactly one quota field</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="patch-admin-secret-keys--id--quota">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/admin/secret-keys/{id}/quota</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Set a secret key&#x27;s daily quota, platform only</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The key with its quotas.</td><td></td></tr><tr><td><code>403</code></td><td>A tenant.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr><tr><td><code>422</code></td><td>Exactly one quota field</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-secret-keys">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/secret-keys</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Secret keys</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Keys without their secrets.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-secret-keys">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/secret-keys</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Create a secret key, shown once</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>201</code></td><td>The key with its secret</td><td></td></tr><tr><td><code>403</code></td><td>Scopes beyond your own permissions.</td><td></td></tr><tr><td><code>404</code></td><td>unknown brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid body</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-secret-keys--id--revoke">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/secret-keys/{id}/revoke</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Revoke a secret key</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Revoked.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr><tr><td><code>409</code></td><td>already revoked</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-api-keys--id--revoke">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/api-keys/{id}/revoke</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Revoke a publishable key, effective within 60 seconds</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Revoked.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-panel-users">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/panel-users</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Panel operators</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Operators; a tenant sees its own.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-panel-users">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/panel-users</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Add or overwrite an operator</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Stored; an existing record is overwritten.</td><td></td></tr><tr><td><code>403</code></td><td>role not available to a tenant</td><td></td></tr><tr><td><code>404</code></td><td>unknown brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid email or role</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="patch-admin-panel-users--email">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/admin/panel-users/{email}</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Change an operator&#x27;s role</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>email</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Changed.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr><tr><td><code>409</code></td><td>the last administrator cannot be demoted</td><td></td></tr><tr><td><code>422</code></td><td>invalid role</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="delete-admin-panel-users--email">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/admin/panel-users/{email}</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Remove an operator</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>email</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Removed.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr><tr><td><code>409</code></td><td>the last administrator cannot be deleted</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-panel-users--email--invite">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/panel-users/{email}/invite</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Send an operator an invitation</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>email</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Invited.</td><td></td></tr><tr><td><code>404</code></td><td>not found</td><td></td></tr><tr><td><code>502</code></td><td>could not send the invitation</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-dsa-notices">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-notices</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Article 16 notices awaiting a decision</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>state</code></td><td>query</td><td><code>string</code> <span class="src">enum: [&quot;all&quot;]</span></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>At most 200</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/dsa.ts</code></p>
+</section>
+<section class="op" id="post-admin-dsa-notices--id--escalate">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/dsa-notices/{id}/escalate</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Record an Article 18 report to an authority</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Recorded in the audit log.</td><td></td></tr><tr><td><code>404</code></td><td>no such notice</td><td></td></tr><tr><td><code>422</code></td><td>invalid recipient or note</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/dsa.ts</code></p>
+</section>
+<section class="op" id="post-admin-dsa-notices--id--decide">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/dsa-notices/{id}/decide</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
+<p><strong>Decide on a notice</strong></p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Decided</td><td></td></tr><tr><td><code>404</code></td><td>no such notice</td><td></td></tr><tr><td><code>409</code></td><td>already decided</td><td></td></tr><tr><td><code>422</code></td><td>invalid decision fields</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/dsa.ts</code></p>
+</section>
+<h2 id="tag-identity">identity</h2>
+<p>Identity and session (protocol §4.1). Not built.</p>
+<section class="op" id="post-identities">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Create an identity</strong></p>
+<p>The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon.</p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-vault-share">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Exchange a PIN proof for the node&#x27;s share of the vault key</strong></p>
+<p>Ten wrong attempts lock access until the paper code; the share is kept.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The share.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-sessions-invite">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/invite</code><span class="chip s-spec">spec</span></div>
+<p><strong>A transfer code for another device</strong></p>
+<p>Nine characters, two minutes, one use; requires a PIN proof.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-sessionsinvite"><code>SessionsInvite</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Invitation stored.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-vault-pin">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-spec">spec</span></div>
+<p><strong>Change the PIN</strong></p>
+<p>The old PIN, a new auth_hash, a reissued share.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Changed.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-identities-close">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-spec">spec</span></div>
+<p><strong>Start over — close the identity</strong></p>
+<p>With a PIN proof; appearance rows are deleted in the same transaction.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="put-identities-appearance">
+<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
+<p><strong>The identity&#x27;s appearance for this face</strong></p>
+<p>One row per face named by the API key — theme, contrast step, an accent from that face&#x27;s set.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-sessions-claim">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-spec">spec</span></div>
+<p><strong>Use the transfer code on the new device</strong></p>
+<p>The old device goes still once the person confirms.</p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-recovery-claim">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Raise an identity with the paper code</strong></p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-legal-manifest">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>The documents&#x27; current revisions</strong></p>
+<p>Date, substance sha256 and re-acceptance policy of the three documents.</p>
+<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The manifest.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-legal-accept">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Record an acceptance</strong></p>
+<p>Document, date, hash; one row each.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Recorded.</td><td></td></tr></table></div>
+</section>
+<h2 id="tag-feed">feed</h2>
+<p>The feed (protocol §4.2). Not built.</p>
+<section class="op" id="get-feed">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/feed</code><span class="chip s-spec">spec</span></div>
+<p><strong>The feed by intersecting circles</strong></p>
+<p>With language, mode and age filters; 30 cards, then more (screen 3).</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Feed items.</td><td>array&lt;<a href="#schema-feeditem"><code>FeedItem</code></a>&gt;</td></tr></table></div>
+</section>
+<section class="op" id="post-feed">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-spec">spec</span></div>
+<p><strong>Publish a phrase</strong></p>
+<p>Answers 202 at once; visible_at stays empty until the queue&#x27;s verdict.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>202</code></td><td>Accepted into the queue.</td><td></td></tr><tr><td><code>409</code></td><td>Re-acceptance required.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
+</section>
+<section class="op" id="delete-feed--id">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Take down your own phrase</strong></p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Taken down; the slot is freed</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-feed-density">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>The density band under the radius handle</strong></p>
+<p>A band from &quot;nobody here yet&quot; to &quot;hundreds&quot;, asked on release, never an exact number.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The band.</td><td></td></tr></table></div>
+</section>
+<h2 id="tag-chat">chat</h2>
+<p>Like, match, chat (protocol §4.3). Not built.</p>
+<section class="op" id="post-feed--id--like">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Like a phrase or an offer</strong></p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>liked or matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
+</section>
+<section class="op" id="delete-feed--id--like">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
+<p><strong>Take a like back until a match</strong></p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Taken back</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
+</section>
+<section class="op" id="post-matches--id--consent">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Consent to talk</strong></p>
+<p>The chat opens when both have consented.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Consent recorded.</td><td></td></tr><tr><td><code>409</code></td><td>Re-acceptance required.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
+</section>
+<section class="op" id="get-inbox">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/inbox</code><span class="chip s-spec">spec</span></div>
+<p><strong>Offers and conversations in one answer</strong></p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>A count only on offers.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-chats--id--ticket">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/ticket</code><span class="chip s-spec">spec</span></div>
+<p><strong>A one-time ticket for the socket</strong></p>
+<p>The ticket goes in Sec-WebSocket-Protocol, not the query string (protocol §4.4).</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The ticket.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-chats-alive">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-spec">spec</span></div>
+<p><strong>Which chats are still alive</strong></p>
+<p>Only on a confirmed database read — 503 rather than an empty list, or local history would be wiped.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-chatsalive"><code>ChatsAlive</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The live ids.</td><td><a href="#schema-chatsaliveresult"><code>ChatsAliveResult</code></a></td></tr><tr><td><code>503</code></td><td>The database read was not confirmed.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="patch-chats--id">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Your own span handle</strong></p>
+<p>10, 30 or 60 minutes, or while we talk (260 minutes).</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="delete-chats--id">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>Close a conversation by hand, for both</strong></p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
+</section>
+<h2 id="schemas">Schemas</h2>
+<section class="op" id="schema-error"><div class="op-head"><code class="path">Error</code></div>
+<p>The node&#x27;s flat error.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>error</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-v1error"><div class="op-head"><code class="path">V1Error</code></div>
+<p>The error form of /v1.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>error</code></td><td><code>object</code></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-legalreacceptance"><div class="op-head"><code class="path">LegalReacceptance</code></div>
+<p>409 for any signed request that publishes or opens a chat while an accepted revision is stale (protocol §6).</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>error</code></td><td><code>string</code> <span class="src">const: &quot;legal_reacceptance_required&quot;</span></td><td>no</td><td></td></tr><tr><td><code>documents</code></td><td>array&lt;<code>object</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-ok"><div class="op-head"><code class="path">Ok</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>ok</code></td><td><code>boolean</code></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-health"><div class="op-head"><code class="path">Health</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">const: &quot;ok&quot;</span></td><td>no</td><td></td></tr><tr><td><code>node</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>region</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>env</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>image</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>storage</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>storage_transport</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>mail</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brands</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr><tr><td><code>database</code></td><td><code>string</code> <span class="src">enum: [&quot;ok&quot;, &quot;down&quot;, &quot;off&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>ts</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-ready"><div class="op-head"><code class="path">Ready</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;ready&quot;, &quot;not_ready&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>node</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>env</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>database</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>ts</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-waitlistlead"><div class="op-head"><code class="path">WaitlistLead</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">maxLength: 254</span></td><td>yes</td><td>Checked by isEmail.</td></tr><tr><td><code>website</code></td><td><code>string</code></td><td>no</td><td>Bot trap; a non-empty value answers 202 before any check.</td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>no</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code> <span class="src">maxLength: 8</span></td><td>no</td><td></td></tr><tr><td><code>accent</code></td><td><code>string</code> <span class="src">maxLength: 16</span></td><td>no</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code> <span class="src">maxLength: 16</span></td><td>no</td><td></td></tr><tr><td><code>early_access</code></td><td><code>boolean</code></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-clienterror"><div class="op-head"><code class="path">ClientError</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">maxLength: 64</span></td><td>no</td><td></td></tr><tr><td><code>message</code></td><td><code>string</code> <span class="src">maxLength: 1000</span></td><td>no</td><td></td></tr><tr><td><code>stack</code></td><td><code>string</code> <span class="src">maxLength: 2000</span></td><td>no</td><td></td></tr><tr><td><code>page_url</code></td><td><code>string</code> <span class="src">maxLength: 300</span></td><td>no</td><td></td></tr><tr><td><code>user_agent</code></td><td><code>string</code> <span class="src">maxLength: 300</span></td><td>no</td><td></td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>no</td><td></td></tr><tr><td><code>extra</code></td><td><code>object</code></td><td>no</td><td>Flat</td></tr></table></div></section>
+<section class="op" id="schema-pageview"><div class="op-head"><code class="path">Pageview</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>path</code></td><td><code>string</code> <span class="src">maxLength: 200</span></td><td>no</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code> <span class="src">maxLength: 8</span></td><td>no</td><td></td></tr><tr><td><code>referrer</code></td><td><code>string</code></td><td>no</td><td>Only the host of an http(s) referrer is kept.</td></tr><tr><td><code>viewport</code></td><td><code>number</code></td><td>no</td><td>Reduced to mobile</td></tr><tr><td><code>first_in_tab</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-notice"><div class="op-head"><code class="path">Notice</code></div>
+<p>An Article 16 DSA notice.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>target_kind</code></td><td><code>string</code> <span class="src">enum: [&quot;feed_message&quot;, &quot;offer&quot;, &quot;table_line&quot;, &quot;chat&quot;, &quot;other&quot;]</span></td><td>yes</td><td></td></tr><tr><td><code>reason_text</code></td><td><code>string</code> <span class="src">maxLength: 4000</span></td><td>yes</td><td></td></tr><tr><td><code>bona_fide</code></td><td><code>boolean</code> <span class="src">const: true</span></td><td>yes</td><td></td></tr><tr><td><code>notifier_name</code></td><td><code>string</code> <span class="src">maxLength: 200</span></td><td>no</td><td></td></tr><tr><td><code>notifier_email</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>target_id</code></td><td><code>string</code> <span class="src">maxLength: 400</span></td><td>no</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code> <span class="src">maxLength: 8</span></td><td>no</td><td></td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-keyself"><div class="op-head"><code class="path">KeySelf</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
+<p>A feed item — a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>no</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>no</td><td>Unix seconds.</td></tr></table></div></section>
+<section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>no</td><td>First 32 bytes of Argon2id over the nine-character code.</td></tr><tr><td><code>ttl</code></td><td><code>integer</code> <span class="src">const: 120</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-sessionsclaim"><div class="op-head"><code class="path">SessionsClaim</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>enc_secret</code></td><td><code>string</code></td><td>no</td><td>An envelope: the new device&#x27;s signing and wrapping public keys and a label.</td></tr></table></div></section>
+<section class="op" id="schema-chatsalive"><div class="op-head"><code class="path">ChatsAlive</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>ids</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-chatsaliveresult"><div class="op-head"><code class="path">ChatsAliveResult</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>alive</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>no</td><td></td></tr></table></div></section>
+</main></body></html>

@@ -1,0 +1,566 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>API узла · 2026-09-15</title><style>
+:root{--bg:#f6f5f2;--panel:#ffffff;--fg:#1c1b19;--muted:#5b5853;--line:#d9d6cf;--accent:#8a3b1f;
+--built:#1f6b3a;--built-bg:#e3f1e7;--spec:#7a5300;--spec-bg:#fbf0d6;--prop:#4a4f57;--prop-bg:#e8eaee;
+--get:#1e5aa8;--post:#1f6b3a;--put:#7a5300;--patch:#6a3d9a;--delete:#a12a24}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--panel:#1d1f24;--fg:#ecebe8;
+--muted:#a8a59e;--line:#34363d;--accent:#e08a66;--built:#7fd49b;--built-bg:#1d3326;--spec:#f0c06a;--spec-bg:#3a2f16;
+--prop:#b9bec7;--prop-bg:#2c2f36;--get:#8db8f2;--post:#7fd49b;--put:#f0c06a;--patch:#c3a3ee;--delete:#f09a93}}
+:root[data-theme="dark"]{--bg:#15161a;--panel:#1d1f24;--fg:#ecebe8;--muted:#a8a59e;--line:#34363d;--accent:#e08a66;
+--built:#7fd49b;--built-bg:#1d3326;--spec:#f0c06a;--spec-bg:#3a2f16;--prop:#b9bec7;--prop-bg:#2c2f36;--get:#8db8f2;
+--post:#7fd49b;--put:#f0c06a;--patch:#c3a3ee;--delete:#f09a93}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+padding-inline:16px;padding-block:24px 64px}
+main{max-width:980px;margin:0 auto}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:21px;margin:40px 0 12px;padding-top:8px;border-top:2px solid var(--line)}
+h3{font-size:15px;margin:18px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+p{margin:6px 0}a{color:var(--accent)}
+code,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:14px}
+.lead{color:var(--muted)}.top{display:flex;gap:16px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:16px 0}
+.op{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:12px 0}
+.op-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.method{font:700 13px/1 ui-monospace,Menlo,monospace;text-transform:uppercase;padding:5px 8px;border-radius:5px;
+border:2px solid currentColor;min-width:64px;text-align:center}
+.m-get{color:var(--get)}.m-post{color:var(--post)}.m-put{color:var(--put)}.m-patch{color:var(--patch)}.m-delete{color:var(--delete)}
+.path{font-weight:600;word-break:break-all}
+.chip{font-size:13px;padding:2px 8px;border-radius:999px}
+.s-built{color:var(--built);background:var(--built-bg)}.s-spec{color:var(--spec);background:var(--spec-bg)}
+.s-proposed{color:var(--prop);background:var(--prop-bg)}.internal{color:var(--muted);border:1px dashed var(--line)}
+.table{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:6px 8px}th{color:var(--muted);font-weight:600}
+.src{color:var(--muted);font-size:13px}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-x:auto;margin:6px 0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style></head><body><main>
+<div class="top"><h1>API узла</h1><a href="index_EN.html">English</a></div>
+<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 61 операций, OpenAPI 3.1.0, 2026-09-15.</p>
+<nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#schemas">Схемы</a></nav>
+<h2 id="tag-node">node</h2>
+<p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (main.ts).</p>
+<section class="op" id="get-health">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/health</code><span class="chip s-built">построено</span></div>
+<p><strong>Состояние узла, всегда 200</strong></p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Узел отвечает.</td><td><a href="#schema-health"><code>Health</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="get-ready">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/ready</code><span class="chip s-built">построено</span></div>
+<p><strong>Готовность, 503 пока база недоступна</strong></p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Готов.</td><td><a href="#schema-ready"><code>Ready</code></a></td></tr><tr><td><code>503</code></td><td>База недоступна.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="get-metrics">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/metrics</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Счётчики Prometheus по токену</strong></p>
+<h3>Доступ</h3><p>METRICS_TOKEN в Authorization или x-metrics-token; без него маршрут отвечает 404</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>text/plain; version=0.0.4</td><td></td></tr><tr><td><code>404</code></td><td>Нет токена или не тот — не 401</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="get-chat">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/chat</code><span class="chip s-built">построено</span></div>
+<p><strong>Слот релея чата, не включён</strong></p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>501</code></td><td>релей чата на этом узле ещё не включён</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<h2 id="tag-intake">intake</h2>
+<p>Публичный приём с витрин, по публикуемому ключу или без него.</p>
+<section class="op" id="post-waitlist">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/waitlist</code><span class="chip s-built">построено</span></div>
+<p><strong>Заявка в лист ожидания с витрины</strong></p>
+<p>Предел 20 в час и 60 в сутки по адресу; ключ необязателен, если не REQUIRE_API_KEY=true.</p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-waitlistlead"><code>WaitlistLead</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>202</code></td><td>Заполнена ловушка для ботов.</td><td></td></tr><tr><td><code>401</code></td><td>Нет ключа или ключ неверен.</td><td><a href="#schema-error"><code>Error</code></a></td></tr><tr><td><code>403</code></td><td>Источник не разрешён для ключа.</td><td></td></tr><tr><td><code>422</code></td><td>неверная почта</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса или суточная квота.</td><td></td></tr><tr><td><code>503</code></td><td>бренд недоступен</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-client-error">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/client-error</code><span class="chip s-built">построено</span></div>
+<p><strong>Отчёт об ошибке клиента, всегда 200</strong></p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-clienterror"><code>ClientError</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято или молча отброшено.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-pageview">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/pageview</code><span class="chip s-built">построено</span></div>
+<p><strong>Просмотр страницы для своего счётчика, всегда 200</strong></p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-pageview"><code>Pageview</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято или молча отброшено.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-report">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/report</code><span class="chip s-built">построено</span></div>
+<p><strong>Уведомление по ст. 16, публично по замыслу</strong></p>
+<p>Предел 10 в час и 40 в сутки по адресу; ключ только называет бренд и уведомление не отклоняет.</p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-notice"><code>Notice</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>202</code></td><td>Принято</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело или нет обязательного поля</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr><tr><td><code>503</code></td><td>не удалось сохранить уведомление</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-csp-report">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/csp-report</code><span class="chip s-built">построено</span></div>
+<p><strong>Нарушение политики безопасности контента, всегда 204</strong></p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>204</code></td><td>Без тела</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+</section>
+<h2 id="tag-v1">v1</h2>
+<p>Публичный API для третьих сторон, по секретному ключу. Ошибки в форме {error:{code,message}}.</p>
+<section class="op" id="post-v1-waitlist">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/v1/waitlist</code><span class="chip s-built">построено</span></div>
+<p><strong>Заявка в лист ожидания по секретному ключу</strong></p>
+<p>Скоуп waitlist.write. Idempotency-Key повторяет сохранённый ответ при совпадении ключа и хэша тела.</p>
+<h3>Доступ</h3><p>Секретный ключ «ak_live_…</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>Idempotency-Key</code></td><td>header</td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-waitlistlead"><code>WaitlistLead</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>401</code></td><td>Нет секретного ключа или он неизвестен или отозван.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>403</code></td><td>У ключа нет скоупа.</td><td></td></tr><tr><td><code>409</code></td><td>unknown_brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid_body</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса или суточная квота.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<section class="op" id="post-v1-pageview">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/v1/pageview</code><span class="chip s-built">построено</span></div>
+<p><strong>Просмотр страницы по секретному ключу</strong></p>
+<p>Скоуп pageviews.write.</p>
+<h3>Доступ</h3><p>Секретный ключ «ak_live_…</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-pageview"><code>Pageview</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>401</code></td><td>Нет или неизвестен секретный ключ.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>403</code></td><td>У ключа нет скоупа.</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса или суточная квота.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<section class="op" id="post-v1-client-error">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/v1/client-error</code><span class="chip s-built">построено</span></div>
+<p><strong>Ошибка клиента по секретному ключу</strong></p>
+<p>Скоуп client_errors.write.</p>
+<h3>Доступ</h3><p>Секретный ключ «ak_live_…</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-clienterror"><code>ClientError</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>401</code></td><td>Нет или неизвестен секретный ключ.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>403</code></td><td>У ключа нет скоупа.</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса или суточная квота.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<section class="op" id="get-v1-me">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/v1/me</code><span class="chip s-built">построено</span></div>
+<p><strong>Что это за ключ</strong></p>
+<h3>Доступ</h3><p>Секретный ключ «ak_live_…</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ключ описывает сам себя.</td><td><a href="#schema-keyself"><code>KeySelf</code></a></td></tr><tr><td><code>401</code></td><td>Нет или неизвестен секретный ключ.</td><td><a href="#schema-v1error"><code>V1Error</code></a></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/v1.ts</code></p>
+</section>
+<h2 id="tag-auth">auth</h2>
+<p>Вход в панель по ссылке из письма.</p>
+<section class="op" id="post-auth-request-link">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/auth/request-link</code><span class="chip s-built">построено</span></div>
+<p><strong>Запросить ссылку для входа, всегда 204</strong></p>
+<p>Письмо уходит только существующему оператору, не больше 6 в час на ящик; ответ этого не выдаёт.</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>204</code></td><td>Принято.</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-auth-callback">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/auth/callback</code><span class="chip s-built">построено</span></div>
+<p><strong>Обменять одноразовую ссылку на сессию</strong></p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>token</code></td><td>query</td><td><code>string</code> <span class="src">pattern: &quot;^[0-9a-f]{64}$&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>JWT сессии панели.</td><td></td></tr><tr><td><code>401</code></td><td>ссылка неверна или истекла</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-auth-me">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/auth/me</code><span class="chip s-built">построено</span></div>
+<p><strong>Кто вошёл</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Почта</td><td></td></tr><tr><td><code>401</code></td><td>не авторизован</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<h2 id="tag-admin">admin</h2>
+<p>Маршруты панели, по сессии панели и пермишену.</p>
+<section class="op" id="get-admin-waitlist">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/waitlist</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Заявки листа ожидания</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code> <span class="src">maximum: 500</span></td><td>нет</td><td></td></tr><tr><td><code>from</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>to</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Строки с x-total-count; арендатор видит свой бренд.</td><td></td></tr><tr><td><code>401</code></td><td>не авторизован</td><td></td></tr><tr><td><code>403</code></td><td>запрещено</td><td></td></tr><tr><td><code>422</code></td><td>неверные from/to/before</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-client-errors">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-client-errors</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Журнал ошибок клиента</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Строки</td><td></td></tr><tr><td><code>403</code></td><td>запрещено</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-pageviews">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-pageviews</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Журнал просмотров</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Строки</td><td></td></tr><tr><td><code>403</code></td><td>запрещено</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-server">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-server</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Журнал сервера, только платформа</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Строки</td><td></td></tr><tr><td><code>403</code></td><td>запрещено</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-logs-audit">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/logs-audit</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Журнал аудита</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>limit</code></td><td>query</td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>before</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td>query</td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Строки</td><td></td></tr><tr><td><code>403</code></td><td>запрещено</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-brands">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/brands</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Бренды</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Бренды из реестра и окружения.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-brands">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/brands</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Завести или обновить бренд, только платформа</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Обновлено.</td><td></td></tr><tr><td><code>201</code></td><td>Заведено.</td><td></td></tr><tr><td><code>403</code></td><td>Арендатор.</td><td></td></tr><tr><td><code>409</code></td><td>Бренд задан в окружении.</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-api-keys">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/api-keys</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Публикуемые ключи</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ключи с квотами и расходом за сегодня.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-api-keys">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/api-keys</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Выпустить публикуемый ключ</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>201</code></td><td>Выпущен.</td><td></td></tr><tr><td><code>403</code></td><td>Чужой бренд.</td><td></td></tr><tr><td><code>404</code></td><td>неизвестный бренд</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело или источники</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="patch-admin-api-keys--id--quota">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/admin/api-keys/{id}/quota</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Задать суточную квоту публикуемого ключа, только платформа</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ключ с квотами.</td><td></td></tr><tr><td><code>403</code></td><td>Арендатор.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr><tr><td><code>422</code></td><td>Ровно одно поле квоты</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="patch-admin-secret-keys--id--quota">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/admin/secret-keys/{id}/quota</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Задать суточную квоту секретного ключа, только платформа</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ключ с квотами.</td><td></td></tr><tr><td><code>403</code></td><td>Арендатор.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr><tr><td><code>422</code></td><td>Ровно одно поле квоты</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-secret-keys">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/secret-keys</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Секретные ключи</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ключи без секретов.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-secret-keys">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/secret-keys</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Выпустить секретный ключ, показывается один раз</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>201</code></td><td>Ключ с секретом</td><td></td></tr><tr><td><code>403</code></td><td>Скоупы сверх собственных пермишенов.</td><td></td></tr><tr><td><code>404</code></td><td>неизвестный бренд</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-secret-keys--id--revoke">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/secret-keys/{id}/revoke</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Отозвать секретный ключ</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Отозван.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr><tr><td><code>409</code></td><td>уже отозван</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-api-keys--id--revoke">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/api-keys/{id}/revoke</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Отозвать публикуемый ключ, действует в течение 60 секунд</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Отозван.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-panel-users">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/panel-users</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Операторы панели</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Операторы; арендатор видит своих.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-panel-users">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/panel-users</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Добавить или перезаписать оператора</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено; существующая запись перезаписывается.</td><td></td></tr><tr><td><code>403</code></td><td>роль недоступна арендатору</td><td></td></tr><tr><td><code>404</code></td><td>неизвестный бренд</td><td></td></tr><tr><td><code>422</code></td><td>неверная почта или роль</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="patch-admin-panel-users--email">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/admin/panel-users/{email}</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Сменить роль оператора</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Изменено.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr><tr><td><code>409</code></td><td>последнего администратора нельзя понизить</td><td></td></tr><tr><td><code>422</code></td><td>неверная роль</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="delete-admin-panel-users--email">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/admin/panel-users/{email}</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Удалить оператора</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Удалён.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr><tr><td><code>409</code></td><td>последнего администратора нельзя удалить</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="post-admin-panel-users--email--invite">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/panel-users/{email}/invite</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Отправить оператору приглашение</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Приглашён.</td><td></td></tr><tr><td><code>404</code></td><td>не найден</td><td></td></tr><tr><td><code>502</code></td><td>не удалось отправить приглашение</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-dsa-notices">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-notices</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Уведомления по ст. 16, ждущие решения</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>state</code></td><td>query</td><td><code>string</code> <span class="src">enum: [&quot;all&quot;]</span></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Не больше 200</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/dsa.ts</code></p>
+</section>
+<section class="op" id="post-admin-dsa-notices--id--escalate">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/dsa-notices/{id}/escalate</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Записать сообщение в органы по ст. 18</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Записано в журнал аудита.</td><td></td></tr><tr><td><code>404</code></td><td>нет такого уведомления</td><td></td></tr><tr><td><code>422</code></td><td>неверный адресат или примечание</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/dsa.ts</code></p>
+</section>
+<section class="op" id="post-admin-dsa-notices--id--decide">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/dsa-notices/{id}/decide</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Решить по уведомлению</strong></p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Решено</td><td></td></tr><tr><td><code>404</code></td><td>нет такого уведомления</td><td></td></tr><tr><td><code>409</code></td><td>уже решено</td><td></td></tr><tr><td><code>422</code></td><td>неверные поля решения</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/dsa.ts</code></p>
+</section>
+<h2 id="tag-identity">identity</h2>
+<p>Личность и сессия (протокол §4.1). Не построено.</p>
+<section class="op" id="post-identities">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Завести личность</strong></p>
+<p>Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано.</p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-vault-share">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Обменять доказательство ПИНа на долю ключа хранилища</strong></p>
+<p>Десять неверных попыток закрывают вход до бумажного кода; доля цела.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Доля.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-sessions-invite">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/invite</code><span class="chip s-spec">спека</span></div>
+<p><strong>Код переноса на другое устройство</strong></p>
+<p>Девять символов, две минуты, одно применение; требует доказательства ПИНа.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-sessionsinvite"><code>SessionsInvite</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Приглашение записано.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-vault-pin">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-spec">спека</span></div>
+<p><strong>Сменить ПИН</strong></p>
+<p>Старый ПИН, новый auth_hash, перевыпуск доли.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сменён.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-identities-close">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-spec">спека</span></div>
+<p><strong>Начать заново — закрыть личность</strong></p>
+<p>С доказательством ПИНа; строки оформления удаляются той же транзакцией.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="put-identities-appearance">
+<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">спека</span></div>
+<p><strong>Оформление личности для этого лица</strong></p>
+<p>Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-sessions-claim">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-spec">спека</span></div>
+<p><strong>Применить код переноса на новом устройстве</strong></p>
+<p>Прежнее устройство замирает, когда человек подтвердит.</p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-recovery-claim">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Поднять личность бумажным кодом</strong></p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Поднята.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-legal-manifest">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Нынешние редакции документов</strong></p>
+<p>Дата, sha256 существа и политика повторного принятия трёх документов.</p>
+<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Манифест.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-legal-accept">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Записать принятие</strong></p>
+<p>Документ, дата, хэш; по строке на каждое.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Записано.</td><td></td></tr></table></div>
+</section>
+<h2 id="tag-feed">feed</h2>
+<p>Лента (протокол §4.2). Не построено.</p>
+<section class="op" id="get-feed">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/feed</code><span class="chip s-spec">спека</span></div>
+<p><strong>Лента по пересечению кругов</strong></p>
+<p>С фильтрами языка, режима и возраста; 30 карточек, дальше ещё (экран 3).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Карточки ленты.</td><td>array&lt;<a href="#schema-feeditem"><code>FeedItem</code></a>&gt;</td></tr></table></div>
+</section>
+<section class="op" id="post-feed">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-spec">спека</span></div>
+<p><strong>Опубликовать фразу</strong></p>
+<p>Отвечает 202 сразу; visible_at пуст до вердикта очереди.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>202</code></td><td>Принято в очередь.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять документы заново.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
+</section>
+<section class="op" id="delete-feed--id">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Снять свою фразу</strong></p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Снята; слот освобождён</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-feed-density">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Ступень плотности под ручкой радиуса</strong></p>
+<p>Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ступень.</td><td></td></tr></table></div>
+</section>
+<h2 id="tag-chat">chat</h2>
+<p>Лайк, мэтч, чат (протокол §4.3). Не построено.</p>
+<section class="op" id="post-feed--id--like">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Лайкнуть фразу или оффер</strong></p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>liked или matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
+</section>
+<section class="op" id="delete-feed--id--like">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">спека</span></div>
+<p><strong>Снять лайк, пока нет мэтча</strong></p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Снят или state spent</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
+</section>
+<section class="op" id="post-matches--id--consent">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Согласиться поговорить</strong></p>
+<p>Чат открывается, когда согласились оба.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Согласие записано.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять документы заново.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
+</section>
+<section class="op" id="get-inbox">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/inbox</code><span class="chip s-spec">спека</span></div>
+<p><strong>Предложения и беседы одним ответом</strong></p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Счётчик только на предложениях.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-chats--id--ticket">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/ticket</code><span class="chip s-spec">спека</span></div>
+<p><strong>Одноразовый билет для сокета</strong></p>
+<p>Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Билет.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-chats-alive">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-spec">спека</span></div>
+<p><strong>Какие чаты ещё живы</strong></p>
+<p>Только при подтверждённом чтении базы — 503, а не пустой список, иначе стёрлась бы локальная история.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-chatsalive"><code>ChatsAlive</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Живые id.</td><td><a href="#schema-chatsaliveresult"><code>ChatsAliveResult</code></a></td></tr><tr><td><code>503</code></td><td>Чтение базы не подтверждено.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="patch-chats--id">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Своя ручка срока</strong></p>
+<p>10, 30 или 60 минут либо «пока говорим» (260 минут).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="delete-chats--id">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Закрыть беседу руками, сразу у обоих</strong></p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
+</section>
+<h2 id="schemas">Схемы</h2>
+<section class="op" id="schema-error"><div class="op-head"><code class="path">Error</code></div>
+<p>Плоская ошибка узла.</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>error</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-v1error"><div class="op-head"><code class="path">V1Error</code></div>
+<p>Форма ошибки /v1.</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>error</code></td><td><code>object</code></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-legalreacceptance"><div class="op-head"><code class="path">LegalReacceptance</code></div>
+<p>409 на подписанный запрос, который публикует или открывает чат при разошедшейся редакции (протокол §6).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>error</code></td><td><code>string</code> <span class="src">const: &quot;legal_reacceptance_required&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>documents</code></td><td>array&lt;<code>object</code>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-ok"><div class="op-head"><code class="path">Ok</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>ok</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-health"><div class="op-head"><code class="path">Health</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">const: &quot;ok&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>node</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>region</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>env</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>image</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>storage</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>storage_transport</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>mail</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brands</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr><tr><td><code>database</code></td><td><code>string</code> <span class="src">enum: [&quot;ok&quot;, &quot;down&quot;, &quot;off&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>ts</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-ready"><div class="op-head"><code class="path">Ready</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;ready&quot;, &quot;not_ready&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>node</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>env</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>database</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>ts</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-waitlistlead"><div class="op-head"><code class="path">WaitlistLead</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">maxLength: 254</span></td><td>да</td><td>Checked by isEmail.</td></tr><tr><td><code>website</code></td><td><code>string</code></td><td>нет</td><td>Bot trap; a non-empty value answers 202 before any check.</td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>нет</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code> <span class="src">maxLength: 8</span></td><td>нет</td><td></td></tr><tr><td><code>accent</code></td><td><code>string</code> <span class="src">maxLength: 16</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code> <span class="src">maxLength: 16</span></td><td>нет</td><td></td></tr><tr><td><code>early_access</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-clienterror"><div class="op-head"><code class="path">ClientError</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">maxLength: 64</span></td><td>нет</td><td></td></tr><tr><td><code>message</code></td><td><code>string</code> <span class="src">maxLength: 1000</span></td><td>нет</td><td></td></tr><tr><td><code>stack</code></td><td><code>string</code> <span class="src">maxLength: 2000</span></td><td>нет</td><td></td></tr><tr><td><code>page_url</code></td><td><code>string</code> <span class="src">maxLength: 300</span></td><td>нет</td><td></td></tr><tr><td><code>user_agent</code></td><td><code>string</code> <span class="src">maxLength: 300</span></td><td>нет</td><td></td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>нет</td><td></td></tr><tr><td><code>extra</code></td><td><code>object</code></td><td>нет</td><td>Flat</td></tr></table></div></section>
+<section class="op" id="schema-pageview"><div class="op-head"><code class="path">Pageview</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>path</code></td><td><code>string</code> <span class="src">maxLength: 200</span></td><td>нет</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code> <span class="src">maxLength: 8</span></td><td>нет</td><td></td></tr><tr><td><code>referrer</code></td><td><code>string</code></td><td>нет</td><td>Only the host of an http(s) referrer is kept.</td></tr><tr><td><code>viewport</code></td><td><code>number</code></td><td>нет</td><td>Reduced to mobile</td></tr><tr><td><code>first_in_tab</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-notice"><div class="op-head"><code class="path">Notice</code></div>
+<p>Уведомление по ст. 16 DSA.</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>target_kind</code></td><td><code>string</code> <span class="src">enum: [&quot;feed_message&quot;, &quot;offer&quot;, &quot;table_line&quot;, &quot;chat&quot;, &quot;other&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>reason_text</code></td><td><code>string</code> <span class="src">maxLength: 4000</span></td><td>да</td><td></td></tr><tr><td><code>bona_fide</code></td><td><code>boolean</code> <span class="src">const: true</span></td><td>да</td><td></td></tr><tr><td><code>notifier_name</code></td><td><code>string</code> <span class="src">maxLength: 200</span></td><td>нет</td><td></td></tr><tr><td><code>notifier_email</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>target_id</code></td><td><code>string</code> <span class="src">maxLength: 400</span></td><td>нет</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code> <span class="src">maxLength: 8</span></td><td>нет</td><td></td></tr><tr><td><code>source</code></td><td><code>string</code> <span class="src">maxLength: 120</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-keyself"><div class="op-head"><code class="path">KeySelf</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
+<p>Карточка ленты — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix seconds.</td></tr></table></div></section>
+<section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>нет</td><td>First 32 bytes of Argon2id over the nine-character code.</td></tr><tr><td><code>ttl</code></td><td><code>integer</code> <span class="src">const: 120</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-sessionsclaim"><div class="op-head"><code class="path">SessionsClaim</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>enc_secret</code></td><td><code>string</code></td><td>нет</td><td>An envelope: the new device&#x27;s signing and wrapping public keys and a label.</td></tr></table></div></section>
+<section class="op" id="schema-chatsalive"><div class="op-head"><code class="path">ChatsAlive</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>ids</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-chatsaliveresult"><div class="op-head"><code class="path">ChatsAliveResult</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>alive</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+</main></body></html>

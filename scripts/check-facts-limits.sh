@@ -23,13 +23,15 @@ root="$(cd "$here/.." && pwd)"
 group="$(cd "$root/.." && pwd)"
 registry="${FACTS_LIMITS:-$root/docs/facts/limits.tsv}"
 protocol_ru="${FACTS_PROTOCOL_RU:-$root/docs/protocol_RU.md}"
+scheduled="${FACTS_SCHEDULED:-$root/relay/node/src/lib/scheduled.ts}"
+open_items="${FACTS_OPEN:-$root/docs/facts/open.tsv}"
 
 [ -f "$registry" ] || { echo "нет реестра: $registry" >&2; exit 2; }
 problems=0
 checked=0
 
 # --- сторона первая: реестр → документы -------------------------------------
-while IFS=$'\t' read -r id values unit what enforced places; do
+while IFS=$'\t' read -r id values unit what enforced places executor; do
   case "$id" in ''|'#'*|id) continue ;; esac
   IFS=',' read -ra files <<< "$places"
   for file in "${files[@]}"; do
@@ -91,6 +93,30 @@ while IFS=$'\t' read -r id values unit what enforced places; do
       fi
     done
   done
+done < "$registry"
+
+# --- сторона третья: срок узла без исполнителя (сторож С4) --------------------
+# docs/watchdogs_RU.md §С4, построено 15.09.2026. Срок, который держит узел, живёт
+# только тогда, когда его кто-то исполняет: задача планировщика, проверка в самом
+# запросе или — пока исполнителя нет — открытый пункт, который об этом помнит.
+# Без этого реестр обещает «удалим через 30 дней», и ничто не напоминает, что
+# удалять некому.
+while IFS=$'\t' read -r id values unit what enforced places executor; do
+  case "$id" in ''|'#'*|id) continue ;; esac
+  [ "$enforced" = "узел" ] || continue
+  case "$id" in *ttl*|*retention*|*delay*) ;; *) continue ;; esac
+  checked=$((checked + 1))
+  if [ -z "$executor" ]; then
+    printf '  ✗ %s: срок без исполнителя — назови задачу из %s, пункт open.tsv или «запрос»\n' \
+      "$id" "${scheduled#$root/}"
+    problems=$((problems + 1)); continue
+  fi
+  [ "$executor" = "запрос" ] && continue
+  if [ -f "$scheduled" ] && grep -qF -- "\"$executor\"" "$scheduled"; then continue; fi
+  if [ -f "$open_items" ] && grep -v '^#' "$open_items" | cut -f1 | grep -qxF -- "$executor"; then continue; fi
+  printf '  ✗ %s: исполнитель «%s» не найден — ни задачи в %s, ни пункта в open.tsv\n' \
+    "$id" "$executor" "${scheduled#$root/}"
+  problems=$((problems + 1))
 done < "$registry"
 
 # --- сторона вторая: таблица пределов → реестр -------------------------------

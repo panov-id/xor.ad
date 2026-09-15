@@ -70,7 +70,7 @@ else
   bad=""
   while IFS= read -r word; do
     [ -n "$word" ] || continue
-    probe "$(printf 'probe.listed\t2026-08-31\t%s\tproduct\tпроба\tchat\tdocs/facts/open.tsv' "$word")"
+    probe "$(printf 'probe.listed\t2026-08-31\t%s\tproduct\tпроба\tchat\tdocs/facts/open.tsv\t\tничего' "$word")"
     FACTS_OPEN="$registry" bash "$gate" >/dev/null 2>&1 || bad="$bad «$word»"
   done <<< "$listed"
   if [ -n "$bad" ]; then
@@ -87,7 +87,7 @@ fi
 # офферов, ни сообщений в схеме узла нет. «сейчас» делало его вечно горящим,
 # «-» запрещён для legal. Обе половины случая проверяются: значение принимается,
 # и оно по-прежнему не открывает legal-пункту дорогу к «-».
-probe "$(printf 'probe.launch\t2026-08-31\tс запуском\tlegal\tпроба\tdsa\tdocs/facts/open.tsv')"
+probe "$(printf 'probe.launch\t2026-08-31\tс запуском\tlegal\tпроба\tdsa\tdocs/facts/open.tsv\t\tпубликацию')"
 expect 0 'форма, вес, область и срок на месте' 'срок «с запуском» принимается'
 
 probe "$(printf 'probe.launch.notdash\t2026-08-31\t-\tlegal\tпроба\tdsa\tdocs/facts/open.tsv')"
@@ -130,7 +130,7 @@ expect 1 'а якорь задан' 'адрес на файл целиком с 
 
 # Обратная сторона: адрес без номера и без якоря законен — на него опираются
 # пункты, указывающие на реестр целиком.
-probe "$(printf 'probe.anchor.none\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/schema.tsv')"
+probe "$(printf 'probe.anchor.none\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/schema.tsv\t\tничего')"
 expect 0 'форма, вес, область и срок на месте' 'адрес без номера и без якоря законен'
 
 # Вес и область — строки, а не образцы. Случая на это не было вовсе, и потому
@@ -157,6 +157,20 @@ expect 1 'такой id уже есть' 'повторный id'
 
 probe "$(printf 'probe.where\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/no-such-file_RU.md:1')"
 expect 1 'файл, которого нет' 'адрес в никуда'
+
+# Что пункт держит — заведено 15.09.2026 для ворот готовности к отрисовке. Пустое
+# значение не равно «ничего»: пункт, про который не сказано, держит неизвестно что.
+probe "$(printf 'probe.stops.missing\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/schema.tsv')"
+expect 1 'не сказано, что блокирует' 'пункт без колонки stops'
+
+probe "$(printf 'probe.stops.unknown\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/schema.tsv\t\tкогда-нибудь')"
+expect 1 'что блокирует «когда-нибудь» вне объявленных' 'stops вне словаря'
+
+probe "$(printf 'probe.stops.regex\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/schema.tsv\t\t.*')"
+expect 1 'что блокирует «.*» вне объявленных' 'stops-регулярка не подходит под словарь'
+
+probe "$(printf 'probe.stops.drawing\t2026-08-31\t-\tproduct\tпроба\tchat\tdocs/facts/schema.tsv\t\tотрисовку')"
+expect 0 'держит отрисовку 1' 'пункт, держащий отрисовку, считается в итоге'
 
 # Реестр без записей: гейт обязан отказаться, а не отчитаться о нуле. Случай
 # добавлен 01.09.2026 после того, как подмена реестра на одни комментарии дала

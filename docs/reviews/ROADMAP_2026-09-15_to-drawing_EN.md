@@ -11,7 +11,7 @@ Drawing starts when all seven hold, each checked by a machine or a panel:
 
 1. **Gates are green.** `scripts/check-all.sh` — 0 failed, 0 skipped; the landing gates of both
    storefronts green (legal revisions, translation consistency, the bar, i18n, security headers).
-2. **Screens 01–21 have no open questions about behaviour, text or rule.** Only "what it looks
+2. **Screens 01–24 have no open questions about behaviour, text or rule** (was "01–21": screens 22–24 were added on 2026-09-15). Only "what it looks
    like" questions may remain, each marked "settled by drawing" with a reference to its screen.
 3. **Mechanics and canon:** the final full panel (five lenses and the refuter) — zero confirmed
    findings above trivia.
@@ -97,6 +97,22 @@ Drawing starts when all seven hold, each checked by a machine or a panel:
 - Every `open.tsv` item marked: blocks drawing, blocks publication, blocks code, blocks nothing.
   Zero block drawing.
 
+### S4a. The API layer (added by the owner on 2026-09-15)
+
+- **`docs/api/openapi.yaml` is the canon of the contract**, spec first. It holds everything: what is
+  built (`/v1/*`, `/waitlist`, `/report`, `/pageview`, `/client-error`, `/csp-report`, `/health`,
+  `/ready`, `/metrics`, `/admin/*` from `relay/node/src/routes/`) and what is described (the routes of
+  `docs/protocol_EN.md` §4). Each operation carries `x-status`: `built`, `spec` or `proposed`.
+- **Our own page instead of Swagger UI**: a script builds a browser page from the yaml, with no
+  third-party services and no external resources. The page lives in the repository. Whether to put it
+  on an address is going outside, a question before the push. Whether it shows `/admin/*` is a fork at
+  the start of the stage.
+- **A gate** in `check-all.sh`: the yaml's paths and methods are checked against the `protocol_*.md` §4
+  tables and the routes in `relay/node/src/routes/`; a mismatch is red, with a probe that goes red.
+
+**Exit:** the yaml is valid, the page is built, the gate is green and has gone red at least once; the
+final panel S5 checks the contract too.
+
 ### S5. The final full panel
 
 Five lenses (law, security, data and database, autonomy, consistency) and the refuter over the whole
@@ -123,6 +139,6 @@ reported with its price.
 
 ## Order and pace
 
-S0 → S1 → S2 → S3 → S4 → S5 → S6. Inside a stage — batches per the process rules; `harden-cycle.sh`
+S0 → S1 → S2 → S3 → S4 → S4a → S5 → S6. Inside a stage — batches per the process rules; `harden-cycle.sh`
 after every batch, a panel every two or three batches and at the end of a stage. The day branch —
 `scripts/new-day-branch.sh`; pushing — only on the owner's word.

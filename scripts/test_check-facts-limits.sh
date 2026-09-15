@@ -18,6 +18,7 @@ root="$(cd "$here/.." && pwd)"
 gate="$here/check-facts-limits.sh"
 real_registry="$root/docs/facts/limits.tsv"
 real_protocol="$root/docs/protocol_RU.md"
+real_scheduled="$root/relay/node/src/lib/scheduled.ts"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -28,12 +29,14 @@ protocol_witness="$work/протокол-каким-был.md"
 cp "$real_registry" "$witness" || { echo "не удалось снять реестр: $real_registry" >&2; exit 2; }
 cp "$real_protocol" "$protocol_witness" || { echo "не удалось снять протокол" >&2; exit 2; }
 cp "$protocol_witness" "$protocol"
+scheduled="$work/scheduled.ts"
+cp "$real_scheduled" "$scheduled" || { echo "не удалось снять scheduled.ts" >&2; exit 2; }
 
 failures=0; number=0
 expect() {  # expect <код> <подстрока> <описание>
   number=$((number + 1))
   local output
-  output=$(FACTS_LIMITS="$registry" FACTS_PROTOCOL_RU="$protocol" bash "$gate" 2>&1)
+  output=$(FACTS_LIMITS="$registry" FACTS_PROTOCOL_RU="$protocol" FACTS_SCHEDULED="$scheduled" bash "$gate" 2>&1)
   local code=$?
   if [ "$code" = "$1" ] && printf '%s' "$output" | grep -qF -- "$2"; then
     printf '  ✓ %s\n' "$3"
@@ -76,6 +79,25 @@ expect 0 'числа сходятся везде' 'перечисление с �
 probe "$(printf 'probe.notnumber\tсто\tсимволов\tпроба\tничем\txor.ad/docs/protocol_RU.md')"
 expect 1 'не число' 'значение в реестре не число'
 
+# Сторож С4 (docs/watchdogs_RU.md): срок узла обязан назвать исполнителя. Проба
+# ровно та, что записана в спецификации сторожа: удалить имя задачи — красный.
+cp "$witness" "$registry"
+grep -v '"prune_pageviews"' "$real_scheduled" > "$scheduled"
+expect 1 'исполнитель «prune_pageviews» не найден' 'задачу убрали из scheduled.ts — срок без исполнителя краснеет'
+cp "$real_scheduled" "$scheduled"
+
+probe "$(printf 'probe.ttl\t30\tминут\tсрок без исполнителя\tузел\txor.ad/docs/protocol_RU.md')"
+expect 1 'срок без исполнителя' 'срок узла без колонки executor'
+
+probe "$(printf 'probe.retention\t30\tминут\tсрок с выдуманным исполнителем\tузел\txor.ad/docs/protocol_RU.md\tprune_nothing')"
+expect 1 'исполнитель «prune_nothing» не найден' 'исполнитель, которого нет ни в задачах, ни в open.tsv'
+
+probe "$(printf 'probe.delay\t30\tминут\tсрок, проверяемый запросом\tузел\txor.ad/docs/protocol_RU.md\tзапрос')"
+expect 0 'числа сходятся везде' '«запрос» — законный исполнитель'
+
+probe "$(printf 'probe.ttl.client\t30\tминут\tсрок на клиенте\tклиент\txor.ad/docs/protocol_RU.md')"
+expect 0 'числа сходятся везде' 'срок, который держит не узел, исполнителя не требует'
+
 # Сторона вторая: число из таблицы «Пределы» протокола обязано быть в реестре.
 # Без неё предел, заведённый мимо реестра, тихо остаётся неучтённым.
 cp "$witness" "$registry"
@@ -108,7 +130,8 @@ number=$((number + 1))
 # Сравнивать живой файл сам с собой бессмысленно — так контроль всегда зелёный;
 # сверяемся со снимком, снятым до первой пробы.
 if diff -q "$witness" "$real_registry" >/dev/null \
-   && diff -q "$protocol_witness" "$real_protocol" >/dev/null; then
+   && diff -q "$protocol_witness" "$real_protocol" >/dev/null \
+   && [ -f "$real_scheduled" ]; then
   printf '  ✓ живые docs/facts/limits.tsv и protocol_RU.md не тронуты\n'
 else
   failures=$((failures + 1)); printf '  ✗ живой файл изменился за время проб\n'

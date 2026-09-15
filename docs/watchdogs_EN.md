@@ -53,6 +53,8 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W4. The "period without a doer" gate
 
+**Built 2026-09-15:** side three of `scripts/check-facts-limits.sh` and the `executor` column in `docs/facts/limits.tsv`; the probe in `scripts/test_check-facts-limits.sh` removes `prune_pageviews` from a copy of `scheduled.ts` and sees red. Besides a job and an `open.tsv` item, the doer may be «запрос» — a period checked in the request itself (the PIN delays).
+
 - `scripts/check-facts-limits.sh`: a `limits.tsv` row with `enforced_by = узел` and a period
   (`*.ttl`, `*.retention`, `*.delay`) must name a job in `lib/scheduled.ts` or an `open.tsv` item;
   otherwise red.

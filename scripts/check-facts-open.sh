@@ -47,6 +47,11 @@ import json, sys
 data = json.load(open('$config'))
 print('\n'.join(data.get('open_weights', {})))")
 [ -n "$areas" ] || { echo "в конфиге не объявлено ни одной области" >&2; exit 2; }
+stops_words=$(python3 -c "
+import json, sys
+data = json.load(open('$config'))
+print('\n'.join(data.get('open_stops', {})))")
+[ -n "$stops_words" ] || { echo "в конфиге не объявлено, что пункт может держать (open_stops)" >&2; exit 2; }
 
 # Слова-сроки объявлены здесь и только здесь. Из этого списка и проверяется
 # значение, и собираются оба текста ошибки — раньше словарь жил в `case`, а его
@@ -65,8 +70,12 @@ done <<< "$due_words"
 
 problems=0; checked=0; seen=""
 declare -A by_weight
+declare -A by_stops
 
-while IFS=$'\t' read -r id opened due weight what blocks where anchor; do
+# Табы переводятся в \037 до разбора: таб для `read` — пробельный разделитель, и
+# соседние табы схлопываются. Пустой якорь исчезал, и stops уезжал в колонку якоря —
+# замер 15.09.2026 на product.tables.unmigrated, когда колонку stops завели.
+while IFS=$'\037' read -r id opened due weight what blocks where anchor stops; do
   case "$id" in ''|'#'*|id) continue ;; esac
   checked=$((checked + 1))
 
@@ -85,6 +94,18 @@ while IFS=$'\t' read -r id opened due weight what blocks where anchor; do
     problems=$((problems + 1))
   else
     by_weight[$weight]=$(( ${by_weight[$weight]:-0} + 1 ))
+  fi
+
+  # Что пункт держит — заведено 15.09.2026: ворота готовности к отрисовке спрашивают
+  # именно это, а по весу и сроку оно не читается. Пусто — не «ничего», а несказанное.
+  if [ -z "$stops" ]; then
+    printf '  ✗ %s: не сказано, что блокирует (колонка stops: %s)\n' "$id" "$(printf '%s' "$stops_words" | tr '\n' ' ')"
+    problems=$((problems + 1))
+  elif ! printf '%s\n' "$stops_words" | grep -qxF -- "$stops"; then
+    printf '  ✗ %s: что блокирует «%s» вне объявленных (%s)\n' "$id" "$stops" "$(printf '%s' "$stops_words" | tr '\n' ' ')"
+    problems=$((problems + 1))
+  else
+    by_stops[$stops]=$(( ${by_stops[$stops]:-0} + 1 ))
   fi
 
   if ! printf '%s\n' "$areas" | grep -qxF "$blocks"; then
@@ -163,12 +184,17 @@ while IFS=$'\t' read -r id opened due weight what blocks where anchor; do
     fi
   fi
 
-done < "$registry"
+done < <(tr '\t' '\037' < "$registry")
 
 summary=""
 for weight in $weights; do
   summary="$summary${summary:+, }$weight ${by_weight[$weight]:-0}"
 done
+held=""
+while IFS= read -r word; do
+  held="$held${held:+, }держит $word ${by_stops[$word]:-0}"
+done <<< "$stops_words"
+summary="$summary; $held"
 
 if [ "$problems" -gt 0 ]; then
   printf '\nпунктов: %s (%s) — РАСХОЖДЕНИЙ: %s\n' "$checked" "$summary" "$problems"

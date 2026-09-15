@@ -50,6 +50,8 @@
 
 ## С4. Ворота «срок без исполнителя»
 
+**Построено 15.09.2026:** сторона третья `scripts/check-facts-limits.sh` и колонка `executor` в `docs/facts/limits.tsv`; проба в `scripts/test_check-facts-limits.sh` убирает `prune_pageviews` из копии `scheduled.ts` и видит красный. Исполнителем кроме задачи и пункта `open.tsv` может быть «запрос» — срок, который проверяется при самом запросе (задержки ПИНа).
+
 - `scripts/check-facts-limits.sh`: строка `limits.tsv` с `enforced_by = узел` и сроком (`*.ttl`,
   `*.retention`, `*.delay`) обязана назвать задачу из `lib/scheduled.ts` или пункт `open.tsv`; иначе красный.
 - Проба: удалить имя задачи — ворота краснеют с понятной строкой; вернуть — зелёные.

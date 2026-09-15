@@ -1220,7 +1220,9 @@ UPDATE vault_shares
 
 **The tenth wrong attempt locks access on this device until the paper code, but does not burn the share — decided 2026-09-14 after the review panel (SEC-A).** [retired] This said "burns the share, and that device's conversations are gone for good": with a stolen signing key that let someone erase another person's correspondence without touching the device. Guessing is closed just the same: the node hands nothing out for a locked share. The price is named: ten mistakes no longer erase the history, and whoever counted on that as a self-destruct will not get it. From the seventh attempt the screen says it outright:
 
-> 3 attempts left. After that this device is locked until the paper code.
+> Attempts left: N. After that this device is locked until the paper code.
+
+(N is 3, 2 or 1; edited 2026-09-15 after the review panel: this said "3 attempts left" [retired], while the counter speaks on the eighth and ninth attempts too.)
 
 Two prices are stated plainly. **Without a network the chat does not open at all**: no share, no key, nothing old to read and nothing new to see. And **the node now holds the thing without which people lose their conversations**: losing the share table means everyone loses their history at once, so its backups deserve stricter handling than the rest.
 

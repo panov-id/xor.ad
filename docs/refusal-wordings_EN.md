@@ -143,7 +143,11 @@ away" button would put it out.
 |---|---|---|
 | quota | Four phrases are already live. The next slot frees at HH:MM. | Wait, or take one down |
 | four this hour | Four phrases already said this hour. The next one can go at HH:MM. | Wait |
-| no network | There is no connection. What you wrote is saved. | We will send it when there is |
+| no network | There is no connection. What you wrote is saved. | Retry once there is (edited 2026-09-15 after the review panel: "We will send it when there is" [retired] — mechanics §10 and screen 11 say "retry", there is no auto-send) |
+| rate in a row (the node's per-address limit) | Too many sends in a row. | Try again later — no span and no word "address" (storefront screen 11, 2026-09-15) |
+| the match waits for your name | Your name did not pass the check, and the match will not open until a new one is accepted. | Change the name |
+| the paper code did not match | Check each group: one wrong character and the code is not found. | Try again |
+| paper code entry is closed | Someone is guessing codes, so entry is closed for everyone. Your identity is intact — try later. | — |
 | the conversation expired | The span ran out; the conversation is gone. | Back to the feed |
 | the other person closed it | The conversation has ended. | Back to the feed |
 | a table outside your bands | *(nothing)* | — |

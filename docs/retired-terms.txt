@@ -334,3 +334,7 @@ arrives only by email | sosed.place/docs/08-chat-screen_EN.md neighbro.place/doc
 reaches them only by email | sosed.place/docs/14-support_EN.md neighbro.place/docs/14-support_EN.md | a receipt on the device, 2026-09-15
 иначе не получится писать | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | не публиковать и не открывать новые беседы, начатые идут, 15.09.2026
 writing does not work until you do | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | cannot publish or open new conversations, ongoing ones carry on, 2026-09-15
+Отправим, когда появится | refusal-wordings_RU.md | повторить, когда появится — механика §10, 15.09.2026
+We will send it when there is | refusal-wordings_EN.md | retry once there is — mechanics §10, 2026-09-15
+Осталось 3 попытки | chat_RU.md sosed.place/docs/12-identity-and-security_RU.md neighbro.place/docs/12-identity-and-security_RU.md sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | осталось попыток: N, 15.09.2026
+3 attempts left | chat_EN.md sosed.place/docs/12-identity-and-security_EN.md neighbro.place/docs/12-identity-and-security_EN.md sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | attempts left: N, 2026-09-15

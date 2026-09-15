@@ -98,7 +98,7 @@ Fix the name and it will go by itself while the offer is alive.
 ```
 Five refusals in an hour — paused until 14:35. The decision is automatic.
 Until then nothing goes to checking:
-phrases, table lines, a name change, an offer like while the name is not accepted.
+phrases, table lines, a name change, an offer like while the name is not accepted, a hangman word.
 Another refusal this hour — another 15 minutes.
 The feed, likes on phrases and conversations work.
 Ground: the Terms, §8 and §15. The pause ends by itself; if you disagree — the Digital Services Coordinator or a court.

@@ -65,10 +65,10 @@ processing is identical and only the storefront differs, so the record is shared
   last hour and the date of the first publication (`identity_stats`, 2026-09-14) — for the posting limit, the pause and the weight of link reports.
 - **Recipients.** **None.** The classifiers run inside the node and the text never
   leaves it; moderation uses no external processor.
-- **Retention.** The result of a check is not stored beside the message; the moments — an hour, the
+- **Retention.** The result of a check is not stored beside the message; the moments — the latest four and six, until the next write; the
   first-publication date — as long as the identity lives.
-- **Automated decisions.** A refusal to publish and a 15-minute pause are taken automatically; the
-  decision says so, and a person looks on a support request.
+- **Automated decisions.** A refusal to publish and a 15-minute pause are taken automatically and are final; the
+  decision says so; a message can be edited and sent again, and a pause ends by itself.
 - **Chats are not checked at all.**
 
 ### 4. Chat

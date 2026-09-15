@@ -576,14 +576,14 @@ pass opened and did not close.
         deleted (`dsa/CHECKLIST_EN.md`, "Verification"). Earlier text: — a real notice, the receipt, the
         panel queue, a decision, both letters (Art. 16(5) and 17(3)), then delete
         the test record. The chain has never been walked whole;
-      - [x] **notice of a new revision of the documents, Art. 14(6)** — done
+      - [x] **notice of a new revision of the documents, Art. 14(2)** — done (edited 2026-09-14: "14(6)" [retired])
         2026-08-09: a bar on the storefronts, the revision derived from the
         documents' own `Last updated`, and the deploy gated on a check. Earlier
         text: — the one
         genuinely unbuilt part. The Terms and the Policy promise to be "signposted
         in the Service" themselves. Decided 2026-08-09: a bar on the storefronts
         and a screen on entering the panel, **informing rather than requiring
-        acceptance** — Art. 14(6) asks for information, and there is nobody to
+        acceptance** — Art. 14(2) asks for information, and there is nobody to
         collect consent from: a storefront has no identity, only a browser. The
         version is derived from the documents themselves (`Last updated` in
         `terms_EN.md` and `privacy_EN.md`, the later of the two) rather than kept

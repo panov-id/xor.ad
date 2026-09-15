@@ -233,6 +233,39 @@ mandatory discount, published for free.
 - **Price.** A summary in 17 languages — days; a full translation — weeks, plus a
   new revision on every edit.
 
+## I. Added 2026-09-14, after checking the norms against EUR-Lex
+
+**27. GDPR Art. 22 and automated decisions.**
+- **Fact.** A refusal to publish and a 15-minute pause are automatic and final; a link in an offer goes
+  dark automatically on reports, and the venue is emailed with a way to contest.
+- **Where.** `sosed.place/landing/legal/terms_EN.md` §11, §15; `docs/offers/SPEC_EN.md` §10.1.
+- **Question.** Does any of these "similarly significantly affect" a person or a venue under Art. 22(1)?
+  If so, what does "reply to the email" lack, and what does a user with no contact need?
+- **Cost of the answer.** If it applies to the pause or the refusal — a route to a person and a new edition of the terms.
+
+**28. Changing the terms, and acceptance.**
+- **Fact.** The terms notify a new edition (DSA Art. 14(2)). On the website, with no identity, continued use
+  counts as acceptance; inside the product, with an identity, a checkbox that publishing waits for (decided 2026-09-15).
+- **Where.** `terms_EN.md` §19.
+- **Question.** Does acceptance by continued use on the website hold against Directive 93/13 and Cypriot
+  law on unfair terms, when nobody writes anything on the website and there is no identity to contract with yet?
+- **Cost of the answer.** An explicit acceptance screen on the website too.
+
+**29. P2B and free venue offers.**
+- **Fact.** A venue publishes offers for free, under the platform's terms; reports switch an offer's
+  link off, and a venue is suspended for systematic justified complaints.
+- **Where.** `docs/offers/SPEC_EN.md` §10, §10.1.
+- **Question.** Are we a provider of online intermediation services under P2B Art. 2(2)? If so — the
+  content of the statement under Art. 4(1) and 4(5), and the period under 4(2)–(4).
+- **Cost of the answer.** A template letter to the venue and the suspension procedure.
+
+**30. Transit or hosting for undelivered messages.**
+- **Fact.** An encrypted message waits on the node while the recipient is away, up to 260 minutes.
+- **Where.** `docs/chat_EN.md` §8.8; open item `dsa.conduit.or.hosting`.
+- **Question.** Is this still storage "no longer than is reasonably necessary for the transmission"
+  under DSA Art. 4(2)?
+- **Cost of the answer.** If it is hosting — Articles 16 and 17 apply to the queue.
+
 ## What we have already done so there would be fewer questions
 
 - Article 16 notices work end to end: form, intake, acknowledgement, an answer to

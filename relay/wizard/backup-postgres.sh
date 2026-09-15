@@ -18,7 +18,9 @@
 # it is not.
 set -euo pipefail
 
-cd /opt/relay/compose
+# Overridable only so that scripts/check-backup-script.sh can run the script on a copy;
+# on a box it is always the default.
+cd "${RELAY_COMPOSE_DIR:-/opt/relay/compose}"
 set -a; . ./backup.env; set +a
 
 # The backup zone if there is one, the working zone if there is not — and never
@@ -48,9 +50,13 @@ for database in ${DATABASES}; do
 
   # --clean --if-exists so the dump restores onto a non-empty database without a
   # manual drop; the restore drill depends on that being true.
+  # Транзит в копию не идёт: недоставленный шифротекст живёт до доставки,
+  # а в дампе пролежал бы ещё keep_days дней (chat_RU.md §8.8, 12.09.2026).
+  # The comment stands above the command, not inside it: a comment line after a
+  # trailing backslash ends the command there, and from 2026-09-12 to 2026-09-15 it
+  # sent `docker compose exec` with no command and ran pg_dump on the host — no dump
+  # at all (final review panel, OPS-1). scripts/check-backup-script.sh guards it.
   docker compose exec -T -e PGPASSWORD="${POSTGRES_PASSWORD}" postgres \
-    # Транзит в копию не идёт: недоставленный шифротекст живёт до доставки,
-    # а в дампе пролежал бы ещё keep_days дней (chat_RU.md §8.8, 12.09.2026).
     pg_dump --clean --if-exists --no-owner --username relay \
       --exclude-table-data=pending_deliveries "${database}" \
     | gzip -9 > "${file}"

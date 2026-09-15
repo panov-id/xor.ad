@@ -93,6 +93,7 @@ run check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
 run check-identity-cascades    bash "$here/check-identity-cascades.sh"
 run check-screens-mirror       bash "$here/check-screens-mirror.sh"
 run check-openapi              bash "$here/check-openapi.sh"
+run check-backup-script        bash "$here/check-backup-script.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.

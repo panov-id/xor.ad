@@ -54,7 +54,7 @@ run() {  # run <имя> <каталог> <команда...>
 pairing() {
   local output; output=$(bash scripts/check-docs-pairing.sh 2>&1); local code=$?
   printf '%s\n' "$output"
-  if printf '%s' "$output" | grep -q "MISMATCH"; then return 1; fi
+  if grep -q "MISMATCH" <<< "$output"; then return 1; fi
   return "$code"
 }
 

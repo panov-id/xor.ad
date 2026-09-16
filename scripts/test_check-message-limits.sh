@@ -63,7 +63,7 @@ expect() {  # expect <код> <подстрока> <описание>
   number=$((number + 1))
   local output code
   output=$(FACTS_LIMITS="$registry" RELAY_NODE="$node" bash "$gate" 2>&1); code=$?
-  if [ "$code" = "$1" ] && printf '%s' "$output" | grep -qF -- "$2"; then
+  if [ "$code" = "$1" ] && grep -qF -- "$2" <<< "$output"; then
     printf '  ✓ %s\n' "$3"
   else
     failures=$((failures + 1))

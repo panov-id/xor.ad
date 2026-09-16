@@ -103,7 +103,7 @@ check() {  # check <ожидаемый код> <подстрока> <описа�
             "$gate" 2>&1)"
   code=$?
   [ "$code" = "$want_code" ] || ok=нет
-  printf '%s' "$output" | grep -qF -- "$needle" || ok=нет
+  grep -qF -- "$needle" <<< "$output" || ok=нет
   if [ "$ok" = да ]; then
     printf '  ✓ %s\n' "$what"
   else

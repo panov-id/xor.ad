@@ -38,7 +38,7 @@ expect() {  # expect да|нет <подстрока> <описание> -- <а�
   case_number=$((case_number + 1))
   local output; output="$("$ontology" "$@" 2>&1)"
   local seen=нет
-  printf '%s' "$output" | grep -qF -- "$needle" && seen=да
+  grep -qF -- "$needle" <<< "$output" && seen=да
   if [ "$seen" = "$want" ]; then
     printf '  ✓ %s\n' "$what"
   else
@@ -186,7 +186,7 @@ else
     case_number=$((case_number + 1))
     local output; output=$(hook_says); local code=$?
     local seen=нет
-    printf '%s' "$output" | grep -qF -- "$2" && seen=да
+    grep -qF -- "$2" <<< "$output" && seen=да
     if [ "$seen" = "$1" ] && [ "$code" = 0 ]; then
       printf '  ✓ %s\n' "$3"
     else

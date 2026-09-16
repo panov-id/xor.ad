@@ -29,7 +29,7 @@ failures=0; number=0
 expect() {  # expect <код> <подстрока> <описание>
   number=$((number + 1))
   local output; output=$(OPENAPI_SPEC="$spec" OPENAPI_PAGES_DIR="$pages" bash "$gate" 2>&1); local code=$?
-  if [ "$code" = "$1" ] && printf '%s' "$output" | grep -qF -- "$2"; then
+  if [ "$code" = "$1" ] && grep -qF -- "$2" <<< "$output"; then
     printf '  ✓ %s\n' "$3"
   else
     failures=$((failures + 1)); printf '  ✗ %s (код %s, ждали %s)\n' "$3" "$code" "$1"

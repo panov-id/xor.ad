@@ -24,10 +24,14 @@ cp "$witness" "$registry"
 failures=0; number=0
 run() { FACTS_DECISIONS="$registry" python3 "$tool" "$@" 2>&1; }
 expect() {  # expect <код> <подстрока> <описание> [флаги...]
+  # Подстрока ищется here-string-ом, а не через канал: с pipefail «printf | grep -q»
+  # краснеет на выводе длиннее буфера канала — grep выходит на первом совпадении,
+  # printf получает SIGPIPE, и код канала становится его. Поймано 16.09.2026 на
+  # --propose с 355 кандидатами (~70 КБ); до того вывод помещался в 64 КБ.
   number=$((number + 1))
   local code_wanted="$1" needle="$2" what="$3"; shift 3
   local output; output=$(run "$@"); local code=$?
-  if [ "$code" = "$code_wanted" ] && printf '%s' "$output" | grep -qF -- "$needle"; then
+  if [ "$code" = "$code_wanted" ] && grep -qF -- "$needle" <<< "$output"; then
     printf '  ✓ %s\n' "$what"
   else
     failures=$((failures + 1)); printf '  ✗ %s (код %s, ждали %s)\n' "$what" "$code" "$code_wanted"

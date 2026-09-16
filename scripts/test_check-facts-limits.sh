@@ -38,7 +38,7 @@ expect() {  # expect <код> <подстрока> <описание>
   local output
   output=$(FACTS_LIMITS="$registry" FACTS_PROTOCOL_RU="$protocol" FACTS_SCHEDULED="$scheduled" bash "$gate" 2>&1)
   local code=$?
-  if [ "$code" = "$1" ] && printf '%s' "$output" | grep -qF -- "$2"; then
+  if [ "$code" = "$1" ] && grep -qF -- "$2" <<< "$output"; then
     printf '  ✓ %s\n' "$3"
   else
     failures=$((failures + 1)); printf '  ✗ %s (код %s, ждали %s)\n' "$3" "$code" "$1"

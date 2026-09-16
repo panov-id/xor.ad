@@ -42,7 +42,7 @@ failures=0; number=0
 expect() {  # expect <подстрока> <описание>
   number=$((number + 1))
   local output; output=$(bash "$gate" 2>&1); local code=$?
-  if printf '%s' "$output" | grep -qF -- "$1" && [ "$code" = 1 ]; then
+  if grep -qF -- "$1" <<< "$output" && [ "$code" = 1 ]; then
     printf '  ✓ %s\n' "$2"
   else
     failures=$((failures + 1))
@@ -93,13 +93,13 @@ open_items="$root/docs/facts/open.tsv"
 backup_open=$(mktemp); cp "$open_items" "$backup_open"
 grep -v '^product.tables.unmigrated' "$backup_open" > "$open_items"
 expect 'записи product.tables.unmigrated в open.tsv нет' 'непроведённые таблицы без датированной записи'
-sed 's/\t18 таблиц/\t7 таблиц/' "$backup_open" > "$open_items"
+sed -E 's/\t[0-9]+ таблиц продукта/\t7 таблиц продукта/' "$backup_open" > "$open_items"
 expect 'записано другое число таблиц продукта' 'число в записи разошлось с явью'
 cp "$backup_open" "$open_items"; rm -f "$backup_open"
 
 number=$((number + 1))
 output=$(FACTS_COMPOSE=/nonexistent/compose.yml bash "$gate" 2>&1); code=$?
-if [ "$code" = 2 ] && printf '%s' "$output" | grep -q 'зелёным это назвать нельзя'; then
+if [ "$code" = 2 ] && grep -q 'зелёным это назвать нельзя' <<< "$output"; then
   printf '  ✓ без базы проверка отказывается, а не зеленеет\n'
 else
   failures=$((failures + 1)); printf '  ✗ без базы: код %s\n' "$code"

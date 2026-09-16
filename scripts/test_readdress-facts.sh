@@ -30,7 +30,7 @@ expect() {  # expect <код> <подстрока> <описание> [аргу�
   number=$((number + 1))
   local code_wanted="$1" needle="$2" what="$3"; shift 3
   local output; output=$(run "$@"); local code=$?
-  if [ "$code" = "$code_wanted" ] && printf '%s' "$output" | grep -qF -- "$needle"; then
+  if [ "$code" = "$code_wanted" ] && grep -qF -- "$needle" <<< "$output"; then
     printf '  ✓ %s\n' "$what"
   else
     failures=$((failures + 1)); printf '  ✗ %s (код %s, ждали %s)\n' "$what" "$code" "$code_wanted"

@@ -327,7 +327,7 @@ CREATE TABLE tables (
   created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- в выдаче не участвует; владельца у стола нет
   created_at       timestamptz NOT NULL DEFAULT now(),
   last_move_at     timestamptz NOT NULL DEFAULT now(),        -- скользящий срок: ход или реплика любого сидящего
-  closed_at        timestamptz                                -- разошлись или отказались играть заново; ставится транзакцией `DELETE /tables/:id/seat`, когда встаёт последний (16.09.2026, DATA-27)
+  closed_at        timestamptz                                -- разошлись или отказались играть заново; ставится одной процедурой `leave_table(identity)`, когда встаёт последний — её зовут все пять путей: `DELETE /tables/:id/seat`, `POST /tables` (подъём из-за прежнего), `POST /away`, `POST /blocks` за столом и закрытие личности (16.09.2026, DATA-27, DATA-2)
 );
 
 CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
@@ -339,13 +339,17 @@ CREATE TABLE table_seats (
   playing_from     timestamptz,                               -- NULL = сидит, но не играет: заявка ещё не принята
   left_at          timestamptz,
   -- Номер места — то, чем человек назван наружу: в кадрах, в счёте, в `{table, seat}` у блокировки
-  -- и высадки. Личность наружу не уходит никогда (§8.11). Наименьший свободный номер выдаётся
+  -- и высадки. Личность наружу не уходит никогда (§8.11). Следующий номер выдаётся
   -- в транзакции посадки под `SELECT … FROM tables WHERE id = :t FOR UPDATE`, иначе две посадки
   -- берут один номер. Вернувшийся получает новый номер: следа не остаётся (16.09.2026, DATA-18).
   seat_no          smallint NOT NULL,
-  PRIMARY KEY (table_id, identity)
+  -- Номера не переиспользуются в жизни стола: `max(seat_no) + 1` под тем же замком, иначе цель
+  -- `kick`/`congratulate`/`blocks {table, seat}` перепривязалась бы к новому человеку (16.09.2026, SEC-16).
+  -- Возврат — новая строка, а не `UPDATE left_at = NULL` (16.09.2026, DATA-1); один живой ряд на
+  -- личность держит `table_seats_one_at_a_time`.
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  UNIQUE (table_id, seat_no)
 );
-CREATE UNIQUE INDEX table_seats_seat_taken ON table_seats (table_id, seat_no) WHERE left_at IS NULL;
 
 -- За одним столом одновременно — решено 09.09.2026. Сесть за второй, не встав
 -- из-за первого, нельзя, и это единственная защита от засыпания ленты столами,
@@ -414,7 +418,7 @@ CREATE TABLE table_games (
   seq          integer NOT NULL DEFAULT 0,
   last_move_hash text,                                -- sha256 тела последнего хода: отличает повтор от другого хода с тем же seq
   pending      jsonb,                                -- {kind, id, class, set, answers, until} — предложение или подтверждение состава
-  turn_due     timestamptz,                          -- конец срока хода (table.move.window); автопас ставит планировщик или первый запрос к столу после срока
+  turn_due     timestamptz,                          -- конец срока хода (table.move.window); автопас ставит задача планировщика `table_autopass` раз в 30 секунд **и** любой запрос `/tables/:id/*` после срока — просроченные сроки применяются по порядку, каждый отдельным `seq`; просроченное `pending` снимается так же (16.09.2026, OPS-3, OPS-4)
   started_at   timestamptz NOT NULL DEFAULT now(),
   ended_at     timestamptz                           -- партия окончена, стол остался
 );
@@ -437,6 +441,9 @@ CREATE TABLE chat_games (
   class        text NOT NULL,                         -- grid | free | dots | deck | dice | physics | word
   state        jsonb NOT NULL,                        -- позиция, запас, чей ход, руки
   score        jsonb NOT NULL DEFAULT '{}'::jsonb,    -- счёт этой пары, копится между партиями
+  seq          integer NOT NULL DEFAULT 0,             -- версия доски, как у table_games (16.09.2026, DATA-3)
+  last_move_hash text,
+  pending      jsonb,                                  -- открытое предложение или подтверждение состава
   updated_at   timestamptz NOT NULL DEFAULT now(),
   -- Ранний из двух сроков, а не «конец беседы»: срок беседы свой у каждого (§5), и
   -- доска гаснет у обоих в момент первой смерти. Уточнено 10.09.2026 — прежняя
@@ -465,10 +472,10 @@ CREATE INDEX chat_games_expiry ON chat_games (expires_at);
 -- живёт по тем же правилам, что и везде, — в базе есть, в ответе API нет (§8).
 CREATE TABLE table_scores (
   table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  identity     uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  seat_id      uuid NOT NULL REFERENCES table_seats(id) ON DELETE CASCADE,  -- счёт живёт у места, не у личности: ушедший его не уносит, вернувшийся начинает с нуля (16.09.2026, SEC-12, DATA-1)
   points       integer NOT NULL DEFAULT 0,
   updated_at   timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (table_id, identity)
+  PRIMARY KEY (table_id, seat_id)
 );
 ```
 
@@ -637,7 +644,7 @@ CREATE TABLE table_scores (
   партия от этого станет хуже — но не встанет.
 - **Высадка выпроваживает, но не запирает — решено 08.09.2026.** Схема остаётся
   как есть: у `table_seats` есть `left_at`, следа высадки нет, и вернуться можно
-  так: `UPDATE ... SET left_at = NULL, joined_at = now(), playing_from = NULL`
+  так: новой строкой `table_seats` с новым `seat_no` (16.09.2026, DATA-1; здесь стояло `UPDATE ... SET left_at = NULL, joined_at = now(), playing_from = NULL` [retired])
   (уточнено 15.09.2026 по финальной панели, DATA-9: историю от подсевшего прячет
   именно `joined_at`, и возврат без его сброса показывал все реплики и ходы,
   сделанные без него). Колонка «этому сюда нельзя» не заводится
@@ -660,7 +667,7 @@ CREATE TABLE table_scores (
   памяти узла и в кеше `chat_games` со сроком беседы; **за столом** оно лежит в базе
   рядом со столом, потому что там всё публично по построению (§6.1).
 
-- **Высаживает большинство сидящих.** Единоличной власти над столом нет ни у кого, включая того, кто его завёл: сосед, поставивший доску, не становится её владельцем.
+- **Высаживает большинство играющих (зрители не решают — 16.09.2026, SEC-24).** Единоличной власти над столом нет ни у кого, включая того, кто его завёл: сосед, поставивший доску, не становится её владельцем.
 - **Блокировка разводит на посадке, а не рвёт партию — переписано 10.09.2026.** Стол, за которым сидит заблокированный, по-прежнему не показывается, но сесть за него нельзя **в обе стороны**: ни заблокированному туда, где сидит заблокировавший, ни наоборот. Здесь стояло «один человек может спрятать от другого чужую игру, просто сев за неё» — и цена была больше названной: подсев к идущей партии, посторонний обрывал её у игравшего посреди хода, а остальные сидящие теряли игрока без причины.
   **Мгновенного пересчёта у этого правила нет — решено 10.09.2026.** Блокировка
   симметрична и переключается сколько угодно раз, а стол пропадает и появляется по
@@ -1424,6 +1431,8 @@ CREATE TABLE feed_messages (
   CONSTRAINT feed_published CHECK ((visible_at IS NULL) = (expires_at IS NULL))
 );
 CREATE INDEX feed_expiry ON feed_messages (expires_at) WHERE visible_at IS NOT NULL;
+CREATE INDEX feed_cursor ON feed_messages (visible_at DESC, id DESC) WHERE visible_at IS NOT NULL;  -- курсор ленты `(visible_at, id) < (:va, :id)` (16.09.2026, DATA-5)
+CREATE INDEX feed_live_geo ON feed_messages (lat, lon) WHERE visible_at IS NOT NULL;  -- гео-отсев живой ленты (16.09.2026, DATA-5)
 CREATE INDEX feed_by_author ON feed_messages (author_identity) WHERE author_identity IS NOT NULL;  -- «по одной» и «четыре за час» при отправке (14.09.2026)
 CREATE UNIQUE INDEX feed_one_waiting ON feed_messages (author_identity) WHERE visible_at IS NULL;  -- «по одной» держит это ограничение, а не подсчёт: вторая ждущая вставка даёт 23505; отказанная строка удаляется (проверено в postgres:16, 14.09.2026)
 ```
@@ -1904,7 +1913,7 @@ SELECT :me, f.id
    AND author.age BETWEEN band_low(:my_age) AND band_high(:my_age)   -- полоса зрителя
    AND :my_age BETWEEN band_low(author.age) AND band_high(author.age) -- и симметрично
    AND NOT EXISTS (SELECT 1 FROM blocks b
-                    WHERE (b.blocker, b.blocked) IN ((:me, author.id), (author.id, :me)))
+                    WHERE (b.blocker_identity, b.blocked_identity) IN ((:me, author.id), (author.id, :me)))
 ON CONFLICT DO NOTHING
 RETURNING feed_message_id;
 ```

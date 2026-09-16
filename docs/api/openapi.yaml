@@ -173,6 +173,7 @@ components:
       x-description-ru: Уведомление по ст. 16 DSA.
       required: [target_kind, reason_text, bona_fide]
       properties:
+        receipt_hash: {type: string, pattern: '^[0-9a-f]{64}$', description: SHA-256 of the receipt code born on the device (dsa/SPEC §6); proposed 2026-09-16, LAW-2 of pass 3 — not accepted by report.ts yet., x-description-ru: SHA-256 кода квитанции, рождённого на устройстве (dsa/SPEC §6); предложено 16.09.2026, LAW-2 прохода 3 — report.ts его ещё не принимает.}
         target_kind: {type: string, enum: [feed_message, offer, table_line, chat, other]}
         reason_text: {type: string, maxLength: 4000}
         bona_fide: {type: boolean, const: true}
@@ -190,10 +191,8 @@ components:
         scopes: {type: array, items: {type: string}}
     FeedItem:
       type: object
-      description: A feed card — a phrase, or a table on the first page only (protocol §4.2; kind added 2026-09-16, DATA-23).
-      x-description-ru: Карточка ленты — фраза либо стол только на первой странице (протокол §4.2; kind добавлен 16.09.2026, DATA-23).
-      description: A feed item — a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).
-      x-description-ru: Карточка ленты — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).
+      description: A feed card — a phrase, or a table on the first page only (protocol §4.2; kind added 2026-09-16, DATA-23). A feed item is a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).
+      x-description-ru: Карточка ленты — фраза либо стол только на первой странице (протокол §4.2; kind добавлен 16.09.2026, DATA-23). Карточка — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).
       properties:
         kind: {type: string, enum: [phrase, table]}
         game: {type: string, description: Table only., x-description-ru: Только у стола.}
@@ -248,7 +247,7 @@ components:
           properties:
             code:
               type: string
-              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, not_found]
+              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, not_found]
             message: {type: string}
             reason: {type: string}
     Page:
@@ -269,7 +268,7 @@ components:
       x-description-ru: Поставить стол (спека чата §6.1, схема tables). Имена полей предложены 16.09.2026.
       required: [class, set, lat, lon, area_radius, seats, nonce]
       properties:
-        nonce: {type: string, description: 16 random bytes, base64url; the node keeps (session, nonce) for ten minutes and answers a replay with the first answer (protocol §2, 2026-09-16)., x-description-ru: 16 случайных байт, base64url; узел держит (сессия, nonce) десять минут и на повтор отвечает первым ответом (протокол §2, 16.09.2026).}
+        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
         class: {type: string, enum: [grid, free, dots, deck, dice, physics, word]}
         set: {type: string}
         lat: {type: number}
@@ -285,7 +284,7 @@ components:
         class: {type: string}
         set: {type: string}
         seat: {type: integer, description: Your own seat number; a spectator sits too (seat_no)., x-description-ru: Номер своего места; зритель тоже сидит (seat_no).}
-        playing: {type: boolean, description: false for a spectator (playing_from is empty)., x-description-ru: false у зрителя (playing_from пуст).}
+        is_playing: {type: boolean, description: false for a spectator (playing_from is empty)., x-description-ru: false у зрителя (playing_from пуст).}
         playing: {type: integer}
         watching: {type: integer}
         board: {$ref: "#/components/schemas/Board"}
@@ -367,7 +366,7 @@ components:
         chat: {type: string, format: uuid}
         table: {type: string, format: uuid}
         seat: {type: integer}
-        nonce: {type: string}
+        nonce: {type: string, description: Required (protocol §2)., x-description-ru: Обязателен (протокол §2).}
     HideTarget:
       type: object
       description: Exactly one of feed or line (chat spec §8.9, hidden_messages). feed comes from the "…" menu; line is the outcome of a complaint without the "illegal" checkbox (screen 19), not a menu item.
@@ -379,13 +378,13 @@ components:
       type: object
       required: [span, nonce]
       properties:
-        nonce: {type: string, description: 16 random bytes, base64url; the node keeps (session, nonce) for ten minutes and answers a replay with the first answer (protocol §2, 2026-09-16)., x-description-ru: 16 случайных байт, base64url; узел держит (сессия, nonce) десять минут и на повтор отвечает первым ответом (протокол §2, 16.09.2026).}
+        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
         span: {type: string, enum: [short, hour, long], description: away.span.short / hour / long., x-description-ru: away.span.short / hour / long.}
     SupportCreate:
       type: object
       required: [body, nonce]
       properties:
-        nonce: {type: string, description: 16 random bytes, base64url; the node keeps (session, nonce) for ten minutes and answers a replay with the first answer (protocol §2, 2026-09-16)., x-description-ru: 16 случайных байт, base64url; узел держит (сессия, nonce) десять минут и на повтор отвечает первым ответом (протокол §2, 16.09.2026).}
+        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
         body: {type: string}
         email: {type: string, format: email}
     SupportRequest:
@@ -406,8 +405,16 @@ components:
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
         stepped_away_until: {type: string, format: date-time}
-        phrases: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, expires_at: {type: string, format: date-time}}}, description: Your own live phrases with their timers (screens 9, 10)., x-description-ru: Свои живые фразы с таймерами (экраны 9, 10).}
-        table: {type: object, properties: {id: {type: string, format: uuid}, seat: {type: integer}}, description: Your own seat, if any., x-description-ru: Своё место за столом, если есть.}
+        phrases:
+          type: array
+          description: Your own live phrases with their timers (screens 9 and 10).
+          x-description-ru: Свои живые фразы с таймерами (экраны 9 и 10).
+          items: {type: object, properties: {id: {type: string, format: uuid}, expires_at: {type: string, format: date-time}}}
+        table:
+          type: object
+          description: Your own seat, if any.
+          x-description-ru: Своё место за столом, если есть.
+          properties: {id: {type: string, format: uuid}, seat: {type: integer}}
     ProfilePatch:
       type: object
       description: Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds multiples of 5 or the band's edge, width at least 5.
@@ -418,6 +425,13 @@ components:
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
+    Nonced:
+      type: object
+      description: A body that carries only the nonce of protocol §2 (2026-09-16, CON-19).
+      x-description-ru: Тело, несущее только nonce из протокола §2 (16.09.2026, CON-19).
+      required: [nonce]
+      properties:
+        nonce: {type: string}
     Message:
       type: object
       description: A ciphertext to deliver (chat spec §8.8; proposed 2026-09-16, SEC-8).
@@ -444,9 +458,12 @@ components:
       x-description-ru: Мотивировка по ст. 17 её адресату, без личности заявителя (dsa/SPEC §6).
       properties:
         id: {type: string, format: uuid}
-        decided_at: {type: string, format: date-time}
-        ground: {type: string}
-        automated: {type: boolean}
+        restriction: {type: string}
+        facts: {type: string}
+        ground_kind: {type: string, enum: [law, terms]}
+        ground_text: {type: string}
+        automated_used: {type: boolean}
+        created_at: {type: string, format: date-time}
         appeal: {type: string}
     RecoveryReissue:
       type: object
@@ -454,7 +471,7 @@ components:
       x-description-ru: Доказательство текущего бумажного кода и производные нового, рождённого на устройстве (спека чата §8.2 «бумажный код»); одна транзакция.
       required: [current, next, nonce]
       properties:
-        nonce: {type: string, description: 16 random bytes, base64url; the node keeps (session, nonce) for ten minutes and answers a replay with the first answer (protocol §2, 2026-09-16)., x-description-ru: 16 случайных байт, base64url; узел держит (сессия, nonce) десять минут и на повтор отвечает первым ответом (протокол §2, 16.09.2026).}
+        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
         current: {type: object, required: [lookup_id], properties: {lookup_id: {type: string}}}
         next: {type: object, required: [lookup_id, wrapped_key], properties: {lookup_id: {type: string}, wrapped_key: {type: string}}}
   parameters:
@@ -479,8 +496,9 @@ components:
       x-description-ru: Unix-время, когда текущая мажорная версия протокола перестанет обслуживаться; на каждом ответе с момента назначения даты (протокол §3, решено 16.09.2026).
   responses:
     ApiError:
-      description: A refusal in the common shape {error:{code,message,reason?}} (protocol §6).
+      description: A refusal in the common shape {error:{code,message,reason?}} (protocol §6). Every answer of the node may carry x-protocol-sunset (components.headers.ProtocolSunset, protocol §3).
       x-description-ru: Отказ в общей форме {error:{code,message,reason?}} (протокол §6).
+      headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     RateLimited:
       description: Rate limit hit — code rate_limited, Retry-After in seconds (protocol §6).
@@ -862,7 +880,7 @@ paths:
       x-source: relay/node/src/routes/admin.ts
       security: [{panelSession: []}]
       responses:
-        "201": {description: The key with its secret, shown_once true., x-description-ru: Ключ с секретом, shown_once true.}
+        "201": {description: "The key with its secret, shown_once true.", x-description-ru: "Ключ с секретом, shown_once true."}
         "403": {description: Scopes beyond your own permissions., x-description-ru: Скоупы сверх собственных пермишенов.}
         "404": {description: unknown brand, x-description-ru: неизвестный бренд}
         "422": {description: invalid body, name or scopes, x-description-ru: неверное тело, имя или скоупы}
@@ -1067,6 +1085,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: The old PIN, a new auth_hash, a reissued share.
       x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Nonced"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1082,6 +1101,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: With a PIN proof; appearance rows are deleted in the same transaction.
       x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Nonced"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1228,7 +1248,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
-        "409": {$ref: "#/components/responses/ApiError"}
+        "409": {description: Re-acceptance required (no error.code) or stepped_away (ApiError)., x-description-ru: Нужно принять заново (без error.code) либо stepped_away (ApiError)., content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
     delete:
       tags: [chat]
       summary: Take a like back until a match
@@ -1414,6 +1434,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "404": {$ref: "#/components/responses/ApiError"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The ticket., x-description-ru: Билет., content: {application/json: {schema: {type: object, properties: {ticket: {type: string}}}}}}
@@ -1957,7 +1978,8 @@ paths:
       responses:
         "202": {description: Accepted., x-description-ru: Принято., content: {application/json: {schema: {$ref: "#/components/schemas/MessageAck"}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
-        "409": {$ref: "#/components/responses/Reaccept"}
+        "404": {$ref: "#/components/responses/ApiError"}
+        "409": {description: Re-acceptance required (no error.code) or stepped_away (ApiError)., x-description-ru: Нужно принять заново (без error.code) либо stepped_away (ApiError)., content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
         "429": {$ref: "#/components/responses/RateLimited"}
   /chats/{id}/received:
     post:

@@ -54,9 +54,11 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   **Caveat of 2026-09-16 (panel, SEC-3):** for one-shot actions the price of a replay exceeds the
   trade — a second table and standing up from the first, a spent support quota, a repeated
   step-away after coming back. So `POST /tables`, `POST /away`, `POST /support`,
-  `POST /recovery/reissue`, `POST /identities/close` and `POST /vault/pin` carry a `nonce` field in
+  `POST /recovery/reissue`, `POST /identities/close`, `POST /vault/pin` and `POST /blocks` carry a `nonce` field in
   the body (16 bytes, random, base64url): it enters the signature through the body hash, the node keeps
-  the pair (session, nonce) for ten minutes and answers a replay with the first answer. Everything
+  the pair (session, nonce) with the first answer for ten minutes in the `nonces` table of the database —
+  shared by the pool and surviving a restart; the "shared memory" argument is withdrawn for these seven
+  routes (2026-09-16, OPS-1, SEC-17), the sweeping is `nonce.ttl` in the limits registry. Everything
   else lives by the window.
 
 ## 3. Face, version and compatibility
@@ -73,11 +75,11 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 - **The support window is the current major version of the protocol only**
   (decided 2026-08-27, `route-to-code_EN.md`). An older image gets a legible
   refusal with the command to update, and the sunset date is announced in advance.
-- **How exactly a client states its version is open** (see §8). The spec says "the
+- **A client states its version in the header `x-protocol-version`** — decided 2026-09-16; the spec said "the
   client sends its version, the node knows the minimum supported" without naming a
-  field. **Decided 2026-09-16:** the header `x-protocol-version` on every request and the
+  field, and this said "how exactly a client states its version is open" [retired]. **In full:** the header `x-protocol-version` on every request and the
   subprotocol `xor.p1` on the socket (§6, §4.4). **The sunset date is announced by the response
-  header `x-protocol-sunset: <unix time>`** on every answer of the node from the day it is set — so
+  header `x-protocol-sunset: <unix time>`** on every answer of the node from the day it is set (the value is the environment variable `PROTOCOL_SUNSET_AT`, empty — no header; OPS-6) — so
   "in advance" reaches the terminal image `depth` too, which has no other channel (2026-09-16, OPS-15).
 
 ## 4. Routes
@@ -129,8 +131,8 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 | `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
 | `DELETE /chats/:id` | closes a conversation by hand — for both at once | **proposed** (§5, screen 8) |
 | `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **proposed** (§8.6) |
-| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes` | **proposed 2026-09-16** (§8.8; panel, SEC-8) |
-| `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` | **proposed 2026-09-16** (§8.8) |
+| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); not a member — 404 in the same shape as for a chat that does not exist; while stepped away — 409 `stepped_away` (SEC-22) | **proposed 2026-09-16** (§8.8; panel, SEC-8) |
+| `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **proposed 2026-09-16** (§8.8) |
 
 ### 4.4. The socket
 
@@ -191,7 +193,7 @@ or takes a live identity for a dead one.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /statements` | your own Article 17 statements without the notifier's identity: `{id, decided_at, ground, automated, appeal}` — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
+| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, facts, ground_kind, ground_text, automated_used, created_at, appeal}`; the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
 | `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **proposed 2026-09-15** (final panel, SEC-9) | **proposed** (`dsa/SPEC_EN.md` §6) |
 
 ### 4.6. Tables (chat spec §6.1, screen 19)
@@ -206,13 +208,13 @@ All proposed 2026-09-16; the behaviour is §6.1's and screen 19's, the paths are
 | `DELETE /tables/:id/seat` | stand up: `left_at` and `NOTIFY seat_left`, the socket closes with code 4005; the last one to stand up sets `tables.closed_at = now()` in the same transaction (DATA-27); coming back is the same `POST`, a new seat and history afresh from the seating; the outward score is by live seat, whoever left does not carry it (SEC-12) | **proposed 2026-09-16** (§6.1) |
 | `POST /tables/:id/ticket` | a one-time ticket for the table's socket, as for a conversation (§4.4); only with a live seat (otherwise 404, SEC-4); the ticket lives `ticket.lifetime`, 30 seconds (SEC-15) | **proposed 2026-09-16** (§7) |
 | `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text}` — **202**, published by the queue's verdict; a sticker `{kind: sticker, sticker}` — **200**, no queue, at most `sticker.minute` a minute per identity (SEC-5); one application per game, a refusal without text is not accepted, a `refusal` is accepted only from a player | **proposed 2026-09-16** (§6.1, schema `table_lines`) |
-| `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` in the board class's terms; `seq` is the expected **board version** (`table_games.seq`, monotonic, grows on an undo too): a repeat of the same body at the same `seq` answers the same `board`, a foreign version gets `stale_seq` (DATA-24, SEC-11); refusals `not_your_turn`, `illegal_move` with the engine's reason; three passes in a row — to the spectators; the move deadline `turn_due` sits in the database, the auto-pass is placed by the scheduler or by the first request after it (OPS-12) | **proposed 2026-09-16** (§6, §6.1; `table.move.window`, `table.pass.limit`) |
+| `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` in the board class's terms; `seq` is the expected **board version** (`table_games.seq`, monotonic, grows on an undo too): a repeat of the same body at the same `seq` answers the same `board`, a foreign version gets `stale_seq` (DATA-24, SEC-11); refusals `not_your_turn`, `illegal_move` with the engine's reason; three passes in a row — to the spectators; the move deadline `turn_due` sits in the database; the auto-pass is placed by a scheduler job every 30 seconds and by any request to the table after the deadline, overdue deadlines are applied in order with their own `seq`, an overdue `pending` is cleared the same way and `GET` answers `pending: null` (OPS-12, OPS-3, OPS-4) | **proposed 2026-09-16** (§6, §6.1; `table.move.window`, `table.pass.limit`) |
 | `POST /tables/:id/confirm` | "I'm here" for a new game inside `table.confirm.window`; not confirmed — a spectator | **proposed 2026-09-16** (§6) |
-| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; one open proposal per seat (SEC-5), kept in `table_games.pending` and surviving a restart; the undo fires on every player's consent and steps back one snapshot, which the engine keeps in memory (§6) — after a restart it answers `nothing_to_undo` (OPS-12) | **proposed 2026-09-16** (§6) |
+| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; one open proposal per table — a second one answers 409 `pending_exists` (SEC-5, DATA-7), kept in `table_games.pending` and surviving a restart; the undo fires on every player's consent and steps back one snapshot, which the engine keeps in memory (§6) — after a restart it answers `nothing_to_undo` (OPS-12) | **proposed 2026-09-16** (§6) |
 | `POST /tables/:id/proposals/:pid` | the answer `{answer: accept \| decline \| counter, class, set}` | **proposed 2026-09-16** (§6) |
 | `POST /tables/:id/resign` | resign — a one-sided announcement, no result | **proposed 2026-09-16** (§6) |
 | `POST /tables/:id/congratulate` | congratulate `{seat}` — as a `kind: congratulation` line composed by the engine; one per seat per game (SEC-5) | **proposed 2026-09-16** (§6, screen 19) |
-| `POST /tables/:id/kick` | a vote to remove `{seat}`; one vote per identity, a repeat does not count; the node counts the majority of those seated, the votes live in memory until the game ends, no trace remains | **proposed 2026-09-16** (§6.1) |
+| `POST /tables/:id/kick` | a vote to remove `{seat}`; one vote per identity, a repeat does not count; the node counts the majority of **players** (`playing_from` set), spectators do not decide (SEC-24), the votes live in memory until the game ends, no trace remains | **proposed 2026-09-16** (§6.1) |
 
 Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the one who blocks leaves the table. A table in the feed is a `GET /feed` card with `kind: table`, the game's name and two numbers.
 
@@ -238,8 +240,8 @@ Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the 
 | `POST /blocks` | block by a phrase `{feed: id}`, a conversation `{chat: id}` or a seat `{table: id, seat}`, with a `nonce`; **204** always, a repeat too: the answer is not an oracle; the match dies, the shared chat closes, phrases are hidden from both; at most `blocks.hour` per identity — the price is acknowledged: a block by a phrase shows the blocker which other phrases of the same author vanished (SEC-1) | **proposed 2026-09-16** (§8.9, schema `blocks`) |
 | `GET /blocks` | your own blocks: `{id, since}` — `id` is opaque (`blocks.id`) and does not reduce to an identity; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **proposed 2026-09-16** (§8.9 "until lifted") |
 | `DELETE /blocks/:id` | lift a block; **204** on a foreign or unknown `id` too (SEC-14); the set of visible tables is recomputed on the next entry into the feed | **proposed 2026-09-16** (§8.9, §6.1) |
-| `POST /hidden` | hide a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **204**; the author does not learn; answers `{id}` for bringing it back | **proposed 2026-09-16** (§8.9, schema `hidden_messages`) |
-| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: it lives until the phrase dies | **proposed 2026-09-16** (screen 10) |
+| `POST /hidden` | hide (at most `hidden.hour` an hour per identity) a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **200** `{id}` for bringing it back; the author does not learn | **proposed 2026-09-16** (§8.9, schema `hidden_messages`) |
+| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line while the table is open (`tables.closed_at IS NULL`; DATA-8) | **proposed 2026-09-16** (screen 10) |
 | `DELETE /hidden/:id` | bring the hidden back by `hidden_messages.id`; **204** on a foreign `id` too (SEC-14) | **proposed 2026-09-16** (screen 5) |
 
 ### 4.9. Stepping away (chat spec §8.2 "stepped away", screen 20)
@@ -249,7 +251,7 @@ Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the 
 | `POST /away` | step away `{span: short \| hour \| long, nonce}` (`away.span.*`); in one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets `peer_stepped_away`; answers `{until}`; the client counts the price before the tap | **proposed 2026-09-16** (§8.2) |
 | `DELETE /away` | come back early: `stepped_away_until = now()`; the mark at the other person's end is lifted by your first line, not by this request | **proposed 2026-09-16** (§8.2) |
 
-While stepped away, **every** signed request except `DELETE /away` and `GET /identities/me` answers **409** `stepped_away`, socket tickets included: "until then the product does not exist for the person" (chat spec §8.2), screen 20 — "emptiness: no feed, no conversations". Refined 2026-09-16 (panel, SEC-9); this said "reading and conversations stay open" [retired]. Stepping away also takes the table lines waiting for a verdict (DATA-26).
+While stepped away, **every** signed request except `DELETE /away`, `GET /identities/me` and `POST /identities/close` answers **409** `stepped_away`, socket tickets included: "until then the product does not exist for the person" (chat spec §8.2), screen 20 — "emptiness: no feed, no conversations". Refined 2026-09-16 (panel, SEC-9); this said "reading and conversations stay open" [retired]. Stepping away also takes the table lines waiting for a verdict (DATA-26).
 
 ### 4.10. Support (chat spec, schema `support_requests`; screen 14)
 
@@ -257,7 +259,7 @@ While stepped away, **every** signed request except `DELETE /away` and `GET /ide
 |---|---|---|
 | `POST /support` | a request `{body, email, nonce}` (`email` optional); **201** `{public_no}` — 10 Crockford base32 characters at once; the fourth in a day — **429** with the storefront's support address in `message` (`support.requests.day`, `support.frozen.day`) | **proposed 2026-09-16** (schema `support_requests`) |
 | `GET /support` | your own requests: `{public_no, created_at, answer, answered_at, answer_seen}`; by number without a signature the node answers nothing; a frozen session sees no list | **proposed 2026-09-16** (screen 14) |
-| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** | **proposed 2026-09-16** (schema, `answer_seen`) |
+| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** on a foreign or unknown number too (SEC-23) | **proposed 2026-09-16** (schema, `answer_seen`) |
 
 Turning a request into an Article 16 notice is the client's act: the text is carried into the `POST /report` form and the request row is deleted in the same transaction (chat spec, the comment on `support_requests`).
 
@@ -300,13 +302,15 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 | profile edits | 10 a day per identity | the node |
 | paper-code reissues | 3 a day per identity | the node |
 | socket ticket lifetime | 30 seconds | the node |
+| messages in a chat | 60 a minute per identity | the node |
+| nonce lifetime | 10 minutes | the node |
 | density requests | 100 in a row is a density profile being taken | the node |
 | queue throughput | ~20 phrases per minute, **not yet measured** | the node |
 | false-block budget | 7% — the moderation threshold is derived from it | the node's config |
 | report threshold | 5% of a phrase's possible audience | the node's config |
 | floor of the report threshold | 3 people | the node's config |
 
-**The eight rows saying "per identity" were added 2026-09-16 (panel, OPS-13):** the limit's key is named in the row itself, and `Retry-After` for a daily or hourly counter is the seconds until the oldest counted event leaves the sliding window; moves have no rate limit of their own — the move window holds them. **The last three rows are deploy-time parameters, not constants of the code**
+**The seven "per identity" rows and the ticket lifetime were added 2026-09-16 (panel, OPS-13):** each limit's key is in its row; `Retry-After` for a daily or hourly counter is the seconds until the oldest counted event leaves the sliding window; **per-identity counters live in the node's memory and are not journaled** — a restart resets them, and that is accepted: none of them guards a secret (OPS-2, LAW-5 of pass 3); moves have no rate limit of their own — the move window holds them. **The last three rows are deploy-time parameters, not constants of the code**
 (decided 2026-08-27–2026-08-28, `route-to-code_EN.md`). The environment variable names are
 proposed here and need agreement: `MODERATION_FALSE_BLOCK_BUDGET`,
 `REPORT_THRESHOLD_SHARE`, `REPORT_THRESHOLD_FLOOR`. They are not in the node's
@@ -348,7 +352,7 @@ this list like the other two: since 2026-09-15 they need the checkbox too (§8.2
              "reason": "…" } }
 ```
 
-`code` is a machine name from the closed list in `docs/api/openapi.yaml` (`ApiError`), `message` is text for a person in the request's language, `reason` appears only on moderation refusals and carries a text from `refusal-wordings_EN.md`. The 409 "accept again" refusal does not move into this shape: it has its own, named above; the client tells the two bodies under one 409 apart by the presence of `error.code` — the re-acceptance has none, and `POST /feed` and the like are described in `openapi.yaml` as `oneOf` (CON-6). The codes `stale_seq` and `nothing_to_undo` were added 2026-09-16 (DATA-24, OPS-12). **A rate limit is a 429 in the same shape with `code: rate_limited` and a `Retry-After` header in seconds**, as the built `POST /report` and `POST /waitlist` do (`report.ts`, `waitlist.ts`). **The protocol version is the header `x-protocol-version` carrying the integer major version** on every request; an unsupported one answers **400** `protocol_version_unsupported` with the update command in `message`; the header is not signed, and forging it only refuses that same request. **Pagination is a cursor:** `GET /feed` and `GET /inbox` take `?after=<opaque string>` and answer `{items, next}`; an empty `next` is the end; the cursor encodes (`visible_at`, `id`) and reveals nothing beyond what was already given out. The intake routes from the storefronts (`/waitlist`, `/report`, `/pageview`) keep the flat string `{error: "…"}` — they are built and not signed by an identity.
+`code` is a machine name from the closed list in `docs/api/openapi.yaml` (`ApiError`), `message` is text for a person in the request's language, `reason` appears only on moderation refusals and carries a text from `refusal-wordings_EN.md`. The 409 "accept again" refusal does not move into this shape: it has its own, named above; the client tells the two bodies under one 409 apart by the presence of `error.code` — the re-acceptance has none, and `POST /feed` and the like are described in `openapi.yaml` as `oneOf` (CON-6). The codes `stale_seq` and `nothing_to_undo` were added 2026-09-16 (DATA-24, OPS-12). **A rate limit is a 429 in the same shape with `code: rate_limited` and a `Retry-After` header in seconds**, as the built `POST /report` and `POST /waitlist` do (`report.ts`, `waitlist.ts`). **The protocol version is the header `x-protocol-version` carrying the integer major version** on every request; an unsupported one answers **400** `protocol_version_unsupported` with the update command in `message`; the header is not signed, and forging it only refuses that same request. **Pagination is a cursor:** `GET /feed` and `GET /inbox` take `?after=<opaque string>` and answer `{items, next}`; an empty `next` is the end; the cursor encodes (`visible_at`, `id`) for the feed and (`created_at`, `id`) for the inbox (DATA-5) and reveals nothing beyond what was already given out. The intake routes from the storefronts (`/waitlist`, `/report`, `/pageview`) keep the flat string `{error: "…"}` — they are built and not signed by an identity.
 
 [retired] This said "there is no single error shape in the spec, and I did not invent one here".
 

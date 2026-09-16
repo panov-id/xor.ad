@@ -175,10 +175,9 @@ mandatory discount, published for free.
 - **Fact.** We declare 13+; nothing rests on consent — neither in the app nor for the
   waitlist (Policy §4, since 2026-09-10; there is no analytics). Refined 2026-09-16.
 - **Where.** `landing/legal/privacy_EN.md` §4, §10.
-- **Question.** What is the threshold under Cypriot law, and how does it interact
-  with our two consent-based processes?
-- **Price.** Either an age question on the landing, or moving the waitlist to a
-  pre-contractual step.
+- **Question.** What is the threshold under Cypriot law, and do we need one at all when
+  nothing rests on consent (refined 2026-09-16)?
+- **Price.** Either an age question on the landing, or nothing.
 - **Blocks publication.** yes — the age threshold sits in the Terms and on the landing; the answer changes published text.
 
 **17. The promise of parental consent.**

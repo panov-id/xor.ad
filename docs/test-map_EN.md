@@ -424,7 +424,7 @@ the spec, not from whatever turned out to be convenient to check.
 | 23.5 | While stepped away every signed request except `DELETE /away` and `GET /identities/me` → 409 `stepped_away` (§4.9) | `POST /away`, then `GET /feed` and `POST /chats/:id/ticket` | nothing to check |
 | 23.6 | `POST /blocks` → 204 always, a repeat → 204; `DELETE /blocks/:id` → 204 on a foreign `id` too; tables are recomputed only on the next entry into the feed (§4.8) | three requests and `GET /feed` before and after | nothing to check |
 | 23.7 | `POST /hidden {feed}` → `{id}`, `DELETE /hidden/:id` brings the phrase back; `{line}` is accepted only from the complaint form without the checkbox (§4.8) | hide, bring back, compare `GET /hidden` | nothing to check |
-| 23.8 | A repeat of `POST /tables`, `/away`, `/support`, `/recovery/reissue` with the same `nonce` within ten minutes answers the first answer and does not act twice (§2) | two identical requests | nothing to check |
+| 23.8 | A repeat of any of the seven §2 routes (`/tables`, `/away`, `/support`, `/recovery/reissue`, `/identities/close`, `/vault/pin`, `/blocks`) with the same `nonce` within ten minutes answers the first answer and does not act twice (§2) | two identical requests | nothing to check |
 | 23.9 | A move with a foreign board version → 409 `stale_seq`; the same body at the same `seq` → the same board (§4.6) | three moves in a row | nothing to check |
 | 23.10 | The feed filter: bounds multiples of 5 or the band's edge, width at least 5 → otherwise `filter_out_of_band` (§4.11) | `PATCH /identities/me` with 21–23 | nothing to check |
 

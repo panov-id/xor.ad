@@ -169,7 +169,7 @@ therefore a processor for everything kept in the database, in every activity bel
   content; discharge Arts. 16–17 DSA.
 - **Basis.** **Legal obligation** — Art. 6(1)(c). Not consent.
 - **Data subjects.** Notifiers and the authors of the content.
-- **Data.** The notifier's name and email (not requested where the report concerns
+- **Data.** The statement to the addressee of a restriction: the addressee's identity, what was done and for how long, the facts, the ground (law or terms), the automation flag, one year; the hash of the receipt code without the notifier's identity (added 2026-09-16, LAW-4). The notifier's name and email (not requested where the report concerns
   the sexual exploitation of children), the reasoning, and a **snapshot of the
   content** — text, time of publication, author identifier, and the face the
   content was published under. The area it was published to (coordinates and

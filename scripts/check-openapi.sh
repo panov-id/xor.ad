@@ -46,6 +46,25 @@ except yaml.YAMLError as problem:
     print(f"спецификация не читается: {problem}", file=sys.stderr)
     sys.exit(2)
 
+# Дубли ключей и порванные flow-описания (панель 16.09.2026, CON-21): PyYAML молча берёт
+# последний из двух одинаковых ключей, а незакавыченное описание с запятой внутри
+# `{…}` режется на два ключа — схема кривая, парсер не падает. Ловим оба обходом дерева.
+class _Dups(yaml.SafeLoader):
+    pass
+def _mapping(loader, node):
+    seen = set()
+    for k, _v in node.value:
+        if k.tag == "tag:yaml.org,2002:merge":
+            continue
+        key = loader.construct_object(k)
+        if key in seen:
+            problems.append(f"дубль ключа «{key}» в строке {k.start_mark.line + 1}")
+        if isinstance(key, str) and (key.endswith(")." ) or key.endswith("true.") or key.endswith("false.")):
+            problems.append(f"порванное flow-описание: ключ «{key}» в строке {k.start_mark.line + 1} — возьмите текст в кавычки")
+        seen.add(key)
+    return loader.construct_mapping(node)
+_Dups.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _mapping)
+yaml.load(spec_path.read_text(encoding="utf-8"), Loader=_Dups)
 if not isinstance(spec, dict) or not str(spec.get("openapi", "")).startswith("3.1"):
     problems.append("спецификация не OpenAPI 3.1: поле openapi обязано начинаться с 3.1")
 

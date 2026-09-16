@@ -309,7 +309,7 @@ CREATE TABLE tables (
   created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- not part of any response; a table has no owner
   created_at       timestamptz NOT NULL DEFAULT now(),
   last_move_at     timestamptz NOT NULL DEFAULT now(),        -- the sliding span: a move or a line from anyone seated
-  closed_at        timestamptz                                -- everyone left, or everyone declined to play again; set by the `DELETE /tables/:id/seat` transaction when the last one stands up (2026-09-16, DATA-27)
+  closed_at        timestamptz                                -- everyone left, or everyone declined to play again; set by one procedure `leave_table(identity)` when the last one stands up — all five paths call it: `DELETE /tables/:id/seat`, `POST /tables` (standing up from the previous one), `POST /away`, `POST /blocks` at a table and closing an identity (2026-09-16, DATA-27, DATA-2)
 );
 
 CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
@@ -321,13 +321,17 @@ CREATE TABLE table_seats (
   playing_from     timestamptz,                               -- NULL = sitting but not playing: the application is not accepted yet
   left_at          timestamptz,
   -- The seat number is how a person is named outwards: in frames, in the score, in `{table, seat}`
-  -- for a block or a removal. The identity never leaves the node (§8.11). The lowest free number
+  -- for a block or a removal. The identity never leaves the node (§8.11). The next number
   -- is handed out inside the seating transaction under `SELECT … FROM tables WHERE id = :t FOR UPDATE`,
   -- or two seatings take one number. Someone coming back gets a new number: no trace remains (2026-09-16, DATA-18).
   seat_no          smallint NOT NULL,
-  PRIMARY KEY (table_id, identity)
+  -- Numbers are never reused within a table's life: `max(seat_no) + 1` under the same lock, or the
+  -- target of `kick`/`congratulate`/`blocks {table, seat}` would rebind to a new person (2026-09-16, SEC-16).
+  -- Coming back is a new row, not `UPDATE left_at = NULL` (2026-09-16, DATA-1); one live row per
+  -- identity is held by `table_seats_one_at_a_time`.
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  UNIQUE (table_id, seat_no)
 );
-CREATE UNIQUE INDEX table_seats_seat_taken ON table_seats (table_id, seat_no) WHERE left_at IS NULL;
 
 -- One table at a time — decided 2026-09-09. Sitting down at a second table
 -- without standing up from the first is refused, and this is the only guard
@@ -400,7 +404,7 @@ CREATE TABLE table_games (
   seq          integer NOT NULL DEFAULT 0,
   last_move_hash text,                                -- sha256 of the last move's body: tells a repeat from another move with the same seq
   pending      jsonb,                                -- {kind, id, class, set, answers, until} — a proposal or the confirmation of the line-up
-  turn_due     timestamptz,                          -- end of the move window (table.move.window); the auto-pass is placed by the scheduler or by the first request to the table after it
+  turn_due     timestamptz,                          -- end of the move window (table.move.window); the auto-pass is placed by the scheduler job `table_autopass` every 30 seconds **and** by any `/tables/:id/*` request after the deadline — overdue deadlines are applied in order, each as its own `seq`; an overdue `pending` is cleared the same way (2026-09-16, OPS-3, OPS-4)
   started_at   timestamptz NOT NULL DEFAULT now(),
   ended_at     timestamptz                           -- the game is over, the table remains
 );
@@ -427,6 +431,9 @@ CREATE TABLE chat_games (
   class        text NOT NULL,                         -- grid | free | dots | deck | dice | physics | word
   state        jsonb NOT NULL,                        -- position, stock, whose turn, hands
   score        jsonb NOT NULL DEFAULT '{}'::jsonb,    -- this pair's score, accumulating between games
+  seq          integer NOT NULL DEFAULT 0,             -- the board version, as in table_games (2026-09-16, DATA-3)
+  last_move_hash text,
+  pending      jsonb,                                  -- the open proposal or the line-up confirmation
   updated_at   timestamptz NOT NULL DEFAULT now(),
   -- The earlier of the two spans, not "the end of the conversation": each side has
   -- its own span (§5), and the board goes out for both at the first death.
@@ -457,10 +464,10 @@ CREATE INDEX chat_games_expiry ON chat_games (expires_at);
 -- the API answer (§8).
 CREATE TABLE table_scores (
   table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  identity     uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  seat_id      uuid NOT NULL REFERENCES table_seats(id) ON DELETE CASCADE,  -- the score belongs to the seat, not the identity: whoever leaves does not carry it, whoever returns starts from zero (2026-09-16, SEC-12, DATA-1)
   points       integer NOT NULL DEFAULT 0,
   updated_at   timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (table_id, identity)
+  PRIMARY KEY (table_id, seat_id)
 );
 ```
 
@@ -665,7 +672,7 @@ is asking.
   sits in the database beside the table, because everything there is public by
   construction (§6.1).
 
-- **The majority of those sitting can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
+- **The majority of the players (spectators do not decide — 2026-09-16, SEC-24) can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
 - **A block separates at the seat, it does not tear a game apart — rewritten 2026-09-10.** A table with a blocked person at it is still not shown, but sitting down is refused **both ways**: neither the blocked person into a table where the blocker sits, nor the other way round. This used to read "one person can hide someone else's game from another simply by joining it" — and the cost was larger than that: by joining a game in progress, an outsider cut it off mid-move for whoever was playing, and the others at the table lost a player for no reason.
   **This rule has no instant recomputation — decided 2026-09-10.** A block is
   symmetric and can be toggled any number of times, and a table would appear and
@@ -1444,6 +1451,8 @@ CREATE TABLE feed_messages (
   CONSTRAINT feed_published CHECK ((visible_at IS NULL) = (expires_at IS NULL))
 );
 CREATE INDEX feed_expiry ON feed_messages (expires_at) WHERE visible_at IS NOT NULL;
+CREATE INDEX feed_cursor ON feed_messages (visible_at DESC, id DESC) WHERE visible_at IS NOT NULL;  -- the feed cursor `(visible_at, id) < (:va, :id)` (2026-09-16, DATA-5)
+CREATE INDEX feed_live_geo ON feed_messages (lat, lon) WHERE visible_at IS NOT NULL;  -- the geo cut of the live feed (2026-09-16, DATA-5)
 CREATE INDEX feed_by_author ON feed_messages (author_identity) WHERE author_identity IS NOT NULL;  -- "one at a time" and "four per hour" at send time (2026-09-14)
 CREATE UNIQUE INDEX feed_one_waiting ON feed_messages (author_identity) WHERE visible_at IS NULL;  -- "one at a time" is this constraint, not the count: a second waiting INSERT raises 23505; a refused row is deleted (checked in postgres:16, 2026-09-14)
 ```
@@ -1941,7 +1950,7 @@ SELECT :me, f.id
    AND author.age BETWEEN band_low(:my_age) AND band_high(:my_age)   -- the viewer's band
    AND :my_age BETWEEN band_low(author.age) AND band_high(author.age) -- and symmetrically
    AND NOT EXISTS (SELECT 1 FROM blocks b
-                    WHERE (b.blocker, b.blocked) IN ((:me, author.id), (author.id, :me)))
+                    WHERE (b.blocker_identity, b.blocked_identity) IN ((:me, author.id), (author.id, :me)))
 ON CONFLICT DO NOTHING
 RETURNING feed_message_id;
 ```

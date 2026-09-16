@@ -88,7 +88,7 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W7. The age of the last dump
 
-- **Gauge.** The age of the newest object in `backups/<env>/postgres/` of the storage — checked from outside the box, where W5 runs.
+- **Gauge.** `GET /metrics` serves `relay_backup_age_seconds` — the age of the newest object in `backups/<env>/postgres/` of the storage; the node asks the storage by a scheduler job once an hour (refined 2026-09-16, OPS-5: the external pinger of W5 does not list the storage; a box down as a whole is caught by W5).
 - **Threshold.** 26 hours: the dump is nightly, the hour is slack for a deploy and the network.
 - **Where to.** A letter to the personal addresses; the unit `relay-backup.service` gets an `OnFailure=` with the same letter, so a failed `curl` to the storage does not stay silent.
 - **Why.** Up to 2026-09-15 the backup had not run for four nights in a row and nobody learned (panel, OPS-1); the command fix and the `check-backup-script` gate catch a broken text, not a broken network. Added 2026-09-16 after the panel (OPS-14); item `backup.silent.failure` in `docs/facts/open.tsv`.
@@ -109,10 +109,11 @@ Each watchdog is broken on purpose and must reach the channel:
 | W4 | delete the job name from `scheduled.ts` | a red gate |
 | W5 | stop the node container | a letter after three minutes |
 | W5 | stop postgres, the node running | a letter after three minutes: `/ready` answers 503 |
+| W7 | stop `relay-backup.timer` and set the threshold to 0 via env | a letter within the hour |
 | W6 | stop the moderation worker and post a phrase | a letter once the oldest phrase nears 10 minutes |
 
 ## Open
 
-- Watchdogs W1–W3, W5 and W6 are not built — items `watchdogs.unbuilt` (W1–W2, legal) and
+- Watchdogs W1–W3, W5, W6 and W7 are not built — items `watchdogs.unbuilt` (W1–W2, legal) and
   `watchdogs.jobs.unbuilt` (W3, operations) in `docs/facts/open.tsv`.
 - The external pinger service is not chosen — `node.external.pinger`.

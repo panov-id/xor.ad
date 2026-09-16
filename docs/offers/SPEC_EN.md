@@ -716,7 +716,7 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
   nothing is repaired by an examination, a deceived neighbour is repaired by nothing
 - it is not shown to the author, **but the venue gets an email the moment the link goes dark**, to
   the verification address — what went dark; the ground, Terms §10 (the link leads to a phishing or
-  harmful site), and why (two reports from people who have posted for a while, without who they are);
+  harmful site), and why (two reports from people who were already posting in the feed before the offer came out — their first publication more than a day old — without who they are; wording aligned with Terms §10 on 2026-09-15);
   that the decision was automatic; that the offer itself stays live; how to contest it — by replying
   (a person looks), with the Digital Services Coordinator, or in court. Decided 2026-09-14: with a
   known address this is required by DSA Art. 17(1)(a), 17(2) and 17(3)(a)–(f). Whether P2B applies

@@ -253,8 +253,8 @@ $ depth move
 ```
 
 Nine characters, Crockford base32 without `I`, `L`, `O`, `U`. Case does not
-matter and the dashes are optional. The code lives two minutes, applies once, and
-a sixth entry attempt burns the invite. Until "that's me" is pressed on the other
+matter and the dashes are optional. The code lives two minutes, applies once; a
+mistyped one gets "the code did not fit or has expired", and a second claim cancels the move. Until "that's me" is pressed on the other
 device, nothing happens here. The whole mechanism is in §8.2 of the spec.
 
 After the move, the line without which a person will assume their chats are gone:

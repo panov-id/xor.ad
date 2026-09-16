@@ -353,3 +353,127 @@ newest at the bottom like a chat | README.md | feed shows newest at the top sinc
 third of four | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | N of 4 free, 2026-09-15
 Колонки сворачиваются в вертикальные рейлы | chat_RU.md | третья колонка по открытию, рейлов нет, 15.09.2026
 Columns collapse into vertical rails | chat_EN.md | a third column on opening, no rails, 2026-09-15
+under-21s and over-20s do not see each other | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-2: the bands meet at the edges; 21+ never sees under 19, under 19 cut off from 21+ (dsa/SPEC §5.3), 2026-09-15
+such content will be reported to authorities | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | S5 panel LAW-10: pre-moderation refuses it; reporting only on suspected offence threatening life or safety (Art. 18 DSA, §15), 2026-09-15
+moves are made of a class of board and a coordinate, not of your words | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | S5 panel LAW-1: the hangman word is seen by the node and checked by moderation, 2026-09-15
+a move on a board is not words | sosed.place/landing/legal/community-guidelines_EN.md neighbro.place/landing/legal/community-guidelines_EN.md | S5 panel LAW-1: the hangman word is seen by the node and checked by moderation, 2026-09-15
+Words are still ours to not read | sosed.place/landing/legal/community-guidelines_EN.md neighbro.place/landing/legal/community-guidelines_EN.md | S5 panel LAW-1: replaced by the sentence naming the hangman exception, 2026-09-15
+except that a link in an offer goes dark by itself after reports from people who were already posting in the feed before the offer came out | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | S5 panel LAW-8/LAW-9: autohide by three complaints named; one wording for the link condition, 2026-09-15
+people who were posting before the offer came out (§10) | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | S5 panel LAW-9: one wording with the day-old first publication, 2026-09-15
+EU consumers may also use the European Commission's Online Dispute Resolution platform | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | S5 panel LAW-12: owner decision to remove; repeal of Reg. 524/2013 NOT VERIFIED on EUR-Lex, 2026-09-15
+year of birth | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-16: the product stores age as a number of years, 2026-09-15
+is kept while you use the Service in this browser | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-7: the node cannot see a cleared browser; identity lives until closed, a year without a live session closes it, deletion 30 days later, 2026-09-15
+and to **withdraw consent** | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-16: nothing rests on consent, 2026-09-15
+What is kept there is the feed, the offers and the complaints about them | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-6: everything the Service keeps sits in Germany, 2026-09-15
+Email delivery and payments are covered by their own providers' terms | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-5: Resend transfer safeguards SCC + DPF named; PayPal an independent controller, 2026-09-15
+nobody else holds it | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md article-30-register_EN.md | S5 panel LAW-5: the database sits on Hetzner hardware; Hetzner is a processor, 2026-09-15
+посторонние её не держат | article-30-register_RU.md | S5 panel LAW-5: база стоит на сервере Hetzner, Hetzner обработчик, 2026-09-15
+object storage for what the Service keeps | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-5/LAW-6: Bunny holds the waitlist and backups; the database is at Hetzner, 2026-09-15
+the letter that answers a waitlist request, and the invitations the admin panel sends | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-5: all Resend purposes from the Art. 30 record, 2026-09-15
+What you write inside a chat is not checked at all | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-1: the hangman word is checked, 2026-09-15
+One exception exists and it comes from the other side | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-1: there are two exceptions now, 2026-09-15
+No reply of yours is in there, it is tied to the conversation | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-1: the hangman word is in the game state, 2026-09-15
+it waits for you, encrypted, until you come back or until the conversation ends | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | S5 panel LAW-16: freeze ends it too; beyond 200 messages the oldest are evicted silently, 2026-09-15
+provided both have had a publication accepted | sosed.place/docs/17-offer_EN.md neighbro.place/docs/17-offer_EN.md | S5 panel LAW-9: aligned with Terms §10; kept once as a quoted [retired] note, 2026-09-15
+если у обоих была принятая публикация | sosed.place/docs/17-offer_RU.md neighbro.place/docs/17-offer_RU.md | S5 panel LAW-9: сведено с соглашением §10; осталось одно цитирование с пометкой [retired], 2026-09-15
+people who have posted for a while | offers/SPEC_EN.md | S5 panel LAW-9: letter to a venue uses the Terms §10 wording, 2026-09-15
+две жалобы давно публиковавшихся | offers/SPEC_RU.md | S5 panel LAW-9: письмо заведению в формулировке соглашения §10, 2026-09-15
+The guidelines: the new revision is recorded silently | sosed.place/docs/15-legal-documents_EN.md neighbro.place/docs/15-legal-documents_EN.md | S5 panel LAW-14: owner decision, the guidelines need the checkbox too, 2026-09-15
+Правила: новая редакция записывается молча | sosed.place/docs/15-legal-documents_RU.md neighbro.place/docs/15-legal-documents_RU.md | S5 panel LAW-14: решение владельца, правила тоже принимаются галочкой, 2026-09-15
+Switched off by a deploy, not by editing a file | article-30-register_EN.md | S5 panel LAW-13: removed from deploy-prod.yml on 2026-09-11 (716d406); live prod NOT VERIFIED, 2026-09-15
+Выключается выкатом, а не правкой файла | article-30-register_RU.md | S5 panel LAW-13: убрано из deploy-prod.yml 11.09.2026 (716d406); живой прод НЕ ПРОВЕРЕН, 2026-09-15
+Sözləri əvvəlki kimi oxumuruq; lövhədəki gediş söz deyil. | sosed.place/landing/legal/community-guidelines_AZ.md | S5 panel LAW-1 (AZ): translation of the retired board sentence; hangman exception named, 2026-09-15
+Словаў мы, як і раней, не чытаем; ход на дошцы — не словы. | sosed.place/landing/legal/community-guidelines_BE.md neighbro.place/landing/legal/community-guidelines_BE.md | S5 panel LAW-1 (BE): translation of the retired board sentence; hangman exception named, 2026-09-15
+Worte lesen wir weiterhin nicht; ein Zug auf einem Brett ist kein Wort. | sosed.place/landing/legal/community-guidelines_DE.md neighbro.place/landing/legal/community-guidelines_DE.md | S5 panel LAW-1 (DE): translation of the retired board sentence; hangman exception named, 2026-09-15
+Τις λέξεις εξακολουθούμε να μην τις διαβάζουμε· μια κίνηση σε ταμπλό δεν είναι λέξεις. | sosed.place/landing/legal/community-guidelines_EL.md neighbro.place/landing/legal/community-guidelines_EL.md | S5 panel LAW-1 (EL): translation of the retired board sentence; hangman exception named, 2026-09-15
+Las palabras seguimos sin leerlas; una jugada en un tablero no son palabras. | sosed.place/landing/legal/community-guidelines_ES.md neighbro.place/landing/legal/community-guidelines_ES.md | S5 panel LAW-1 (ES): translation of the retired board sentence; hangman exception named, 2026-09-15
+Les mots, nous ne les lisons toujours pas ; un coup sur un plateau, ce ne sont pas des mots. | sosed.place/landing/legal/community-guidelines_FR.md neighbro.place/landing/legal/community-guidelines_FR.md | S5 panel LAW-1 (FR): translation of the retired board sentence; hangman exception named, 2026-09-15
+Բառերը շարունակում ենք չկարդալ՝ տախտակի քայլը բառ չէ։ | sosed.place/landing/legal/community-guidelines_HY.md | S5 panel LAW-1 (HY): translation of the retired board sentence; hangman exception named, 2026-09-15
+სიტყვებს ისევ არ ვკითხულობთ; სვლა დაფაზე სიტყვები არ არის. | sosed.place/landing/legal/community-guidelines_KA.md neighbro.place/landing/legal/community-guidelines_KA.md | S5 panel LAW-1 (KA): translation of the retired board sentence; hangman exception named, 2026-09-15
+Сөздерді бұрынғыдай оқымаймыз; тақтадағы жүріс — сөз емес. | sosed.place/landing/legal/community-guidelines_KK.md neighbro.place/landing/legal/community-guidelines_KK.md | S5 panel LAW-1 (KK): translation of the retired board sentence; hangman exception named, 2026-09-15
+Сөздөрдү мурдагыдай окубайбыз; тактадагы жүрүш — сөз эмес. | sosed.place/landing/legal/community-guidelines_KY.md | S5 panel LAW-1 (KY): translation of the retired board sentence; hangman exception named, 2026-09-15
+Słów nadal nie czytamy; ruch na planszy to nie słowa. | sosed.place/landing/legal/community-guidelines_PL.md | S5 panel LAW-1 (PL): translation of the retired board sentence; hangman exception named, 2026-09-15
+Cuvintele tot nu le citim; o mutare pe tablă nu înseamnă cuvinte. | sosed.place/landing/legal/community-guidelines_RO.md | S5 panel LAW-1 (RO): translation of the retired board sentence; hangman exception named, 2026-09-15
+Слова мы по-прежнему не читаем; ход на доске — не слова. | sosed.place/landing/legal/community-guidelines_RU.md neighbro.place/landing/legal/community-guidelines_RU.md | S5 panel LAW-1 (RU): translation of the retired board sentence; hangman exception named, 2026-09-15
+Калимаҳоро мисли пештара намехонем; ҳаракат дар тахта калима нест. | sosed.place/landing/legal/community-guidelines_TG.md | S5 panel LAW-1 (TG): translation of the retired board sentence; hangman exception named, 2026-09-15
+Слів ми, як і раніше, не читаємо; хід на дошці — не слова. | sosed.place/landing/legal/community-guidelines_UK.md neighbro.place/landing/legal/community-guidelines_UK.md | S5 panel LAW-1 (UK): translation of the retired board sentence; hangman exception named, 2026-09-15
+So‘zlarni avvalgidek o‘qimaymiz; taxtadagi yurish — so‘z emas. | sosed.place/landing/legal/community-guidelines_UZ.md | S5 panel LAW-1 (UZ): translation of the retired board sentence; hangman exception named, 2026-09-15
+five attempts per invite | chat_EN.md | SEC-4: опечатка даёт другой lookup_id, уменьшать нечего; пределы промахов POST /sessions/claim, 15.09.2026
+пять попыток на приглашение | chat_RU.md chat-flows_RU.md | SEC-4: то же, 15.09.2026
+five attempts per invitation | chat-flows_EN.md | SEC-4: то же, 15.09.2026
+five entry attempts | chat_EN.md | SEC-4: то же, 15.09.2026
+пять попыток ввода | chat_RU.md | SEC-4: то же, 15.09.2026
+a sixth entry attempt burns the invite | chat_EN.md depth-client_EN.md | SEC-4: то же, 15.09.2026
+шестая попытка ввода сжигает приглашение | chat_RU.md depth-client_RU.md | SEC-4: то же, 15.09.2026
+The sixth attempt burns the invitation | test-map_EN.md | SEC-4: то же, 15.09.2026
+Шестая попытка ввода сжигает приглашение | test-map_RU.md | SEC-4: то же, 15.09.2026
+transfer code attempts | protocol_EN.md | SEC-4: строка пределов заменена промахами claim, 15.09.2026
+попыток кода переноса | protocol_RU.md | SEC-4: то же, 15.09.2026
+5 transfer-code attempts | protocol_EN.md | SEC-10: счётчик ПИНа на сессии, кода переноса нет, 15.09.2026
+5 попыток кода переноса | protocol_RU.md | SEC-10: то же, 15.09.2026
+a comparison of two addresses the node can see | chat-flows_EN.md | SEC-11: строка «сеть» снята 29.08.2026, схема приведена 15.09.2026
+сравнение адресов, оба видны узлу | chat-flows_RU.md | SEC-11: то же, 15.09.2026
+every message is still there | chat-flows_EN.md | SEC-11: перенос сжигает долю с 11.09.2026, схема приведена 15.09.2026
+переписка вся на месте | chat-flows_RU.md | SEC-11: то же, 15.09.2026
+in the web the signing key sits outside the share | chat_EN.md | SEC-2: в вебе закрытые половины завёрнуты AES-KW под ключом хранилища, 15.09.2026
+в вебе ключ подписи лежит вне доли | chat_RU.md | SEC-2: то же, 15.09.2026
+The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects | chat_EN.md | SEC-2: то же, 15.09.2026
+Пары создаются с `extractable: false` и лежат в IndexedDB объектами `CryptoKey` | chat_RU.md | SEC-2: то же, 15.09.2026
+derived from the typed PIN afresh for every action | chat_EN.md | SEC-8: auth детерминирован, от посредника защищает только TLS, 15.09.2026
+выводится из набранного ПИНа заново на каждое действие | chat_RU.md | SEC-8: то же, 15.09.2026
+the node records their new revision itself | protocol_EN.md chat_EN.md | LAW-14: правила тоже требуют галочки, 15.09.2026
+их новую редакцию узел записывает сам | protocol_RU.md | LAW-14: то же, 15.09.2026
+`silent` for the guidelines | chat_EN.md | LAW-14: то же, 15.09.2026
+`silent` у правил | chat_RU.md | LAW-14: то же, 15.09.2026
+The limit itself and the acceptable waiting time are the open question in §8.14 | chat_EN.md | OPS-7: предел ожидания 10 минут, 15.09.2026
+Само число предела и допустимое время ожидания — открытый вопрос §8.14 | chat_RU.md | OPS-7: то же, 15.09.2026
+asks `GET /health` of each environment | watchdogs_EN.md | OPS-2: сторож С5 опрашивает GET /ready, 15.09.2026
+спрашивает `GET /health` каждого окружения | watchdogs_RU.md | OPS-2: то же, 15.09.2026
+уже — сколько угодно | chat_RU.md | SEC-3: то же, 15.09.2026
+A twenty-year-old may narrow the filter to 21–22 | chat_EN.md | SEC-3: песочница не сужается, 15.09.2026
+Двадцатилетний вправе сузить фильтр до 21–22 | chat_RU.md | SEC-3: то же, 15.09.2026
+CHECK (char_length(name) BETWEEN 1 AND 24) | chat_RU.md chat_EN.md | DATA-6: графемы считает узел, в базе octet_length(name) <= 400, 15.09.2026
+CHECK (char_length(text) BETWEEN 1 AND 128) | chat_RU.md chat_EN.md | DATA-6: в базе octet_length(text) <= 2048, 15.09.2026
+table_seats_by_identity | chat_RU.md chat_EN.md | DATA-13: дублирующий индекс снят, 15.09.2026
+the same `UPDATE ... SET left_at = NULL` | chat_EN.md | DATA-9: возврат сбрасывает joined_at и playing_from, 15.09.2026
+тем же `UPDATE ... SET left_at = NULL` | chat_RU.md | DATA-9: то же, 15.09.2026
+Once `gone_at` is set for **both** | chat_EN.md | DATA-7: условие уборщика NOT EXISTS участника с gone_at IS NULL, 15.09.2026
+Когда `gone_at` стоит **у обоих** | chat_RU.md | DATA-7: то же, 15.09.2026
+спрашиваются одним шагом | sosed.place/docs/01-splash-screen_RU.md neighbro.place/docs/01-splash-screen_RU.md | CON-1: регистрация в два шага (решено 28.08.2026), заставка отстала; снято 15.09.2026
+asked in a single step | sosed.place/docs/01-splash-screen_EN.md neighbro.place/docs/01-splash-screen_EN.md | CON-1: signing up takes two steps (decided 2026-08-28); removed 2026-09-15
+Единственный шаг регистрации | sosed.place/docs/02-name-screen_RU.md neighbro.place/docs/02-name-screen_RU.md | CON-1: два шага — кто вы и чем вернётесь; снято 15.09.2026
+The one step of signing up | sosed.place/docs/02-name-screen_EN.md neighbro.place/docs/02-name-screen_EN.md | CON-1: two steps — who you are and what brings you back; removed 2026-09-15
+единственного экрана регистрации | sosed.place/docs/02-name-screen_RU.md neighbro.place/docs/02-name-screen_RU.md | CON-1: экран регистрации разбит на два шага; снято 15.09.2026
+single registration screen | sosed.place/docs/02-name-screen_EN.md neighbro.place/docs/02-name-screen_EN.md | CON-1: registration is split into two steps; removed 2026-09-15
+переименовывать двадцать экранов | sosed.place/docs/02-name-screen_RU.md neighbro.place/docs/02-name-screen_RU.md | CON-9: экранов 24 и механика, «все экраны»; снято 15.09.2026
+renumbering twenty screens | sosed.place/docs/02-name-screen_EN.md neighbro.place/docs/02-name-screen_EN.md | CON-9: 24 screens plus mechanics, "every screen"; removed 2026-09-15
+чем при точной геопозиции | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | CON-7: точная геопозиция не запрашивается с 28.08.2026, сравнение с точкой, поставленной рукой; снято 15.09.2026
+поставленная вручную или точная точка | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | CON-6/CON-7: ручная запоминается, приблизительная пересчитывается; снято 15.09.2026
+hand-placed or a measured point | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | CON-6/CON-7: hand-placed is remembered, approximate recomputed; removed 2026-09-15
+Уведомления о приватности нет вовсе | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | LAW-16: политика конфиденциальности есть, реестр ст. 30; снято 15.09.2026
+There is no privacy notice at all | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | LAW-16: the privacy policy exists, Art. 30 register; removed 2026-09-15
+почта пишется в лог | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | LAW-16: waitlist.ts пишет префикс хэша (lead); снято 15.09.2026
+the email is written to the log | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | LAW-16: waitlist.ts logs a hash prefix (lead); removed 2026-09-15
+Срок жизни копий не определён | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | LAW-16/CON-6: резервные копии 14 дней; снято 15.09.2026
+Their lifetime is undecided | sosed.place/docs/00-mechanics_EN.md neighbro.place/docs/00-mechanics_EN.md | LAW-16/CON-6: backups 14 days; removed 2026-09-15
+Сузить выдачу можно как угодно | sosed.place/docs/03-feed-screen_RU.md neighbro.place/docs/03-feed-screen_RU.md | SEC-3: границы кратны 5 годам, ширина не меньше 5 лет; снято 15.09.2026
+Narrowing is free | sosed.place/docs/03-feed-screen_EN.md neighbro.place/docs/03-feed-screen_EN.md | SEC-3: bounds are multiples of 5 years, width at least 5; removed 2026-09-15
+Отказа не приходит: фраза остаётся в очереди | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | OPS-7: предел ожидания 10 минут, «проверка не состоялась»; снято 15.09.2026
+There is no refusal: the phrase stays in the queue | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md refusal-wordings_EN.md | OPS-7: 10-minute waiting limit, "the check did not happen"; removed 2026-09-15
+Отказа не будет: фраза остаётся в очереди | refusal-wordings_RU.md | OPS-7: предел ожидания 10 минут; снято 15.09.2026
+она ждёт очереди | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | OPS-7: текст возвращается через 10 минут; снято 15.09.2026
+it is waiting its turn | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | OPS-7: the text comes back after 10 minutes; removed 2026-09-15
+Код переноса сгорел | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | SEC-4: счётчика попыток у приглашения нет, одна строка «код не подошёл или истёк»; снято 15.09.2026
+The move code burned | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | SEC-4: no attempt counter on an invite, one line "did not match or expired"; removed 2026-09-15
+ошибиться при вводе можно **пять раз** | sosed.place/docs/13-devices_RU.md neighbro.place/docs/13-devices_RU.md | SEC-4: неверный код даёт другой lookup_id, счётчик невозможен; снято 15.09.2026
+entry may be wrong **five times** | sosed.place/docs/13-devices_EN.md neighbro.place/docs/13-devices_EN.md | SEC-4: a wrong code yields another lookup_id, no counter possible; removed 2026-09-15
+остаток срока — словом и числом | sosed.place/docs/23-phrase-viewer_RU.md neighbro.place/docs/23-phrase-viewer_RU.md | SEC-7: у чужой фразы числа нет, «скоро исчезнет» в последние 65 минут; снято 15.09.2026
+remaining time — as a word and a number | sosed.place/docs/23-phrase-viewer_EN.md neighbro.place/docs/23-phrase-viewer_EN.md | SEC-7: no number on others' phrases, "disappearing soon" in the last 65 minutes; removed 2026-09-15
+полный проход 01–21 | reviews/ROADMAP_2026-09-15_to-drawing_RU.md | CON-8: ворота 2 требуют 01–24; снято 15.09.2026
+a full pass over 01–21 | reviews/ROADMAP_2026-09-15_to-drawing_EN.md | CON-8: gate 2 requires 01–24; removed 2026-09-15
+Пять строк намеренно пусты | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | добавлены строки консоли «мы не ответили» и оформления, когда не ответили мы, — пустых семь, 15.09.2026
+Five lines are deliberately empty | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | two empty-heading rows added (console "we did not answer", appearance when we did not answer) — seven, 2026-09-15
+открылась вся переписка | test-map_RU.md | перенос сжигает долю, история не открывается, 15.09.2026
+opens the whole history | test-map_EN.md | the move burns the share, the history does not open, 2026-09-15
+редакция записывается молча | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | правила ждут галочки, как условия и политика, 15.09.2026
+their new revision is recorded silently | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | the guidelines wait for the checkbox like the terms and the policy, 2026-09-15

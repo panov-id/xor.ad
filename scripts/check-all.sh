@@ -139,6 +139,17 @@ if [ "$with_tests" = 1 ]; then
   # выйти нулём, не проверив ни одной единицы. Докера не требует.
   run test_empty-input          bash "$here/test_empty-input.sh"
   [ "$skipped" = 0 ] && run test_check-facts-schema bash "$here/test_check-facts-schema.sh"
+  # Тесты узла relay: deno check и deno test в том же образе, что у узла, без базы.
+  # До 15.09.2026 их не звал ни этот скрипт, ни harden-cycle, и список «сюда не
+  # входят» их не называл — он строится по check-*.sh (OPS-9). Замер: 17 секунд
+  # при скачанном образе, поэтому внутри, а не причиной снаружи. Набор с базой
+  # (run-relay-database-tests.sh) остаётся отдельным: он поднимает свой Postgres.
+  if command -v "$docker_cmd" >/dev/null 2>&1; then
+    run run-relay-tests env NO_COLOR=1 bash "$here/run-relay-tests.sh"
+  else
+    skipped=$((skipped + 1))
+    printf '  · %-26s docker недоступен — тесты узла relay не прогнаны\n' run-relay-tests
+  fi
 fi
 
 # Невключённое называется вслух: молчаливое исключение — та же ложная зелень,

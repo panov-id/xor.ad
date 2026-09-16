@@ -215,7 +215,7 @@ Timing:
 |---|---|---|
 | Confirmation of receipt | immediate, automatic | Art. 16(4) |
 | Decision and reply to the notifier | target: 72 hours | Art. 16(5), "without undue delay" |
-| Threat to life or safety | immediately, ahead of the ordinary flow | Art. 18 |
+| Threat to life or safety | immediately, ahead of the ordinary flow; at night too — the letter goes to personal addresses at once (below) | Art. 18 |
 
 The 72 hours are an internal target, not a promise in the Terms: a promised
 deadline that one person cannot hold through a holiday is worse than no deadline.
@@ -251,6 +251,15 @@ and a person gives it priority — the person who opens it and sees what it is
 about. The Art. 18 obligation (inform law enforcement immediately where a crime
 threatening life or safety is suspected) is discharged by that same person, by
 hand.
+
+**The night path — decided 2026-09-15 after the final panel (OPS-8).** "Immediately" held
+nothing at night: the one letter about a new notice went to the face's shared `support@`,
+and the first W1 reminder comes after 24 hours. Since the node cannot tell a notice about a
+threat to life from any other (§5.1: there is no label by design), the letter about every
+new notice goes at once to the personal addresses in `DSA_ESCALATION_EMAILS` as well, over
+the fallback transport `MAIL_FALLBACK_TRANSPORT`, with no notice content — the number and
+the target kind (`watchdogs_EN.md`, W2). The person who opens it decides whether it is an
+Art. 18 case.
 
 #### Who to inform — details, found 2026-09-08
 
@@ -423,11 +432,15 @@ does not erase it, moving the identity does not move it. The decision is request
 code in the body, not in the address: an address settles in delivery logs and the Referer header.
 "No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte,
 `Cache-Control: no-store`, one minimum response time for both branches; the per-address rate limit is
-held in the node's memory and not logged. The device asks about the decision itself when the
-storefront opens and puts a dot on "my notices"; the decision and its reason are shown only after a
+held in the node's memory and not logged. The device asks about the decision itself at a random moment of the
+session, not when the storefront opens (decided 2026-09-15 after the final panel, SEC-12), and
+puts a dot on "my notices"; the decision and its reason are shown only after a
 tap, and the reason does not quote the reported content — on a shared device the next person sees a
 dot, not a text. Whether such showing is "notifying" under Art. 16(5) when a person does not open the
-storefront for a long time is question 31 for the lawyer. Email is optional and
+storefront for a long time is question 31 for the lawyer. **The link that remains is named:** the request comes from the same
+address as the identity's signed requests in the same session, so whoever holds delivery logs
+for both (a CDN in front of the node, if it keeps addresses) can still tie the notifier to the
+identity by address; the random moment breaks the tie by time, not by address. Email is optional and
 for whoever may clear their browser data: the line by the field says "clear your browser data and
 you will not see the decision — leave an email". [retired] This said "It goes by email only —
 decided 2026-09-11": with no email no decision arrived at all, and Art. 16(5) rested on a

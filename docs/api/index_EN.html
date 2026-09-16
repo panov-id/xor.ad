@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>Node API</h1><a href="index_RU.html">Русский</a></div>
-<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 61 operations, OpenAPI 3.1.0, 2026-09-15.</p>
+<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 62 operations, OpenAPI 3.1.0, 2026-09-15.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#schemas">Schemas</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).</p>
@@ -105,6 +105,15 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><a href="#schema-notice"><code>Notice</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>202</code></td><td>Accepted with an id.</td><td></td></tr><tr><td><code>422</code></td><td>invalid body or a required field missing</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr><tr><td><code>503</code></td><td>could not store the notice</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/main.ts</code></p>
+</section>
+<section class="op" id="post-report-decision">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/report/decision</code><span class="chip s-proposed">proposed</span></div>
+<p><strong>The decision on a notice by its receipt code</strong></p>
+<p>Not signed by an identity; the code in the body. &quot;No such receipt&quot; and &quot;not decided yet&quot; get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The decision body is not spelled out in the canon.</p>
+<h3>Access</h3><p>no access control</p>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-receiptquery"><code>ReceiptQuery</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The same answer for an unknown receipt and an undecided notice; the decision once there is one.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-csp-report">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/csp-report</code><span class="chip s-built">built</span></div>
@@ -361,9 +370,9 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-identities">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>Create an identity</strong></p>
-<p>The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon.</p>
+<p>The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-share">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-proposed">proposed</span></div>
@@ -382,21 +391,21 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Invitation stored.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-pin">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>Change the PIN</strong></p>
 <p>The old PIN, a new auth_hash, a reissued share.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Changed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-identities-close">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>Start over — close the identity</strong></p>
 <p>With a PIN proof; appearance rows are deleted in the same transaction.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="put-identities-appearance">
-<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>The identity&#x27;s appearance for this face</strong></p>
 <p>One row per face named by the API key — theme, contrast step, an accent from that face&#x27;s set.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -405,7 +414,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-sessions-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-spec">spec</span></div>
 <p><strong>Use the transfer code on the new device</strong></p>
-<p>The old device goes still once the person confirms.</p>
+<p>The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery&#x27;s; a second claim on the same invite cancels the transfer on both sides, and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15).</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
@@ -420,7 +429,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-legal-manifest">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>The documents&#x27; current revisions</strong></p>
-<p>Date, substance sha256 and re-acceptance policy of the three documents.</p>
+<p>Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The manifest.</td><td></td></tr></table></div>
 </section>
@@ -457,7 +466,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-feed-density">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>The density band under the radius handle</strong></p>
-<p>A band from &quot;nobody here yet&quot; to &quot;hundreds&quot;, asked on release, never an exact number.</p>
+<p>A band from &quot;nobody here yet&quot; to &quot;hundreds&quot;, asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The band.</td><td></td></tr></table></div>
 </section>
@@ -471,7 +480,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>liked or matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id--like">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-proposed">proposed</span></div>
 <p><strong>Take a like back until a match</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
@@ -552,11 +561,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
 <p>A feed item — a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>no</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>no</td><td>Unix seconds.</td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>no</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>no</td><td>Unix seconds; carries visible_at, the moment the phrase passed the queue, not the moment it was submitted (chat canon §8.3, 2026-09-15).</td></tr></table></div></section>
 <section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>no</td><td>First 32 bytes of Argon2id over the nine-character code.</td></tr><tr><td><code>ttl</code></td><td><code>integer</code> <span class="src">const: 120</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-receiptquery"><div class="op-head"><code class="path">ReceiptQuery</code></div>
+<p>The device&#x27;s receipt code, in the body and never in the address (dsa/SPEC §6).</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-sessionsclaim"><div class="op-head"><code class="path">SessionsClaim</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>enc_secret</code></td><td><code>string</code></td><td>no</td><td>An envelope: the new device&#x27;s signing and wrapping public keys and a label.</td></tr></table></div></section>
 <section class="op" id="schema-chatsalive"><div class="op-head"><code class="path">ChatsAlive</code></div>

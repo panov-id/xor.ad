@@ -139,7 +139,7 @@ sequenceDiagram
   B->>N: POST /sessions/claim #123;lookup_id, envelope#125;
   N->>A: envelope
   A->>A: it decrypted → the code was typed correctly
-  A->>A: shows: called itself / network / when
+  A->>A: shows: called itself / check / when
   alt they press «reject», or say nothing
     Note over A,B: the code expired after 2 minutes, no move happened
   else they press «that's me»
@@ -156,14 +156,16 @@ passes through it encrypted.
 **Why stretching is a condition of working at all, not a hardening.** Nine
 characters are 45 bits: under an ordinary hash they fall in hours, and the node,
 which knows `lookup_id`, would derive `secret_key` itself. Argon2id makes an
-attempt cost ~0.1 s; online guessing is closed by five attempts per invitation.
+attempt cost ~0.1 s; online guessing is closed by two minutes and the claim miss limits —
+per address and 50 an hour per node, as recovery's (2026-09-15). A second claim on the same
+invitation cancels the transfer on both sides.
 
 **Confirmation with context** shows three lines, each as honest as it can be:
 
 | line | what it actually is |
 |---|---|
 | "called itself" | a label from **that** side, confirmed by nothing |
-| "network" | a comparison of two addresses the node can see — **a hint, not a verdict** |
+| "check" | four characters of `sha256(sign_pub ‖ wrap_pub)`, the same on the new device's screen — **a check for the eye, not a proof** (2026-09-15; "network" [retired] 2026-08-29) |
 | "when" | a fact |
 
 What this step does not do: if somebody talked the person into pressing, it will
@@ -176,7 +178,7 @@ flowchart LR
   froze["device frozen"] --> no1["its signature is accepted nowhere,<br/>including the delivery subscription"]
   froze --> no2["keys of new chats<br/>are never wrapped for it"]
   froze --> yes1["the disk is NOT wiped:<br/>the database stays, encrypted"]
-  yes1 --> back["move the identity back → its own old PIN<br/>→ every message is still there"]
+  yes1 --> back["move the identity back → the move burned<br/>this device's share → the old database opens by no means"]
 ```
 
 **A delayed freeze was considered and rejected:** it breaks the main legitimate

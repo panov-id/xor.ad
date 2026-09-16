@@ -39,11 +39,16 @@ The platform's promises rest on people and jobs, and they can break without a so
   number is enqueued; retries follow the queue's quadratic backoff (`lib/jobs.ts`).
 - Out of attempts — a letter to `DSA_ESCALATION_EMAILS` over the fallback transport (variable
   `MAIL_FALLBACK_TRANSPORT`), with no notice content.
+- **The letter about every new notice goes to `DSA_ESCALATION_EMAILS` at once as well**, over the fallback
+  transport, with the number and the target kind only — the night path for a threat to life
+  (`dsa/SPEC_EN.md` §5; decided 2026-09-15 after the final panel, OPS-8).
 - The notice itself is never lost: the letter stays a side effect after the write.
 
 ## W3. Job tombstones
 
-- The worker calls `armScheduledJobs()` hourly: a standing job that is missing is created again.
+- The worker calls `armScheduledJobs()` hourly: a standing job that is missing is created again —
+  including when `enqueueOnce` got `rows === null` at node start because the database did not answer
+  (added 2026-09-15 after the final panel, OPS-4).
 - A `prune_dsa_records` tombstone — an urgent letter to `DSA_ESCALATION_EMAILS`: that job's period
   is promised in the privacy policy. A letter per **new** tombstone (by `id`), not per pass: an
   always-failing job, once re-armed, yields a new tombstone about once a day.
@@ -63,10 +68,23 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W5. An external pinger
 
-- Something outside the box asks `GET /health` of each environment every minute and writes to
-  personal addresses after three failures in a row.
+- Something outside the box asks `GET /ready` of each environment every minute and writes to
+  personal addresses after three failures in a row. `/ready`, not `/health`: `/health` answers 200
+  always, and a node whose database is down would look healthy (clarified 2026-09-15 after the final
+  panel, OPS-2; this said "asks `GET /health`" [retired]). `/ready` counts `database: "off"` as ready
+  — open item `node.ready.database.off`.
 - **Choosing the service is not this specification's decision.** It needs an account and possibly
   money; it is filed as open item `node.external.pinger`.
+
+## W6. The age of the moderation queue
+
+- **Gauge.** `GET /metrics` serves the age of the oldest phrase waiting for a verdict — the gauge §8.3
+  of the chat spec already requires.
+- **Threshold.** The waiting limit `moderation.queue.wait`, 10 minutes: past it the phrase is dropped
+  with "the check did not happen" (`chat_EN.md` §8.3), so an oldest age near it means the queue has
+  stopped rather than slowed.
+- **Where to.** A letter to the personal addresses in `DSA_ESCALATION_EMAILS`, one per stall, not per
+  pass. Added 2026-09-15 after the final panel (OPS-7); built together with the queue (§13, step 2).
 
 ## How to check once built
 
@@ -79,9 +97,11 @@ Each watchdog is broken on purpose and must reach the channel:
 | W3 | `prune_dsa_records` throws until out of attempts | one urgent letter per tombstone and `relay_jobs_tombstones{kind="prune_dsa_records"}` ≥ 1 |
 | W4 | delete the job name from `scheduled.ts` | a red gate |
 | W5 | stop the node container | a letter after three minutes |
+| W5 | stop postgres, the node running | a letter after three minutes: `/ready` answers 503 |
+| W6 | stop the moderation worker and post a phrase | a letter once the oldest phrase nears 10 minutes |
 
 ## Open
 
-- Watchdogs W1–W3 and W5 are not built — items `watchdogs.unbuilt` (W1–W2, legal) and
+- Watchdogs W1–W3, W5 and W6 are not built — items `watchdogs.unbuilt` (W1–W2, legal) and
   `watchdogs.jobs.unbuilt` (W3, operations) in `docs/facts/open.tsv`.
 - The external pinger service is not chosen — `node.external.pinger`.

@@ -7,11 +7,13 @@ info:
     x-status built — the route exists in relay/node/src (main.ts, routes/*.ts); its shapes were read from the code on 2026-09-15 and not exercised live.
     x-status spec or proposed — described in docs/protocol_EN.md §4 and the chat canon, not built. Where the canon names no body, none is invented here.
     Checked by scripts/check-openapi.sh against the protocol tables, the code and the rendered pages.
+    Not in the contract yet (2026-09-15, open item api.contract.incomplete): tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and "My notices".
   x-description-ru: |-
     Контракт узла relay, спецификация первая (маршрут до отрисовки, этап Э4а, решение владельца 15.09.2026).
     x-status built — маршрут есть в relay/node/src (main.ts, routes/*.ts); формы прочитаны из кода 15.09.2026 и живым запросом не проверены.
     x-status spec или proposed — описано в docs/protocol_RU.md §4 и каноне чата, не построено. Где канон тела не называет, здесь его не выдумывают.
     Сверяется scripts/check-openapi.sh с таблицами протокола, кодом и собранными страницами.
+    В контракт ещё не внесены (15.09.2026, открытый пункт api.contract.incomplete): столы, парные игры, блокировки, отлучка, поддержка, правка профиля, перевыпуск бумажного кода и «Мои уведомления».
 tags:
   - name: node
     description: Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).
@@ -97,7 +99,7 @@ components:
           items:
             type: object
             properties:
-              document: {type: string, enum: [terms, privacy]}
+              document: {type: string, enum: [terms, privacy, guidelines]}
               revision_date: {type: string, format: date}
               revision_sha256: {type: string}
     Ok:
@@ -189,7 +191,7 @@ components:
         lon: {type: number}
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         like_count: {type: integer}
-        created_at: {type: integer, description: Unix seconds.}
+        created_at: {type: integer, description: 'Unix seconds; carries visible_at, the moment the phrase passed the queue, not the moment it was submitted (chat canon §8.3, 2026-09-15).', x-description-ru: 'Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).'}
     LikeResult:
       type: object
       properties:
@@ -200,6 +202,12 @@ components:
       properties:
         lookup_id: {type: string, description: First 32 bytes of Argon2id over the nine-character code.}
         ttl: {type: integer, const: 120}
+    ReceiptQuery:
+      type: object
+      description: The device's receipt code, in the body and never in the address (dsa/SPEC §6).
+      x-description-ru: Код квитанции с устройства, в теле и никогда в адресе (dsa/SPEC §6).
+      properties:
+        code: {type: string}
     SessionsClaim:
       type: object
       properties:
@@ -314,6 +322,18 @@ paths:
         "422": {description: invalid body or a required field missing, x-description-ru: неверное тело или нет обязательного поля}
         "429": {description: Address limit., x-description-ru: Предел адреса.}
         "503": {description: could not store the notice, x-description-ru: не удалось сохранить уведомление}
+  /report/decision:
+    post:
+      tags: [intake]
+      summary: The decision on a notice by its receipt code
+      x-summary-ru: Решение по уведомлению по коду квитанции
+      x-status: proposed
+      security: []
+      description: 'Not signed by an identity; the code in the body. "No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The decision body is not spelled out in the canon.'
+      x-description-ru: 'Личностью не подписан; код в теле. На «нет такой квитанции» и «решения ещё нет» ответ один: статус 200, тело байт в байт, Cache-Control no-store, одно минимальное время на обе ветки; предел по адресу держится в памяти и в журнал не пишется (dsa/SPEC §6, протокол §4.5). Тело решения в каноне поле за полем не описано.'
+      requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ReceiptQuery"}}}}
+      responses:
+        "200": {description: The same answer for an unknown receipt and an undecided notice; the decision once there is one., x-description-ru: Один ответ на неизвестную квитанцию и нерешённое уведомление; решение, когда оно есть.}
   /csp-report:
     post:
       tags: [intake]
@@ -721,10 +741,11 @@ paths:
       x-summary-ru: Завести личность
       x-status: proposed
       security: [{publishableKey: []}]
-      description: The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon.
-      x-description-ru: Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано.
+      description: The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).
+      x-description-ru: Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано. Не больше 10 в час и 30 в сутки по адресу (15.09.2026).
       responses:
         "200": {description: identity_id, x-description-ru: identity_id}
+        "429": {description: Address limit., x-description-ru: Предел адреса.}
   /vault/share:
     post:
       tags: [identity]
@@ -753,7 +774,7 @@ paths:
       tags: [identity]
       summary: Change the PIN
       x-summary-ru: Сменить ПИН
-      x-status: spec
+      x-status: proposed
       security: [{identitySignature: []}]
       description: The old PIN, a new auth_hash, a reissued share.
       x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
@@ -764,7 +785,7 @@ paths:
       tags: [identity]
       summary: Start over — close the identity
       x-summary-ru: Начать заново — закрыть личность
-      x-status: spec
+      x-status: proposed
       security: [{identitySignature: []}]
       description: With a PIN proof; appearance rows are deleted in the same transaction.
       x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
@@ -775,7 +796,7 @@ paths:
       tags: [identity]
       summary: The identity's appearance for this face
       x-summary-ru: Оформление личности для этого лица
-      x-status: spec
+      x-status: proposed
       security: [{identitySignature: []}]
       description: One row per face named by the API key — theme, contrast step, an accent from that face's set.
       x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
@@ -788,8 +809,8 @@ paths:
       x-summary-ru: Применить код переноса на новом устройстве
       x-status: spec
       security: [{publishableKey: []}]
-      description: The old device goes still once the person confirms.
-      x-description-ru: Прежнее устройство замирает, когда человек подтвердит.
+      description: The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery's; a second claim on the same invite cancels the transfer on both sides, and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15).
+      x-description-ru: Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления; второй claim на то же приглашение отменяет перенос на обеих сторонах, и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026).
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsClaim"}}}}
       responses:
         "200": {description: Claimed., x-description-ru: Принято.}
@@ -809,8 +830,8 @@ paths:
       x-summary-ru: Нынешние редакции документов
       x-status: proposed
       security: [{publishableKey: []}]
-      description: Date, substance sha256 and re-acceptance policy of the three documents.
-      x-description-ru: Дата, sha256 существа и политика повторного принятия трёх документов.
+      description: Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.
+      x-description-ru: Дата, sha256 существа и политика повторного принятия трёх документов; required у всех трёх с 15.09.2026.
       responses:
         "200": {description: The manifest., x-description-ru: Манифест.}
   /legal/accept:
@@ -864,8 +885,8 @@ paths:
       x-summary-ru: Ступень плотности под ручкой радиуса
       x-status: proposed
       security: [{identitySignature: []}]
-      description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number.
-      x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число.
+      description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.
+      x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.
       responses:
         "200": {description: The band., x-description-ru: Ступень.}
   /feed/{id}/like:
@@ -883,7 +904,7 @@ paths:
       tags: [chat]
       summary: Take a like back until a match
       x-summary-ru: Снять лайк, пока нет мэтча
-      x-status: spec
+      x-status: proposed
       security: [{identitySignature: []}]
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}

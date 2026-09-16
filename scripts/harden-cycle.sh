@@ -74,8 +74,26 @@ brand_modulo() {  # сверка юр-текстов витрин с точно�
   return "$bad"
 }
 
+# check-all зовётся с --with-tests: без флага пробы ворот в круге не шли, и ворота,
+# переставшие краснеть, круг видел зелёными (OPS-9, финальная панель 15.09.2026).
+# Пропуск в check-all — не зелёный: check-all при пропуске выходит нулём, чтобы
+# ручной прогон без докера был возможен, а круг доводки обязан проверить всё.
+check_all_strict() {
+  local output; output=$(bash scripts/check-all.sh --with-tests 2>&1); local code=$?
+  printf '%s\n' "$output"
+  local skipped
+  skipped=$(printf '%s' "$output" | sed -n 's/.*пропущено \([0-9][0-9]*\).*/\1/p' | tail -1)
+  if [ -z "$skipped" ]; then
+    echo "✗ в выводе check-all нет итоговой строки «пропущено N» — итог не прочитан"; return 1
+  fi
+  if [ "$code" = 0 ] && [ "$skipped" -gt 0 ]; then
+    echo "✗ пропущено $skipped — для круга это не зелёный"; return 1
+  fi
+  return "$code"
+}
+
 echo "XOR.AD"
-run check-all "$root" bash scripts/check-all.sh
+run check-all "$root" check_all_strict
 
 for face in $faces; do
   dir="$group/$face"

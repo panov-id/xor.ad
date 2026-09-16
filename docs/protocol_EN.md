@@ -71,19 +71,21 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 
 ## 4. Routes
 
+**What is not in the contract yet — written 2026-09-15 after the final panel (CON-5).** Tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and "My notices" are described on the storefront screens and in the chat spec, but have no rows here and no operations in `docs/api/openapi.yaml`. Open item `api.contract.incomplete` in `docs/facts/open.tsv`.
+
 ### 4.1. Identity and session (step 1 of §13)
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id` | **proposed** (§8.2) |
+| `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id`; at most 10 per hour and 30 per day per address (2026-09-15) | **proposed** (§8.2) |
 | `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **proposed** (§8.2) |
 | `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use; **requires a PIN proof** (§8.2, 2026-09-11) | **spec** |
-| `POST /vault/pin` | changing the PIN: the old PIN, a new `auth_hash`, a reissued share — **proposed 2026-09-11**, the handle does not exist yet | **spec** |
-| `POST /identities/close` | "start over": closing an identity with a PIN proof — **proposed 2026-09-11**, the handle does not exist yet | **spec** |
-| `PUT /identities/appearance` | the identity's appearance for the face named by the API key, one row per face: theme, contrast step, an accent from that face's set; the initial value comes in `POST /identities` — **proposed 2026-09-15** (storefront screen 22), the handle does not exist yet | **spec** |
-| `POST /sessions/claim` | using the code on the new device; the old one goes still | **spec** |
+| `POST /vault/pin` | changing the PIN: the old PIN, a new `auth_hash`, a reissued share — **proposed 2026-09-11**, the handle does not exist yet | **proposed** (§8.2) |
+| `POST /identities/close` | "start over": closing an identity with a PIN proof — **proposed 2026-09-11**, the handle does not exist yet | **proposed** (§8.2) |
+| `PUT /identities/appearance` | the identity's appearance for the face named by the API key, one row per face: theme, contrast step, an accent from that face's set; the initial value comes in `POST /identities` — **proposed 2026-09-15** (storefront screen 22), the handle does not exist yet | **proposed** (§8.2) |
+| `POST /sessions/claim` | using the code on the new device; the old one goes still. Misses are limited per address and across the node, as recovery's; a second claim on the same invite cancels the transfer on both sides (2026-09-15) | **spec** |
 | `POST /recovery/claim` | raising an identity from the paper code | **proposed** (§8.2, §13) |
-| `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy | **proposed** (2026-08-29) |
+| `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy — `required` for all three since 2026-09-15 | **proposed** (2026-08-29) |
 | `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **proposed** (2026-08-29) |
 
 **Registration is three steps, all mandatory:** name and age, then the PIN and the
@@ -101,14 +103,14 @@ identity.
 | `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release | **proposed** (§8.3, screen 3) |
 
 A feed response carries `{id, text, mode, lat, lon, area_radius, like_count,
-created_at}` — **a circle, not a point**, and nothing about the author. `lat`/`lon` are **rounded to a grid node stepped by `area_radius`** (the formula is in `chat_EN.md` §8.3); the exact ones never leave and stay only for computing the overlap.
+created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not a point**, and nothing about the author. `lat`/`lon` are **rounded to a grid node stepped by `area_radius`** (the formula is in `chat_EN.md` §8.3); the exact ones never leave and stay only for computing the overlap.
 
 ### 4.3. Like, match, chat (steps 3–6)
 
 | Route | What it does | Origin |
 |---|---|---|
 | `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own | **proposed** (§8.4) |
-| `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **proposed 2026-09-15** (§8.4) | **spec** |
+| `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **proposed 2026-09-15** (§8.4) | **proposed** (§8.4) |
 | `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **proposed** (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
 | `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |
@@ -153,11 +155,17 @@ reconnecting is pointless forever, in the second it is pointless for this
 conversation. A client that does not tell them apart either hammers a closed door
 or takes a live identity for a dead one.
 
+### 4.5. Notices (`dsa/SPEC_EN.md` §6)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **proposed 2026-09-15** (final panel, SEC-9) | **proposed** (`dsa/SPEC_EN.md` §6) |
+
 ## 5. Limits
 
 | What | Value | Who enforces it |
 |---|---|---|
-| phrase length | 128 characters | a `CHECK` in the database |
+| phrase length | 128 graphemes | the node; the database holds a wide net, `octet_length(text) <= 2048` |
 | chat message length | `max_message_length`, 256 by default | the client's counter |
 | ciphertext size | `max_ciphertext_bytes`, 2048 bytes by default | the node |
 | `NOTIFY` payload | 8 KB | Postgres |
@@ -166,7 +174,10 @@ or takes a live identity for a dead one.
 | a phrase's area radius | five steps: 100, 300, 1000, 3000, 10000 metres | a `CHECK` in the database |
 | coordinate rounding in a response | to a grid node stepped by the phrase's radius | the node |
 | PIN attempts | 10, then access locked until the paper code, the share kept | the node |
-| transfer code attempts | 5, then the invitation burns | the node |
+| transfer-code claim misses | per address, and 50 an hour per node, then a 15-minute pause — as recovery | the node |
+| identity creation | 10 per hour and 30 per day per address | the node |
+| age filter bounds | multiples of 5 years or band edges, spanning at least 5 years | the node |
+| density requests | 100 in a row is a density profile being taken | the node |
 | queue throughput | ~20 phrases per minute, **not yet measured** | the node |
 | false-block budget | 7% — the moderation threshold is derived from it | the node's config |
 | report threshold | 5% of a phrase's possible audience | the node's config |
@@ -202,8 +213,9 @@ documents whose revisions have parted from the accepted ones:
 ```
 
 Reading the feed is **not** closed by this refusal: someone who came to read a
-reply gets the conversation, not a legal text (screen 11). The guidelines never
-appear in this list — the node records their new revision itself (§8.2).
+reply gets the conversation, not a legal text (screen 11). The guidelines appear in
+this list like the other two: since 2026-09-15 they need the checkbox too (§8.2).
+[retired] This said "the node records their new revision itself".
 
 **There is no single error shape in the spec, and I did not invent one here** —
 see §8. It is the first thing to agree on: without a common shape the two faces
@@ -226,7 +238,7 @@ it has to be settled before the first line of step 1.
 
 1. **The error shape** — code, machine name, text for a person, and a field for
    the reason a moderation refusal gives.
-2. **The names of the proposed routes** — the nine rows marked "proposed" above.
+2. **The names of the proposed routes** — the rows marked "proposed" in §4.
 3. **How a client states its protocol version** — a header, a body field, or a
    path segment.
 4. **Pagination of the feed and the inbox** — a cursor or an offset; the spec is
@@ -249,8 +261,9 @@ it has to be settled before the first line of step 1.
    hour when guessing is under way, an honest person holding their paper gets a
    refusal and waits fifteen minutes. That is worse than nothing and better than
    brute force over the whole base; the band was picked so ordinary typos do not
-   reach it — the neighbouring numbers (10 PIN attempts, 5 transfer-code attempts)
-   are an order of magnitude lower and per address, not per node.
+   reach it — the neighbouring number (10 PIN attempts) is an order of magnitude lower and
+   counted per session, not per node (clarified 2026-09-15, final panel SEC-10:
+   this said "5 transfer-code attempts… per address" [retired]).
 
    **Since 2026-09-14 the pause has a second price, and it is accepted too.** The
    paper code became the only way out for a session frozen by the PIN limit as well
@@ -260,3 +273,7 @@ it has to be settled before the first line of step 1.
    (clarified 2026-09-14; this said "two hundred requests" [retired]). The review panel of
    2026-09-14 proposed replacing the pause with a growing cost; it was decided to keep
    the pause and name the price on storefront screen 12.
+8. **"No network" and "the node is down" are told apart like this — decided 2026-09-15
+   after the final panel (OPS-10).** A network error or a timeout means "no network"
+   only if a probe of an outside address fails too; otherwise it, and any 5xx from the
+   node including 503, means "it is on our side".

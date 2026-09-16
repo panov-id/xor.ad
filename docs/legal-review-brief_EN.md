@@ -192,6 +192,9 @@ mandatory discount, published for free.
 
 **21. How long a closed identity is kept.**
 - **Fact.** On 2026-08-30 we recorded 30 days; the sweeper does not exist yet.
+  On 2026-09-15 the owner added: an identity with no live session for a year is
+  closed and deleted 30 days later, and the paper code does not restore it; the
+  privacy policy §5 now says both.
 - **Where.** `docs/chat_EN.md` §8.2.
 - **Question.** What period is justified by accountability and the Cypriot
   limitation period, and from when does it run?
@@ -218,7 +221,9 @@ mandatory discount, published for free.
 
 **25. A pair (date, sha256) as proof.**
 - **Fact.** Since 2026-08-29 an identity stores the date and the digest of the
-  substance of the accepted text.
+  substance of the accepted text. Since 2026-09-15 every row is written by the
+  person's own checkbox, the guidelines included — the node no longer records a
+  silent re-acceptance.
 - **Where.** `docs/migrations-step1_EN.md` (the `legal_acceptances` table).
 - **Question.** Is that sufficient proof of accepting a particular revision in
   Cypriot proceedings?

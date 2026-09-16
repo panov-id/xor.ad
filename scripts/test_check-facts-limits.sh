@@ -31,6 +31,13 @@ cp "$real_protocol" "$protocol_witness" || { echo "не удалось снят�
 cp "$protocol_witness" "$protocol"
 scheduled="$work/scheduled.ts"
 cp "$real_scheduled" "$scheduled" || { echo "не удалось снять scheduled.ts" >&2; exit 2; }
+# База проб отвязана от того, дописан ли живой реестр. Сроки узла без исполнителя
+# в ней получают «запрос»: иначе, пока в живом реестре такие строки есть, каждая
+# проба с ожиданием зелёного краснела бы не от своей правки, а от чужой. Живой
+# реестр как есть проверяет первый случай — он и говорит правду о его состоянии.
+base="$work/база.tsv"
+awk -F'\t' -v OFS='\t' '!/^#/ && $5 == "узел" && $7 == "" { $7 = "запрос" } { print }' \
+  "$witness" > "$base"
 
 failures=0; number=0
 expect() {  # expect <код> <подстрока> <описание>
@@ -45,7 +52,7 @@ expect() {  # expect <код> <подстрока> <описание>
     printf '%s\n' "$output" | tail -4 | sed 's/^/      | /'
   fi
 }
-probe() { cp "$witness" "$registry"; printf '%s\n' "$1" >> "$registry"; }
+probe() { cp "$base" "$registry"; printf '%s\n' "$1" >> "$registry"; }
 
 echo "СЛУЧАИ"
 cp "$witness" "$registry"
@@ -81,13 +88,52 @@ expect 1 'не число' 'значение в реестре не число'
 
 # Сторож С4 (docs/watchdogs_RU.md): срок узла обязан назвать исполнителя. Проба
 # ровно та, что записана в спецификации сторожа: удалить имя задачи — красный.
-cp "$witness" "$registry"
+cp "$base" "$registry"
 grep -v '"prune_pageviews"' "$real_scheduled" > "$scheduled"
 expect 1 'исполнитель «prune_pageviews» не найден' 'задачу убрали из scheduled.ts — срок без исполнителя краснеет'
 cp "$real_scheduled" "$scheduled"
 
+# OPS-5, дефект 2: имя осталось, регистрации нет. Первая версия искала имя в
+# кавычках где угодно, и константа, пережившая удаление вызова, давала зелёный.
+# Копия сначала проверяется на то, что константа в ней действительно осталась и
+# правка легла, — иначе проба повторяла бы случай выше и ничего не доказывала.
+scheduled_probe() {  # scheduled_probe <что заменить> <чем> <описание>
+  OLD="$1" NEW="$2" python3 -c '
+import io, os, sys
+s = io.open(sys.argv[1], encoding="utf-8").read()
+old = os.environ["OLD"]
+if s.count(old) != 1: sys.exit(1)
+io.open(sys.argv[2], "w", encoding="utf-8").write(s.replace(old, os.environ["NEW"]))
+' "$real_scheduled" "$scheduled"
+  local applied=$?
+  if [ "$applied" = 0 ] && grep -qF 'const PRUNE_PAGEVIEWS = "prune_pageviews"' "$scheduled"; then
+    expect 1 'исполнитель «prune_pageviews» не найден' "$3"
+  else
+    number=$((number + 1)); failures=$((failures + 1))
+    printf '  ✗ %s — проба негодна: правка не легла или константа не осталась\n' "$3"
+  fi
+  cp "$real_scheduled" "$scheduled"
+}
+cp "$base" "$registry"
+scheduled_probe '  await enqueueOnce(PRUNE_PAGEVIEWS, {}, new Date(Date.now() + A_DAY_MS));' '' \
+  'константа осталась, enqueueOnce удалён — задача не взведена, краснеет'
+scheduled_probe '  handle(PRUNE_PAGEVIEWS, async' '  // handle(PRUNE_PAGEVIEWS, async' \
+  'константа осталась, handle закомментирован — задача не исполняется, краснеет'
+
 probe "$(printf 'probe.ttl\t30\tминут\tсрок без исполнителя\tузел\txor.ad/docs/protocol_RU.md')"
-expect 1 'срок без исполнителя' 'срок узла без колонки executor'
+expect 1 'probe.ttl: срок без исполнителя' 'срок узла без колонки executor'
+
+# OPS-5, дефект 1: срок отбирается по единице, а не по имени. Первая версия
+# брала только ttl/retention/delay в id и пропускала тринадцать строк реестра —
+# table.idle.span, invite.lifetime, away.span.* и другие.
+probe "$(printf 'probe.span\t30\tминут\tсрок с именем без ttl\tузел\txor.ad/docs/protocol_RU.md')"
+expect 1 'probe.span: срок без исполнителя' 'срок узла, чьё имя не говорит о сроке, — всё равно краснеет'
+
+probe "$(printf 'probe.window\t30\tminutes\tсрок в английской форме\tузел\txor.ad/docs/protocol_RU.md')"
+expect 1 'probe.window: срок без исполнителя' 'единица времени в другой форме и языке — тоже срок'
+
+probe "$(printf 'probe.rate\t30\tфраз в минуту\tскорость, а не срок\tузел\txor.ad/docs/protocol_RU.md')"
+expect 0 'числа сходятся везде' 'скорость «в минуту» — не срок, исполнителя не требует'
 
 probe "$(printf 'probe.retention\t30\tминут\tсрок с выдуманным исполнителем\tузел\txor.ad/docs/protocol_RU.md\tprune_nothing')"
 expect 1 'исполнитель «prune_nothing» не найден' 'исполнитель, которого нет ни в задачах, ни в open.tsv'

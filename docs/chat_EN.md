@@ -321,8 +321,6 @@ CREATE TABLE table_seats (
   PRIMARY KEY (table_id, identity)
 );
 
-CREATE INDEX table_seats_by_identity ON table_seats (identity) WHERE left_at IS NULL;
-
 -- One table at a time — decided 2026-09-09. Sitting down at a second table
 -- without standing up from the first is refused, and this is the only guard
 -- against burying the feed under tables that does not put an identity into the
@@ -330,6 +328,8 @@ CREATE INDEX table_seats_by_identity ON table_seats (identity) WHERE left_at IS 
 -- sitting at it does not appear at all. Without it one person would take the
 -- whole quarter of the cards with their own tables, because `created_by` takes no
 -- part in the feed and the ranking may not tell them apart by author.
+-- It serves lookups by identity as well: table_seats_by_identity [retired] had the
+-- same definition and was removed on 2026-09-15 (final panel, DATA-13).
 CREATE UNIQUE INDEX table_seats_one_at_a_time ON table_seats (identity) WHERE left_at IS NULL;
 
 CREATE TABLE table_lines (
@@ -337,7 +337,7 @@ CREATE TABLE table_lines (
   brand            text NOT NULL,                             -- attribution ONLY: an Article 16 target is found without it (the world is one)
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
-  text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
+  text             text NOT NULL CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 graphemes: node
   -- What kind of line this is. `line` is ordinary speech. `application` is the
   -- opening words of somebody asking to play, `refusal` the explanation of
   -- somebody who said no. Both were made ordinary lines rather than an entity of
@@ -411,15 +411,17 @@ CREATE TABLE chat_games (
   -- The earlier of the two spans, not "the end of the conversation": each side has
   -- its own span (§5), and the board goes out for both at the first death.
   -- Clarified 2026-09-10 — the previous wording did not say whose end it meant.
+  -- Rewritten on every own message or move of either side: SET expires_at =
+  -- least(span of A, span of B) — clarified 2026-09-15 after the final panel (DATA-8).
   expires_at   timestamptz NOT NULL
 );
 
 CREATE INDEX chat_games_expiry ON chat_games (expires_at);
 -- The sweeper: a daily `prune_chat_games` job takes rows with `expires_at < now()`
 -- in batches of 5000 and comes back in a minute while a batch comes back full —
--- the same shape as the idempotency sweep (`scheduled.ts`). The cascade removes
--- games with their conversation, the sweeper removes those that outlived a live
--- one by their own span.
+-- the same shape as the idempotency sweep (`scheduled.ts`). The row is deleted by
+-- the transaction that sets the first `gone_at` (§8.10): the board goes out for
+-- both at the first death, and the sweeper is insurance, not the path (2026-09-15).
 --
 -- Backups live 14 days (the Article 30 register), so a ten-minute conversation's
 -- game lives in them for those two weeks. That is a price, not a footnote: saying
@@ -616,7 +618,10 @@ is asking.
   for it — but it does not stop.
 - **Being shown out is not being locked out — decided 2026-09-08.** The schema
   stays as it is: `table_seats` has `left_at`, no trace of an eviction, and coming
-  back is the same `UPDATE ... SET left_at = NULL`. A "this person may not return"
+  back is `UPDATE ... SET left_at = NULL, joined_at = now(), playing_from = NULL`
+  (clarified 2026-09-15 after the final panel, DATA-9: `joined_at` is what hides
+  history from whoever sits down, and a return without resetting it showed every
+  line and move made while they were away). A "this person may not return"
   column is deliberately not added — that is a trace about a person, and §1
   promises no trace is left; the table itself outlives neither party for long, it
   ends at silence.
@@ -743,13 +748,13 @@ This used to read "a secret, and the server stores the secret's hash" — a left
 ```sql
 CREATE TABLE identities (
   id               uuid PRIMARY KEY,
-  name             text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 24),
+  name             text NOT NULL CHECK (char_length(name) >= 1 AND octet_length(name) <= 400),  -- 24 graphemes: node
   age              integer NOT NULL CHECK (age >= 13),  -- no upper bound: 2026-08-28
   identity_public_key text NOT NULL,    -- long-lived key: proves the identity (§8.13)
   recovery_auth_hash  text,             -- hash of half the paper code: how the node finds the identity
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
                                         -- filled at registration (§8.2, edit of 2026-08-26)
-  name_state       text NOT NULL DEFAULT 'accepted',  -- accepted | pending | rejected (§8.2)
+  name_state       text NOT NULL DEFAULT 'accepted' CHECK (name_state IN ('accepted', 'pending', 'rejected')),  -- §8.2
   -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
   stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person; early return — now(), a past span is cleared by the session's first request
   created_at       timestamptz NOT NULL DEFAULT now(),
@@ -783,7 +788,7 @@ CREATE TABLE identity_appearance (
 CREATE TABLE legal_acceptances (
   id               bigserial PRIMARY KEY,
   identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-  document         text NOT NULL,        -- terms | privacy | guidelines
+  document         text NOT NULL CHECK (document IN ('terms', 'privacy', 'guidelines')),
   revision_date    date NOT NULL,        -- the date the document declares about itself
   revision_sha256  text NOT NULL,        -- sha256 of the substance: the file with its date line blanked
   accepted_at      timestamptz NOT NULL DEFAULT now()
@@ -809,19 +814,13 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
   accepted now". A dispute asks something else: what was accepted then and when,
   the previous revision included — and only a row per acceptance answers that.
 - **What a change costs is stated in the manifest itself.** Each document
-  carries `reaccept`: `required` for the terms and the privacy policy, `silent`
-  for the guidelines. `required` means the identity **cannot publish or open a
-  chat** until it accepts again; the feed still reads. `silent` means the node
-  writes a new row itself and screen 15 marks the document as changed. **The mark
-  is held by the device, not by the journal — clarified 2026-09-10:** after a
-  silent write the journal states that the person accepted the new revision, so
-  "changed since" cannot be derived from it. No "accepted silently" column is added
-  here: the journal answers what was accepted and when, and whether somebody read
-  it is not a question about consent. The device remembers the hash of the revision
-  it opened and compares it with the storefront's manifest. The
-  difference is deliberate: the guidelines restate mechanics that already apply,
-  and stopping a conversation to announce them teaches people to press "accept"
-  without reading.
+  carries `reaccept`, and since 2026-09-15 it is `required` for all three: the
+  community guidelines need the checkbox too (decided by the owner after the final
+  panel, LAW-14). `required` means the identity **cannot publish or open a chat**
+  until it accepts again; the feed still reads; screen 15 marks the document as
+  changed. [retired] This said `silent` for the guidelines, with the node writing a
+  new row itself: the journal then stated that a person accepted a revision nobody
+  had shown them, so the record of acceptance was false by construction.
 - **The manifest reaches the node from the storefront**
   (`/legal-manifest.json`, built by the storefront deploy out of
   `deploy/legal-revisions.json`). The node stores no texts and computes no
@@ -837,7 +836,8 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 **A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
-- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered, deletes the `identity_appearance` rows (added 2026-09-15 after the review panel: the privacy policy promises appearance goes on closing) and nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days): there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
+- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered, deletes the `identity_appearance` rows (added 2026-09-15 after the review panel: the privacy policy promises appearance goes on closing) nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days), and takes down what is live exactly as the PIN-limit freeze does (added 2026-09-15 after the final panel, DATA-7): phrases, those still being checked too, are deleted with their likes, queued `table_lines` are deleted, table seats get `left_at`, matches go out, `chat_games` rows are deleted, every participant of the identity's conversations gets `gone_at` and those `chats` rows are deleted — otherwise a closed identity would sit at a table for 30 days and its age would keep counting in the table's band: there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper does not exist yet, and there is nothing to write it against** — measured 2026-09-01: the node's schema carries thirteen migrations and `identities` is not among the tables they create, nor is any other table in this section. This is not "the job has not been written" but "there is nothing to sweep and nowhere to sweep it from": the item waits on the chat schema itself, which is not built without a separate decision to start the chat. Recorded as an open item rather than passed off as done.
+- **An identity with no live session for a year is closed, and deleted 30 days later — decided 2026-09-15 by the owner after the final panel (LAW-7).** The node cannot learn that a browser was cleared, so without a term an abandoned identity kept its name, age, counters and record of acceptances forever. When none of its sessions has a `last_seen_at` newer than 365 days, the identity sweeper closes it by the same transaction as "start over", and the 30 days of `identity.deletion.delay` run from there. The term is `identity.inactive.retention` in `docs/facts/limits.tsv`, executor `identity.sweeper`. The price is named: someone who returns after more than a year finds no identity, the paper code included.
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
 #### The "stepped away" state (2026-08-26)
@@ -993,9 +993,10 @@ CREATE TABLE sessions (
   wrap_public_key text NOT NULL,       -- chat keys are wrapped to it (§8.13)
   label           text,                -- "Chrome, Android" — what the device called itself
   created_at      timestamptz NOT NULL DEFAULT now(),
-  last_seen_at    timestamptz NOT NULL DEFAULT now(),
+  last_seen_at    timestamptz NOT NULL DEFAULT now(),  -- written at most once a day (§8.2, 2026-09-15)
   frozen_at       timestamptz,         -- NULL = live; set on transfer, on closing and on the tenth PIN mistake (§8.2)
-  frozen_reason   text CHECK (frozen_reason IN ('transfer', 'closed', 'pin_limit'))  -- why it froze; exceptions apply to pin_limit only (2026-09-14)
+  frozen_reason   text CHECK (frozen_reason IN ('transfer', 'closed', 'pin_limit')),  -- why it froze; exceptions apply to pin_limit only (2026-09-14)
+  CONSTRAINT sessions_frozen_pair CHECK ((frozen_at IS NULL) = (frozen_reason IS NULL))  -- 2026-09-15, final panel
 );
 CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
 ```
@@ -1037,6 +1038,7 @@ new          the person types the code, the same Argon2id yields the same 64 byt
 device       generates ITS OWN pairs: one for signing, one for wrapping
              POST /sessions/claim {lookup_id, enc_secret(sign_pub, wrap_pub, label)}
 first        decrypted the envelope ─► so the code was typed correctly
+             shows check = 4 characters of sha256(sign_pub ‖ wrap_pub), as the new one does
              ASKS THE PERSON (below) ─► only after "that's me":
              puts the identity's long-lived key into the reply envelope
              and sets its own frozen_at — the identity has left
@@ -1077,7 +1079,7 @@ rather than a per-message one. It had to be checked now: the parameters go into 
 key derivation of every device, and changing them after launch would void every vault
 share and every paper code at once.
 
-**Stretching is not hardening, it is the precondition.** Nine characters are 45 bits: under a plain hash they fall in hours, and the server, which holds `lookup_id`, would derive `secret_key` itself. Argon2id makes each attempt cost about 0.1 s, turning an offline search into hundreds of thousands of years. The online one is closed by the server: **five attempts per invite**, after which it burns.
+**Stretching is not hardening, it is the precondition.** Nine characters are 45 bits: under a plain hash they fall in hours, and the server, which holds `lookup_id`, would derive `secret_key` itself. Argon2id makes each attempt cost about 0.1 s, turning an offline search into hundreds of thousands of years. The online one is closed by the two minutes and by the node's miss limits on `POST /sessions/claim`, the same as recovery's: per address, like the node's other public endpoints, and shared — 50 misses an hour across the node, then a 15-minute pause (`claim.miss.shared`, `claim.miss.pause`; decided 2026-09-15 after the final panel, SEC-4). [retired] This said "**five attempts per invite**, after which it burns": a mistyped code yields another `lookup_id`, no invite is found and there is nothing to decrement — the error §8.2 already corrected for the paper code. The screen has one line: "the code did not fit or has expired".
 
 **What the server sees and does not see.** It sees `lookup_id` and two opaque envelopes — enough to match the two sides, and nothing else. The identity's long-lived key passes through it encrypted.
 
@@ -1088,19 +1090,22 @@ share and every paper code at once.
 
   called itself   Chrome, Android
   when            just now
+  check           7KQ2 — the same as on the new device?
 
   Nobody from support will ever ask for this code.
 
   [ that's me ]                        [ decline ]
 ```
 
-Two lines, chosen because neither pretends to be more than it is.
+Three lines, chosen because none pretends to be more than it is (the check line added 2026-09-15, below; this said "Two lines" [retired]).
 
 **The "network" line was removed — decided 2026-08-29, and the price is named.** [retired] It used to compare the addresses of both sides: "a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another". That signal was the **only verifiable one** on this screen: the label is sent by the same side that is asking for the move, and anything can be written in it. Without it the confirmation rests on a pause and a time rather than on data. What goes with it is a false signal — a phone on mobile data next to you also read "different" — and the requirement for the node to compare two devices' addresses.
 
 **"Called itself", not "device".** The label is sent by the other side, is backed by nothing, and can say anything. Presenting it as fact would be lying on the very screen built against deception.
 
 Until "that's me" is pressed, the other side receives nothing. Silence or a closed tab means the code expired in two minutes and no transfer happened.
+
+**A second claim cancels the transfer, and both screens show a check string — decided 2026-09-15 after the final panel (SEC-5).** If a second `POST /sessions/claim` arrives on the same `lookup_id` before "that's me", the node cancels the transfer on both sides: the invite burns, and both devices say the code was typed twice and the transfer did not happen. The new device shows four characters of `sha256(sign_pub ‖ wrap_pub)` of its own pairs, and the old one shows the same four computed from the envelope, beside "that's me". Whoever read the code over a shoulder and typed it first gets a different string, and the owner sees it does not match their screen. The price is named: four characters are a check for the eye, not a proof, and they do not save a person talked into pressing.
 
 What this step does not do: if the person has been talked into pressing it, it will not save them. It provides a pause and a fact — the decision stays with the person.
 
@@ -1131,7 +1136,7 @@ The interface says so plainly, not in small print:
 
 **A delayed freeze was considered and rejected.** The idea was to keep the previous device alive for a day and show "you are being disconnected — [that's not me]" on it the whole time. Against identity theft that works, but it breaks the main legitimate case: someone talked from a borrowed laptop, walked away, and the laptop stays live for another day — where whoever sits down at that desk can cancel the disconnection. Leaving means closing the door now. The paper code (below) serves as the insurance instead: being locked out for good is not possible anyway.
 
-**The transfer risk is social, not cryptographic.** Nobody will guess the code; they will ask a person to read it out. Hence the defences — two minutes, one application, five entry attempts, confirmation with context, and the paper code as the owner's last word.
+**The transfer risk is social, not cryptographic.** Nobody will guess the code; they will ask a person to read it out. Hence the defences — two minutes, one application, the claim miss limits, a second claim cancelling the transfer, confirmation with context and a check string, and the paper code as the owner's last word.
 
 **What became of "a different browser is a different person".** It stands, and now covers every face: **a different device is a different person**, unless the identity was transferred there deliberately. For `depth` it reads the same way: a different volume is a different person.
 
@@ -1139,7 +1144,7 @@ The interface says so plainly, not in small print:
 
 **The name limit is 24 graphemes, and it lives on the node (settled 2026-08-26).** The number came from layout — that is what fits the conversation header and the match card at 375px without an ellipsis — but until this decision it existed only in the storefront, which made it a hint to the author rather than a rule: the client is open, and a ten-thousand-character name reached somebody else's conversation header. Longer is now **refused** rather than silently truncated: the name is the only thing by which a peer recognises who they agreed to talk to (§8.11), and handing a person a stump instead of what they typed substitutes their own name without their knowledge.
 
-Counted in **graphemes**, not bytes and not code points: an emoji with a modifier and a letter with a diacritic are one character to a person, and the limit must match what they see.
+Counted in **graphemes**, not bytes and not code points: an emoji with a modifier and a letter with a diacritic are one character to a person, and the limit must match what they see. **The database holds only a wide net — decided 2026-09-15 after the final panel (DATA-6), checked in postgres:16:** `CHECK (char_length(name) >= 1 AND octet_length(name) <= 400)`. `char_length` counts code points, a family emoji is five of them, and a name of five family emoji was refused by `CHECK (char_length(name) BETWEEN 1 AND 24)` [retired] though the node's rule allows it. The same holds for a phrase and a table line: 128 is graphemes counted on the node, and the database holds `octet_length(text) <= 2048`.
 
 **A PIN is mandatory and asked at registration** — six digits, twice. It does two things at once: it locks an open tab against whoever picks the device up, and it takes part in encrypting everything on disk.
 
@@ -1189,7 +1194,7 @@ CREATE TABLE vault_shares (
   session       uuid PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
   auth_hash     text NOT NULL,       -- hash of half the material; the PIN itself is unknown to the node
   share_enc     bytea,               -- 32 random bytes UNDER the node's key; NULL = burned
-  attempts_left smallint NOT NULL DEFAULT 10,
+  attempts_left smallint NOT NULL DEFAULT 10 CHECK (attempts_left >= 0),
   next_attempt_at timestamptz,        -- the node takes no attempt before it: the delay grows after the fifth (2026-09-14)
   locked_at     timestamptz,         -- the tenth mistake: access locked until the paper code, the share kept (2026-09-14)
   burned_at     timestamptz,
@@ -1202,15 +1207,17 @@ CREATE TABLE vault_shares (
 
 The key comes from the node's existing mechanism (`relay/node/db/004_secret_keys.sql`) and does not travel in a database dump. Burning a share writes `share_enc = NULL` **and** `burned_at`, not one of the two: otherwise either the bytes stay or the row lies about its own state. There is **one** way to do it — clarified 2026-09-12: a move used to delete the row outright (`DELETE`), which left nowhere to write `burned_at`, while `NOT NULL` on `share_enc` forbade writing `NULL`. Now it is an `UPDATE` everywhere, and a `CHECK` keeps the two from drifting apart. The price is stated plainly: **losing the node's key equals losing every local history at once** — the same price as losing the share table, and it must be handled the same way.
 
-**The PIN is asked for before every irreversible action — decided 2026-09-11.** Moving an identity, changing the PIN and starting over are carried out by the node only with a fresh proof of the PIN — the same `auth` as when the share is handed out, and with the same counter of ten. The proof is derived from the typed PIN afresh for every action, sits inside the signed body of the request and is never cached: otherwise unlocking the tab once would buy the right to everything until the end of the day. Changing the PIN requires the **old** one and, in a single transaction, rewrites `auth_hash`, `share_enc` and returns the counter to ten.
+**The PIN is asked for before every irreversible action — decided 2026-09-11.** Moving an identity, changing the PIN and starting over are carried out by the node only with a fresh proof of the PIN — the same `auth` as when the share is handed out, and with the same counter of ten. The proof sits inside the signed body of the request and the client does not keep it after the action: otherwise unlocking the tab once would buy the right to everything until the end of the day. It is not fresh in any cryptographic sense — `auth` is deterministic, the same 32 bytes on every entry of the same PIN, and bound to no request — so against an intermediary who sees it only TLS protects: an `auth` seen once works until the PIN changes (clarified 2026-09-15 after the final panel, SEC-8; this said "derived from the typed PIN afresh for every action… never cached" [retired]). Changing the PIN requires the **old** one and, in a single transaction, rewrites `auth_hash`, `share_enc` and returns the counter to ten.
 
 The counter is decremented in its own short transaction, before the action itself: otherwise rolling back a refused action would roll the attempt back with it, and brute force would come free.
 
 **"Erase conversation history" is not on that list.** History lives only on the device (§8.8), the node has nothing to execute, and a PIN check on the node would be theatre here: whoever holds an unlocked tab can clear the site's data without us. The check stays on the client, and the screen says so.
 
-**With access locked by the PIN limit, all three actions refuse.** That is the price, said out loud: a device locked by the tenth mistake does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: on the same device recovery lifts `locked_at` and the freeze and returns the counter to ten, and the old PIN opens the history again; a forgotten PIN is replaced by a new one with a new share, and this device's history is lost; on a clean device — a new session, as before (§8.2 below; clarified 2026-09-14, this said "with the share burned… recovery mints a new share" [retired]). Without this rule the hole would be the exact opposite: in the web the signing key sits outside the share, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
+**With access locked by the PIN limit, all three actions refuse.** That is the price, said out loud: a device locked by the tenth mistake does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: on the same device recovery lifts `locked_at` and the freeze and returns the counter to ten, and the old PIN opens the history again; a forgotten PIN is replaced by a new one with a new share, and this device's history is lost; on a clean device — a new session, as before (§8.2 below; clarified 2026-09-14, this said "with the share burned… recovery mints a new share" [retired]). Without this rule the hole would be the exact opposite: an unlocked tab holds the signing key in memory, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
 
-**The tenth mistake sets `frozen_at` with the reason `pin_limit` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3, SEC-A).** Forbidding the three irreversible actions is not enough: in the web the signing key sits outside the share and the tab lock is client-side, so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses such a session everywhere except paper-code recovery and a new support request — at most 1 request a day, flagged `from_frozen` for the team, while the identity has no other live session and without reading earlier answers. A device frozen by a move or by closing the identity (`frozen_reason` — `transfer`, `closed`) gets no such exception: otherwise a lost phone would write to support on the identity's behalf after recovery. **In the same transaction the freeze takes down what is live, as a step-away does** (the "stepped away" state below): phrases, those still being checked too, are deleted with their likes, queued table lines are deleted, table seats are freed, matches go out, `chat_games` rows are deleted — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose phone was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; a holder of a stolen signing key locks access remotely but no longer erases the correspondence; while the node is under attack, code entry is closed — the pause renews and has no end (`protocol_EN.md` §8, item 7).
+**The tenth mistake sets `frozen_at` with the reason `pin_limit` on this device's sessions in the same transaction — decided 2026-09-14 after the review panel (SEC3, SEC-A).** Forbidding the three irreversible actions is not enough: an unlocked tab holds the signing key in memory (this said "in the web the signing key sits outside the share and the tab lock is client-side" [retired], see below), so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses such a session everywhere except paper-code recovery and a new support request — at most 1 request a day, flagged `from_frozen` for the team, while the identity has no other live session and without reading earlier answers. A device frozen by a move or by closing the identity (`frozen_reason` — `transfer`, `closed`) gets no such exception: otherwise a lost phone would write to support on the identity's behalf after recovery. **In the same transaction the freeze takes down what is live, as a step-away does** (the "stepped away" state below): phrases, those still being checked too, are deleted with their likes, queued table lines are deleted, table seats are freed, matches go out, `chat_games` rows are deleted — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose phone was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; a holder of a stolen signing key locks access remotely but no longer erases the correspondence; while the node is under attack, code entry is closed — the pause renews and has no end (`protocol_EN.md` §8, item 7).
+
+**In the web the private halves are kept only wrapped, as in `depth` — decided 2026-09-15 by the owner after the final panel (SEC-2).** The private halves of the signing and wrapping keys lie in IndexedDB only wrapped (`wrapKey`, AES-KW under a key derived from the vault key). On unlock the tab unwraps them into memory as `extractable: false`; on locking it forgets them. A locked tab holds no socket and accepts no messages until the PIN. [retired] Until this day both halves lay in IndexedDB as bare `CryptoKey` objects and the tab lock was client-side: whoever opened the storefront in the same browser profile could sign requests, take a socket ticket and unwrap new `chat_key_wraps` with the wrapping key — post, like and read every new message without the PIN. **Now the web and `depth` are the same:** in both faces keys at rest are opened by the vault key, the PIN plus the node's share. The price is named: every unlock costs an exchange with the node, and a locked tab learns of new messages only after the PIN.
 
 **The delay between PIN attempts grows after the fifth — decided 2026-09-14 after the review panel (SEC2).** A counter of ten is not enough: without a delay other hands get through it in a minute. Attempts one to five — at once; the sixth after 30 seconds, the seventh after 2 minutes, the eighth after 10 minutes, the ninth after 1 hour, the tenth after 4 hours. The node holds it (`vault_shares.next_attempt_at`), not the client; an attempt before its time is refused and does not spend the counter — a correct one too, or the wait would test the PIN. An attempt is one transaction under `SELECT … FROM vault_shares … FOR UPDATE` (below): without the lock parallel attempts got around the counter. A correct PIN returns the counter to ten and clears the wait. The numbers are in `docs/facts/limits.tsv` (`pin.delay.*`). An honest person who mistyped five times waits half a minute; locking someone else's access takes more than five hours — at the device or remotely, with a stolen signing key, and then the wait locks out the owner's correct PIN too. A wait the person did not cause is a sign that someone else is using their session; storefront screen 12 says so, and the way out is the paper code.
 
@@ -1242,7 +1249,7 @@ UPDATE vault_shares
 
 Two prices are stated plainly. **Without a network the chat does not open at all**: no share, no key, nothing old to read and nothing new to see. And **the node now holds the thing without which people lose their conversations**: losing the share table means everyone loses their history at once, so its backups deserve stricter handling than the rest.
 
-A share lives as long as its session. A session unseen for a year is cleaned up together with its share — otherwise the node accumulates an endless list of dead devices; the period belongs in the retention policy.
+A share lives as long as its session. A session unseen for a year is cleaned up together with its share — otherwise the node accumulates an endless list of dead devices; the period belongs in the retention policy. `last_seen_at` is written at most once a day — `UPDATE sessions SET last_seen_at = now() WHERE id = :s AND last_seen_at < now() - interval '1 day'` — so a request does not turn into a write to the database, and the year is counted to within a day (2026-09-15, final panel DATA-15).
 
 #### The paper recovery code
 
@@ -1260,7 +1267,7 @@ A share lives as long as its session. A session unseen for a year is cleaned up 
 
 **There is no uninsured window any more.** The earlier text named it plainly and asked for a line on the registration screen; there is nothing left to name — the code is there from the first minute.
 
-**The PIN stays at registration, and the reason is the terminal.** In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history, which does not exist on the first minute. But `depth` writes its key file immediately, and that file is encrypted with the same vault key (below). Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
+**The PIN stays at registration, and the reason is the terminal.** `depth` writes its key file immediately, and that file is encrypted with the same vault key (below); since 2026-09-15 the web too keeps the private halves wrapped under the vault key from the first minute (above). [retired] This said "In the web the keys sit as non-extractable `CryptoKey` objects and the vault key is needed only for local history". Deferring the PIN would mean keys sitting in the clear on disk — exactly what this whole construction refuses. The web and the terminal must not diverge: §13 puts the terminal first and says the face does not influence the protocol.
 
 ```
       RTQ4 - 8FMK - 2PZN - XW9D
@@ -1329,7 +1336,7 @@ lives here: an identity always has exactly one live session — the partial uniq
 index will not accept a second. Recovery freezes it, and that is the whole
 list.
 
-**The key file in `depth` is encrypted with the same vault key** — the PIN plus the node's share, with no exception for the terminal. A stolen or copied volume is useless: half the key is not in it, and getting that half means proving knowledge of the PIN to the node, which counts the attempts. This closes the terminal's main weakness: unlike the browser, where keys sit as non-extractable `CryptoKey` objects, here they are a file after all. The file itself is `0600`, and the client **refuses to start** if the permissions are wider, instead of a warning nobody reads. The price is the same as everywhere: **forget the PIN and that device's conversations are gone**, while the identity comes back with the paper code.
+**The key file in `depth` is encrypted with the same vault key** — the PIN plus the node's share, with no exception for the terminal. A stolen or copied volume is useless: half the key is not in it, and getting that half means proving knowledge of the PIN to the node, which counts the attempts. This closes the terminal's main weakness: here they are a file — and since 2026-09-15 the browser keeps them the same way, wrapped under the vault key (above). The file itself is `0600`, and the client **refuses to start** if the permissions are wider, instead of a warning nobody reads. The price is the same as everywhere: **forget the PIN and that device's conversations are gone**, while the identity comes back with the paper code.
 
 **Changing age and the band.** Age is freely editable **within your own pool**, but the 20/21 border can only be crossed upwards:
 
@@ -1376,16 +1383,16 @@ AND me.age BETWEEN band_low(other.age) AND band_high(other.age)
 
 Asymmetry is unacceptable here: one side would like a phrase the other cannot see in their feed, and a match would be impossible in principle — the like would go nowhere.
 
-On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, wider is not.
+On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, wider is not. **Its bounds are coarse — decided 2026-09-15 by the owner after the final panel (SEC-3).** Each bound is a multiple of 5 years or an edge of the band, and the filter spans at least 5 years of age (`max - min + 1 >= 5`); the node refuses anything else (`filter.age.step`, `filter.age.min_width` in `docs/facts/limits.tsv`). A one-year filter was an oracle: a handful of `GET /feed` requests with sliced filters gave every author's exact age, and a cell plus an age glues one person's phrases together — what §8.5 promises never happens.
 
-**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old may narrow the filter to 21–22 and see adults only: formally they are inside their own band, and symmetry holds — `band(22) = [20, ∞)` contains them. This is allowed deliberately; forbidding it would mean a second ceiling on top of the formula and would diverge from §8.5. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
+**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old's band `[18, 22]` reaches adults, and symmetry holds — `band(22) = [20, ∞)` contains them. Since 2026-09-15 they can no longer narrow the filter to 21–22 and see adults only [retired]: a sandbox band spans five ages, the least a filter may span, so a sandbox filter is always the whole band. No second ceiling was added for it — it follows from the width. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
 
 **What a person sees is in the storefront screens:** the handle does not pass the band, an adult's right end is labelled "no limit", and a band shifted by a birthday is announced in one line.
 
 ```sql
 ALTER TABLE identities
-  ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write
-  ADD COLUMN filter_age_max integer;
+  ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write; a multiple of 5 or a band edge
+  ADD COLUMN filter_age_max integer;   -- the same; max - min + 1 >= 5, the node refuses otherwise (2026-09-15)
 ```
 
 Age is self-declared, with no verification whatsoever. The bands separate teenagers from adults as far as that is possible without documents, and that limit should be understood plainly.
@@ -1399,8 +1406,8 @@ CREATE TABLE feed_messages (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ATTRIBUTION ONLY: which face the author arrived through
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- never exposed, NULL = the author was erased
-  text             text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 128),
-  mode             text NOT NULL,                             -- alone | company | party
+  text             text NOT NULL CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 graphemes: node
+  mode             text NOT NULL CHECK (mode IN ('alone', 'company', 'party')),
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- metres, in steps
@@ -1606,7 +1613,7 @@ The gap from the old wording is two orders of magnitude, and it changes the cons
 - **queue depth and the age of the oldest unchecked phrase exposed as metrics**, otherwise a backlog is visible only through complaints; today the node's metrics module can only count, and these two are gauges;
 - **a waiting limit named as a number**, past which a phrase does not hang forever: the author is told the check did not happen — `fail-closed` without a deadline turns into a leak of rows that never expire.
 
-The limit itself and the acceptable waiting time are the open question in §8.14: it closes by measurement on the day the queue exists, not by argument now.
+**The waiting limit is 10 minutes — decided 2026-09-15 by the owner after the final panel (OPS-7).** A phrase with no verdict after 10 minutes is waited for no longer: its queue row is deleted, the slot is freed, and the author sees "the check did not happen, your text is kept — send it again"; the text stays on the device. It does not count toward the refusal pause: nothing was refused. The number is `moderation.queue.wait` in `docs/facts/limits.tsv`; watchdog W6 (`watchdogs_EN.md`) watches the age of the oldest phrase in the queue. The ordinary acceptable wait stays a measurement for the day the queue exists (§8.14). [retired] This said "The limit itself and the acceptable waiting time are the open question in §8.14".
 
 **A third step — an external model for borderline text — stood here and was
 removed 2026-08-17.** It contradicted the "Bounds" further down this same
@@ -1628,7 +1635,7 @@ Visibility is **circle intersection** plus the age band (8.2): if I can see you,
 SELECT f.id, f.text, f.mode,
        grid_round_lat(f.lat, f.area_radius)        AS lat,   -- outwards: the grid node,
        grid_round_lon(f.lon, f.lat, f.area_radius) AS lon,   -- not what the database holds
-       f.area_radius, f.like_count, f.created_at
+       f.area_radius, f.like_count, f.visible_at AS created_at   -- the card's time (2026-09-15)
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
 WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text
@@ -1655,7 +1662,7 @@ WHERE f.visible_at IS NOT NULL                                      -- passed th
 ORDER BY f.visible_at DESC
 ```
 
-**Ordered by `visible_at`, not by `created_at` (edit of 2026-08-21).** A phrase held up by the queue gets its full 4:20 from the moment of publication — that is settled above — but sorting by submission time would drop it straight into the depths of the feed. The queue would be eating its life a second way, and the storefront's promise of a chronological feed would not mean what a person sees.
+**Ordered by `visible_at`, not by `created_at` (edit of 2026-08-21).** A phrase held up by the queue gets its full 4:20 from the moment of publication — that is settled above — but sorting by submission time would drop it straight into the depths of the feed. The queue would be eating its life a second way, and the storefront's promise of a chronological feed would not mean what a person sees. **The time on the card is `visible_at` too — clarified 2026-09-15 after the final panel (DATA-16):** the response field keeps the name `created_at` but carries `visible_at`, or a phrase that waited an hour would show a time an hour older than its neighbours.
 
 `:deg = (viewer_radius + 10000) / 111320` — the maximum phrase radius is known up front (10 km), so the box needs no data. Index: a plain `btree (lat, lon)`.
 
@@ -1686,7 +1693,7 @@ Hence a consequence worth naming outright: **a phrase can be taken down by its
 author**. The spec did not describe this before — a phrase only expired. A phrase
 taken down disappears exactly as an expired one does (§8.10): the text is
 deleted, the likes cascade away, `chat_starters` survive as copies. The slot frees
-immediately; the hourly ceiling does not: it is held by `identity_stats.published_at_recent`, not by live phrases, or taking down and stepping away would reset it (clarified 2026-09-14).
+immediately; the hourly ceiling does not: it is held by `identity_stats.published_at_recent`, not by live phrases, or taking down and stepping away would reset it (clarified 2026-09-14). In the same transaction the matches born of the phrase that have not become a chat go out — `DELETE FROM matches m USING match_participants p WHERE p.match_id = m.id AND p.message_id = :id AND m.chat_id IS NULL` — or a match would outlive its reason until the old `least()` (2026-09-15, final panel DATA-10).
 
 Likes are counted with room to spare: 64 in half an hour is one every thirty
 seconds without a break. No living person keeps that up, while automation hits it
@@ -1737,8 +1744,9 @@ they make it coarse enough to stop being worth the effort; only the absence of a
 counter would close the question, and its price is a blind handle.
 
 Hence two requirements: the answer is computed **on release**, one request per
-gesture, and the route carries **a rate limit of its own** — a hundred requests in a
-row is not a person with a slider but a density profile being taken.
+gesture, and the route carries **a rate limit of its own** — a hundred (100) requests in a
+row is not a person with a slider but a density profile being taken (`feed.density.burst` in
+`docs/facts/limits.tsv`, 2026-09-15).
 
 **A consequence worth knowing up front: a like across a widened radius often will
 not become a match.** Mutuality requires the other person to see your phrase in
@@ -1879,10 +1887,19 @@ CREATE TABLE identity_stats (
 );
 ```
 
-In the same transaction as the like: `INSERT ... ON CONFLICT DO NOTHING` (a double tap must not inflate anything), and on an actual insert — `feed_messages.like_count + 1` plus the `identity_stats` increments. The `identity_stats` row itself is created at signup (§8.3, "Moments, not a number"), not by the first like: the publication limits rest on it too (§8.3).
+**The like transaction starts with two locks — decided 2026-09-15 after the final panel (DATA-1, DATA-2, DATA-3), all three races reproduced in postgres:16:**
+
+```sql
+SELECT pg_advisory_xact_lock(hashtext(:pair_key));   -- first, a statement of its own
+SELECT 1 FROM identity_stats WHERE identity IN (:me, :author) ORDER BY identity FOR UPDATE;
+```
+
+**A row lock is not enough, and this is said outright.** Without the pair lock two mutual likes in READ COMMITTED do not see each other's uncommitted row and no match is born — and never will be, because the repeated like hits `ON CONFLICT DO NOTHING`. `FOR UPDATE` on the like row does not save a take-back either: the waiting `DELETE` rechecks its own row while its `NOT EXISTS` over `matches` sees the old snapshot. The ordered `identity_stats` lock is the second half: the pair lock orders only the pair, an author receives likes from many, and two opposite likes updating counters in opposite order ended in `deadlock detected`. The take-back and the match (§8.5) start with the same two statements.
+
+Then, in the same transaction as the like: `INSERT ... ON CONFLICT DO NOTHING` (a double tap must not inflate anything), and on an actual insert — `feed_messages.like_count + 1` plus the `identity_stats` increments. The `identity_stats` row itself is created at signup (§8.3, "Moments, not a number"), not by the first like: the publication limits rest on it too (§8.3).
 
 - **`like_count` is visible to everyone** — it is an aggregate, it gives nobody away, and it makes the feed feel alive.
-- **A like can be taken back until a match has come of it — decided 2026-09-15.** `DELETE FROM likes` in the same transaction as `like_count - 1` and the `likes_given` and `likes_received` decrements in `identity_stats`, only if no `matches` row exists for the pair; otherwise the answer is `{state: 'spent'}`, and declining is "not now" on the card. Mutuality counts the likes that stand at the moment of the answering one. A like on a private author's offer makes the match at once and cannot be taken back. The price is named: `like_count` on a phrase can move up and down, and the author sees it.
+- **A like can be taken back until a match has come of it — decided 2026-09-15.** `DELETE FROM likes` in the same transaction as `like_count - 1` and the `likes_given` and `likes_received` decrements in `identity_stats`, under the two locks above, and only if the pair has neither a `matches` row nor a `chats` row — `NOT EXISTS (SELECT 1 FROM matches WHERE pair_key = :pk) AND NOT EXISTS (SELECT 1 FROM chats WHERE pair_key = :pk)` (clarified 2026-09-15 after the final panel, DATA-4: a like into a pair with a live chat makes a `chat_starters` card rather than a match, and a `matches` row is deleted on expiry while its chat lives on); otherwise the answer is `{state: 'spent'}`, and declining is "not now" on the card. Mutuality counts the likes that stand at the moment of the answering one. A like on a private author's offer makes the match at once and cannot be taken back. The price is named: `like_count` on a phrase can move up and down, and the author sees it.
 - **`identity_stats` outlives the feed**: phrases expire, likes are deleted, the numbers remain. It is the only "history" the server keeps about a person, and it is nameless — how many, never with whom or for what. A new identity starts from zero — whatever was accumulated dies with the old one, and that is accepted deliberately.
 - The client sends only `feed_message_id` and gets back `{state: 'liked'}` or `{state: 'matched', match_id}` — never who was liked.
 - **Self-likes are forbidden**: not by a `CHECK` (it cannot look into another table) but inside the insert itself — the like is written by `INSERT ... SELECT` from `feed_messages` under conditions, and an empty `RETURNING` means neither the counters nor `identity_stats` are touched. Otherwise both `like_count` and `likes_received` can be inflated at will.
@@ -1923,6 +1940,7 @@ WHERE their_msg.id = :liked_now
   AND their_msg.visible_at IS NOT NULL AND their_msg.expires_at > now()
   AND my_msg.visible_at   IS NOT NULL AND my_msg.expires_at   > now()   -- this is the "while alive" part
   AND them.closed_at IS NULL AND me.closed_at IS NULL
+  AND them.name_state <> 'rejected' AND me.name_state <> 'rejected'     -- the second line of §8.2 (2026-09-15)
   AND them.age BETWEEN band_low(me.age)   AND band_high(me.age)          -- the band as of the match,
   AND me.age   BETWEEN band_low(them.age) AND band_high(them.age)        -- not as of the like
 ORDER BY his_like.created_at DESC
@@ -1939,7 +1957,7 @@ CREATE TABLE matches (
   pair_key    text NOT NULL UNIQUE,     -- sha256(min(a,b) || ':' || max(a,b))
   created_at  timestamptz NOT NULL DEFAULT now(),
   expires_at  timestamptz NOT NULL,     -- least() of both phrases
-  chat_id     uuid                      -- filled once both accepted
+  chat_id     uuid REFERENCES chats(id) ON DELETE SET NULL  -- filled once both accepted (FK: 2026-09-15)
 );
 
 CREATE TABLE match_participants (
@@ -1947,7 +1965,7 @@ CREATE TABLE match_participants (
   identity          uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   message_id        uuid NOT NULL,
   text_snapshot     text NOT NULL,      -- snapshot taken at match time
-  mode              text NOT NULL,      -- alone | company | party
+  mode              text NOT NULL CHECK (mode IN ('alone', 'company', 'party')),
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
   declined_at       timestamptz,        -- "not now" (2026-08-28): the refusal is visible to its own side only;
                                         -- written at once, cleared by an undo while the match lives
@@ -1957,6 +1975,18 @@ CREATE TABLE match_participants (
 ```
 
 Participants are rows, not `_low`/`_high` columns: no handler has to work out "am I the first or the second", and "my row / their row" is the same query up to `WHERE identity = / <> :viewer`. The pair is normalised exactly once — into `pair_key`, whose unique index prevents a duplicate match.
+
+**An expired row the sweeper has not reached does not block a new match — decided 2026-09-15 after the final panel (DATA-5), checked in postgres:16.** `ON CONFLICT (pair_key) DO NOTHING` [retired] created nothing, silently, for a pair whose old match had expired. Under the pair lock of §8.4 the old participants go first — the foreign key from `match_participants` refuses changing `id` while they remain — and then the row is replaced:
+
+```sql
+DELETE FROM match_participants p USING matches m
+ WHERE p.match_id = m.id AND m.pair_key = :pk AND m.expires_at <= now();
+INSERT INTO matches (id, pair_key, expires_at) VALUES (:id, :pk, :expires_at)
+ON CONFLICT (pair_key) DO UPDATE
+   SET id = EXCLUDED.id, created_at = now(), expires_at = EXCLUDED.expires_at, chat_id = NULL
+ WHERE matches.expires_at <= now()
+RETURNING id;   -- no row: a live match already stands
+```
 
 Flow:
 
@@ -2058,7 +2088,7 @@ CREATE TABLE chats (
 CREATE TABLE chat_participants (
   chat_id   uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
   identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-  idle_ttl_minutes integer NOT NULL DEFAULT 60,  -- 10 | 30 | 60 | 260, ONE PER PERSON (§5)
+  idle_ttl_minutes integer NOT NULL DEFAULT 60 CHECK (idle_ttl_minutes IN (10, 30, 60, 260)),  -- ONE PER PERSON (§5)
   last_own_message_at timestamptz,               -- their span counts from here; NULL — from chats.created_at (2026-09-14)
   away_marked boolean NOT NULL DEFAULT false,    -- the "stepped away" label for the peer: set by leaving, cleared by one's own message or move (§8.2, 2026-09-14)
   gone_at   timestamptz,                         -- the conversation ended for this participant
@@ -2070,7 +2100,7 @@ CREATE TABLE chat_starters (
   chat_id        uuid NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
   position       integer NOT NULL,
   text_snapshot  text NOT NULL,       -- a copy: the feed expires, the chat header must not
-  mode           text NOT NULL,
+  mode           text NOT NULL CHECK (mode IN ('alone', 'company', 'party')),
   liked_by       uuid NOT NULL,       -- internal identity, never exposed
   created_at     timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (chat_id, position)
@@ -2290,7 +2320,7 @@ Hiding is **silent and one-way**: the author is not told, their feed does not ch
 
 - **Feed** — `expires_at` (N hours): the phrase drops out of results, a background job deletes the row, `likes` cascade away. Starters survive — the text was copied.
 - **Match** — `least()` of both phrases; expired means gone.
-- **A conversation** — each participant has their own end: `COALESCE(last_own_message_at, chats.created_at) + their idle_ttl_minutes` (§8.6; clarified 2026-09-14 after the review panel — for someone who never wrote, the span otherwise never came). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. Once `gone_at` is set for **both**, the node closes the room and deletes `chats`, with `chat_participants`, `chat_starters` and `chat_games` cascading (the last added 2026-09-10 along with the table itself).
+- **A conversation** — each participant has their own end: `COALESCE(last_own_message_at, chats.created_at) + their idle_ttl_minutes` (§8.6; clarified 2026-09-14 after the review panel — for someone who never wrote, the span otherwise never came). It arrives for one — the node sets their `gone_at` and stops accepting messages from them into that conversation; the other keeps counting on their own span. The transaction that sets the **first** `gone_at` deletes the `chat_games` row: the board goes out for both at the first death (§8.13), and the daily sweeper on `expires_at` is only insurance (2026-09-15, final panel DATA-8). Once no participant with `gone_at IS NULL` remains, the node closes the room and deletes `chats`, with `chat_participants` and `chat_starters` cascading. The chat sweeper looks for exactly that — `NOT EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)` — not for "`gone_at` for both" [retired]: after the cascade from a deleted identity a conversation may keep one participant row or none (2026-09-15, final panel DATA-7).
 - **Local history** — cleaned by the client, always on the client's initiative:
 
 ```
@@ -2305,7 +2335,7 @@ Anything missing from `alive` is deleted from IndexedDB along with its messages.
 
 **The client does not delete what its own clock still calls alive.** If a conversation has not expired by `COALESCE(last_own_message_at, created_at) + its own idle_ttl_minutes` and the node did not name it, it is marked "the node says this chat is gone" and deleted once its own timer runs out too. A cheap insurance against a single node-side error that is otherwise irreversible.
 
-**Local history is encrypted with the vault key of §8.2** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it. Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
+**Local history is encrypted with the vault key of §8.2** — `HKDF(local share ‖ the node's share)`, where the node releases its share only after the PIN checks out. Since everything lives in the browser and entry has no barrier, anyone opening the app on a shared device would otherwise read someone else's conversations; a device taken without the PIN yields nothing, because half the key was never on it — and since 2026-09-15 that holds for the keys as well as the history: in the web the private halves also lie wrapped under the vault key, and a locked tab holds no socket (§8.2). Erasing an identity makes the old records unreadable even before the `alive` sweep removes them.
 
 This paragraph used to say the key came from "the same secret that signs requests", which stopped being true when §8.2 replaced that secret with a key pair — there is no secret to derive from, only a public half the node keeps. Three sections gave three answers to one question; this is the one that holds.
 
@@ -2335,7 +2365,7 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 | Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
 | Match | `match_id`, peer's phrase + `mode`, name, age, the remainders of both phrases (since 2026-09-14; "timer" [retired]) — the one exception to "when other phrases expire" below: the span of a phrase that has already led to a mutual like is disclosed to its counterpart |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
-| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text, **when other phrases expire** |
+| Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text, **when other phrases expire** — with a caveat: polling the feed still gives away when a phrase appears, and the public 4:20 give its end (2026-09-15, final panel SEC-7) |
 
 **Expiry of other people's phrases was added to "Never" on 2026-09-08.** The
 promise was already being cited as obvious — in the reasoning for why the quota
@@ -2510,9 +2540,9 @@ the old K       cannot be recovered by anything
 
 This does not undo the per-person count, because the count is about history and the key is about transit. The local history sits under the **vault key** (§8.2), not under `K`: Kolya's reads exactly as it read and lives until his own span. Putting `K` out later would be a cost with nothing bought — nothing can be written into the conversation by either side any more, while the key from which intercepted ciphertext could be decrypted would stay derivable for hours. Forward secrecy must fire at the **earliest** of the two moments, not the latest.
 
-**A key that cannot be extracted.** The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on the page reads what is open right now but carries no key away.
+**A key that cannot be extracted.** The private halves live in IndexedDB only wrapped under the vault key (§8.2, 2026-09-15); on unlock they are unwrapped into memory as `extractable: false` and forgotten on lock. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on an unlocked page reads what is open right now but carries no key away. [retired] This said "The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects".
 
-**There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a transfer. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. `depth` does not have this hole: there the keys are a file anyway, and what protects them is the vault key — the PIN with the node's share — rather than a property of the browser's store.
+**There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a transfer. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. At rest it is wrapped under the vault key like the other private halves, so a foreign script takes it only from an unlocked page; in `depth` the same vault key — the PIN with the node's share — protects the key file (web and `depth` are the same since 2026-09-15, §8.2).
 
 **Size.** The ciphertext of a 256-character phrase is up to ~1 KB with nonce, tag and base64. The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
 
@@ -2799,8 +2829,9 @@ here are the ones without which the chat is not done at all:
   transferring during a live conversation.
 - The code transfer works across faces: a code shown in `depth` and typed in the
   web, and the other way round. An expired or already-applied code does
-  nothing, a sixth entry attempt burns the invite, and without "that's me" on
-  the old device no transfer happens at all.
+  nothing, a mistyped one gets "the code did not fit or has expired" and counts toward
+  the claim miss limits, a second claim cancels the transfer on both sides, and
+  without "that's me" on the old device no transfer happens at all.
 - The paper code restores the identity on a clean device **including when a live
   session exists** — it is frozen (§8.2). The former wording demanded "when no
   live session is left" and contradicted itself: there is nothing to freeze if

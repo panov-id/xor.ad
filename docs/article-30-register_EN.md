@@ -23,6 +23,11 @@ the product's `00-mechanics`, `dsa/SPEC`, `offers/SPEC_EN` and `vendors-dpa`.
 Two faces (`sosed.place`, `neighbro.place`) are served by one backend. The
 processing is identical and only the storefront differs, so the record is shared.
 
+**Where all of it runs — added 2026-09-15 (LAW-5).** The node and its database run on a
+**Hetzner** server in Germany (`relay/ARCHITECTURE_EN.md`: cpx22, nbg1). Hetzner is
+therefore a processor for everything kept in the database, in every activity below;
+"Recipients: none" below means nobody beyond that host. See "Recipients and contracts".
+
 ## Processing activities
 
 ### 1. Running the service without an account
@@ -30,17 +35,28 @@ processing is identical and only the storefront differs, so the record is shared
 - **Purpose.** Let people use the feed and chat without creating an account.
 - **Basis.** Performance of a contract — Art. 6(1)(b).
 - **Data subjects.** Visitors to the storefronts.
-- **Data.** The identity's identifier and public key, display name, age,
-  settings. **There is no browser fingerprint** — neither the basic one nor the
+- **Data.** The identity's identifier and public key, display name, age (a
+  number of years), settings.
+- **Appearance — entered 2026-09-15.** Theme, contrast step and accent colour,
+  kept with the identity separately for each service (`identity_appearance`);
+  deleted at once when the identity is closed.
+- **Record of acceptance.** `legal_acceptances`: for each of the terms, the
+  privacy policy and the guidelines — the document, its revision date, the
+  `sha256` of its substance and the time of acceptance (`chat_EN.md`). Since
+  2026-09-15 every row is written by the person's own checkbox, the guidelines
+  included. **There is no browser fingerprint** — neither the basic one nor the
   wider one: the mechanism was removed entirely, along with the consent for it.
 - **Session.** An identity has exactly **one live session** (`chat_EN.md` §8.2):
   a public signing key, a label such as "Chrome, Android" as the device sent it,
   and creation and last-seen times. Moving an identity to another device freezes
   the previous session rather than disconnecting it: `frozen_at`. There are no
   separate "connected devices" and no reference to an inviting session.
-- **Recipients.** None: it lives in the browser and in our own database beside
-  the node.
-- **Retention.** For as long as the person uses the service. A frozen session is
+- **Recipients.** Hetzner as the host of the database; nobody else — it lives in
+  the browser and in our own database beside the node.
+- **Retention.** While the identity lives. A closed identity is deleted 30 days
+  after closing (`chat_EN.md` §8.2). **An identity with no live session for a year
+  is closed** and deleted 30 days later; once closed, the paper code does not
+  restore it (owner's decision 2026-09-15, LAW-7; the sweeper is not built). A frozen session is
   kept while the identity can still return to it; one unseen for a year is
   cleaned up together with its key share (see "Chat").
 
@@ -69,7 +85,9 @@ processing is identical and only the storefront differs, so the record is shared
   first-publication date — as long as the identity lives.
 - **Automated decisions.** A refusal to publish and a 15-minute pause are taken automatically and are final; the
   decision says so; a message can be edited and sent again, and a pause ends by itself.
-- **Chats are not checked at all.**
+- **Chats are not checked at all** — except the word set in hangman, which is
+  part of the game state (§4), goes through this queue like a phrase, and whose
+  refusal counts towards the pause (`chat_EN.md` §6, added 2026-09-15).
 
 ### 4. Chat
 
@@ -106,7 +124,8 @@ processing is identical and only the storefront differs, so the record is shared
 - **Retention.** The conversation is **not stored on the servers beyond delivery** —
   clarified 2026-09-12. What is undelivered sits as ciphertext in `pending_deliveries`
   until delivery, the end of the conversation or the recipient's freeze, whichever
-  comes first, and is kept out of the backups. On the device it lives in IndexedDB, encrypted with the vault
+  comes first, and is kept out of the backups; at most 200 messages per
+  conversation and recipient, the oldest evicted silently beyond that. On the device it lives in IndexedDB, encrypted with the vault
   key, for the shorter of the two chosen times. The share and the hashes live as
   long as the session or the identity does. Game state lives no longer than the
   conversation or the table, and for another 14 days in the backups (see the
@@ -122,8 +141,13 @@ processing is identical and only the storefront differs, so the record is shared
   to be called: that is a step at their request, and there is nothing to prove but
   the address itself. Art. 8 falls away with it: it applies only to processing on
   consent.
-- **Data.** Email address, the source of the request.
-- **Recipients.** **Resend** (delivering the letter).
+- **Data.** Email address, the source of the request, the brand (face), the page
+  language, the accent and the light-or-dark mode (so that the letter looks like
+  the site), and the `early_access` flag; the record also carries the node,
+  region, environment and creation time (`relay/node/src/routes/waitlist.ts`,
+  reconciled 2026-09-15).
+- **Recipients.** **Resend** (delivering the letter); **Bunny** (the record sits in
+  its object storage).
 - **Transfers outside the EEA.** Yes — SCCs plus EU-US DPF certification, see
   [`legal-archive/resend-dpa_EN.md`](./legal-archive/resend-dpa_EN.md).
 - **Retention.** Until launch and one year after; sooner on request.
@@ -196,11 +220,13 @@ processing is identical and only the storefront differs, so the record is shared
   consent banner disappeared from the pages.
 - **Basis, while it applied.** Consent in the banner, Art. 6(1)(a). Without it the
   counter did not load at all.
-- 🔴 **Switched off by a deploy, not by editing a file.** In the repository
-  `analyticsId` is empty, while production receives it as the `ANALYTICS_ID`
-  variable at storefront deploy — a measurement on 2026-09-10 found
-  `G-WWHXHZ5QWQ` in the live `config.js`. Until the storefront is deployed with an
-  empty variable, the counter runs in production.
+- **Removed from the production deploy on 2026-09-11** — commit `716d406` in
+  `sosed.place` and `29f77d0` in `neighbro.place` ("Stop the production deploy from
+  switching analytics on"): `deploy-prod.yml` no longer passes `ANALYTICS_ID`. A
+  measurement on 2026-09-10 had found `G-WWHXHZ5QWQ` in the live `config.js`.
+  **Whether production has been redeployed since, so that the live `config.js`
+  carries an empty `analyticsId`, is NOT VERIFIED** — measure it before claiming
+  the counter is gone from production.
 - **Data.** IP (truncated, anonymisation enabled), page addresses, referrer,
   approximate location from the IP, device and browser data.
 - **Recipients.** **Google Analytics 4**.
@@ -262,8 +288,9 @@ processing is identical and only the storefront differs, so the record is shared
 | Processor | What it receives | Contract | Transfers outside EEA | Status |
 |---|---|---|---|---|
 | **Bunny** — hosting, CDN, storage | storefront statics, page addresses, visitors' IPs | **signed**, v1 of 2022-12-17, entity in Slovenia (EU) | ❌ no SCCs, §4.6 permits worldwide processing | ⚠️ Art. 28 closed, [transfer open](./legal-archive/bunny-dpa_EN.md) |
-| **Resend** — email | recipient address and letter text | baked into the ToS, ed. 2025-12-31 | SCCs + EU-US DPF | ✅ checked 2026-08-05 |
-| **Google Analytics 4** | truncated IP, page addresses | accepted in the GA console | yes | ⚠️ confirm acceptance |
+| **Hetzner** — server hosting of the node and the database, Germany | everything kept in the database: identities, sessions and key shares, profiles and appearance, counters, acceptances, game and table state, the chat outline and undelivered ciphertext, support, notices, business accounts and complaints, the audit log | DPA to be accepted by the owner in the Hetzner console; **date entered after acceptance** | no: EU (Germany) | ⚠️ DPA not yet accepted |
+| **Resend** — email | recipient address and letter text, for: the waitlist letter, support replies, letters to the notifier and the author (Arts. 16–17 DSA), letters to a business and to a discount complainant, the business cabinet sign-in link, panel invitations | baked into the ToS, ed. 2025-12-31 | SCCs + EU-US DPF | ✅ checked 2026-08-05 |
+| ~~**Google Analytics 4**~~ | — removed 2026-09-10/11 (§9); live production NOT VERIFIED | accepted in the GA console | yes | ⚠️ measure production |
 
 Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 
@@ -271,7 +298,8 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
 
 - The device identifier is **encrypted**; chat history on the device goes through
   Web Crypto before it is written.
-- Our own database beside the node; nobody else holds it.
+- Our own database beside the node, on a Hetzner server in Germany; no other party
+  uses it.
 - Role separation in the panel, an audit log, keys with narrow scopes.
 - Node hardening: closed ports, hardened SSH, secret rotation —
   [`../relay/HARDENING_EN.md`](../relay/HARDENING_EN.md).
@@ -317,6 +345,8 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
       call goes by waitlist email through Resend — the "Waiting list" activity
       already covers it.
 - [ ] When creating new Bunny zones, check the region: it must be `DE`, no replicas.
-- [ ] Confirm that the current data-processing terms are accepted in Google
-      Analytics.
+- [ ] Accept the Hetzner DPA in the Hetzner console and enter the date here and in
+      `vendors-dpa_EN.md` (LAW-5, 2026-09-15).
+- [ ] Measure the live `config.js` of both storefronts: `analyticsId` empty. Until
+      then GA4 in production is NOT VERIFIED either way.
 - [ ] Download the executed copy of the Resend DPA from the dashboard.

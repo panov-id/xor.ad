@@ -66,7 +66,7 @@ Drawing starts when all seven hold, each checked by a machine or a panel:
 
 **Exit:** a panel over S1 — zero confirmed above trivia.
 
-### S2. Screens and mechanics — a full pass over 01–21
+### S2. Screens and mechanics — a full pass over 01–24
 
 - Each screen: sort "Open questions" into three piles — decided (move into "Logic"), "settled by
   drawing" (mark), about behaviour (decide from the mechanics and neighbouring screens; if it does not

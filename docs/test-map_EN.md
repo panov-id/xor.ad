@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 195 | storefronts, panel, tenancy, DSA, keys, limits |
+| `relay/node/test` | 197 | storefronts, panel, tenancy, DSA, keys, limits |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **205** | **about chat and feed — 0** |
+| **Total** | **207** | **about chat and feed — 0** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
@@ -93,10 +93,10 @@ through three different wrappers and cannot be counted by eye.
 | 4.1 | **One live session per identity is held by an index, not by code** | two live-session `INSERT`s → the second fails on the unique index | nothing to check |
 | 4.2 | Without "it's me" on the old device nothing moves (§14) | `claim` without confirmation → the identity stayed | nothing to check |
 | 4.3 | An invitation lives 120 seconds | an attempt at second 121 → refused | nothing to check |
-| 4.4 | **The sixth attempt burns the invitation** (§14) | five misses, then the correct code → refused | nothing to check |
+| 4.4 | **Claim misses are limited as recovery's, per address and across the node** (§8.2, 2026-09-15) | 50 claims with wrong codes in an hour from different addresses → the 51st is refused for everyone for 15 minutes; a mistyped code gets "the code did not fit or has expired" | nothing to check |
 | 4.5 | The node sees a `lookup_id` and two opaque envelopes | node log and table contents: no long key | nothing to check |
 | 4.6 | The old device freezes at the same moment | `frozen_at` set before the new one is answered | nothing to check |
-| 4.7 | The old device's disk is not wiped | move the identity back → its own PIN opens the whole history (§14) | nothing to check |
+| 4.7 | The old device's disk is not wiped, but its share is burned | move the identity back → its own PIN does not open the old device's history: the move burned its share (`chat_EN.md` §8.2; edited 2026-09-15: this said "opens the whole history" [retired]) | nothing to check |
 | 4.8 | The move works across faces: code shown in `depth`, typed in the web, and back (§14) | a pair of clients, both directions | nothing to check |
 | 4.8a | **`depth` does not start without its wrapper** (`depth-client_EN.md` §2.1, 2026-09-14) | the image without `DEPTH_WRAPPED=1` → refuses and says why; through the wrapper → starts, `docker inspect` gives `LogConfig.Type = none` | nothing to check |
 | 4.9 | **No link and no QR: no separate page exists for the pairing** | there is no route for an invitation; the node accepts only a `lookup_id` | nothing to check |

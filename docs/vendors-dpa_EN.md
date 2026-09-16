@@ -36,7 +36,8 @@ there, not what the cover says.
 | Processor | What reaches them | Form of agreement | SCC / DPF | Subprocessors | Status |
 |---|---|---|---|---|---|
 | **Bunny** — hosting, CDN, object storage | everything the service stores; page addresses; visitors' IPs | **signed** — v1 of 2022-12-17, entity in Slovenia (EU) | ❌ **no SCCs**, while §4.6 permits processing anywhere in the world | [list](https://bunny.net/gdpr/sub-processors/): Zendesk, Slack, Google Workspace, MailChannels, **OpenAI**, Atlassian; plus **two unnamed promised from 2026-08-19** — not objected to, see the [analysis](./legal-archive/bunny-dpa_EN.md) — **checked 2026-08-19: they never appeared in the public list** | ⚠️ contract in place, [transfer open](./legal-archive/bunny-dpa_EN.md) |
-| **Resend** — email | the recipient's address and the letter | **baked in** — accepted with the Terms of Service, updated 2025-12-31 | yes, EU and UK SCCs + EU-US DPF certification | [list](https://resend.com/legal/subprocessors), 14 days' notice | ⚠️ download a copy for the file |
+| **Hetzner** — server hosting of the node and the database, Germany | everything kept in the database (see `article-30-register_EN.md`) | **DPA accepted by the owner in the Hetzner console; date — after acceptance** | not needed: EU (Germany) | to be read from the DPA on acceptance | ⚠️ not yet accepted (added 2026-09-15, LAW-5) |
+| **Resend** — email | the recipient's address and the letter — the waitlist letter, support replies, letters to the notifier and the author (Arts. 16–17 DSA), letters to a business and to a discount complainant, the business cabinet sign-in link, panel invitations | **baked in** — accepted with the Terms of Service, updated 2025-12-31 | yes, EU and UK SCCs + EU-US DPF certification | [list](https://resend.com/legal/subprocessors), 14 days' notice | ⚠️ download a copy for the file |
 | **Google Analytics 4** — storefront analytics | truncated IP, page addresses, referrer, browser data | accepted in the GA console (Google Ads Data Processing Terms) | yes, SCCs inside Google's terms | [Google's list](https://business.safety.google/subprocessors/) | ⚠️ confirm the terms are accepted |
 | **PayPal** — donations | nothing goes to it: a person leaves for PayPal's own site | **not a processor** — see below | — | — | ✅ described as a controller in both policies |
 
@@ -69,6 +70,9 @@ say so in a separate paragraph, outside the list of processors.
 3. Download the **executed** copy of the Resend DPA from the dashboard — the
    edition itself is already checked, see
    [`legal-archive/resend-dpa_EN.md`](./legal-archive/resend-dpa_EN.md).
+4. **Accept the Hetzner DPA** in the Hetzner console (the node and the database run
+   there) and enter the date of acceptance in the table above and in the Article 30
+   record.
 
 Done:
 

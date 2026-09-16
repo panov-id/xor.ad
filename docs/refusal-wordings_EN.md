@@ -117,7 +117,8 @@ contact (17(2), checked against EUR-Lex), but the text keeps its composition.
 "posting is unavailable" [retired], and screen 11 read it as "only new phrases"; the
 counter is also fed by table lines and a refused name. **Each further refusal within
 the same hour — another 15 minutes** (decided 2026-09-14). An expired queue wait is
-not a refusal.
+not a refusal: after 10 minutes without a verdict the text goes back to its author and
+does not count (decided 2026-09-15, §5).
 
 **A hold is not a pause (2026-09-14).** If something of one's own is being checked — a line, an application,
 a phrase or a name — and together with the refusals within the hour it makes five or more, a new send waits for the verdicts:
@@ -145,6 +146,7 @@ away" button would put it out.
 | four this hour | Four phrases already said this hour. The next one can go at HH:MM. | Wait |
 | no network | There is no connection. What you wrote is saved. | Retry once there is (edited 2026-09-15 after the review panel: "We will send it when there is" [retired] — mechanics §10 and screen 11 say "retry", there is no auto-send) |
 | rate in a row (the node's per-address limit) | Too many sends in a row. | Try again later — no span and no word "address" (storefront screen 11, 2026-09-15) |
+| the check did not happen (10 minutes without a verdict) | The check did not happen, your text is saved — send it again. | Send again; the slot is free, it does not count towards the pause (decided 2026-09-15, storefront screen 11) |
 | the match waits for your name | Your name did not pass the check, and the match will not open until a new one is accepted. | Change the name |
 | the paper code did not match | Check each group: one wrong character and the code is not found. | Try again |
 | paper code entry is closed | Someone is guessing codes, so entry is closed for everyone. Your identity is intact — try later. | — |
@@ -226,13 +228,18 @@ the application at the next sign-in.
 - **These texts are not approved until they have been read out loud.** This is a
   proposal.
 - **After 60 seconds the "checking…" line becomes "taking longer than usual".
-  Decided 2026-09-08.** There is no refusal: the phrase stays in the queue and
-  goes out when the queue clears. Two of the three paths were rejected. Silence
-  is indistinguishable from a frozen app — the person cannot tell whether they
-  are waiting on us or on a broken screen. A timeout with a refusal looks more
-  honest and lies about the substance: the check has not stopped, and calling the
-  phrase rejected asks for it to be sent again, doubling the very queue that
-  stalled. Sixty seconds is where waiting stops reading as the interface working.
+  Decided 2026-09-08.** Silence is indistinguishable from a frozen app — the
+  person cannot tell whether they are waiting on us or on a broken screen. Sixty
+  seconds is where waiting stops reading as the interface working.
+- **The waiting limit is 10 minutes. Decided 2026-09-15.** After 10 minutes without
+  a verdict the text goes back to its author: "the check did not happen, your text is
+  saved — send it again". The slot is free, and this does not count towards the
+  pause: the phrase was not refused, it was not checked, and that is what it is
+  called. The canon requires the limit as a number (`chat_EN.md` §8.3): without it
+  `fail-closed` turns into rows that never expire, and the author's slot is held for
+  hours. The argument of 2026-09-08 against a timeout — sending again doubles the
+  queue — remains a price, and it is accepted. [retired] This said "there is no
+  refusal: the phrase stays in the queue and goes out when the queue clears".
 - [retired] **The time a slot frees is not shown. Decided 2026-09-08, reversed 2026-09-14** (§5: a slot is freed by one's own phrase, whose span the person already sees; `chat_EN.md` §8.11, clarification of 2026-09-14). "In a few minutes"
   rather than "at 14:32". The exact time is computed from the spans of other
   people's phrases, and §8.11 of `chat_EN.md` promises outright that the feed does

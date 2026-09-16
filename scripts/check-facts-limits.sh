@@ -101,10 +101,50 @@ done < "$registry"
 # запросе или — пока исполнителя нет — открытый пункт, который об этом помнит.
 # Без этого реестр обещает «удалим через 30 дней», и ничто не напоминает, что
 # удалять некому.
+#
+# Строка отбирается по ЕДИНИЦЕ, а не по имени (OPS-5, финальная панель
+# 15.09.2026). Первая версия брала только id с ttl/retention/delay и пропускала
+# тринадцать сроков узла без исполнителя — table.idle.span, invite.lifetime,
+# away.span.* и другие: срок остаётся сроком, как его ни назови. Единица
+# нормализуется тем же normalise-unit.py, что и у стороны первой, поэтому
+# «минут», «минуты» и «minutes» — одно. Скорость («фраз в минуту», «за час») не
+# нормализуется в единицу времени и сроком не считается — это предел, а не окно.
+#
+# Задача засчитывается, только если она ЗАРЕГИСТРИРОВАНА: имя (буквой или через
+# константу) стоит первым аргументом и в handle(...), и в enqueueOnce(...).
+# Первая версия искала имя в кавычках где угодно в файле, и константа, пережившая
+# удаление регистрации, давала зелёный. Нужны оба вызова: обработчик без
+# enqueueOnce никто не взведёт, а взведённая задача без handle не исполнится.
+# Комментарии вырезаются до поиска — закомментированный вызов не регистрация.
+# Граница честности: вызов ищется в файле целиком, а не внутри тела
+# registerScheduledJobs/armScheduledJobs; handle(...) на верхнем уровне модуля
+# тоже исполнился бы при импорте.
+registered=""
+if [ -f "$scheduled" ]; then
+  registered=$(python3 - "$scheduled" <<'PY'
+import re, sys
+src = open(sys.argv[1], encoding='utf-8').read()
+src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
+src = re.sub(r'(?m)^([^"\n]*?)//.*$', r'\1', src)
+consts = dict(re.findall(r'\bconst\s+([A-Za-z_$][\w$]*)\s*(?::\s*string\s*)?=\s*"([^"]+)"', src))
+def names(fn):
+    out = set()
+    for arg in re.findall(r'\b' + fn + r'\(\s*([A-Za-z_$][\w$]*|"[^"]*")\s*,', src):
+        if arg.startswith('"'):
+            out.add(arg[1:-1])
+        elif arg in consts:
+            out.add(consts[arg])
+    return out
+for name in sorted(names('handle') & names('enqueueOnce')):
+    print(name)
+PY
+)
+fi
+
 while IFS=$'\t' read -r id values unit what enforced places executor; do
   case "$id" in ''|'#'*|id) continue ;; esac
   [ "$enforced" = "узел" ] || continue
-  case "$id" in *ttl*|*retention*|*delay*) ;; *) continue ;; esac
+  case "$(python3 "$here/normalise-unit.py" <<< "$unit")" in s|min|h|d) ;; *) continue ;; esac
   checked=$((checked + 1))
   if [ -z "$executor" ]; then
     printf '  ✗ %s: срок без исполнителя — назови задачу из %s, пункт open.tsv или «запрос»\n' \
@@ -112,9 +152,9 @@ while IFS=$'\t' read -r id values unit what enforced places executor; do
     problems=$((problems + 1)); continue
   fi
   [ "$executor" = "запрос" ] && continue
-  if [ -f "$scheduled" ] && grep -qF -- "\"$executor\"" "$scheduled"; then continue; fi
+  if [ -n "$registered" ] && printf '%s\n' "$registered" | grep -qxF -- "$executor"; then continue; fi
   if [ -f "$open_items" ] && grep -v '^#' "$open_items" | cut -f1 | grep -qxF -- "$executor"; then continue; fi
-  printf '  ✗ %s: исполнитель «%s» не найден — ни задачи в %s, ни пункта в open.tsv\n' \
+  printf '  ✗ %s: исполнитель «%s» не найден — ни зарегистрированной задачи (handle + enqueueOnce) в %s, ни пункта в open.tsv\n' \
     "$id" "$executor" "${scheduled#$root/}"
   problems=$((problems + 1))
 done < "$registry"

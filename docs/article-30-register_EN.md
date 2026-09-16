@@ -35,8 +35,9 @@ therefore a processor for everything kept in the database, in every activity bel
 - **Purpose.** Let people use the feed and chat without creating an account.
 - **Basis.** Performance of a contract — Art. 6(1)(b).
 - **Data subjects.** Visitors to the storefronts.
-- **Data.** The identity's identifier and public key, display name, age (a
-  number of years), settings.
+- **Data.** The identity's identifier and public key, display name (and a name awaiting
+  the check), age (a number of years), settings, feed languages; relations — likes, matches, blocks with
+  their date, hidden phrases, the seat and lines at a table, the step-away mark (added 2026-09-16, LAW-7).
 - **Appearance — entered 2026-09-15.** Theme, contrast step and accent colour,
   kept with the identity separately for each service (`identity_appearance`);
   deleted at once when the identity is closed.
@@ -63,9 +64,9 @@ therefore a processor for everything kept in the database, in every activity bel
 ### 2. Area of visibility
 
 - **Purpose.** Match neighbours by a chosen zone without revealing a point.
-- **Basis.** Performance of a contract; **precise coordinates** rest on consent,
-  Art. 6(1)(a), and are not requested at all — the "where am I" button was
-  retired on 2026-08-28, and no face asks for a precise location.
+- **Basis.** Performance of a contract. Precise coordinates are not processed at all: the "where am I"
+  button was retired on 2026-08-28, and no face asks for a precise location
+  (rewritten 2026-09-16, LAW-9; this said "rest on consent, Art. 6(1)(a)" [retired]).
 - **Data.** An approximate area (time zone, IP, browser language) or a point
   placed by hand; the reach you look at and the precision you are seen with.
 - **Recipients.** None. Precise coordinates place the point once and are not
@@ -77,7 +78,7 @@ therefore a processor for everything kept in the database, in every activity bel
 - **Purpose.** Keep rude, dangerous and explicit content out of the feed.
 - **Basis.** Legitimate interests — Art. 6(1)(f): the safety of the place and its
   people.
-- **Data.** The text of the message being published; the moments of publications and refusals within the
+- **Data.** The text of the message being published and the display name at registration and at every change (LAW-3, 2026-09-16); the moments of publications and refusals within the
   last hour and the date of the first publication (`identity_stats`, 2026-09-14) — for the posting limit, the pause and the weight of link reports.
 - **Recipients.** **None.** The classifiers run inside the node and the text never
   leaves it; moderation uses no external processor.
@@ -156,7 +157,7 @@ therefore a processor for everything kept in the database, in every activity bel
 
 - **Purpose.** Answer a request, including GDPR rights requests.
 - **Basis.** Performance of a contract and legal obligation — Art. 6(1)(c).
-- **Data.** The text of the request, an optional email address, the link to the identity (cut on
+- **Data.** The text of the request, an optional email address, the public number, the text and time of our answer (LAW-13, 2026-09-16), the link to the identity (cut on
   "start over"), a flag for a request from a frozen session.
 - **Recipients.** Resend (delivering the reply).
 - **Retention.** 1 year from `created_at`; a report of illegal content moved to the notice register

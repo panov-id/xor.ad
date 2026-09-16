@@ -94,6 +94,16 @@ identities.create.day	30	запросов	заведений личности в
 feed.density.burst	100	запросов	запросов плотности подряд, после которых это снятие профиля, а не человек (chat §8.3, 15.09.2026, SEC-9)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,xor.ad/docs/api/openapi.yaml	
 filter.age.step	5	лет	границы фильтра возраста кратны этому числу или равны краям полосы (15.09.2026, SEC-3)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
 filter.age.min_width	5	лет	наименьший охват фильтра возраста, max − min + 1 (15.09.2026, SEC-3)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
-moderation.queue.wait	10	минут	предел ожидания вердикта; дальше строка очереди удаляется, в счётчик паузы не идёт (15.09.2026, OPS-7)	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	moderation.queue.throughput
+moderation.queue.wait	10	минут	предел ожидания вердикта; дальше строка очереди удаляется, в счётчик паузы не идёт (15.09.2026, OPS-7)	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	moderation.queue.wait.unbuilt
 identity.inactive.retention	365	дней	личность без живой сессии столько дней закрывается и через 30 дней удаляется (15.09.2026, LAW-7)	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	identity.sweeper
 area.approx.default	5000	метров	круг просмотра по умолчанию для приблизительной точки (для поставленной рукой — 3 км), решено 15.09.2026 (CON-6)	клиент	sosed.place/docs/00-mechanics_RU.md,sosed.place/docs/00-mechanics_EN.md,neighbro.place/docs/00-mechanics_RU.md,neighbro.place/docs/00-mechanics_EN.md	
+tables.create.hour	4	за час	постановок столов в час на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+seat.attempts.hour	30	за час	попыток подсесть в час на личность (16.09.2026, SEC-2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+blocks.hour	20	за час	блокировок в час на личность (16.09.2026, SEC-1)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+hidden.hour	60	за час	скрытий в час на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+sticker.minute	6	в минуту	стикеров за столом в минуту на личность (16.09.2026, SEC-5)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+profile.patch.day	10	в сутки	правок профиля в сутки на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+reissue.day	3	в сутки	перевыпусков бумажного кода в сутки на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+ticket.lifetime	30	секунд	жизнь одноразового билета сокета беседы и стола (16.09.2026, SEC-15)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	запрос
+nonce.bytes	16	байт	длина nonce у одноразовых действий (протокол §2, 16.09.2026, SEC-3)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+backup.age.alert	26	часов	порог возраста последнего дампа у сторожа С7 (16.09.2026, OPS-14)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	backup.silent.failure

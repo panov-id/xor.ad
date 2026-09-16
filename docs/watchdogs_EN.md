@@ -60,8 +60,8 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 **Built 2026-09-15:** side three of `scripts/check-facts-limits.sh` and the `executor` column in `docs/facts/limits.tsv`; the probe in `scripts/test_check-facts-limits.sh` removes `prune_pageviews` from a copy of `scheduled.ts` and sees red. Besides a job and an `open.tsv` item, the doer may be «запрос» — a period checked in the request itself (the PIN delays).
 
-- `scripts/check-facts-limits.sh`: a `limits.tsv` row with `enforced_by = узел` and a period
-  (`*.ttl`, `*.retention`, `*.delay`) must name a job in `lib/scheduled.ts` or an `open.tsv` item;
+- `scripts/check-facts-limits.sh`: a `limits.tsv` row with `enforced_by = узел` and a period in seconds,
+  minutes, hours or days (selected by unit, 2026-09-15; this said "`*.ttl`, `*.retention`, `*.delay`" [retired]) must name a job in `lib/scheduled.ts` or an `open.tsv` item;
   otherwise red.
 - Probe: delete the job name — the gate goes red with a legible line; restore it — green.
 - This is a project gate, not node code: it can be built before product code (S4 of the route).
@@ -85,6 +85,17 @@ The platform's promises rest on people and jobs, and they can break without a so
   stopped rather than slowed.
 - **Where to.** A letter to the personal addresses in `DSA_ESCALATION_EMAILS`, one per stall, not per
   pass. Added 2026-09-15 after the final panel (OPS-7); built together with the queue (§13, step 2).
+
+## W7. The age of the last dump
+
+- **Gauge.** The age of the newest object in `backups/<env>/postgres/` of the storage — checked from outside the box, where W5 runs.
+- **Threshold.** 26 hours: the dump is nightly, the hour is slack for a deploy and the network.
+- **Where to.** A letter to the personal addresses; the unit `relay-backup.service` gets an `OnFailure=` with the same letter, so a failed `curl` to the storage does not stay silent.
+- **Why.** Up to 2026-09-15 the backup had not run for four nights in a row and nobody learned (panel, OPS-1); the command fix and the `check-backup-script` gate catch a broken text, not a broken network. Added 2026-09-16 after the panel (OPS-14); item `backup.silent.failure` in `docs/facts/open.tsv`.
+
+## Gauges that arrive with the code
+
+For tables, games, sockets and blocks no watchdog is described yet: there is no code. The gauge names are fixed in advance so the code does not invent them: `relay_tables_live`, `relay_sockets_open{kind}`, `relay_table_autopass_total`, `relay_moderation_oldest_seconds` (what W6 already requires). Added 2026-09-16 (panel, OPS-16).
 
 ## How to check once built
 

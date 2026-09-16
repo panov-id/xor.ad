@@ -74,8 +74,9 @@ mandatory discount, published for free.
 - **Blocks publication.** yes — the refusal screen ships with or without a ground; changing it after launch means a new edition of the reasons.
 
 **5. Automatic hiding at the report threshold.**
-- **Fact.** At the threshold a message leaves the feed for everyone, and no
-  statement of reasons is produced.
+- **Fact.** At the threshold a message leaves the feed for everyone; Terms §15 promise
+  "to say what was done and why", and the Article 17 statement for this case is described in
+  `refusal-wordings_EN.md` §6 as a proposal (refined 2026-09-16).
 - **Where.** `sosed.place/docs/00-mechanics_EN.md` §5, `docs/dsa/SPEC_EN.md` §7.
 - **Question.** Does such hiding require a statement, and is naming the automation
   as the cause enough?
@@ -171,8 +172,8 @@ mandatory discount, published for free.
 ## E. Bases, consent, children
 
 **16. The digital age of consent in Cyprus.**
-- **Fact.** We declare 13+; inside the app consent is not used as a basis, but the
-  waitlist and analytics both stand on it.
+- **Fact.** We declare 13+; nothing rests on consent — neither in the app nor for the
+  waitlist (Policy §4, since 2026-09-10; there is no analytics). Refined 2026-09-16.
 - **Where.** `landing/legal/privacy_EN.md` §4, §10.
 - **Question.** What is the threshold under Cypriot law, and how does it interact
   with our two consent-based processes?
@@ -193,8 +194,8 @@ mandatory discount, published for free.
 - **Blocks publication.** yes — the contract ground for a 13–16-year-old user is the ground of all processing at launch.
 
 **19. The waitlist: consent or a pre-contractual step.**
-- **Fact.** Consent is declared as the basis, yet no proof of consent is kept —
-  no flag, no revision of the text shown.
+- **Fact.** Steps at the data subject's request are declared as the basis (Policy §4, since
+  2026-09-10); the previous edition named consent, and no proof of consent was kept. Refined 2026-09-16.
 - **Where.** `relay/node/src/routes/waitlist.ts`.
 - **Question.** Can it move to Article 6(1)(b) as "steps at the request of the
   data subject"?
@@ -212,7 +213,7 @@ mandatory discount, published for free.
   is safe?
 - **Price.** Two routes in the app instead of correspondence — they have to be
   designed.
-- **Blocks publication.** yes — the way rights are exercised sits in Policy §12 and must work from day one.
+- **Blocks publication.** yes — the way rights are exercised sits in Policy §9 and must work from day one.
 
 **21. How long a closed identity is kept.**
 - **Fact.** On 2026-08-30 we recorded 30 days; the sweeper does not exist yet.
@@ -307,7 +308,7 @@ mandatory discount, published for free.
 
 **31. A receipt without email as notification under Art. 16(5).**
 - **Fact.** A notifier with no email sees the decision on their device by a receipt: the device asks
-  when the storefront opens and shows a dot; no letters.
+  at a random moment of the session, not when the storefront opens (`dsa/SPEC_EN.md` §6), and shows a dot; no letters.
 - **Where.** `docs/dsa/SPEC_EN.md` §6.
 - **Question.** Is this "notify … without undue delay" or only "make available"? If a person does not
   open the storefront for a month, is Art. 16(5) breached?

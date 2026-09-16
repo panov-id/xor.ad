@@ -38,6 +38,18 @@ Drawing starts when all seven hold, each checked by a machine or a panel:
 | `app-ui-notes` wishes without a status | 16 | concrete palette, frames, feed/chat split, masonry, bottom navigation |
 | Open `open.tsv` items | 24 | legal 9, product 12, comfort 3 |
 
+## Measured on 2026-09-16, by gate
+
+| Gate | State | Measured by |
+|---|---|---|
+| 1. Gates green | green | `harden-cycle.sh` 18/0, inside it `check-all.sh` 32/0/0 |
+| 2. Screens 01–24 with no behaviour questions | green | 17 open questions, all marked "settled by drawing" |
+| 3. Final panel — zero above trivia | red | pass 2 recorded in `PANEL_2026-09-16_stage-s5-pass2.md`, the fix batch applied, pass 3 not held |
+| 4. Legal texts | green | all 31 questions of the brief marked "blocks publication"; the 16.09 edition (edits of 15–16.09) is not deployed, prod serves 10.09 |
+| 5. Facts | green | `check-facts-coverage` green; zero items hold drawing |
+| 6. Patterns and rules | amber | the design system has nothing open; the component vocabulary is collected (50 components, 10 screen disagreements), not yet in a document |
+| 7. The drawing brief | red | no document |
+
 ## Stages
 
 ### S0. The tool and the red — today
@@ -131,7 +143,7 @@ Only here, in one form at the start of the stage where the fork occurs:
 |---|---|---|
 | S1 | "What changed": a changes page linked from the bar, or soften the §19 promise | published legal text or storefront code |
 | S2 | Screen behaviour questions that do not follow from the mechanics | a product decision |
-| S3 | App light theme; the July prototype — basis, reference or archive | a product decision about the look |
+| S3 | ~~App light theme; the July prototype — basis, reference or archive~~ — decided 2026-09-15 (`design-system-app_EN.md`) | a product decision about the look |
 | S6 | Pushing the day branches to `dev`; starting to draw | going outside |
 
 Everything else follows from decisions taken, the code, a measurement or the project rules, and is

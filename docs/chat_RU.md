@@ -99,13 +99,6 @@
 здесь — потолок класса; конкретный набор внутри него называет своё: шахматы всегда
 двое, домино бывает и вдвоём, и вчетвером, и это выбирается при постановке доски.
 
-**Число мест — свойство набора, а не класса, и таблица даёт границы (записано
-10.09.2026).** Правило заявок от 10.09.2026 («садятся неоспоренные в порядке подачи,
-пока места есть», §6.1) на это число опиралось, а взять его было неоткуда: колонки в
-таблице классов не существовало, и правило было нереализуемо как написано. Диапазон
-здесь — потолок класса; конкретный набор внутри него называет своё: шахматы всегда
-двое, домино бывает и вдвоём, и вчетвером, и это выбирается при постановке доски.
-
 **Очко — своё у каждого класса, решено 10.09.2026.** Единого «одно очко за кон» нет:
 в домино считают по оставшимся костям, в точках — по замкнутым областям, в чапаевцах
 — по сбитым, и продуктовый счёт, не совпадающий с тем, что игроки говорят вслух, был
@@ -326,13 +319,15 @@ CREATE TABLE tables (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- ТОЛЬКО атрибуция, как у фразы
   game             text NOT NULL,                             -- класс доски: grid | free | dots | deck | dice | physics | word
+  set              text NOT NULL,                             -- набор внутри класса, выбран при постановке (§6), в API `set`
+  seats            smallint NOT NULL CHECK (seats BETWEEN 2 AND 6),  -- число мест набора, выбрано при постановке (§6), добавлено 16.09.2026 (панель, DATA-19)
   lat              double precision NOT NULL,                 -- центр зоны, как у фразы
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- те же ступени, что у фразы: стол публикуется тем же правилом
   created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- в выдаче не участвует; владельца у стола нет
   created_at       timestamptz NOT NULL DEFAULT now(),
   last_move_at     timestamptz NOT NULL DEFAULT now(),        -- скользящий срок: ход или реплика любого сидящего
-  closed_at        timestamptz                                -- разошлись или отказались играть заново
+  closed_at        timestamptz                                -- разошлись или отказались играть заново; ставится транзакцией `DELETE /tables/:id/seat`, когда встаёт последний (16.09.2026, DATA-27)
 );
 
 CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
@@ -343,8 +338,14 @@ CREATE TABLE table_seats (
   joined_at        timestamptz NOT NULL DEFAULT now(),        -- с этого момента человек видит реплики, и не раньше
   playing_from     timestamptz,                               -- NULL = сидит, но не играет: заявка ещё не принята
   left_at          timestamptz,
+  -- Номер места — то, чем человек назван наружу: в кадрах, в счёте, в `{table, seat}` у блокировки
+  -- и высадки. Личность наружу не уходит никогда (§8.11). Наименьший свободный номер выдаётся
+  -- в транзакции посадки под `SELECT … FROM tables WHERE id = :t FOR UPDATE`, иначе две посадки
+  -- берут один номер. Вернувшийся получает новый номер: следа не остаётся (16.09.2026, DATA-18).
+  seat_no          smallint NOT NULL,
   PRIMARY KEY (table_id, identity)
 );
+CREATE UNIQUE INDEX table_seats_seat_taken ON table_seats (table_id, seat_no) WHERE left_at IS NULL;
 
 -- За одним столом одновременно — решено 09.09.2026. Сесть за второй, не встав
 -- из-за первого, нельзя, и это единственная защита от засыпания ленты столами,
@@ -361,7 +362,9 @@ CREATE TABLE table_lines (
   brand            text NOT NULL,                             -- ТОЛЬКО атрибуция: цель по ст. 16 ищется без неё (мир один)
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
-  text             text NOT NULL CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 графем: узел
+  text             text CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 графем: узел, пусто только у стикера (16.09.2026)
+  sticker          text,                                      -- идентификатор стикера из нашего каталога, очередь не нужна (16.09.2026, DATA-20)
+  seat_no          smallint NOT NULL,                         -- место автора на момент реплики: после ухода и новой посадки старая реплика не переезжает на нового человека (16.09.2026, DATA-18)
   -- Вид строки. `line` — обычная речь. `application` — вступительные слова того,
   -- кто просится в игру, `refusal` — объяснение отказавшего. Оба решено 09.09.2026
   -- сделать обычными репликами, а не отдельной сущностью: они видны всем за столом,
@@ -377,7 +380,9 @@ CREATE TABLE table_lines (
   -- Она видна всем за столом и отсекается по `joined_at`, как всякая другая, —
   -- подсевший не видит ходов, сделанных до него, ровно как не видит речи.
   kind             text NOT NULL DEFAULT 'line'
-                     CHECK (kind IN ('line', 'application', 'refusal', 'move')),
+                     CHECK (kind IN ('line', 'application', 'refusal', 'move', 'sticker', 'congratulation')),
+  -- `sticker` и `congratulation` публикуются без очереди, как `move`: каталог наш, поздравление собирает движок. Добавлены 16.09.2026 (панель, DATA-20, SEC-5).
+  CONSTRAINT table_lines_text_or_sticker CHECK ((kind = 'sticker') = (sticker IS NOT NULL) AND (kind = 'sticker' OR text IS NOT NULL)),
   created_at       timestamptz NOT NULL DEFAULT now(),
   visible_at       timestamptz                                -- NULL = ждёт очередь: речь за столом публична
 );
@@ -402,6 +407,14 @@ CREATE TABLE table_games (
   -- доски состояние разной формы, и раскладывать его по столбцам значило бы
   -- заводить семь таблиц ради одного «чей ход».
   state        jsonb NOT NULL,
+  -- Версия доски: монотонна, растёт на каждом ходе, пасе и откате; ход несёт ожидаемую версию, и
+  -- повтор того же тела при том же `seq` отвечает тем же `board`, а чужая версия — 409 `stale_seq`.
+  -- Открытое предложение и идущий отсчёт подтверждения лежат здесь же, а не в памяти, чтобы пережить
+  -- перезапуск и вернуться в `GET /tables/:id` (16.09.2026, панель: DATA-24, DATA-25, OPS-12).
+  seq          integer NOT NULL DEFAULT 0,
+  last_move_hash text,                                -- sha256 тела последнего хода: отличает повтор от другого хода с тем же seq
+  pending      jsonb,                                -- {kind, id, class, set, answers, until} — предложение или подтверждение состава
+  turn_due     timestamptz,                          -- конец срока хода (table.move.window); автопас ставит планировщик или первый запрос к столу после срока
   started_at   timestamptz NOT NULL DEFAULT now(),
   ended_at     timestamptz                           -- партия окончена, стол остался
 );
@@ -754,6 +767,8 @@ CREATE TABLE identities (
   recovery_wrapped_key bytea,           -- долгий ключ под второй половиной; узел его не открывает
                                         -- заполняются при регистрации (§8.2, правка 26.08.2026)
   name_state       text NOT NULL DEFAULT 'accepted' CHECK (name_state IN ('accepted', 'pending', 'rejected')),  -- §8.2
+  name_pending     text CHECK ((name_state = 'pending') = (name_pending IS NOT NULL)),  -- имя, ждущее вердикта: прежнее действует до него (16.09.2026, DATA-22)
+  languages        text[] NOT NULL DEFAULT '{}' CHECK (cardinality(languages) <= 3),  -- языки ленты, до трёх; на узле, потому что фильтр выдачи считает узел (16.09.2026, DATA-22)
   -- stepped_away_at [retired 14.09.2026]: метка «отошёл» живёт на участнике беседы (chat_participants.away_marked, §8.6)
   stepped_away_until timestamptz,       -- конец отлучки; до него продукта для человека нет; досрочный возврат — now(), прошедший срок обнуляется первым запросом сессии
   created_at       timestamptz NOT NULL DEFAULT now(),
@@ -842,6 +857,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 
 Человек может уйти с площадки на срок — **20 минут, час или 4 часа** (14.09.2026: «до утра» [retired] снято, у него не было часа окончания; «8 часов» [retired] — в тот же день: дольше любой беседы, панель ревью), — и это не пауза интерфейса, а состояние учётки на узле: `stepped_away_until timestamptz` в `identities`. **Фраза, ждущая вердикта очереди, удаляется вместе с опубликованными (30.08.2026)** — состояния «принято, но придержано до возвращения» нет; **счётчик часа для предложения отойти обнуляется уходом**, потому что считает непрерывное использование. Смысл не в отлучке, а в том, чтобы дать залипшему выйти по-настоящему.
 
+- **Реплики стола, ждущие вердикта, удаляются** той же транзакцией, как при закрытии личности: иначе они выйдут за стол, когда человека там уже нет (дописано 16.09.2026, DATA-26).
 - **Фразы удаляются** (`DELETE`, не скрытие) вместе с лайками: слоты квоты свободны сразу, а вернувшемуся нечего «дочитывать».
 - **Мэтчи гасятся** так же, как при истечении фразы: `matches` этой личности закрываются, и второй участник видит исчезнувшее предложение без объяснения причины — о чужом решении здесь не сообщают.
 - **Чаты не замораживаются.** `last_activity_at` не двигается, TTL идёт: у каждого свой счёт (§2 механики витрин), и уход одного не должен решать за второго. Следствие названо прямо: уход на четыре часа переживает только беседа со сроком 260 минут, и то если своя реплика в ней была не раньше чем за 20 минут до ухода; час — только она же, двадцать минут — беседы на 60 и 260, а на 30 — если своя реплика была меньше чем за 10 минут (правка 14.09.2026: «восемь часов» [retired] не переживала ни одна беседа — самый долгий срок 4:20).
@@ -1395,6 +1411,7 @@ CREATE TABLE feed_messages (
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- наружу никогда, NULL = автор стёрт
   text             text NOT NULL CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 графем: узел
   mode             text NOT NULL CHECK (mode IN ('alone', 'company', 'party')),
+  lang             text NOT NULL,                             -- язык, определённый узлом при публикации (§7 механики витрин) — по нему фильтр ленты (16.09.2026, DATA-22)
   lat              double precision NOT NULL,                 -- центр области
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- метры, ступенями
@@ -2259,6 +2276,7 @@ CREATE TABLE blocks (
   blocker_identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   blocked_identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   created_at        timestamptz NOT NULL DEFAULT now(),
+  id                uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,  -- непрозрачный ключ для `GET /blocks` и `DELETE /blocks/:id`: к личности не сводится (16.09.2026, DATA-21)
   PRIMARY KEY (blocker_identity, blocked_identity)
 );
 CREATE INDEX ON blocks (blocked_identity);
@@ -2281,10 +2299,16 @@ LIMIT 1
 
 ```sql
 CREATE TABLE hidden_messages (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),  -- непрозрачный ключ для `DELETE /hidden/:id` (16.09.2026, DATA-17)
   identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-  feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
+  feed_message_id  uuid REFERENCES feed_messages(id) ON DELETE CASCADE,
+  -- Реплика стола скрывается исходом жалобы без галочки «незаконно» (экран 19), не пунктом меню;
+  -- ровно одно из двух полей заполнено (16.09.2026, DATA-17).
+  table_line_id    uuid REFERENCES table_lines(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (identity, feed_message_id)
+  CHECK (num_nonnulls(feed_message_id, table_line_id) = 1),
+  UNIQUE (identity, feed_message_id),
+  UNIQUE (identity, table_line_id)
 );
 ```
 

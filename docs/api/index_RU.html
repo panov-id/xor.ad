@@ -1,4 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>API узла · 2026-09-16</title><style>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>API узла · 2026-09-16.2</title><style>
 :root{--bg:#f6f5f2;--panel:#ffffff;--fg:#1c1b19;--muted:#5b5853;--line:#d9d6cf;--accent:#8a3b1f;
 --built:#1f6b3a;--built-bg:#e3f1e7;--spec:#7a5300;--spec-bg:#fbf0d6;--prop:#4a4f57;--prop-bg:#e8eaee;
 --get:#1e5aa8;--post:#1f6b3a;--put:#7a5300;--patch:#6a3d9a;--delete:#a12a24}
@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>API узла</h1><a href="index_EN.html">English</a></div>
-<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 99 операций, OpenAPI 3.1.0, 2026-09-16.</p>
+<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 102 операций, OpenAPI 3.1.0, 2026-09-16.2.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (main.ts).</p>
@@ -111,6 +111,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Решение по уведомлению по коду квитанции</strong></p>
 <p>Личностью не подписан; код в теле. На «нет такой квитанции» и «решения ещё нет» ответ один: статус 200, тело байт в байт, Cache-Control no-store, одно минимальное время на обе ветки; предел по адресу держится в памяти и в журнал не пишется (dsa/SPEC §6, протокол §4.5). Тело решения в каноне поле за полем не описано.</p>
 <h3>Доступ</h3><p>без доступа</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-receiptquery"><code>ReceiptQuery</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Один ответ на неизвестную квитанцию и нерешённое уведомление; решение</td><td></td></tr></table></div>
@@ -366,12 +367,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Источник: <code>relay/node/src/routes/dsa.ts</code></p>
 </section>
 <h2 id="tag-identity">identity</h2>
-<p>Личность и сессия (протокол §4.1). Не построено.</p>
+<p>Личность и сессия, профиль, перевыпуск бумажного кода (протокол §4.1, §4.11, §4.12). Не построено.</p>
 <section class="op" id="post-identities">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Завести личность</strong></p>
 <p>Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано. Не больше 10 в час и 30 в сутки по адресу (15.09.2026).</p>
 <h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-share">
@@ -380,7 +382,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Десять неверных попыток закрывают вход до бумажного кода; доля цела.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Доля.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Доля.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-sessions-invite">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/invite</code><span class="chip s-spec">спека</span></div>
@@ -390,7 +392,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-sessionsinvite"><code>SessionsInvite</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Приглашение записано.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Приглашение записано.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-pin">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-proposed">предложено</span></div>
@@ -398,7 +400,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Старый ПИН, новый auth_hash, перевыпуск доли.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сменён.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Сменён.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-identities-close">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-proposed">предложено</span></div>
@@ -406,7 +408,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>С доказательством ПИНа; строки оформления удаляются той же транзакцией.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="put-identities-appearance">
 <div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-proposed">предложено</span></div>
@@ -414,13 +416,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-sessions-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-spec">спека</span></div>
 <p><strong>Применить код переноса на новом устройстве</strong></p>
 <p>Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления; второй claim на то же приглашение отменяет перенос на обеих сторонах, и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026).</p>
 <h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td></td></tr></table></div>
@@ -429,6 +432,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Поднять личность бумажным кодом</strong></p>
 <h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Поднята.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-legal-manifest">
@@ -436,6 +440,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Нынешние редакции документов</strong></p>
 <p>Дата, sha256 существа и политика повторного принятия трёх документов; required у всех трёх с 15.09.2026.</p>
 <h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Манифест.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-legal-accept">
@@ -444,7 +449,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Документ, дата, хэш; по строке на каждое.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Записано.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Записано.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-me">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-proposed">предложено</span></div>
@@ -474,6 +479,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><a href="#schema-recoveryreissue"><code>RecoveryReissue</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
+<section class="op" id="get-statements">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Свои мотивировки по ст. 17</strong></p>
+<p>Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §6; LAW-1, 16.09.2026).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
+</section>
 <h2 id="tag-feed">feed</h2>
 <p>Лента (протокол §4.2). Не построено.</p>
 <section class="op" id="get-feed">
@@ -482,7 +495,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Страница карточек ленты и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница карточек ленты и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 </section>
 <section class="op" id="post-feed">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-spec">спека</span></div>
@@ -490,14 +503,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Отвечает 202 сразу; visible_at пуст до вердикта очереди.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>202</code></td><td>Принято в очередь.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять документы заново.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принято в очередь.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code) либо stepped_away (ApiError); различаются по error.code (протокол §6).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Снять свою фразу</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Снята; слот освобождён</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Снята; слот освобождён</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-feed-density">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-proposed">предложено</span></div>
@@ -505,7 +518,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ступень.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Ступень.</td><td></td></tr></table></div>
 </section>
 <h2 id="tag-chat">chat</h2>
 <p>Лайк, мэтч, чат, игры в чате (протокол §4.3, §4.7). Не построено.</p>
@@ -514,14 +527,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Лайкнуть фразу или оффер</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>liked или matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked или matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id--like">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Снять лайк, пока нет мэтча</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Снят или state spent</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Снят или state spent</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
 </section>
 <section class="op" id="post-matches--id--consent">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-proposed">предложено</span></div>
@@ -529,14 +542,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Чат открывается, когда согласились оба.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Согласие записано.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять документы заново.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Согласие записано.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять документы заново.</td><td><a href="#schema-legalreacceptance"><code>LegalReacceptance</code></a></td></tr></table></div>
 </section>
 <section class="op" id="get-inbox">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/inbox</code><span class="chip s-spec">спека</span></div>
 <p><strong>Предложения и беседы одним ответом</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Страница — счётчик только на предложениях; следующий курсор (протокол §6).</td><td><a href="#schema-page"><code>Page</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница — счётчик только на предложениях; следующий курсор (протокол §6).</td><td><a href="#schema-page"><code>Page</code></a></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--ticket">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/ticket</code><span class="chip s-spec">спека</span></div>
@@ -544,7 +557,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Билет.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Билет.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats-alive">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-spec">спека</span></div>
@@ -554,7 +567,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-chatsalive"><code>ChatsAlive</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Живые id.</td><td><a href="#schema-chatsaliveresult"><code>ChatsAliveResult</code></a></td></tr><tr><td><code>503</code></td><td>Чтение базы не подтверждено.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Живые id.</td><td><a href="#schema-chatsaliveresult"><code>ChatsAliveResult</code></a></td></tr><tr><td><code>503</code></td><td>Чтение базы не подтверждено.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="patch-chats--id">
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-proposed">предложено</span></div>
@@ -562,14 +575,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>10, 30 или 60 минут либо «пока говорим» (260 минут).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-chats--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Закрыть беседу руками, сразу у обоих</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-chats--id--game">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-proposed">предложено</span></div>
@@ -663,12 +676,32 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
+<section class="op" id="post-chats--id--messages">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Отправить шифротекст</strong></p>
+<p>Кладётся в pending_deliveries, двигает last_activity_at, отдаётся второму сразу или при подключении; не смог — {local_id, error} (спека чата §8.8; SEC-8).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-message"><code>Message</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>202</code></td><td>Принято.</td><td><a href="#schema-messageack"><code>MessageAck</code></a></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-chats--id--received">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/received</code><span class="chip s-proposed">предложено</span></div>
+<p><strong>Подтвердить получение</strong></p>
+<p>Узел удаляет доставленное из pending_deliveries (спека чата §8.8).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-received"><code>Received</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
+</section>
 <h2 id="tag-tables">tables</h2>
 <p>Столы — игра компанией (протокол §4.6). Предложено 16.09.2026, не построено.</p>
 <section class="op" id="post-tables">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Поставить стол</strong></p>
-<p>Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away.</p>
+<p>Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
@@ -814,7 +847,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-hidden">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/hidden</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Список скрытого</strong></p>
-<p>Для экрана 10; недолог по построению.</p>
+<p>Для экрана 10; недолог по построению. Поля {id, kind, text} названы в протоколе §4.8 (16.09.2026).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
@@ -822,12 +855,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-hidden">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/hidden</code><span class="chip s-proposed">предложено</span></div>
 <p><strong>Скрыть фразу или реплику у себя</strong></p>
-<p>204; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages).</p>
+<p>200 с id для возврата; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-hidetarget"><code>HideTarget</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано; повтор отвечает тем же.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Скрыто; id для возврата.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-hidden--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/hidden/{id}</code><span class="chip s-proposed">предложено</span></div>
@@ -912,7 +945,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
 <p>Карточка ленты — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).</td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).</td></tr></table></div></section>
 <section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
@@ -936,20 +969,20 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><code>object</code></p></section>
 <section class="op" id="schema-tablecreate"><div class="op-head"><code class="path">TableCreate</code></div>
 <p>Поставить стол (спека чата §6.1, схема tables). Имена полей предложены 16.09.2026.</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>class</code></td><td><code>string</code> <span class="src">enum: [&quot;grid&quot;, &quot;free&quot;, &quot;dots&quot;, &quot;deck&quot;, &quot;dice&quot;, &quot;physics&quot;, &quot;word&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>да</td><td></td></tr><tr><td><code>seats</code></td><td><code>integer</code> <span class="src">minimum: 2, maximum: 6</span></td><td>да</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><code>string</code></td><td>да</td><td>16 случайных байт</td></tr><tr><td><code>class</code></td><td><code>string</code> <span class="src">enum: [&quot;grid&quot;, &quot;free&quot;, &quot;dots&quot;, &quot;deck&quot;, &quot;dice&quot;, &quot;physics&quot;, &quot;word&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>да</td><td></td></tr><tr><td><code>seats</code></td><td><code>integer</code> <span class="src">minimum: 2, maximum: 6</span></td><td>да</td><td></td></tr></table></div></section>
 <section class="op" id="schema-tableview"><div class="op-head"><code class="path">TableView</code></div>
 <p>Стол без скрытого — своя рука, рубашки чужих (спека чата §6.1).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td>Своё место; у зрителя отсутствует.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>нет</td><td></td></tr><tr><td><code>lines</code></td><td>array&lt;<a href="#schema-tableline"><code>TableLine</code></a>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td>Номер своего места; зритель тоже сидит (seat_no).</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>нет</td><td></td></tr><tr><td><code>lines</code></td><td>array&lt;<a href="#schema-tableline"><code>TableLine</code></a>&gt;</td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-board"><div class="op-head"><code class="path">Board</code></div>
 <p>Состояние доски — seq, state по классу (jsonb), чей ход, счёт по местам, expires_at (спека чата §6, table_games / chat_games).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>state</code></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>turn</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>score</code></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>state</code></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>turn</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>score</code></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>нет</td><td>Открытое предложение или идущий отсчёт: {kind, id, class, set, answers, until}; переживает перезапуск (OPS-12).</td></tr></table></div></section>
 <section class="op" id="schema-tableline"><div class="op-head"><code class="path">TableLine</code></div>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;line&quot;, &quot;application&quot;, &quot;refusal&quot;, &quot;sticker&quot;, &quot;move&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>sticker</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;line&quot;, &quot;application&quot;, &quot;refusal&quot;, &quot;sticker&quot;, &quot;move&quot;, &quot;congratulation&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>sticker</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-tablelinecreate"><div class="op-head"><code class="path">TableLineCreate</code></div>
 <p>Реплика, заявка и отказ идут через очередь модерации (202); стикер из нашего каталога — нет (200). Спека чата §6.1.</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;line&quot;, &quot;application&quot;, &quot;refusal&quot;, &quot;sticker&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>нет</td><td>До 128 графем (phrase.length).</td></tr><tr><td><code>sticker</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-move"><div class="op-head"><code class="path">Move</code></div>
-<p>Ход в терминах класса доски или пас. seq — номер ожидаемого хода; повтор в окне подписи не удваивается (протокол §4.6).</p>
+<p>Ход в терминах класса доски или пас. seq — ожидаемая версия доски (монотонна); то же тело при том же seq отвечает той же доской, чужая версия — 409 stale_seq (протокол §4.6, 16.09.2026).</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>да</td><td></td></tr><tr><td><code>pass</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>move</code></td><td><code>object</code></td><td>нет</td><td>По классу — клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse}.</td></tr></table></div></section>
 <section class="op" id="schema-proposal"><div class="op-head"><code class="path">Proposal</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;rematch&quot;, &quot;draw&quot;, &quot;undo&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
@@ -963,22 +996,32 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>word</code></td><td><code>string</code></td><td>да</td><td>Слово виселицы; идёт через ту же очередь</td></tr></table></div></section>
 <section class="op" id="schema-blocktarget"><div class="op-head"><code class="path">BlockTarget</code></div>
 <p>Ровно одно из feed, chat или table+seat (спека чата §8.9). Ответ 204 в любом случае — не оракул.</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>feed</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>chat</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>table</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>feed</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>chat</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>table</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>nonce</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-hidetarget"><div class="op-head"><code class="path">HideTarget</code></div>
-<p>Ровно одно из feed или line (спека чата §8.9, hidden_messages).</p>
+<p>Ровно одно из feed или line (спека чата §8.9, hidden_messages). feed — из меню «…»; line — исход жалобы без галочки «незаконно» (экран 19), не пункт меню.</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>feed</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>line</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-away"><div class="op-head"><code class="path">Away</code></div>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>span</code></td><td><code>string</code> <span class="src">enum: [&quot;short&quot;, &quot;hour&quot;, &quot;long&quot;]</span></td><td>да</td><td>away.span.short / hour / long.</td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><code>string</code></td><td>да</td><td>16 случайных байт</td></tr><tr><td><code>span</code></td><td><code>string</code> <span class="src">enum: [&quot;short&quot;, &quot;hour&quot;, &quot;long&quot;]</span></td><td>да</td><td>away.span.short / hour / long.</td></tr></table></div></section>
 <section class="op" id="schema-supportcreate"><div class="op-head"><code class="path">SupportCreate</code></div>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>body</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><code>string</code></td><td>да</td><td>16 случайных байт</td></tr><tr><td><code>body</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-supportrequest"><div class="op-head"><code class="path">SupportRequest</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>public_no</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>answer</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>answered_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>answer_seen</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-profile"><div class="op-head"><code class="path">Profile</code></div>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>name_pending</code></td><td><code>string</code></td><td>нет</td><td>Имя</td></tr><tr><td><code>age</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr><tr><td><code>stepped_away_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>name_pending</code></td><td><code>string</code></td><td>нет</td><td>Имя</td></tr><tr><td><code>age</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr><tr><td><code>stepped_away_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>phrases</code></td><td>array&lt;<code>object</code>&gt;</td><td>нет</td><td>Свои живые фразы с таймерами (экраны 9</td></tr><tr><td><code>table</code></td><td><code>object</code></td><td>нет</td><td>Своё место за столом</td></tr></table></div></section>
 <section class="op" id="schema-profilepatch"><div class="op-head"><code class="path">ProfilePatch</code></div>
 <p>Любое подмножество (спека чата §8.2, §8.3). Имя уходит в очередь; возраст через 20/21 только вверх; границы фильтра кратны 5 или край полосы, охват не меньше 5.</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>age</code></td><td><code>integer</code> <span class="src">minimum: 13</span></td><td>нет</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-message"><div class="op-head"><code class="path">Message</code></div>
+<p>Шифротекст к доставке (спека чата §8.8; предложено 16.09.2026, SEC-8).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>local_id</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>ciphertext</code></td><td><code>string</code></td><td>да</td><td>base64url</td></tr></table></div></section>
+<section class="op" id="schema-messageack"><div class="op-head"><code class="path">MessageAck</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>local_id</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>accepted</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>error</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-received"><div class="op-head"><code class="path">Received</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>ids</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-statement"><div class="op-head"><code class="path">Statement</code></div>
+<p>Мотивировка по ст. 17 её адресату, без личности заявителя (dsa/SPEC §6).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>decided_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>ground</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>automated</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>appeal</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-recoveryreissue"><div class="op-head"><code class="path">RecoveryReissue</code></div>
 <p>Доказательство текущего бумажного кода и производные нового, рождённого на устройстве (спека чата §8.2 «бумажный код»); одна транзакция.</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>current</code></td><td><code>object</code></td><td>да</td><td></td></tr><tr><td><code>next</code></td><td><code>object</code></td><td>да</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><code>string</code></td><td>да</td><td>16 случайных байт</td></tr><tr><td><code>current</code></td><td><code>object</code></td><td>да</td><td></td></tr><tr><td><code>next</code></td><td><code>object</code></td><td>да</td><td></td></tr></table></div></section>
 </main></body></html>

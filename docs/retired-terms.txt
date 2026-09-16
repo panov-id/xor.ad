@@ -487,3 +487,17 @@ There is no single error shape in the spec | protocol_EN.md | the shape {error:{
 they do not exist at all, and §7 | protocol_EN.md | the texts exist in refusal-wordings since 2026-09-08; §8 item 6 closed 2026-09-16
 запросы на игру — через **свой WebSocket** | chat_RU.md | действия идут подписанными запросами, сокет только отдаёт; решено 16.09.2026
 game requests go through **our own WebSocket** | chat_EN.md | actions travel as signed requests, the socket only delivers; decided 2026-09-16
+
+# --- панель Э5, проход 2 (16.09.2026) ---------------------------------------------------
+ровно два вида uuid | protocol_RU.md | CON-4: uuid у семи сущностей, ни один не сводится к человеку, 16.09.2026
+exactly two kinds of uuid | protocol_EN.md | CON-4: same, 2026-09-16
+Регистрация — три шага | protocol_RU.md | CON-7: два шага экрана 2, 16.09.2026
+Registration is three steps | protocol_EN.md | CON-7: same, 2026-09-16
+как именно клиент сообщает версию — открыто | protocol_RU.md | CON-3: заголовок x-protocol-version решён 16.09.2026
+чтение и беседы открыты | protocol_RU.md | SEC-9: отлучка закрывает всё, кроме возврата и профиля, 16.09.2026
+reading and conversations stay open | protocol_EN.md | SEC-9: same, 2026-09-16
+на узле не хранится | protocol_RU.md | LAW-1: мотивировка автору лежит год, GET /statements, 16.09.2026
+is not kept on the node | protocol_EN.md | LAW-1: same, 2026-09-16
+`*.ttl`, `*.retention`, `*.delay` | watchdogs_RU.md watchdogs_EN.md | OPS-17: отбор по единице с 15.09.2026; текст сторожа приведён 16.09.2026
+**точные координаты** — согласие, ст. 6(1)(a) | article-30-register_RU.md | LAW-9: точные координаты не обрабатываются, основания нет, 16.09.2026
+rest on consent, | article-30-register_EN.md | LAW-9: same, 2026-09-16

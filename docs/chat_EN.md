@@ -301,13 +301,15 @@ CREATE TABLE tables (
   id               uuid PRIMARY KEY,
   brand            text NOT NULL,                             -- attribution ONLY, as on a phrase
   game             text NOT NULL,                             -- board class: grid | free | dots | deck | dice | physics | word
+  set              text NOT NULL,                             -- the set within the class, chosen when the board is put down (§6), `set` in the API
+  seats            smallint NOT NULL CHECK (seats BETWEEN 2 AND 6),  -- the set's number of seats, chosen when the board is put down (§6), added 2026-09-16 (panel, DATA-19)
   lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- the phrase's steps: a table is published by the same rule
   created_by       uuid REFERENCES identities(id) ON DELETE SET NULL,  -- not part of any response; a table has no owner
   created_at       timestamptz NOT NULL DEFAULT now(),
   last_move_at     timestamptz NOT NULL DEFAULT now(),        -- the sliding span: a move or a line from anyone seated
-  closed_at        timestamptz                                -- everyone left, or everyone declined to play again
+  closed_at        timestamptz                                -- everyone left, or everyone declined to play again; set by the `DELETE /tables/:id/seat` transaction when the last one stands up (2026-09-16, DATA-27)
 );
 
 CREATE INDEX tables_sliding ON tables (last_move_at) WHERE closed_at IS NULL;
@@ -318,8 +320,14 @@ CREATE TABLE table_seats (
   joined_at        timestamptz NOT NULL DEFAULT now(),        -- lines are shown from here on, and no earlier
   playing_from     timestamptz,                               -- NULL = sitting but not playing: the application is not accepted yet
   left_at          timestamptz,
+  -- The seat number is how a person is named outwards: in frames, in the score, in `{table, seat}`
+  -- for a block or a removal. The identity never leaves the node (§8.11). The lowest free number
+  -- is handed out inside the seating transaction under `SELECT … FROM tables WHERE id = :t FOR UPDATE`,
+  -- or two seatings take one number. Someone coming back gets a new number: no trace remains (2026-09-16, DATA-18).
+  seat_no          smallint NOT NULL,
   PRIMARY KEY (table_id, identity)
 );
+CREATE UNIQUE INDEX table_seats_seat_taken ON table_seats (table_id, seat_no) WHERE left_at IS NULL;
 
 -- One table at a time — decided 2026-09-09. Sitting down at a second table
 -- without standing up from the first is refused, and this is the only guard
@@ -337,7 +345,9 @@ CREATE TABLE table_lines (
   brand            text NOT NULL,                             -- attribution ONLY: an Article 16 target is found without it (the world is one)
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
-  text             text NOT NULL CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 graphemes: node
+  text             text CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 graphemes: node, empty only for a sticker (2026-09-16)
+  sticker          text,                                      -- a sticker id from our catalogue, no queue needed (2026-09-16, DATA-20)
+  seat_no          smallint NOT NULL,                         -- the author's seat at the moment of the line: after leaving and sitting down again, the old line does not move onto the new person (2026-09-16, DATA-18)
   -- What kind of line this is. `line` is ordinary speech. `application` is the
   -- opening words of somebody asking to play, `refusal` the explanation of
   -- somebody who said no. Both were made ordinary lines rather than an entity of
@@ -356,7 +366,9 @@ CREATE TABLE table_lines (
   -- `joined_at` like any other — somebody who sat down does not see the moves made
   -- before they arrived, exactly as they do not see the speech.
   kind             text NOT NULL DEFAULT 'line'
-                     CHECK (kind IN ('line', 'application', 'refusal', 'move')),
+                     CHECK (kind IN ('line', 'application', 'refusal', 'move', 'sticker', 'congratulation')),
+  -- `sticker` and `congratulation` are published without the queue, like `move`: the catalogue is ours, the congratulation is composed by the engine. Added 2026-09-16 (panel, DATA-20, SEC-5).
+  CONSTRAINT table_lines_text_or_sticker CHECK ((kind = 'sticker') = (sticker IS NOT NULL) AND (kind = 'sticker' OR text IS NOT NULL)),
   created_at       timestamptz NOT NULL DEFAULT now(),
   visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
 );
@@ -381,6 +393,14 @@ CREATE TABLE table_games (
   -- laying it out in columns would mean seven tables for the sake of one "whose
   -- turn".
   state        jsonb NOT NULL,
+  -- The board version: monotonic, grows on every move, pass and undo; a move carries the expected
+  -- version, a repeat of the same body at the same `seq` answers the same `board`, a foreign version
+  -- gets 409 `stale_seq`. The open proposal and the running confirmation countdown live here, not in
+  -- memory, to survive a restart and come back in `GET /tables/:id` (2026-09-16, panel: DATA-24, DATA-25, OPS-12).
+  seq          integer NOT NULL DEFAULT 0,
+  last_move_hash text,                                -- sha256 of the last move's body: tells a repeat from another move with the same seq
+  pending      jsonb,                                -- {kind, id, class, set, answers, until} — a proposal or the confirmation of the line-up
+  turn_due     timestamptz,                          -- end of the move window (table.move.window); the auto-pass is placed by the scheduler or by the first request to the table after it
   started_at   timestamptz NOT NULL DEFAULT now(),
   ended_at     timestamptz                           -- the game is over, the table remains
 );
@@ -755,6 +775,8 @@ CREATE TABLE identities (
   recovery_wrapped_key bytea,           -- the long-lived key under the other half; the node cannot open it
                                         -- filled at registration (§8.2, edit of 2026-08-26)
   name_state       text NOT NULL DEFAULT 'accepted' CHECK (name_state IN ('accepted', 'pending', 'rejected')),  -- §8.2
+  name_pending     text CHECK ((name_state = 'pending') = (name_pending IS NOT NULL)),  -- the name awaiting the verdict: the previous one stays in force until then (2026-09-16, DATA-22)
+  languages        text[] NOT NULL DEFAULT '{}' CHECK (cardinality(languages) <= 3),  -- feed languages, up to three; on the node because the node applies the feed filter (2026-09-16, DATA-22)
   -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
   stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person; early return — now(), a past span is cleared by the session's first request
   created_at       timestamptz NOT NULL DEFAULT now(),
@@ -844,6 +866,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 
 A person may leave the place for a span — **20 minutes, an hour, or 4 hours** (2026-09-14: "until morning" [retired] was dropped, it had no end hour; "8 hours" [retired] the same day: longer than any conversation, review panel) — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. **A phrase awaiting the queue's verdict is deleted along with the published ones (2026-08-30)** — there is no "accepted but held until return" state; **the hour counter behind the step-away prompt is reset by leaving**, because it counts continuous use. The point is not an errand but giving someone caught in the pull a real way out.
 
+- **Table lines waiting for a verdict are deleted** in the same transaction, as on closing an identity: otherwise they would appear at the table after the person has gone (added 2026-09-16, DATA-26).
 - **Phrases are deleted** (`DELETE`, not hidden) along with their likes: quota slots free immediately, and whoever returns has nothing to catch up on.
 - **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a four-hour departure is survived only by a 260-minute conversation, and only if one's own message in it was no more than 20 minutes earlier; an hour — only that one too, twenty minutes — the 60 and 260 ones, and a 30 one if one's own message was under 10 minutes earlier (edited 2026-09-14: "eight hours" [retired] was survived by no conversation — the longest span is 4:20).
@@ -1408,6 +1431,7 @@ CREATE TABLE feed_messages (
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,  -- never exposed, NULL = the author was erased
   text             text NOT NULL CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 graphemes: node
   mode             text NOT NULL CHECK (mode IN ('alone', 'company', 'party')),
+  lang             text NOT NULL,                             -- the language the node detected at publication (storefront mechanics §7) — the feed filter runs on it (2026-09-16, DATA-22)
   lat              double precision NOT NULL,                 -- area centre
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- metres, in steps
@@ -2277,6 +2301,7 @@ CREATE TABLE blocks (
   blocker_identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   blocked_identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   created_at        timestamptz NOT NULL DEFAULT now(),
+  id                uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,  -- an opaque key for `GET /blocks` and `DELETE /blocks/:id`: not reducible to an identity (2026-09-16, DATA-21)
   PRIMARY KEY (blocker_identity, blocked_identity)
 );
 CREATE INDEX ON blocks (blocked_identity);
@@ -2299,10 +2324,16 @@ The effect applies at all three levels at once: phrases are hidden from both sid
 
 ```sql
 CREATE TABLE hidden_messages (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),  -- an opaque key for `DELETE /hidden/:id` (2026-09-16, DATA-17)
   identity         uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-  feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
+  feed_message_id  uuid REFERENCES feed_messages(id) ON DELETE CASCADE,
+  -- A table line is hidden as the outcome of a complaint without the "illegal" checkbox (screen 19),
+  -- not by a menu item; exactly one of the two columns is filled (2026-09-16, DATA-17).
+  table_line_id    uuid REFERENCES table_lines(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (identity, feed_message_id)
+  CHECK (num_nonnulls(feed_message_id, table_line_id) = 1),
+  UNIQUE (identity, feed_message_id),
+  UNIQUE (identity, table_line_id)
 );
 ```
 

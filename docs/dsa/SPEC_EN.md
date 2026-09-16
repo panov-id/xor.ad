@@ -59,6 +59,7 @@ Mandatory (Art. 16(2)):
 | `target_id` | string | pre-filled when opened from a card |
 | `reason_text` | text | **the reasoning** why the notifier believes the content is illegal |
 | `notifier_name` | string | asked for, not required — see below |
+| `receipt_hash` | string | SHA-256 of the receipt code born on the device (§6); the code itself never reaches the node; without it a decision cannot be received without an email (added 2026-09-16, LAW-6) |
 | `notifier_email` | string | asked for, not required — see below |
 | `bona_fide` | checkbox | "the information is accurate and complete to the best of my knowledge" |
 

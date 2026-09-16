@@ -43,11 +43,11 @@ What to change:
 
 ## Open questions
 
-- The exact set of bottom-nav buttons.
-- What exactly the per-message "mechanic" is beyond a like (reactions? a timer visual? swipe actions?).
-- How strong the message "scatter" should be while staying readable and accessible (a11y, no horizontal overflow).
-- The right-side tabs: only "Chats" or also sub-sections (chat requests, active, match history).
-- Concrete texture: inline SVG noise or a CSS pattern (no external assets, so it works under PWA/CSP).
+- ~~The exact set of bottom-nav buttons.~~ — closed 2026-08-27, see below: four buttons, `chat_EN.md` §9.
+- ~~What exactly the per-message "mechanic" is beyond a like (reactions? a timer visual? swipe actions?).~~ — closed 2026-08-27, see below: a like and a "…" menu with three actions, screen 5; swipes on the card rejected.
+- ~~How strong the message "scatter" should be while staying readable and accessible (a11y, no horizontal overflow).~~ — closed 2026-08-27, see below: columns of `column-width: 330px`, no overflow, §4 and §10 of `app-prototype-spec_EN.md`.
+- ~~The right-side tabs: only "Chats" or also sub-sections (chat requests, active, match history).~~ — closed 2026-08-27, see below: "Offers" and "Chats", screen 7; no match history.
+- ~~Concrete texture: inline SVG noise or a CSS pattern (no external assets, so it works under PWA/CSP).~~ — closed 2026-08-27, see below: inline SVG via a data URI, §1 of `app-prototype-spec_EN.md`.
 
 ## What of this has been decided (2026-08-27)
 

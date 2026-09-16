@@ -105,7 +105,10 @@ The delta is kept here and only here. Every difference carries its reason.
 - Every screen's mock-up is an SVG at true geometry, with numbered questions at
   the end, agreed there, and only then CSS.
 
-## Open
+## Nothing open
+
+The application design system has no open items: below is the recorded decision
+on the spacing scale and two closed questions kept as history.
 
 **A spacing scale exists as of 2026-08-31 — and the storefronts do not inherit it.**
 With the radii the measurement gave three clean heaps; with spacing it gave the

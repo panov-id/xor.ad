@@ -1,19 +1,19 @@
 openapi: 3.1.0
 info:
   title: xor.ad relay node
-  version: "2026-09-15"
+  version: "2026-09-16"
   description: |-
     The contract of the relay node, spec first (route to drawing, stage S4a, decided by the owner on 2026-09-15).
     x-status built — the route exists in relay/node/src (main.ts, routes/*.ts); its shapes were read from the code on 2026-09-15 and not exercised live.
     x-status spec or proposed — described in docs/protocol_EN.md §4 and the chat canon, not built. Where the canon names no body, none is invented here.
     Checked by scripts/check-openapi.sh against the protocol tables, the code and the rendered pages.
-    Not in the contract yet (2026-09-15, open item api.contract.incomplete): tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and "My notices".
+    Since 2026-09-16 the eight areas of protocol §4.6–4.12 are in as proposed operations (tables, games in a chat, blocks and hiding, stepping away, support, the profile, reissuing the paper code); "My notices" reuse /report/decision and /legal/manifest. Decided the same day: the error shape ApiError, the x-protocol-version header, cursor pagination (protocol §6, §8).
   x-description-ru: |-
     Контракт узла relay, спецификация первая (маршрут до отрисовки, этап Э4а, решение владельца 15.09.2026).
     x-status built — маршрут есть в relay/node/src (main.ts, routes/*.ts); формы прочитаны из кода 15.09.2026 и живым запросом не проверены.
     x-status spec или proposed — описано в docs/protocol_RU.md §4 и каноне чата, не построено. Где канон тела не называет, здесь его не выдумывают.
     Сверяется scripts/check-openapi.sh с таблицами протокола, кодом и собранными страницами.
-    В контракт ещё не внесены (15.09.2026, открытый пункт api.contract.incomplete): столы, парные игры, блокировки, отлучка, поддержка, правка профиля, перевыпуск бумажного кода и «Мои уведомления».
+    С 16.09.2026 восемь областей протокола §4.6–4.12 внесены операциями proposed (столы, игры в чате, блокировки и скрытие, отлучка, поддержка, профиль, перевыпуск бумажного кода); «Мои уведомления» идут через /report/decision и /legal/manifest. Тем же днём решены форма ошибки ApiError, заголовок x-protocol-version и пагинация курсором (протокол §6, §8).
 tags:
   - name: node
     description: Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).
@@ -37,8 +37,17 @@ tags:
     description: The feed (protocol §4.2). Not built.
     x-description-ru: Лента (протокол §4.2). Не построено.
   - name: chat
-    description: Like, match, chat (protocol §4.3). Not built.
-    x-description-ru: Лайк, мэтч, чат (протокол §4.3). Не построено.
+    description: Like, match, chat, games in a chat (protocol §4.3, §4.7). Not built.
+    x-description-ru: Лайк, мэтч, чат, игры в чате (протокол §4.3, §4.7). Не построено.
+  - name: tables
+    description: Tables — a game for a company (protocol §4.6). Proposed 2026-09-16, not built.
+    x-description-ru: Столы — игра компанией (протокол §4.6). Предложено 16.09.2026, не построено.
+  - name: safety
+    description: Blocks, hiding, stepping away (protocol §4.8, §4.9). Proposed 2026-09-16, not built.
+    x-description-ru: Блокировки, скрытие, отлучка (протокол §4.8, §4.9). Предложено 16.09.2026, не построено.
+  - name: support
+    description: Support requests (protocol §4.10). Proposed 2026-09-16, not built.
+    x-description-ru: Обращения в поддержку (протокол §4.10). Предложено 16.09.2026, не построено.
 components:
   securitySchemes:
     publishableKey:
@@ -221,6 +230,222 @@ components:
       type: object
       properties:
         alive: {type: array, items: {type: string, format: uuid}}
+    ApiError:
+      type: object
+      description: The common error of identity-signed routes (protocol §6, decided 2026-09-16). reason only on moderation refusals, a text from refusal-wordings.
+      x-description-ru: Общая ошибка подписанных личностью маршрутов (протокол §6, решено 16.09.2026). reason только у отказов модерации, текст из refusal-wordings.
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, not_found]
+            message: {type: string}
+            reason: {type: string}
+    Page:
+      type: object
+      description: A page of items and the cursor of the next one; an empty next is the end (protocol §6).
+      x-description-ru: Страница строк и курсор следующей; пустой next — конец (протокол §6).
+      required: [items, next]
+      properties:
+        items: {type: array, items: {type: object}}
+        next: {type: string}
+    FeedPage:
+      allOf:
+        - {$ref: "#/components/schemas/Page"}
+        - properties: {items: {type: array, items: {$ref: "#/components/schemas/FeedItem"}}}
+    TableCreate:
+      type: object
+      description: Set a table (chat spec §6.1, schema tables). Field names proposed 2026-09-16.
+      x-description-ru: Поставить стол (спека чата §6.1, схема tables). Имена полей предложены 16.09.2026.
+      required: [class, set, lat, lon, area_radius, seats]
+      properties:
+        class: {type: string, enum: [grid, free, dots, deck, dice, physics, word]}
+        set: {type: string}
+        lat: {type: number}
+        lon: {type: number}
+        area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
+        seats: {type: integer, minimum: 2, maximum: 6}
+    TableView:
+      type: object
+      description: The table minus what is hidden — your own hand, the backs of others' (chat spec §6.1).
+      x-description-ru: Стол без скрытого — своя рука, рубашки чужих (спека чата §6.1).
+      properties:
+        id: {type: string, format: uuid}
+        class: {type: string}
+        set: {type: string}
+        seat: {type: integer, description: Your own seat, absent for a spectator., x-description-ru: Своё место; у зрителя отсутствует.}
+        playing: {type: integer}
+        watching: {type: integer}
+        board: {$ref: "#/components/schemas/Board"}
+        lines: {type: array, items: {$ref: "#/components/schemas/TableLine"}}
+    Board:
+      type: object
+      description: Board state — seq, state by class (jsonb), whose turn, score by seat, expires_at (chat spec §6, table_games / chat_games).
+      x-description-ru: Состояние доски — seq, state по классу (jsonb), чей ход, счёт по местам, expires_at (спека чата §6, table_games / chat_games).
+      properties:
+        seq: {type: integer}
+        state: {type: object}
+        turn: {type: integer}
+        score: {type: object}
+        expires_at: {type: string, format: date-time}
+    TableLine:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        seat: {type: integer}
+        kind: {type: string, enum: [line, application, refusal, sticker, move]}
+        text: {type: string}
+        sticker: {type: string}
+        created_at: {type: string, format: date-time}
+    TableLineCreate:
+      type: object
+      description: A line, an application or a refusal go through the moderation queue (202); a sticker from our catalogue does not (200). Chat spec §6.1.
+      x-description-ru: Реплика, заявка и отказ идут через очередь модерации (202); стикер из нашего каталога — нет (200). Спека чата §6.1.
+      required: [kind]
+      properties:
+        kind: {type: string, enum: [line, application, refusal, sticker]}
+        text: {type: string, description: Up to 128 graphemes (phrase.length)., x-description-ru: До 128 графем (phrase.length).}
+        sticker: {type: string}
+    Move:
+      type: object
+      description: A move in the board class's terms, or a pass. seq is the number of the expected move; a repeat inside the signature window does not double (protocol §4.6).
+      x-description-ru: Ход в терминах класса доски или пас. seq — номер ожидаемого хода; повтор в окне подписи не удваивается (протокол §4.6).
+      required: [seq]
+      properties:
+        seq: {type: integer}
+        pass: {type: boolean}
+        move: {type: object, description: 'By class — a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse}.', x-description-ru: 'По классу — клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse}.'}
+    Proposal:
+      type: object
+      required: [kind]
+      properties:
+        kind: {type: string, enum: [rematch, draw, undo]}
+        class: {type: string}
+        set: {type: string}
+    ProposalAnswer:
+      type: object
+      required: [answer]
+      properties:
+        answer: {type: string, enum: [accept, decline, counter]}
+        class: {type: string}
+        set: {type: string}
+    Seat:
+      type: object
+      required: [seat]
+      properties:
+        seat: {type: integer}
+    GameOffer:
+      type: object
+      required: [class, set]
+      properties:
+        class: {type: string, enum: [grid, free, dots, deck, dice, physics, word]}
+        set: {type: string}
+    Word:
+      type: object
+      required: [word]
+      properties:
+        word: {type: string, description: The hangman word; goes through the same queue as a phrase., x-description-ru: Слово виселицы; идёт через ту же очередь, что и фраза.}
+    BlockTarget:
+      type: object
+      description: Exactly one of feed, chat, or table+seat (chat spec §8.9). The answer is 204 whatever happens — not an oracle.
+      x-description-ru: Ровно одно из feed, chat или table+seat (спека чата §8.9). Ответ 204 в любом случае — не оракул.
+      properties:
+        feed: {type: string, format: uuid}
+        chat: {type: string, format: uuid}
+        table: {type: string, format: uuid}
+        seat: {type: integer}
+    HideTarget:
+      type: object
+      description: Exactly one of feed or line (chat spec §8.9, hidden_messages).
+      x-description-ru: Ровно одно из feed или line (спека чата §8.9, hidden_messages).
+      properties:
+        feed: {type: string, format: uuid}
+        line: {type: string, format: uuid}
+    Away:
+      type: object
+      required: [span]
+      properties:
+        span: {type: string, enum: [short, hour, long], description: away.span.short / hour / long., x-description-ru: away.span.short / hour / long.}
+    SupportCreate:
+      type: object
+      required: [body]
+      properties:
+        body: {type: string}
+        email: {type: string, format: email}
+    SupportRequest:
+      type: object
+      properties:
+        public_no: {type: string}
+        created_at: {type: string, format: date-time}
+        answer: {type: string}
+        answered_at: {type: string, format: date-time}
+        answer_seen: {type: boolean}
+    Profile:
+      type: object
+      properties:
+        name: {type: string}
+        name_pending: {type: string, description: A name awaiting the queue's verdict., x-description-ru: Имя, ждущее вердикта очереди.}
+        age: {type: integer}
+        filter_age_min: {type: integer}
+        filter_age_max: {type: integer}
+        languages: {type: array, maxItems: 3, items: {type: string}}
+        stepped_away_until: {type: string, format: date-time}
+    ProfilePatch:
+      type: object
+      description: Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds multiples of 5 or the band's edge, width at least 5.
+      x-description-ru: Любое подмножество (спека чата §8.2, §8.3). Имя уходит в очередь; возраст через 20/21 только вверх; границы фильтра кратны 5 или край полосы, охват не меньше 5.
+      properties:
+        name: {type: string}
+        age: {type: integer, minimum: 13}
+        filter_age_min: {type: integer}
+        filter_age_max: {type: integer}
+        languages: {type: array, maxItems: 3, items: {type: string}}
+    RecoveryReissue:
+      type: object
+      description: Proof of the current paper code and the derivatives of the new one born on the device (chat spec §8.2 "paper code"); one transaction.
+      x-description-ru: Доказательство текущего бумажного кода и производные нового, рождённого на устройстве (спека чата §8.2 «бумажный код»); одна транзакция.
+      required: [current, next]
+      properties:
+        current: {type: object, required: [lookup_id], properties: {lookup_id: {type: string}}}
+        next: {type: object, required: [lookup_id, wrapped_key], properties: {lookup_id: {type: string}, wrapped_key: {type: string}}}
+  parameters:
+    ProtocolVersion:
+      name: x-protocol-version
+      in: header
+      required: true
+      schema: {type: integer, minimum: 1}
+      description: The integer major version of the protocol (protocol §3, §6; decided 2026-09-16). Not signed; forging it only refuses this request. Unsupported → 400 protocol_version_unsupported.
+      x-description-ru: Целое число мажорной версии протокола (протокол §3, §6; решено 16.09.2026). Не подписан; подделка даёт лишь отказ этого запроса. Неподдерживаемая → 400 protocol_version_unsupported.
+    After:
+      name: after
+      in: query
+      required: false
+      schema: {type: string}
+      description: Opaque cursor from the previous answer's `next` (protocol §6). Encodes (visible_at, id); reveals nothing beyond what was already given out.
+      x-description-ru: Непрозрачный курсор из `next` предыдущего ответа (протокол §6). Кодирует (visible_at, id); не раскрывает ничего сверх уже выданного.
+  responses:
+    ApiError:
+      description: A refusal in the common shape {error:{code,message,reason?}} (protocol §6).
+      x-description-ru: Отказ в общей форме {error:{code,message,reason?}} (протокол §6).
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+    RateLimited:
+      description: Rate limit hit — code rate_limited, Retry-After in seconds (protocol §6).
+      x-description-ru: Предел частоты — code rate_limited, Retry-After в секундах (протокол §6).
+      headers: {Retry-After: {schema: {type: integer}, description: Seconds to wait., x-description-ru: Сколько секунд ждать.}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+    BadVersion:
+      description: Unsupported protocol version — code protocol_version_unsupported, the update command in message (protocol §3, §6).
+      x-description-ru: Неподдерживаемая версия протокола — code protocol_version_unsupported, команда обновления в message (протокол §3, §6).
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+    Reaccept:
+      description: Re-acceptance required (protocol §6).
+      x-description-ru: Нужно принять документы заново (протокол §6).
+      content: {application/json: {schema: {$ref: "#/components/schemas/LegalReacceptance"}}}
+
 paths:
   /health:
     get:
@@ -753,6 +978,8 @@ paths:
       x-summary-ru: Обменять доказательство ПИНа на долю ключа хранилища
       x-status: proposed
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Ten wrong attempts lock access until the paper code; the share is kept.
       x-description-ru: Десять неверных попыток закрывают вход до бумажного кода; доля цела.
       responses:
@@ -764,6 +991,8 @@ paths:
       x-summary-ru: Код переноса на другое устройство
       x-status: spec
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Nine characters, two minutes, one use; requires a PIN proof.
       x-description-ru: Девять символов, две минуты, одно применение; требует доказательства ПИНа.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsInvite"}}}}
@@ -776,6 +1005,8 @@ paths:
       x-summary-ru: Сменить ПИН
       x-status: proposed
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: The old PIN, a new auth_hash, a reissued share.
       x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
       responses:
@@ -787,6 +1018,8 @@ paths:
       x-summary-ru: Начать заново — закрыть личность
       x-status: proposed
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: With a PIN proof; appearance rows are deleted in the same transaction.
       x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
       responses:
@@ -798,6 +1031,8 @@ paths:
       x-summary-ru: Оформление личности для этого лица
       x-status: proposed
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: One row per face named by the API key — theme, contrast step, an accent from that face's set.
       x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
       responses:
@@ -841,6 +1076,8 @@ paths:
       x-summary-ru: Записать принятие
       x-status: proposed
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Document, date, hash; one row each.
       x-description-ru: Документ, дата, хэш; по строке на каждое.
       responses:
@@ -852,6 +1089,8 @@ paths:
       x-summary-ru: Опубликовать фразу
       x-status: spec
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Answers 202 at once; visible_at stays empty until the queue's verdict.
       x-description-ru: Отвечает 202 сразу; visible_at пуст до вердикта очереди.
       responses:
@@ -863,10 +1102,13 @@ paths:
       x-summary-ru: Лента по пересечению кругов
       x-status: spec
       security: [{identitySignature: []}]
-      description: With language, mode and age filters; 30 cards, then more (screen 3).
-      x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё (экран 3).
+      description: With language, mode and age filters; 30 cards, then more by cursor (screen 3; protocol §6, decided 2026-09-16).
+      x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026).
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/After"}
       responses:
-        "200": {description: Feed items., x-description-ru: Карточки ленты., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/FeedItem"}}}}}
+        "200": {description: A page of feed items and the next cursor., x-description-ru: Страница карточек ленты и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
   /feed/{id}:
     delete:
       tags: [feed]
@@ -875,6 +1117,7 @@ paths:
       x-status: proposed
       security: [{identitySignature: []}]
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Taken down; the slot is freed, not the hourly ceiling., x-description-ru: Снята; слот освобождён, часовой потолок — нет.}
@@ -885,6 +1128,8 @@ paths:
       x-summary-ru: Ступень плотности под ручкой радиуса
       x-status: proposed
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.
       x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.
       responses:
@@ -897,6 +1142,7 @@ paths:
       x-status: proposed
       security: [{identitySignature: []}]
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
@@ -907,6 +1153,7 @@ paths:
       x-status: proposed
       security: [{identitySignature: []}]
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Taken back, or state spent once a match exists., x-description-ru: Снят или state spent, если мэтч уже есть., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
@@ -920,6 +1167,7 @@ paths:
       description: The chat opens when both have consented.
       x-description-ru: Чат открывается, когда согласились оба.
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Consent recorded., x-description-ru: Согласие записано.}
@@ -931,8 +1179,11 @@ paths:
       x-summary-ru: Предложения и беседы одним ответом
       x-status: spec
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/After"}
       responses:
-        "200": {description: A count only on offers., x-description-ru: Счётчик только на предложениях.}
+        "200": {description: A page — a count only on offers; next cursor (protocol §6)., x-description-ru: Страница — счётчик только на предложениях; следующий курсор (протокол §6)., content: {application/json: {schema: {$ref: "#/components/schemas/Page"}}}}
   /chats/{id}/ticket:
     post:
       tags: [chat]
@@ -943,6 +1194,7 @@ paths:
       description: The ticket goes in Sec-WebSocket-Protocol, not the query string (protocol §4.4).
       x-description-ru: Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: The ticket., x-description-ru: Билет.}
@@ -953,6 +1205,8 @@ paths:
       x-summary-ru: Какие чаты ещё живы
       x-status: spec
       security: [{identitySignature: []}]
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Only on a confirmed database read — 503 rather than an empty list, or local history would be wiped.
       x-description-ru: Только при подтверждённом чтении базы — 503, а не пустой список, иначе стёрлась бы локальная история.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAlive"}}}}
@@ -967,6 +1221,7 @@ paths:
       x-status: proposed
       security: [{identitySignature: []}]
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Closed., x-description-ru: Закрыта.}
@@ -979,6 +1234,613 @@ paths:
       description: 10, 30 or 60 minutes, or while we talk (260 minutes).
       x-description-ru: 10, 30 или 60 минут либо «пока говорим» (260 минут).
       parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Saved., x-description-ru: Сохранено.}
+  /tables:
+    post:
+      tags: [tables]
+      summary: "Set a table"
+      x-summary-ru: "Поставить стол"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left."
+      x-description-ru: "Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/TableCreate"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "201": {description: The table id., x-description-ru: id стола., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
+        "409": {$ref: "#/components/responses/ApiError"}
+  /tables/{id}:
+    get:
+      tags: [tables]
+      summary: "The table minus what is hidden"
+      x-summary-ru: "Стол без скрытого"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The board, {playing, watching}, lines since your own seating, your seat; your own hand, the backs of others' (chat spec §6.1)."
+      x-description-ru: "Доска, {playing, watching}, реплики с момента своей посадки, своё место; рука своя, рубашки чужих (спека чата §6.1)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The table., x-description-ru: Стол., content: {application/json: {schema: {$ref: "#/components/schemas/TableView"}}}}
+        "404": {$ref: "#/components/responses/ApiError"}
+  /tables/{id}/seat:
+    post:
+      tags: [tables]
+      summary: "Sit down"
+      x-summary-ru: "Подсесть"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere (chat spec §6.1)."
+      x-description-ru: "Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+        "409": {$ref: "#/components/responses/ApiError"}
+    delete:
+      tags: [tables]
+      summary: "Stand up"
+      x-summary-ru: "Встать"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Coming back is the same POST; history starts afresh from the seating (chat spec §6.1)."
+      x-description-ru: "Вернуться — тем же POST; история заново с посадки (спека чата §6.1)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /tables/{id}/ticket:
+    post:
+      tags: [tables]
+      summary: "A one-time ticket for the table's socket"
+      x-summary-ru: "Одноразовый билет для сокета стола"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "As for a conversation (protocol §4.4): the ticket goes into Sec-WebSocket-Protocol next to the subprotocol xor.p1."
+      x-description-ru: "Как у беседы (протокол §4.4): билет едет в Sec-WebSocket-Protocol рядом с субпротоколом xor.p1."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The ticket., x-description-ru: Билет., content: {application/json: {schema: {type: object, properties: {ticket: {type: string}}}}}}
+  /tables/{id}/lines:
+    post:
+      tags: [tables]
+      summary: "A line, an application, a refusal or a sticker"
+      x-summary-ru: "Реплика, заявка, отказ или стикер"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "line/application/refusal — 202, published by the queue's verdict; sticker — 200, no queue. One application per game; a refusal without text is not accepted (chat spec §6.1)."
+      x-description-ru: "line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/TableLineCreate"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "202": {description: Queued., x-description-ru: В очереди.}
+        "200": {description: Sticker placed., x-description-ru: Стикер поставлен.}
+        "409": {$ref: "#/components/responses/Reaccept"}
+  /tables/{id}/moves:
+    post:
+      tags: [tables]
+      summary: "A move or a pass"
+      x-summary-ru: "Ход или пас"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "In the board class's terms; refusals not_your_turn, illegal_move with the engine's reason; three passes in a row send you to the spectators (table.move.window, table.pass.limit)."
+      x-description-ru: "В терминах класса доски; отказы not_your_turn, illegal_move с причиной движка; три паса подряд — в зрители (table.move.window, table.pass.limit)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Move"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "409": {$ref: "#/components/responses/ApiError"}
+  /tables/{id}/confirm:
+    post:
+      tags: [tables]
+      summary: "I'm here — for the new game"
+      x-summary-ru: "«Я здесь» на новую игру"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Inside table.confirm.window (30 s); not confirmed — a spectator (chat spec §6)."
+      x-description-ru: "В окне table.confirm.window (30 с); не подтвердился — зритель (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /tables/{id}/proposals:
+    post:
+      tags: [tables]
+      summary: "Propose: play again, a draw, an undo"
+      x-summary-ru: "Предложить: сыграть ещё, ничью, откат"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The undo fires on every player's consent and steps back exactly one snapshot (chat spec §6)."
+      x-description-ru: "Откат срабатывает при согласии всех играющих и ровно на один снимок (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Proposal"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "201": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
+  /tables/{id}/proposals/{pid}:
+    post:
+      tags: [tables]
+      summary: "Answer a proposal"
+      x-summary-ru: "Ответить на предложение"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "accept / decline / counter — a counter names another class and set (chat spec §6)."
+      x-description-ru: "accept / decline / counter — встречное называет другой класс и набор (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {name: pid, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /tables/{id}/resign:
+    post:
+      tags: [tables]
+      summary: "Resign"
+      x-summary-ru: "Сдаться"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "A one-sided announcement; no result is recorded (chat spec §6)."
+      x-description-ru: "Одностороннее объявление; результат не записывается (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /tables/{id}/congratulate:
+    post:
+      tags: [tables]
+      summary: "Congratulate a seat"
+      x-summary-ru: "Поздравить место"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Appears as a line at the table; the engine names no winner (chat spec §6, screen 19)."
+      x-description-ru: "Появляется репликой за столом; движок победителя не называет (спека чата §6, экран 19)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Seat"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /tables/{id}/kick:
+    post:
+      tags: [tables]
+      summary: "A vote to remove a seat"
+      x-summary-ru: "Голос за высадку места"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The node counts the majority of those seated; no trace remains; the removed can come back (chat spec §6.1)."
+      x-description-ru: "Узел считает большинство сидящих; следа не остаётся; высаженный может вернуться (спека чата §6.1)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Seat"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /chats/{id}/game:
+    post:
+      tags: [chat]
+      summary: "Propose or change the game"
+      x-summary-ru: "Предложить или сменить игру"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The other person gets a proposal frame (chat spec §6, screen 18)."
+      x-description-ru: "Собеседнику уходит кадр proposal (спека чата §6, экран 18)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/GameOffer"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+        "409": {$ref: "#/components/responses/ApiError"}
+    get:
+      tags: [chat]
+      summary: "The game after a drop"
+      x-summary-ru: "Партия после обрыва"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Position, whose turn and the score from the game cache; no lines, no one else's hand (chat spec §6)."
+      x-description-ru: "Позиция, чей ход и счёт из кеша партии; без реплик и чужой руки (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The board., x-description-ru: Доска., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "404": {$ref: "#/components/responses/ApiError"}
+    delete:
+      tags: [chat]
+      summary: "End the game"
+      x-summary-ru: "Закончить игру"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The conversation's death takes the game with it by cascade anyway (chat_games ON DELETE CASCADE)."
+      x-description-ru: "Смерть беседы уносит партию каскадом и без этого (chat_games ON DELETE CASCADE)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /chats/{id}/game/answer:
+    post:
+      tags: [chat]
+      summary: "Answer the game offer"
+      x-summary-ru: "Ответить на предложение игры"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "accept opens the board for both; decline keeps talking in words; counter names another board (chat spec §6)."
+      x-description-ru: "accept открывает доску у обоих; decline — беседа словами; counter называет другую доску (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /chats/{id}/game/moves:
+    post:
+      tags: [chat]
+      summary: "A move or a pass"
+      x-summary-ru: "Ход или пас"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "By class: a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse} — the node shuffles and rolls. A move extends your own conversation span (chat spec §6, §8.6). Announced as an unencrypted system line."
+      x-description-ru: "По классу: клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse} — тасует и бросает узел. Ход двигает свой срок беседы (спека чата §6, §8.6). Объявляется нешифрованной системной строкой."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Move"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "409": {$ref: "#/components/responses/ApiError"}
+  /chats/{id}/game/word:
+    post:
+      tags: [chat]
+      summary: "Set the hangman word"
+      x-summary-ru: "Загадать слово виселицы"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "202 — the same queue as a phrase; a refusal is \"pick another\" and feeds the pause counter (chat spec §6 \"hangman\")."
+      x-description-ru: "202 — та же очередь, что у фразы; отказ — «загадайте другое» и счётчик паузы (спека чата §6 «виселица»)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Word"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "202": {description: Queued., x-description-ru: В очереди.}
+        "409": {$ref: "#/components/responses/Reaccept"}
+  /chats/{id}/game/confirm:
+    post:
+      tags: [chat]
+      summary: "I'm here — for the new game"
+      x-summary-ru: "«Я здесь» на новую игру"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Inside table.confirm.window; there is no \"N of 2\" counter for two (chat spec §6)."
+      x-description-ru: "В окне table.confirm.window; счётчика «N из 2» вдвоём нет (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /chats/{id}/game/proposals:
+    post:
+      tags: [chat]
+      summary: "Propose: play again, a draw, an undo"
+      x-summary-ru: "Предложить: сыграть ещё, ничью, откат"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The undo fires on both players' consent (chat spec §6)."
+      x-description-ru: "Откат срабатывает при согласии обоих (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Proposal"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "201": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
+  /chats/{id}/game/proposals/{pid}:
+    post:
+      tags: [chat]
+      summary: "Answer a proposal"
+      x-summary-ru: "Ответить на предложение"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "accept / decline / counter (chat spec §6)."
+      x-description-ru: "accept / decline / counter (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {name: pid, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /chats/{id}/game/resign:
+    post:
+      tags: [chat]
+      summary: "Resign"
+      x-summary-ru: "Сдаться"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "A one-sided announcement (chat spec §6)."
+      x-description-ru: "Одностороннее объявление (спека чата §6)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /blocks:
+    post:
+      tags: [safety]
+      summary: "Block a person"
+      x-summary-ru: "Заблокировать человека"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "By a phrase, a conversation or a seat; 204 always, a repeat too — the answer is not an oracle. The match dies, the shared chat closes, phrases are hidden from both (chat spec §8.9)."
+      x-description-ru: "По фразе, беседе или месту; 204 всегда, повтор — тоже: ответ не оракул. Мэтч гаснет, общий чат закрывается, фразы скрыты обоим (спека чата §8.9)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/BlockTarget"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done, and the same answer on a repeat., x-description-ru: Сделано; повтор отвечает тем же.}
+    get:
+      tags: [safety]
+      summary: "Your own blocks"
+      x-summary-ru: "Свои блокировки"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "{id, since} — no identities; screen 10 shows the list and lifting (decided 2026-09-16, protocol §4.8)."
+      x-description-ru: "{id, since} — без личностей; экран 10 показывает список и снятие (решено 16.09.2026, протокол §4.8)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, since: {type: string, format: date-time}}}}}}}
+  /blocks/{id}:
+    delete:
+      tags: [safety]
+      summary: "Lift a block"
+      x-summary-ru: "Снять блокировку"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "The set of visible tables is recomputed on the next entry into the feed (chat spec §8.9, §6.1)."
+      x-description-ru: "Состав видимых столов пересчитается при следующем входе в ленту (спека чата §8.9, §6.1)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /hidden:
+    post:
+      tags: [safety]
+      summary: "Hide a phrase or a line for yourself"
+      x-summary-ru: "Скрыть фразу или реплику у себя"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "204; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages)."
+      x-description-ru: "204; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/HideTarget"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done, and the same answer on a repeat., x-description-ru: Сделано; повтор отвечает тем же.}
+    get:
+      tags: [safety]
+      summary: "The hidden list"
+      x-summary-ru: "Список скрытого"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "For screen 10; short by construction."
+      x-description-ru: "Для экрана 10; недолог по построению."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, text: {type: string}, kind: {type: string, enum: [feed, line]}}}}}}}
+  /hidden/{id}:
+    delete:
+      tags: [safety]
+      summary: "Bring the hidden back"
+      x-summary-ru: "Вернуть скрытое"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Screen 5."
+      x-description-ru: "Экран 5."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /away:
+    post:
+      tags: [safety]
+      summary: "Step away"
+      x-summary-ru: "Отойти"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "span short/hour/long (away.span.*). In one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}."
+      x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками, гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Away"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: Until when., x-description-ru: До когда., content: {application/json: {schema: {type: object, properties: {until: {type: string, format: date-time}}}}}}
+    delete:
+      tags: [safety]
+      summary: "Come back early"
+      x-summary-ru: "Вернуться досрочно"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "stepped_away_until = now(); the mark at the other end is lifted by your first line, not by this request (chat spec §8.2)."
+      x-description-ru: "stepped_away_until = now(); метка у собеседника снимается первой репликой, не этим запросом (спека чата §8.2)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /support:
+    post:
+      tags: [support]
+      summary: "A support request"
+      x-summary-ru: "Обращение в поддержку"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "{body, email?}; 201 {public_no} — 10 Crockford base32 characters at once. The fourth in a day — 429 with the storefront's support address in message (support.requests.day, support.frozen.day)."
+      x-description-ru: "{body, email?}; 201 {public_no} — 10 знаков Crockford base32 сразу. Четвёртое за сутки — 429 с адресом поддержки витрины в message (support.requests.day, support.frozen.day)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SupportCreate"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "201": {description: The public number., x-description-ru: Публичный номер., content: {application/json: {schema: {type: object, properties: {public_no: {type: string}}}}}}
+    get:
+      tags: [support]
+      summary: "Your own requests"
+      x-summary-ru: "Свои обращения"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "By number without a signature the node answers nothing; a frozen session sees no list (screen 14)."
+      x-description-ru: "По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/SupportRequest"}}}}}
+  /support/{no}/seen:
+    post:
+      tags: [support]
+      summary: "Clear the answer-waiting dot"
+      x-summary-ru: "Погасить точку «ответ ждёт»"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "answer_seen = true (schema support_requests)."
+      x-description-ru: "answer_seen = true (схема support_requests)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: no, in: path, required: true, schema: {type: string}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /identities/me:
+    get:
+      tags: [identity]
+      summary: "Your own profile"
+      x-summary-ru: "Свой профиль"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "name, name_pending, age, filters, languages, stepped_away_until (screen 10)."
+      x-description-ru: "name, name_pending, age, фильтры, языки, stepped_away_until (экран 10)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The profile., x-description-ru: Профиль., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
+    patch:
+      tags: [identity]
+      summary: "Edit the profile"
+      x-summary-ru: "Править профиль"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Any subset. A name goes to the moderation queue (202, verdict as a name_verdict frame); refusals name_frozen, paused, age_step_down, filter_out_of_band (chat spec §8.2, §8.3)."
+      x-description-ru: "Любое подмножество. Имя уходит в очередь модерации (202, вердикт кадром name_verdict); отказы name_frozen, paused, age_step_down, filter_out_of_band (спека чата §8.2, §8.3)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProfilePatch"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: Saved., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
+        "202": {description: The name is queued., x-description-ru: Имя в очереди.}
+        "409": {$ref: "#/components/responses/ApiError"}
+  /recovery/reissue:
+    post:
+      tags: [identity]
+      summary: "Reissue the paper code"
+      x-summary-ru: "Перевыпустить бумажный код"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Proof of the current code and the derivatives of the new one; the new one works and the old one dies in one transaction. A miss counts where /recovery/claim misses count (recovery.miss.shared, recovery.miss.pause)."
+      x-description-ru: "Доказательство текущего кода и производные нового; новый действует и прежний гаснет одной транзакцией. Промах идёт в те же счётчики, что у /recovery/claim (recovery.miss.shared, recovery.miss.pause)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryReissue"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+        "409": {$ref: "#/components/responses/ApiError"}

@@ -477,3 +477,13 @@ Five lines are deliberately empty | sosed.place/docs/11-empty-and-edge-states_EN
 opens the whole history | test-map_EN.md | the move burns the share, the history does not open, 2026-09-15
 редакция записывается молча | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | правила ждут галочки, как условия и политика, 15.09.2026
 their new revision is recorded silently | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | the guidelines wait for the checkbox like the terms and the policy, 2026-09-15
+
+# --- контракт API: восемь областей внесены, форма ошибки решена (16.09.2026) ---------------
+Чего в контракте ещё нет | protocol_RU.md | §4.6–4.12 внесены 16.09.2026; строка осталась только как [retired]
+What is not in the contract yet | protocol_EN.md | §4.6–4.12 entered on 2026-09-16; kept only as [retired]
+Единой формы ошибки в спеке нет | protocol_RU.md | форма {error:{code,message,reason?}} решена 16.09.2026, §6
+There is no single error shape in the spec | protocol_EN.md | the shape {error:{code,message,reason?}} decided 2026-09-16, §6
+их нет вовсе, и §7 механики | protocol_RU.md | тексты есть в refusal-wordings с 08.09.2026; §8 п. 6 закрыт 16.09.2026
+they do not exist at all, and §7 | protocol_EN.md | the texts exist in refusal-wordings since 2026-09-08; §8 item 6 closed 2026-09-16
+запросы на игру — через **свой WebSocket** | chat_RU.md | действия идут подписанными запросами, сокет только отдаёт; решено 16.09.2026
+game requests go through **our own WebSocket** | chat_EN.md | actions travel as signed requests, the socket only delivers; decided 2026-09-16

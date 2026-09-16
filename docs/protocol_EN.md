@@ -71,7 +71,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 
 ## 4. Routes
 
-**What is not in the contract yet — written 2026-09-15 after the final panel (CON-5).** Tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and "My notices" are described on the storefront screens and in the chat spec, but have no rows here and no operations in `docs/api/openapi.yaml`. Open item `api.contract.incomplete` in `docs/facts/open.tsv`.
+**The eight areas entered the contract on 2026-09-16 — §4.6–4.12 below.** [retired] This said "tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and 'My notices' … have no rows here and no operations in `docs/api/openapi.yaml`" (final panel of 2026-09-15, CON-5). The canon named no path for any of them, so every row of those sections carries the origin **proposed 2026-09-16**: the names are mine, the behaviour comes from the chat spec and the storefront screens, and each row says where from. "My notices" got no routes of their own: the decision on your own notice is `POST /report/decision` (§4.5), new editions of the documents are `GET /legal/manifest` (§4.1), and the Article 17 statement to an author is not kept on the node (`dsa/SPEC_EN.md` §6).
 
 ### 4.1. Identity and session (step 1 of §13)
 
@@ -150,6 +150,22 @@ itself, 4000–4999 are the application's. Hence:
 | `4003` | the conversation ended: your span ran out or it was closed | does not reconnect, shows the tombstone (§5) |
 | `4004` | the protocol version is not supported | does not reconnect, asks to update (§3) |
 
+**Socket frames flow from the node to the client only; a person's actions travel as signed requests — decided 2026-09-16.** §7 of the chat spec said "game-board state, game requests go through the WebSocket" without naming a single frame; the choice fell on requests: a request has a signature, a rate limit and the 409 "accept again" refusal, a frame has only the ticket. The games are turn-based, and a request's latency does not hurt them. One socket per conversation and one per table (`POST /chats/:id/ticket`, `POST /tables/:id/ticket`), and it delivers:
+
+| Frame `type` | What it carries | From |
+|---|---|---|
+| `message` | an encrypted message of the conversation: `{id, ciphertext, created_at}` | chat spec §8.8 |
+| `line` | a line at the table after the queue's verdict: `{id, seat, kind, text, sticker, created_at}`; `move` lines at once | §6.1 |
+| `board` | the whole board minus what is hidden: `{seq, state, turn, score, expires_at}`; your own hand arrives encrypted to you | §6, §6.1 |
+| `seat` | someone sat down, stood up, was removed or became a spectator: `{playing, watching}` — counts, not identities | §6.1 |
+| `proposal` | an offer to play again, a draw or an undo, and the answer to it: `{id, kind, class, set, answer}` | §6 |
+| `confirm` | the countdown of confirming a new game: `{confirmed, of, until}`; for two, `confirmed`/`of` are not sent | §6 |
+| `peer_stepped_away` | the other person stepped away: `{}` — no span; nobody's timestamps leave the node | §8.2 "stepped away" |
+| `name_verdict` | the queue's verdict on a name change: `{accepted, reason}` — only to the socket of your own session | §8.2 |
+| `closed` | the reason before code 4002/4003: `{code}` | this section |
+
+The frame envelope is `{type, seq, data}`; `seq` grows on the socket and lets the client notice a gap and re-read the state with a `GET`. The protocol version rides in `Sec-WebSocket-Protocol` next to the ticket: `xor.p1, ticket.<ticket>`; an unsupported one gets code 4004.
+
 The difference between 4002 and 4003 is not politeness: in the first case
 reconnecting is pointless forever, in the second it is pointless for this
 conversation. A client that does not tell them apart either hammers a closed door
@@ -160,6 +176,88 @@ or takes a live identity for a dead one.
 | Route | What it does | Origin |
 |---|---|---|
 | `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **proposed 2026-09-15** (final panel, SEC-9) | **proposed** (`dsa/SPEC_EN.md` §6) |
+
+### 4.6. Tables (chat spec §6.1, screen 19)
+
+All proposed 2026-09-16; the behaviour is §6.1's and screen 19's, the paths are mine.
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /tables` | sets a table: board class, set, area (`lat`, `lon`, `area_radius` from the five steps), number of seats; the author is seated and stands up from their previous table — the screen warns before the tap; answers `{id}` | **proposed 2026-09-16** (§6.1, schema `tables`) |
+| `GET /tables/:id` | the whole table minus what is hidden: the board, `{playing, watching}`, lines since your own seating, your `seat`; your own hand, the backs of others' | **proposed 2026-09-16** (§6.1 "what is seen") |
+| `POST /tables/:id/seat` | sit down; refusal `unavailable` when the "everyone with everyone" age bands fail or a blocked person sits there — one answer, so as not to be an oracle; `already_seated` when you sit at another | **proposed 2026-09-16** (§6.1, index `table_seats_one_at_a_time`) |
+| `DELETE /tables/:id/seat` | stand up; coming back is the same `POST`, history starts afresh from the seating | **proposed 2026-09-16** (§6.1) |
+| `POST /tables/:id/ticket` | a one-time ticket for the table's socket, as for a conversation (§4.4) | **proposed 2026-09-16** (§7) |
+| `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text}` — **202**, published by the queue's verdict; a sticker `{kind: sticker, sticker}` — **200**, no queue; one application per game, a refusal without text is not accepted | **proposed 2026-09-16** (§6.1, schema `table_lines`) |
+| `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` in the board class's terms; `seq` is the number of the expected move, a repeat inside the signature window does not double; refusals `not_your_turn`, `illegal_move` with the engine's reason; three passes in a row — to the spectators | **proposed 2026-09-16** (§6, §6.1; `table.move.window`, `table.pass.limit`) |
+| `POST /tables/:id/confirm` | "I'm here" for a new game inside `table.confirm.window`; not confirmed — a spectator | **proposed 2026-09-16** (§6) |
+| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; the undo fires on every player's consent | **proposed 2026-09-16** (§6) |
+| `POST /tables/:id/proposals/:pid` | the answer `{answer: accept \| decline \| counter, class, set}` | **proposed 2026-09-16** (§6) |
+| `POST /tables/:id/resign` | resign — a one-sided announcement, no result | **proposed 2026-09-16** (§6) |
+| `POST /tables/:id/congratulate` | congratulate `{seat}` — as a line at the table | **proposed 2026-09-16** (§6, screen 19) |
+| `POST /tables/:id/kick` | a vote to remove `{seat}`; the node counts the majority of those seated, no trace remains | **proposed 2026-09-16** (§6.1) |
+
+Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the one who blocks leaves the table. A table in the feed is a `GET /feed` card with `kind: table`, the game's name and two numbers.
+
+### 4.7. Games in a chat (chat spec §6, screen 18)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /chats/:id/game` | propose or change the game `{class, set}`; the other person gets a `proposal` frame | **proposed 2026-09-16** (§6, screen 18) |
+| `POST /chats/:id/game/answer` | `{answer: accept \| decline \| counter, class, set}`; on `accept` the board opens for both | **proposed 2026-09-16** (§6) |
+| `GET /chats/:id/game` | the position, whose turn and the score after a drop — from the game cache, no lines and no one else's hand | **proposed 2026-09-16** (§6, `chat_games`) |
+| `POST /chats/:id/game/moves` | a move `{seq, move}` or a pass; `move` by class: a cell, an edge, a piece, a letter, `{roll}`, `{deal}`, `{flick, impulse}` — the node shuffles and rolls; a move extends **your own** conversation span | **proposed 2026-09-16** (§6, §8.6) |
+| `POST /chats/:id/game/word` | set the hangman word `{word}` — **202**, the same queue as a phrase; a refusal is "pick another" and feeds the pause counter | **proposed 2026-09-16** (§6 "hangman") |
+| `POST /chats/:id/game/confirm` | "I'm here" inside `table.confirm.window`; there is no "N of 2" counter | **proposed 2026-09-16** (§6) |
+| `POST /chats/:id/game/proposals` | `{kind: rematch \| draw \| undo, class, set}` and the answer via `POST /chats/:id/game/proposals/:pid` `{answer}` | **proposed 2026-09-16** (§6) |
+| `POST /chats/:id/game/proposals/:pid` | the answer to a proposal | **proposed 2026-09-16** (§6) |
+| `POST /chats/:id/game/resign` | resign | **proposed 2026-09-16** (§6) |
+| `DELETE /chats/:id/game` | end the game; the conversation's death takes the game with it by cascade anyway | **proposed 2026-09-16** (`chat_games ON DELETE CASCADE`) |
+
+### 4.8. Blocks and hiding (chat spec §8.9, screens 5 and 10)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /blocks` | block by a phrase `{feed: id}`, a conversation `{chat: id}` or a seat `{table: id, seat}`; **204** always, a repeat too: the answer is not an oracle; the match dies, the shared chat closes, phrases are hidden from both | **proposed 2026-09-16** (§8.9, schema `blocks`) |
+| `GET /blocks` | your own blocks: `{id, since}` — no identities; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **proposed 2026-09-16** (§8.9 "until lifted") |
+| `DELETE /blocks/:id` | lift a block; the set of visible tables is recomputed on the next entry into the feed | **proposed 2026-09-16** (§8.9, §6.1) |
+| `POST /hidden` | hide a phrase `{feed: id}` or a line `{line: id}` for yourself only; **204**; the author does not learn | **proposed 2026-09-16** (§8.9, schema `hidden_messages`) |
+| `GET /hidden` | the hidden list for screen 10 — short by construction: it lives until the phrase dies | **proposed 2026-09-16** (screen 10) |
+| `DELETE /hidden/:id` | bring the hidden back | **proposed 2026-09-16** (screen 5) |
+
+### 4.9. Stepping away (chat spec §8.2 "stepped away", screen 20)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /away` | step away `{span: short \| hour \| long}` (`away.span.*`); in one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets `peer_stepped_away`; answers `{until}`; the client counts the price before the tap | **proposed 2026-09-16** (§8.2) |
+| `DELETE /away` | come back early: `stepped_away_until = now()`; the mark at the other person's end is lifted by your first line, not by this request | **proposed 2026-09-16** (§8.2) |
+
+While stepped away, publishing requests — `POST /feed`, a like, sitting down, a move, `POST /chats/:id/game` — answer **409** `stepped_away`; reading and conversations stay open (decided 2026-09-16: the canon named the span, not the node's answer).
+
+### 4.10. Support (chat spec, schema `support_requests`; screen 14)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /support` | a request `{body, email}` (`email` optional); **201** `{public_no}` — 10 Crockford base32 characters at once; the fourth in a day — **429** with the storefront's support address in `message` (`support.requests.day`, `support.frozen.day`) | **proposed 2026-09-16** (schema `support_requests`) |
+| `GET /support` | your own requests: `{public_no, created_at, answer, answered_at, answer_seen}`; by number without a signature the node answers nothing; a frozen session sees no list | **proposed 2026-09-16** (screen 14) |
+| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** | **proposed 2026-09-16** (schema, `answer_seen`) |
+
+Turning a request into an Article 16 notice is the client's act: the text is carried into the `POST /report` form and the request row is deleted in the same transaction (chat spec, the comment on `support_requests`).
+
+### 4.11. Profile (chat spec §8.2, §8.3, screen 10)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `GET /identities/me` | your own profile: `{name, name_pending, age, filter_age_min, filter_age_max, languages, stepped_away_until}` | **proposed 2026-09-16** (screen 10) |
+| `PATCH /identities/me` | edit `{name, age, filter_age_min, filter_age_max, languages}` — any subset; a name goes to the moderation queue (**202**, the verdict as a `name_verdict` frame), refusal `name_frozen` with a live phrase or an open chat and `paused` during the pause after refusals; age across the 20/21 border only upwards, `age_step_down`; the filter — bounds multiples of 5 or the band's edge, width at least 5, not wider than the band — `filter_out_of_band`; up to three languages | **proposed 2026-09-16** (§8.2, §8.3; `name.length`, `filter.age.step`, `filter.age.min_width`) |
+
+Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each face.
+
+### 4.12. Reissuing the paper code (chat spec §8.2 "paper code", screen 12)
+
+| Route | What it does | Origin |
+|---|---|---|
+| `POST /recovery/reissue` | change the code: `{current: {lookup_id}, next: {lookup_id, wrapped_key}}` — proof of the current code and the derivatives of a new one born on the device; the new one works and the old one dies **in one transaction**; a miss on the current code counts where `POST /recovery/claim` misses count and towards the `recovery.miss.pause`; the shown-and-confirmed step stays on the device, the node knows nothing of it | **proposed 2026-09-16** (§8.2; `recovery.code.length`, `recovery.miss.shared`) |
 
 ## 5. Limits
 
@@ -217,9 +315,17 @@ reply gets the conversation, not a legal text (screen 11). The guidelines appear
 this list like the other two: since 2026-09-15 they need the checkbox too (§8.2).
 [retired] This said "the node records their new revision itself".
 
-**There is no single error shape in the spec, and I did not invent one here** —
-see §8. It is the first thing to agree on: without a common shape the two faces
-diverge exactly where §13 promises they will not.
+**The error shape — decided 2026-09-16:** the one `/v1` already has (`relay/node/src/routes/v1.ts`):
+
+```
+{ "error": { "code": "not_your_turn",
+             "message": "it is the other player's turn",
+             "reason": "…" } }
+```
+
+`code` is a machine name from the closed list in `docs/api/openapi.yaml` (`ApiError`), `message` is text for a person in the request's language, `reason` appears only on moderation refusals and carries a text from `refusal-wordings_EN.md`. The 409 "accept again" refusal does not move into this shape: it has its own, named above. **A rate limit is a 429 in the same shape with `code: rate_limited` and a `Retry-After` header in seconds**, as the built `POST /report` and `POST /waitlist` do (`report.ts`, `waitlist.ts`). **The protocol version is the header `x-protocol-version` carrying the integer major version** on every request; an unsupported one answers **400** `protocol_version_unsupported` with the update command in `message`; the header is not signed, and forging it only refuses that same request. **Pagination is a cursor:** `GET /feed` and `GET /inbox` take `?after=<opaque string>` and answer `{items, next}`; an empty `next` is the end; the cursor encodes (`visible_at`, `id`) and reveals nothing beyond what was already given out. The intake routes from the storefronts (`/waitlist`, `/report`, `/pageview`) keep the flat string `{error: "…"}` — they are built and not signed by an identity.
+
+[retired] This said "there is no single error shape in the spec, and I did not invent one here".
 
 ## 7. What the protocol does not have and will not
 
@@ -236,17 +342,19 @@ diverge exactly where §13 promises they will not.
 The list is deliberately short: this is what cannot be derived from the spec, and
 it has to be settled before the first line of step 1.
 
-1. **The error shape** — code, machine name, text for a person, and a field for
-   the reason a moderation refusal gives.
-2. **The names of the proposed routes** — the rows marked "proposed" in §4.
-3. **How a client states its protocol version** — a header, a body field, or a
-   path segment.
-4. **Pagination of the feed and the inbox** — a cursor or an offset; the spec is
-   silent.
-5. **The response shape when a rate limit is hit** — a 429 with what inside.
-6. **The wordings of moderation refusals** — they do not exist at all, and §7 of
-   the storefront mechanics admits it; without them the Article 17 statement of
-   reasons has nothing to fill it.
+1. ~~**The error shape**~~ — **decided 2026-09-16:** `{error: {code, message, reason?}}`, §6.
+2. **The names of the proposed routes** — the rows marked "proposed" in §4; since 2026-09-16
+   there are 53 of them, and this is the only thing left on the list: the names are agreed
+   before the first line of code in one sitting, not one at a time.
+3. ~~**How a client states its protocol version**~~ — **decided 2026-09-16:** the header
+   `x-protocol-version`, on the socket the subprotocol `xor.p1`; §6, §4.4.
+4. ~~**Pagination of the feed and the inbox**~~ — **decided 2026-09-16:** a cursor `?after`,
+   the answer `{items, next}`; §6.
+5. ~~**The response shape when a rate limit is hit**~~ — **decided 2026-09-16:** a 429 in the
+   common shape with `code: rate_limited` and `Retry-After`; §6.
+6. ~~**The wordings of moderation refusals**~~ — **they exist since 2026-09-08** in
+   `refusal-wordings_EN.md` §1–6 as a proposal until read aloud; in an answer they travel in
+   the `reason` field (§6). [retired] This said "they do not exist at all".
 7. **The shared miss counter has its number: 50 an hour per node, a 15-minute
    pause. Decided 2026-09-08.** Fifty wrong paper codes in an hour across the
    node and recovery stops accepting codes for fifteen minutes, for everyone. The

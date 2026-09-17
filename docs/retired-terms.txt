@@ -513,3 +513,6 @@ back is `UPDATE ... SET left_at = NULL | chat_EN.md | DATA-1/CON-4: coming back 
 стол не открывается (16.09.2026) | sosed.place/docs/19-table_RU.md neighbro.place/docs/19-table_RU.md | LAW-2 прохода 4: высадка не запирает, канон §6.1 08.09.2026
 the table does not open (2026-09-16) | sosed.place/docs/19-table_EN.md neighbro.place/docs/19-table_EN.md | LAW-2 of pass 4: a removal is not a lock, canon §6.1 2026-09-08
 current_auth_hash | protocol_RU.md protocol_EN.md | SEC-1 прохода 5: доказательство — auth, не хранимый хэш, 17.09.2026
+Офферы и столы просмотр тоже пропускает | sosed.place/docs/23-phrase-viewer_RU.md neighbro.place/docs/23-phrase-viewer_RU.md | владелец 17.09.2026: просмотр листает все карточки ленты
+The viewer also skips offers and tables | sosed.place/docs/23-phrase-viewer_EN.md neighbro.place/docs/23-phrase-viewer_EN.md | owner 2026-09-17: the viewer pages every feed card
+Лайк снимается повторным касанием | sosed.place/docs/05-message-actions_RU.md neighbro.place/docs/05-message-actions_RU.md | владелец 17.09.2026: лайкнутое уходит из ленты, снимается на экране 25

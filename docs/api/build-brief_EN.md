@@ -1,7 +1,7 @@
 # API build brief — 2026-09-17
 
 What to program, in what order, and what to check against. The contract's canon is `docs/api/openapi.yaml`
-(102 operations: 39 built, 63 from the spec, 0 proposed), the protocol —
+(105 operations: 39 built, 63 from the spec, 3 proposed — `GET /likes`, `POST/DELETE /tables/{id}/like`, 2026-09-17), the protocol —
 `protocol_EN.md`, the data — the chat spec `chat_EN.md` and the offers spec, the tests — `test-map_EN.md`. Pair — `build-brief_RU.md`.
 
 ## 1. Before the first line

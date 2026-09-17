@@ -280,6 +280,8 @@ class has no coordinate at all.
 The board for two lives inside a chat. A group game **does not fit** inside one: `pair_key` is unique per pair (§8.5) and the chat key is derived for two (§8.13) — a third participant would mean different cryptography and a key reissue on every departure. So a table is **a thing of its own beside the feed**, not a group chat, and private talk between two stays as it was.
 
 - **Visible in the feed** to those whose viewing circle overlaps the table's zone — by the same rules as a phrase (§8.3).
+- **A table name — optional, up to 24 graphemes, through the moderation queue — the owner's decision of 2026-09-17.** The table enters the feed at once and nameless; the name sits in `name_pending` until the queue's verdict (mechanics §5) and moves into `name` when accepted, or stays refused with the reason to the author (a `name_verdict` frame with `table`). A refused name does not close the table: it lives without one.
+- **A table is liked without sitting down — the owner's decision of 2026-09-17.** `table_likes` (below, next to `likes`); a table's `like_count` is public like a phrase's (§8.4); who liked never goes out. A table like makes neither a match nor an offer to talk — it is a bookmark: the table leaves this person's feed for screen 25 "My likes" (`GET /likes`), from where they sit down at it.
 - **Anyone within the radius may join**, with no invitation and no application; there is no hard cap on numbers.
 - **A table takes no posting quota and is itself unlimited — decided 2026-08-30.** Not one of the four slots, no per-identity count of tables, no share of the feed: a table is a meeting place, not an utterance. The price is accepted and recorded: the only brake against feeds filling with tables is the sliding silence span, and if that is not enough, a limiter will have to be built separately.
 - **Stickers work at a table as they do in a conversation, but the node sees them (2026-08-30).** The catalogue and the names are the same (screen 16 on the storefronts); the difference is that a table has no end-to-end encryption, so the sticker's identifier is as visible to the node as the lines and the board. This is said to the person on screen rather than left as a consequence for them to derive.
@@ -303,6 +305,9 @@ CREATE TABLE tables (
   game             text NOT NULL,                             -- board class: grid | free | dots | deck | dice | physics | word
   set              text NOT NULL,                             -- the set within the class, chosen when the board is put down (§6), `set` in the API
   seats            smallint NOT NULL CHECK (seats BETWEEN 2 AND 6),  -- the set's number of seats, chosen when the board is put down (§6), added 2026-09-16 (panel, DATA-19)
+  name             text CHECK (octet_length(name) <= 256),    -- the table's name, accepted by the queue; the node counts the 24-grapheme limit (2026-09-17)
+  name_pending     text CHECK (octet_length(name_pending) <= 256),  -- a name awaiting the verdict; accepted moves into name, refused is cleared with the reason to the author
+  like_count       integer NOT NULL DEFAULT 0,                -- the public like count, as on a phrase (2026-09-17)
   lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
   lon              double precision NOT NULL,
   area_radius      integer NOT NULL CHECK (area_radius IN (100, 300, 1000, 3000, 10000)),  -- the phrase's steps: a table is published by the same rule
@@ -1507,7 +1512,7 @@ UPDATE feed_messages
 
 The quota counts **both** kinds of commercial card together — phrases with a discount and business offers alike: no more than one per ten ordinary phrases in a given person's feed. Otherwise "selling a stool" walks around the very limit the quota exists for.
 
-What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}`, where **`lat`/`lon` are not what the database holds**: the node rounds them to a grid node before sending. It stores the exact ones — the intersection is computed from them — and publishes a cell.
+What goes out is `{id, text, mode, lat, lon, area_radius, like_count, created_at}` (a table carries `game`, `name`, `playing`, `watching` instead of `text` and `mode`; tables are sifted by `table_likes` as phrases are by `likes`, 2026-09-17), where **`lat`/`lon` are not what the database holds**: the node rounds them to a grid node before sending. It stores the exact ones — the intersection is computed from them — and publishes a cell.
 
 **Why — decided 2026-08-31.** The exact `double precision` centre used to go out, and an author's four live phrases carried one and the same triple `(lat, lon, area_radius)`. That is a stable pseudonym for as long as they live, while §8.11 promises the opposite: "what an interceptor does not see: … whether two phrases belong to one person". The promise was broken not by a leak but by the response itself.
 
@@ -1709,6 +1714,8 @@ WHERE f.visible_at IS NOT NULL                                      -- passed th
   AND author.age BETWEEN :filter_age_min AND :filter_age_max        -- the viewer's filter
   AND f.author_identity <> :me                                      -- no liking your own
   AND NOT EXISTS (SELECT 1 FROM blocks b WHERE ...)                 -- 8.9
+  AND NOT EXISTS (SELECT 1 FROM likes l                             -- what the viewer liked does not go to the feed:
+                  WHERE l.liker_identity = :me AND l.feed_message_id = f.id)  -- it is on screen 25, GET /likes (2026-09-17)
 ORDER BY f.visible_at DESC
 ```
 
@@ -1925,6 +1932,14 @@ CREATE TABLE likes (
   feed_message_id  uuid NOT NULL REFERENCES feed_messages(id) ON DELETE CASCADE,
   created_at       timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (liker_identity, feed_message_id)
+);
+
+-- A table like is a bookmark without a match (the owner's decision of 2026-09-17, §6.1): the same shape as likes.
+CREATE TABLE table_likes (
+  liker_identity   uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (liker_identity, table_id)
 );
 
 CREATE TABLE identity_stats (

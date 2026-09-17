@@ -112,7 +112,7 @@ identity.
 | Route | What it does | Origin |
 |---|---|---|
 | `POST /feed` | publishes a phrase; answers **202** at once, `visible_at` stays empty until the queue's verdict | **spec** |
-| `GET /feed` | delivery by intersecting circles, with the language, mode and age filters | **spec** (named in the test map) |
+| `GET /feed` | delivery by intersecting circles, with the language, mode and age filters; what the viewer liked is not in it — it is in `GET /likes` (2026-09-17) | **spec** (named in the test map) |
 | `DELETE /feed/:id` | withdraws your own phrase; the slot is freed, the 64-minute ceiling is not | **spec** (agreed 2026-09-17) (§8.3) |
 | `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release | **spec** (agreed 2026-09-17) (§8.3, screen 3) |
 
@@ -125,6 +125,7 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 |---|---|---|
 | `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own | **spec** (agreed 2026-09-17) (§8.4) |
 | `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **spec** (proposed 2026-09-15, agreed 2026-09-17) (§8.4) | **spec** (agreed 2026-09-17) (§8.4) |
+| `GET /likes` | everything this identity liked that is still alive: cards of the same shape as `GET /feed` — phrases and private authors' offers with `state` (`liked` \| `matched`) and tables — by the `?after` cursor and `{items, next}` (§6); screen 25 "My likes" | **proposed** (2026-09-17, the name awaits agreement) (§8.4, mechanics §11) |
 | `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **spec** (agreed 2026-09-17) (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
 | `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |
@@ -178,7 +179,7 @@ itself, 4000–4999 are the application's. Hence:
 | `proposal` | an offer to play again, a draw or an undo, and the answer to it: `{id, kind, class, set, answer}` | §6 |
 | `confirm` | the countdown of confirming a new game: `{confirmed, of, until}`; for two, `confirmed`/`of` are not sent | §6 |
 | `peer_stepped_away` | the other person stepped away: `{}` — no span; nobody's timestamps leave the node | §8.2 "stepped away" |
-| `name_verdict` | the queue's verdict on a name change: `{accepted, reason}` — only to the socket of your own session | §8.2 |
+| `name_verdict` | the queue's verdict on a name change: `{accepted, reason}` — only to the socket of your own session; on a table name the same with `table: id` (2026-09-17) | §8.2, §6.1 |
 | `sys` | a system line of the conversation, not encrypted: `{kind, text}`, `kind` is `chat_opened`, `game_offer`, `age_changed`, `move` (chat spec §6 and §8.6); added 2026-09-16, CON-14 | §6, §8.2 |
 | `closed` | the reason before code 4002/4003: `{code}` | this section |
 
@@ -202,8 +203,10 @@ All proposed 2026-09-16; the behaviour is §6.1's and screen 19's, the paths are
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /tables` | sets a table: board class, set, the set's number of seats (`tables.set`, `tables.seats`), area (`lat`, `lon`, `area_radius` from the five steps), `nonce`; the author takes seat 1 and stands up from their previous table as the first statement of the same transaction — the screen warns before the tap; answers `{id}`; at most `tables.create.hour` per identity | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1, schema `tables`) |
-| `GET /tables/:id` | the whole table minus what is hidden: the board with `pending`, `{playing, watching}`, lines since your own seating, your `seat` and `playing`; your own hand, the backs of others'; **only with a live seat** — otherwise 404 in the same shape as for a table that does not exist (SEC-4). A spectator sits too: `seat` is there, `playing: false` | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1 "what is seen") |
+| `POST /tables` | sets a table: board class, set, the set's number of seats (`tables.set`, `tables.seats`), area (`lat`, `lon`, `area_radius` from the five steps), an optional `name` of up to 24 graphemes — into the moderation queue, the verdict as a `name_verdict` frame with `table` (2026-09-17), `nonce`; the author takes seat 1 and stands up from their previous table as the first statement of the same transaction — the screen warns before the tap; answers `{id}`; at most `tables.create.hour` per identity | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1, schema `tables`) |
+| `GET /tables/:id` | the whole table minus what is hidden: the board with `pending`, `{playing, watching}`, `name` and `like_count` (2026-09-17), lines since your own seating, your `seat` and `playing`; your own hand, the backs of others'; **only with a live seat** — otherwise 404 in the same shape as for a table that does not exist (SEC-4). A spectator sits too: `seat` is there, `playing: false` | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1 "what is seen") |
+| `POST /tables/:id/like` | likes a table without sitting down: a bookmark with a counter, neither a match nor an offer; `like_count` grows, the table leaves this person's feed for `GET /likes`; answers `{state: 'liked'}`, a repeat the same | **proposed** (2026-09-17, the name awaits agreement) (§6.1) |
+| `DELETE /tables/:id/like` | takes a table like back; `like_count` goes down, the table returns to the feed; **204** | **proposed** (2026-09-17, the name awaits agreement) (§6.1) |
 | `POST /tables/:id/seat` | sit down; refusals in this order: `already_seated` when you sit at another, then `unavailable` when the "everyone with everyone" age bands fail or a blocked person sits there — one answer, so as not to be an oracle; at most `seat.attempts.hour` attempts per identity (SEC-2); the lowest free `seat_no` is handed out under the table's lock | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1, indexes `table_seats_one_at_a_time`, `table_seats_seat_taken`) |
 | `DELETE /tables/:id/seat` | stand up: `left_at` and `NOTIFY seat_left`, the socket closes with code 4005; the last one to stand up sets `tables.closed_at = now()` in the same transaction (DATA-27); coming back is the same `POST`, a new seat and history afresh from the seating; the outward score is by live seat, whoever left does not carry it (SEC-12) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1) |
 | `POST /tables/:id/ticket` | a one-time ticket for the table's socket, as for a conversation (§4.4); only with a live seat (otherwise 404, SEC-4); the ticket lives `ticket.lifetime`, 30 seconds (SEC-15) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§7) |
@@ -283,6 +286,7 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 | What | Value | Who enforces it |
 |---|---|---|
 | phrase length | 128 graphemes | the node; the database holds a wide net, `octet_length(text) <= 2048` |
+| table name | 24 graphemes | the node; the database holds a net, `octet_length(name) <= 256` |
 | chat message length | `max_message_length`, 256 by default | the client's counter |
 | ciphertext size | `max_ciphertext_bytes`, 2048 bytes by default | the node |
 | `NOTIFY` payload | 8 KB | Postgres |

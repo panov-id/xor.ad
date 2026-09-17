@@ -123,8 +123,8 @@ Collected 2026-09-16 from the storefront screens 01–24 (research agent; every 
 | Tab switch | 04 07 | a count on the first, a dot on the second; the look on 04 undecided | `--r-pill` — not bound |
 | Mode segments | 03 04 23 | every phrase has one | none — mockup |
 | Bottom navigation, 4 items | 03 07 10 | a dot on "Me"; never a fifth | none — mockup |
-| Phrase card | 03 04 05 06 23 | fading in the last quarter, "further than you asked", muted own, refused as a block | `--r-2`; fading — rule R2, muting — R6 |
-| Table card | 03 09 19 | invisible with nobody seated or outside the band; look undecided | inherits `--r-2` |
+| Phrase card | 03 04 05 06 23 25 | fading in the last quarter, "further than you asked", muted own, refused as a block | `--r-2`; fading — rule R2, muting — R6 |
+| Table card | 03 09 19 23 25 | invisible with nobody seated or outside the band; the name after the verdict, a like count; a like does not seat (2026-09-17); look undecided | inherits `--r-2` |
 | Offer card | 03 17 24 | discount and term mandatory; "not in the feed", "expired", "link off"; a word, not a frame | none; a word, not a colour — accessibility §1 |
 | Match card | 06 | "no answer yet", "vanished", "waits for your name", one phrase for an offer | none — mockup |
 | Loading skeleton | 02 07 08 09 12 19 | no caption; the button disabled until the answer | rule R3 |

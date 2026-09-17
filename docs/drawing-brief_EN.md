@@ -5,13 +5,13 @@ to where the decision is recorded. Pair — `drawing-brief_RU.md`.
 
 ## 1. What we draw, and in what order
 
-Twenty-four storefront screens `sosed.place/docs/NN-*_EN.md` (`neighbro.place` holds the same files up to brand,
+Twenty-five storefront screens `sosed.place/docs/NN-*_EN.md` (`neighbro.place` holds the same files up to brand,
 `check-screens-mirror`), the mechanics — `00-mechanics_EN.md`, the catalogue of states and texts — screen 11.
 Screen 16 "Stickers" is outside the alpha and is not drawn. The order is the build order of chat spec §13, because
 a screen cannot be checked without the data behind it:
 
 1. Identity: 01 splash, 02 about you, 12 identity and security, 13 move and recovery, 22 appearance, 24 hints.
-2. Feed: 03 feed, 04 composer, 05 message actions, 09 my messages, 23 phrase full screen, 17 offer.
+2. Feed: 03 feed, 04 composer, 05 message actions, 09 my messages, 23 phrase full screen, 25 my likes, 17 offer.
 3. Match and chat: 06 match, 07 chats, 08 chat, 18 game in a chat.
 4. Table: 19 table.
 5. The rest: 10 settings, 14 support, 15 legal documents, 20 step away, 21 console.
@@ -20,7 +20,7 @@ The terminal client `depth` is drawn after the web by the same protocol (`depth-
 
 ## 2. The states of every screen
 
-Source — the matrix `reviews/MATRIX_2026-09-15_screen-states.md`: 322 cells, 0 empty, exactly 14 columns per
+Source — the matrix `reviews/MATRIX_2026-09-15_screen-states.md`: 336 cells, 0 empty, exactly 14 columns per
 screen, every "present" cell points to a line of the screen. The mockup must show every state of its list;
 "not applicable" is not drawn, the reason is in the matrix.
 
@@ -48,6 +48,7 @@ screen, every "present" cell points to a line of the screen. The mockup must sho
 | 22 Appearance | 9 | loading, no network, node unreachable, frozen: move, frozen: closed, frozen: PIN limit, tab locked, stepped away, other |
 | 23 A phrase full screen | 12 | empty, no network, node unreachable, moderation / limit refusal, pause after refusals, frozen: move, frozen: closed, frozen: PIN limit, tab locked, stepped away, documents changed, other |
 | 24 Hints at the first encounter | 1 | other |
+| 25 My likes | 13 | empty, loading, no network, node unreachable, moderation / limit refusal, pause after refusals, frozen: move, frozen: closed, frozen: PIN limit, tab locked, away, documents changed, other |
 
 
 Beyond the matrix every screen has "the app is out of date" — one state for all (11:51).

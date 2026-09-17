@@ -198,6 +198,8 @@ components:
         game: {type: string, description: Table only., x-description-ru: Только у стола.}
         playing: {type: integer, description: Table only., x-description-ru: Только у стола.}
         watching: {type: integer, description: Table only., x-description-ru: Только у стола.}
+        name: {type: string, description: "Table only, and only after the queue's verdict (2026-09-17).", x-description-ru: "Только у стола и только после вердикта очереди (17.09.2026)."}
+        state: {type: string, enum: [liked, matched], description: "Only in GET /likes, on a phrase or a private author's offer (2026-09-17).", x-description-ru: "Только в GET /likes, у фразы и оффера частника (17.09.2026)."}
         id: {type: string, format: uuid}
         text: {type: string, maxLength: 128}
         mode: {type: string}
@@ -275,6 +277,7 @@ components:
         lon: {type: number}
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         seats: {type: integer, minimum: 2, maximum: 6}
+        name: {type: string, description: "Optional, up to 24 graphemes counted by the node; goes through the moderation queue, the verdict as a name_verdict frame with table (2026-09-17).", x-description-ru: "Необязательное, до 24 графем считает узел; идёт в очередь модерации, вердикт кадром name_verdict с table (17.09.2026)."}
     TableView:
       type: object
       description: The table minus what is hidden — your own hand, the backs of others' (chat spec §6.1).
@@ -287,6 +290,8 @@ components:
         is_playing: {type: boolean, description: false for a spectator (playing_from is empty)., x-description-ru: false у зрителя (playing_from пуст).}
         playing: {type: integer}
         watching: {type: integer}
+        name: {type: string, description: "After the queue's verdict; absent while pending or refused (2026-09-17).", x-description-ru: "После вердикта очереди; пусто, пока ждёт или отклонено (17.09.2026)."}
+        like_count: {type: integer, description: Public like count (2026-09-17)., x-description-ru: Публичное число лайков (17.09.2026).}
         board: {$ref: "#/components/schemas/Board"}
         lines: {type: array, items: {$ref: "#/components/schemas/TableLine"}}
     Board:
@@ -1230,8 +1235,8 @@ paths:
       x-summary-ru: Лента по пересечению кругов
       x-status: spec
       security: [{identitySignature: []}]
-      description: With language, mode and age filters; 30 cards, then more by cursor (screen 3; protocol §6, decided 2026-09-16).
-      x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026).
+      description: With language, mode and age filters; 30 cards, then more by cursor (screen 3; protocol §6, decided 2026-09-16). What the viewer liked is not delivered — it is in GET /likes (2026-09-17).
+      x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче нет — оно в GET /likes (17.09.2026).
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/After"}
@@ -1239,6 +1244,22 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: A page of feed items and the next cursor., x-description-ru: Страница карточек ленты и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
+  /likes:
+    get:
+      tags: [feed]
+      summary: "Everything you liked that is still alive"
+      x-summary-ru: "Всё лайкнутое, что ещё живо"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "Cards of the same shape as GET /feed: phrases and private authors' offers with state (liked | matched) and tables; by the after cursor (protocol §4.3; screen 25; the owner's decision of 2026-09-17, name proposed)."
+      x-description-ru: "Карточки той же формы, что в GET /feed: фразы и офферы частников со state (liked | matched) и столы; курсором after (протокол §4.3; экран 25; решение владельца 17.09.2026, имя предложено)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/After"}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: A page of liked cards and the next cursor., x-description-ru: Страница лайкнутых карточек и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
   /feed/{id}:
     delete:
       tags: [feed]
@@ -1422,6 +1443,40 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The table., x-description-ru: Стол., content: {application/json: {schema: {$ref: "#/components/schemas/TableView"}}}}
+        "404": {$ref: "#/components/responses/ApiError"}
+  /tables/{id}/like:
+    post:
+      tags: [tables]
+      summary: "Like a table without sitting down"
+      x-summary-ru: "Лайкнуть стол, не садясь"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "A bookmark with a public counter, neither a match nor an offer to talk; the table leaves this person's feed for GET /likes (chat spec §6.1; the owner's decision of 2026-09-17, name proposed)."
+      x-description-ru: "Закладка с публичным счётчиком, ни мэтча, ни предложения; стол уходит из ленты этого человека в GET /likes (спека чата §6.1; решение владельца 17.09.2026, имя предложено)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: state liked; a repeat answers the same., x-description-ru: state liked; повтор отвечает тем же., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
+        "404": {$ref: "#/components/responses/ApiError"}
+        "409": {description: stepped_away (ApiError)., x-description-ru: stepped_away (ApiError)., content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+    delete:
+      tags: [tables]
+      summary: "Take a table like back"
+      x-summary-ru: "Снять лайк стола"
+      x-status: proposed
+      security: [{identitySignature: []}]
+      description: "like_count goes down and the table returns to the feed (chat spec §6.1, 2026-09-17, name proposed)."
+      x-description-ru: "like_count уменьшается, стол возвращается в ленту (спека чата §6.1, 17.09.2026, имя предложено)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Taken back., x-description-ru: Снят.}
         "404": {$ref: "#/components/responses/ApiError"}
   /tables/{id}/seat:
     post:

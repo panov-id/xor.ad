@@ -107,3 +107,4 @@ nonce.bytes	16	байт	длина nonce у одноразовых действ�
 backup.age.alert	26	часов	порог возраста последнего дампа у сторожа С7, переменная узла BACKUP_AGE_ALERT_HOURS (16.09.2026, OPS-14)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	backup.silent.failure
 chat.messages.minute	60	в минуту	сообщений в беседе в минуту на личность (16.09.2026, SEC-18)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 nonce.ttl	10	минут	жизнь пары (сессия, nonce) в таблице nonces (16.09.2026, OPS-1)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	chat.janitor.missing
+table.name.length	24	графем	имя стола, необязательное, через очередь модерации (решение владельца 17.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	

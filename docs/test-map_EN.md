@@ -427,6 +427,9 @@ the spec, not from whatever turned out to be convenient to check.
 | 23.8 | A repeat of any of the seven §2 routes (`/tables`, `/away`, `/support`, `/recovery/reissue`, `/identities/close`, `/vault/pin`, `/blocks`) with the same `nonce` within ten minutes answers the first answer and does not act twice (§2) | two identical requests | nothing to check |
 | 23.9 | A move with a foreign board version → 409 `stale_seq`; the same body at the same `seq` → the same board (§4.6) | three moves in a row | nothing to check |
 | 23.10 | The feed filter: any `min <= max` inside the band is accepted, outside the band → `filter_out_of_band` (§4.11; steps lifted 2026-09-17) | `PATCH /identities/me` with 21–23 for a 40-year-old — 200; with 15–30 — 400 | nothing to check |
+| 23.11 | What is liked leaves the delivery: after `POST /feed/:id/like` the phrase is absent from this person's `GET /feed` but present in `GET /likes` with `state: liked`; after `DELETE` it is back (2026-09-17) | a like, two deliveries, a take-back | nothing to check |
+| 23.12 | A table like: `POST /tables/:id/like` does not seat (`GET /tables/:id` without a seat — 404), `like_count` +1 is seen by those seated, the table is in `GET /likes`; a repeat the same; `DELETE` → 204 and −1 (2026-09-17) | two people, one seated | nothing to check |
+| 23.13 | A table name: `POST /tables` with `name` — the table is delivered at once without `name`, after the queue's verdict `name` is there; refused — a `name_verdict` frame with `table` to the author, the table lives; 25 graphemes → 400 (2026-09-17) | three settings | nothing to check |
 
 ## Read together with
 

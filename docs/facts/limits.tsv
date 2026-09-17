@@ -106,6 +106,6 @@ profile.patch.day	10	в сутки	правок профиля в сутки н�
 reissue.day	3	в сутки	перевыпусков бумажного кода в сутки на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 ticket.lifetime	30	секунд	жизнь одноразового билета сокета беседы и стола (16.09.2026, SEC-15)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	запрос
 nonce.bytes	16	байт	длина nonce у одноразовых действий (протокол §2, 16.09.2026, SEC-3)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
-backup.age.alert	26	часов	порог возраста последнего дампа у сторожа С7 (16.09.2026, OPS-14)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	backup.silent.failure
+backup.age.alert	26	часов	порог возраста последнего дампа у сторожа С7, переменная узла BACKUP_AGE_ALERT_HOURS (16.09.2026, OPS-14)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	backup.silent.failure
 chat.messages.minute	60	в минуту	сообщений в беседе в минуту на личность (16.09.2026, SEC-18)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 nonce.ttl	10	минут	жизнь пары (сессия, nonce) в таблице nonces (16.09.2026, OPS-1)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	chat.janitor.missing

@@ -511,3 +511,5 @@ The lowest free number | chat_EN.md | SEC-16: seat numbers are never reused, 202
 # --- панель Э5, проход 4 (17.09.2026) ---------------------------------------------------
 back is `UPDATE ... SET left_at = NULL | chat_EN.md | DATA-1/CON-4: coming back is a new seat row, 2026-09-17
 стол не открывается (16.09.2026) | sosed.place/docs/19-table_RU.md neighbro.place/docs/19-table_RU.md | LAW-2 прохода 4: высадка не запирает, канон §6.1 08.09.2026
+the table does not open (2026-09-16) | sosed.place/docs/19-table_EN.md neighbro.place/docs/19-table_EN.md | LAW-2 of pass 4: a removal is not a lock, canon §6.1 2026-09-08
+current_auth_hash | protocol_RU.md protocol_EN.md | SEC-1 прохода 5: доказательство — auth, не хранимый хэш, 17.09.2026

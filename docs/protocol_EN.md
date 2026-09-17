@@ -57,7 +57,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   `POST /recovery/reissue`, `POST /identities/close`, `POST /vault/pin` and `POST /blocks` carry a `nonce` field in
   the body (16 bytes, random, base64url): it enters the signature through the body hash, the node keeps
   the pair (session, nonce) with the first answer for ten minutes in the `nonces` table of the database (DDL in chat spec §8.2) —
-  shared by the pool and surviving a restart; the nonce is bound to its route, the same nonce on another route answers 409 `invalid_body` (SEC-25); the "shared memory" argument is withdrawn for these seven
+  shared by the pool and surviving a restart; the nonce is bound to its route, the same nonce on another route answers 409 `invalid_body` (SEC-25); the replay is looked up after the signature and version checks, and only 2xx and state-409 answers are kept (SEC-2, SEC-4 of pass 5); the "shared memory" argument is withdrawn for these seven
   routes (2026-09-16, OPS-1, SEC-17), the sweeping is `nonce.ttl` in the limits registry. Everything
   else lives by the window.
 
@@ -93,8 +93,8 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 | `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id`; at most 10 per hour and 30 per day per address (2026-09-15) | **proposed** (§8.2) |
 | `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **proposed** (§8.2) |
 | `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use; **requires a PIN proof** (§8.2, 2026-09-11) | **spec** |
-| `POST /vault/pin` | changing the PIN: the old PIN, a new `auth_hash`, a reissued share — **proposed 2026-09-11**, the handle does not exist yet | **proposed** (§8.2) |
-| `POST /identities/close` | "start over": closing an identity with a PIN proof — **proposed 2026-09-11**, the handle does not exist yet | **proposed** (§8.2) |
+| `POST /vault/pin` | changing the PIN `{nonce, current_auth, next_auth_hash, next_share}`: the proof of the old PIN is `auth` of §8.2 (the node compares its hash with `vault_shares.auth_hash`), the new hash and the reissued share — **proposed 2026-09-11**, body 2026-09-17 (SEC-1 of pass 5), the handle does not exist yet | **proposed** (§8.2) |
+| `POST /identities/close` | "start over": closing an identity `{nonce, auth}` — the PIN proof is the same `auth` of §8.2, not the stored hash — **proposed 2026-09-11**, body 2026-09-17, the handle does not exist yet | **proposed** (§8.2) |
 | `PUT /identities/appearance` | the identity's appearance for the face named by the API key, one row per face: theme, contrast step, an accent from that face's set; the initial value comes in `POST /identities` — **proposed 2026-09-15** (storefront screen 22), the handle does not exist yet | **proposed** (§8.2) |
 | `POST /sessions/claim` | using the code on the new device; the old one goes still. Misses are limited per address and across the node, as recovery's; a second claim on the same invite cancels the transfer on both sides (2026-09-15) | **spec** |
 | `POST /recovery/claim` | raising an identity from the paper code | **proposed** (§8.2, §13) |
@@ -193,7 +193,7 @@ or takes a live identity for a dead one.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` empty — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
+| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` absent — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
 | `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **proposed 2026-09-15** (final panel, SEC-9) | **proposed** (`dsa/SPEC_EN.md` §6) |
 
 ### 4.6. Tables (chat spec §6.1, screen 19)

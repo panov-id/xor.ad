@@ -502,7 +502,7 @@ the feed mechanic.
         target_id
         recipient_identity
         restriction             # removed | hidden | offer_taken_down | access_restricted
-        until                   # end of the restriction; empty — indefinite (Art. 17(3)(a); added 2026-09-17, LAW-1). No territorial scope: a restriction applies across the Service
+        until                   # end of the restriction; absent — indefinite (Art. 17(3)(a); added 2026-09-17, LAW-1; the built dsa_statements table has no such column yet — item dsa.statements.until.unbuilt). No territorial scope: a restriction applies across the Service
         facts
         ground_kind             # legal | contractual
         ground_text

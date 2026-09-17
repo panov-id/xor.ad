@@ -333,7 +333,7 @@ CREATE TABLE table_seats (
   UNIQUE (table_id, seat_no)
 );
 -- `leave_table(identity)` is a node transaction, not a database object (2026-09-17, DATA-3): 1) `left_at = now()`
--- on the live row and `NOTIFY seat_left`; 2) the `kick` votes of that seat are dropped; 3) if the author of the open
+-- on the live row and `NOTIFY seat_left`; 2) the `kick` votes cast by that seat and against it are dropped (they live in the memory of the table's node; `NOTIFY seat_left` carries the event); 3) if the author of the open
 -- `pending` left — `pending = NULL`; 4) no live rows left — `tables.closed_at = now()`.
 
 -- One table at a time — decided 2026-09-09. Sitting down at a second table
@@ -1037,13 +1037,15 @@ CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
 CREATE TABLE nonces (
   session_id   uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   nonce        bytea NOT NULL CHECK (octet_length(nonce) = 16),
-  route        text NOT NULL,                       -- "POST /tables" etc.: the replay is checked together with the route
-  status       smallint NOT NULL,
-  response     jsonb NOT NULL,                      -- the first answer, returned on a replay
+  route        text NOT NULL CHECK (route IN ('POST /tables', 'POST /away', 'POST /support', 'POST /recovery/reissue', 'POST /identities/close', 'POST /vault/pin', 'POST /blocks')),  -- the seven routes of protocol §2 by name: an eighth forces a DDL edit (2026-09-17, DATA-7)
+  status       smallint NOT NULL CHECK (status BETWEEN 200 AND 299 OR status = 409),  -- only 2xx and state 409s are kept; 400/401/429 are not written (SEC-4)
+  response     jsonb NOT NULL CHECK (pg_column_size(response) <= 1024),  -- the body of the first answer only, no headers; a 204 body is 'null'::jsonb (DATA-8)
   created_at   timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (session_id, nonce)
 );
 CREATE INDEX nonces_expiry ON nonces (created_at);  -- swept by nonce.ttl by the same janitor that sweeps conversations
+-- A replay is looked up only among rows with `created_at > now() - nonce.ttl` and only after the signature and
+-- version checks: an invalid signature answers 401, not the stored answer; sweeping is hygiene, not the deadline (2026-09-17, OPS-2, SEC-2).
 ```
 
 The partial unique index is the rule itself: the database will not accept a second live session, and no code path can work around it.

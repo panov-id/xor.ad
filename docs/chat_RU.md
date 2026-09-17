@@ -351,7 +351,7 @@ CREATE TABLE table_seats (
   UNIQUE (table_id, seat_no)
 );
 -- `leave_table(identity)` — транзакция узла, не объект базы (17.09.2026, DATA-3): 1) `left_at = now()`
--- у живого ряда и `NOTIFY seat_left`; 2) голоса `kick` этого места сбрасываются; 3) если ушёл автор
+-- у живого ряда и `NOTIFY seat_left`; 2) голоса `kick`, поданные этим местом и против него, сбрасываются (они в памяти узла стола; `NOTIFY seat_left` разносит событие); 3) если ушёл автор
 -- открытого `pending` — `pending = NULL`; 4) живых рядов не осталось — `tables.closed_at = now()`.
 
 -- За одним столом одновременно — решено 09.09.2026. Сесть за второй, не встав
@@ -1024,13 +1024,15 @@ CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
 CREATE TABLE nonces (
   session_id   uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   nonce        bytea NOT NULL CHECK (octet_length(nonce) = 16),
-  route        text NOT NULL,                       -- «POST /tables» и т. д.: повтор проверяется вместе с маршрутом
-  status       smallint NOT NULL,
-  response     jsonb NOT NULL,                      -- первый ответ, отдаётся на повтор
+  route        text NOT NULL CHECK (route IN ('POST /tables', 'POST /away', 'POST /support', 'POST /recovery/reissue', 'POST /identities/close', 'POST /vault/pin', 'POST /blocks')),  -- семь маршрутов §2 протокола поимённо: восьмой заставит править DDL (17.09.2026, DATA-7)
+  status       smallint NOT NULL CHECK (status BETWEEN 200 AND 299 OR status = 409),  -- хранятся только 2xx и 409 состояния; 400/401/429 не записываются (SEC-4)
+  response     jsonb NOT NULL CHECK (pg_column_size(response) <= 1024),  -- только тело первого ответа, без заголовков; тело 204 — 'null'::jsonb (DATA-8)
   created_at   timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (session_id, nonce)
 );
 CREATE INDEX nonces_expiry ON nonces (created_at);  -- уборка по nonce.ttl тем же уборщиком, что чистит беседы
+-- Повтор ищется только среди строк с `created_at > now() - nonce.ttl` и только после проверки подписи и
+-- версии: невалидная подпись отвечает 401, а не хранимым ответом; уборка — гигиена, не срок (17.09.2026, OPS-2, SEC-2).
 ```
 
 Частичный уникальный индекс и есть правило: второй живой сессии база не примет, и обойти это из кода нельзя.

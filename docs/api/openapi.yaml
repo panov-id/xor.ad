@@ -268,7 +268,7 @@ components:
       x-description-ru: Поставить стол (спека чата §6.1, схема tables). Имена полей предложены 16.09.2026.
       required: [class, set, lat, lon, area_radius, seats, nonce]
       properties:
-        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
+        nonce: {$ref: "#/components/schemas/Nonce"}
         class: {type: string, enum: [grid, free, dots, deck, dice, physics, word]}
         set: {type: string}
         lat: {type: number}
@@ -367,7 +367,7 @@ components:
         chat: {type: string, format: uuid}
         table: {type: string, format: uuid}
         seat: {type: integer}
-        nonce: {type: string, description: Required (protocol §2)., x-description-ru: Обязателен (протокол §2).}
+        nonce: {$ref: "#/components/schemas/Nonce"}
     HideTarget:
       type: object
       description: Exactly one of feed or line (chat spec §8.9, hidden_messages). feed comes from the "…" menu; line is the outcome of a complaint without the "illegal" checkbox (screen 19), not a menu item.
@@ -379,13 +379,13 @@ components:
       type: object
       required: [span, nonce]
       properties:
-        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
+        nonce: {$ref: "#/components/schemas/Nonce"}
         span: {type: string, enum: [short, hour, long], description: away.span.short / hour / long., x-description-ru: away.span.short / hour / long.}
     SupportCreate:
       type: object
       required: [body, nonce]
       properties:
-        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
+        nonce: {$ref: "#/components/schemas/Nonce"}
         body: {type: string}
         email: {type: string, format: email}
     SupportRequest:
@@ -426,24 +426,38 @@ components:
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
+    Nonce:
+      type: string
+      pattern: '^[A-Za-z0-9_-]{22}$'
+      description: 16 random bytes, base64url without padding (nonce.bytes); protocol §2.
+      x-description-ru: 16 случайных байт, base64url без набивки (nonce.bytes); протокол §2.
+    Auth:
+      type: string
+      description: The proof of the PIN — auth of chat spec §8.2 (material[0..32], base64url); the node compares its hash with vault_shares.auth_hash. Never the stored hash itself (2026-09-17, SEC-1).
+      x-description-ru: Доказательство ПИНа — auth из спеки чата §8.2 (material[0..32], base64url); узел сравнивает его хэш с vault_shares.auth_hash. Никогда не сам хранимый хэш (17.09.2026, SEC-1).
+    VaultShare:
+      type: object
+      required: [auth]
+      properties:
+        auth: {$ref: "#/components/schemas/Auth"}
     PinChange:
       type: object
       description: Change the PIN — proof of the old one, the new auth_hash and the reissued share, with the nonce of protocol §2 (chat spec §8.2; 2026-09-17, SEC-26).
       x-description-ru: Смена ПИНа — доказательство старого, новый auth_hash и перевыпущенная доля, с nonce из протокола §2 (спека чата §8.2; 17.09.2026, SEC-26).
-      required: [nonce, current_auth_hash, next_auth_hash, next_share]
+      required: [nonce, current_auth, next_auth_hash, next_share]
       properties:
-        nonce: {type: string}
-        current_auth_hash: {type: string}
-        next_auth_hash: {type: string}
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        current_auth: {$ref: "#/components/schemas/Auth"}
+        next_auth_hash: {type: string, description: The hash the node will store for the new PIN., x-description-ru: Хэш, который узел сохранит для нового ПИНа.}
         next_share: {type: string}
     IdentityClose:
       type: object
       description: Start over — with a PIN proof and the nonce of protocol §2 (chat spec §8.2; 2026-09-17, SEC-26).
       x-description-ru: Начать заново — с доказательством ПИНа и nonce из протокола §2 (спека чата §8.2; 17.09.2026, SEC-26).
-      required: [nonce, auth_hash]
+      required: [nonce, auth]
       properties:
-        nonce: {type: string}
-        auth_hash: {type: string}
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        auth: {$ref: "#/components/schemas/Auth"}
     Message:
       type: object
       description: A ciphertext to deliver (chat spec §8.8; proposed 2026-09-16, SEC-8).
@@ -471,7 +485,7 @@ components:
       properties:
         id: {type: string, format: uuid}
         restriction: {type: string, enum: [removed, hidden, offer_taken_down, access_restricted]}
-        until: {type: string, format: date-time, description: End of the restriction; absent — indefinite (Art. 17(3)(a))., x-description-ru: Конец ограничения; нет — бессрочно (ст. 17(3)(a)).}
+        until: {type: string, format: date-time, description: End of the restriction; absent — indefinite (Art. 17(3)(a)). Not yet a column of the built dsa_statements table (item dsa.statements.until.unbuilt)., x-description-ru: Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). В построенной таблице dsa_statements колонки ещё нет (пункт dsa.statements.until.unbuilt).}
         facts: {type: string}
         ground_kind: {type: string, enum: [legal, contractual]}
         ground_text: {type: string}
@@ -484,7 +498,7 @@ components:
       x-description-ru: Доказательство текущего бумажного кода и производные нового, рождённого на устройстве (спека чата §8.2 «бумажный код»); одна транзакция.
       required: [current, next, nonce]
       properties:
-        nonce: {type: string, description: "16 random bytes, base64url; the node keeps (session, nonce) with the first answer for ten minutes in the nonces table (protocol §2, 2026-09-16).", x-description-ru: "16 случайных байт, base64url; узел держит (сессия, nonce) с первым ответом десять минут в таблице nonces (протокол §2, 16.09.2026)."}
+        nonce: {$ref: "#/components/schemas/Nonce"}
         current: {type: object, required: [lookup_id], properties: {lookup_id: {type: string}}}
         next: {type: object, required: [lookup_id, wrapped_key], properties: {lookup_id: {type: string}, wrapped_key: {type: string}}}
   parameters:
@@ -521,6 +535,10 @@ components:
     BadVersion:
       description: Unsupported protocol version — code protocol_version_unsupported, the update command in message (protocol §3, §6).
       x-description-ru: Неподдерживаемая версия протокола — code protocol_version_unsupported, команда обновления в message (протокол §3, §6).
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+    NonceReused:
+      description: The same nonce on another route, or a malformed nonce — code invalid_body (protocol §2). On POST /blocks this 409 answers the nonce only, never the target of the block.
+      x-description-ru: Тот же nonce на другом маршруте или nonce не той формы — code invalid_body (протокол §2). У POST /blocks этот 409 отвечает только на nonce, никогда — на цель блокировки.
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     Reaccept:
       description: Re-acceptance required (protocol §6).
@@ -1067,6 +1085,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Ten wrong attempts lock access until the paper code; the share is kept.
       x-description-ru: Десять неверных попыток закрывают вход до бумажного кода; доля цела.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultShare"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1100,6 +1119,7 @@ paths:
       x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PinChange"}}}}
       responses:
+        "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Changed., x-description-ru: Сменён.}
@@ -1116,6 +1136,7 @@ paths:
       x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/IdentityClose"}}}}
       responses:
+        "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Closed., x-description-ru: Закрыта.}
@@ -1384,7 +1405,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "201": {description: The table id., x-description-ru: id стола., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
-        "409": {$ref: "#/components/responses/ApiError"}
+        "409": {description: "stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).", x-description-ru: "stepped_away и отказы состояния либо invalid_body на повторный nonce (протокол §2).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
   /tables/{id}:
     get:
       tags: [tables]
@@ -1772,6 +1793,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/BlockTarget"}}}}
       responses:
+        "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done, and the same answer on a repeat., x-description-ru: Сделано; повтор отвечает тем же.}
@@ -1864,6 +1886,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Away"}}}}
       responses:
+        "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Until when., x-description-ru: До когда., content: {application/json: {schema: {type: object, properties: {until: {type: string, format: date-time}}}}}}
@@ -1894,6 +1917,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SupportCreate"}}}}
       responses:
+        "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "201": {description: The public number., x-description-ru: Публичный номер., content: {application/json: {schema: {type: object, properties: {public_no: {type: string}}}}}}
@@ -1975,7 +1999,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
-        "409": {$ref: "#/components/responses/ApiError"}
+        "409": {description: "stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).", x-description-ru: "stepped_away и отказы состояния либо invalid_body на повторный nonce (протокол §2).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
   /chats/{id}/messages:
     post:
       tags: [chat]

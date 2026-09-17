@@ -418,8 +418,8 @@ components:
           properties: {id: {type: string, format: uuid}, seat: {type: integer}}
     ProfilePatch:
       type: object
-      description: Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds multiples of 5 or the band's edge, width at least 5.
-      x-description-ru: Любое подмножество (спека чата §8.2, §8.3). Имя уходит в очередь; возраст через 20/21 только вверх; границы фильтра кратны 5 или край полосы, охват не меньше 5.
+      description: Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds anything inside the band (2026-09-17).
+      x-description-ru: Любое подмножество (спека чата §8.2, §8.3). Имя уходит в очередь; возраст через 20/21 только вверх; границы фильтра — любые внутри полосы (17.09.2026).
       properties:
         name: {type: string}
         age: {type: integer, minimum: 13}

@@ -1430,16 +1430,16 @@ AND me.age BETWEEN band_low(other.age) AND band_high(other.age)
 
 Asymmetry is unacceptable here: one side would like a phrase the other cannot see in their feed, and a match would be impossible in principle — the like would go nowhere.
 
-On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, wider is not. **Its bounds are coarse — decided 2026-09-15 by the owner after the final panel (SEC-3).** Each bound is a multiple of 5 years or an edge of the band, and the filter spans at least 5 years of age (`max - min + 1 >= 5`); the node refuses anything else (`filter.age.step`, `filter.age.min_width` in `docs/facts/limits.tsv`). A one-year filter was an oracle: a handful of `GET /feed` requests with sliced filters gave every author's exact age, and a cell plus an age glues one person's phrases together — what §8.5 promises never happens.
+On top of the band sits a **user filter**, clamped to it: narrower than your band is fine, by the year; wider is not. **Its bounds are free — the owner's decision of 2026-09-17, which reverses SEC-3 of 2026-09-15.** The age is shown to the other person next to the name on the match card and in the chat header (§8.11), so to whoever you talk to it is public, and 5-year steps were fencing what a match hands over anyway. The node accepts any `min <= max` inside the band; anything else is `filter_out_of_band`. The price is named and accepted: a handful of `GET /feed` requests with sliced filters gives every phrase author's age before any match, and a cell plus an age helps glue one person's phrases together; the owner judged age too weak a mark for that. [retired] This said "each bound is a multiple of 5 years, spanning at least 5 years" (2026-09-15, SEC-3), and before that "narrower is free".
 
-**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old's band `[18, 22]` reaches adults, and symmetry holds — `band(22) = [20, ∞)` contains them. Since 2026-09-15 they can no longer narrow the filter to 21–22 and see adults only [retired]: a sandbox band spans five ages, the least a filter may span, so a sandbox filter is always the whole band. No second ceiling was added for it — it follows from the width. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
+**The edge of the band is stated out loud — 2026-08-26.** A twenty-year-old's band `[18, 22]` reaches adults, and symmetry holds — `band(22) = [20, ∞)` contains them. They can narrow the filter to 21–22 and see adults only — again since 2026-09-17; between 2026-09-15 and 2026-09-17 the 5-year steps made a sandbox filter equal to the band [retired]. No second ceiling is added for it. In the interface the bounds carry no numbers, so nobody learns from here that the wall stands at 21.
 
 **What a person sees is in the storefront screens:** the handle does not pass the band, an adult's right end is labelled "no limit", and a band shifted by a birthday is announced in one line.
 
 ```sql
 ALTER TABLE identities
-  ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write; a multiple of 5 or a band edge
-  ADD COLUMN filter_age_max integer;   -- the same; max - min + 1 >= 5, the node refuses otherwise (2026-09-15)
+  ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write; any integer inside the band (2026-09-17)
+  ADD COLUMN filter_age_max integer;   -- the same; min <= max, the node refuses otherwise with filter_out_of_band
 ```
 
 Age is self-declared, with no verification whatsoever. The bands separate teenagers from adults as far as that is possible without documents, and that limit should be understood plainly.

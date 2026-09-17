@@ -140,7 +140,7 @@ Collected 2026-09-16 from the storefront screens 01–24 (research agent; every 
 | Game board by class | 18 19 | piece highlight, keyboard moves, "not allowed", "overdue — pass", "three passes", "no table" | cell ≥ 24 px — accessibility |
 | Viewing radius handle | 03 | no numbers; density on release; by tap too | none — mockup |
 | Phrase area handle, stepped | 04 10 | five steps | none — mockup |
-| Age slider | 03 | steps of 5, not beyond the band, the edge is "no limit" | none — mockup |
+| Age slider | 03 | by the year inside the band, not beyond the band, the edge is "no limit" | none — mockup |
 | Silence span control | 08 10 | any time; the other's is not visible | none — mockup |
 | List with undo / lifting | 10 12 | hidden, blocks, receipts; short-lived | none — mockup |
 | Support requests list | 10 14 | "no requests"; none for a frozen session | none — mockup |

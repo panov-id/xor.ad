@@ -293,7 +293,6 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 | PIN attempts | 10, then access locked until the paper code, the share kept | the node |
 | transfer-code claim misses | per address, and 50 an hour per node, then a 15-minute pause — as recovery | the node |
 | identity creation | 10 per hour and 30 per day per address | the node |
-| age filter bounds | multiples of 5 years or band edges, spanning at least 5 years | the node |
 | tables set | 4 an hour per identity | the node |
 | seating attempts | 30 an hour per identity | the node |
 | blocks | 20 an hour per identity | the node |

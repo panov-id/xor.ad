@@ -426,7 +426,7 @@ the spec, not from whatever turned out to be convenient to check.
 | 23.7 | `POST /hidden {feed}` → `{id}`, `DELETE /hidden/:id` brings the phrase back; `{line}` is accepted only from the complaint form without the checkbox (§4.8) | hide, bring back, compare `GET /hidden` | nothing to check |
 | 23.8 | A repeat of any of the seven §2 routes (`/tables`, `/away`, `/support`, `/recovery/reissue`, `/identities/close`, `/vault/pin`, `/blocks`) with the same `nonce` within ten minutes answers the first answer and does not act twice (§2) | two identical requests | nothing to check |
 | 23.9 | A move with a foreign board version → 409 `stale_seq`; the same body at the same `seq` → the same board (§4.6) | three moves in a row | nothing to check |
-| 23.10 | The feed filter: bounds multiples of 5 or the band's edge, width at least 5 → otherwise `filter_out_of_band` (§4.11) | `PATCH /identities/me` with 21–23 | nothing to check |
+| 23.10 | The feed filter: any `min <= max` inside the band is accepted, outside the band → `filter_out_of_band` (§4.11; steps lifted 2026-09-17) | `PATCH /identities/me` with 21–23 for a 40-year-old — 200; with 15–30 — 400 | nothing to check |
 
 ## Read together with
 

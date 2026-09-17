@@ -1,17 +1,17 @@
 openapi: 3.1.0
 info:
   title: xor.ad relay node
-  version: "2026-09-16.2"
+  version: "2026-09-17"
   description: |-
     The contract of the relay node, spec first (route to drawing, stage S4a, decided by the owner on 2026-09-15).
     x-status built — the route exists in relay/node/src (main.ts, routes/*.ts); its shapes were read from the code on 2026-09-15 and not exercised live.
-    x-status spec or proposed — described in docs/protocol_EN.md §4 and the chat canon, not built. Where the canon names no body, none is invented here.
+    x-status spec — described in docs/protocol_EN.md §4 and the chat canon, not built; the 56 names proposed on 2026-09-16 were agreed by the owner on 2026-09-17 (docs/api/ROUTES_2026-09-17_naming_EN.md). Where the canon names no body, none is invented here.
     Checked by scripts/check-openapi.sh against the protocol tables, the code and the rendered pages.
     Since 2026-09-16 the eight areas of protocol §4.6–4.12 are in as proposed operations (tables, games in a chat, blocks and hiding, stepping away, support, the profile, reissuing the paper code); "My notices" reuse /report/decision and /legal/manifest. Decided the same day: the error shape ApiError, the x-protocol-version header, cursor pagination (protocol §6, §8).
   x-description-ru: |-
     Контракт узла relay, спецификация первая (маршрут до отрисовки, этап Э4а, решение владельца 15.09.2026).
     x-status built — маршрут есть в relay/node/src (main.ts, routes/*.ts); формы прочитаны из кода 15.09.2026 и живым запросом не проверены.
-    x-status spec или proposed — описано в docs/protocol_RU.md §4 и каноне чата, не построено. Где канон тела не называет, здесь его не выдумывают.
+    x-status spec — описано в docs/protocol_RU.md §4 и каноне чата, не построено; 56 имён, предложенных 16.09.2026, утверждены владельцем 17.09.2026 (docs/api/ROUTES_2026-09-17_naming_RU.md). Где канон тела не называет, здесь его не выдумывают.
     Сверяется scripts/check-openapi.sh с таблицами протокола, кодом и собранными страницами.
     С 16.09.2026 восемь областей протокола §4.6–4.12 внесены операциями proposed (столы, игры в чате, блокировки и скрытие, отлучка, поддержка, профиль, перевыпуск бумажного кода); «Мои уведомления» идут через /report/decision и /legal/manifest. Тем же днём решены форма ошибки ApiError, заголовок x-protocol-version и пагинация курсором (протокол §6, §8).
 tags:
@@ -651,7 +651,7 @@ paths:
       tags: [intake]
       summary: The decision on a notice by its receipt code
       x-summary-ru: Решение по уведомлению по коду квитанции
-      x-status: proposed
+      x-status: spec
       security: []
       description: 'Not signed by an identity; the code in the body. "No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The decision body is not spelled out in the canon.'
       x-description-ru: 'Личностью не подписан; код в теле. На «нет такой квитанции» и «решения ещё нет» ответ один: статус 200, тело байт в байт, Cache-Control no-store, одно минимальное время на обе ветки; предел по адресу держится в памяти и в журнал не пишется (dsa/SPEC §6, протокол §4.5). Тело решения в каноне поле за полем не описано.'
@@ -1065,7 +1065,7 @@ paths:
       tags: [identity]
       summary: Create an identity
       x-summary-ru: Завести личность
-      x-status: proposed
+      x-status: spec
       security: [{publishableKey: []}]
       description: The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).
       x-description-ru: Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано. Не больше 10 в час и 30 в сутки по адресу (15.09.2026).
@@ -1079,7 +1079,7 @@ paths:
       tags: [identity]
       summary: Exchange a PIN proof for the node's share of the vault key
       x-summary-ru: Обменять доказательство ПИНа на долю ключа хранилища
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1111,7 +1111,7 @@ paths:
       tags: [identity]
       summary: Change the PIN
       x-summary-ru: Сменить ПИН
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1128,7 +1128,7 @@ paths:
       tags: [identity]
       summary: Start over — close the identity
       x-summary-ru: Начать заново — закрыть личность
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1145,7 +1145,7 @@ paths:
       tags: [identity]
       summary: The identity's appearance for this face
       x-summary-ru: Оформление личности для этого лица
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1174,7 +1174,7 @@ paths:
       tags: [identity]
       summary: Raise an identity with the paper code
       x-summary-ru: Поднять личность бумажным кодом
-      x-status: proposed
+      x-status: spec
       security: [{publishableKey: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1185,7 +1185,7 @@ paths:
       tags: [identity]
       summary: The documents' current revisions
       x-summary-ru: Нынешние редакции документов
-      x-status: proposed
+      x-status: spec
       security: [{publishableKey: []}]
       description: Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.
       x-description-ru: Дата, sha256 существа и политика повторного принятия трёх документов; required у всех трёх с 15.09.2026.
@@ -1198,7 +1198,7 @@ paths:
       tags: [identity]
       summary: Record an acceptance
       x-summary-ru: Записать принятие
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1244,7 +1244,7 @@ paths:
       tags: [feed]
       summary: Take down your own phrase
       x-summary-ru: Снять свою фразу
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1258,7 +1258,7 @@ paths:
       tags: [feed]
       summary: The density band under the radius handle
       x-summary-ru: Ступень плотности под ручкой радиуса
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1273,7 +1273,7 @@ paths:
       tags: [chat]
       summary: Like a phrase or an offer
       x-summary-ru: Лайкнуть фразу или оффер
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1287,7 +1287,7 @@ paths:
       tags: [chat]
       summary: Take a like back until a match
       x-summary-ru: Снять лайк, пока нет мэтча
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1301,7 +1301,7 @@ paths:
       tags: [chat]
       summary: Consent to talk
       x-summary-ru: Согласиться поговорить
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: The chat opens when both have consented.
       x-description-ru: Чат открывается, когда согласились оба.
@@ -1365,7 +1365,7 @@ paths:
       tags: [chat]
       summary: Close a conversation by hand, for both
       x-summary-ru: Закрыть беседу руками, сразу у обоих
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1378,7 +1378,7 @@ paths:
       tags: [chat]
       summary: Your own span handle
       x-summary-ru: Своя ручка срока
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: 10, 30 or 60 minutes, or while we talk (260 minutes).
       x-description-ru: 10, 30 или 60 минут либо «пока говорим» (260 минут).
@@ -1394,7 +1394,7 @@ paths:
       tags: [tables]
       summary: "Set a table"
       x-summary-ru: "Поставить стол"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left."
       x-description-ru: "Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается."
@@ -1411,7 +1411,7 @@ paths:
       tags: [tables]
       summary: "The table minus what is hidden"
       x-summary-ru: "Стол без скрытого"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The board, {playing, watching}, lines since your own seating, your seat; your own hand, the backs of others' (chat spec §6.1)."
       x-description-ru: "Доска, {playing, watching}, реплики с момента своей посадки, своё место; рука своя, рубашки чужих (спека чата §6.1)."
@@ -1428,7 +1428,7 @@ paths:
       tags: [tables]
       summary: "Sit down"
       x-summary-ru: "Подсесть"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere (chat spec §6.1)."
       x-description-ru: "Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1)."
@@ -1444,7 +1444,7 @@ paths:
       tags: [tables]
       summary: "Stand up"
       x-summary-ru: "Встать"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Coming back is the same POST; history starts afresh from the seating (chat spec §6.1)."
       x-description-ru: "Вернуться — тем же POST; история заново с посадки (спека чата §6.1)."
@@ -1460,7 +1460,7 @@ paths:
       tags: [tables]
       summary: "A one-time ticket for the table's socket"
       x-summary-ru: "Одноразовый билет для сокета стола"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "As for a conversation (protocol §4.4): the ticket goes into Sec-WebSocket-Protocol next to the subprotocol xor.p1."
       x-description-ru: "Как у беседы (протокол §4.4): билет едет в Sec-WebSocket-Protocol рядом с субпротоколом xor.p1."
@@ -1477,7 +1477,7 @@ paths:
       tags: [tables]
       summary: "A line, an application, a refusal or a sticker"
       x-summary-ru: "Реплика, заявка, отказ или стикер"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "line/application/refusal — 202, published by the queue's verdict; sticker — 200, no queue. One application per game; a refusal without text is not accepted (chat spec §6.1)."
       x-description-ru: "line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1)."
@@ -1496,7 +1496,7 @@ paths:
       tags: [tables]
       summary: "A move or a pass"
       x-summary-ru: "Ход или пас"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "In the board class's terms; refusals not_your_turn, illegal_move with the engine's reason; three passes in a row send you to the spectators (table.move.window, table.pass.limit)."
       x-description-ru: "В терминах класса доски; отказы not_your_turn, illegal_move с причиной движка; три паса подряд — в зрители (table.move.window, table.pass.limit)."
@@ -1514,7 +1514,7 @@ paths:
       tags: [tables]
       summary: "I'm here — for the new game"
       x-summary-ru: "«Я здесь» на новую игру"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Inside table.confirm.window (30 s); not confirmed — a spectator (chat spec §6)."
       x-description-ru: "В окне table.confirm.window (30 с); не подтвердился — зритель (спека чата §6)."
@@ -1530,7 +1530,7 @@ paths:
       tags: [tables]
       summary: "Propose: play again, a draw, an undo"
       x-summary-ru: "Предложить: сыграть ещё, ничью, откат"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The undo fires on every player's consent and steps back exactly one snapshot (chat spec §6)."
       x-description-ru: "Откат срабатывает при согласии всех играющих и ровно на один снимок (спека чата §6)."
@@ -1548,7 +1548,7 @@ paths:
       tags: [tables]
       summary: "Answer a proposal"
       x-summary-ru: "Ответить на предложение"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "accept / decline / counter — a counter names another class and set (chat spec §6)."
       x-description-ru: "accept / decline / counter — встречное называет другой класс и набор (спека чата §6)."
@@ -1566,7 +1566,7 @@ paths:
       tags: [tables]
       summary: "Resign"
       x-summary-ru: "Сдаться"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "A one-sided announcement; no result is recorded (chat spec §6)."
       x-description-ru: "Одностороннее объявление; результат не записывается (спека чата §6)."
@@ -1582,7 +1582,7 @@ paths:
       tags: [tables]
       summary: "Congratulate a seat"
       x-summary-ru: "Поздравить место"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Appears as a line at the table; the engine names no winner (chat spec §6, screen 19)."
       x-description-ru: "Появляется репликой за столом; движок победителя не называет (спека чата §6, экран 19)."
@@ -1599,7 +1599,7 @@ paths:
       tags: [tables]
       summary: "A vote to remove a seat"
       x-summary-ru: "Голос за высадку места"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The node counts the majority of those seated; no trace remains; the removed can come back (chat spec §6.1)."
       x-description-ru: "Узел считает большинство сидящих; следа не остаётся; высаженный может вернуться (спека чата §6.1)."
@@ -1616,7 +1616,7 @@ paths:
       tags: [chat]
       summary: "Propose or change the game"
       x-summary-ru: "Предложить или сменить игру"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The other person gets a proposal frame (chat spec §6, screen 18)."
       x-description-ru: "Собеседнику уходит кадр proposal (спека чата §6, экран 18)."
@@ -1633,7 +1633,7 @@ paths:
       tags: [chat]
       summary: "The game after a drop"
       x-summary-ru: "Партия после обрыва"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Position, whose turn and the score from the game cache; no lines, no one else's hand (chat spec §6)."
       x-description-ru: "Позиция, чей ход и счёт из кеша партии; без реплик и чужой руки (спека чата §6)."
@@ -1649,7 +1649,7 @@ paths:
       tags: [chat]
       summary: "End the game"
       x-summary-ru: "Закончить игру"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The conversation's death takes the game with it by cascade anyway (chat_games ON DELETE CASCADE)."
       x-description-ru: "Смерть беседы уносит партию каскадом и без этого (chat_games ON DELETE CASCADE)."
@@ -1665,7 +1665,7 @@ paths:
       tags: [chat]
       summary: "Answer the game offer"
       x-summary-ru: "Ответить на предложение игры"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "accept opens the board for both; decline keeps talking in words; counter names another board (chat spec §6)."
       x-description-ru: "accept открывает доску у обоих; decline — беседа словами; counter называет другую доску (спека чата §6)."
@@ -1682,7 +1682,7 @@ paths:
       tags: [chat]
       summary: "A move or a pass"
       x-summary-ru: "Ход или пас"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "By class: a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse} — the node shuffles and rolls. A move extends your own conversation span (chat spec §6, §8.6). Announced as an unencrypted system line."
       x-description-ru: "По классу: клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse} — тасует и бросает узел. Ход двигает свой срок беседы (спека чата §6, §8.6). Объявляется нешифрованной системной строкой."
@@ -1700,7 +1700,7 @@ paths:
       tags: [chat]
       summary: "Set the hangman word"
       x-summary-ru: "Загадать слово виселицы"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "202 — the same queue as a phrase; a refusal is \"pick another\" and feeds the pause counter (chat spec §6 \"hangman\")."
       x-description-ru: "202 — та же очередь, что у фразы; отказ — «загадайте другое» и счётчик паузы (спека чата §6 «виселица»)."
@@ -1718,7 +1718,7 @@ paths:
       tags: [chat]
       summary: "I'm here — for the new game"
       x-summary-ru: "«Я здесь» на новую игру"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Inside table.confirm.window; there is no \"N of 2\" counter for two (chat spec §6)."
       x-description-ru: "В окне table.confirm.window; счётчика «N из 2» вдвоём нет (спека чата §6)."
@@ -1734,7 +1734,7 @@ paths:
       tags: [chat]
       summary: "Propose: play again, a draw, an undo"
       x-summary-ru: "Предложить: сыграть ещё, ничью, откат"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The undo fires on both players' consent (chat spec §6)."
       x-description-ru: "Откат срабатывает при согласии обоих (спека чата §6)."
@@ -1751,7 +1751,7 @@ paths:
       tags: [chat]
       summary: "Answer a proposal"
       x-summary-ru: "Ответить на предложение"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "accept / decline / counter (chat spec §6)."
       x-description-ru: "accept / decline / counter (спека чата §6)."
@@ -1769,7 +1769,7 @@ paths:
       tags: [chat]
       summary: "Resign"
       x-summary-ru: "Сдаться"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "A one-sided announcement (chat spec §6)."
       x-description-ru: "Одностороннее объявление (спека чата §6)."
@@ -1785,7 +1785,7 @@ paths:
       tags: [safety]
       summary: "Block a person"
       x-summary-ru: "Заблокировать человека"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "By a phrase, a conversation or a seat; 204 always, a repeat too — the answer is not an oracle. The match dies, the shared chat closes, phrases are hidden from both (chat spec §8.9)."
       x-description-ru: "По фразе, беседе или месту; 204 всегда, повтор — тоже: ответ не оракул. Мэтч гаснет, общий чат закрывается, фразы скрыты обоим (спека чата §8.9)."
@@ -1801,7 +1801,7 @@ paths:
       tags: [safety]
       summary: "Your own blocks"
       x-summary-ru: "Свои блокировки"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "{id, since} — no identities; screen 10 shows the list and lifting (decided 2026-09-16, protocol §4.8)."
       x-description-ru: "{id, since} — без личностей; экран 10 показывает список и снятие (решено 16.09.2026, протокол §4.8)."
@@ -1816,7 +1816,7 @@ paths:
       tags: [safety]
       summary: "Lift a block"
       x-summary-ru: "Снять блокировку"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The set of visible tables is recomputed on the next entry into the feed (chat spec §8.9, §6.1)."
       x-description-ru: "Состав видимых столов пересчитается при следующем входе в ленту (спека чата §8.9, §6.1)."
@@ -1832,7 +1832,7 @@ paths:
       tags: [safety]
       summary: "Hide a phrase or a line for yourself"
       x-summary-ru: "Скрыть фразу или реплику у себя"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "204; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages)."
       x-description-ru: "200 с id для возврата; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages)."
@@ -1847,7 +1847,7 @@ paths:
       tags: [safety]
       summary: "The hidden list"
       x-summary-ru: "Список скрытого"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "For screen 10; short by construction. Fields {id, kind, text} named in protocol §4.8 (2026-09-16)."
       x-description-ru: "Для экрана 10; недолог по построению. Поля {id, kind, text} названы в протоколе §4.8 (16.09.2026)."
@@ -1862,7 +1862,7 @@ paths:
       tags: [safety]
       summary: "Bring the hidden back"
       x-summary-ru: "Вернуть скрытое"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Screen 5."
       x-description-ru: "Экран 5."
@@ -1878,7 +1878,7 @@ paths:
       tags: [safety]
       summary: "Step away"
       x-summary-ru: "Отойти"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "span short/hour/long (away.span.*). In one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}."
       x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками, гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}."
@@ -1894,7 +1894,7 @@ paths:
       tags: [safety]
       summary: "Come back early"
       x-summary-ru: "Вернуться досрочно"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "stepped_away_until = now(); the mark at the other end is lifted by your first line, not by this request (chat spec §8.2)."
       x-description-ru: "stepped_away_until = now(); метка у собеседника снимается первой репликой, не этим запросом (спека чата §8.2)."
@@ -1909,7 +1909,7 @@ paths:
       tags: [support]
       summary: "A support request"
       x-summary-ru: "Обращение в поддержку"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "{body, email?}; 201 {public_no} — 10 Crockford base32 characters at once. The fourth in a day — 429 with the storefront's support address in message (support.requests.day, support.frozen.day)."
       x-description-ru: "{body, email?}; 201 {public_no} — 10 знаков Crockford base32 сразу. Четвёртое за сутки — 429 с адресом поддержки витрины в message (support.requests.day, support.frozen.day)."
@@ -1925,7 +1925,7 @@ paths:
       tags: [support]
       summary: "Your own requests"
       x-summary-ru: "Свои обращения"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "By number without a signature the node answers nothing; a frozen session sees no list (screen 14)."
       x-description-ru: "По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14)."
@@ -1940,7 +1940,7 @@ paths:
       tags: [support]
       summary: "Clear the answer-waiting dot"
       x-summary-ru: "Погасить точку «ответ ждёт»"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "answer_seen = true (schema support_requests)."
       x-description-ru: "answer_seen = true (схема support_requests)."
@@ -1956,7 +1956,7 @@ paths:
       tags: [identity]
       summary: "Your own profile"
       x-summary-ru: "Свой профиль"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "name, name_pending, age, filters, languages, stepped_away_until (screen 10)."
       x-description-ru: "name, name_pending, age, фильтры, языки, stepped_away_until (экран 10)."
@@ -1970,7 +1970,7 @@ paths:
       tags: [identity]
       summary: "Edit the profile"
       x-summary-ru: "Править профиль"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Any subset. A name goes to the moderation queue (202, verdict as a name_verdict frame); refusals name_frozen, paused, age_step_down, filter_out_of_band (chat spec §8.2, §8.3)."
       x-description-ru: "Любое подмножество. Имя уходит в очередь модерации (202, вердикт кадром name_verdict); отказы name_frozen, paused, age_step_down, filter_out_of_band (спека чата §8.2, §8.3)."
@@ -1988,7 +1988,7 @@ paths:
       tags: [identity]
       summary: "Reissue the paper code"
       x-summary-ru: "Перевыпустить бумажный код"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Proof of the current code and the derivatives of the new one; the new one works and the old one dies in one transaction. A miss counts where /recovery/claim misses count (recovery.miss.shared, recovery.miss.pause)."
       x-description-ru: "Доказательство текущего кода и производные нового; новый действует и прежний гаснет одной транзакцией. Промах идёт в те же счётчики, что у /recovery/claim (recovery.miss.shared, recovery.miss.pause)."
@@ -2005,7 +2005,7 @@ paths:
       tags: [chat]
       summary: "Send a ciphertext"
       x-summary-ru: "Отправить шифротекст"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Stored in pending_deliveries, last_activity_at moves, handed to the other at once or on connection; could not — {local_id, error} (chat spec §8.8; SEC-8)."
       x-description-ru: "Кладётся в pending_deliveries, двигает last_activity_at, отдаётся второму сразу или при подключении; не смог — {local_id, error} (спека чата §8.8; SEC-8)."
@@ -2024,7 +2024,7 @@ paths:
       tags: [chat]
       summary: "Confirm receipt"
       x-summary-ru: "Подтвердить получение"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "The node deletes what was delivered from pending_deliveries (chat spec §8.8)."
       x-description-ru: "Узел удаляет доставленное из pending_deliveries (спека чата §8.8)."
@@ -2041,7 +2041,7 @@ paths:
       tags: [identity]
       summary: "Your own Article 17 statements"
       x-summary-ru: "Свои мотивировки по ст. 17"
-      x-status: proposed
+      x-status: spec
       security: [{identitySignature: []}]
       description: "Without the notifier's identity; shown on the next entry with this identity, kept a year (dsa/SPEC §6; LAW-1, 2026-09-16). The first delivery sets delivered_at (proof of delivery, Art. 17)."
       x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §6; LAW-1, 16.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17)."

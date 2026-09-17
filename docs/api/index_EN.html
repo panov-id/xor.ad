@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Node API · 2026-09-16.2</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Node API · 2026-09-17</title><style>
 :root{--bg:#f6f5f2;--panel:#ffffff;--fg:#1c1b19;--muted:#5b5853;--line:#d9d6cf;--accent:#8a3b1f;
 --built:#1f6b3a;--built-bg:#e3f1e7;--spec:#7a5300;--spec-bg:#fbf0d6;--prop:#4a4f57;--prop-bg:#e8eaee;
 --get:#1e5aa8;--post:#1f6b3a;--put:#7a5300;--patch:#6a3d9a;--delete:#a12a24}
@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>Node API</h1><a href="index_RU.html">Русский</a></div>
-<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 102 operations, OpenAPI 3.1.0, 2026-09-16.2.</p>
+<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 102 operations, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-support">support</a><a href="#schemas">Schemas</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).</p>
@@ -107,7 +107,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Source: <code>relay/node/src/main.ts</code></p>
 </section>
 <section class="op" id="post-report-decision">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/report/decision</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/report/decision</code><span class="chip s-spec">spec</span></div>
 <p><strong>The decision on a notice by its receipt code</strong></p>
 <p>Not signed by an identity; the code in the body. &quot;No such receipt&quot; and &quot;not decided yet&quot; get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The decision body is not spelled out in the canon.</p>
 <h3>Access</h3><p>no access control</p>
@@ -369,7 +369,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-identity">identity</h2>
 <p>Identity and session, the profile, reissuing the paper code (protocol §4.1, §4.11, §4.12). Not built.</p>
 <section class="op" id="post-identities">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-spec">spec</span></div>
 <p><strong>Create an identity</strong></p>
 <p>The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
@@ -377,7 +377,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-share">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-spec">spec</span></div>
 <p><strong>Exchange a PIN proof for the node&#x27;s share of the vault key</strong></p>
 <p>Ten wrong attempts lock access until the paper code; the share is kept.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -397,7 +397,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Invitation stored.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-pin">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-spec">spec</span></div>
 <p><strong>Change the PIN</strong></p>
 <p>The old PIN, a new auth_hash, a reissued share.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -407,7 +407,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Changed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-identities-close">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-spec">spec</span></div>
 <p><strong>Start over — close the identity</strong></p>
 <p>With a PIN proof; appearance rows are deleted in the same transaction.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -417,7 +417,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="put-identities-appearance">
-<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
 <p><strong>The identity&#x27;s appearance for this face</strong></p>
 <p>One row per face named by the API key — theme, contrast step, an accent from that face&#x27;s set.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -435,14 +435,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-recovery-claim">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-spec">spec</span></div>
 <p><strong>Raise an identity with the paper code</strong></p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-legal-manifest">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-spec">spec</span></div>
 <p><strong>The documents&#x27; current revisions</strong></p>
 <p>Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
@@ -450,7 +450,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The manifest.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-legal-accept">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-spec">spec</span></div>
 <p><strong>Record an acceptance</strong></p>
 <p>Document, date, hash; one row each.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -458,7 +458,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Recorded.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-me">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own profile</strong></p>
 <p>name, name_pending, age, filters, languages, stepped_away_until (screen 10).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -466,7 +466,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The profile.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
 </section>
 <section class="op" id="patch-identities-me">
-<div class="op-head"><span class="method m-patch">patch</span><code class="path">/identities/me</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/identities/me</code><span class="chip s-spec">spec</span></div>
 <p><strong>Edit the profile</strong></p>
 <p>Any subset. A name goes to the moderation queue (202, verdict as a name_verdict frame); refusals name_frozen, paused, age_step_down, filter_out_of_band (chat spec §8.2, §8.3).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -476,7 +476,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr><tr><td><code>202</code></td><td>The name is queued.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-recovery-reissue">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/reissue</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/reissue</code><span class="chip s-spec">spec</span></div>
 <p><strong>Reissue the paper code</strong></p>
 <p>Proof of the current code and the derivatives of the new one; the new one works and the old one dies in one transaction. A miss counts where /recovery/claim misses count (recovery.miss.shared, recovery.miss.pause).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -486,7 +486,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>409</code></td><td>stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
 </section>
 <section class="op" id="get-statements">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own Article 17 statements</strong></p>
 <p>Without the notifier&#x27;s identity; shown on the next entry with this identity, kept a year (dsa/SPEC §6; LAW-1, 2026-09-16). The first delivery sets delivered_at (proof of delivery, Art. 17).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -512,14 +512,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Accepted into the queue.</td><td></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code) or stepped_away (ApiError); told apart by error.code (protocol §6).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Take down your own phrase</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Taken down; the slot is freed</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-feed-density">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-spec">spec</span></div>
 <p><strong>The density band under the radius handle</strong></p>
 <p>A band from &quot;nobody here yet&quot; to &quot;hundreds&quot;, asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -529,21 +529,21 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-chat">chat</h2>
 <p>Like, match, chat, games in a chat (protocol §4.3, §4.7). Not built.</p>
 <section class="op" id="post-feed--id--like">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
 <p><strong>Like a phrase or an offer</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked or matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code) or stepped_away (ApiError).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id--like">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
 <p><strong>Take a like back until a match</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Taken back</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
 </section>
 <section class="op" id="post-matches--id--consent">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-spec">spec</span></div>
 <p><strong>Consent to talk</strong></p>
 <p>The chat opens when both have consented.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -576,7 +576,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The live ids.</td><td><a href="#schema-chatsaliveresult"><code>ChatsAliveResult</code></a></td></tr><tr><td><code>503</code></td><td>The database read was not confirmed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="patch-chats--id">
-<div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own span handle</strong></p>
 <p>10, 30 or 60 minutes, or while we talk (260 minutes).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -584,14 +584,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-chats--id">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Close a conversation by hand, for both</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-chats--id--game">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
 <p><strong>The game after a drop</strong></p>
 <p>Position, whose turn and the score from the game cache; no lines, no one else&#x27;s hand (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -599,7 +599,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The board.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
 <p><strong>Propose or change the game</strong></p>
 <p>The other person gets a proposal frame (chat spec §6, screen 18).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -609,7 +609,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-chats--id--game">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
 <p><strong>End the game</strong></p>
 <p>The conversation&#x27;s death takes the game with it by cascade anyway (chat_games ON DELETE CASCADE).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -617,7 +617,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-answer">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-spec">spec</span></div>
 <p><strong>Answer the game offer</strong></p>
 <p>accept opens the board for both; decline keeps talking in words; counter names another board (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -627,7 +627,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-moves">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-spec">spec</span></div>
 <p><strong>A move or a pass</strong></p>
 <p>By class: a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse} — the node shuffles and rolls. A move extends your own conversation span (chat spec §6, §8.6). Announced as an unencrypted system line.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -637,7 +637,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The board after the move.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-word">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-spec">spec</span></div>
 <p><strong>Set the hangman word</strong></p>
 <p>202 — the same queue as a phrase; a refusal is &quot;pick another&quot; and feeds the pause counter (chat spec §6 &quot;hangman&quot;).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -647,7 +647,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Queued.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-confirm">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/confirm</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/confirm</code><span class="chip s-spec">spec</span></div>
 <p><strong>I&#x27;m here — for the new game</strong></p>
 <p>Inside table.confirm.window; there is no &quot;N of 2&quot; counter for two (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -655,7 +655,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-proposals">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-spec">spec</span></div>
 <p><strong>Propose: play again, a draw, an undo</strong></p>
 <p>The undo fires on both players&#x27; consent (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -665,7 +665,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>The proposal id.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-proposals--pid">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Answer a proposal</strong></p>
 <p>accept / decline / counter (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -675,7 +675,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-resign">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-spec">spec</span></div>
 <p><strong>Resign</strong></p>
 <p>A one-sided announcement (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -683,7 +683,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--messages">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-spec">spec</span></div>
 <p><strong>Send a ciphertext</strong></p>
 <p>Stored in pending_deliveries, last_activity_at moves, handed to the other at once or on connection; could not — {local_id, error} (chat spec §8.8; SEC-8).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -693,7 +693,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>202</code></td><td>Accepted.</td><td><a href="#schema-messageack"><code>MessageAck</code></a></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code) or stepped_away (ApiError).</td><td><code>object</code></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--received">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/received</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/received</code><span class="chip s-spec">spec</span></div>
 <p><strong>Confirm receipt</strong></p>
 <p>The node deletes what was delivered from pending_deliveries (chat spec §8.8).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -705,7 +705,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-tables">tables</h2>
 <p>Tables — a game for a company (protocol §4.6). Proposed 2026-09-16, not built.</p>
 <section class="op" id="post-tables">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-spec">spec</span></div>
 <p><strong>Set a table</strong></p>
 <p>Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -715,7 +715,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>The table id.</td><td><code>object</code></td></tr><tr><td><code>409</code></td><td>stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
 </section>
 <section class="op" id="get-tables--id">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/tables/{id}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/tables/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>The table minus what is hidden</strong></p>
 <p>The board, {playing, watching}, lines since your own seating, your seat; your own hand, the backs of others&#x27; (chat spec §6.1).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -723,7 +723,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The table.</td><td><a href="#schema-tableview"><code>TableView</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--seat">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/seat</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">spec</span></div>
 <p><strong>Sit down</strong></p>
 <p>Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere (chat spec §6.1).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -731,7 +731,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-tables--id--seat">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/seat</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">spec</span></div>
 <p><strong>Stand up</strong></p>
 <p>Coming back is the same POST; history starts afresh from the seating (chat spec §6.1).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -739,7 +739,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--ticket">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/ticket</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/ticket</code><span class="chip s-spec">spec</span></div>
 <p><strong>A one-time ticket for the table&#x27;s socket</strong></p>
 <p>As for a conversation (protocol §4.4): the ticket goes into Sec-WebSocket-Protocol next to the subprotocol xor.p1.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -747,7 +747,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The ticket.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--lines">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/lines</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/lines</code><span class="chip s-spec">spec</span></div>
 <p><strong>A line, an application, a refusal or a sticker</strong></p>
 <p>line/application/refusal — 202, published by the queue&#x27;s verdict; sticker — 200, no queue. One application per game; a refusal without text is not accepted (chat spec §6.1).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -757,7 +757,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Queued.</td><td></td></tr><tr><td><code>200</code></td><td>Sticker placed.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--moves">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/moves</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/moves</code><span class="chip s-spec">spec</span></div>
 <p><strong>A move or a pass</strong></p>
 <p>In the board class&#x27;s terms; refusals not_your_turn, illegal_move with the engine&#x27;s reason; three passes in a row send you to the spectators (table.move.window, table.pass.limit).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -767,7 +767,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The board after the move.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--confirm">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/confirm</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/confirm</code><span class="chip s-spec">spec</span></div>
 <p><strong>I&#x27;m here — for the new game</strong></p>
 <p>Inside table.confirm.window (30 s); not confirmed — a spectator (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -775,7 +775,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--proposals">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals</code><span class="chip s-spec">spec</span></div>
 <p><strong>Propose: play again, a draw, an undo</strong></p>
 <p>The undo fires on every player&#x27;s consent and steps back exactly one snapshot (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -785,7 +785,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td>pending_exists — an open proposal is already there; refused — a spectator cannot propose.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>The proposal id.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--proposals--pid">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals/{pid}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals/{pid}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Answer a proposal</strong></p>
 <p>accept / decline / counter — a counter names another class and set (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -795,7 +795,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--resign">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/resign</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/resign</code><span class="chip s-spec">spec</span></div>
 <p><strong>Resign</strong></p>
 <p>A one-sided announcement; no result is recorded (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -803,7 +803,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--congratulate">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/congratulate</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/congratulate</code><span class="chip s-spec">spec</span></div>
 <p><strong>Congratulate a seat</strong></p>
 <p>Appears as a line at the table; the engine names no winner (chat spec §6, screen 19).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -813,7 +813,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--kick">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/kick</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/kick</code><span class="chip s-spec">spec</span></div>
 <p><strong>A vote to remove a seat</strong></p>
 <p>The node counts the majority of those seated; no trace remains; the removed can come back (chat spec §6.1).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -825,7 +825,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-safety">safety</h2>
 <p>Blocks, hiding, stepping away (protocol §4.8, §4.9). Proposed 2026-09-16, not built.</p>
 <section class="op" id="get-blocks">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/blocks</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/blocks</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own blocks</strong></p>
 <p>{id, since} — no identities; screen 10 shows the list and lifting (decided 2026-09-16, protocol §4.8).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -833,7 +833,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
 </section>
 <section class="op" id="post-blocks">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/blocks</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/blocks</code><span class="chip s-spec">spec</span></div>
 <p><strong>Block a person</strong></p>
 <p>By a phrase, a conversation or a seat; 204 always, a repeat too — the answer is not an oracle. The match dies, the shared chat closes, phrases are hidden from both (chat spec §8.9).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -843,7 +843,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done</td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-blocks--id">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/blocks/{id}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/blocks/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Lift a block</strong></p>
 <p>The set of visible tables is recomputed on the next entry into the feed (chat spec §8.9, §6.1).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -851,7 +851,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-hidden">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/hidden</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/hidden</code><span class="chip s-spec">spec</span></div>
 <p><strong>The hidden list</strong></p>
 <p>For screen 10; short by construction. Fields {id, kind, text} named in protocol §4.8 (2026-09-16).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -859,7 +859,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
 </section>
 <section class="op" id="post-hidden">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/hidden</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/hidden</code><span class="chip s-spec">spec</span></div>
 <p><strong>Hide a phrase or a line for yourself</strong></p>
 <p>204; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -869,7 +869,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Hidden; the id for bringing it back.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-hidden--id">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/hidden/{id}</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/hidden/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Bring the hidden back</strong></p>
 <p>Screen 5.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -877,7 +877,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-away">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/away</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/away</code><span class="chip s-spec">spec</span></div>
 <p><strong>Step away</strong></p>
 <p>span short/hour/long (away.span.*). In one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -887,7 +887,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Until when.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-away">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/away</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/away</code><span class="chip s-spec">spec</span></div>
 <p><strong>Come back early</strong></p>
 <p>stepped_away_until = now(); the mark at the other end is lifted by your first line, not by this request (chat spec §8.2).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -897,7 +897,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-support">support</h2>
 <p>Support requests (protocol §4.10). Proposed 2026-09-16, not built.</p>
 <section class="op" id="get-support">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/support</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/support</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own requests</strong></p>
 <p>By number without a signature the node answers nothing; a frozen session sees no list (screen 14).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -905,7 +905,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-supportrequest"><code>SupportRequest</code></a>&gt;</td></tr></table></div>
 </section>
 <section class="op" id="post-support">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/support</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/support</code><span class="chip s-spec">spec</span></div>
 <p><strong>A support request</strong></p>
 <p>{body, email?}; 201 {public_no} — 10 Crockford base32 characters at once. The fourth in a day — 429 with the storefront&#x27;s support address in message (support.requests.day, support.frozen.day).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -915,7 +915,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>The public number.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-support--no--seen">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/support/{no}/seen</code><span class="chip s-proposed">proposed</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/support/{no}/seen</code><span class="chip s-spec">spec</span></div>
 <p><strong>Clear the answer-waiting dot</strong></p>
 <p>answer_seen = true (schema support_requests).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>

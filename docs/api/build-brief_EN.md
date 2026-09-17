@@ -1,13 +1,12 @@
 # API build brief — 2026-09-17
 
 What to program, in what order, and what to check against. The contract's canon is `docs/api/openapi.yaml`
-(102 operations: 39 built, 7 from the spec, 56 proposed), the protocol —
+(102 operations: 39 built, 63 from the spec, 0 proposed), the protocol —
 `protocol_EN.md`, the data — the chat spec `chat_EN.md` and the offers spec, the tests — `test-map_EN.md`. Pair — `build-brief_RU.md`.
 
 ## 1. Before the first line
 
-- **The names of the 56 proposed routes are agreed in one sitting** (protocol §8 item 2): everything in the yaml with
-  `x-status: proposed` was named by me, the behaviour comes from the canon. After agreement the status becomes `spec`.
+- **The names of the 56 proposed routes were agreed by the owner on 2026-09-17** (`ROUTES_2026-09-17_naming_EN.md`); in the yaml they carry `x-status: spec`, the §8 list of the protocol is empty.
 - **Core first, faces after** (chat spec §13): protocol, crypto and state are one module without DOM and without Ink;
   the terminal `depth` goes first, the web follows the proven protocol.
 - **Gates hold the contract**: `check-openapi.sh` checks the yaml against the protocol tables and `relay/node/src/routes`

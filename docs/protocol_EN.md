@@ -17,7 +17,7 @@ Every route row carries its **origin**, and that is what to read first:
 | Mark | What it means |
 |---|---|
 | **spec** | the route is named in `chat_EN.md` or in the flow diagrams; here it is only collected |
-| **proposed** | the operation is described in the spec but had no name; the name is given **here** and needs agreement |
+| **spec** (agreed 2026-09-17) | the operation is described in the spec but had no name; the name is given **here** and needs agreement |
 
 The distinction is not a formality. A project rule forbids inventing API fields
 and endpoint behaviour; separating what was collected from what is proposed is the
@@ -84,22 +84,22 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 
 ## 4. Routes
 
-**The eight areas entered the contract on 2026-09-16 — §4.6–4.12 below.** [retired] This said "tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and 'My notices' … have no rows here and no operations in `docs/api/openapi.yaml`" (final panel of 2026-09-15, CON-5). The canon named no path for any of them, so every row of those sections carries the origin **proposed 2026-09-16**: the names are mine, the behaviour comes from the chat spec and the storefront screens, and each row says where from. "My notices" got no routes of their own: the decision on your own notice is `POST /report/decision` (§4.5), new editions of the documents are `GET /legal/manifest` (§4.1), and the Article 17 statement to an author is `GET /statements` (§4.5; added 2026-09-16, LAW-1: this said "is not kept on the node" [retired], while `dsa/SPEC_EN.md` §6 keeps it for a year).
+**The eight areas entered the contract on 2026-09-16 — §4.6–4.12 below.** [retired] This said "tables, games for two, blocks, stepping away, support, editing the profile, reissuing the paper code and 'My notices' … have no rows here and no operations in `docs/api/openapi.yaml`" (final panel of 2026-09-15, CON-5). The canon named no path for any of them, so every row of those sections carries the origin **spec** (proposed 2026-09-16, agreed 2026-09-17): the names are mine, the behaviour comes from the chat spec and the storefront screens, and each row says where from. "My notices" got no routes of their own: the decision on your own notice is `POST /report/decision` (§4.5), new editions of the documents are `GET /legal/manifest` (§4.1), and the Article 17 statement to an author is `GET /statements` (§4.5; added 2026-09-16, LAW-1: this said "is not kept on the node" [retired], while `dsa/SPEC_EN.md` §6 keeps it for a year).
 
 ### 4.1. Identity and session (step 1 of §13)
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id`; at most 10 per hour and 30 per day per address (2026-09-15) | **proposed** (§8.2) |
-| `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **proposed** (§8.2) |
+| `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id`; at most 10 per hour and 30 per day per address (2026-09-15) | **spec** (agreed 2026-09-17) (§8.2) |
+| `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **spec** (agreed 2026-09-17) (§8.2) |
 | `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use; **requires a PIN proof** (§8.2, 2026-09-11) | **spec** |
-| `POST /vault/pin` | changing the PIN `{nonce, current_auth, next_auth_hash, next_share}`: the proof of the old PIN is `auth` of §8.2 (the node compares its hash with `vault_shares.auth_hash`), the new hash and the reissued share — **proposed 2026-09-11**, body 2026-09-17 (SEC-1 of pass 5), the handle does not exist yet | **proposed** (§8.2) |
-| `POST /identities/close` | "start over": closing an identity `{nonce, auth}` — the PIN proof is the same `auth` of §8.2, not the stored hash — **proposed 2026-09-11**, body 2026-09-17, the handle does not exist yet | **proposed** (§8.2) |
-| `PUT /identities/appearance` | the identity's appearance for the face named by the API key, one row per face: theme, contrast step, an accent from that face's set; the initial value comes in `POST /identities` — **proposed 2026-09-15** (storefront screen 22), the handle does not exist yet | **proposed** (§8.2) |
+| `POST /vault/pin` | changing the PIN `{nonce, current_auth, next_auth_hash, next_share}`: the proof of the old PIN is `auth` of §8.2 (the node compares its hash with `vault_shares.auth_hash`), the new hash and the reissued share — **spec** (proposed 2026-09-11, agreed 2026-09-17), body 2026-09-17 (SEC-1 of pass 5), the handle does not exist yet | **spec** (agreed 2026-09-17) (§8.2) |
+| `POST /identities/close` | "start over": closing an identity `{nonce, auth}` — the PIN proof is the same `auth` of §8.2, not the stored hash — **spec** (proposed 2026-09-11, agreed 2026-09-17), body 2026-09-17, the handle does not exist yet | **spec** (agreed 2026-09-17) (§8.2) |
+| `PUT /identities/appearance` | the identity's appearance for the face named by the API key, one row per face: theme, contrast step, an accent from that face's set; the initial value comes in `POST /identities` — **spec** (proposed 2026-09-15, agreed 2026-09-17) (storefront screen 22), the handle does not exist yet | **spec** (agreed 2026-09-17) (§8.2) |
 | `POST /sessions/claim` | using the code on the new device; the old one goes still. Misses are limited per address and across the node, as recovery's; a second claim on the same invite cancels the transfer on both sides (2026-09-15) | **spec** |
-| `POST /recovery/claim` | raising an identity from the paper code | **proposed** (§8.2, §13) |
-| `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy — `required` for all three since 2026-09-15 | **proposed** (2026-08-29) |
-| `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **proposed** (2026-08-29) |
+| `POST /recovery/claim` | raising an identity from the paper code | **spec** (agreed 2026-09-17) (§8.2, §13) |
+| `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy — `required` for all three since 2026-09-15 | **spec** (agreed 2026-09-17) (2026-08-29) |
+| `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **spec** (agreed 2026-09-17) (2026-08-29) |
 
 **Registration is the two steps of screen 2, both mandatory:** who you are — name and age; what
 brings you back — the PIN with the share exchange and the paper code (two requests in the second step).
@@ -113,8 +113,8 @@ identity.
 |---|---|---|
 | `POST /feed` | publishes a phrase; answers **202** at once, `visible_at` stays empty until the queue's verdict | **spec** |
 | `GET /feed` | delivery by intersecting circles, with the language, mode and age filters | **spec** (named in the test map) |
-| `DELETE /feed/:id` | withdraws your own phrase; the slot is freed, the 64-minute ceiling is not | **proposed** (§8.3) |
-| `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release | **proposed** (§8.3, screen 3) |
+| `DELETE /feed/:id` | withdraws your own phrase; the slot is freed, the 64-minute ceiling is not | **spec** (agreed 2026-09-17) (§8.3) |
+| `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release | **spec** (agreed 2026-09-17) (§8.3, screen 3) |
 
 Each card in `items` of the feed answer (`{items, next}`, §6) carries `{kind, id, text, mode, lat, lon, area_radius, like_count, created_at}`; `kind` is `phrase` or `table`, and a table carries `{game, playing, watching}` instead of `text`. **Tables travel outside the cursor:** the random quarter (§6.1) is given only on the first page, when `after` is empty — a table has no `visible_at`, and the cursor cannot position it (2026-09-16, DATA-23). A phrase carries `{id, text, mode, lat, lon, area_radius, like_count,
 created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not a point**, and nothing about the author. `lat`/`lon` are **rounded to a grid node stepped by `area_radius`** (the formula is in `chat_EN.md` §8.3); the exact ones never leave and stay only for computing the overlap.
@@ -123,16 +123,16 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own | **proposed** (§8.4) |
-| `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **proposed 2026-09-15** (§8.4) | **proposed** (§8.4) |
-| `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **proposed** (§8.5) |
+| `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own | **spec** (agreed 2026-09-17) (§8.4) |
+| `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **spec** (proposed 2026-09-15, agreed 2026-09-17) (§8.4) | **spec** (agreed 2026-09-17) (§8.4) |
+| `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **spec** (agreed 2026-09-17) (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
 | `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |
 | `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
-| `DELETE /chats/:id` | closes a conversation by hand — for both at once | **proposed** (§5, screen 8) |
-| `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **proposed** (§8.6) |
-| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **proposed 2026-09-16** (§8.8; panel, SEC-8) |
-| `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **proposed 2026-09-16** (§8.8) |
+| `DELETE /chats/:id` | closes a conversation by hand — for both at once | **spec** (agreed 2026-09-17) (§5, screen 8) |
+| `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **spec** (agreed 2026-09-17) (§8.6) |
+| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8; panel, SEC-8) |
+| `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8) |
 
 ### 4.4. The socket
 
@@ -193,8 +193,8 @@ or takes a live identity for a dead one.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` absent — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
-| `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **proposed 2026-09-15** (final panel, SEC-9) | **proposed** (`dsa/SPEC_EN.md` §6) |
+| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` absent — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **spec** (proposed 2026-09-16, agreed 2026-09-17) (`dsa/SPEC_EN.md` §6) |
+| `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **spec** (proposed 2026-09-15, agreed 2026-09-17) (final panel, SEC-9) | **spec** (agreed 2026-09-17) (`dsa/SPEC_EN.md` §6) |
 
 ### 4.6. Tables (chat spec §6.1, screen 19)
 
@@ -202,19 +202,19 @@ All proposed 2026-09-16; the behaviour is §6.1's and screen 19's, the paths are
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /tables` | sets a table: board class, set, the set's number of seats (`tables.set`, `tables.seats`), area (`lat`, `lon`, `area_radius` from the five steps), `nonce`; the author takes seat 1 and stands up from their previous table as the first statement of the same transaction — the screen warns before the tap; answers `{id}`; at most `tables.create.hour` per identity | **proposed 2026-09-16** (§6.1, schema `tables`) |
-| `GET /tables/:id` | the whole table minus what is hidden: the board with `pending`, `{playing, watching}`, lines since your own seating, your `seat` and `playing`; your own hand, the backs of others'; **only with a live seat** — otherwise 404 in the same shape as for a table that does not exist (SEC-4). A spectator sits too: `seat` is there, `playing: false` | **proposed 2026-09-16** (§6.1 "what is seen") |
-| `POST /tables/:id/seat` | sit down; refusals in this order: `already_seated` when you sit at another, then `unavailable` when the "everyone with everyone" age bands fail or a blocked person sits there — one answer, so as not to be an oracle; at most `seat.attempts.hour` attempts per identity (SEC-2); the lowest free `seat_no` is handed out under the table's lock | **proposed 2026-09-16** (§6.1, indexes `table_seats_one_at_a_time`, `table_seats_seat_taken`) |
-| `DELETE /tables/:id/seat` | stand up: `left_at` and `NOTIFY seat_left`, the socket closes with code 4005; the last one to stand up sets `tables.closed_at = now()` in the same transaction (DATA-27); coming back is the same `POST`, a new seat and history afresh from the seating; the outward score is by live seat, whoever left does not carry it (SEC-12) | **proposed 2026-09-16** (§6.1) |
-| `POST /tables/:id/ticket` | a one-time ticket for the table's socket, as for a conversation (§4.4); only with a live seat (otherwise 404, SEC-4); the ticket lives `ticket.lifetime`, 30 seconds (SEC-15) | **proposed 2026-09-16** (§7) |
-| `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text}` — **202**, published by the queue's verdict; a sticker `{kind: sticker, sticker}` — **200**, no queue, at most `sticker.minute` a minute per identity (SEC-5); one application per game, a refusal without text is not accepted, a `refusal` is accepted only from a player | **proposed 2026-09-16** (§6.1, schema `table_lines`) |
-| `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` in the board class's terms; `seq` is the expected **board version** (`table_games.seq`, monotonic, grows on an undo too): a repeat of the same body at the same `seq` answers the same `board`, a foreign version gets `stale_seq` (DATA-24, SEC-11); refusals `not_your_turn`, `illegal_move` with the engine's reason; three passes in a row — to the spectators; the move deadline `turn_due` sits in the database; the auto-pass is placed by a scheduler job every 30 seconds and by any request to the table after the deadline, overdue deadlines are applied in order with their own `seq`, an overdue `pending` is cleared the same way and `GET` answers `pending: null` (OPS-12, OPS-3, OPS-4) | **proposed 2026-09-16** (§6, §6.1; `table.move.window`, `table.pass.limit`) |
-| `POST /tables/:id/confirm` | "I'm here" for a new game inside `table.confirm.window`; not confirmed — a spectator | **proposed 2026-09-16** (§6) |
-| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; from a player only, a spectator gets 409 `refused` (SEC-28); one open proposal per table — a second one answers 409 `pending_exists` (SEC-5, DATA-7), kept in `table_games.pending` and surviving a restart; the undo fires on every player's consent and steps back one snapshot, which the engine keeps in memory (§6) — after a restart it answers `nothing_to_undo` (OPS-12) | **proposed 2026-09-16** (§6) |
-| `POST /tables/:id/proposals/:pid` | the answer `{answer: accept \| decline \| counter, class, set}` | **proposed 2026-09-16** (§6) |
-| `POST /tables/:id/resign` | resign — a one-sided announcement, no result | **proposed 2026-09-16** (§6) |
-| `POST /tables/:id/congratulate` | congratulate `{seat}` — as a `kind: congratulation` line composed by the engine; one per seat per game (SEC-5) | **proposed 2026-09-16** (§6, screen 19) |
-| `POST /tables/:id/kick` | a vote to remove `{seat}`; one vote per identity, a repeat does not count; the node counts the majority of **players** (`playing_from` set), spectators do not decide (SEC-24), the votes live in memory until the game ends, no trace remains | **proposed 2026-09-16** (§6.1) |
+| `POST /tables` | sets a table: board class, set, the set's number of seats (`tables.set`, `tables.seats`), area (`lat`, `lon`, `area_radius` from the five steps), `nonce`; the author takes seat 1 and stands up from their previous table as the first statement of the same transaction — the screen warns before the tap; answers `{id}`; at most `tables.create.hour` per identity | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1, schema `tables`) |
+| `GET /tables/:id` | the whole table minus what is hidden: the board with `pending`, `{playing, watching}`, lines since your own seating, your `seat` and `playing`; your own hand, the backs of others'; **only with a live seat** — otherwise 404 in the same shape as for a table that does not exist (SEC-4). A spectator sits too: `seat` is there, `playing: false` | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1 "what is seen") |
+| `POST /tables/:id/seat` | sit down; refusals in this order: `already_seated` when you sit at another, then `unavailable` when the "everyone with everyone" age bands fail or a blocked person sits there — one answer, so as not to be an oracle; at most `seat.attempts.hour` attempts per identity (SEC-2); the lowest free `seat_no` is handed out under the table's lock | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1, indexes `table_seats_one_at_a_time`, `table_seats_seat_taken`) |
+| `DELETE /tables/:id/seat` | stand up: `left_at` and `NOTIFY seat_left`, the socket closes with code 4005; the last one to stand up sets `tables.closed_at = now()` in the same transaction (DATA-27); coming back is the same `POST`, a new seat and history afresh from the seating; the outward score is by live seat, whoever left does not carry it (SEC-12) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1) |
+| `POST /tables/:id/ticket` | a one-time ticket for the table's socket, as for a conversation (§4.4); only with a live seat (otherwise 404, SEC-4); the ticket lives `ticket.lifetime`, 30 seconds (SEC-15) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§7) |
+| `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text}` — **202**, published by the queue's verdict; a sticker `{kind: sticker, sticker}` — **200**, no queue, at most `sticker.minute` a minute per identity (SEC-5); one application per game, a refusal without text is not accepted, a `refusal` is accepted only from a player | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1, schema `table_lines`) |
+| `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` in the board class's terms; `seq` is the expected **board version** (`table_games.seq`, monotonic, grows on an undo too): a repeat of the same body at the same `seq` answers the same `board`, a foreign version gets `stale_seq` (DATA-24, SEC-11); refusals `not_your_turn`, `illegal_move` with the engine's reason; three passes in a row — to the spectators; the move deadline `turn_due` sits in the database; the auto-pass is placed by a scheduler job every 30 seconds and by any request to the table after the deadline, overdue deadlines are applied in order with their own `seq`, an overdue `pending` is cleared the same way and `GET` answers `pending: null` (OPS-12, OPS-3, OPS-4) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, §6.1; `table.move.window`, `table.pass.limit`) |
+| `POST /tables/:id/confirm` | "I'm here" for a new game inside `table.confirm.window`; not confirmed — a spectator | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; from a player only, a spectator gets 409 `refused` (SEC-28); one open proposal per table — a second one answers 409 `pending_exists` (SEC-5, DATA-7), kept in `table_games.pending` and surviving a restart; the undo fires on every player's consent and steps back one snapshot, which the engine keeps in memory (§6) — after a restart it answers `nothing_to_undo` (OPS-12) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /tables/:id/proposals/:pid` | the answer `{answer: accept \| decline \| counter, class, set}` | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /tables/:id/resign` | resign — a one-sided announcement, no result | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /tables/:id/congratulate` | congratulate `{seat}` — as a `kind: congratulation` line composed by the engine; one per seat per game (SEC-5) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, screen 19) |
+| `POST /tables/:id/kick` | a vote to remove `{seat}`; one vote per identity, a repeat does not count; the node counts the majority of **players** (`playing_from` set), spectators do not decide (SEC-24), the votes live in memory until the game ends, no trace remains | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6.1) |
 
 Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the one who blocks leaves the table. A table in the feed is a `GET /feed` card with `kind: table`, the game's name and two numbers.
 
@@ -222,34 +222,34 @@ Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the 
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /chats/:id/game` | propose or change the game `{class, set}`; the other person gets a `proposal` frame | **proposed 2026-09-16** (§6, screen 18) |
-| `POST /chats/:id/game/answer` | `{answer: accept \| decline \| counter, class, set}`; on `accept` the board opens for both | **proposed 2026-09-16** (§6) |
-| `GET /chats/:id/game` | the position, whose turn and the score after a drop — from the game cache, no lines and no one else's hand | **proposed 2026-09-16** (§6, `chat_games`) |
-| `POST /chats/:id/game/moves` | a move `{seq, move}` or a pass; `move` by class: a cell, an edge, a piece, a letter, `{roll}`, `{deal}`, `{flick, impulse}` — the node shuffles and rolls; a move extends **your own** conversation span | **proposed 2026-09-16** (§6, §8.6) |
-| `POST /chats/:id/game/word` | set the hangman word `{word}` — **202**, the same queue as a phrase; a refusal is "pick another" and feeds the pause counter | **proposed 2026-09-16** (§6 "hangman") |
-| `POST /chats/:id/game/confirm` | "I'm here" inside `table.confirm.window`; there is no "N of 2" counter | **proposed 2026-09-16** (§6) |
-| `POST /chats/:id/game/proposals` | `{kind: rematch \| draw \| undo, class, set}` and the answer via `POST /chats/:id/game/proposals/:pid` `{answer}` | **proposed 2026-09-16** (§6) |
-| `POST /chats/:id/game/proposals/:pid` | the answer to a proposal | **proposed 2026-09-16** (§6) |
-| `POST /chats/:id/game/resign` | resign | **proposed 2026-09-16** (§6) |
-| `DELETE /chats/:id/game` | end the game; the conversation's death takes the game with it by cascade anyway | **proposed 2026-09-16** (`chat_games ON DELETE CASCADE`) |
+| `POST /chats/:id/game` | propose or change the game `{class, set}`; the other person gets a `proposal` frame | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, screen 18) |
+| `POST /chats/:id/game/answer` | `{answer: accept \| decline \| counter, class, set}`; on `accept` the board opens for both | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `GET /chats/:id/game` | the position, whose turn and the score after a drop — from the game cache, no lines and no one else's hand | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, `chat_games`) |
+| `POST /chats/:id/game/moves` | a move `{seq, move}` or a pass; `move` by class: a cell, an edge, a piece, a letter, `{roll}`, `{deal}`, `{flick, impulse}` — the node shuffles and rolls; a move extends **your own** conversation span | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, §8.6) |
+| `POST /chats/:id/game/word` | set the hangman word `{word}` — **202**, the same queue as a phrase; a refusal is "pick another" and feeds the pause counter | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6 "hangman") |
+| `POST /chats/:id/game/confirm` | "I'm here" inside `table.confirm.window`; there is no "N of 2" counter | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /chats/:id/game/proposals` | `{kind: rematch \| draw \| undo, class, set}` and the answer via `POST /chats/:id/game/proposals/:pid` `{answer}` | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /chats/:id/game/proposals/:pid` | the answer to a proposal | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `POST /chats/:id/game/resign` | resign | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
+| `DELETE /chats/:id/game` | end the game; the conversation's death takes the game with it by cascade anyway | **spec** (proposed 2026-09-16, agreed 2026-09-17) (`chat_games ON DELETE CASCADE`) |
 
 ### 4.8. Blocks and hiding (chat spec §8.9, screens 5 and 10)
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /blocks` | block by a phrase `{feed: id}`, a conversation `{chat: id}` or a seat `{table: id, seat}`, with a `nonce`; **204** always, a repeat too: the answer is not an oracle; the match dies, the shared chat closes, phrases are hidden from both; at most `blocks.hour` per identity — the price is acknowledged: a block by a phrase shows the blocker which other phrases of the same author vanished (SEC-1) | **proposed 2026-09-16** (§8.9, schema `blocks`) |
-| `GET /blocks` | your own blocks: `{id, since}` — `id` is opaque (`blocks.id`) and does not reduce to an identity; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **proposed 2026-09-16** (§8.9 "until lifted") |
-| `DELETE /blocks/:id` | lift a block; **204** on a foreign or unknown `id` too (SEC-14); the set of visible tables is recomputed on the next entry into the feed | **proposed 2026-09-16** (§8.9, §6.1) |
-| `POST /hidden` | hide (at most `hidden.hour` an hour per identity) a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **200** `{id}` for bringing it back; the author does not learn | **proposed 2026-09-16** (§8.9, schema `hidden_messages`) |
-| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line until the table is swept (`DELETE FROM tables`, §6.1; DATA-8) | **proposed 2026-09-16** (screen 10) |
-| `DELETE /hidden/:id` | bring the hidden back by `hidden_messages.id`; **204** on a foreign `id` too (SEC-14) | **proposed 2026-09-16** (screen 5) |
+| `POST /blocks` | block by a phrase `{feed: id}`, a conversation `{chat: id}` or a seat `{table: id, seat}`, with a `nonce`; **204** always, a repeat too: the answer is not an oracle; the match dies, the shared chat closes, phrases are hidden from both; at most `blocks.hour` per identity — the price is acknowledged: a block by a phrase shows the blocker which other phrases of the same author vanished (SEC-1) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9, schema `blocks`) |
+| `GET /blocks` | your own blocks: `{id, since}` — `id` is opaque (`blocks.id`) and does not reduce to an identity; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9 "until lifted") |
+| `DELETE /blocks/:id` | lift a block; **204** on a foreign or unknown `id` too (SEC-14); the set of visible tables is recomputed on the next entry into the feed | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9, §6.1) |
+| `POST /hidden` | hide (at most `hidden.hour` an hour per identity) a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **200** `{id}` for bringing it back; the author does not learn | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9, schema `hidden_messages`) |
+| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line until the table is swept (`DELETE FROM tables`, §6.1; DATA-8) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 10) |
+| `DELETE /hidden/:id` | bring the hidden back by `hidden_messages.id`; **204** on a foreign `id` too (SEC-14) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 5) |
 
 ### 4.9. Stepping away (chat spec §8.2 "stepped away", screen 20)
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /away` | step away `{span: short \| hour \| long, nonce}` (`away.span.*`); in one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets `peer_stepped_away`; answers `{until}`; the client counts the price before the tap | **proposed 2026-09-16** (§8.2) |
-| `DELETE /away` | come back early: `stepped_away_until = now()`; the mark at the other person's end is lifted by your first line, not by this request | **proposed 2026-09-16** (§8.2) |
+| `POST /away` | step away `{span: short \| hour \| long, nonce}` (`away.span.*`); in one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets `peer_stepped_away`; answers `{until}`; the client counts the price before the tap | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2) |
+| `DELETE /away` | come back early: `stepped_away_until = now()`; the mark at the other person's end is lifted by your first line, not by this request | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2) |
 
 While stepped away, **every** signed request except `DELETE /away`, `GET /identities/me` and `POST /identities/close` answers **409** `stepped_away`, socket tickets included: "until then the product does not exist for the person" (chat spec §8.2), screen 20 — "emptiness: no feed, no conversations". Refined 2026-09-16 (panel, SEC-9); this said "reading and conversations stay open" [retired]. Stepping away also takes the table lines waiting for a verdict (DATA-26).
 
@@ -257,9 +257,9 @@ While stepped away, **every** signed request except `DELETE /away`, `GET /identi
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /support` | a request `{body, email, nonce}` (`email` optional); **201** `{public_no}` — 10 Crockford base32 characters at once; the fourth in a day — **429** with the storefront's support address in `message` (`support.requests.day`, `support.frozen.day`) | **proposed 2026-09-16** (schema `support_requests`) |
-| `GET /support` | your own requests: `{public_no, created_at, answer, answered_at, answer_seen}`; by number without a signature the node answers nothing; a frozen session sees no list | **proposed 2026-09-16** (screen 14) |
-| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** on a foreign or unknown number too (SEC-23) | **proposed 2026-09-16** (schema, `answer_seen`) |
+| `POST /support` | a request `{body, email, nonce}` (`email` optional); **201** `{public_no}` — 10 Crockford base32 characters at once; the fourth in a day — **429** with the storefront's support address in `message` (`support.requests.day`, `support.frozen.day`) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (schema `support_requests`) |
+| `GET /support` | your own requests: `{public_no, created_at, answer, answered_at, answer_seen}`; by number without a signature the node answers nothing; a frozen session sees no list | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 14) |
+| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** on a foreign or unknown number too (SEC-23) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (schema, `answer_seen`) |
 
 Turning a request into an Article 16 notice is the client's act: the text is carried into the `POST /report` form and the request row is deleted in the same transaction (chat spec, the comment on `support_requests`).
 
@@ -267,8 +267,8 @@ Turning a request into an Article 16 notice is the client's act: the text is car
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /identities/me` | your own profile: `{name, name_pending, age, filter_age_min, filter_age_max, languages, stepped_away_until, phrases: [{id, expires_at}], table: {id, seat}}` — your own live things with their timers for screens 9 and 10 (CON-17) | **proposed 2026-09-16** (screen 10) |
-| `PATCH /identities/me` | edit `{name, age, filter_age_min, filter_age_max, languages}` — any subset; a name goes to the moderation queue (**202**, the verdict as a `name_verdict` frame), refusal `name_frozen` with a live phrase or an open chat and `paused` during the pause after refusals; age across the 20/21 border only upwards, `age_step_down`; the filter — bounds multiples of 5 or the band's edge, width at least 5, not wider than the band — `filter_out_of_band`; up to three languages (`identities.languages`); at most `profile.patch.day` edits a day per identity | **proposed 2026-09-16** (§8.2, §8.3; `name.length`, `filter.age.step`, `filter.age.min_width`) |
+| `GET /identities/me` | your own profile: `{name, name_pending, age, filter_age_min, filter_age_max, languages, stepped_away_until, phrases: [{id, expires_at}], table: {id, seat}}` — your own live things with their timers for screens 9 and 10 (CON-17) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 10) |
+| `PATCH /identities/me` | edit `{name, age, filter_age_min, filter_age_max, languages}` — any subset; a name goes to the moderation queue (**202**, the verdict as a `name_verdict` frame), refusal `name_frozen` with a live phrase or an open chat and `paused` during the pause after refusals; age across the 20/21 border only upwards, `age_step_down`; the filter — bounds multiples of 5 or the band's edge, width at least 5, not wider than the band — `filter_out_of_band`; up to three languages (`identities.languages`); at most `profile.patch.day` edits a day per identity | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2, §8.3; `name.length`, `filter.age.step`, `filter.age.min_width`) |
 
 Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each face.
 
@@ -276,7 +276,7 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /recovery/reissue` | change the code: `{current: {lookup_id}, next: {lookup_id, wrapped_key}, nonce}`; at most `reissue.day` a day per identity — proof of the current code and the derivatives of a new one born on the device; the new one works and the old one dies **in one transaction**; a miss on the current code counts where `POST /recovery/claim` misses count and towards the `recovery.miss.pause`; the shown-and-confirmed step stays on the device, the node knows nothing of it | **proposed 2026-09-16** (§8.2; `recovery.code.length`, `recovery.miss.shared`) |
+| `POST /recovery/reissue` | change the code: `{current: {lookup_id}, next: {lookup_id, wrapped_key}, nonce}`; at most `reissue.day` a day per identity — proof of the current code and the derivatives of a new one born on the device; the new one works and the old one dies **in one transaction**; a miss on the current code counts where `POST /recovery/claim` misses count and towards the `recovery.miss.pause`; the shown-and-confirmed step stays on the device, the node knows nothing of it | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2; `recovery.code.length`, `recovery.miss.shared`) |
 
 ## 5. Limits
 
@@ -372,9 +372,7 @@ The list is deliberately short: this is what cannot be derived from the spec, an
 it has to be settled before the first line of step 1.
 
 1. ~~**The error shape**~~ — **decided 2026-09-16:** `{error: {code, message, reason?}}`, §6.
-2. **The names of the proposed routes** — the rows marked "proposed" in §4; since 2026-09-16
-   there are 56 of them, and this is the only thing left on the list: the names are agreed
-   before the first line of code in one sitting, not one at a time.
+2. ~~**The names of the proposed routes**~~ — **all 56 agreed as they are on 2026-09-17** (`docs/api/ROUTES_2026-09-17_naming_EN.md`); the status in `openapi.yaml` is `spec`. The §8 list is empty: code may begin.
 3. ~~**How a client states its protocol version**~~ — **decided 2026-09-16:** the header
    `x-protocol-version`, on the socket the subprotocol `xor.p1`; §6, §4.4.
 4. ~~**Pagination of the feed and the inbox**~~ — **decided 2026-09-16:** a cursor `?after`,

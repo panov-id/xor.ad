@@ -44,11 +44,11 @@ Drawing starts when all seven hold, each checked by a machine or a panel:
 |---|---|---|
 | 1. Gates green | green | `harden-cycle.sh` 18/0, inside it `check-all.sh` 32/0/0 |
 | 2. Screens 01–24 with no behaviour questions | green | 17 open questions, all marked "settled by drawing" |
-| 3. Final panel — zero above trivia | red | pass 2 recorded in `PANEL_2026-09-16_stage-s5-pass2.md`, the fix batch applied, pass 3 not held |
+| 3. Final panel — zero above trivia | green | five passes (`PANEL_2026-09-16_stage-s5-pass2.md` … `PANEL_2026-09-17_stage-s5-pass5.md`): 65 → 43 → 29 → 17 findings, none critical in passes 4–5, everything above trivia closed by batches; **owner's decision of 2026-09-17: convergence accepted as zero** |
 | 4. Legal texts | green | all 31 questions of the brief marked "blocks publication"; the 16.09 edition (edits of 15–16.09) is not deployed, prod serves 10.09 |
 | 5. Facts | green | `check-facts-coverage` green; zero items hold drawing |
-| 6. Patterns and rules | amber | the design system has nothing open; the component vocabulary is collected (50 components, 10 screen disagreements), not yet in a document |
-| 7. The drawing brief | red | no document |
+| 6. Patterns and rules | green | the design system has nothing open; the component vocabulary is a section of `design-system-app_EN.md` (50 components, six rules R1–R6, ten disagreements with a direction), 2026-09-17 |
+| 7. The drawing brief | green | `drawing-brief_RU/EN.md` and the build brief `api/build-brief_RU/EN.md`, 2026-09-17 |
 
 ## Stages
 

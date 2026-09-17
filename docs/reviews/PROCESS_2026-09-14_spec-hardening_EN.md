@@ -76,3 +76,5 @@ from a project rule is decided by the process itself and reported with its price
 - It writes no product code and does not touch `relay/`, CI or rollout.
 - It does not push to shared branches or publish.
 - It does not change the owner's recorded decisions without asking.
+
+**S6 closed 2026-09-17:** the drawing brief — `docs/drawing-brief_EN.md`, the API build brief — `docs/api/build-brief_EN.md`; gate 3 of the route closed by the owner's decision (the convergence of five passes accepted as zero).

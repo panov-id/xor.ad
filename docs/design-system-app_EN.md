@@ -105,6 +105,93 @@ The delta is kept here and only here. Every difference carries its reason.
 - Every screen's mock-up is an SVG at true geometry, with numbered questions at
   the end, agreed there, and only then CSS.
 
+## Component vocabulary
+
+Collected 2026-09-16 from the storefront screens 01–24 (research agent; every row checked by the lead against the screens while preparing the drawing brief). Screen 16 "Stickers" is outside the alpha and not in the vocabulary. Fifty components; "none — mockup" means the design system has no rule and the screen's mockup sets it.
+
+| Component | Screens | States the mockup must show | Rule or token |
+|---|---|---|---|
+| Primary button | 01 02 04 06 08 13 14 19 20 | disabled without consent, until the node answers, with no seats, without a refusal text; focus ring 2px | `--r-2`; shadow as distance; disabled — rule R1 |
+| Secondary button | 01 06 08 20 | equal weight against the default | no role yet — mockup |
+| Icon button with a name | 01 02 03 08 | a name for the screen reader is mandatory | `--r-1`; the name — accessibility §5 |
+| Labelled text field | 02 04 08 13 14 | closed, the "stepped away" label, the typed text survives, the text stays on refusal | `--r-1`; 16px — accessibility |
+| Remaining characters counter | 02 04 08 | a hint, the node holds the limit | none — mockup |
+| Remaining quota counter | 04 09 11 | look not drawn; a slot under the ceiling | none — mockup |
+| PIN field | 02 12 13 | "easy to guess", waiting, "attempts left", locked, skeleton | as a text field |
+| Grouped code field | 02 13 | did not match / expired, the move cancelled, intake closed | none — mockup |
+| Acceptance checkbox | 02 05 11 15 | unchecked; blocks "next", publishing and the name | none — mockup |
+| Tab switch | 04 07 | a count on the first, a dot on the second; the look on 04 undecided | `--r-pill` — not bound |
+| Mode segments | 03 04 23 | every phrase has one | none — mockup |
+| Bottom navigation, 4 items | 03 07 10 | a dot on "Me"; never a fifth | none — mockup |
+| Phrase card | 03 04 05 06 23 | fading in the last quarter, "further than you asked", muted own, refused as a block | `--r-2`; fading — rule R2, muting — R6 |
+| Table card | 03 09 19 | invisible with nobody seated or outside the band; look undecided | inherits `--r-2` |
+| Offer card | 03 17 24 | discount and term mandatory; "not in the feed", "expired", "link off"; a word, not a frame | none; a word, not a colour — accessibility §1 |
+| Match card | 06 | "no answer yet", "vanished", "waits for your name", one phrase for an offer | none — mockup |
+| Loading skeleton | 02 07 08 09 12 19 | no caption; the button disabled until the answer | rule R3 |
+| Empty state | 07 09 14 21 · экран 11 | heading + line + action; seven lines without a heading | none — mockup |
+| Conversation tombstone | 07 08 | until touched; marked by your own attempt | rule R4 |
+| "Documents changed" strip | 11 15 | the list and one checkbox; the feed stays readable; not set offline | none — mockup |
+| Connection status strip | 08 11 19 21 | four socket outcomes; "no network" versus "we failed"; "the app is out of date" | rule R5; `--ok`, `--err` |
+| "You are at a table — return" line | 03 07 19 23 | exactly one; stays when the table left the feed | none — mockup |
+| Undo line | 06 07 23 | a few seconds; the refusal is recorded at once | none — mockup |
+| "…" action sheet | 05 08 17 19 23 | quiet to loud; none on moves; sets differ per screen | none — mockup |
+| Confirmation with what disappears | 05 08 12 13 20 | the price in numbers before the tap | none — mockup |
+| Countdown / remaining time | 06 08 09 13 19 20 23 | a word on others' phrases; no counter for two | accessibility §86 |
+| Game board by class | 18 19 | piece highlight, keyboard moves, "not allowed", "overdue — pass", "three passes", "no table" | cell ≥ 24 px — accessibility |
+| Viewing radius handle | 03 | no numbers; density on release; by tap too | none — mockup |
+| Phrase area handle, stepped | 04 10 | five steps | none — mockup |
+| Age slider | 03 | steps of 5, not beyond the band, the edge is "no limit" | none — mockup |
+| Silence span control | 08 10 | any time; the other's is not visible | none — mockup |
+| List with undo / lifting | 10 12 | hidden, blocks, receipts; short-lived | none — mockup |
+| Support requests list | 10 14 | "no requests"; none for a frozen session | none — mockup |
+| Complaint / Art. 16 form | 05 11 14 17 | the first line dissuades; grounds mandatory; the checkbox unchecked | none — mockup |
+| First-encounter hint | 10 23 24 | one at a time, once; "got it" ≥ 44 px | none — mockup |
+| Accent and contrast samples | 22 11 | labelled by a word; at once; "applied, will save" | `--accent*`; the storefront set |
+| Home mark in the header | 10 22 | cycles the accent; must not diverge from 22 | `--accent` |
+| Like icon | 05 17 23 | muted but visible; taken back by a second tap; not for an offer | 44 px — accessibility |
+| Like count | 09 | goes down; who — never | none — mockup |
+| System line of a conversation | 08 18 19 | not encrypted; no menu | none — mockup |
+| Key check mark | 08 | a tap opens the code; unchanged on a device change | ≥ 3:1 — accessibility |
+| "I offer a discount" line | 04 17 | unfolds into three fields; one offer at a time | none — mockup |
+| "Show more" | 03 23 | N as a step; the end leads to the feed; no auto-refresh | none — mockup |
+| Language filter in the header | 03 10 | one tap; an offer is not hidden | none — mockup |
+| Count and dot on a tab | 07 10 14 | the count fades with answers, the dot with a visit | `--r-round`, `--r-1` |
+| Warning text | 02 06 12 | wherever a code is; not a second consent | none — mockup |
+| Modal question, two buttons | 08 | no default; a line about the risk | `--r-2` |
+| Lock screen | 12 | PIN only; "your move at the table"; "forgot the PIN?" | none — mockup |
+| Console | 21 10 | empty without a heading; "we did not answer"; ≤ 200 lines | `--mono` |
+| Step-away choice screen | 20 | three spans and the price; does not leave offline | none — mockup |
+
+### Rules the design system did not have
+
+Six patterns the screens demand without a rule. Their look is settled by the mockup; here is what the mockup must show.
+
+- **R1. Disabled state** (02, 05, 11, 19): the control stays visible, the reason sits next to it in words, not only in colour; it takes focus.
+- **R2. Fading in the last quarter of the span** (07, 08, 23): the span is visible as a word or a number; fading is a second channel, never the only one (accessibility §86).
+- **R3. Skeleton** (11:30): no caption and no text; the card's geometry; the button that started the action is disabled until the answer.
+- **R4. Conversation tombstone** (08, 11:47): stays until touched; neither an error nor an empty state — a third kind.
+- **R5. Status strip in the header** (08:79): one slot, four socket outcomes, "no network" and "we failed" in different words, "the app is out of date" on every screen.
+- **R6. Muted own unchecked phrase** (03:10): your own phrase before the verdict differs from others' and from a refused one; not by colour alone.
+
+### Screen disagreements the mockup settles
+
+Ten places where one control is described differently; the direction is named, the mockup fixes it.
+
+1. The smooth viewing-radius handle (03) and the stepped area handle (04) are two controls — give them two names.
+2. The "…" sheet with five sets (05, 08, 17, 19, 23) is one component with per-screen sets; "quiet to loud" is shared.
+3. "A tap on the logo button" (notes) and "the like icon" (05) are the same thing; the name is "like icon".
+4. The tab switch is settled on 07 and not on 04 — one component, 04 takes 07's look.
+5. "Declined · undo" (06, 07) and "hidden · undo" (23) are one "undo line" pattern.
+6. Three controls called "language" (01, 02, 10) are three different ones: interface switch, registration list, feed languages.
+7. "Next" as an icon was removed from 01 and kept on 02 — a word on 02 too.
+8. The line-up confirmation counter exists at a table (19) and not for two — both right by the canon.
+9. "Delete / withdraw / stand up / sit" on your own entries (09, 23) — verbs by entity, one component.
+10. The "support answered" dot on "Me" (10, 14) stays; the support icon does not come back.
+
+### What the design system has that no screen needs
+
+`--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--panel-2` (no nested surface), `--disp` (no display font named), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them.
+
 ## Nothing open
 
 The application design system has no open items: below is the recorded decision

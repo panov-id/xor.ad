@@ -1,0 +1,402 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2163" height="2060" viewBox="0 0 2163 2060">
+<title>Светлая тема — экраны 03, 08, 23 · 375×812</title>
+<style>
+    @font-face { font-family: "Golos Text"; font-weight: 400 600;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    /* screen-03 / screen-23 classes, light tokens */
+    .t16 { font-size: 16px; fill: #1c140d; }
+    .t16b { font-size: 16px; font-weight: 600; fill: #1c140d; }
+    .t14 { font-size: 14px; fill: #6b5f4c; }
+    .t14fg { font-size: 14px; fill: #1c140d; }
+    .t14b { font-size: 14px; font-weight: 600; fill: #1c140d; }
+    .t18b { font-size: 18px; font-weight: 600; fill: #1c140d; }
+    .t22b { font-size: 22px; font-weight: 600; fill: #1c140d; }
+    .big { font-size: 26px; fill: #1c140d; }
+    .acc { font-size: 14px; font-weight: 600; fill: #983c22; }
+    /* screen-08 classes, light tokens */
+    .name   { font-size: 17px; font-weight: 600; fill: #1c140d; }
+    .h      { font-size: 17px; font-weight: 600; fill: #1c140d; }
+    .body   { font-size: 16px; font-weight: 400; fill: #1c140d; }
+    .body15 { font-size: 15px; font-weight: 400; fill: #1c140d; }
+    .meta   { font-size: 14px; font-weight: 400; fill: #6b5f4c; }
+    .mono13 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; }
+    /* sheet chrome (sheet ground is #ece4d8, the light --bg) */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .capv { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; font-weight: 600; fill: #983c22; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+</style>
+<rect width="2163" height="2060" style="fill:#ece4d8"/>
+<text x="48" y="52" class="sheet-title">Светлая тема — экраны 03, 08, 23 · 375×812 · те же кадры, что на тёмных листах, токены sosed.place light</text>
+<text x="48" y="78" class="cap">bg #ece4d8 · panel #f5efe4 · panel-2 #ddd0bd · border #221a12 · fg #1c140d · muted #6b5f4c · accent terra #bd4b2a / text #983c22 · err #a3311f · ok #9ecb7a (не переопределён, строка 71) · геометрия и тексты — из screen-03/08/23.svg без изменений</text>
+<g transform="translate(48,120)"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#ece4d8;stroke:#1c140d;stroke-width:2"/><clipPath id="c48a"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48a)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#ece4d8"/><rect x="0" y="56" width="375" height="40" rx="0" style="fill:#ddd0bd"/><text x="16" y="81" class="t14fg" text-anchor="start">вы за столом</text><text x="359" y="81" class="acc" text-anchor="end">вернуться</text><rect x="16" y="108" width="343" height="124" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="142" class="t16" text-anchor="start" style="fill:#1c140d">Кто-нибудь идёт на набережную</text><text x="32" y="166" class="t16" text-anchor="start" style="fill:#1c140d">вечером? Возьму термос.</text><text x="32" y="208" class="t14" text-anchor="start">компания</text><rect x="232" y="180" width="44" height="44" rx="8" style="fill:none"/><path d="M254.0 212.0 C238.0 202.0 243.0 191.0 254.0 200.0 C265.0 191.0 270.0 202.0 254.0 212.0 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="276" y="208" class="t14" text-anchor="start">3</text><rect x="299" y="180" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="202.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="202.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="202.0" r="2" style="fill:#1c140d"/><rect x="16" y="244" width="343" height="100" rx="13" style="fill:#f5efe4;stroke:#6b5f4c;stroke-width:1" stroke-dasharray="5 4"/><text x="32" y="278" class="t16" text-anchor="start" style="fill:#6b5f4c">Ищу, с кем поиграть в го.</text><text x="32" y="320" class="t14" text-anchor="start">проверяется…</text><text x="343" y="320" class="t14" text-anchor="end">один</text><rect x="16" y="356" width="343" height="196" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="386" class="acc" text-anchor="start">оффер</text><text x="343" y="386" class="t16b" text-anchor="end">−20 %</text><text x="32" y="408" class="t16b" text-anchor="start">Пекарня «Колос»</text><text x="32" y="432" class="t16" text-anchor="start">Второй круассан за полцены.</text><text x="32" y="460" class="t14" text-anchor="start">условия: при заказе от двух</text><text x="32" y="482" class="t14" text-anchor="start">скидка до 30 сентября, 18:00</text><rect x="32" y="496" width="140" height="44" rx="13" style="fill:none;stroke:#1c140d;stroke-width:1.5"/><text x="102.0" y="524.0" class="t16b" text-anchor="middle">Сохранить</text><rect x="299" y="496" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="518.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="518.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="518.0" r="2" style="fill:#1c140d"/><rect x="16" y="564" width="343" height="144" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="594" class="acc" text-anchor="start">стол</text><text x="76" y="594" class="t14" text-anchor="start">· виселица</text><text x="32" y="616" class="t16b" text-anchor="start">Пятничный</text><text x="32" y="638" class="t14fg" text-anchor="start">играют 2, смотрят 3</text><rect x="32" y="652" width="104" height="44" rx="13" style="fill:none;stroke:#1c140d;stroke-width:1.5"/><text x="84.0" y="680.0" class="t16b" text-anchor="middle">сесть</text><rect x="232" y="652" width="44" height="44" rx="8" style="fill:none"/><path d="M254.0 684.0 C238.0 674.0 243.0 663.0 254.0 672.0 C265.0 663.0 270.0 674.0 254.0 684.0 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="276" y="680" class="t14" text-anchor="start">5</text><rect x="299" y="652" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="674.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="674.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="674.0" r="2" style="fill:#1c140d"/><rect x="16" y="720" width="343" height="122" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="748" class="t14" text-anchor="start">дальше, чем вы просили</text><text x="32" y="776" class="t16" text-anchor="start" style="fill:#1c140d">Играем в настолки в парке.</text><text x="32" y="818" class="t14" text-anchor="start">туса</text><rect x="232" y="790" width="44" height="44" rx="8" style="fill:none"/><path d="M254.0 822.0 C238.0 812.0 243.0 801.0 254.0 810.0 C265.0 801.0 270.0 812.0 254.0 822.0 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="276" y="818" class="t14" text-anchor="start">1</text><rect x="299" y="790" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="812.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="812.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="812.0" r="2" style="fill:#1c140d"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#ece4d8"/><line x1="0" y1="56" x2="375" y2="56" style="stroke:#221a12;stroke-width:1"/><path d="M16 28 L25 19 L34 28 L34 37 L16 37 Z" style="fill:none;stroke:#1c140d;stroke-width:2;stroke-linejoin:round"/><text x="42" y="36" class="t18b" text-anchor="start">sosed</text><rect x="128" y="12" width="66" height="32" rx="8" style="fill:#f5efe4;stroke:#1c140d;stroke-width:1.2"/><text x="140" y="33" class="t14b" text-anchor="start">ru</text><text x="182" y="33" class="t14" text-anchor="end">×</text><rect x="202" y="12" width="66" height="32" rx="8" style="fill:#f5efe4;stroke:#1c140d;stroke-width:1.2"/><text x="214" y="33" class="t14b" text-anchor="start">en</text><text x="256" y="33" class="t14" text-anchor="end">×</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#1c140d;stroke-width:2;stroke-linejoin:round"/><rect x="0" y="748" width="375" height="64" rx="0" style="fill:#ece4d8"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#221a12;stroke-width:1"/><rect x="37.875" y="762" width="18" height="2.5" rx="0" style="fill:#1c140d"/><rect x="37.875" y="768" width="18" height="2.5" rx="0" style="fill:#1c140d"/><rect x="37.875" y="774" width="18" height="2.5" rx="0" style="fill:#1c140d"/><text x="46.875" y="796" class="t14b" text-anchor="middle">Лента</text><path d="M130.625 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#6b5f4c;stroke-width:2;stroke-linejoin:round"/><text x="140.625" y="796" class="t14" text-anchor="middle">Беседы</text><path d="M234.375 761 v18 M225.375 770 h18" style="stroke:#6b5f4c;stroke-width:2.2;stroke-linecap:round"/><text x="234.375" y="796" class="t14" text-anchor="middle">Сказать</text><circle cx="328.125" cy="766" r="4.5" style="fill:none;stroke:#6b5f4c;stroke-width:2"/><path d="M319.125 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#6b5f4c;stroke-width:2"/><circle cx="339.125" cy="761" r="4" style="fill:#bd4b2a"/><text x="328.125" y="796" class="t14" text-anchor="middle">Я</text><rect x="30.875" y="804" width="32" height="2" rx="0" style="fill:#bd4b2a"/></g></g>
+<text x="48" y="966" class="capv">как есть</text><text x="48" y="984" class="capb">03 · кадр 1, лента: фраза, своя на проверке,</text><text x="48" y="1002" class="capb">оффер, стол, «дальше, чем просили»</text>
+<g transform="translate(471,120)"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#ece4d8;stroke:#1c140d;stroke-width:2"/><clipPath id="c1740b"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740b)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#ece4d8"/><rect x="16" y="16" width="343" height="124" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="50" class="t16" text-anchor="start" style="fill:#1c140d">Вечером у фонтана кто-нибудь</text><text x="32" y="74" class="t16" text-anchor="start" style="fill:#1c140d">будет? Принесу колонку.</text><text x="32" y="116" class="t14" text-anchor="start">туса</text><rect x="232" y="88" width="44" height="44" rx="8" style="fill:none"/><path d="M254.0 120.0 C238.0 110.0 243.0 99.0 254.0 108.0 C265.0 99.0 270.0 110.0 254.0 120.0 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="276" y="116" class="t14" text-anchor="start">2</text><rect x="299" y="88" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="110.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="110.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="110.0" r="2" style="fill:#1c140d"/><rect x="16" y="152" width="343" height="100" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="186" class="t16" text-anchor="start" style="fill:#1c140d">Есть у кого зарядка type-c на час?</text><text x="32" y="228" class="t14" text-anchor="start">один</text><rect x="232" y="200" width="44" height="44" rx="8" style="fill:none"/><path d="M254.0 232.0 C238.0 222.0 243.0 211.0 254.0 220.0 C265.0 211.0 270.0 222.0 254.0 232.0 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="276" y="228" class="t14" text-anchor="start">0</text><rect x="299" y="200" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="222.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="222.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="222.0" r="2" style="fill:#1c140d"/><rect x="16" y="264" width="343" height="198" rx="13" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/><text x="32" y="294" class="acc" text-anchor="start">оффер</text><text x="343" y="294" class="t16b" text-anchor="end">−10 %</text><text x="32" y="318" class="t16" text-anchor="start">Отдаю два табурета, забирать</text><text x="32" y="342" class="t16" text-anchor="start">сегодня.</text><text x="32" y="370" class="t14" text-anchor="start">условия: ограничений нет</text><text x="32" y="392" class="t14" text-anchor="start">скидка до 20 сентября, 12:00</text><text x="32" y="434" class="t14" text-anchor="start">частник</text><rect x="232" y="406" width="44" height="44" rx="8" style="fill:none"/><path d="M254.0 438.0 C238.0 428.0 243.0 417.0 254.0 426.0 C265.0 417.0 270.0 428.0 254.0 438.0 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><rect x="299" y="406" width="44" height="44" rx="8" style="fill:none"/><circle cx="314.0" cy="428.0" r="2" style="fill:#1c140d"/><circle cx="321.0" cy="428.0" r="2" style="fill:#1c140d"/><circle cx="328.0" cy="428.0" r="2" style="fill:#1c140d"/><rect x="16" y="486" width="343" height="48" rx="13" style="fill:none;stroke:#1c140d;stroke-width:1.5"/><text x="187.5" y="516.0" class="t16b" text-anchor="middle">показать ещё</text><text x="187.5" y="554" class="t14" text-anchor="middle">ещё десятки сообщений на других языках</text><text x="187.5" y="576" class="acc" text-anchor="middle">показать</text><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#ece4d8"/><line x1="0" y1="56" x2="375" y2="56" style="stroke:#221a12;stroke-width:1"/><path d="M16 28 L25 19 L34 28 L34 37 L16 37 Z" style="fill:none;stroke:#1c140d;stroke-width:2;stroke-linejoin:round"/><text x="42" y="36" class="t18b" text-anchor="start">sosed</text><rect x="128" y="12" width="66" height="32" rx="8" style="fill:#f5efe4;stroke:#1c140d;stroke-width:1.2"/><text x="140" y="33" class="t14b" text-anchor="start">ru</text><text x="182" y="33" class="t14" text-anchor="end">×</text><rect x="202" y="12" width="66" height="32" rx="8" style="fill:#f5efe4;stroke:#1c140d;stroke-width:1.2"/><text x="214" y="33" class="t14b" text-anchor="start">en</text><text x="256" y="33" class="t14" text-anchor="end">×</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#1c140d;stroke-width:2;stroke-linejoin:round"/><rect x="16" y="684" width="343" height="48" rx="13" style="fill:#1c140d"/><text x="32" y="714" class="t16" text-anchor="start" style="fill:#1c140d">лайкнуто</text><text x="343" y="714" class="t16b" text-anchor="end" style="fill:#bd4b2a">вернуть</text><rect x="0" y="748" width="375" height="64" rx="0" style="fill:#ece4d8"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#221a12;stroke-width:1"/><rect x="37.875" y="762" width="18" height="2.5" rx="0" style="fill:#1c140d"/><rect x="37.875" y="768" width="18" height="2.5" rx="0" style="fill:#1c140d"/><rect x="37.875" y="774" width="18" height="2.5" rx="0" style="fill:#1c140d"/><text x="46.875" y="796" class="t14b" text-anchor="middle">Лента</text><path d="M130.625 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#6b5f4c;stroke-width:2;stroke-linejoin:round"/><text x="140.625" y="796" class="t14" text-anchor="middle">Беседы</text><path d="M234.375 761 v18 M225.375 770 h18" style="stroke:#6b5f4c;stroke-width:2.2;stroke-linecap:round"/><text x="234.375" y="796" class="t14" text-anchor="middle">Сказать</text><circle cx="328.125" cy="766" r="4.5" style="fill:none;stroke:#6b5f4c;stroke-width:2"/><path d="M319.125 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#6b5f4c;stroke-width:2"/><circle cx="339.125" cy="761" r="4" style="fill:#bd4b2a"/><text x="328.125" y="796" class="t14" text-anchor="middle">Я</text><rect x="30.875" y="804" width="32" height="2" rx="0" style="fill:#bd4b2a"/></g></g>
+<text x="471" y="966" class="capv">как есть</text><text x="471" y="984" class="capb">03 · кадр 5: «показать ещё», строка языков; тост</text><text x="471" y="1002" class="capb">«лайкнуто» тонет: чернила #1c140d вшиты литералом</text>
+<g transform="translate(894,120)"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#ece4d8;stroke:#1c140d;stroke-width:2"/><clipPath id="c48c"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48c)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#ece4d8"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#ece4d8"/><line x1="0" y1="56" x2="375" y2="56" style="stroke:#221a12;stroke-width:1"/><rect x="6" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M22.0 22.0 L34.0 34.0 M34.0 22.0 L22.0 34.0" style="stroke:#1c140d;stroke-width:2;stroke-linecap:round"/><text x="50" y="35" class="t14fg" text-anchor="start">закрыть</text><text x="359" y="35" class="t14" text-anchor="end">компания</text><text x="24" y="140" class="big" text-anchor="start" style="opacity:0.72">Кто-нибудь идёт на</text><text x="24" y="176" class="big" text-anchor="start" style="opacity:0.72">набережную вечером?</text><text x="24" y="212" class="big" text-anchor="start" style="opacity:0.72">Возьму термос, у меня</text><text x="24" y="248" class="big" text-anchor="start" style="opacity:0.72">есть плед и два</text><text x="24" y="284" class="big" text-anchor="start" style="opacity:0.72">стакана.</text><text x="24" y="360" class="t14" text-anchor="start">скоро исчезнет</text><path d="M34 411.2 C21.2 403.2 25.2 394.4 34 401.6 C42.8 394.4 46.8 403.2 34 411.2 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="50" y="409" class="t14" text-anchor="start">3</text><rect x="16" y="684" width="160" height="44" rx="8" style="fill:none"/><path d="M39.0 700 L33.0 706 L39.0 712" style="fill:none;stroke:#6b5f4c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/><text x="52" y="712" class="t14" text-anchor="start">предыдущая</text><rect x="199" y="684" width="160" height="44" rx="8" style="fill:none"/><text x="323" y="712" class="t14" text-anchor="end">следующая</text><path d="M336.0 700 L342.0 706 L336.0 712" style="fill:none;stroke:#6b5f4c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/><rect x="16" y="740" width="150" height="56" rx="13" style="fill:#ddd0bd"/><text x="91.0" y="774.0" class="t16b" text-anchor="middle">скрыть</text><rect x="178" y="740" width="121" height="56" rx="13" style="fill:#bd4b2a"/><path d="M222 778.9 C204.4 767.9 209.9 755.8 222 765.7 C234.1 755.8 239.6 767.9 222 778.9 Z" style="fill:none;stroke:#fff6f0;stroke-width:1.8;stroke-linejoin:round"/><text x="240" y="774" class="t16b" text-anchor="start" style="fill:#fff6f0">лайк</text><rect x="311" y="740" width="48" height="56" rx="13" style="fill:#ddd0bd"/><circle cx="328" cy="768" r="2" style="fill:#1c140d"/><circle cx="335" cy="768" r="2" style="fill:#1c140d"/><circle cx="342" cy="768" r="2" style="fill:#1c140d"/></g></g>
+<text x="894" y="966" class="capv">как есть</text><text x="894" y="984" class="capb">23 · чужая фраза: угасание + «скоро исчезнет»,</text><text x="894" y="1002" class="capb">лайк, скрыть, «…»</text>
+<g transform="translate(1317,120)"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#ece4d8;stroke:#1c140d;stroke-width:2"/><clipPath id="c1317d"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317d)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#ece4d8"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#ece4d8"/><line x1="0" y1="56" x2="375" y2="56" style="stroke:#221a12;stroke-width:1"/><rect x="6" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M22.0 22.0 L34.0 34.0 M34.0 22.0 L22.0 34.0" style="stroke:#1c140d;stroke-width:2;stroke-linecap:round"/><text x="50" y="35" class="t14fg" text-anchor="start">закрыть</text><text x="24" y="96" class="acc" text-anchor="start">стол</text><text x="70" y="96" class="t14" text-anchor="start">· виселица</text><text x="24" y="136" class="t22b" text-anchor="start">Пятничный</text><text x="24" y="172" class="t16" text-anchor="start">играют 2, смотрят 3</text><rect x="24" y="216" width="22" height="3" rx="0" style="fill:#1c140d"/><text x="35" y="210" class="t18b" text-anchor="middle">к</text><rect x="54" y="216" width="22" height="3" rx="0" style="fill:#221a12"/><rect x="84" y="216" width="22" height="3" rx="0" style="fill:#221a12"/><rect x="114" y="216" width="22" height="3" rx="0" style="fill:#1c140d"/><text x="125" y="210" class="t18b" text-anchor="middle">о</text><rect x="144" y="216" width="22" height="3" rx="0" style="fill:#221a12"/><rect x="174" y="216" width="22" height="3" rx="0" style="fill:#221a12"/><rect x="204" y="216" width="22" height="3" rx="0" style="fill:#221a12"/><text x="24" y="248" class="t14" text-anchor="start">[текст не задан] — что видит зритель до посадки</text><path d="M34 291.2 C21.2 283.2 25.2 274.4 34 281.6 C42.8 274.4 46.8 283.2 34 291.2 Z" style="fill:none;stroke:#6b5f4c;stroke-width:1.8;stroke-linejoin:round"/><text x="50" y="289" class="t14" text-anchor="start">5</text><rect x="16" y="684" width="160" height="44" rx="8" style="fill:none"/><path d="M39.0 700 L33.0 706 L39.0 712" style="fill:none;stroke:#6b5f4c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/><text x="52" y="712" class="t14" text-anchor="start">предыдущая</text><rect x="199" y="684" width="160" height="44" rx="8" style="fill:none"/><text x="323" y="712" class="t14" text-anchor="end">следующая</text><path d="M336.0 700 L342.0 706 L336.0 712" style="fill:none;stroke:#6b5f4c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/><rect x="16" y="740" width="104" height="56" rx="13" style="fill:#ddd0bd"/><text x="68.0" y="774.0" class="t16b" text-anchor="middle">скрыть</text><rect x="132" y="740" width="80" height="56" rx="13" style="fill:#bd4b2a"/><path d="M172 778.9 C154.4 767.9 159.9 755.8 172 765.7 C184.1 755.8 189.6 767.9 172 778.9 Z" style="fill:none;stroke:#fff6f0;stroke-width:1.8;stroke-linejoin:round"/><rect x="224" y="740" width="75" height="56" rx="13" style="fill:none;stroke:#1c140d;stroke-width:1.5"/><text x="261.5" y="774.0" class="t16b" text-anchor="middle">сесть</text><rect x="311" y="740" width="48" height="56" rx="13" style="fill:#ddd0bd"/><circle cx="328" cy="768" r="2" style="fill:#1c140d"/><circle cx="335" cy="768" r="2" style="fill:#1c140d"/><circle cx="342" cy="768" r="2" style="fill:#1c140d"/></g></g>
+<text x="1317" y="966" class="capv">как есть</text><text x="1317" y="984" class="capb">23 · стол: игра, имя, «играют N, смотрят M»,</text><text x="1317" y="1002" class="capb">лайк-закладка, «сесть»</text>
+<text x="1740" y="140" class="capb">токены статуса на трёх землях светлой темы</text>
+<text x="1740" y="174" class="cap">--ok как есть #9ecb7a</text>
+<rect x="1740" y="182" width="117" height="56" rx="8" style="fill:#ece4d8;stroke:#221a12;stroke-width:1"/>
+<text x="1750" y="206" style="font-size:14px;fill:#9ecb7a">✓ доставлено</text>
+<text x="1750" y="226" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#9ecb7a">12:40 · 4 мин</text>
+<rect x="1865" y="182" width="117" height="56" rx="8" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/>
+<text x="1875" y="206" style="font-size:14px;fill:#9ecb7a">✓ доставлено</text>
+<text x="1875" y="226" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#9ecb7a">12:40 · 4 мин</text>
+<rect x="1990" y="182" width="117" height="56" rx="8" style="fill:#ddd0bd;stroke:#221a12;stroke-width:1"/>
+<text x="2000" y="206" style="font-size:14px;fill:#9ecb7a">✓ доставлено</text>
+<text x="2000" y="226" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#9ecb7a">12:40 · 4 мин</text>
+<text x="1740" y="270" class="cap">--ok предложение #4b712c</text>
+<rect x="1740" y="278" width="117" height="56" rx="8" style="fill:#ece4d8;stroke:#221a12;stroke-width:1"/>
+<text x="1750" y="302" style="font-size:14px;fill:#4b712c">✓ доставлено</text>
+<text x="1750" y="322" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#4b712c">12:40 · 4 мин</text>
+<rect x="1865" y="278" width="117" height="56" rx="8" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/>
+<text x="1875" y="302" style="font-size:14px;fill:#4b712c">✓ доставлено</text>
+<text x="1875" y="322" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#4b712c">12:40 · 4 мин</text>
+<rect x="1990" y="278" width="117" height="56" rx="8" style="fill:#ddd0bd;stroke:#221a12;stroke-width:1"/>
+<text x="2000" y="302" style="font-size:14px;fill:#4b712c">✓ доставлено</text>
+<text x="2000" y="322" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#4b712c">12:40 · 4 мин</text>
+<text x="1740" y="366" class="cap">--err sosed light #a3311f</text>
+<rect x="1740" y="374" width="117" height="56" rx="8" style="fill:#ece4d8;stroke:#221a12;stroke-width:1"/>
+<text x="1750" y="398" style="font-size:14px;fill:#a3311f">✓ доставлено</text>
+<text x="1750" y="418" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#a3311f">12:40 · 4 мин</text>
+<rect x="1865" y="374" width="117" height="56" rx="8" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/>
+<text x="1875" y="398" style="font-size:14px;fill:#a3311f">✓ доставлено</text>
+<text x="1875" y="418" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#a3311f">12:40 · 4 мин</text>
+<rect x="1990" y="374" width="117" height="56" rx="8" style="fill:#ddd0bd;stroke:#221a12;stroke-width:1"/>
+<text x="2000" y="398" style="font-size:14px;fill:#a3311f">✓ доставлено</text>
+<text x="2000" y="418" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#a3311f">12:40 · 4 мин</text>
+<text x="1740" y="462" class="cap">--err без переопределения #ef7a6a</text>
+<rect x="1740" y="470" width="117" height="56" rx="8" style="fill:#ece4d8;stroke:#221a12;stroke-width:1"/>
+<text x="1750" y="494" style="font-size:14px;fill:#ef7a6a">✓ доставлено</text>
+<text x="1750" y="514" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#ef7a6a">12:40 · 4 мин</text>
+<rect x="1865" y="470" width="117" height="56" rx="8" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/>
+<text x="1875" y="494" style="font-size:14px;fill:#ef7a6a">✓ доставлено</text>
+<text x="1875" y="514" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#ef7a6a">12:40 · 4 мин</text>
+<rect x="1990" y="470" width="117" height="56" rx="8" style="fill:#ddd0bd;stroke:#221a12;stroke-width:1"/>
+<text x="2000" y="494" style="font-size:14px;fill:#ef7a6a">✓ доставлено</text>
+<text x="2000" y="514" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#ef7a6a">12:40 · 4 мин</text>
+<text x="1740" y="558" class="cap">--muted #6b5f4c</text>
+<rect x="1740" y="566" width="117" height="56" rx="8" style="fill:#ece4d8;stroke:#221a12;stroke-width:1"/>
+<text x="1750" y="590" style="font-size:14px;fill:#6b5f4c">✓ доставлено</text>
+<text x="1750" y="610" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#6b5f4c">12:40 · 4 мин</text>
+<rect x="1865" y="566" width="117" height="56" rx="8" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/>
+<text x="1875" y="590" style="font-size:14px;fill:#6b5f4c">✓ доставлено</text>
+<text x="1875" y="610" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#6b5f4c">12:40 · 4 мин</text>
+<rect x="1990" y="566" width="117" height="56" rx="8" style="fill:#ddd0bd;stroke:#221a12;stroke-width:1"/>
+<text x="2000" y="590" style="font-size:14px;fill:#6b5f4c">✓ доставлено</text>
+<text x="2000" y="610" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#6b5f4c">12:40 · 4 мин</text>
+<text x="1740" y="654" class="cap">--muted-2 #655847</text>
+<rect x="1740" y="662" width="117" height="56" rx="8" style="fill:#ece4d8;stroke:#221a12;stroke-width:1"/>
+<text x="1750" y="686" style="font-size:14px;fill:#655847">✓ доставлено</text>
+<text x="1750" y="706" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#655847">12:40 · 4 мин</text>
+<rect x="1865" y="662" width="117" height="56" rx="8" style="fill:#f5efe4;stroke:#221a12;stroke-width:1"/>
+<text x="1875" y="686" style="font-size:14px;fill:#655847">✓ доставлено</text>
+<text x="1875" y="706" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#655847">12:40 · 4 мин</text>
+<rect x="1990" y="662" width="117" height="56" rx="8" style="fill:#ddd0bd;stroke:#221a12;stroke-width:1"/>
+<text x="2000" y="686" style="font-size:14px;fill:#655847">✓ доставлено</text>
+<text x="2000" y="706" style="font-family:JetBrains Mono,monospace;font-size:13px;fill:#655847">12:40 · 4 мин</text>
+<text x="1740" y="752" class="cap">земли слева направо: --bg, --panel, --panel-2</text>
+<g transform="translate(48,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
+<clipPath id="c48150e"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150e)">
+<g>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<circle cx="127.39999999999999" cy="31" r="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<path d="M131.39999999999998 31 L142.39999999999998 31 M138.39999999999998 31 L138.39999999999998 35 M141.89999999999998 31 L141.89999999999998 35" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round"/>
+<rect x="323" y="6" width="44" height="44" rx="8" fill="#ddd0bd"/>
+<rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<circle cx="340" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="345" cy="28" r="1.8" fill="#1c140d"/>
+<circle cx="340" cy="33" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="33" r="1.8" fill="#1c140d"/>
+<text x="315" y="34" class="mono13" text-anchor="end">1:0</text>
+<rect x="16" y="60" width="147" height="32" rx="8" fill="#ddd0bd"/>
+<text x="28" y="81" class="meta">молчание · час</text>
+<path d="M143 73 L148 78 L153 73" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="175" y="81" class="meta" style="fill:#6b5f4c">остаток 52 мин</text>
+<text x="359" y="81" class="meta" text-anchor="end" style="fill:#1c140d">закончить</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96" stroke="#221a12" stroke-width="1" />
+<g>
+<rect x="16" y="112" width="173.4" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="138" class="body">так на набережную?</text>
+</g>
+<g>
+<rect x="185.6" y="158" width="173.4" height="62" rx="13" fill="#ddd0bd"/>
+<text x="197.6" y="184" class="body">в девять подходит.</text>
+<text x="197.6" y="208" class="body">скамейка у пирса</text>
+</g>
+<text x="359" y="235" class="mono13" text-anchor="end" style="fill:#9ecb7a">✓</text>
+<g>
+<rect x="32" y="244" width="311" height="58" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<rect x="32" y="256" width="3" height="34" rx="0" fill="#bd4b2a"/>
+<path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="269" class="body15">«набережная, к девяти, компания»</text>
+<text x="70" y="290" class="meta">лайкнули</text>
+</g>
+<g>
+<rect x="16" y="310" width="181.70000000000002" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="336" class="body">и это тоже моё было</text>
+<rect x="201.70000000000002" y="304" width="44" height="44" rx="0" fill="none"/>
+<circle cx="217.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="223.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="229.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+</g>
+<g>
+<text x="187.5" y="372" class="meta" text-anchor="middle">Аня положила фишку на e4</text>
+</g>
+<g>
+<rect x="243.7" y="386" width="115.30000000000001" height="38" rx="13" fill="#ddd0bd"/>
+<text x="255.7" y="412" class="body">ход хороший</text>
+</g>
+<text x="359" y="439" class="mono13" text-anchor="end" style="fill:#9ecb7a">✓</text>
+<g>
+<rect x="152.39999999999998" y="448" width="206.60000000000002" height="38" rx="13" fill="#ddd0bd"/>
+<text x="164.39999999999998" y="474" class="body">но я всё равно выиграю</text>
+</g>
+<text x="359" y="501" class="mono13" text-anchor="end" style="fill:#a3311f">[текст не задан] · повторить</text>
+<line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#ddd0bd"/>
+<text x="28" y="782" class="body">выходишь?</text>
+<rect x="117.3" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
+<text x="291" y="782" class="mono13" text-anchor="end">9/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g></g>
+<text x="48" y="1916" class="capv">как есть</text><text x="48" y="1934" class="capb">08 · A живая: ✓ доставки --ok #9ecb7a,</text><text x="48" y="1952" class="capb">ошибка отправки --err #a3311f (sosed light)</text>
+<g transform="translate(471,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
+<clipPath id="c48150f"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150f)">
+<g>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<circle cx="127.39999999999999" cy="31" r="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<path d="M131.39999999999998 31 L142.39999999999998 31 M138.39999999999998 31 L138.39999999999998 35 M141.89999999999998 31 L141.89999999999998 35" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round"/>
+<rect x="323" y="6" width="44" height="44" rx="8" fill="#ddd0bd"/>
+<rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<circle cx="340" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="345" cy="28" r="1.8" fill="#1c140d"/>
+<circle cx="340" cy="33" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="33" r="1.8" fill="#1c140d"/>
+<text x="315" y="34" class="mono13" text-anchor="end">1:0</text>
+<rect x="16" y="60" width="147" height="32" rx="8" fill="#ddd0bd"/>
+<text x="28" y="81" class="meta">молчание · час</text>
+<path d="M143 73 L148 78 L153 73" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="175" y="81" class="meta" style="fill:#6b5f4c">остаток 52 мин</text>
+<text x="359" y="81" class="meta" text-anchor="end" style="fill:#1c140d">закончить</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96" stroke="#221a12" stroke-width="1" />
+<g>
+<rect x="16" y="112" width="173.4" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="138" class="body">так на набережную?</text>
+</g>
+<g>
+<rect x="185.6" y="158" width="173.4" height="62" rx="13" fill="#ddd0bd"/>
+<text x="197.6" y="184" class="body">в девять подходит.</text>
+<text x="197.6" y="208" class="body">скамейка у пирса</text>
+</g>
+<text x="359" y="235" class="mono13" text-anchor="end" style="fill:#4b712c">✓</text>
+<g>
+<rect x="32" y="244" width="311" height="58" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<rect x="32" y="256" width="3" height="34" rx="0" fill="#bd4b2a"/>
+<path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="269" class="body15">«набережная, к девяти, компания»</text>
+<text x="70" y="290" class="meta">лайкнули</text>
+</g>
+<g>
+<rect x="16" y="310" width="181.70000000000002" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="336" class="body">и это тоже моё было</text>
+<rect x="201.70000000000002" y="304" width="44" height="44" rx="0" fill="none"/>
+<circle cx="217.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="223.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="229.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+</g>
+<g>
+<text x="187.5" y="372" class="meta" text-anchor="middle">Аня положила фишку на e4</text>
+</g>
+<g>
+<rect x="243.7" y="386" width="115.30000000000001" height="38" rx="13" fill="#ddd0bd"/>
+<text x="255.7" y="412" class="body">ход хороший</text>
+</g>
+<text x="359" y="439" class="mono13" text-anchor="end" style="fill:#4b712c">✓</text>
+<g>
+<rect x="152.39999999999998" y="448" width="206.60000000000002" height="38" rx="13" fill="#ddd0bd"/>
+<text x="164.39999999999998" y="474" class="body">но я всё равно выиграю</text>
+</g>
+<text x="359" y="501" class="mono13" text-anchor="end" style="fill:#a3311f">[текст не задан] · повторить</text>
+<line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#ddd0bd"/>
+<text x="28" y="782" class="body">выходишь?</text>
+<rect x="117.3" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
+<text x="291" y="782" class="mono13" text-anchor="end">9/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g></g>
+<text x="471" y="1916" class="capv">с предложенными токенами</text><text x="471" y="1934" class="capb">08 · A живая: ✓ --ok #4b712c (матрица №1/№5),</text><text x="471" y="1952" class="capb">--err без изменений — sosed уже переопределил</text>
+<g transform="translate(894,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
+<clipPath id="c463150g"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150g)">
+<g>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<circle cx="127.39999999999999" cy="31" r="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<path d="M131.39999999999998 31 L142.39999999999998 31 M138.39999999999998 31 L138.39999999999998 35 M141.89999999999998 31 L141.89999999999998 35" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round"/>
+<rect x="323" y="6" width="44" height="44" rx="8" fill="#ddd0bd"/>
+<rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<circle cx="340" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="345" cy="28" r="1.8" fill="#1c140d"/>
+<circle cx="340" cy="33" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="33" r="1.8" fill="#1c140d"/>
+<rect x="16" y="60" width="147" height="32" rx="8" fill="#ddd0bd"/>
+<text x="28" y="81" class="meta">молчание · час</text>
+<path d="M143 73 L148 78 L153 73" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="175" y="81" class="mono13" style="fill:#a3311f">остаток 12:40</text>
+<text x="359" y="81" class="meta" text-anchor="end" style="fill:#1c140d">закончить</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96" stroke="#221a12" stroke-width="1" />
+<g opacity="0.55">
+<rect x="16" y="112" width="173.4" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="138" class="body">так на набережную?</text>
+</g>
+<g opacity="0.55">
+<rect x="185.6" y="158" width="173.4" height="62" rx="13" fill="#ddd0bd"/>
+<text x="197.6" y="184" class="body">в девять подходит.</text>
+<text x="197.6" y="208" class="body">скамейка у пирса</text>
+</g>
+<text x="359" y="235" class="mono13" text-anchor="end" style="fill:#9ecb7a">✓</text>
+<g opacity="0.55">
+<rect x="32" y="244" width="311" height="58" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<rect x="32" y="256" width="3" height="34" rx="0" fill="#bd4b2a"/>
+<path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="269" class="body15">«набережная, к девяти, компания»</text>
+<text x="70" y="290" class="meta">лайкнули</text>
+</g>
+<g opacity="0.55">
+<rect x="16" y="310" width="181.70000000000002" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="336" class="body">и это тоже моё было</text>
+<rect x="201.70000000000002" y="304" width="44" height="44" rx="0" fill="none"/>
+<circle cx="217.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="223.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="229.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+</g>
+<line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#ddd0bd"/>
+<text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g></g>
+<text x="894" y="1916" class="capv">как есть</text><text x="894" y="1934" class="capb">08 · B угасает: счётчик тишины --err #a3311f,</text><text x="894" y="1952" class="capb">✓ --ok #9ecb7a, реплики на 55 %</text>
+<g transform="translate(1317,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
+<clipPath id="c463150h"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150h)">
+<g>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<circle cx="127.39999999999999" cy="31" r="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<path d="M131.39999999999998 31 L142.39999999999998 31 M138.39999999999998 31 L138.39999999999998 35 M141.89999999999998 31 L141.89999999999998 35" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round"/>
+<rect x="323" y="6" width="44" height="44" rx="8" fill="#ddd0bd"/>
+<rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<circle cx="340" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="345" cy="28" r="1.8" fill="#1c140d"/>
+<circle cx="340" cy="33" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="33" r="1.8" fill="#1c140d"/>
+<rect x="16" y="60" width="147" height="32" rx="8" fill="#ddd0bd"/>
+<text x="28" y="81" class="meta">молчание · час</text>
+<path d="M143 73 L148 78 L153 73" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="175" y="81" class="mono13" style="fill:#a3311f">остаток 12:40</text>
+<text x="359" y="81" class="meta" text-anchor="end" style="fill:#1c140d">закончить</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96" stroke="#221a12" stroke-width="1" />
+<g opacity="0.55">
+<rect x="16" y="112" width="173.4" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="138" class="body">так на набережную?</text>
+</g>
+<g opacity="0.55">
+<rect x="185.6" y="158" width="173.4" height="62" rx="13" fill="#ddd0bd"/>
+<text x="197.6" y="184" class="body">в девять подходит.</text>
+<text x="197.6" y="208" class="body">скамейка у пирса</text>
+</g>
+<text x="359" y="235" class="mono13" text-anchor="end" style="fill:#4b712c">✓</text>
+<g opacity="0.55">
+<rect x="32" y="244" width="311" height="58" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<rect x="32" y="256" width="3" height="34" rx="0" fill="#bd4b2a"/>
+<path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="269" class="body15">«набережная, к девяти, компания»</text>
+<text x="70" y="290" class="meta">лайкнули</text>
+</g>
+<g opacity="0.55">
+<rect x="16" y="310" width="181.70000000000002" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="336" class="body">и это тоже моё было</text>
+<rect x="201.70000000000002" y="304" width="44" height="44" rx="0" fill="none"/>
+<circle cx="217.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="223.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="229.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+</g>
+<line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#ddd0bd"/>
+<text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g></g>
+<text x="1317" y="1916" class="capv">с предложенными токенами</text><text x="1317" y="1934" class="capb">08 · B угасает: ✓ --ok #4b712c; счётчик тот же</text><text x="1317" y="1952" class="capb">#a3311f</text>
+<g transform="translate(1740,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
+<clipPath id="c463150i"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150i)">
+<g>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<circle cx="127.39999999999999" cy="31" r="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<path d="M131.39999999999998 31 L142.39999999999998 31 M138.39999999999998 31 L138.39999999999998 35 M141.89999999999998 31 L141.89999999999998 35" fill="none" stroke="#1c140d" stroke-width="2" stroke-linecap="round"/>
+<rect x="323" y="6" width="44" height="44" rx="8" fill="#ddd0bd"/>
+<rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#1c140d" stroke-width="2"/>
+<circle cx="340" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="23" r="1.8" fill="#1c140d"/>
+<circle cx="345" cy="28" r="1.8" fill="#1c140d"/>
+<circle cx="340" cy="33" r="1.8" fill="#1c140d"/>
+<circle cx="350" cy="33" r="1.8" fill="#1c140d"/>
+<rect x="16" y="60" width="147" height="32" rx="8" fill="#ddd0bd"/>
+<text x="28" y="81" class="meta">молчание · час</text>
+<path d="M143 73 L148 78 L153 73" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="175" y="81" class="mono13" style="fill:#ef7a6a">остаток 12:40</text>
+<text x="359" y="81" class="meta" text-anchor="end" style="fill:#1c140d">закончить</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96" stroke="#221a12" stroke-width="1" />
+<g opacity="0.55">
+<rect x="16" y="112" width="173.4" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="138" class="body">так на набережную?</text>
+</g>
+<g opacity="0.55">
+<rect x="185.6" y="158" width="173.4" height="62" rx="13" fill="#ddd0bd"/>
+<text x="197.6" y="184" class="body">в девять подходит.</text>
+<text x="197.6" y="208" class="body">скамейка у пирса</text>
+</g>
+<text x="359" y="235" class="mono13" text-anchor="end" style="fill:#9ecb7a">✓</text>
+<g opacity="0.55">
+<rect x="32" y="244" width="311" height="58" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<rect x="32" y="256" width="3" height="34" rx="0" fill="#bd4b2a"/>
+<path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="269" class="body15">«набережная, к девяти, компания»</text>
+<text x="70" y="290" class="meta">лайкнули</text>
+</g>
+<g opacity="0.55">
+<rect x="16" y="310" width="181.70000000000002" height="38" rx="13" fill="#f5efe4" stroke="#221a12" stroke-width="1"/>
+<text x="28" y="336" class="body">и это тоже моё было</text>
+<rect x="201.70000000000002" y="304" width="44" height="44" rx="0" fill="none"/>
+<circle cx="217.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="223.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+<circle cx="229.70000000000002" cy="326" r="1.8" fill="#6b5f4c"/>
+</g>
+<line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#ddd0bd"/>
+<text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g></g>
+<text x="1740" y="1916" class="capv">как есть, если --err не переопределён</text><text x="1740" y="1934" class="capb">08 · B: счётчик тишины тёмным --err #ef7a6a —</text><text x="1740" y="1952" class="capb">положение neighbro.place (матрица №7/№8)</text>
+</svg>

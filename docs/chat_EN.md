@@ -2484,6 +2484,8 @@ WHERE m.expires_at > now() AND me.accepted_at IS NULL;
 
 This is the rare case of a feature that adds not a single line to the schema: everything derives from `matches`, `chats`, `chat_starters` and `last_activity_at`. The inbox honestly survives a closed tab, a reload and a node switch — because it lives in the data, not in memory.
 
+**The "new" dot on a conversation is counted by the device, not by the inbox — the owner's decision of 2026-09-17.** The catch-up delivery brings the lines, the device remembers which of them screen 8 has shown, and puts the dot on the conversation's entry and on the tab (storefront screen 7). The node still knows nothing about reading: there is neither a request nor a column for it.
+
 **A missed message is recovered indirectly.** There is no text on the server, but there is a trace of activity:
 
 ```

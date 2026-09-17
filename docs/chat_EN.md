@@ -332,6 +332,9 @@ CREATE TABLE table_seats (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   UNIQUE (table_id, seat_no)
 );
+-- `leave_table(identity)` is a node transaction, not a database object (2026-09-17, DATA-3): 1) `left_at = now()`
+-- on the live row and `NOTIFY seat_left`; 2) the `kick` votes of that seat are dropped; 3) if the author of the open
+-- `pending` left — `pending = NULL`; 4) no live rows left — `tables.closed_at = now()`.
 
 -- One table at a time — decided 2026-09-09. Sitting down at a second table
 -- without standing up from the first is refused, and this is the only guard
@@ -463,11 +466,9 @@ CREATE INDEX chat_games_expiry ON chat_games (expires_at);
 -- lives here by the same rule as everywhere — present in the database, absent from
 -- the API answer (§8).
 CREATE TABLE table_scores (
-  table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  seat_id      uuid NOT NULL REFERENCES table_seats(id) ON DELETE CASCADE,  -- the score belongs to the seat, not the identity: whoever leaves does not carry it, whoever returns starts from zero (2026-09-16, SEC-12, DATA-1)
+  seat_id      uuid PRIMARY KEY REFERENCES table_seats(id) ON DELETE CASCADE,  -- the table follows from the seat; a separate table_id allowed a score on another table's seat (2026-09-17, DATA-2)  -- the score belongs to the seat, not the identity: whoever leaves does not carry it, whoever returns starts from zero (2026-09-16, SEC-12, DATA-1)
   points       integer NOT NULL DEFAULT 0,
-  updated_at   timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (table_id, seat_id)
+  updated_at   timestamptz NOT NULL DEFAULT now()
 );
 ```
 
@@ -645,7 +646,7 @@ is asking.
   for it — but it does not stop.
 - **Being shown out is not being locked out — decided 2026-09-08.** The schema
   stays as it is: `table_seats` has `left_at`, no trace of an eviction, and coming
-  back is `UPDATE ... SET left_at = NULL, joined_at = now(), playing_from = NULL`
+  back is a new `table_seats` row with a new `seat_no` (2026-09-16, DATA-1; this said `UPDATE ... SET left_at = NULL, joined_at = now(), playing_from = NULL` [retired])
   (clarified 2026-09-15 after the final panel, DATA-9: `joined_at` is what hides
   history from whoever sits down, and a return without resetting it showed every
   line and move made while they were away). A "this person may not return"
@@ -967,7 +968,7 @@ anything can be in there, and a signature has to be reproducible.
 **A window instead of a nonce, and that is a trade.** Five minutes with no state
 on the node means whoever intercepts a whole request can replay it inside the
 window. A nonce would close that completely but would need shared memory: nodes
-are interchangeable (§8.1), each has its own, and a shared one is a database write
+are interchangeable (§8.1), each has its own, and a shared one is a database write (for the seven one-shot routes of protocol §2 that write is made after all — the `nonces` table, 2026-09-16, OPS-1)
 per request. With ephemerality measured in hours, five minutes of replayability is
 cheaper than a permanent write.
 
@@ -1029,6 +1030,20 @@ CREATE TABLE sessions (
   CONSTRAINT sessions_frozen_pair CHECK ((frozen_at IS NULL) = (frozen_reason IS NULL))  -- 2026-09-15, final panel
 );
 CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
+
+-- One-shot actions: the pair (session, nonce) with the first answer, ten minutes (`nonce.ttl`),
+-- shared by the pool. Introduced 2026-09-16 (protocol §2, OPS-1/SEC-17), DDL on 2026-09-17 (pass 4).
+-- A replay with the same nonce on another route answers 409 `invalid_body`: the nonce is bound to the route.
+CREATE TABLE nonces (
+  session_id   uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  nonce        bytea NOT NULL CHECK (octet_length(nonce) = 16),
+  route        text NOT NULL,                       -- "POST /tables" etc.: the replay is checked together with the route
+  status       smallint NOT NULL,
+  response     jsonb NOT NULL,                      -- the first answer, returned on a replay
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (session_id, nonce)
+);
+CREATE INDEX nonces_expiry ON nonces (created_at);  -- swept by nonce.ttl by the same janitor that sweeps conversations
 ```
 
 The partial unique index is the rule itself: the database will not accept a second live session, and no code path can work around it.

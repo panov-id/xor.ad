@@ -350,6 +350,9 @@ CREATE TABLE table_seats (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   UNIQUE (table_id, seat_no)
 );
+-- `leave_table(identity)` — транзакция узла, не объект базы (17.09.2026, DATA-3): 1) `left_at = now()`
+-- у живого ряда и `NOTIFY seat_left`; 2) голоса `kick` этого места сбрасываются; 3) если ушёл автор
+-- открытого `pending` — `pending = NULL`; 4) живых рядов не осталось — `tables.closed_at = now()`.
 
 -- За одним столом одновременно — решено 09.09.2026. Сесть за второй, не встав
 -- из-за первого, нельзя, и это единственная защита от засыпания ленты столами,
@@ -471,11 +474,9 @@ CREATE INDEX chat_games_expiry ON chat_games (expires_at);
 -- Наружу уходит счёт по местам за столом, а не по личностям: `identity` здесь
 -- живёт по тем же правилам, что и везде, — в базе есть, в ответе API нет (§8).
 CREATE TABLE table_scores (
-  table_id     uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  seat_id      uuid NOT NULL REFERENCES table_seats(id) ON DELETE CASCADE,  -- счёт живёт у места, не у личности: ушедший его не уносит, вернувшийся начинает с нуля (16.09.2026, SEC-12, DATA-1)
+  seat_id      uuid PRIMARY KEY REFERENCES table_seats(id) ON DELETE CASCADE,  -- стол выводится из места; отдельный table_id позволял счёт на место чужого стола (17.09.2026, DATA-2)  -- счёт живёт у места, не у личности: ушедший его не уносит, вернувшийся начинает с нуля (16.09.2026, SEC-12, DATA-1)
   points       integer NOT NULL DEFAULT 0,
-  updated_at   timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (table_id, seat_id)
+  updated_at   timestamptz NOT NULL DEFAULT now()
 );
 ```
 
@@ -956,7 +957,7 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 **Окно вместо nonce, и это размен.** Пять минут без состояния на узле означают,
 что перехвативший запрос целиком может повторить его внутри окна. Nonce закрыл бы
 это полностью, но потребовал бы общей памяти: узлы взаимозаменяемы (§8.1), у
-каждого своя, а общая — это запись в базу на каждый запрос. При эфемерности,
+каждого своя, а общая — это запись в базу на каждый запрос (для семи одноразовых маршрутов протокола §2 эта запись всё же делается — таблица `nonces`, 16.09.2026, OPS-1). При эфемерности,
 измеряемой часами, пять минут повторяемости дешевле постоянной записи.
 
 **Померено на живых браузерах — 19.08.2026.** Требование «проверить до
@@ -1016,6 +1017,20 @@ CREATE TABLE sessions (
   CONSTRAINT sessions_frozen_pair CHECK ((frozen_at IS NULL) = (frozen_reason IS NULL))  -- 15.09.2026, финальная панель
 );
 CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
+
+-- Одноразовые действия: пара (сессия, nonce) с первым ответом, десять минут (`nonce.ttl`),
+-- общая для пула. Заведено 16.09.2026 (протокол §2, OPS-1/SEC-17), DDL — 17.09.2026 (проход 4).
+-- Повтор с тем же nonce на другом маршруте — 409 `invalid_body`: nonce привязан к маршруту.
+CREATE TABLE nonces (
+  session_id   uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  nonce        bytea NOT NULL CHECK (octet_length(nonce) = 16),
+  route        text NOT NULL,                       -- «POST /tables» и т. д.: повтор проверяется вместе с маршрутом
+  status       smallint NOT NULL,
+  response     jsonb NOT NULL,                      -- первый ответ, отдаётся на повтор
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (session_id, nonce)
+);
+CREATE INDEX nonces_expiry ON nonces (created_at);  -- уборка по nonce.ttl тем же уборщиком, что чистит беседы
 ```
 
 Частичный уникальный индекс и есть правило: второй живой сессии база не примет, и обойти это из кода нельзя.

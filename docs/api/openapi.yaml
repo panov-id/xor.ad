@@ -361,6 +361,7 @@ components:
       type: object
       description: Exactly one of feed, chat, or table+seat (chat spec §8.9). The answer is 204 whatever happens — not an oracle.
       x-description-ru: Ровно одно из feed, chat или table+seat (спека чата §8.9). Ответ 204 в любом случае — не оракул.
+      required: [nonce]
       properties:
         feed: {type: string, format: uuid}
         chat: {type: string, format: uuid}
@@ -425,13 +426,24 @@ components:
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
-    Nonced:
+    PinChange:
       type: object
-      description: A body that carries only the nonce of protocol §2 (2026-09-16, CON-19).
-      x-description-ru: Тело, несущее только nonce из протокола §2 (16.09.2026, CON-19).
-      required: [nonce]
+      description: Change the PIN — proof of the old one, the new auth_hash and the reissued share, with the nonce of protocol §2 (chat spec §8.2; 2026-09-17, SEC-26).
+      x-description-ru: Смена ПИНа — доказательство старого, новый auth_hash и перевыпущенная доля, с nonce из протокола §2 (спека чата §8.2; 17.09.2026, SEC-26).
+      required: [nonce, current_auth_hash, next_auth_hash, next_share]
       properties:
         nonce: {type: string}
+        current_auth_hash: {type: string}
+        next_auth_hash: {type: string}
+        next_share: {type: string}
+    IdentityClose:
+      type: object
+      description: Start over — with a PIN proof and the nonce of protocol §2 (chat spec §8.2; 2026-09-17, SEC-26).
+      x-description-ru: Начать заново — с доказательством ПИНа и nonce из протокола §2 (спека чата §8.2; 17.09.2026, SEC-26).
+      required: [nonce, auth_hash]
+      properties:
+        nonce: {type: string}
+        auth_hash: {type: string}
     Message:
       type: object
       description: A ciphertext to deliver (chat spec §8.8; proposed 2026-09-16, SEC-8).
@@ -458,9 +470,10 @@ components:
       x-description-ru: Мотивировка по ст. 17 её адресату, без личности заявителя (dsa/SPEC §6).
       properties:
         id: {type: string, format: uuid}
-        restriction: {type: string}
+        restriction: {type: string, enum: [removed, hidden, offer_taken_down, access_restricted]}
+        until: {type: string, format: date-time, description: End of the restriction; absent — indefinite (Art. 17(3)(a))., x-description-ru: Конец ограничения; нет — бессрочно (ст. 17(3)(a)).}
         facts: {type: string}
-        ground_kind: {type: string, enum: [law, terms]}
+        ground_kind: {type: string, enum: [legal, contractual]}
         ground_text: {type: string}
         automated_used: {type: boolean}
         created_at: {type: string, format: date-time}
@@ -497,7 +510,7 @@ components:
   responses:
     ApiError:
       description: A refusal in the common shape {error:{code,message,reason?}} (protocol §6). Every answer of the node may carry x-protocol-sunset (components.headers.ProtocolSunset, protocol §3).
-      x-description-ru: Отказ в общей форме {error:{code,message,reason?}} (протокол §6).
+      x-description-ru: Отказ в общей форме {error:{code,message,reason?}} (протокол §6). На любом ответе узла может быть x-protocol-sunset (components.headers.ProtocolSunset, протокол §3).
       headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     RateLimited:
@@ -1085,7 +1098,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: The old PIN, a new auth_hash, a reissued share.
       x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
-      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Nonced"}}}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PinChange"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1101,7 +1114,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: With a PIN proof; appearance rows are deleted in the same transaction.
       x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
-      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Nonced"}}}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/IdentityClose"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1505,6 +1518,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Proposal"}}}}
       responses:
+        "409": {description: pending_exists — an open proposal is already there; refused — a spectator cannot propose., x-description-ru: pending_exists — открытое предложение уже есть; refused — зритель предлагать не может., content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "201": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
@@ -2005,8 +2019,8 @@ paths:
       x-summary-ru: "Свои мотивировки по ст. 17"
       x-status: proposed
       security: [{identitySignature: []}]
-      description: "Without the notifier's identity; shown on the next entry with this identity, kept a year (dsa/SPEC §6; LAW-1, 2026-09-16)."
-      x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §6; LAW-1, 16.09.2026)."
+      description: "Without the notifier's identity; shown on the next entry with this identity, kept a year (dsa/SPEC §6; LAW-1, 2026-09-16). The first delivery sets delivered_at (proof of delivery, Art. 17)."
+      x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §6; LAW-1, 16.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:

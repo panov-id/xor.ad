@@ -481,6 +481,7 @@
         target_id
         recipient_identity
         restriction             # removed | hidden | offer_taken_down | access_restricted
+        until                   # конец действия ограничения; пусто — бессрочно (ст. 17(3)(a); добавлено 17.09.2026, LAW-1). Территориальной области нет: ограничение действует в сервисе целиком
         facts
         ground_kind             # legal | contractual
         ground_text

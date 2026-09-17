@@ -56,8 +56,8 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   step-away after coming back. So `POST /tables`, `POST /away`, `POST /support`,
   `POST /recovery/reissue`, `POST /identities/close`, `POST /vault/pin` and `POST /blocks` carry a `nonce` field in
   the body (16 bytes, random, base64url): it enters the signature through the body hash, the node keeps
-  the pair (session, nonce) with the first answer for ten minutes in the `nonces` table of the database —
-  shared by the pool and surviving a restart; the "shared memory" argument is withdrawn for these seven
+  the pair (session, nonce) with the first answer for ten minutes in the `nonces` table of the database (DDL in chat spec §8.2) —
+  shared by the pool and surviving a restart; the nonce is bound to its route, the same nonce on another route answers 409 `invalid_body` (SEC-25); the "shared memory" argument is withdrawn for these seven
   routes (2026-09-16, OPS-1, SEC-17), the sweeping is `nonce.ttl` in the limits registry. Everything
   else lives by the window.
 
@@ -131,7 +131,7 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 | `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
 | `DELETE /chats/:id` | closes a conversation by hand — for both at once | **proposed** (§5, screen 8) |
 | `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **proposed** (§8.6) |
-| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); not a member — 404 in the same shape as for a chat that does not exist; while stepped away — 409 `stepped_away` (SEC-22) | **proposed 2026-09-16** (§8.8; panel, SEC-8) |
+| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **proposed 2026-09-16** (§8.8; panel, SEC-8) |
 | `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **proposed 2026-09-16** (§8.8) |
 
 ### 4.4. The socket
@@ -193,7 +193,7 @@ or takes a live identity for a dead one.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, facts, ground_kind, ground_text, automated_used, created_at, appeal}`; the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
+| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` empty — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **proposed 2026-09-16** (`dsa/SPEC_EN.md` §6) |
 | `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **proposed 2026-09-15** (final panel, SEC-9) | **proposed** (`dsa/SPEC_EN.md` §6) |
 
 ### 4.6. Tables (chat spec §6.1, screen 19)
@@ -210,7 +210,7 @@ All proposed 2026-09-16; the behaviour is §6.1's and screen 19's, the paths are
 | `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text}` — **202**, published by the queue's verdict; a sticker `{kind: sticker, sticker}` — **200**, no queue, at most `sticker.minute` a minute per identity (SEC-5); one application per game, a refusal without text is not accepted, a `refusal` is accepted only from a player | **proposed 2026-09-16** (§6.1, schema `table_lines`) |
 | `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` in the board class's terms; `seq` is the expected **board version** (`table_games.seq`, monotonic, grows on an undo too): a repeat of the same body at the same `seq` answers the same `board`, a foreign version gets `stale_seq` (DATA-24, SEC-11); refusals `not_your_turn`, `illegal_move` with the engine's reason; three passes in a row — to the spectators; the move deadline `turn_due` sits in the database; the auto-pass is placed by a scheduler job every 30 seconds and by any request to the table after the deadline, overdue deadlines are applied in order with their own `seq`, an overdue `pending` is cleared the same way and `GET` answers `pending: null` (OPS-12, OPS-3, OPS-4) | **proposed 2026-09-16** (§6, §6.1; `table.move.window`, `table.pass.limit`) |
 | `POST /tables/:id/confirm` | "I'm here" for a new game inside `table.confirm.window`; not confirmed — a spectator | **proposed 2026-09-16** (§6) |
-| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; one open proposal per table — a second one answers 409 `pending_exists` (SEC-5, DATA-7), kept in `table_games.pending` and surviving a restart; the undo fires on every player's consent and steps back one snapshot, which the engine keeps in memory (§6) — after a restart it answers `nothing_to_undo` (OPS-12) | **proposed 2026-09-16** (§6) |
+| `POST /tables/:id/proposals` | propose `{kind: rematch \| draw \| undo, class, set}`; answers `{id}`; from a player only, a spectator gets 409 `refused` (SEC-28); one open proposal per table — a second one answers 409 `pending_exists` (SEC-5, DATA-7), kept in `table_games.pending` and surviving a restart; the undo fires on every player's consent and steps back one snapshot, which the engine keeps in memory (§6) — after a restart it answers `nothing_to_undo` (OPS-12) | **proposed 2026-09-16** (§6) |
 | `POST /tables/:id/proposals/:pid` | the answer `{answer: accept \| decline \| counter, class, set}` | **proposed 2026-09-16** (§6) |
 | `POST /tables/:id/resign` | resign — a one-sided announcement, no result | **proposed 2026-09-16** (§6) |
 | `POST /tables/:id/congratulate` | congratulate `{seat}` — as a `kind: congratulation` line composed by the engine; one per seat per game (SEC-5) | **proposed 2026-09-16** (§6, screen 19) |
@@ -241,7 +241,7 @@ Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the 
 | `GET /blocks` | your own blocks: `{id, since}` — `id` is opaque (`blocks.id`) and does not reduce to an identity; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **proposed 2026-09-16** (§8.9 "until lifted") |
 | `DELETE /blocks/:id` | lift a block; **204** on a foreign or unknown `id` too (SEC-14); the set of visible tables is recomputed on the next entry into the feed | **proposed 2026-09-16** (§8.9, §6.1) |
 | `POST /hidden` | hide (at most `hidden.hour` an hour per identity) a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **200** `{id}` for bringing it back; the author does not learn | **proposed 2026-09-16** (§8.9, schema `hidden_messages`) |
-| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line while the table is open (`tables.closed_at IS NULL`; DATA-8) | **proposed 2026-09-16** (screen 10) |
+| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line until the table is swept (`DELETE FROM tables`, §6.1; DATA-8) | **proposed 2026-09-16** (screen 10) |
 | `DELETE /hidden/:id` | bring the hidden back by `hidden_messages.id`; **204** on a foreign `id` too (SEC-14) | **proposed 2026-09-16** (screen 5) |
 
 ### 4.9. Stepping away (chat spec §8.2 "stepped away", screen 20)
@@ -310,7 +310,7 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 | report threshold | 5% of a phrase's possible audience | the node's config |
 | floor of the report threshold | 3 people | the node's config |
 
-**The seven "per identity" rows and the ticket lifetime were added 2026-09-16 (panel, OPS-13):** each limit's key is in its row; `Retry-After` for a daily or hourly counter is the seconds until the oldest counted event leaves the sliding window; **per-identity counters live in the node's memory and are not journaled** — a restart resets them, and that is accepted: none of them guards a secret (OPS-2, LAW-5 of pass 3); moves have no rate limit of their own — the move window holds them. **The last three rows are deploy-time parameters, not constants of the code**
+**The seven "per identity" rows and the ticket lifetime were added 2026-09-16 (panel, OPS-13):** each limit's key is in its row; `Retry-After` for a daily or hourly counter is the seconds until the oldest counted event leaves the sliding window; **per-identity counters live in the node's memory and are not journaled** — a restart resets them and every node of the pool keeps its own, and that is accepted: none of them guards a secret (OPS-2, LAW-5 of pass 3); moves have no rate limit of their own — the move window holds them. **The last three rows are deploy-time parameters, not constants of the code**
 (decided 2026-08-27–2026-08-28, `route-to-code_EN.md`). The environment variable names are
 proposed here and need agreement: `MODERATION_FALSE_BLOCK_BUDGET`,
 `REPORT_THRESHOLD_SHARE`, `REPORT_THRESHOLD_FLOOR`. They are not in the node's

@@ -507,3 +507,7 @@ states its version is open | protocol_EN.md | CON-24: header x-protocol-version 
 SET left_at = NULL, joined_at = now(), playing_from = NULL | chat_RU.md | DATA-1: возврат — новая строка мест с новым номером, 16.09.2026
 Наименьший свободный номер | chat_RU.md | SEC-16: номера мест не переиспользуются, 16.09.2026
 The lowest free number | chat_EN.md | SEC-16: seat numbers are never reused, 2026-09-16
+
+# --- панель Э5, проход 4 (17.09.2026) ---------------------------------------------------
+back is `UPDATE ... SET left_at = NULL | chat_EN.md | DATA-1/CON-4: coming back is a new seat row, 2026-09-17
+стол не открывается (16.09.2026) | sosed.place/docs/19-table_RU.md neighbro.place/docs/19-table_RU.md | LAW-2 прохода 4: высадка не запирает, канон §6.1 08.09.2026

@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1764" height="1271" viewBox="0 0 1764 1271">
+  <title>Street poster, A3 portrait — sosed.place (RU) and neighbro.place (EN)</title>
+  <desc>
+    Two A3 sheets at 72 dpi (842×1191 each) on one board. Left: sosed.place in the
+    storefront's warm brick palette and Golos Text. Right: neighbro.place in gold
+    and Unbounded. Each sheet: the hail, a headline, one line saying what this is,
+    a QR placeholder, and the domain spelled out in words. No numbers, no promises.
+  </desc>
+
+  <style>
+    @font-face { font-family: "Golos Text"; font-weight: 400 900;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 900;
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400 500;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "Unbounded"; font-weight: 700;
+      src: url(/fonts/Yq6W-LOTXCb04q32xlpwu8Zf.woff2) format("woff2"); }
+
+    .golos { font-family: "Golos Text", system-ui, sans-serif; }
+    .mono  { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.22em; text-transform: uppercase; }
+    .unb   { font-family: "Unbounded", "Golos Text", sans-serif; font-weight: 700; }
+    .board-note { font-family: "Golos Text", system-ui, sans-serif; font-size: 13px; fill: #5b5b55; }
+  </style>
+
+  <rect width="1764" height="1271" fill="#e6e2da"/>
+  <text x="40" y="30" class="board-note">poster-a3 · two A3 sheets, 842×1191 px at 72 dpi · left sosed.place (RU), right neighbro.place (EN) · QR is a placeholder</text>
+
+  <!-- ================================================== SHEET 1: sosed.place === -->
+  <g transform="translate(40,40)">
+    <rect x="0" y="0" width="842" height="1191" fill="#0d0b0a"/>
+    <!-- trim frame, the storefront's border tone -->
+    <rect x="28" y="28" width="786" height="1135" fill="none" stroke="#3a2e20" stroke-width="2"/>
+
+    <!-- top strip: face + hail -->
+    <text x="64" y="92" class="mono" font-size="15" style="fill:#9a8d7c">сосед · место</text>
+    <text x="778" y="92" class="mono" font-size="15" text-anchor="end" style="fill:#9a8d7c">афиша</text>
+
+    <!-- the hail: the storefront's splash word -->
+    <text x="58" y="358" class="golos" font-size="236" font-weight="800" letter-spacing="-12" style="fill:#bd4b2a">ХОЙ</text>
+
+    <!-- headline -->
+    <text class="golos" font-size="60" font-weight="800" style="fill:#f0e7dc">
+      <tspan x="64" y="450">Хорошие соседи.</tspan>
+      <tspan x="64" y="518">Живые моменты.</tspan>
+    </text>
+
+    <!-- one line: what this is -->
+    <text class="golos" font-size="27" font-weight="400" style="fill:#ab9d88">
+      <tspan x="64" y="585">Здесь говорят соседи рядом.</tspan>
+      <tspan x="64" y="623">Сказанное исчезает.</tspan>
+    </text>
+
+    <!-- rule -->
+    <rect x="64" y="672" width="714" height="2" fill="#3a2e20"/>
+
+    <!-- QR block -->
+    <g transform="translate(64,712)">
+      <rect x="0" y="0" width="300" height="300" fill="#f5efe4"/>
+      <rect x="18" y="18" width="264" height="264" fill="none" stroke="#221a12" stroke-width="3" stroke-dasharray="10 8"/>
+      <text x="150" y="132" class="golos" font-size="64" font-weight="800" text-anchor="middle" style="fill:#221a12">QR</text>
+      <text x="150" y="176" class="golos" font-size="16" font-weight="500" text-anchor="middle" style="fill:#5a4a38">место под код</text>
+      <text x="150" y="200" class="golos" font-size="16" font-weight="500" text-anchor="middle" style="fill:#5a4a38">ведёт только на sosed.place</text>
+    </g>
+
+    <!-- beside the QR: what happens after the scan -->
+    <g transform="translate(404,712)">
+      <text class="golos" font-size="24" font-weight="600" style="fill:#f0e7dc">
+        <tspan x="0" y="30">Наведите камеру.</tspan>
+      </text>
+      <text class="golos" font-size="21" font-weight="400" style="fill:#ab9d88">
+        <tspan x="0" y="72">Откроется место, где вы стоите —</tspan>
+        <tspan x="0" y="102">примерно, а не точно.</tspan>
+        <tspan x="0" y="150">Скажите что-нибудь соседям.</tspan>
+        <tspan x="0" y="180">Имя — какое хотите.</tspan>
+        <tspan x="0" y="228">Телефон ничего не спросит:</tspan>
+        <tspan x="0" y="258">где вы — мы не спрашиваем.</tspan>
+      </text>
+    </g>
+
+    <!-- domain in words -->
+    <rect x="64" y="1052" width="714" height="2" fill="#3a2e20"/>
+    <text x="64" y="1108" class="golos" font-size="44" font-weight="800" letter-spacing="-1" style="fill:#bd4b2a">sosed.place</text>
+    <text x="64" y="1140" class="golos" font-size="17" font-weight="400" style="fill:#9a8d7c">набрать в браузере словами: сосед латиницей, точка, плейс — sosed точка place</text>
+  </g>
+
+  <!-- ================================================ SHEET 2: neighbro.place === -->
+  <g transform="translate(922,40)">
+    <rect x="0" y="0" width="842" height="1191" fill="#0c0b09"/>
+    <rect x="28" y="28" width="786" height="1135" fill="none" stroke="#3a331f" stroke-width="2"/>
+
+    <text x="64" y="92" class="mono" font-size="15" style="fill:#8a8172">neighbro · place</text>
+    <text x="778" y="92" class="mono" font-size="15" text-anchor="end" style="fill:#8a8172">poster</text>
+
+    <!-- the hail -->
+    <text x="58" y="360" class="unb" font-size="196" letter-spacing="-6" style="fill:#c6a24e">HEY</text>
+
+    <!-- headline -->
+    <text class="unb" font-size="50" style="fill:#ede8dd">
+      <tspan x="64" y="450">Good neighbors.</tspan>
+      <tspan x="64" y="518">Real moments.</tspan>
+    </text>
+
+    <!-- one line: what this is -->
+    <text class="golos" font-size="27" font-weight="400" style="fill:#928979">
+      <tspan x="64" y="585">Neighbors talk here, nearby.</tspan>
+      <tspan x="64" y="623">What is said fades away.</tspan>
+    </text>
+
+    <rect x="64" y="672" width="714" height="2" fill="#3a331f"/>
+
+    <!-- QR block -->
+    <g transform="translate(64,712)">
+      <rect x="0" y="0" width="300" height="300" fill="#f4f1e8"/>
+      <rect x="18" y="18" width="264" height="264" fill="none" stroke="#1a1509" stroke-width="3" stroke-dasharray="10 8"/>
+      <text x="150" y="132" class="unb" font-size="56" text-anchor="middle" style="fill:#1a1509">QR</text>
+      <text x="150" y="176" class="golos" font-size="16" font-weight="500" text-anchor="middle" style="fill:#5c4d2a">placeholder</text>
+      <text x="150" y="200" class="golos" font-size="16" font-weight="500" text-anchor="middle" style="fill:#5c4d2a">only ever neighbro.place</text>
+    </g>
+
+    <g transform="translate(404,712)">
+      <text class="golos" font-size="24" font-weight="600" style="fill:#ede8dd">
+        <tspan x="0" y="30">Point your camera.</tspan>
+      </text>
+      <text class="golos" font-size="21" font-weight="400" style="fill:#928979">
+        <tspan x="0" y="72">It opens on the spot where you stand —</tspan>
+        <tspan x="0" y="102">roughly, never exactly.</tspan>
+        <tspan x="0" y="150">Say something to the neighbors.</tspan>
+        <tspan x="0" y="180">Any name you like.</tspan>
+        <tspan x="0" y="228">No location prompt, no app to install —</tspan>
+        <tspan x="0" y="258">we never ask where you are.</tspan>
+      </text>
+    </g>
+
+    <rect x="64" y="1052" width="714" height="2" fill="#3a331f"/>
+    <text x="64" y="1108" class="unb" font-size="40" letter-spacing="1" style="fill:#c6a24e">NEIGHBRO.PLACE</text>
+    <text x="64" y="1140" class="golos" font-size="17" font-weight="400" style="fill:#8a8172">type it in your browser, in words: neighbro, dot, place — nothing else is us</text>
+  </g>
+</svg>

@@ -516,3 +516,5 @@ current_auth_hash | protocol_RU.md protocol_EN.md | SEC-1 прохода 5: до
 Офферы и столы просмотр тоже пропускает | sosed.place/docs/23-phrase-viewer_RU.md neighbro.place/docs/23-phrase-viewer_RU.md | владелец 17.09.2026: просмотр листает все карточки ленты
 The viewer also skips offers and tables | sosed.place/docs/23-phrase-viewer_EN.md neighbro.place/docs/23-phrase-viewer_EN.md | owner 2026-09-17: the viewer pages every feed card
 Лайк снимается повторным касанием | sosed.place/docs/05-message-actions_RU.md neighbro.place/docs/05-message-actions_RU.md | владелец 17.09.2026: лайкнутое уходит из ленты, снимается на экране 25
+стрелки влево и вправо на клавиатуре только листают | sosed.place/docs/23-phrase-viewer_RU.md neighbro.place/docs/23-phrase-viewer_RU.md | владелец 17.09.2026: стрелки повторяют свайп, листают ↑/↓ и Space
+the left and right arrow keys only page | sosed.place/docs/23-phrase-viewer_EN.md neighbro.place/docs/23-phrase-viewer_EN.md | owner 2026-09-17: the arrows repeat the swipe, ↑/↓ and Space page

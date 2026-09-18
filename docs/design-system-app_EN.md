@@ -47,14 +47,16 @@ The roles follow the panel's; the names are the storefronts' wherever those exis
 | Token | Role | From |
 |---|---|---|
 | `--bg` | behind everything | the storefronts |
-| `--panel`, `--panel-2` | a card; a surface inside it | the storefronts |
+| `--panel`, `--panel-2` | a card; a surface inside it | the storefronts' names, **own values** — the "Surfaces" section |
 | `--fg`, `--muted`, `--muted-2` | text, second plane, third | the storefronts |
-| `--border` | a line | the storefronts |
+| `--border` | a decorative line: a divider, a sheet's frame | the storefronts |
+| `--border-control` | a control's border: a field, a chip, a secondary button on bare ground — not below 3:1 to its ground | **established here** |
 | `--accent`, `--accent-ink`, `--accent-text` | the brand; ink over it; accented text | the storefronts |
 | `--ok`, `--err` | outcome | the storefronts |
 | `--sans`, `--mono`, `--disp` | three faces | the storefronts |
 | `--r-1`, `--r-2`, `--r-pill`, `--r-round` | the radius scale | **established here** |
 | `--s-1` … `--s-12` | the spacing scale | **established here** |
+| `--fs-display` … `--fs-mono` | six steps of text | **established here**, the "Typography" section |
 
 **The radius scale is derived from the measurement, not chosen by taste.** The
 seventeen values across the two storefronts fall into three heaps: small 7–9
@@ -98,6 +100,57 @@ The delta is kept here and only here. Every difference carries its reason.
   events the panel does not, and those move. The "Motion" section below.
 - **The way things are checked** — contrast, and the page judged whole rather
   than component by component.
+
+## Typography
+
+**Six steps and two weights — the owner's decision of 2026-09-18:** the review
+panel (`reviews/PANEL_2026-09-18_mockups-design.md`, the "Typography" lens) counted
+16 type sizes across the sheets at two weights, with family C holding six roles on
+17/16/15/14 — a one-pixel step of hierarchy, and a heading told from body text by
+nothing but weight. Hence "a wireframe". The scale is established here, adjacent
+steps differ by 1.25–1.3×, and line height belongs to the step, not to the sheet.
+
+| Step | Size / line height | Weight | Face | Where |
+|---|---|---|---|---|
+| `--fs-display` | 26 / 34 | 400 | `--disp` = Golos Text | the full-screen phrase (23), an empty state's heading, a confirmation sheet ("Step away", "Enter the PIN"), the transfer code — same size, but `--mono` |
+| `--fs-title` | 20 / 28 | 600 | Golos | the screen header, the interlocutor's name, the table's name |
+| `--fs-body` | 16 / 24 | 400 | Golos | a phrase, a reply, a document's body, an input |
+| `--fs-body-strong` | 16 / 24 | 600 | Golos | button text, "your move", a category label — coloured `--accent-text`, not sized |
+| `--fs-meta` | 14 / 20 | 400 | Golos, `--muted` | captions, conditions, "2 playing · 3 watching" |
+| `--fs-mono` | 13 / 20 | 400 | `--mono` = JetBrains Mono | where tabular width matters: the timer, `9/256`, the score, a ticket number |
+
+The screen header is 20/600, not 18: the "Screen header" row of
+`reviews/NIGHT_2026-09-18_mockups-consistency.md` was rewritten the same day. Outside
+the scale: board coordinates at 11 mono — a single exception, below 11 the dark theme
+at 375 px is unreadable. The scale was applied to the `<style>` of every
+`panel/design/screen-*.svg` sheet by one script (70 rules); the sheets were then
+rendered and judged whole, no overflow appeared at 375 px, and the key-check icon in
+header 08 moved 14 px to sit after a 20 px name.
+
+## Surfaces
+
+**A card by fill, a field by border; the owner's decision of 2026-09-18.** The
+storefronts' `--panel #17130f` on `--bg #0d0b0a` gives 1.06:1: a card without a
+border vanishes, which is why all three "hands" outlined every container. The
+review panel named this the second cause of "a wireframe". The application takes
+the storefronts' names but its own values, and separates two kinds of border:
+
+| Token | Dark | Light | Checked |
+|---|---|---|---|
+| `--bg` | `#0d0b0a` | `#ece4d8` | the storefronts |
+| `--panel` | `#262019` | `#fdfaf4` | to `--bg` 1.22 / 1.21; `--fg` 13.2 / 17.4; `--muted` 4.97 / 5.99 |
+| `--panel-2` | `#302720` | `#e6dbc9` | to `--panel` 1.10 / 1.31; `--muted` 4.51 / 4.56 — at the limit, it cannot go lower |
+| `--border` | `#3a2e20` | `#221a12` | decorative, no threshold |
+| `--border-control` | `#80705a` | `#857562` | to `--panel` 3.36 / 4.27, to `--bg` 4.10 / 3.53 (WCAG 1.4.11) |
+
+The rule: a feed card, a reply bubble, the board, a tombstone — `--panel` fill with
+no outline; an input, a chip, a secondary button on bare ground — a 1 px
+`--border-control` outline; the line under the header and above the navigation —
+`--border`. The storefronts raised their own `--border` to 3:1 on the morning of
+2026-09-18 (`#725a3f`) and keep one token — their decision for pages where the border
+is the control; the application needs two. The figures were recounted by a script
+with the WCAG formula on 2026-09-18; on the sheets 291 outlines were removed from
+cards and bubbles and 94 control borders moved to `--border-control`.
 
 ## Motion
 
@@ -250,7 +303,7 @@ Ten places where one control is described differently; the direction is named, t
 
 ### What the design system has that no screen needs
 
-`--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--panel-2` (no nested surface), `--disp` (no display font named), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them. The motion tokens `--dur-*`, `--ease-*`, `--shift-*` are the "Motion" section; they are introduced here.
+`--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them. The motion tokens `--dur-*`, `--ease-*`, `--shift-*` are the "Motion" section; they are introduced here.
 
 ## Nothing open
 

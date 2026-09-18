@@ -159,6 +159,26 @@ is the control; the application needs two. The figures were recounted by a scrip
 with the WCAG formula on 2026-09-18; on the sheets 291 outlines were removed from
 cards and bubbles and 94 control borders moved to `--border-control`.
 
+## Spark
+
+**Spark — the owner's decision of 2026-09-18.** By the day's gallery the sheets read dry;
+the mock-up `panel/design/spark-mockup.svg` showed one feed frame in three characters
+(A warm and alive, B neo-brutal, C soft slabs), and the mix D was chosen: from A — a
+colour per category, the live header and the phrase's lifespan bar; from C — light pill
+buttons and the floating composer; radius 13 stays. The rules:
+
+| What | Rule | Contrast |
+|---|---|---|
+| Categories | a 24 px pill chip, the category colour at 16 %, text 14/600 in that colour: company `--cat-amber` #e2a33b, offer `--accent-text` #e0714f, table `--cat-teal` #3fb59a, party `--cat-violet` #b48cf2, "alone" — `--muted` without a chip | on `--panel` 7.32 / 5.10 / 6.36 / 6.12 |
+| Light theme | the same roles as dark pairs: amber #7a4a00, teal #146b58, violet #5b36a8 | on the light `--bg` 7.18 / 6.16 / 7.94 |
+| The phrase in the feed | 20/600 (`--fs-title`), under it a 3 px lifespan bar in the category colour | — |
+| The feed header | "Kolonaki · 12 people nearby" instead of the logo: the place from the area and a live count from the node; under 5 — "few people nearby" (the limit `feed.nearby.floor`) | — |
+| Secondary buttons on a card | a 44 pill rx 22, fill `--fg`, ink `--bg` ("save", "sit down") | 16.06 |
+| The composer | a floating 52 pill rx 26 in `--fg` over the feed with a 36 `--accent` send circle — the frame's one filled accent button (N7 unchanged); the feed gets a 64 bottom inset | — |
+| The tab bar | three items: Feed · Conversations · Me (there were four; "Say" moved into the composer) | — |
+
+The roll-out across the 14 sheets is a separate pass; until then the rules live here and on the mock-up.
+
 ## The product's signs
 
 **Three signs in form — the lens quorum's decision of 2026-09-18** (the owner gave

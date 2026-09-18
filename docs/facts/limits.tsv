@@ -114,3 +114,4 @@ offer.link.ttl	15	минут	срок жизни ссылки входа в ка
 offer.autohide.complaints	3	жалоб	жалоб от разных людей, после которых оффер скрывается до разбора (AUTOHIDE_COMPLAINTS)	узел	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md	
 offer.complaint.examination	24	часа	срок разбора скрытого оффера (COMPLAINT_EXAMINATION_HOURS)	узел	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md	запрос
 offer.suspend.window	90	дней	окно, в котором считаются обоснованные жалобы по разным офферам до приостановки заведения (SUSPEND_WINDOW_DAYS; порог — 3, SUSPEND_RESOLVED_COUNT)	узел	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md	запрос
+feed.nearby.floor	5	человек	с какого числа шапка ленты показывает «рядом N человек»; ниже — «рядом мало людей» (огонёк, 18.09.2026)	клиент	sosed.place/docs/03-feed-screen_RU.md,sosed.place/docs/03-feed-screen_EN.md,neighbro.place/docs/03-feed-screen_RU.md,neighbro.place/docs/03-feed-screen_EN.md	

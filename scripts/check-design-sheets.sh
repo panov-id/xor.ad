@@ -35,6 +35,8 @@ TOKENS = {
     # dark
     '#0d0b0a', '#262019', '#302720', '#3a2e20', '#80705a', '#f0e7dc', '#9a8d7c', '#6b5f4c',
     '#bd4b2a', '#fff6f0', '#e0714f', '#d56343', '#9ecb7a', '#ef7a6a',
+    # spark (the owner's decision of 2026-09-18): a colour per category, dark and light pairs
+    '#e2a33b', '#3fb59a', '#b48cf2', '#7a4a00', '#146b58', '#5b36a8',
     # light
     '#ece4d8', '#fdfaf4', '#e6dbc9', '#221a12', '#857562', '#1c140d', '#983c22', '#4b712c', '#a3311f', '#9ecb7a',
     # sheet chrome: the sheet's own background, captions, the black of family C

@@ -47,8 +47,15 @@ counts = {k: 0 for k in ('sizes_off_scale', 'strokes_off_scale', 'radii_off_scal
 detail = {k: {} for k in counts}
 def bump(key, sheet, what):
     counts[key] += 1; d = detail[key]; d[what] = d.get(what, 0) + 1
+import xml.etree.ElementTree as ET
+broken = []
 for f in sheets:
     t = f.read_text(encoding='utf-8')
+    # A sheet that is not well-formed renders only up to the first error and the
+    # counts below read text that no browser will draw: on 2026-09-18 sheet 14
+    # lost its lower rows for two hours this way. So the parse comes first.
+    try: ET.fromstring(t)
+    except ET.ParseError as e: broken.append(f'{f.name}: {e}')
     style = re.search(r'<style>(.*?)</style>', t, re.S)
     css = style.group(1) if style else ''
     cls_fill = {}
@@ -97,6 +104,9 @@ for f in sheets:
         hv = float(h.group(1)) if h else 44; wv = float(w.group(1)) if w else 44
         if (hv <= 24 and not hit) or hv >= 800: continue   # a glyph (checkbox box, menu icon) — its zone is a data-hit rect
         if hv < 44 or (hit and wv < 44): bump('small_bordered_controls', f.name, f'{wv:g}×{hv:g}')
+if broken:
+    for b in broken: print('  ✗ лист не разбирается как XML — ' + b)
+    print(f'✗ листов: {len(sheets)} — сломанных: {len(broken)}'); sys.exit(1)
 if mode == '--write-baseline':
     baseline.write_text('# Ratchet baseline of scripts/check-design-sheets.sh: a count may fall, never grow.\n'
                         '# Rewritten by --write-baseline; the date is the day the bar was lowered.\n'

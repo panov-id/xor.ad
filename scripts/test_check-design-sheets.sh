@@ -66,6 +66,11 @@ sed -i 's|</svg>|<rect x="0" y="0" width="3" height="20" rx="1.5" fill="#d56343"
 expect 0 "ни одна мера не выросла" "таблетка по ширине 3×20 rx 1.5 — не радиус вне шкалы"
 restore
 
+# a truncated element — the sheet is no longer XML and no browser draws past it
+sed -i 's|</svg>|<text x="1" y="1" class="meta"\n</svg>|' "$work/design/screen-03.svg"
+expect 1 "не разбирается как XML" "обрезанный элемент — красный до всякого счёта"
+restore
+
 # a count that fell is reported, not failed: a placeholder enters the baseline, then leaves
 sed -i 's|</svg>|<text>[текст не задан: проба]</text></svg>|' "$work/design/screen-03.svg"
 DESIGN_DIR="$work/design" DESIGN_BASELINE="$base" bash "$gate" --write-baseline >/dev/null

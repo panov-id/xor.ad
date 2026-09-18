@@ -262,7 +262,8 @@ emulation. None of this has been run yet: there is no application code.
   scale, colours that are not tokens, placeholders, text in the raw accent,
   bordered controls under 44) are held in `docs/facts/design-sheets-baseline.tsv`
   and may not grow; the probe `test_check-design-sheets.sh` turns them red with
-  eleven injections (2026-09-18).
+  twelve injections (2026-09-18); a sheet that is not well-formed XML is red before
+  any count.
 - `scripts/check-design-text.sh` — the sheets' text in a browser: no line inside a
   375×812 frame leaves its edge or lies on another visible line; what a sheet or a
   card hides is not counted. Established 2026-09-18 after three clipped lines and

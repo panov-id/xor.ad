@@ -9,8 +9,8 @@
 # 2026-09-18 (docs/reviews/PLAN_2026-09-18_screens-to-ideal_RU.md, gate I1–I3, I5)
 # wants at zero: type sizes off the six-step scale, stroke widths other than 1 and
 # 2, corner radii off the radius scale, colours that are not tokens, "[text not
-# set]" placeholders, text set in the raw accent (#bd4b2a, 3.93:1), and bordered
-# controls shorter than 44 px. None of them is zero today, so a plain gate would
+# set]" placeholders, text set in the raw accent (#bd4b2a, 3.93:1), and controls
+# — any rimmed rect or a data-hit zone — shorter or narrower than 44 px. None of them is zero today, so a plain gate would
 # be red for a week and prove nothing. Instead the counts are held in
 # docs/facts/design-sheets-baseline.tsv and the gate goes red when any count
 # GROWS; when a count falls, the gate says so and --write-baseline lowers the bar.
@@ -29,6 +29,7 @@ if not sheets:
     print('✗ листов не найдено — мерить нечего'); sys.exit(3)
 SIZES = {26, 20, 16, 14, 13, 11}
 STROKES = {1.0, 2.0}
+RIMS = {'#80705a', '#857562', '#f0e7dc', '#1c140d', '#221a12'}   # rims a control may wear; the accent rim marks a board tile, not a control
 RADII = {0, 4, 8, 13, 24, 999}          # 4 — domino tiles (a local form), 24 — the phone frame, not the product
 TOKENS = {
     # dark
@@ -65,7 +66,9 @@ for f in sheets:
         rx = re.search(r'\brx="([0-9.]+)"', tag); h = re.search(r'\bheight="([0-9.]+)"', tag)
         if not rx: continue
         r = float(rx.group(1)); hv = float(h.group(1)) if h else None
+        w = re.search(r'\bwidth="([0-9.]+)"', tag); wv = float(w.group(1)) if w else None
         if hv is not None and (abs(2 * r - hv) < 0.01 or hv <= 16): continue   # a pill (--r-pill) or an icon, not a component
+        if wv is not None and abs(2 * r - wv) < 0.01: continue                 # a pill by width: the console's 3×20 rib
         if r not in RADII: bump('radii_off_scale', f.name, rx.group(1))
     for m in re.finditer(r'#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b', t):
         c = m.group(0).lower()
@@ -80,11 +83,19 @@ for f in sheets:
             cm = re.search(r'class="([a-zA-Z0-9_-]+)"', attrs)
             if cm: fill = cls_fill.get(cm.group(1))
         if fill == '#bd4b2a': bump('accent_text', f.name, f.name)
+    # A control is a rect with any rim colour (not only --border-control: the me
+    # cluster's lens of 2026-09-18 found fifteen rims in --fg that the first
+    # version never counted) or an invisible hit zone marked data-hit. Rims of
+    # 16 px and less are icons; the phone frame is 812 and never a control.
     for m in re.finditer(r'<rect[^>]*>', t):
         tag = m.group(0)
-        if 'stroke="#80705a"' in tag or 'stroke:#80705a' in tag or 'stroke="#857562"' in tag or 'stroke:#857562' in tag:
-            h = re.search(r'height="([0-9.]+)"', tag)
-            if h and float(h.group(1)) < 44: bump('small_bordered_controls', f.name, h.group(1))
+        rim = re.search(r'stroke[=:]"?(#[0-9a-fA-F]{3,6})', tag)
+        hit = 'data-hit=' in tag
+        if not (rim and rim.group(1).lower() in RIMS) and not hit: continue
+        h = re.search(r'\bheight="([0-9.]+)"', tag); w = re.search(r'\bwidth="([0-9.]+)"', tag)
+        hv = float(h.group(1)) if h else 44; wv = float(w.group(1)) if w else 44
+        if (hv <= 24 and not hit) or hv >= 800: continue   # a glyph (checkbox box, menu icon) — its zone is a data-hit rect
+        if hv < 44 or (hit and wv < 44): bump('small_bordered_controls', f.name, f'{wv:g}×{hv:g}')
 if mode == '--write-baseline':
     baseline.write_text('# Ratchet baseline of scripts/check-design-sheets.sh: a count may fall, never grow.\n'
                         '# Rewritten by --write-baseline; the date is the day the bar was lowered.\n'

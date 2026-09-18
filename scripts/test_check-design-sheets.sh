@@ -51,10 +51,27 @@ sed -i 's|</svg>|<rect fill="#123456"/></svg>|' "$work/design/screen-03.svg"
 expect 1 "colours_off_token" "цвет вне токенов — красный"
 restore
 
-# a count that fell is reported, not failed
-sed -i '0,/текст не задан/s//текст задан/' "$work/design/screen-03.svg"
-expect 0 "опустилось placeholders" "мера опустилась — зелёный с подсказкой снизить базу"
+# a control rimmed in --fg and 40 px tall — the rim colour must not hide it (me cluster, 2026-09-18)
+sed -i 's|</svg>|<rect x="0" y="0" width="295" height="40" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/></svg>|' "$work/design/screen-03.svg"
+expect 1 "small_bordered_controls" "рамка --fg высотой 40 — красный"
 restore
+
+# an invisible hit zone narrower than 44
+sed -i 's|</svg>|<rect x="0" y="0" width="40" height="44" rx="8" fill="none" data-hit="44"/></svg>|' "$work/design/screen-03.svg"
+expect 1 "small_bordered_controls" "зона data-hit шириной 40 — красный"
+restore
+
+# a pill by width (the console rib 3×20, rx 1.5) is not a radius off the scale
+sed -i 's|</svg>|<rect x="0" y="0" width="3" height="20" rx="1.5" fill="#d56343"/></svg>|' "$work/design/screen-03.svg"
+expect 0 "ни одна мера не выросла" "таблетка по ширине 3×20 rx 1.5 — не радиус вне шкалы"
+restore
+
+# a count that fell is reported, not failed: a placeholder enters the baseline, then leaves
+sed -i 's|</svg>|<text>[текст не задан: проба]</text></svg>|' "$work/design/screen-03.svg"
+DESIGN_DIR="$work/design" DESIGN_BASELINE="$base" bash "$gate" --write-baseline >/dev/null
+restore
+expect 0 "опустилось placeholders" "мера опустилась — зелёный с подсказкой снизить базу"
+DESIGN_DIR="$work/design" DESIGN_BASELINE="$base" bash "$gate" --write-baseline >/dev/null
 
 # no sheets at all
 rm "$work/design"/*.svg

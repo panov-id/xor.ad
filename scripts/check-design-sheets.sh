@@ -73,7 +73,8 @@ for f in sheets:
     for m in re.finditer(r'(?<![\w(])#[0-9a-fA-F]{6}\b|(?<![\w(])#[0-9a-fA-F]{3}\b', t):   # url(#c17) is an id, not a colour
         c = m.group(0).lower()
         if c not in TOKENS: bump('colours_off_token', f.name, c)
-    counts['placeholders'] += t.count('текст не задан')
+    for mark in ('текст не задан', 'text not set', 'Text nicht festgelegt', 'տեքստը սահմանված չէ'):   # the i18n sheet speaks four languages
+        counts['placeholders'] += t.count(mark)
     for m in re.finditer(r'<text([^>]*)>', t):
         attrs = m.group(1)
         fill = None

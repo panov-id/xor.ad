@@ -124,7 +124,7 @@
 </g>
 <text x="16" y="343" class="meta" style="fill:#f0e7dc">ход: Аня</text>
 <text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4 мин</text>
-<text x="187.5" y="388" class="capm" text-anchor="middle">за столом шифрования нет: узел видит речь, доску и стикеры</text>
+<text x="187.5" y="381" class="capm" text-anchor="middle">за столом шифрования нет:</text><text x="187.5" y="398" class="capm" text-anchor="middle">узел видит речь, доску и стикеры</text>
 <g>
 <text x="187.5" y="414" class="meta" text-anchor="middle">вы за столом с этого момента</text>
 </g>

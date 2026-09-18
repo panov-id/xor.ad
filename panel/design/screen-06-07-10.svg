@@ -757,7 +757,7 @@
 <text x="463" y="4816" class="capm">«Аня согласилась · беседа открыта»: переход из кадра B —</text>
 <text x="463" y="4833" class="capm">шапка ждущей беседы сменилась живой, очередь доставлена</text>
 <text x="463" y="4850" class="capm">(✓ у обеих реплик), срок беседы пошёл со второго нажатия</text>
-<text x="463" y="4867" class="capm">(06:11, 06:39); тот же миг глазами листа 08 — кадр I</text>
+<text x="463" y="4867" class="capm">(06:11, 06:33; chat_RU.md:2055 — срок со второго нажатия); тот же миг — кадр I листа 08</text>
 <g transform="translate(878,3958)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c8783958"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8783958)">
@@ -787,8 +787,7 @@
 <g transform="translate(1293,3958)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c12933958"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12933958)">
-<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="52" y="34" class="h">Я</text>
+<text x="16" y="34" class="h">Я</text>
 <rect x="0" y="60" width="375" height="48" fill="none" data-hit="44"/><text x="16" y="90" class="body">Что происходило</text>
 <line x1="16" y1="108" x2="359" y2="108" stroke="#3a2e20" stroke-width="1"/>
 <rect x="0" y="108" width="375" height="48" fill="none" data-hit="44"/><text x="16" y="138" class="body">Отойти</text>
@@ -798,9 +797,9 @@
 <text x="16" y="228" class="capm3">Стирает память устройства о закрытых подсказках</text>
 <rect x="0" y="246" width="375" height="48" fill="none" data-hit="44"/><text x="16" y="276" class="body">Мои лайки</text>
 <line x1="16" y1="294" x2="359" y2="294" stroke="#3a2e20" stroke-width="1"/>
-<rect x="16" y="712" width="343" height="56" rx="13" fill="#302720"/>
-<text x="187.5" y="746" class="body" text-anchor="middle">подсказки снова покажутся по одной</text>
-</g></g>
+<rect x="16" y="680" width="343" height="56" rx="13" fill="#302720"/>
+<text x="187.5" y="714" class="body" text-anchor="middle">подсказки снова покажутся по одной</text>
+<rect x="0" y="748" width="375" height="64" rx="0" fill="#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" stroke="#3a2e20" stroke-width="1"/><rect x="37.875" y="762" width="18" height="2.5" rx="0" fill="#9a8d7c"/><rect x="37.875" y="768" width="18" height="2.5" rx="0" fill="#9a8d7c"/><rect x="37.875" y="774" width="18" height="2.5" rx="0" fill="#9a8d7c"/><text x="46.875" y="796" class="nav" text-anchor="middle">Лента</text><text x="140.625" y="796" class="nav" text-anchor="middle">Беседы</text><text x="234.375" y="796" class="nav" text-anchor="middle">Сказать</text><path d="M131.625 762 h18 v12 h-11 l-4 4 v-4 h-3 z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/><path d="M234.375 761 v18 M225.375 770 h18" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round"/><circle cx="328.125" cy="766" r="4.5" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M320.125 779 a8 8 0 0 1 16 0" fill="none" stroke="#f0e7dc" stroke-width="2"/><text x="328.125" y="796" class="navb" text-anchor="middle">Я</text></g></g>
 <text x="1293" y="4796" class="cap">T · «Показать подсказки снова» — подтверждение</text>
 <text x="1293" y="4816" class="capm">10:44 и 24:13 «стирает память устройства о закрытых</text>
 <text x="1293" y="4833" class="capm">подсказках»; строка подтверждения «подсказки снова</text>

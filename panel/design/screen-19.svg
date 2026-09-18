@@ -1586,7 +1586,7 @@
 <rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
-<text x="347" y="128" class="mono13" text-anchor="end">Миша · 2</text>
+<text x="347" y="128" class="mono13" text-anchor="end">Миша · смотрит</text>
 <g>
 <rect x="34" y="159" width="22" height="44" rx="4" fill="#f0e7dc"/>
 <line x1="37" y1="181" x2="53" y2="181" stroke="#3a2e20" stroke-width="1" />

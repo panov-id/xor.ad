@@ -611,7 +611,7 @@
 <text x="16" y="572" class="h">Точно? История исчезнет</text>
 <text x="16" y="598" class="h">у обоих</text>
 <text x="16" y="628" class="meta">Беседа закроется у обоих сразу.</text>
-<text x="16" y="648" class="meta">Собеседник увидит то же надгробие,</text>
+<text x="16" y="648" class="meta">Собеседник видит то же,</text>
 <text x="16" y="668" class="meta">что и при истечении срока.</text>
 <rect x="16" y="692" width="343" height="44" rx="13" fill="#bd4b2a"/>
 <text x="187.5" y="720" class="body" style="fill:#fff6f0" text-anchor="middle">закончить</text>

@@ -639,6 +639,7 @@ is asking.
   order they applied**, while seats last. Whoever does not fit stays an applicant
   for the next round rather than a refused one — a refusal is still words only,
   and only from someone playing.
+- **Players fall below the set's minimum — the game ends at once (the owner's decision of 2026-09-18).** A player stood up, was removed or stepped away, and fewer players remain than the set needs (one at a two-seat set) — `table_games.ended_at` is set in the same transaction with no result, the table lives, the one left sees "game over" and "play again" (a new game once the set is full again). Otherwise the one left would wait fifteen minutes for three auto-passes of an empty chair (UX panel 2026-09-18, UX-P-3).
 - **A move has a deadline, and a missed move is a pass: decided 2026-09-10.** Since
   2026-09-09 the engine checks the turn order, which means the game stops on
   whoever is not there: left, shown out, or simply put the phone down — the others
@@ -678,7 +679,8 @@ is asking.
   sits in the database beside the table, because everything there is public by
   construction (§6.1).
 
-- **The majority of the players (spectators do not decide — 2026-09-16, SEC-24) can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
+- **The first round at a fresh table is opened by a "start the game" button — the owner's decision of 2026-09-18.** `POST /tables` creates the table and an empty game (`table_games` with no moves); the one who set it plays alone, those who sit down apply. "Start the game" for a player is the same `rematch` proposal (`POST /tables/:id/proposals {kind: rematch}`); before the first game it needs no finished one: the accepted applicants pass the 30-second "I'm here" window and sit down to play. Without the button nothing started the game — a dead end the UX panel found on 2026-09-18.
+- **The majority of the players (spectators do not decide — 2026-09-16, SEC-24; at least two votes: with one player there is no removal, with two both are needed — the owner's decision of 2026-09-18) can ask someone to leave.** Nobody holds sole power over a table, including whoever started it: the neighbour who set up the board does not become its owner.
 - **A block separates at the seat, it does not tear a game apart — rewritten 2026-09-10.** A table with a blocked person at it is still not shown, but sitting down is refused **both ways**: neither the blocked person into a table where the blocker sits, nor the other way round. This used to read "one person can hide someone else's game from another simply by joining it" — and the cost was larger than that: by joining a game in progress, an outsider cut it off mid-move for whoever was playing, and the others at the table lost a player for no reason.
   **This rule has no instant recomputation — decided 2026-09-10.** A block is
   symmetric and can be toggled any number of times, and a table would appear and

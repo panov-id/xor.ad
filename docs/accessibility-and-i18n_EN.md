@@ -83,7 +83,7 @@ limit, except where the limit is the essence of the activity.
 - **A conversation** — the span is adjustable: four values, including "while we talk" (screen 8).
 - **The move window at a table** (five minutes, then a pass) — undecided, recorded as the
   open item `a11y.table.move.timer` in `docs/facts/open.tsv`.
-- **The "I'm here" confirmation window at a table** (30 seconds, screen 19) and **the seconds of the "· undo" lines** (liked, hidden, taken back, declined) — added 2026-09-18 after the UX panel: the first is the essence of the action (not confirmed — a spectator, not a loss), the second have an undo afterwards too: from "My likes", from the hidden list under "Me"; "declined" has no second path, and that is the open item `a11y.decline.undo`.
+- **The "I'm here" confirmation window at a table** (30 seconds, screen 19) and **the seconds of the "· undo" lines** (liked, hidden, taken back, declined) — added 2026-09-18 after the UX panel: the first is the essence of the action (not confirmed — a spectator, not a loss), the second have an undo afterwards too: from "My likes", from the hidden list under "Me"; "declined" keeps its "· undo" line until screen 7 is left, with no timer (the owner's decision of 2026-09-18).
 
 In every case the span is shown by a word or a number, not by fading colour alone (rule 1).
 

@@ -37,11 +37,11 @@
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
 <text x="315" y="34" class="mono13" text-anchor="end">1:0</text>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 52 мин</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
+<rect x="291" y="54" width="68" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g>
@@ -81,7 +81,7 @@
 <rect x="152.39999999999998" y="448" width="206.60000000000002" height="38" rx="13" fill="#302720"/>
 <text x="164.39999999999998" y="474" class="body">но я всё равно выиграю</text>
 </g>
-<text x="359" y="501" class="mono13" text-anchor="end" style="fill:#ef7a6a">[текст не задан] · повторить</text>
+<text x="359" y="501" class="mono13" text-anchor="end" style="fill:#ef7a6a">не отправлено · повторить</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="28" y="782" class="body">выходишь?</text>
@@ -109,11 +109,11 @@
 <circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/>
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="mono13" style="fill:#ef7a6a">остаток 13 мин</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
+<rect x="291" y="54" width="68" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.55">
@@ -165,7 +165,7 @@
 <circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/>
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 52 мин</text>
@@ -211,11 +211,11 @@
 <circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/>
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 52 мин</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
+<rect x="291" y="54" width="68" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <rect x="0" y="97" width="375" height="32" rx="0" fill="#302720"/>
@@ -272,11 +272,11 @@
 <circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/>
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 60 мин</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
+<rect x="291" y="54" width="68" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <text x="187.5" y="400" class="h" text-anchor="middle">Беседа открыта</text>
@@ -305,11 +305,11 @@
 <circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/>
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 52 мин</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
+<rect x="291" y="54" width="68" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <text x="187.5" y="388" class="h" text-anchor="middle">История осталась</text>
@@ -340,11 +340,11 @@
 <circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/>
 <circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 52 мин</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
+<rect x="291" y="54" width="68" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">закончить</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="112" width="180" height="38" rx="13" fill="#302720"/>
@@ -448,7 +448,7 @@
 <circle cx="365" cy="33" r="1.8" fill="#f0e7dc"/>
 <circle cx="375" cy="33" r="1.8" fill="#f0e7dc"/>
 <text x="340" y="34" class="mono13" text-anchor="end">1:0</text>
-<rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/>
+<rect x="16" y="54" width="147" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta">молчание · час</text>
 <path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="175" y="81" class="meta" style="fill:#9a8d7c">остаток 52 мин</text>
@@ -492,7 +492,7 @@
 <rect x="177.39999999999998" y="448" width="206.60000000000002" height="38" rx="13" fill="#302720"/>
 <text x="189.39999999999998" y="474" class="body">но я всё равно выиграю</text>
 </g>
-<text x="384" y="501" class="mono13" text-anchor="end" style="fill:#ef7a6a">[текст не задан] · повторить</text>
+<text x="384" y="501" class="mono13" text-anchor="end" style="fill:#ef7a6a">не отправлено · повторить</text>
 <line x1="0" y1="740" x2="400" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="312" height="44" rx="8" fill="#302720"/>
 <text x="28" y="782" class="body">выходишь?</text>

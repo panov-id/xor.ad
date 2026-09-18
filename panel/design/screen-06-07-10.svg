@@ -31,7 +31,7 @@
 <g transform="translate(48,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
 
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019"/>
@@ -69,7 +69,7 @@
 <g transform="translate(463,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Аня, 24</text>
 <rect x="16" y="54" width="343" height="44" rx="8" fill="#302720"/>
 <text x="28" y="81" class="meta" style="fill:#f0e7dc">ждём ответа</text>
@@ -105,7 +105,7 @@
 <g transform="translate(878,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
 
 <rect x="16" y="72" width="343" height="116" rx="13" fill="#262019"/>
@@ -142,7 +142,7 @@
 <g transform="translate(1293,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
 
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019"/>
@@ -170,7 +170,7 @@
 <g transform="translate(48,1102)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c481102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481102)">
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
 
 <text x="187.5" y="380" class="h" text-anchor="middle">Предложения больше нет</text>
@@ -409,7 +409,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c8782054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8782054)">
 <text x="16" y="34" class="h">Я</text>
-<path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<rect x="315" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
 <text x="30" y="102" class="body" opacity="0.7">скамейка, термос, без планов</text>
@@ -422,7 +422,7 @@
 <text x="30" y="276" class="mono13">остаток 3 ч 50 мин</text>
 <path d="M218 271 L226 264 L234 271 L234 278 L218 278 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="240" y="276" class="mono13">3</text>
-<text x="345" y="276" class="body15" style="fill:#f0e7dc" text-anchor="end">удалить</text>
+<rect x="249" y="246" width="110" height="44" rx="8" fill="none" data-hit="44"/><text x="345" y="276" class="body15" style="fill:#f0e7dc" text-anchor="end">удалить</text>
 <rect x="16" y="300" width="343" height="112" rx="13" fill="#262019"/>
 <text x="30" y="330" class="body">отдам две табуретки, заберите сегодня</text>
 <rect x="30" y="344" width="59" height="24" rx="8" fill="none"/>
@@ -430,7 +430,7 @@
 <text x="30" y="400" class="mono13">остаток 5 ч 12 мин</text>
 <path d="M218 395 L226 388 L234 395 L234 402 L218 402 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="240" y="400" class="mono13">1</text>
-<text x="345" y="400" class="body15" style="fill:#f0e7dc" text-anchor="end">удалить</text>
+<rect x="249" y="370" width="110" height="44" rx="8" fill="none" data-hit="44"/><text x="345" y="400" class="body15" style="fill:#f0e7dc" text-anchor="end">удалить</text>
 <rect x="16" y="424" width="343" height="140" rx="13" fill="#262019"/>
 <text x="30" y="454" class="body">домино у подъезда</text>
 <rect x="30" y="468" width="51" height="24" rx="8" fill="none"/>
@@ -439,8 +439,8 @@
 <text x="345" y="524" class="mono13" text-anchor="end">играют 3 · смотрят 2</text>
 <path d="M200 545 L208 538 L216 545 L216 552 L200 552 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="222" y="550" class="mono13">2</text>
-<text x="30" y="550" class="body15" style="fill:#e0714f">вернуться</text>
-<text x="345" y="550" class="body15" style="fill:#f0e7dc" text-anchor="end">встать</text>
+<rect x="16" y="520" width="110" height="44" rx="8" fill="none" data-hit="44"/><text x="30" y="550" class="body15" style="fill:#e0714f">вернуться</text>
+<rect x="249" y="520" width="110" height="44" rx="8" fill="none" data-hit="44"/><text x="345" y="550" class="body15" style="fill:#f0e7dc" text-anchor="end">встать</text>
 <text x="16" y="586" class="mono13">свободно 2 из 4</text>
 <text x="16" y="606" class="mono13">четыре за час сказаны · следующая в 21:40</text>
 
@@ -473,7 +473,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c12932054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12932054)">
 <text x="16" y="34" class="h">Я</text>
-<path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<rect x="315" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
 
 <text x="16" y="130" class="body">Имя</text>
@@ -542,7 +542,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c483006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c483006)">
 <text x="16" y="34" class="h">Я</text>
-<path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<rect x="315" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
 
 <text x="16" y="130" class="body">Мои уведомления</text>
@@ -600,7 +600,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c4633006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4633006)">
 <text x="16" y="34" class="h">Я</text>
-<path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<rect x="315" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
 <text x="187.5" y="140" class="h" text-anchor="middle">Своих фраз нет</text>
 <text x="187.5" y="164" class="meta" text-anchor="middle">Свободных мест: 4 из четырёх.</text>
@@ -653,7 +653,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c8783006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8783006)">
 <text x="16" y="34" class="h">Я</text>
-<path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
+<rect x="315" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
 <rect x="16" y="72" width="343" height="112" rx="13" fill="#262019"/>
 <rect x="30" y="90" width="200" height="14" rx="7" fill="#302720"/>
@@ -690,14 +690,14 @@
 <g transform="translate(1293,3006)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c12933006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12933006)">
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="7" y="6" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Заблокировано: 2</text>
 
 <text x="16" y="90" class="body">блокировка от 12.09.2026</text>
-<text x="359" y="90" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
+<rect x="263" y="60" width="110" height="44" rx="8" fill="none" data-hit="44"/><text x="359" y="90" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
 <line x1="16" y1="108" x2="359" y2="108" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="138" class="body">блокировка от 16.09.2026</text>
-<text x="359" y="138" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
+<rect x="263" y="108" width="110" height="44" rx="8" fill="none" data-hit="44"/><text x="359" y="138" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
 <line x1="16" y1="156" x2="359" y2="156" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="180" class="capm3">Столы этого человека появятся в ленте при следующем входе</text>
 </g></g>

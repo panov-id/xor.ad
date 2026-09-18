@@ -143,7 +143,7 @@ spend money on a letter.
 
 Entry by link is the only door, so all of the protection rests on it.
 
-**The link is single-use and short-lived.** Fifteen minutes, extinguished on first use. A link
+**The link is single-use and short-lived.** 15 minutes, extinguished on first use. A link
 that can be used twice is a password sitting in a mailbox and in a mail provider's logs.
 
 **The link does not work in someone else's browser.** Half the secret is issued at request time
@@ -416,7 +416,7 @@ was meant is what was written.
 | `ACTIVATION_CODE_TTL` | 30 days | The lifetime of the code from the letter |
 | ~~`COMPLAINT_RETENTION`~~ | — | Removed 2026-08-10: complaints have no period of their own, they share the profile's (§13) |
 | `PRIVATE_ACTIVE_OFFERS` | 1 | Live offers per identity at a time |
-| `COMPLAINT_EXAMINATION_HOURS` | 24 | The examination period for a hidden offer |
+| `COMPLAINT_EXAMINATION_HOURS` | 24 | The examination period for a hidden offer, 24 hours |
 | `SUSPEND_RESOLVED_COUNT` | 3 | Justified complaints on different offers before suspension |
 | `SUSPEND_WINDOW_DAYS` | 90 | The window they are counted in |
 

@@ -403,7 +403,7 @@ published_at, venue_id` и считает временем публикации 
 | `ACTIVATION_CODE_TTL` | 30 дней | Срок жизни кода из письма |
 | ~~`COMPLAINT_RETENTION`~~ | — | Убрана 10.08.2026: срок у жалоб не свой, а общий с профилем (§13) |
 | `PRIVATE_ACTIVE_OFFERS` | 1 | Активных офферов на личность одновременно |
-| `COMPLAINT_EXAMINATION_HOURS` | 24 | Срок разбора скрытого оффера |
+| `COMPLAINT_EXAMINATION_HOURS` | 24 | Срок разбора скрытого оффера, 24 часа |
 | `SUSPEND_RESOLVED_COUNT` | 3 | Обоснованных жалоб по разным офферам до приостановки |
 | `SUSPEND_WINDOW_DAYS` | 90 | Окно, в котором они считаются |
 

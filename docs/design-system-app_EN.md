@@ -148,7 +148,7 @@ Collected 2026-09-16 from the storefront screens 01–24 (research agent; every 
 | First-encounter hint | 10 23 24 | one at a time, once; "got it" ≥ 44 px | none — mockup |
 | Accent and contrast samples | 22 11 | labelled by a word; at once; "applied, will save" | `--accent*`; the storefront set |
 | Home mark in the header | 10 22 | cycles the accent; must not diverge from 22 | `--accent` |
-| Like icon | 05 17 23 | muted but visible; taken back by a second tap; not for an offer | 44 px — accessibility |
+| Like icon | 05 17 19 23 25 | muted but visible; a like takes the card to "My likes" and is taken back there; on a private author's offer it makes a match at once; on a table it is a bookmark (2026-09-17) | 44 px — accessibility |
 | Like count | 09 | goes down; who — never | none — mockup |
 | System line of a conversation | 08 18 19 | not encrypted; no menu | none — mockup |
 | Key check mark | 08 | a tap opens the code; unchanged on a device change | ≥ 3:1 — accessibility |

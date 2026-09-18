@@ -67,7 +67,7 @@ WCAG 2.2 AA; where our rule is stricter than the standard, ours applies.
 | A control's border, the focus ring, an icon that carries state | at least 3:1 against the adjacent ground | WCAG 1.4.11; the panel holds the same threshold (`design-system_EN.md` §1) |
 | Focus ring | 2px, solid, in the `--accent-text` token, 2px offset | the accent itself fails 3:1 on the light theme for four accents of eleven — gold at 1.94:1 (the review panel's recount, 2026-09-15), while `--accent-text` is already tuned to 4.5:1 on both themes. A ring with an offset as in `brutalism_EN.md` §7; the panel's focus is a border (`design-system_EN.md` §1, law 4), and which one the app takes is settled by the drawing |
 | Touch target | at least 44×44 px; the exception is the cells of a game board, but no smaller than 24×24 px | rule 3 above; 24 px is WCAG 2.5.8, and the standard does not count zoom |
-| Dragging | always doubled by a tap or by "−" / "+" steps: the radius handle, the board | WCAG 2.5.7; the screen 23 swipe has buttons (2.5.1) |
+| Dragging | always doubled by a tap or by "−" / "+" steps: the radius handle, the age slider (by the year), the zone point (the "district or town" field and keyboard nudges), the board (2026-09-18 after the UX panel) | WCAG 2.5.7; the screen 23 swipe has buttons (2.5.1) |
 | Body text | at least 16px; line height a multiplier of at least 1.5; text blocks have no fixed height | with a field font under 16px Safari on iOS zooms the page on focus (known behaviour, not checked in a container); 1.5 as a requirement on ourselves is WCAG 1.4.8 (level AAA, taken on deliberately), and that vertical room is what survives Georgian, Armenian and Greek script |
 | Spacing set by the person | the layout survives line height 1.5, space after a paragraph 2×, letters 0.12em and words 0.16em with no text lost | WCAG 1.4.12 |
 | Zoom | the layout survives 200% text zoom and a 320 CSS px width with no horizontal scrolling | WCAG 1.4.4 and 1.4.10. The feed in columns by `column-width: 330px` (`app-prototype-spec_EN.md` §4): below 330px there is one column, and that it narrows to the screen rather than running off sideways is checked on the mock-up — so far checked only at 375px |
@@ -83,6 +83,7 @@ limit, except where the limit is the essence of the activity.
 - **A conversation** — the span is adjustable: four values, including "while we talk" (screen 8).
 - **The move window at a table** (five minutes, then a pass) — undecided, recorded as the
   open item `a11y.table.move.timer` in `docs/facts/open.tsv`.
+- **The "I'm here" confirmation window at a table** (30 seconds, screen 19) and **the seconds of the "· undo" lines** (liked, hidden, taken back, declined) — added 2026-09-18 after the UX panel: the first is the essence of the action (not confirmed — a spectator, not a loss), the second have an undo afterwards too: from "My likes", from the hidden list under "Me"; "declined" has no second path, and that is the open item `a11y.decline.undo`.
 
 In every case the span is shown by a word or a number, not by fading colour alone (rule 1).
 

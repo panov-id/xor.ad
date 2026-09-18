@@ -110,7 +110,8 @@ identity's state lives there and nowhere else.
 ```
 /data
 ├── identity.age      keys, encrypted with the vault key (PIN + node share)
-└── accepted.json     the accepted terms revision and its date
+├── accepted.json     the accepted terms revision and its date
+└── prefs.json        interface language and closed hints (2026-09-17)
 ```
 
 Mode is `0600`. If it is wider the client **refuses to start**, rather than
@@ -137,6 +138,19 @@ the terminal's main weakness: in a browser the keys sit as non-extractable
 Hence a consequence worth knowing up front: **without a network `depth` does not
 open at all** — no share, no key.
 
+**After 5 minutes without input the client locks — 2026-09-17** (storefront screen 12).
+A terminal left in `tmux` is open to whoever sits down at the machine — exactly what the
+web's lock was introduced against on 2026-09-04. On the lock the screen is wiped to a single
+line `PIN ›` — no name, no number of conversations, no "new" dot; one exception: if it was
+your move at a table when the lock fell, the line `your move at the table` (the move's clock
+runs behind the lock too). The keys are dropped from memory: a locked client does not post,
+does not read new messages and holds no socket — it has nothing to sign a request with. The
+counter is the same as at start: ten attempts, **from the sixth a wait, and it grows**
+(30 s, 2 min, 10 min, an hour, 4 hours; kept by the node, `chat_EN.md` §8.2), and a correct
+PIN during the wait is not accepted. The price: step out for five minutes and it is six
+digits and 144 ms of Argon2id again (§9). "Leaving the tab" does not count here — a terminal
+has no `visibilitychange`, only idleness.
+
 The price is stated plainly, before the identity is created rather than after:
 
 > Forget the PIN and you lose access to this volume: ten wrong attempts lock it until
@@ -146,8 +160,8 @@ The price is stated plainly, before the identity is created rather than after:
 > very device that gets lost.
 
 No conversations are lost in the terminal — there were none there to lose:
-nothing but the keys and the accepted revision of the Terms ever reaches the disk
-(§6). The terminal is stricter than the browser, and the price of a PIN is a
+nothing but the keys, the accepted revision of the Terms and `prefs.json` ever reaches
+the disk (§6). The terminal is stricter than the browser, and the price of a PIN is a
 different one here.
 
 ### 2.4. First run
@@ -213,6 +227,9 @@ recorded as a separate principle in §8 of the chat spec.
 | `depth device` | this session, and the code to move it |
 | `depth appearance` | appearance: the accent and the contrast step (§9, storefront screen 22; added 2026-09-15) |
 | `depth report` | a notice of illegal content (DSA Article 16) |
+| `depth pin` | change the PIN: asks the old one, re-encrypts `identity.age` with a new node share (2026-09-17) |
+| `depth reissue` | a new paper code — only on presenting the current one; the old one fades in the same transaction (`POST /recovery/reissue`; 2026-09-17) |
+| `depth reset` | start over: a new identity in place of this one, with the price in numbers before confirming (2026-09-17) |
 
 Everything except `depth` is also reachable from inside the running client: the
 commands are a door for whoever arrived from a shell, not a second interface.
@@ -248,14 +265,22 @@ it **moves** it: alive here, frozen there.
 
 ```
 $ depth move
+  this device's PIN:  › ******
   the code from the device the identity is on now:
-  › K7Q-M3F-2X9▋
+  › K7Q-M3F-2X9
+
+  check   Q7MX      — show it on the previous device
 ```
 
 Nine characters, Crockford base32 without `I`, `L`, `O`, `U`. Case does not
 matter and the dashes are optional. The code lives two minutes, applies once; a
 mistyped one gets "the code did not fit or has expired", and a second claim cancels the move. Until "that's me" is pressed on the other
 device, nothing happens here. The whole mechanism is in §8.2 of the spec.
+
+**A four-character check line — 2026-09-17** (storefront screen 13): derived from the new
+device's public keys, and a different device gets a different one. It is the only verifiable
+sign of the transfer — the "called itself" label is sent by the same side that is asking.
+The PIN is asked before the code: the vault share belongs to the device.
 
 After the move, the line without which a person will assume their chats are gone:
 
@@ -270,12 +295,13 @@ The other side, when this terminal is the one showing the code:
 ```
   a device is asking to take the identity
 
+  check           Q7MX   — does it match the new device's screen?
   called itself   Chrome, Android
   when            just now
 
   nobody from support will ever ask for this code.
 
-  [y] that's me    [n] decline
+  [y] it matches, that's me    [n] decline
 ```
 
 ### 3.3. `depth device`
@@ -286,12 +312,13 @@ The other side, when this terminal is the one showing the code:
    ●  depth, this terminal          identity here since 9 August
       last activity                 now
 
-  [enter] show a code to move it      [q] back
+  [enter] show a code to move it    [p] extend — a new code, the old one fades    [q] back
 ```
 
 There is no list of other devices, because there are none: one live session.
-The screen shows this one and offers the single action — hand the identity to
-another device.
+The screen shows this one and offers two actions: hand the identity to another
+device, and extend the code — issue a new one, fading the old (storefront screen 13,
+2026-09-17).
 
 ### 3.4. `depth report`
 
@@ -318,6 +345,22 @@ scrollback (a multiplexer's log is not kept out by the buffer, §2.1).
 
 The PIN and the paper code follow the same rules, and are never echoed.
 
+### 3.6. `depth pin`, `depth reissue`, `depth reset`
+
+Three actions of storefront screen 12 that were missing here (added 2026-09-17): a PIN
+someone had glimpsed could not be changed except by moving, the code could not be reissued
+at all, and an identity could not be closed at all.
+
+- **`depth pin`** — the old PIN, the new one twice; mistakes on the old one go into the same
+  counter of ten.
+- **`depth reissue`** — the current code, then the new one on the screen from 3.1, with the
+  same repetition of two groups; a miss on the current one goes into the same counters as
+  recovery.
+- **`depth reset`** — before confirming, what will vanish is counted on the spot: live
+  phrases, open conversations, waiting offers to talk; on a separate line — that the paper
+  code becomes useless. `prefs.json` is erased together with the identity (§6). The
+  confirmation is the PIN.
+
 ---
 
 ## 4. Screens
@@ -337,7 +380,7 @@ $ depth
   ─────────────────────────────────────────────
    signal              dozens in range
    broadcast depth     800 m
-   depth of field      13 — 61
+   depth of field      your band
   ─────────────────────────────────────────────
 
   [d] depth   [f] field   [/] speak   [q] hardline
@@ -356,6 +399,8 @@ The names were not invented for style; each describes a mechanism:
 | `hardline` | quit |
 | `speak` | posting |
 | `table` | a table (4.9) |
+| `liked` | what you liked (4.10) |
+| `me` | me — settings and lists (4.11) |
 
 **Counts are named in bands — edit of 2026-08-27.** This said "48 neighbours in
 range", and the feed header carried the same number. An exact count that moves
@@ -425,12 +470,23 @@ same field as the web:
   name     › Zhenya▋
   age      › 38
 
-  filter   21 ────────●──────────── 61
+  filter   ‹ ──────●─────────────── ›   36 — no upper limit
+           by the year, inside your band
 ```
 
 Age bands work exactly as in the spec and are not softened here: the filter is
 clamped into its own band, the 20/21 border is crossed upwards only, and the
 client warns that this is irreversible before saving.
+
+**The band's stops carry no numbers, and narrowing goes by the year — 2026-09-17**
+(storefront screen 3). A labelled edge would suggest which number to put in the form to get
+around it, so the handle simply goes no further, and the splash shows `your band` in place
+of `13 — 61` [retired] — the numbers are gone. The right edge for an adult is the words `no
+upper limit`: the band is not closed at the top, and `61` was invented. The step is a year;
+the node accepts any bounds inside the band, and the price is named right there: narrowing
+by the year and watching what disappears, an author's age can be learned before a match. The
+band shifted — the person turned a year older — gets one line at the next start: `your band
+shifted, the filter was clamped again`.
 
 **The other two feed filters live here too — added 2026-08-27** (screen 3, §8 of
 the mechanics). They were missing, and the terminal was showing a feed the web no
@@ -459,8 +515,9 @@ longer shows:
   › does anyone know if the bakery on the corner
     opens on sunday                        ♥ 3   14:22
 
-  ⊞ table · dominoes · 2 playing · 1 watching      14:19
-    [enter] sit down
+  ⊞ table · "dominoes after work" · dominoes
+    2 playing · 1 watching                 ♥ 1   14:19
+    [l] like  [enter] sit down
 
   ₪ offer · −20% · the bakery on the corner
     code CORNER20, until sunday            ♥ 1   14:04
@@ -468,8 +525,8 @@ longer shows:
   › two chairs to give away, pick up, yard of no. 14
                                            ♥ 0   13:58
 
-  [j/k] scroll  [l] like  [/] speak  [h] hide
-  [b] block  [r] report  [tab] chats
+  [j/k] scroll  [l] like  [L] liked  [/] speak  [h] hide
+  [b] block  [r] report  [tab] chats  [enter] full screen
 ```
 
 The author is not shown in any form: no name, no label, no hint. A phrase, a like
@@ -491,13 +548,63 @@ looking. The terminal was showing phrases only.
   2026-08-27). An ordinary like requires a live phrase on both sides or no match
   can ever happen; an offer's match is one-sided, and without the exception you
   would have to write something of your own before claiming the free chairs.
-- **A table is marked by its game and two numbers — playing and watching** (storefront
-  screen 19, 2026-09-10), and you can sit down right from here (4.9).
+- **What you liked is not in the feed — the owner's decision of 2026-09-17** (storefront
+  screen 3). `l` takes the card out of `signal`: the **node** filters the feed by its own
+  `likes` and `table_likes` (`GET /feed`, `protocol_EN.md` §4.2), not the client. In the
+  card's place, for a few seconds, the line `liked · [u] undo`; after that it is in `liked`
+  (4.10), and taking the like back is done there — until an offer to talk has come out of
+  it. [retired] Before, the card stayed in the feed after `l` with a filled-in counter, and
+  the like was taken back with a second `l`. The price is the web's: for an active person
+  a page of 30 cards runs out sooner, and the `— 30 more —` line comes more often.
+- **A table is marked by its game, its name if one was given, two numbers — playing and
+  watching — and the number of likes** (storefront screen 19; the numbers 2026-09-10, the
+  name and likes 2026-09-17). You can sit down right from here (4.9); **`l` on a table is a
+  bookmark, not a seat** (`POST /tables/:id/like`): the table goes to `liked`, and sitting
+  down happens from there; everyone seated sees the number of likes, nobody sees who liked;
+  a table's like breeds neither a match nor an offer to talk, and is taken back in the same
+  place while the table lives. `enter` while you hold a live seat at another table asks:
+  `you will get up from the table "…" — [y]/[n]` (storefront screen 4).
 
 **There are three actions on a phrase, not one — edit of 2026-08-27** (screen 5):
 `h` hide, `b` block, `r` report. A single report used to stand here, which meant
 the quiet exit — "stop showing me this" — existed only in the web, and in the
 terminal every irritation had to be taken to a moderator.
+
+#### 4.4.1. A card full screen
+
+**Introduced 2026-09-17** (storefront screen 23). `enter` on a card opens it across the
+whole width — one card, no neighbours:
+
+```
+  ────────────────────────────────────────────────────────
+
+     does anyone know if the bakery on the corner
+     opens on sunday
+
+     alone · ♥ 3 · disappearing soon
+
+  ────────────────────────────────────────────────────────
+  [→] like  [←] hide  [Space/j/k] page  [esc] back
+```
+
+- **Every card of the feed is paged** — phrases, offers, tables — in feed order; your own
+  phrase still being checked and what is already liked are skipped (they are on screen 9
+  and in `liked`). `esc` returns to `signal` on the same card.
+- **The arrows repeat the web's gesture:** `→` is whatever reversible action the card has
+  (a like on a phrase, a bookmark on a table; on a private person's offer `→` only pages,
+  because its like breeds an offer to talk at once and cannot be taken back); `←` hides. A
+  slip is undone by the same `hidden · [u] undo` line as in the feed. `Space`, `↓`, `j` go
+  forward; `↑`, `k` go back. `Shift+Space` is not bound: most emulators send the same byte
+  for it as for `Space`. **A table is never joined with an arrow** — only with `enter`,
+  because that stands you up from the previous table.
+- **The first press of `←` or `→` does not act, it explains** (storefront screen 24, since
+  2026-09-17 for keys too): the line `right — like, left — hide; hidden things come back in
+  me · [enter] got it` over the card; until `enter`, neither a like nor a hide. That it has
+  been shown, the terminal remembers in `prefs.json` (§6).
+- The remainder of someone else's phrase is not shown as a number (§8.11 of the spec): in
+  the last 65 minutes — the words `disappearing soon`. Your own phrase keeps the number.
+- The node does not know whether a card was opened full screen: the like and the hide are
+  the same as from the card, and viewing time is written nowhere.
 
 ### 4.5. Posting — `speak`
 
@@ -520,9 +627,30 @@ what refuses.
 **The discount and the table were added on 2026-08-27**, following the
 storefronts' composer (screen 4). A filled-in discount turns the phrase into a
 **private person's offer** — there is no separate entity here and there will not
-be one; the whole mechanic of a post comes free with it. `s` switches to putting
-up a table: the game, the area, "put up" (4.9). Until this edit the terminal
-could sit down at a table it had no way of putting up.
+be one; the whole mechanic of a post comes free with it. Until this edit the
+terminal could sit down at a table it had no way of putting up. `s` switches to putting
+up a table (4.9):
+
+```
+  table
+
+  game     ● dominoes   ○ draughts   ○ chess
+  name     › dominoes after work▋                  19 / 24
+  area     › 300 m
+
+  the name is optional. it is published text and is checked
+  by the same queue as a phrase: the table enters the feed
+  at once, unnamed, and the name appears after the verdict.
+
+  [enter] put up — you will sit down at it and get up from the previous one
+```
+
+**A table's name — an optional field of up to 24 graphemes, the owner's decision of
+2026-09-17** (storefront screen 4, `POST /tables name`, `protocol_EN.md` §4.6). The table
+enters the feed at once, without a name; the verdict arrives as a `name_verdict` frame — the
+terminal keeps the state `name being checked` on its own table, the same word as on a phrase
+(below), and shows a rejected name as a line with the reason and a field to fix it; the table
+lives on without a name meanwhile. The limit is enforced by the node.
 
 Feed moderation runs as a **queue before publication** (§8.3), which is not the
 same as "at once": `POST /feed` answers `202` immediately, the phrase sits with
@@ -532,21 +660,74 @@ later — a refusal with a reason, not in silence. The client must show that sta
 a maximum near 12; the terminal must not pretend to an instant answer that does
 not exist.
 
-### 4.6. Matches
+### 4.6. Conversations — `chats`
+
+`tab` from the feed. Two tabs, as on storefront screen 7; rewritten 2026-09-17 — only a
+list of matches, `matches`, stood here [retired], and there was no conversations screen
+although `tab` led exactly there.
 
 ```
-  matches
+  chats            [1] offers (2)   [2] conversations
 
-   ●  "looking for someone to run to the sea"
-      mutual 4 minutes ago
-      waiting for your consent
+  ● Anya · "great, see you tomorrow" · 0:47
+    waiting for your reply
 
-   ○  "two chairs to give away"
-      you consented, waiting for them        6:12 left
+    Kostya · "ok, until saturday" · 3:12
+
+    Masha · "…" · ended
 ```
 
-Double consent and the live window work as in §8.5. The terminal adds nothing to
-them.
+- **The counter is on offers only** — how many are waiting for your reply. Conversations
+  carry no number: an offer has a hard deadline and someone else waiting, a conversation is
+  your own talk.
+- **A conversation's entry: the name, a snippet of the last line and the remainder of your
+  own span.** In the last quarter of the span the line is dim (4.7). `waiting for your
+  reply` — if the last line is theirs; counted here, never reported to the node.
+- **`●` is the "new" dot (the owner's decision of 2026-09-17):** it stands while the
+  conversation holds lines the conversation screen has not yet shown, and goes out on
+  opening. No number, on purpose. The process counts it, not the node and not the disk
+  (§6): after a restart, everything that arrived by catch-up shows as new once.
+- **`ended`** — the mark is set by your attempt to open or write, not by their clock
+  (2026-09-10): at the moment their span expires the list does not change.
+- Sorted by the time of the last line. A table is not here (4.9).
+
+**The offers tab** — a card for every mutual like:
+
+```
+  offers
+
+   Anya, 34 · company
+   ─────────────────────────────────────────
+   hers   "looking for someone to run to the sea"   1:48 left
+   yours  "two chairs to give away"                 2:10 left
+
+   the chat is not checked. nobody reads what you
+   write here — not us, not a filter. the conversation is
+   encrypted on your devices: the node carries it but
+   cannot read it. a game is the exception: the node
+   sees the moves and the board.
+   if someone behaves badly — block them and
+   report in your own words.
+
+   [enter] talk   [n] not now
+```
+
+- **The name and the age are the first place where a stranger becomes someone** (§8.11 of
+  the spec): the feed has neither and cannot. The age next to the name is here and in the
+  conversation header (4.7).
+- **Both phrases' remainders, one per phrase** — the match dies with the first. One timer,
+  `6:12 left`, stood here [retired] — lifted in the web on 2026-09-14, the terminal caught up
+  on 2026-09-17.
+- **The warning is the only one, and it is here:** the last moment when nothing is open yet.
+  Not a second consent: `enter` stays the single press.
+- **`n` — "not now".** The refusal is recorded at once and invisible to the other side: they
+  wait until expiry, as they would have anyway. For a few seconds at the bottom,
+  `declined · [u] undo`; then the card is gone and the like is spent — a new match only with
+  a new phrase.
+- While only you have pressed — the line `no reply yet`, and nothing more: no "seen", no
+  "opened".
+- A private person's offer: one phrase on the card — the offer itself — and the line
+  `is interested in your offer`.
 
 ### 4.7. Chat
 
@@ -570,8 +751,12 @@ them.
   client's; the node refuses by a different parameter — `max_ciphertext_bytes`,
   2048 bytes — because what it sees is ciphertext, not characters (edit of
   2026-08-25).
-- `✓` is `delivered`; `error` produces a retry line instead of vanishing quietly.
-- **The span is each person's own and changes right here** (§5, §8.6, settled
+- `✓` — **the node has accepted it and answers for delivery** (2026-09-12, storefront
+  screen 8): if the other person is offline, the line waits for them while the conversation
+  lives. `error` produces a retry line instead of vanishing quietly. There is no
+  "delivered" and no "read", and there will not be — this said `delivered` [retired]: the
+  name of a status the product does not have.
+- **The span is each person's own and changes right here** — `t` (§5, §8.6, settled
   2026-08-26): 10 minutes, 30 minutes, an hour, "while we're talking". The header
   shows **your own** remainder; the other side's span is neither shown nor sent.
   It counts from **your** last message — theirs does not reset it, because reading
@@ -590,8 +775,9 @@ them.
   presence is reported, and it is allowed because the person declared it rather
   than the system inferring it.
 - **You can step away too** — `a`: 20 minutes, an hour, or 4 hours. It is a
-  real absence, not a pause: live phrases go with their likes, offers to talk burn
-  out, short-span conversations will not survive it, and the price is counted on
+  real absence, not a pause: live phrases go with their likes — the ones received and the
+  ones you placed, on phrases and tables (2026-09-17) — offers to talk burn out, short-span
+  conversations will not survive it, and the price is counted on
   the spot, before the confirmation. A table you were sitting at stays: the person
   leaving gets up from it and the game goes on (screen 20, decided 2026-08-27).
 - **A conversation can be closed by hand** — `x`, with a confirmation, and it
@@ -604,25 +790,36 @@ them.
 
 ### 4.8. Keys
 
-| Key | Action |
-|---|---|
-| `j` / `k`, `↑` / `↓` | scroll |
-| `enter` | open |
-| `esc` | back |
-| `tab` | `signal` ↔ `chats` |
-| `l` | like |
-| `/` | speak / write |
-| `s` | in `speak` — a table instead of a phrase |
-| `h` | hide a phrase |
-| `b` | block the author |
-| `x` | close the conversation (with a confirmation) |
-| `a` | step away and come back |
-| `d` | `broadcast depth` — the area |
-| `f` | `depth of field` — age, languages, mode |
-| `g` | a game inside an open chat |
-| `r` | report |
-| `?` | help |
-| `q` | `hardline` — quit |
+| Key | Where | Action |
+|---|---|---|
+| `j` / `k`, `↑` / `↓` | everywhere | scroll |
+| `enter` | feed, `liked` | the card full screen (4.4.1); on a table — sit down, with a confirmation if you are already seated |
+| `enter` | `chats` | open the conversation; on an offer to talk — "talk" |
+| `esc` | everywhere | back |
+| `tab` | everywhere | `signal` ↔ `chats` |
+| `l` | feed, viewer, `liked` | like: a like on a phrase, a bookmark on a table, an offer to talk on a private person's offer; in `liked` — take it back |
+| `L` | everywhere | `liked` — what you liked (4.10; 2026-09-17) |
+| `←` / `→` | viewer only | hide / the card's reversible action (4.4.1; 2026-09-17) |
+| `Space` | viewer only | next card (2026-09-17) |
+| `u` | feed, viewer, `liked`, `chats` | undo: lifts "liked", "hidden", "taken back", "declined" while the line is visible |
+| `n` | `chats` → offers | "not now" |
+| `/` | feed, conversation, table | speak / write |
+| `s` | in `speak` | a table instead of a phrase |
+| `h` | feed, viewer | hide a phrase |
+| `b` | feed, viewer, conversation | block the author |
+| `x` | conversation | close the conversation (with a confirmation) |
+| `t` | conversation | your own span: 10 / 30 / 60 / "while we're talking" |
+| `a` | everywhere | step away and come back |
+| `m` | everywhere | `me` — the "Me" screen (4.11) |
+| `d` | everywhere | `broadcast depth` — the area |
+| `f` | everywhere | `depth of field` — age, languages, mode |
+| `g` | conversation | a game |
+| `r` | feed, viewer, conversation, table | report |
+| `?` | everywhere | help |
+| `q` | everywhere | `hardline` — quit |
+
+The "Where" column was added 2026-09-17 (applied 2026-09-18): there are more keys now, and
+`r` on the board (5.3) means "play again" while in the feed it means report.
 
 ### 4.9. The table — `table`
 
@@ -632,7 +829,7 @@ shows you nothing.
 
 ```
   ────────────────────────────────────────────────────────
-   table · dominoes         fades after 1h of shared silence
+   table · "dominoes after work" · dominoes   fades after 1h of shared silence
    seated  you · Anya · Kostya
   ────────────────────────────────────────────────────────
 
@@ -679,8 +876,87 @@ shows and what it is obliged to say out loud:
   While you are at one, the `signal` header carries a line "you are at a table —
   [enter] to return": narrow your circle or leave the radius and the line will
   still take you back, while finding the table again in the feed will not work.
+- **A table can be liked without sitting down** (2026-09-17, 4.4): in the table header the
+  number of likes stands next to the numbers of players and watchers — `♥ 2` — and that is
+  the only thing a like changes for those seated.
 - **`table` is never written to the volume**, like everything else: the board
   lives in the process's memory.
+
+### 4.10. What you liked — `liked`
+
+**Introduced 2026-09-17 together with the rule "what you liked is not in the feed"** (4.4,
+storefront screen 25): a like takes the card out of `signal`, and without this screen there
+would be nowhere to take the like back.
+
+```
+  liked                                        newest on top
+
+  ♥ does anyone know if the bakery on the corner
+    opens on sunday                        ♥ 4   liked 14:31
+
+  ⊞ table · "dominoes after work" · dominoes
+    2 playing · 1 watching                 ♥ 2
+    [enter] sit down
+
+  ● "looking for someone to run to the sea"
+    offer to talk · [enter] to the offer
+
+  — 30 more · [enter] show —
+  [l] take back  [j/k] scroll  [esc] back
+```
+
+- Cards of the same shape as in `signal`, **in the order of liking, not of the feed**; the
+  list comes from the node — `GET /likes`, cursor `?after`, in pages of 30
+  (`protocol_EN.md` §4.3). The node knows the likes, and after an identity move the list is
+  the same.
+- **`l` on a card takes the like back** (`DELETE /feed/:id/like`, for a table
+  `DELETE /tables/:id/like`): the card leaves here and returns to the feed; in its place,
+  for a few seconds, the line `taken back · [u] undo`.
+- **A phrase an offer to talk came out of** stands here as an offer card: the node answers
+  `{state: 'spent'}`, `l` does nothing on it, `enter` leads to `chats`. A private person's
+  offer lies here **always** as an offer to talk — its match is one-sided and is born by the
+  like at once (4.4).
+- **On a table `enter` is sit down.** A like does not seat you; you can sit at one table,
+  and before seating, if you are already at one, the line `you will get up from the table
+  "…" — [y]/[n]`.
+- `enter` on a phrase opens it full screen (4.4.1); only the liked ones are paged there.
+- **It leaves by itself**, as in the feed: an expired or withdrawn phrase, a closed table,
+  the phrases of a blocked author; your own step-away (`a`, 4.7) removes your likes too — on
+  phrases and tables — along with your phrases: coming back, a person finds this empty.
+- Empty — the line `nothing liked`, as on storefront screen 11.
+
+### 4.11. Me — `me`
+
+`m` from anywhere. The fourth navigation item of §9 of the spec (`Me`), which the terminal
+did not have; added 2026-09-17. The screen is a list, one row per item; the rules are
+storefront screen 10:
+
+```
+  me
+
+   name        Zhenya               changes on a clean slate
+   age         38                   your contacts will see the change
+   languages   ru · el              [f]
+   interface language               ru
+   appearance                       depth appearance
+   default silence span             1 h · for new conversations
+   default area and mode            300 m · alone
+   liked                            [L]
+   hidden                           3
+   blocked                          1 · lift
+   hints                            show again
+   step away                        [a]
+   support                          requests and replies
+   what happened                    console
+   this device                      depth device
+   PIN · paper code · start over    depth pin · reissue · reset (3.6)
+```
+
+A change of age goes into every open conversation as the line `your contact changed their
+age: 39` (§8.2 of the spec), and the terminal says so before saving. The "hidden" and
+"blocked" lists come with an undo (`GET /blocks`, `DELETE /blocks/:id`). "Hints — show again"
+erases the list of closed hints from `prefs.json` (§6). "Support" and "what happened" are
+only named here — their terminal mechanics are not described (§9).
 
 ---
 
@@ -776,8 +1052,19 @@ sake of a long link, and left with it.
 
 ## 6. Storage
 
-**In the volume:** keys (`identity.age`, under the vault key) and the accepted
-terms revision with its date.
+**In the volume:** keys (`identity.age`, under the vault key), the accepted terms revision
+with its date, and `prefs.json` — the interface language (§9) and the list of closed hints
+(storefront screen 24; added 2026-09-17). The third file is not about the conversations:
+it holds no conversation identifiers and no times, only the names of hints. The mode is the
+same `0600`, and `depth reset` erases it together with the identity. This said "keys and the
+accepted terms revision" [retired] — the language had been in the volume since 2026-08-27
+(§9), and the tree did not show it.
+
+**The "new" dot in `chats` (4.6) is not written to disk:** which lines have been shown is
+remembered by the process, and after every start everything that arrived by catch-up shows
+as new once. The web pays this price only on a move (storefront screen 7); the terminal at
+every start, because remembering it on disk would mean keeping a list of conversations with
+times there — exactly the metadata §5.2 refused pushes over.
 
 **Not in the volume:** conversations, feed, matches, game boards, logs. None of it
 reaches the disk — **when run with `--log-driver none`** (§2.1): without the flag
@@ -880,6 +1167,9 @@ such a contract.
   silently is the same thing as the feed's language shares, already retired. Price:
   one more step in a long registration.
 - ~~Colour~~ — **the emulator's sixteen colours** (decided 2026-09-15, storefront screen 22): 256 colours are not needed. The accent — the `depth` face's own appearance row (chat spec §8.2), any of the seven names — becomes an ANSI name, and the contrast steps are colour, colour and bold, no colour; `NO_COLOR` switches on the last. The choice is kept with the identity on the node and is not written to the volume; before the node answers and with no connection the terminal draws the default — normal contrast, no accent.
+- **Support, the console and notifications in the terminal.** On the `me` screen (4.11)
+  they are named as items, the mechanics are not described: a terminal has no disk for
+  receipts (§6).
 - **Narrow terminals.** What exactly breaks at 60 columns, and what to show.
 - **Accessibility.** Behaviour under a screen reader in a terminal has not been
   studied.

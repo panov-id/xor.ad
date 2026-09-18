@@ -519,3 +519,11 @@ The viewer also skips offers and tables | sosed.place/docs/23-phrase-viewer_EN.m
 стрелки влево и вправо на клавиатуре только листают | sosed.place/docs/23-phrase-viewer_RU.md neighbro.place/docs/23-phrase-viewer_RU.md | владелец 17.09.2026: стрелки повторяют свайп, листают ↑/↓ и Space
 the left and right arrow keys only page | sosed.place/docs/23-phrase-viewer_EN.md neighbro.place/docs/23-phrase-viewer_EN.md | owner 2026-09-17: the arrows repeat the swipe, ↑/↓ and Space page
 точка гаснет от захода на вкладку, а не от прочтения | sosed.place/docs/07-chat-list_RU.md neighbro.place/docs/07-chat-list_RU.md | владелец 17.09.2026: точка беседы гаснет от её открытия
+Повторное касание снимает лайк | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | владелец 17.09.2026: лайк снимается на экране 25; снято 18.09.2026
+Сядьте за него — и его снова увидят | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md sosed.place/docs/09-my-messages_RU.md neighbro.place/docs/09-my-messages_RU.md | владелец 18.09.2026: встал последний — стол закрыт
+table_seats_seat_taken | protocol_RU.md protocol_EN.md | индекса нет в каноне; снято 18.09.2026
+
+# --- depth-client: решения владельца 17.09.2026, внесены 18.09.2026 -----------------------
+`delivered` | depth-client_RU.md depth-client_EN.md | ✓ — узел принял и отвечает за доставку; статуса «доставлено» в продукте нет, 17.09.2026
+6:12 | depth-client_RU.md depth-client_EN.md | один таймер мэтча снят: остаток у каждой фразы свой, 14.09.2026 в вебе, терминал 17.09.2026
+13 — 61 | depth-client_RU.md depth-client_EN.md | упоры полосы числом не подписаны, на заставке «ваша полоса», 17.09.2026

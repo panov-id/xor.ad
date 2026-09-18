@@ -877,6 +877,8 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 
 #### The "stepped away" state (2026-08-26)
 
+**Stepping away also removes the likes given — the owner's decision of 2026-09-18:** the same transaction deletes this identity's `likes` and `table_likes` rows with a `like_count` decrement on the phrases and tables; what was liked returns to the feed (§8.4), screen 25 empties. The price is named: bookmarks on tables have to be set again after a break.
+
 A person may leave the place for a span — **20 minutes, an hour, or 4 hours** (2026-09-14: "until morning" [retired] was dropped, it had no end hour; "8 hours" [retired] the same day: longer than any conversation, review panel) — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. **A phrase awaiting the queue's verdict is deleted along with the published ones (2026-08-30)** — there is no "accepted but held until return" state; **the hour counter behind the step-away prompt is reset by leaving**, because it counts continuous use. The point is not an errand but giving someone caught in the pull a real way out.
 
 - **Table lines waiting for a verdict are deleted** in the same transaction, as on closing an identity: otherwise they would appear at the table after the person has gone (added 2026-09-16, DATA-26).

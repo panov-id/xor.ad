@@ -67,39 +67,38 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="52" y="34" class="h">Мэтч</text>
-
-<rect x="16" y="72" width="343" height="92" rx="13" fill="#262019"/>
-<text x="30" y="102" class="body">кто на набережную к девяти?</text>
-<text x="30" y="126" class="mono13">остаток 3 ч 50 мин</text>
-<path d="M322 101 L330 94 L338 101 L338 108 L322 108 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
-<rect x="16" y="176" width="343" height="140" rx="13" fill="#302720"/>
-<text x="30" y="206" class="name">Аня, 24</text>
-<rect x="30" y="220" width="83" height="24" rx="8" fill="none"/>
-<text x="71.5" y="237" class="meta" text-anchor="middle">компания</text>
-<text x="30" y="276" class="body">ищу четвёртого в домино</text>
-<text x="30" y="302" class="mono13">остаток 1 ч 10 мин</text>
-<rect x="16" y="332" width="343" height="0" rx="0" fill="none"/>
-<text x="30" y="352" class="meta" style="fill:#f0e7dc">Чат не проверяется. Никто не читает,</text>
-<text x="30" y="372" class="meta" style="fill:#f0e7dc">что вы здесь пишете, — ни мы, ни</text>
-<text x="30" y="392" class="meta" style="fill:#f0e7dc">фильтр. Переписка шифруется на ваших</text>
-<text x="30" y="412" class="meta" style="fill:#f0e7dc">устройствах: наш сервер переносит её,</text>
-<text x="30" y="432" class="meta" style="fill:#f0e7dc">но прочитать не может. Игра —</text>
-<text x="30" y="452" class="meta" style="fill:#f0e7dc">исключение: ходы, доску и загаданное в</text>
-<text x="30" y="472" class="meta" style="fill:#f0e7dc">виселице слово сервер видит, иначе он</text>
-<text x="30" y="492" class="meta" style="fill:#f0e7dc">не мог бы следить за правилами. Если</text>
-<text x="30" y="512" class="meta" style="fill:#f0e7dc">человек ведёт себя плохо — заблокируйте</text>
-<text x="30" y="532" class="meta" style="fill:#f0e7dc">и пожалуйтесь: опишите своими словами,</text>
-<text x="30" y="552" class="meta" style="fill:#f0e7dc">что произошло.</text>
-<rect x="16" y="578" width="343" height="44" rx="13" fill="#302720"/>
-<text x="187.5" y="606" class="body" style="fill:#9a8d7c" text-anchor="middle">ответа пока нет</text>
-<rect x="16" y="634" width="343" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
-<text x="187.5" y="662" class="body" style="fill:#f0e7dc" text-anchor="middle">не сейчас</text>
+<text x="52" y="34" class="name">Аня, 24</text>
+<rect x="16" y="54" width="343" height="44" rx="8" fill="#302720"/>
+<text x="28" y="81" class="meta" style="fill:#f0e7dc">ждём Аню</text>
+<text x="347" y="81" class="mono13" text-anchor="end">остаток 3 ч 50 мин</text>
+<rect x="32" y="112" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="124" width="3" height="34" fill="#bd4b2a"/>
+<path d="M46 132 L54 125 L62 132 L62 139 L46 139 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="137" class="body">«кто на набережную к девяти?»</text>
+<text x="70" y="158" class="meta">ваша фраза</text>
+<rect x="32" y="178" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="190" width="3" height="34" fill="#bd4b2a"/>
+<path d="M46 198 L54 191 L62 198 L62 205 L46 205 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="203" class="body">«ищу четвёртого в домино»</text>
+<text x="70" y="224" class="meta">Аня · остаток 1 ч 10 мин</text>
+<text x="187.5" y="268" class="meta" text-anchor="middle">вы предложили поговорить · Аня ещё не ответила</text>
+<rect x="185.6" y="284" width="173.4" height="62" rx="13" fill="#302720"/>
+<text x="197.6" y="310" class="body">домино у меня есть,</text>
+<text x="197.6" y="334" class="body">могу к девяти</text>
+<rect x="215" y="354" width="144" height="38" rx="13" fill="#302720"/>
+<text x="227" y="380" class="body">возьму термос</text>
+<text x="359" y="412" class="mono13" text-anchor="end">в очереди · уйдут, когда Аня согласится</text>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="330" height="3" rx="1.5" fill="#bd4b2a"/>
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<text x="28" y="781" class="body" style="fill:#9a8d7c">написать Ане</text>
+<text x="295" y="781" class="mono13" text-anchor="end">0/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
-<text x="463" y="988" class="cap">B · Нажали первым — «ответа пока нет»</text>
-<text x="463" y="1008" class="capm">на месте «поговорить» неактивная плашка со</text>
-<text x="463" y="1025" class="capm">строкой 06:23; ничего о втором не показано;</text>
-<text x="463" y="1042" class="capm">«не сейчас» остаётся (вопрос 3)</text>
+<text x="463" y="988" class="cap">B · Нажали первым — беседа открылась и ждёт (экран 08)</text>
+<text x="463" y="1008" class="capm">решение владельца 18.09.2026: обе фразы цитатами,</text>
+<text x="463" y="1025" class="capm">строка-статус, свои реплики в очереди без ✓ и одна</text>
+<text x="463" y="1042" class="capm">mono-строка; срок в шапке — срок мэтча (кворум 3/3)</text>
 <g transform="translate(878,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">

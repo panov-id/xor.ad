@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1080" viewBox="0 0 1300 1080">
+<title>Ждущая беседа — кадры 08 после первого «поговорить» · варианты A/B · 375×812</title>
+<style>
+    @font-face { font-family: "Golos Text"; font-weight: 400 600;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    .name { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
+    .body { font-size: 16px; fill: #f0e7dc; }
+    .meta { font-size: 14px; fill: #9a8d7c; }
+    .mono13 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+    .disp { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; }
+    .h { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .q { font-size: 16px; fill: #1c140d; }
+</style>
+<rect width="1300" height="1080" fill="#ece4d8"/>
+<text x="40" y="44" class="h">Ждущая беседа — решение владельца 18.09.2026: открывается по своему «поговорить», реплики в очереди до согласия</text>
+
+<!-- frame A: queue marked only by missing ✓ -->
+<g transform="translate(40,80)">
+<rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<rect x="16" y="54" width="343" height="44" rx="8" fill="#302720"/>
+<text x="28" y="81" class="meta" style="fill:#f0e7dc">ждём Аню</text>
+<text x="347" y="81" class="mono13" text-anchor="end">остаток 3 ч 50 мин</text>
+<g>
+<rect x="32" y="112" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="124" width="3" height="34" fill="#bd4b2a"/>
+<path d="M46 132 L54 125 L62 132 L62 139 L46 139 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="137" class="body">«кто на набережную к девяти?»</text>
+<text x="70" y="158" class="meta">ваша фраза</text>
+</g>
+<g>
+<rect x="32" y="178" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="190" width="3" height="34" fill="#bd4b2a"/>
+<path d="M46 198 L54 191 L62 198 L62 205 L46 205 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="203" class="body">«ищу четвёртого в домино»</text>
+<text x="70" y="224" class="meta">Аня · остаток 1 ч 10 мин</text>
+</g>
+<text x="187.5" y="262" class="meta" text-anchor="middle">вы предложили поговорить · Аня ещё не ответила</text>
+<g>
+<rect x="185.6" y="282" width="173.4" height="62" rx="13" fill="#302720"/>
+<text x="197.6" y="308" class="body">домино у меня есть,</text>
+<text x="197.6" y="332" class="body">могу к девяти</text>
+</g>
+<g>
+<rect x="215" y="352" width="144" height="38" rx="13" fill="#302720"/>
+<text x="227" y="378" class="body">возьму термос</text>
+</g>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="330" height="3" rx="1.5" fill="#bd4b2a"/>
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<text x="28" y="781" class="body" style="fill:#9a8d7c">написать Ане</text>
+<text x="295" y="781" class="mono13" text-anchor="end">0/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="40" y="916" class="cap">A · ждём: обе фразы цитатами, строка-статус, свои реплики без ✓ — очередь видна только отсутствием галочки</text>
+
+<!-- frame B: queue marked by word -->
+<g transform="translate(455,80)">
+<rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name">Аня, 24</text>
+<rect x="16" y="54" width="343" height="44" rx="8" fill="#302720"/>
+<text x="28" y="81" class="meta" style="fill:#f0e7dc">ждём Аню</text>
+<text x="347" y="81" class="mono13" text-anchor="end">остаток 3 ч 50 мин</text>
+<g>
+<rect x="32" y="112" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="124" width="3" height="34" fill="#bd4b2a"/>
+<path d="M46 132 L54 125 L62 132 L62 139 L46 139 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="137" class="body">«кто на набережную к девяти?»</text>
+<text x="70" y="158" class="meta">ваша фраза</text>
+</g>
+<g>
+<rect x="32" y="178" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="190" width="3" height="34" fill="#bd4b2a"/>
+<path d="M46 198 L54 191 L62 198 L62 205 L46 205 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="70" y="203" class="body">«ищу четвёртого в домино»</text>
+<text x="70" y="224" class="meta">Аня · остаток 1 ч 10 мин</text>
+</g>
+<text x="187.5" y="262" class="meta" text-anchor="middle">вы предложили поговорить · Аня ещё не ответила</text>
+<g>
+<rect x="185.6" y="282" width="173.4" height="62" rx="13" fill="#302720"/>
+<text x="197.6" y="308" class="body">домино у меня есть,</text>
+<text x="197.6" y="332" class="body">могу к девяти</text>
+</g>
+<g>
+<rect x="215" y="352" width="144" height="38" rx="13" fill="#302720"/>
+<text x="227" y="378" class="body">возьму термос</text>
+</g>
+<text x="359" y="410" class="mono13" text-anchor="end">в очереди · уйдут, когда Аня согласится</text>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="330" height="3" rx="1.5" fill="#bd4b2a"/>
+<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<text x="28" y="781" class="body" style="fill:#9a8d7c">написать Ане</text>
+<text x="295" y="781" class="mono13" text-anchor="end">0/256</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
+<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="455" y="916" class="cap">B · то же, плюс одна mono-строка под очередью: «в очереди · уйдут, когда Аня согласится»</text>
+
+<!-- frame C: refusal -->
+<g transform="translate(870,80)">
+<rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
+<path d="M34 19 L24 28 L34 37" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="52" y="34" class="name" style="fill:#9a8d7c">Аня, 24</text>
+<g opacity="0.55">
+<rect x="32" y="112" width="311" height="58" rx="13" fill="#262019"/>
+<rect x="32" y="124" width="3" height="34" fill="#bd4b2a"/>
+<text x="70" y="137" class="body">«кто на набережную к девяти?»</text>
+<rect x="185.6" y="282" width="173.4" height="62" rx="13" fill="#302720"/>
+<text x="197.6" y="308" class="body">домино у меня есть,</text>
+<text x="197.6" y="332" class="body">могу к девяти</text>
+</g>
+<rect x="24" y="470" width="327" height="120" rx="13" fill="#302720"/>
+<text x="187.5" y="510" class="disp" text-anchor="middle">Предложение ушло</text>
+<text x="187.5" y="536" class="meta" text-anchor="middle">Написанное никуда не отправилось.</text>
+<rect x="127.5" y="552" width="120" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="187.5" y="580" class="body" text-anchor="middle">закрыть</text>
+<rect x="16" y="754" width="343" height="44" rx="8" fill="none" stroke="#9a8d7c" stroke-width="1" stroke-dasharray="5 4"/>
+</g>
+<text x="870" y="916" class="cap">C · Аня отказала или срок мэтча вышел: надгробие поверх ждущей беседы, очередь погашена, поле закрыто</text>
+
+<text x="40" y="970" class="h">Вопросы</text>
+<text x="40" y="1002" class="q">1. Очередь: A — только без ✓ (как при переподключении), или B — плюс строка «в очереди · уйдут, когда Аня согласится»?</text>
+<text x="40" y="1030" class="q">2. Шапка ждущей беседы: «ждём Аню · остаток 3 ч 50 мин» (срок мэтча) — или «Аня, 24 · ждёт ответа» без числа?</text>
+<text x="40" y="1058" class="q">3. Надгробие отказа: слова «Написанное никуда не отправилось.» оставить (честно про очередь) или убрать (не напоминать)?</text>
+</svg>

@@ -15,7 +15,7 @@
     .t18b { font-size: 20px; font-weight: 600; fill: #1c140d; }
     .t22b { font-size: 26px; font-weight: 600; fill: #1c140d; }
     .big { font-size: 26px; fill: #1c140d; }
-    .acc { font-size: 16px; font-weight: 600; fill: #983c22; }
+    .acc { font-size: 14px; font-weight: 600; fill: #983c22; }
     /* screen-08 classes, light tokens */
     .name   { font-size: 20px; font-weight: 600; fill: #1c140d; }
     .h      { font-size: 20px; font-weight: 600; fill: #1c140d; }

@@ -13,7 +13,7 @@
     .t14b { font-size: 14px; font-weight: 600; fill: #f0e7dc; }
     .t18b { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
     .t22b { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
-    .acc { font-size: 16px; font-weight: 600; fill: #e0714f; }
+    .acc { font-size: 14px; font-weight: 600; fill: #e0714f; }
     .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
     .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
     .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }

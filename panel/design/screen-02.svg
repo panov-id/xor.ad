@@ -12,7 +12,7 @@
     .m    { font-size: 16px; font-weight: 400; fill: #9a8d7c; }
     .mb   { font-size: 16px; font-weight: 600; fill: #9a8d7c; }
     .err  { font-size: 16px; font-weight: 400; fill: #ef7a6a; }
-    .acc  { font-size: 16px; font-weight: 600; fill: #d56343; }
+    .acc  { font-size: 14px; font-weight: 600; fill: #d56343; }
     .code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; fill: #f0e7dc; letter-spacing: 1px; }
     .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
     .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }

@@ -84,11 +84,11 @@ Ordered by what fires first; the estimate is hours of clean work.
 
 | # | Step | Output | Gates | Cost |
 |---|---|---|---|---|
-| 0 | Commit the morning | the 19 files of the scale and surfaces in day55 | check-all | 0.1 h |
-| 1 | The sheet-gates script | `check-design-sheets.sh`: I1, I2, I3 (contrast and targets from SVG), I5; with an injection; in check-all | itself | 2 h |
-| 2 | Accessibility and uniformity (cut tasks 4–5) | 9 texts → `--accent-text`; hand tiles; chips at 44; the focus ring; seconds by the rule; label case; strokes 1/2; "seated" → "playing" | I1, I3 | 2.5 h |
-| 3 | The product's three signs | a 2 px lifespan bar without animation (03/07/08/23); a tabletop with the game's icon (03/19/25); the radius ring with a backing (03 filters/04) — SVG first, questions, then sheets | I4, panel "Feed" | 3 h |
-| 4 | Empty states and header/tab bar | the eight splash icons as a set (11); display on empty states; a 56 header without a line; the tab bar — a filled icon instead of an underline | I1, panel "Me" | 2 h |
+| 0 | ~~Commit the morning~~ ✓ 2026-09-18 11:10 | the 19 files of the scale and surfaces in day55 | check-all | 0.1 h |
+| 1 | ~~The sheet-gates script~~ ✓ 2026-09-18 11:17, `check-design-sheets.sh` | `check-design-sheets.sh`: I1, I2, I3 (contrast and targets from SVG), I5; with an injection; in check-all | itself | 2 h |
+| 2 | ~~Accessibility and uniformity~~ ✓ 2026-09-18 11:17 (case — 6 pairs, the rest in the clusters) | 9 texts → `--accent-text`; hand tiles; chips at 44; the focus ring; seconds by the rule; label case; strokes 1/2; "seated" → "playing" | I1, I3 | 2.5 h |
+| 3 | ~~The product's three signs~~ ✓ 2026-09-18 11:20, quorum | a 2 px lifespan bar without animation (03/07/08/23); a tabletop with the game's icon (03/19/25); the radius ring with a backing (03 filters/04) — SVG first, questions, then sheets | I4, panel "Feed" | 3 h |
+| 4 | ~~Empty states and header/tab bar~~ ✓ 2026-09-18 11:24, quorum: the tab bar kept its underline | the eight splash icons as a set (11); display on empty states; a 56 header without a line; the tab bar — a filled icon instead of an underline | I1, panel "Me" | 2 h |
 | 5 | Cluster "Feed and viewer" to zero placeholders | 03, 23, 24, 25 + 09 (no sheet yet); accent ≤ 1 per frame; i18n 03 with nothing cut | I2 per cluster, I5, I6 in part, panel | 4 h |
 | 6 | Cluster "Conversations and the game" | 06, 07, 08, 18: the frame "match accepted → conversation", losing typed text on 4003, whose move on the board, the piece's snap-back | I2, panel | 4 h |
 | 7 | Cluster "The table" | 19 + the states sheet 11 (no sheet yet): the seating frame, re-seating (25), confirming the line-up by names, one's own move opens the board | I2, panel | 4 h |

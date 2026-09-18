@@ -16,7 +16,7 @@
     .t18b { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
     .t22b { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
     .big { font-size: 26px; fill: #f0e7dc; }
-    .acc { font-size: 16px; font-weight: 600; fill: #e0714f; }
+    .acc { font-size: 14px; font-weight: 600; fill: #e0714f; }
     .domain { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 30px; fill: #f0e7dc; }
     .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
     .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; fill: #6b5f4c; letter-spacing: 0.3px; }

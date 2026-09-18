@@ -7,7 +7,7 @@
     .t16 { font-size: 16px; fill: #f0e7dc; } .t16b { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
     .t14 { font-size: 14px; fill: #9a8d7c; } .t14fg { font-size: 14px; fill: #f0e7dc; } .t14b { font-size: 14px; font-weight: 600; fill: #f0e7dc; }
     .t18b { font-size: 20px; font-weight: 600; fill: #f0e7dc; } .t22b { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
-    .acc { font-size: 16px; font-weight: 600; fill: #e0714f; }
+    .acc { font-size: 14px; font-weight: 600; fill: #e0714f; }
     .name, .h { font-size: 20px; font-weight: 600; fill: #f0e7dc; } .body { font-size: 16px; fill: #f0e7dc; } .body15 { font-size: 16px; fill: #f0e7dc; }
     .meta { font-size: 14px; fill: #9a8d7c; } .mono13 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
     .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }

@@ -115,11 +115,12 @@ steps differ by 1.25–1.3×, and line height belongs to the step, not to the sh
 | `--fs-display` | 26 / 34 | 400 | `--disp` = Golos Text | the full-screen phrase (23), an empty state's heading, a confirmation sheet ("Step away", "Enter the PIN"), the transfer code — same size, but `--mono` |
 | `--fs-title` | 20 / 28 | 600 | Golos | the screen header, the interlocutor's name, the table's name |
 | `--fs-body` | 16 / 24 | 400 | Golos | a phrase, a reply, a document's body, an input |
-| `--fs-body-strong` | 16 / 24 | 600 | Golos | button text, "your move", a category label — coloured `--accent-text`, not sized |
+| `--fs-body-strong` | 16 / 24 | 600 | Golos | button text, "your move" |
+| `--fs-meta-strong` | 14 / 20 | 600 | Golos | a tab, a chip, a category label ("offer", "table") in `--accent-text` — the "Feed" cluster panel of 2026-09-18: at 16/600 the label equalled the card's heading |
 | `--fs-meta` | 14 / 20 | 400 | Golos, `--muted` | captions, conditions, "2 playing · 3 watching" |
 | `--fs-mono` | 13 / 20 | 400 | `--mono` = JetBrains Mono | where tabular width matters: the timer, `9/256`, the score, a ticket number |
 
-The screen header is 20/600, not 18: the "Screen header" row of
+The seventh step `--fs-meta-strong` 14/600 was added by the "Feed" cluster panel the same day. The screen header is 20/600, not 18: the "Screen header" row of
 `reviews/NIGHT_2026-09-18_mockups-consistency.md` was rewritten the same day. Outside
 the scale: board coordinates at 11 mono — a single exception, below 11 the dark theme
 at 375 px is unreadable. The scale was applied to the `<style>` of every

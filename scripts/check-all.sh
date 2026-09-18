@@ -107,6 +107,7 @@ run_in_docker() {  # run_in_docker <имя> <путь>
 }
 run_in_docker check-mermaid            "$here/check-mermaid.sh"
 run_in_docker check-panel-contrast     "$here/check-panel-contrast.sh"
+run_in_docker check-storefront-contrast "$here/check-storefront-contrast.sh"
 run_in_docker check-panel-font-weights "$here/check-panel-font-weights.sh"
 
 if [ "$with_tests" = 1 ]; then
@@ -138,6 +139,9 @@ if [ "$with_tests" = 1 ]; then
   # Проба не на одни ворота, а на класс: ни одни ворота не имеют права
   # выйти нулём, не проверив ни одной единицы. Докера не требует.
   run test_empty-input          bash "$here/test_empty-input.sh"
+  # Ворота витрин молчали неделю с «every pair passes», пока --ok в светлой теме
+  # стоял на 1.48:1: они не считали статусы. Проба ломает токен и ждёт красного.
+  run_in_docker test_check-storefront-contrast "$here/test_check-storefront-contrast.sh"
   [ "$skipped" = 0 ] && run test_check-facts-schema bash "$here/test_check-facts-schema.sh"
   # Тесты узла relay: deno check и deno test в том же образе, что у узла, без базы.
   # До 15.09.2026 их не звал ни этот скрипт, ни harden-cycle, и список «сюда не

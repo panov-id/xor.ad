@@ -17,7 +17,7 @@ repeating.
 | What | Where it was settled | State |
 |---|---|---|
 | Contrast — **three steps**, not a slider | screen 22 (settled 2026-08-26 on screen 10) | a continuous control inevitably offers positions below the threshold |
-| A 4.5:1 contrast threshold, computed arithmetically | the panel and the landings | `landing/check-contrast.mjs`, gates the deploy |
+| A 4.5:1 contrast threshold, computed arithmetically | the panel and the landings | `landing/check-contrast.mjs`; since 2026-09-18 it counts the status colours and the border too and runs in `check-all` through `scripts/check-storefront-contrast.sh`; the deploy does **not** call it — "gates the deploy" [retired] |
 | Accent — from the storefront's set, not a free colour | screen 22, 2026-09-15 | every combination of theme, step and accent is checked before deploy |
 | Theme: light, dark, as in the system | screen 22 (until 2026-09-15 — screen 10) | applied at once, reverted with one tap |
 | `prefers-reduced-motion` disables animation | the landings | done |

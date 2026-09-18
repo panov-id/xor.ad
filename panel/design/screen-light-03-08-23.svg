@@ -292,8 +292,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#857562"/><rect x="16" y="742" width="72" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#e6dbc9"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#857562" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="894" y="1916" class="capv">как есть</text><text x="894" y="1934" class="capb">08 · B угасает: счётчик тишины --err #a3311f,</text><text x="894" y="1952" class="capb">✓ --ok #9ecb7a, реплики на 55 %</text>
 <g transform="translate(1317,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
@@ -345,8 +345,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#857562"/><rect x="16" y="742" width="72" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#e6dbc9"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#857562" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1317" y="1916" class="capv">с предложенными токенами</text><text x="1317" y="1934" class="capb">08 · B угасает: ✓ --ok #4b712c; счётчик тот же</text><text x="1317" y="1952" class="capb">#a3311f</text>
 <g transform="translate(1740,1070)"><rect x="0" y="0" width="375" height="812" rx="13" fill="#ece4d8" stroke="#221a12" stroke-width="2"/>
@@ -398,8 +398,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#221a12" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#857562"/><rect x="16" y="742" width="72" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#e6dbc9"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#857562" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#6b5f4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1740" y="1916" class="capv">как есть, если --err не переопределён</text><text x="1740" y="1934" class="capb">08 · B: счётчик тишины тёмным --err #ef7a6a —</text><text x="1740" y="1952" class="capb">положение neighbro.place (матрица №7/№8)</text>
 </svg>

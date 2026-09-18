@@ -95,8 +95,8 @@
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="28" y="781" class="body" style="fill:#9a8d7c">написать</text>
 <text x="295" y="781" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="463" y="988" class="cap">B · Нажали первым — беседа ждёт (08)</text>
 <text x="463" y="1008" class="capm">решение владельца 18.09.2026: обе фразы цитатами,</text>
@@ -178,7 +178,7 @@
 <rect x="123.5" y="424" width="128" height="44" rx="13" fill="#302720"/>
 <text x="187.5" y="452" class="body" style="fill:#f0e7dc" text-anchor="middle">закрыть</text>
 </g></g>
-<text x="48" y="1940" class="cap">E · Предложение исчезло на глазах</text>
+<text x="48" y="1940" class="cap">E · Предложение исчезло до нажатия «поговорить»</text>
 <text x="48" y="1960" class="capm">11:168: строка вместо карточки, причина не</text>
 <text x="48" y="1977" class="capm">называется; «Закрыть» ведёт в «Предложения»</text>
 <g transform="translate(463,1102)">

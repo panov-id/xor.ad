@@ -357,8 +357,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="0" y="97" width="375" height="443" rx="0" fill="#0d0b0a"/>
 <rect x="0" y="536" width="375" height="4" rx="0" fill="#3a2e20"/>
 <rect x="0" y="97" width="375" height="44" rx="0" fill="#262019"/>
@@ -814,8 +814,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1293" y="2832" class="cap">18C · Просьба «вернуть как было» и ничья</text>
 <text x="1293" y="2852" class="capm">карточка-просьба в ленте, как строка лайка (08):</text>
@@ -1063,8 +1063,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="463" y="3754" class="cap">18E · Виселица — слово на проверке</text>
 <text x="463" y="3774" class="capm">класс «текст» (18:166): виселица + семь пустых мест;</text>
@@ -1230,8 +1230,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="878" y="3754" class="cap">18F · Фишка с клавиатуры · «Так нельзя» · клавиши</text>
 <text x="878" y="3774" class="capm">d4 — кольцо и рамка клетки в акценте (18:129); «Так</text>

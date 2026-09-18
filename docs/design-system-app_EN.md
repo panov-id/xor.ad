@@ -331,6 +331,7 @@ Six patterns the screens demand without a rule. Their look is settled by the moc
 - **R4. Conversation tombstone** (08, 11:47): stays until touched; neither an error nor an empty state — a third kind.
 - **R5. Status strip in the header** (08:79): one slot, four socket outcomes, "no network" and "we failed" in different words, "the app is out of date" on every screen.
 - **R6. Muted own unchecked phrase** (03:10): your own phrase before the verdict differs from others' and from a refused one; not by colour alone.
+- **R7. The send button is filled only with input** (08, 18, 19; the lens quorum of 2026-09-18, 3 of 3): with an empty field — a `--border-control` outline and a `--muted` arrow, not `disabled` (the screen reader must not hear "unavailable" on every empty field; a press sends nothing and returns focus to the field); the outline → fill transition snaps on the first character. So a frame with another primary button keeps one filled accent.
 
 ### Screen disagreements the mockup settles
 

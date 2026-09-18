@@ -158,8 +158,8 @@
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
 <rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="48" y="988" class="cap">A · Зритель только что подсел</text>
 <text x="48" y="1008" class="capm">шапка: имя стола / игра, лайки, «играют 2 · смотрят</text>
@@ -512,8 +512,8 @@
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
 <rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="870" y="988" class="cap">C · Партия кончилась — стол остался</text>
 <text x="870" y="1008" class="capm">доска погашена на 55%, строка «партия окончена» и</text>
@@ -654,7 +654,7 @@
 <circle cx="202.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 </g>
 </g>
-<rect x="16" y="322" width="343" height="150" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1"/>
+<rect x="16" y="322" width="343" height="150" rx="13" fill="#302720"/>
 <text x="187.5" y="354" class="h" text-anchor="middle">Сыграть ещё?</text>
 <text x="187.5" y="378" class="meta" text-anchor="middle">подтвердились 2 из 4</text>
 <text x="187.5" y="400" class="mono13" text-anchor="middle" style="fill:#ef7a6a">0:21</text>
@@ -679,8 +679,8 @@
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
 <rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1281" y="988" class="cap">C2 · «Сыграть ещё» — подтверждение 30 с</text>
 <text x="1281" y="1008" class="capm">карточка на месте строки хода: счёт без имён</text>
@@ -1325,8 +1325,8 @@
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
 <rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="870" y="2832" class="cap">L2a · Раскладка 2 — доска свёрнута</text>
 <text x="870" y="2852" class="capm">полоса 44 под шапкой: фишка, «ваш ход · 4 мин»,</text>
@@ -1401,8 +1401,8 @@
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
 <rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <rect x="0" y="97" width="375" height="635" rx="0" fill="#0d0b0a"/>
 <rect x="0" y="97" width="375" height="44" rx="0" fill="#302720"/>
@@ -1561,8 +1561,8 @@
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
 <rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1281" y="2832" class="cap">L2b · Раскладка 2 — доска раскрыта</text>
 <text x="1281" y="2852" class="capm">лист от полосы до поля: доска 300 (го и нарды</text>

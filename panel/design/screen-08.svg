@@ -147,8 +147,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="72" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="463" y="988" class="cap">B · Угасает — последняя четверть срока</text>
 <text x="463" y="1008" class="capm">Н2: счётчик тишины числом в шапке (err) + реплики</text>
@@ -287,8 +287,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="343" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="48" y="1910" class="cap">E · Пусто — только что открылась</text>
 <text x="48" y="1930" class="capm">строка вместо пустой ленты (11:189); ручка на</text>
@@ -322,8 +322,8 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="463" y="1910" class="cap">E2 · Пусто — после переноса</text>
 <text x="463" y="1930" class="capm">та же беседа без истории (11:190); заголовок в две</text>
@@ -573,8 +573,8 @@
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="28" y="781" class="body" style="fill:#9a8d7c">написать</text>
 <text x="295" y="781" class="mono13" text-anchor="end">0/256</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1293" y="1910" class="cap">H · Отказ или срок мэтча вышел — до согласия</text>
 <text x="1293" y="1930" class="capm">надгробие Н4 поверх ждущей беседы (решение владельца</text>

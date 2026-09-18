@@ -174,7 +174,7 @@
 <text x="187.5" y="380" class="h" text-anchor="middle">Предложения больше нет</text>
 <text x="187.5" y="404" class="meta" text-anchor="middle">Предложение ушло.</text>
 <rect x="123.5" y="424" width="128" height="44" rx="13" fill="#302720"/>
-<text x="187.5" y="452" class="body" style="fill:#f0e7dc" text-anchor="middle">Закрыть</text>
+<text x="187.5" y="452" class="body" style="fill:#f0e7dc" text-anchor="middle">закрыть</text>
 </g></g>
 <text x="48" y="1940" class="cap">E · Предложение исчезло на глазах</text>
 <text x="48" y="1960" class="capm">11:168: строка вместо карточки, причина не</text>
@@ -194,12 +194,12 @@
 <text x="16" y="126" class="name">Аня, 24</text>
 <text x="16" y="150" class="meta" style="fill:#f0e7dc">ищу четвёртого в домино</text>
 <text x="16" y="172" class="mono13">1 ч 10 мин</text>
-<text x="359" y="172" class="meta" style="fill:#bd4b2a" text-anchor="end">ждёт вашего ответа</text>
+<text x="359" y="172" class="meta" style="fill:#e0714f" text-anchor="end">ждёт вашего ответа</text>
 <line x1="16" y1="184" x2="359" y2="184" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="214" class="name">Олег, 40</text>
 <text x="16" y="238" class="meta" style="fill:#f0e7dc">интересуется вашим предложением</text>
 <text x="16" y="260" class="mono13">5 ч 12 мин</text>
-<text x="359" y="260" class="meta" style="fill:#bd4b2a" text-anchor="end">ждёт вашего ответа</text>
+<text x="359" y="260" class="meta" style="fill:#e0714f" text-anchor="end">ждёт вашего ответа</text>
 <line x1="16" y1="272" x2="359" y2="272" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="302" class="name">Миша, 31</text>
 <text x="16" y="326" class="meta" style="fill:#f0e7dc">скамейка, термос, без планов</text>
@@ -208,7 +208,7 @@
 <line x1="16" y1="360" x2="359" y2="360" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="688" width="343" height="44" rx="8" fill="#302720"/>
 <text x="28" y="716" class="body15" style="fill:#f0e7dc">отклонено</text>
-<text x="347" y="716" class="body15" style="fill:#bd4b2a" text-anchor="end">вернуть</text>
+<text x="347" y="716" class="body15" style="fill:#e0714f" text-anchor="end">вернуть</text>
 <rect x="0" y="748" width="375" height="64" rx="0" fill="#0d0b0a"/>
 <line x1="0" y1="748" x2="375" y2="748" stroke="#3a2e20" stroke-width="1"/>
 <rect x="37.875" y="762" width="18" height="2.5" rx="0" fill="#9a8d7c"/>
@@ -437,7 +437,7 @@
 <text x="345" y="524" class="mono13" text-anchor="end">играют 3 · смотрят 2</text>
 <path d="M200 545 L208 538 L216 545 L216 552 L200 552 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="222" y="550" class="mono13">2</text>
-<text x="30" y="550" class="body15" style="fill:#bd4b2a">вернуться</text>
+<text x="30" y="550" class="body15" style="fill:#e0714f">вернуться</text>
 <text x="345" y="550" class="body15" style="fill:#f0e7dc" text-anchor="end">встать</text>
 <text x="16" y="586" class="mono13">свободно 2 из 4</text>
 <text x="16" y="606" class="mono13">четыре за час сказаны · следующая в 21:40</text>
@@ -478,7 +478,7 @@
 <text x="340" y="130" class="meta" text-anchor="end">Женя</text>
 <path d="M350 119 L355 124 L350 129" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="16" y1="148" x2="359" y2="148" stroke="#3a2e20" stroke-width="1"/>
-<text x="16" y="178" class="body">Возраст</text>
+<text x="16" y="178" class="body">возраст</text>
 <text x="340" y="178" class="meta" text-anchor="end">37</text>
 <path d="M350 167 L355 172 L350 177" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="16" y1="196" x2="359" y2="196" stroke="#3a2e20" stroke-width="1"/>
@@ -610,7 +610,7 @@
 <text x="340" y="322" class="meta" text-anchor="end">Женя</text>
 <path d="M350 311 L355 316 L350 321" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="16" y1="340" x2="359" y2="340" stroke="#3a2e20" stroke-width="1"/>
-<text x="16" y="370" class="body">Возраст</text>
+<text x="16" y="370" class="body">возраст</text>
 <text x="340" y="370" class="meta" text-anchor="end">37</text>
 <path d="M350 359 L355 364 L350 369" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="16" y1="388" x2="359" y2="388" stroke="#3a2e20" stroke-width="1"/>
@@ -692,10 +692,10 @@
 <text x="52" y="34" class="h">Заблокировано: 2</text>
 <line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="90" class="body">блокировка от 12.09.2026</text>
-<text x="359" y="90" class="body15" style="fill:#bd4b2a" text-anchor="end">снять</text>
+<text x="359" y="90" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
 <line x1="16" y1="108" x2="359" y2="108" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="138" class="body">блокировка от 16.09.2026</text>
-<text x="359" y="138" class="body15" style="fill:#bd4b2a" text-anchor="end">снять</text>
+<text x="359" y="138" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
 <line x1="16" y1="156" x2="359" y2="156" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="180" class="capm3">[текст не задан]</text>
 </g></g>

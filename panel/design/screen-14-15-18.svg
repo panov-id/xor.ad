@@ -232,7 +232,7 @@
 <rect x="16" y="224" width="343" height="64" rx="13" fill="#262019"/>
 <text x="28" y="250" class="body">Правила сообщества</text>
 <text x="28" y="272" class="mono13">редакция 15.09.2026</text>
-<text x="347" y="272" class="meta" text-anchor="end" style="fill:#bd4b2a">изменилось с тех пор</text>
+<text x="347" y="272" class="meta" text-anchor="end" style="fill:#e0714f">изменилось с тех пор</text>
 <path d="M339 246 L344 251 L339 256" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="16" y="322" class="body15" style="fill:#f0e7dc">что изменилось</text>
 <path d="M339 313 L344 318 L339 323" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -302,13 +302,13 @@
 <rect x="16" y="172" width="343" height="80" rx="13" fill="#262019"/>
 <text x="28" y="198" class="body">Правила сообщества</text>
 <text x="28" y="220" class="mono13">редакция 15.09.2026 · была 27.08.2026</text>
-<text x="28" y="242" class="meta" style="fill:#bd4b2a">Читать</text>
-<text x="347" y="242" class="meta" text-anchor="end" style="fill:#bd4b2a">что изменилось</text>
+<text x="28" y="242" class="meta" style="fill:#e0714f">Читать</text>
+<text x="347" y="242" class="meta" text-anchor="end" style="fill:#e0714f">что изменилось</text>
 <rect x="16" y="264" width="343" height="80" rx="13" fill="#262019"/>
 <text x="28" y="290" class="body">Пользовательское соглашение</text>
 <text x="28" y="312" class="mono13">редакция 16.09.2026 · была 29.08.2026</text>
-<text x="28" y="334" class="meta" style="fill:#bd4b2a">Читать</text>
-<text x="347" y="334" class="meta" text-anchor="end" style="fill:#bd4b2a">что изменилось</text>
+<text x="28" y="334" class="meta" style="fill:#e0714f">Читать</text>
+<text x="347" y="334" class="meta" text-anchor="end" style="fill:#e0714f">что изменилось</text>
 <rect x="16" y="372" width="24" height="24" rx="6" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <text x="52" y="390" class="body15">[текст не задан: принимаю новую редакцию</text>
 <text x="52" y="410" class="body15">перечисленных документов]</text>
@@ -360,7 +360,7 @@
 <rect x="0" y="536" width="375" height="4" rx="0" fill="#3a2e20"/>
 <rect x="0" y="97" width="375" height="44" rx="0" fill="#262019"/>
 <text x="16" y="124.0" class="body15" style="fill:#f0e7dc">шашки · 1:0</text>
-<text x="192" y="124.0" class="cap" text-anchor="middle" style="fill:#bd4b2a">ваш ход</text>
+<text x="192" y="124.0" class="cap" text-anchor="middle" style="fill:#e0714f">ваш ход</text>
 <text x="359" y="124.0" class="meta" text-anchor="end" style="fill:#f0e7dc">свернуть ˄</text>
 <g>
 <rect x="39" y="150" width="40" height="40" rx="0" fill="#5a4634"/>
@@ -453,7 +453,7 @@
 <circle cx="339.0" cy="410.0" r="14.399999999999999" fill="#f0e7dc"/>
 <circle cx="139.0" cy="370.0" r="14.399999999999999" fill="#f0e7dc"/>
 <circle cx="219.0" cy="370.0" r="14.399999999999999" fill="#f0e7dc"/>
-<circle cx="219.0" cy="370.0" r="7.92" fill="none" stroke="#0d0b0a" stroke-width="1.5"/>
+<circle cx="219.0" cy="370.0" r="7.92" fill="none" stroke="#0d0b0a" stroke-width="1"/>
 <circle cx="299.0" cy="370.0" r="14.399999999999999" fill="#f0e7dc"/>
 <circle cx="179.0" cy="330.0" r="14.399999999999999" fill="#f0e7dc"/>
 <circle cx="219.0" cy="290.0" r="14.399999999999999" fill="#bd4b2a"/>
@@ -464,7 +464,7 @@
 <circle cx="339.0" cy="250.0" r="14.399999999999999" fill="#bd4b2a"/>
 <circle cx="59.0" cy="210.0" r="14.399999999999999" fill="#bd4b2a"/>
 <circle cx="139.0" cy="210.0" r="14.399999999999999" fill="#bd4b2a"/>
-<circle cx="139.0" cy="210.0" r="7.92" fill="none" stroke="#fff6f0" stroke-width="1.5"/>
+<circle cx="139.0" cy="210.0" r="7.92" fill="none" stroke="#fff6f0" stroke-width="1"/>
 <circle cx="219.0" cy="210.0" r="14.399999999999999" fill="#bd4b2a"/>
 <circle cx="299.0" cy="210.0" r="14.399999999999999" fill="#bd4b2a"/>
 <circle cx="99.0" cy="170.0" r="14.399999999999999" fill="#bd4b2a"/>
@@ -510,7 +510,7 @@
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/>
 <rect x="0" y="97" width="375" height="36" rx="0" fill="#262019"/>
 <text x="16" y="120.0" class="body15" style="fill:#f0e7dc">шашки · 1:0</text>
-<text x="192" y="120.0" class="cap" text-anchor="middle" style="fill:#bd4b2a">ваш ход</text>
+<text x="192" y="120.0" class="cap" text-anchor="middle" style="fill:#e0714f">ваш ход</text>
 <text x="359" y="120.0" class="meta" text-anchor="end" style="fill:#f0e7dc">свернуть ˅</text>
 <g>
 <rect x="51" y="140" width="34" height="34" rx="0" fill="#5a4634"/>
@@ -603,7 +603,7 @@
 <circle cx="306.0" cy="361.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="136.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
-<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1.5"/>
+<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1"/>
 <circle cx="272.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="170.0" cy="293.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="259.0" r="12.24" fill="#bd4b2a"/>
@@ -614,7 +614,7 @@
 <circle cx="306.0" cy="225.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="68.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="136.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
-<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1.5"/>
+<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1"/>
 <circle cx="204.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="272.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="102.0" cy="157.0" r="12.24" fill="#bd4b2a"/>
@@ -678,7 +678,7 @@
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/>
 <rect x="0" y="97" width="375" height="36" rx="0" fill="#262019"/>
 <text x="16" y="120.0" class="body15" style="fill:#f0e7dc">шашки · 1:0</text>
-<text x="192" y="120.0" class="cap" text-anchor="middle" style="fill:#9a8d7c">ход Ани · 2:40</text>
+<text x="192" y="120.0" class="cap" text-anchor="middle" style="fill:#9a8d7c">ход Ани · 3 мин</text>
 <text x="359" y="120.0" class="meta" text-anchor="end" style="fill:#f0e7dc">свернуть ˅</text>
 <g>
 <rect x="51" y="140" width="34" height="34" rx="0" fill="#5a4634"/>
@@ -771,7 +771,7 @@
 <circle cx="306.0" cy="361.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="136.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
-<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1.5"/>
+<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1"/>
 <circle cx="272.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="170.0" cy="293.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="259.0" r="12.24" fill="#bd4b2a"/>
@@ -781,7 +781,7 @@
 <circle cx="306.0" cy="225.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="68.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="136.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
-<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1.5"/>
+<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1"/>
 <circle cx="204.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="272.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="102.0" cy="157.0" r="12.24" fill="#bd4b2a"/>
@@ -937,7 +937,7 @@
 <circle cx="306.0" cy="361.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="136.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
-<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1.5"/>
+<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1"/>
 <circle cx="272.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="170.0" cy="293.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="259.0" r="12.24" fill="#bd4b2a"/>
@@ -947,7 +947,7 @@
 <circle cx="306.0" cy="225.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="68.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="136.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
-<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1.5"/>
+<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1"/>
 <circle cx="204.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="272.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="102.0" cy="157.0" r="12.24" fill="#bd4b2a"/>
@@ -1004,8 +1004,8 @@
 <text x="16" y="120.0" class="body15" style="fill:#f0e7dc">виселица · 1:0</text>
 <text x="359" y="120.0" class="meta" text-anchor="end" style="fill:#f0e7dc">свернуть ˅</text>
 <rect x="16" y="140" width="343" height="200" rx="13" fill="#262019"/>
-<path d="M60 320 L140 320 M100 320 L100 170 M100 170 L180 170 M180 170 L180 195" fill="none" stroke="#9a8d7c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="180" cy="210" r="14" fill="none" stroke="#9a8d7c" stroke-width="3"/>
+<path d="M60 320 L140 320 M100 320 L100 170 M100 170 L180 170 M180 170 L180 195" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="180" cy="210" r="14" fill="none" stroke="#9a8d7c" stroke-width="2"/>
 <rect x="216" y="300" width="14" height="2" rx="0" fill="#9a8d7c"/>
 <rect x="234" y="300" width="14" height="2" rx="0" fill="#9a8d7c"/>
 <rect x="252" y="300" width="14" height="2" rx="0" fill="#9a8d7c"/>
@@ -1185,7 +1185,7 @@
 <circle cx="306.0" cy="361.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="136.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="204.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
-<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1.5"/>
+<circle cx="204.0" cy="327.0" r="6.732000000000001" fill="none" stroke="#0d0b0a" stroke-width="1"/>
 <circle cx="272.0" cy="327.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="170.0" cy="293.0" r="12.24" fill="#f0e7dc"/>
 <circle cx="170.0" cy="293.0" r="16.240000000000002" fill="none" stroke="#bd4b2a" stroke-width="2"/>
@@ -1197,7 +1197,7 @@
 <circle cx="306.0" cy="225.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="68.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="136.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
-<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1.5"/>
+<circle cx="136.0" cy="191.0" r="6.732000000000001" fill="none" stroke="#fff6f0" stroke-width="1"/>
 <circle cx="204.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="272.0" cy="191.0" r="12.24" fill="#bd4b2a"/>
 <circle cx="102.0" cy="157.0" r="12.24" fill="#bd4b2a"/>

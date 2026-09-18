@@ -16,7 +16,7 @@
   .cap    { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
   .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
   .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
-  .zone   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #bd4b2a; }
+  .zone   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #e0714f; }
 </style>
 <rect x="0" y="0" width="1720" height="2960" rx="0" fill="#000000"/>
 <text x="48" y="60" class="mast">Экран 19 — Стол: подсесть и играть компанией</text>
@@ -120,7 +120,7 @@
 </g>
 </g>
 <text x="16" y="343" class="meta" style="fill:#f0e7dc">ход: Аня</text>
-<text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4:12</text>
+<text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4 мин</text>
 <text x="187.5" y="388" class="capm" text-anchor="middle">[текст не задан: речь и доска здесь видны узлу]</text>
 <g>
 <text x="187.5" y="414" class="meta" text-anchor="middle">[текст не задан: момент посадки]</text>
@@ -261,7 +261,7 @@
 </g>
 <text x="28" y="274" class="capm">ваша рука</text>
 <g>
-<rect x="28" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="28" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="48" y1="285" x2="48" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="32.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="38.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
@@ -271,14 +271,14 @@
 <circle cx="63.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="76" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="76" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="96" y1="285" x2="96" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="80.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="86.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="91.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="124" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="124" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="144" y1="285" x2="144" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="128.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="139.4" cy="286.6" r="1.8" fill="#0d0b0a"/>
@@ -292,15 +292,15 @@
 <circle cx="159.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="172" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="172" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="192" y1="285" x2="192" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="182.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="202.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 </g>
 <rect x="25" y="279" width="46" height="26" rx="5" fill="none" stroke="#bd4b2a" stroke-width="2"/>
 </g>
-<text x="16" y="343" class="cap" style="fill:#bd4b2a">ваш ход</text>
-<text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4:12</text>
+<text x="16" y="343" class="cap" style="fill:#e0714f">ваш ход</text>
+<text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4 мин</text>
 <rect x="16" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
 <rect x="133.0" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
@@ -314,7 +314,7 @@
 <rect x="16" y="438" width="206.60000000000002" height="106" rx="13" fill="#262019"/>
 <text x="28" y="458" class="meta" style="fill:#9a8d7c">Миша</text>
 <rect x="148.60000000000002" y="444" width="62" height="20" rx="8" fill="none" stroke="#bd4b2a" stroke-width="1"/>
-<text x="179.60000000000002" y="458" class="capm" text-anchor="middle" style="fill:#bd4b2a">заявка</text>
+<text x="179.60000000000002" y="458" class="capm" text-anchor="middle" style="fill:#e0714f">заявка</text>
 <text x="28" y="480" class="body15">возьмите на следующую,</text>
 <text x="28" y="502" class="body15">играю нормально</text>
 <rect x="28" y="514" width="182.60000000000002" height="24" rx="8" fill="#302720"/>
@@ -444,7 +444,7 @@
 </g>
 <text x="28" y="274" class="capm">ваша рука</text>
 <g>
-<rect x="28" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="28" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="48" y1="285" x2="48" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="32.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="38.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
@@ -454,14 +454,14 @@
 <circle cx="63.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="76" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="76" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="96" y1="285" x2="96" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="80.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="86.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="91.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="124" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="124" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="144" y1="285" x2="144" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="128.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="139.4" cy="286.6" r="1.8" fill="#0d0b0a"/>
@@ -475,7 +475,7 @@
 <circle cx="159.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="172" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="172" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="192" y1="285" x2="192" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="182.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="202.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
@@ -614,7 +614,7 @@
 </g>
 <text x="28" y="274" class="capm">ваша рука</text>
 <g>
-<rect x="28" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="28" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="48" y1="285" x2="48" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="32.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="38.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
@@ -624,14 +624,14 @@
 <circle cx="63.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="76" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="76" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="96" y1="285" x2="96" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="80.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="86.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="91.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="124" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="124" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="144" y1="285" x2="144" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="128.6" cy="286.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="139.4" cy="286.6" r="1.8" fill="#0d0b0a"/>
@@ -645,7 +645,7 @@
 <circle cx="159.4" cy="297.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="172" y="282" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="172" y="282" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="192" y1="285" x2="192" y2="299" stroke="#3a2e20" stroke-width="1" />
 <circle cx="182.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="202.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
@@ -782,7 +782,7 @@
 </g>
 <rect x="16" y="362" width="343" height="150" rx="13" fill="#262019"/>
 <text x="187.5" y="396" class="h" text-anchor="middle">Вас попросили встать</text>
-<text x="187.5" y="420" class="meta" text-anchor="middle">Большинство сидящих попросило.</text>
+<text x="187.5" y="420" class="meta" text-anchor="middle">Большинство играющих попросило.</text>
 <text x="187.5" y="440" class="meta" text-anchor="middle">Сесть снова можно, если стол виден.</text>
 <rect x="117.5" y="460" width="140" height="36" rx="13" fill="#bd4b2a"/>
 <text x="187.5" y="483.0" class="body15" text-anchor="middle" style="fill:#fff6f0">В ленту</text>
@@ -896,7 +896,7 @@
 </g>
 <text x="28" y="307" class="capm">ваша рука</text>
 <g>
-<rect x="28" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="28" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="48" y1="318" x2="48" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="32.6" cy="319.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="38.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
@@ -906,14 +906,14 @@
 <circle cx="63.4" cy="330.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="76" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="76" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="96" y1="318" x2="96" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="80.6" cy="319.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="86.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="91.4" cy="330.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="124" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="124" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="144" y1="318" x2="144" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="128.6" cy="319.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="139.4" cy="319.6" r="1.8" fill="#0d0b0a"/>
@@ -927,20 +927,20 @@
 <circle cx="159.4" cy="330.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="172" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="172" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="192" y1="318" x2="192" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="182.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="202.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
 </g>
 <rect x="25" y="312" width="46" height="26" rx="5" fill="none" stroke="#bd4b2a" stroke-width="2"/>
 </g>
-<text x="16" y="376" class="cap" style="fill:#bd4b2a">ваш ход</text>
-<text x="359" y="376" class="mono13" text-anchor="end" style="fill:#9a8d7c">2:48</text>
+<text x="16" y="376" class="cap" style="fill:#e0714f">ваш ход</text>
+<text x="359" y="376" class="mono13" text-anchor="end" style="fill:#9a8d7c">3 мин</text>
 <text x="16" y="399" class="meta">Мы не отвечаем, а время хода</text>
 <text x="16" y="417" class="meta">идёт: через пять минут</text>
 <text x="16" y="435" class="meta">засчитают пас.</text>
 <rect x="249" y="397" width="110" height="36" rx="13" fill="#302720"/>
-<text x="304.0" y="420.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">Повторить</text>
+<text x="304.0" y="420.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">повторить</text>
 <rect x="16" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
 <rect x="133.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
@@ -1070,7 +1070,7 @@
 </g>
 <text x="28" y="307" class="capm">ваша рука</text>
 <g>
-<rect x="28" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="28" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="48" y1="318" x2="48" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="32.6" cy="319.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="38.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
@@ -1080,14 +1080,14 @@
 <circle cx="63.4" cy="330.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="76" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="76" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="96" y1="318" x2="96" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="80.6" cy="319.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="86.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="91.4" cy="330.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="124" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="124" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="144" y1="318" x2="144" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="128.6" cy="319.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="139.4" cy="319.6" r="1.8" fill="#0d0b0a"/>
@@ -1101,20 +1101,20 @@
 <circle cx="159.4" cy="330.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="172" y="315" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="172" y="315" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="192" y1="318" x2="192" y2="332" stroke="#3a2e20" stroke-width="1" />
 <circle cx="182.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="202.0" cy="325.0" r="1.8" fill="#0d0b0a"/>
 </g>
 <rect x="25" y="312" width="46" height="26" rx="5" fill="none" stroke="#bd4b2a" stroke-width="2"/>
 </g>
-<text x="16" y="376" class="cap" style="fill:#bd4b2a">ваш ход</text>
+<text x="16" y="376" class="cap" style="fill:#e0714f">ваш ход</text>
 <text x="359" y="376" class="mono13" text-anchor="end" style="fill:#ef7a6a">0:40</text>
 <text x="16" y="399" class="meta">Время хода идёт и без связи:</text>
 <text x="16" y="417" class="meta">через пять минут</text>
 <text x="16" y="435" class="meta">засчитают пас.</text>
 <rect x="249" y="397" width="110" height="36" rx="13" fill="#302720"/>
-<text x="304.0" y="420.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">Повторить</text>
+<text x="304.0" y="420.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">повторить</text>
 <rect x="16" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
 <rect x="133.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
@@ -1204,24 +1204,24 @@
 <g transform="translate(459,1994)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c4591994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4591994)">
-<rect x="16" y="8" width="343" height="84" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="8" width="343" height="84" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="187.5" y="48.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">шапка · 96</text>
 <text x="187.5" y="70.0" class="zone" text-anchor="middle">имя стола / игра · лайки · играют N ·</text>
 <text x="187.5" y="86.0" class="zone" text-anchor="middle">смотрят M · встать</text>
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="187.5" y="210.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">доска · 208</text>
 <text x="187.5" y="232.0" class="zone" text-anchor="middle">8×8 по 24 = 192 + рамка; зрителю без рук,</text>
 <text x="187.5" y="248.0" class="zone" text-anchor="middle">играющему рука внизу</text>
-<rect x="16" y="322" width="343" height="88" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="322" width="343" height="88" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="187.5" y="364.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">ход · срок 5:00 · кнопки играющего · 88</text>
 <text x="187.5" y="386.0" class="zone" text-anchor="middle">зрителю здесь только строка хода, кнопок нет</text>
-<rect x="16" y="414" width="343" height="262" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="414" width="343" height="262" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="187.5" y="543.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">реплики и ходы · прокрутка · ≈256</text>
 <text x="187.5" y="565.0" class="zone" text-anchor="middle">с момента посадки; ≈ 4 строки; заявки и</text>
 <text x="187.5" y="581.0" class="zone" text-anchor="middle">отказы — такие же пузыри</text>
-<rect x="16" y="680" width="343" height="44" rx="13" fill="#302720" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="680" width="343" height="44" rx="13" fill="#302720" stroke="#bd4b2a" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="187.5" y="707.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">зрителю: заявка на следующую игру · 44</text>
-<rect x="16" y="746" width="343" height="60" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="746" width="343" height="60" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="187.5" y="781.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">поле 128 · стикер · отправить · 72</text>
 </g></g>
 <text x="459" y="2832" class="cap">L1 · Раскладка 1 — доска сверху, схема зон</text>
@@ -1255,7 +1255,7 @@
 <circle cx="30.8" cy="109.8" r="1.1" fill="#0d0b0a"/>
 <circle cx="37.2" cy="116.2" r="1.1" fill="#0d0b0a"/>
 </g>
-<text x="48" y="124" class="cap" style="fill:#bd4b2a">ваш ход · 4:12</text>
+<text x="48" y="124" class="cap" style="fill:#e0714f">ваш ход · 4 мин</text>
 <text x="339" y="124" class="meta" text-anchor="end" style="fill:#f0e7dc">доска</text>
 <path d="M349 117 L354 122 L359 117" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="0" y1="141" x2="375" y2="141" stroke="#3a2e20" stroke-width="1" />
@@ -1279,7 +1279,7 @@
 <rect x="16" y="297" width="206.60000000000002" height="106" rx="13" fill="#262019"/>
 <text x="28" y="317" class="meta" style="fill:#9a8d7c">Миша</text>
 <rect x="148.60000000000002" y="303" width="62" height="20" rx="8" fill="none" stroke="#bd4b2a" stroke-width="1"/>
-<text x="179.60000000000002" y="317" class="capm" text-anchor="middle" style="fill:#bd4b2a">заявка</text>
+<text x="179.60000000000002" y="317" class="capm" text-anchor="middle" style="fill:#e0714f">заявка</text>
 <text x="28" y="339" class="body15">возьмите на следующую,</text>
 <text x="28" y="361" class="body15">играю нормально</text>
 <rect x="28" y="373" width="182.60000000000002" height="24" rx="8" fill="#302720"/>
@@ -1326,7 +1326,7 @@
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="870" y="2832" class="cap">L2a · Раскладка 2 — доска свёрнута</text>
-<text x="870" y="2852" class="capm">полоса 44 под шапкой: фишка, «ваш ход · 4:12»,</text>
+<text x="870" y="2852" class="capm">полоса 44 под шапкой: фишка, «ваш ход · 4 мин»,</text>
 <text x="870" y="2869" class="capm">«доска ▾»; репликам 600 ≈ 8 строк; свой ход</text>
 <text x="870" y="2886" class="capm">открывает доску сам (вопрос)</text>
 <g transform="translate(1281,1994)">
@@ -1360,7 +1360,7 @@
 <rect x="16" y="245" width="206.60000000000002" height="78" rx="13" fill="#262019"/>
 <text x="28" y="265" class="meta" style="fill:#9a8d7c">Миша</text>
 <rect x="148.60000000000002" y="251" width="62" height="20" rx="8" fill="none" stroke="#bd4b2a" stroke-width="1"/>
-<text x="179.60000000000002" y="265" class="capm" text-anchor="middle" style="fill:#bd4b2a">заявка</text>
+<text x="179.60000000000002" y="265" class="capm" text-anchor="middle" style="fill:#e0714f">заявка</text>
 <text x="28" y="287" class="body15">возьмите на следующую,</text>
 <text x="28" y="309" class="body15">играю нормально</text>
 <rect x="226.60000000000002" y="279" width="44" height="44" rx="0" fill="none"/>
@@ -1415,7 +1415,7 @@
 <circle cx="30.8" cy="109.8" r="1.1" fill="#0d0b0a"/>
 <circle cx="37.2" cy="116.2" r="1.1" fill="#0d0b0a"/>
 </g>
-<text x="48" y="124" class="cap" style="fill:#bd4b2a">ваш ход · 4:12</text>
+<text x="48" y="124" class="cap" style="fill:#e0714f">ваш ход · 4 мин</text>
 <text x="339" y="124" class="meta" text-anchor="end" style="fill:#f0e7dc">свернуть</text>
 <path d="M349 124 L354 119 L359 124" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="0" y1="141" x2="375" y2="141" stroke="#3a2e20" stroke-width="1" />
@@ -1503,7 +1503,7 @@
 </g>
 <text x="28" y="411" class="capm">ваша рука</text>
 <g>
-<rect x="28" y="419" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="28" y="419" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="48" y1="422" x2="48" y2="436" stroke="#3a2e20" stroke-width="1" />
 <circle cx="32.6" cy="423.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="38.0" cy="429.0" r="1.8" fill="#0d0b0a"/>
@@ -1513,14 +1513,14 @@
 <circle cx="63.4" cy="434.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="76" y="419" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="76" y="419" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="96" y1="422" x2="96" y2="436" stroke="#3a2e20" stroke-width="1" />
 <circle cx="80.6" cy="423.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="86.0" cy="429.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="91.4" cy="434.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="124" y="419" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="124" y="419" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="144" y1="422" x2="144" y2="436" stroke="#3a2e20" stroke-width="1" />
 <circle cx="128.6" cy="423.6" r="1.8" fill="#0d0b0a"/>
 <circle cx="139.4" cy="423.6" r="1.8" fill="#0d0b0a"/>
@@ -1534,7 +1534,7 @@
 <circle cx="159.4" cy="434.4" r="1.8" fill="#0d0b0a"/>
 </g>
 <g>
-<rect x="172" y="419" width="40" height="20" rx="4" fill="#f0e7dc"/>
+<rect x="172" y="419" width="44" height="24" rx="4" fill="#f0e7dc"/>
 <line x1="192" y1="422" x2="192" y2="436" stroke="#3a2e20" stroke-width="1" />
 <circle cx="182.0" cy="429.0" r="1.8" fill="#0d0b0a"/>
 <circle cx="202.0" cy="429.0" r="1.8" fill="#0d0b0a"/>

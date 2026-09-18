@@ -95,7 +95,7 @@
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
-<text x="463" y="988" class="cap">B · Нажали первым — беседа открылась и ждёт (экран 08)</text>
+<text x="463" y="988" class="cap">B · Нажали первым — беседа ждёт (08)</text>
 <text x="463" y="1008" class="capm">решение владельца 18.09.2026: обе фразы цитатами,</text>
 <text x="463" y="1025" class="capm">строка-статус, свои реплики в очереди без ✓ и одна</text>
 <text x="463" y="1042" class="capm">mono-строка; срок в шапке — срок мэтча (кворум 3/3)</text>

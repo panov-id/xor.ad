@@ -7,21 +7,21 @@
     src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
   @font-face { font-family: "JetBrains Mono"; font-weight: 400;
     src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
-  .name   { font-size: 17px; font-weight: 600; fill: #f0e7dc; }
-  .h      { font-size: 17px; font-weight: 600; fill: #f0e7dc; }
+  .name   { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
+  .h      { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
   .body   { font-size: 16px; font-weight: 400; fill: #f0e7dc; }
-  .body15 { font-size: 15px; font-weight: 400; fill: #f0e7dc; }
+  .body15 { font-size: 16px; font-weight: 400; fill: #f0e7dc; }
   .meta   { font-size: 14px; font-weight: 400; fill: #9a8d7c; }
   .mono13 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
-  .cap    { font-size: 15px; font-weight: 600; fill: #f0e7dc; }
-  .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; fill: #9a8d7c; }
-  .mast   { font-size: 24px; font-weight: 600; fill: #f0e7dc; }
-  .zone   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; fill: #bd4b2a; }
+  .cap    { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+  .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+  .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+  .zone   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #bd4b2a; }
 </style>
 <rect x="0" y="0" width="1720" height="2960" rx="0" fill="#000000"/>
 <text x="48" y="60" class="mast">Экран 19 — Стол: подсесть и играть компанией</text>
 <text x="48" y="88" class="capm">sosed.place · тёмная тема · акцент terra · 375×812 · шрифты Golos Text / JetBrains Mono · доска: домино (свободный стол), тот же движок, что экран 18</text>
-<text x="48" y="108" class="capm">bg #0d0b0a · panel #17130f · panel-2 #241c14 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · err #ef7a6a · r-1 8 · r-2 13 · шаг 4</text>
+<text x="48" y="108" class="capm">bg #0d0b0a · panel #262019 · panel-2 #302720 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · err #ef7a6a · r-1 8 · r-2 13 · шаг 4</text>
 <g transform="translate(48,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
@@ -37,7 +37,7 @@
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g>
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="128" class="mono13" text-anchor="end">Миша · 2</text>
@@ -129,7 +129,7 @@
 <text x="187.5" y="442" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
 </g>
 <g>
-<rect x="16" y="454" width="206.60000000000002" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="454" width="206.60000000000002" height="56" rx="13" fill="#262019"/>
 <text x="28" y="474" class="meta" style="fill:#9a8d7c">Олег</text>
 <text x="28" y="496" class="body15">ну вот, опять шестёрка</text>
 <rect x="226.60000000000002" y="466" width="44" height="44" rx="0" fill="none"/>
@@ -138,7 +138,7 @@
 <circle cx="254.60000000000002" cy="488" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="16" y="518" width="198.3" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="518" width="198.3" height="56" rx="13" fill="#262019"/>
 <text x="28" y="538" class="meta" style="fill:#9a8d7c">Миша</text>
 <text x="28" y="560" class="body15">кто-нибудь ещё сядет?</text>
 <rect x="218.3" y="530" width="44" height="44" rx="0" fill="none"/>
@@ -153,7 +153,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -178,7 +178,7 @@
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g>
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="128" class="mono13" text-anchor="end">Миша · 2</text>
@@ -301,23 +301,23 @@
 </g>
 <text x="16" y="343" class="cap" style="fill:#bd4b2a">ваш ход</text>
 <text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4:12</text>
-<rect x="16" y="352" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
-<rect x="133.0" y="352" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="133.0" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="187.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">сдаться</text>
-<rect x="250.0" y="352" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="250.0" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="304.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">…</text>
 <g>
 <text x="187.5" y="426" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
 </g>
 <g>
-<rect x="16" y="438" width="206.60000000000002" height="106" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="438" width="206.60000000000002" height="106" rx="13" fill="#262019"/>
 <text x="28" y="458" class="meta" style="fill:#9a8d7c">Миша</text>
 <rect x="148.60000000000002" y="444" width="62" height="20" rx="8" fill="none" stroke="#bd4b2a" stroke-width="1"/>
 <text x="179.60000000000002" y="458" class="capm" text-anchor="middle" style="fill:#bd4b2a">заявка</text>
 <text x="28" y="480" class="body15">возьмите на следующую,</text>
 <text x="28" y="502" class="body15">играю нормально</text>
-<rect x="28" y="514" width="182.60000000000002" height="24" rx="8" fill="#241c14"/>
+<rect x="28" y="514" width="182.60000000000002" height="24" rx="8" fill="#302720"/>
 <text x="119.30000000000001" y="530" class="capm" text-anchor="middle" style="fill:#9a8d7c">отказать · сначала почему</text>
 <rect x="226.60000000000002" y="500" width="44" height="44" rx="0" fill="none"/>
 <circle cx="242.60000000000002" cy="522" r="1.8" fill="#9a8d7c"/>
@@ -325,7 +325,7 @@
 <circle cx="254.60000000000002" cy="522" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="227.1" y="552" width="131.9" height="56" rx="13" fill="#241c14"/>
+<rect x="227.1" y="552" width="131.9" height="56" rx="13" fill="#302720"/>
 <text x="239.1" y="572" class="meta" style="fill:#9a8d7c">вы</text>
 <text x="239.1" y="594" class="body15">сейчас, думаю</text>
 </g>
@@ -334,7 +334,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="80" y="782" class="body">ход</text>
 <rect x="110.5" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="297" y="782" class="mono13" text-anchor="end">3/128</text>
@@ -361,7 +361,7 @@
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.55">
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="128" class="mono13" text-anchor="end">Миша · 2</text>
@@ -490,7 +490,7 @@
 <text x="187.5" y="418" class="meta" text-anchor="middle">[текст не задан: партия окончена]</text>
 </g>
 <g>
-<rect x="16" y="430" width="120" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="430" width="120" height="56" rx="13" fill="#262019"/>
 <text x="28" y="450" class="meta" style="fill:#9a8d7c">Аня</text>
 <text x="28" y="472" class="body15">ещё одну?</text>
 <rect x="140" y="442" width="44" height="44" rx="0" fill="none"/>
@@ -498,7 +498,7 @@
 <circle cx="162" cy="464" r="1.8" fill="#9a8d7c"/>
 <circle cx="168" cy="464" r="1.8" fill="#9a8d7c"/>
 </g>
-<rect x="16" y="628" width="343" height="44" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="628" width="343" height="44" rx="13" fill="#302720" stroke="#80705a" stroke-width="1"/>
 <text x="187.5" y="655.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">поздравить с победой</text>
 <rect x="16" y="680" width="343" height="44" rx="13" fill="#bd4b2a"/>
 <text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#fff6f0">сыграть ещё</text>
@@ -507,7 +507,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -531,7 +531,7 @@
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.55">
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="128" class="mono13" text-anchor="end">Миша · 2</text>
@@ -651,7 +651,7 @@
 <circle cx="202.0" cy="292.0" r="1.8" fill="#0d0b0a"/>
 </g>
 </g>
-<rect x="16" y="322" width="343" height="150" rx="13" fill="#17130f" stroke="#bd4b2a" stroke-width="1"/>
+<rect x="16" y="322" width="343" height="150" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1"/>
 <text x="187.5" y="354" class="h" text-anchor="middle">[текст не задан: сыграть ещё?]</text>
 <text x="187.5" y="378" class="meta" text-anchor="middle">подтвердились 2 из 4</text>
 <text x="187.5" y="400" class="mono13" text-anchor="middle" style="fill:#ef7a6a">0:21</text>
@@ -661,7 +661,7 @@
 <text x="187.5" y="500" class="meta" text-anchor="middle">[текст не задан: не подтвердился — зритель]</text>
 </g>
 <g>
-<rect x="16" y="512" width="120" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="512" width="120" height="56" rx="13" fill="#262019"/>
 <text x="28" y="532" class="meta" style="fill:#9a8d7c">Аня</text>
 <text x="28" y="554" class="body15">ещё одну?</text>
 <rect x="140" y="524" width="44" height="44" rx="0" fill="none"/>
@@ -674,7 +674,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -698,7 +698,7 @@
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.55">
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="128" class="mono13" text-anchor="end">Миша · 2</text>
@@ -780,14 +780,14 @@
 <circle cx="257.9" cy="234.9" r="2.0" fill="#0d0b0a"/>
 </g>
 </g>
-<rect x="16" y="362" width="343" height="150" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="362" width="343" height="150" rx="13" fill="#262019"/>
 <text x="187.5" y="396" class="h" text-anchor="middle">Вас попросили встать</text>
 <text x="187.5" y="420" class="meta" text-anchor="middle">Большинство сидящих попросило.</text>
 <text x="187.5" y="440" class="meta" text-anchor="middle">Сесть снова можно, если стол виден.</text>
 <rect x="117.5" y="460" width="140" height="36" rx="13" fill="#bd4b2a"/>
 <text x="187.5" y="483.0" class="body15" text-anchor="middle" style="fill:#fff6f0">В ленту</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
-<rect x="16" y="754" width="343" height="44" rx="8" fill="#17130f" stroke="#3a2e20" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="16" y="754" width="343" height="44" rx="8" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
 </g></g>
 <text x="48" y="1910" class="cap">D · Высадка</text>
 <text x="48" y="1930" class="capm">Н4: надгробие над погашенной доской, реплики сняты,</text>
@@ -808,12 +808,12 @@
 <text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
-<rect x="0" y="97" width="375" height="32" rx="0" fill="#241c14"/>
+<rect x="0" y="97" width="375" height="32" rx="0" fill="#302720"/>
 <circle cx="18" cy="113" r="4" fill="#ef7a6a"/>
 <text x="30" y="118" class="meta" style="fill:#f0e7dc">У нас не получилось</text>
 <line x1="0" y1="129" x2="375" y2="129" stroke="#3a2e20" stroke-width="1" />
 <g>
-<rect x="16" y="141" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="141" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="161" class="mono13">Аня · 3</text>
 <text x="187.5" y="161" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="161" class="mono13" text-anchor="end">Миша · 2</text>
@@ -939,16 +939,16 @@
 <text x="16" y="399" class="meta">Мы не отвечаем, а время хода</text>
 <text x="16" y="417" class="meta">идёт: через пять минут</text>
 <text x="16" y="435" class="meta">засчитают пас.</text>
-<rect x="249" y="397" width="110" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="249" y="397" width="110" height="36" rx="13" fill="#302720"/>
 <text x="304.0" y="420.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">Повторить</text>
-<rect x="16" y="455" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
-<rect x="133.0" y="455" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="133.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="187.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">сдаться</text>
-<rect x="250.0" y="455" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="250.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="304.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">…</text>
 <g opacity="0.55">
-<rect x="227.1" y="503" width="131.9" height="56" rx="13" fill="#241c14"/>
+<rect x="227.1" y="503" width="131.9" height="56" rx="13" fill="#302720"/>
 <text x="239.1" y="523" class="meta" style="fill:#9a8d7c">вы</text>
 <text x="239.1" y="545" class="body15">сейчас, думаю</text>
 </g>
@@ -957,7 +957,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="80" y="782" class="body">ход</text>
 <rect x="110.5" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="297" y="782" class="mono13" text-anchor="end">3/128</text>
@@ -982,12 +982,12 @@
 <text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
-<rect x="0" y="97" width="375" height="32" rx="0" fill="#241c14"/>
+<rect x="0" y="97" width="375" height="32" rx="0" fill="#302720"/>
 <circle cx="18" cy="113" r="4" fill="#9a8d7c"/>
 <text x="30" y="118" class="meta" style="fill:#f0e7dc">Нет связи</text>
 <line x1="0" y1="129" x2="375" y2="129" stroke="#3a2e20" stroke-width="1" />
 <g>
-<rect x="16" y="141" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="141" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="161" class="mono13">Аня · 3</text>
 <text x="187.5" y="161" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="161" class="mono13" text-anchor="end">Миша · 2</text>
@@ -1113,13 +1113,13 @@
 <text x="16" y="399" class="meta">Время хода идёт и без связи:</text>
 <text x="16" y="417" class="meta">через пять минут</text>
 <text x="16" y="435" class="meta">засчитают пас.</text>
-<rect x="249" y="397" width="110" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="249" y="397" width="110" height="36" rx="13" fill="#302720"/>
 <text x="304.0" y="420.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">Повторить</text>
-<rect x="16" y="455" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
-<rect x="133.0" y="455" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="133.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="187.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">сдаться</text>
-<rect x="250.0" y="455" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="250.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="304.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">…</text>
 <g>
 <text x="187.5" y="519" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
@@ -1129,7 +1129,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="80" y="782" class="body">ход</text>
 <rect x="110.5" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="297" y="782" class="mono13" text-anchor="end">3/128</text>
@@ -1154,28 +1154,28 @@
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g>
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
-<rect x="56" y="201.0" width="44" height="22" rx="4" fill="#241c14"/>
-<rect x="108" y="201.0" width="44" height="22" rx="4" fill="#241c14"/>
-<rect x="160" y="201.0" width="44" height="22" rx="4" fill="#241c14"/>
-<rect x="212" y="201.0" width="44" height="22" rx="4" fill="#241c14"/>
-<rect x="264" y="201.0" width="44" height="22" rx="4" fill="#241c14"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
+<rect x="56" y="201.0" width="44" height="22" rx="4" fill="#302720"/>
+<rect x="108" y="201.0" width="44" height="22" rx="4" fill="#302720"/>
+<rect x="160" y="201.0" width="44" height="22" rx="4" fill="#302720"/>
+<rect x="212" y="201.0" width="44" height="22" rx="4" fill="#302720"/>
+<rect x="264" y="201.0" width="44" height="22" rx="4" fill="#302720"/>
 </g>
-<rect x="16" y="328" width="120" height="16" rx="8" fill="#241c14"/>
-<rect x="319" y="328" width="40" height="16" rx="8" fill="#241c14"/>
-<rect x="16" y="382" width="200" height="56" rx="13" fill="#241c14"/>
-<rect x="16" y="446" width="150" height="56" rx="13" fill="#241c14"/>
-<rect x="179" y="510" width="180" height="56" rx="13" fill="#241c14"/>
-<rect x="16" y="574" width="230" height="56" rx="13" fill="#241c14"/>
-<rect x="16" y="680" width="343" height="44" rx="13" fill="#241c14"/>
+<rect x="16" y="328" width="120" height="16" rx="8" fill="#302720"/>
+<rect x="319" y="328" width="40" height="16" rx="8" fill="#302720"/>
+<rect x="16" y="382" width="200" height="56" rx="13" fill="#302720"/>
+<rect x="16" y="446" width="150" height="56" rx="13" fill="#302720"/>
+<rect x="179" y="510" width="180" height="56" rx="13" fill="#302720"/>
+<rect x="16" y="574" width="230" height="56" rx="13" fill="#302720"/>
+<rect x="16" y="680" width="343" height="44" rx="13" fill="#302720"/>
 <text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#9a8d7c">заявка на следующую игру</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="754" width="44" height="44" rx="0" fill="none"/>
 <circle cx="38" cy="776" r="9" fill="none" stroke="#9a8d7c" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#9a8d7c"/><circle cx="41.5" cy="773.5" r="1.4" fill="#9a8d7c"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="#302720"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1281" y="1910" class="cap">G · Скелет посадки</text>
@@ -1189,12 +1189,12 @@
 <path d="M181.5 263 V259 a6 6 0 0 1 12 0 V263" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <text x="187.5" y="318" class="h" text-anchor="middle">Введите ПИН</text>
 <text x="187.5" y="344" class="meta" text-anchor="middle" style="fill:#f0e7dc">За столом ваш ход.</text>
-<rect x="59.5" y="372" width="36" height="44" rx="8" fill="#241c14"/>
-<rect x="103.5" y="372" width="36" height="44" rx="8" fill="#241c14"/>
-<rect x="147.5" y="372" width="36" height="44" rx="8" fill="#241c14"/>
-<rect x="191.5" y="372" width="36" height="44" rx="8" fill="#241c14"/>
-<rect x="235.5" y="372" width="36" height="44" rx="8" fill="#241c14"/>
-<rect x="279.5" y="372" width="36" height="44" rx="8" fill="#241c14"/>
+<rect x="59.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
+<rect x="103.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
+<rect x="147.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
+<rect x="191.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
+<rect x="235.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
+<rect x="279.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
 <text x="187.5" y="452" class="capm" text-anchor="middle">[текст не задан: отсчёт хода за замком]</text>
 </g></g>
 <text x="48" y="2832" class="cap">H · Вкладка заперта, вы за столом</text>
@@ -1204,24 +1204,24 @@
 <g transform="translate(459,1994)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c4591994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4591994)">
-<rect x="16" y="8" width="343" height="84" rx="13" fill="#17130f" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="8" width="343" height="84" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="187.5" y="48.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">шапка · 96</text>
 <text x="187.5" y="70.0" class="zone" text-anchor="middle">имя стола / игра · лайки · играют N ·</text>
 <text x="187.5" y="86.0" class="zone" text-anchor="middle">смотрят M · встать</text>
-<rect x="16" y="108" width="343" height="208" rx="13" fill="#17130f" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="108" width="343" height="208" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="187.5" y="210.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">доска · 208</text>
 <text x="187.5" y="232.0" class="zone" text-anchor="middle">8×8 по 24 = 192 + рамка; зрителю без рук,</text>
 <text x="187.5" y="248.0" class="zone" text-anchor="middle">играющему рука внизу</text>
-<rect x="16" y="322" width="343" height="88" rx="13" fill="#17130f" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="322" width="343" height="88" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="187.5" y="364.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">ход · срок 5:00 · кнопки играющего · 88</text>
 <text x="187.5" y="386.0" class="zone" text-anchor="middle">зрителю здесь только строка хода, кнопок нет</text>
-<rect x="16" y="414" width="343" height="262" rx="13" fill="#17130f" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="414" width="343" height="262" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="187.5" y="543.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">реплики и ходы · прокрутка · ≈256</text>
 <text x="187.5" y="565.0" class="zone" text-anchor="middle">с момента посадки; ≈ 4 строки; заявки и</text>
 <text x="187.5" y="581.0" class="zone" text-anchor="middle">отказы — такие же пузыри</text>
-<rect x="16" y="680" width="343" height="44" rx="13" fill="#241c14" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="680" width="343" height="44" rx="13" fill="#302720" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="187.5" y="707.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">зрителю: заявка на следующую игру · 44</text>
-<rect x="16" y="746" width="343" height="60" rx="13" fill="#17130f" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect x="16" y="746" width="343" height="60" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="187.5" y="781.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">поле 128 · стикер · отправить · 72</text>
 </g></g>
 <text x="459" y="2832" class="cap">L1 · Раскладка 1 — доска сверху, схема зон</text>
@@ -1242,7 +1242,7 @@
 <text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
-<rect x="0" y="97" width="375" height="44" rx="0" fill="#241c14"/>
+<rect x="0" y="97" width="375" height="44" rx="0" fill="#302720"/>
 <g>
 <rect x="16" y="107" width="24" height="12" rx="4" fill="#f0e7dc"/>
 <line x1="28" y1="110" x2="28" y2="116" stroke="#3a2e20" stroke-width="1" />
@@ -1267,7 +1267,7 @@
 <text x="187.5" y="221" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
 </g>
 <g>
-<rect x="16" y="233" width="206.60000000000002" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="233" width="206.60000000000002" height="56" rx="13" fill="#262019"/>
 <text x="28" y="253" class="meta" style="fill:#9a8d7c">Олег</text>
 <text x="28" y="275" class="body15">ну вот, опять шестёрка</text>
 <rect x="226.60000000000002" y="245" width="44" height="44" rx="0" fill="none"/>
@@ -1276,13 +1276,13 @@
 <circle cx="254.60000000000002" cy="267" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="16" y="297" width="206.60000000000002" height="106" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="297" width="206.60000000000002" height="106" rx="13" fill="#262019"/>
 <text x="28" y="317" class="meta" style="fill:#9a8d7c">Миша</text>
 <rect x="148.60000000000002" y="303" width="62" height="20" rx="8" fill="none" stroke="#bd4b2a" stroke-width="1"/>
 <text x="179.60000000000002" y="317" class="capm" text-anchor="middle" style="fill:#bd4b2a">заявка</text>
 <text x="28" y="339" class="body15">возьмите на следующую,</text>
 <text x="28" y="361" class="body15">играю нормально</text>
-<rect x="28" y="373" width="182.60000000000002" height="24" rx="8" fill="#241c14"/>
+<rect x="28" y="373" width="182.60000000000002" height="24" rx="8" fill="#302720"/>
 <text x="119.30000000000001" y="389" class="capm" text-anchor="middle" style="fill:#9a8d7c">отказать · сначала почему</text>
 <rect x="226.60000000000002" y="359" width="44" height="44" rx="0" fill="none"/>
 <circle cx="242.60000000000002" cy="381" r="1.8" fill="#9a8d7c"/>
@@ -1290,7 +1290,7 @@
 <circle cx="254.60000000000002" cy="381" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="16" y="411" width="239.8" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="411" width="239.8" height="56" rx="13" fill="#262019"/>
 <text x="28" y="431" class="meta" style="fill:#9a8d7c">Аня</text>
 <text x="28" y="453" class="body15">берём, если Олег не против</text>
 <rect x="259.8" y="423" width="44" height="44" rx="0" fill="none"/>
@@ -1299,12 +1299,12 @@
 <circle cx="287.8" cy="445" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="227.1" y="475" width="131.9" height="56" rx="13" fill="#241c14"/>
+<rect x="227.1" y="475" width="131.9" height="56" rx="13" fill="#302720"/>
 <text x="239.1" y="495" class="meta" style="fill:#9a8d7c">вы</text>
 <text x="239.1" y="517" class="body15">сейчас, думаю</text>
 </g>
 <g>
-<rect x="16" y="539" width="124.0" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="539" width="124.0" height="56" rx="13" fill="#262019"/>
 <text x="28" y="559" class="meta" style="fill:#9a8d7c">Олег</text>
 <text x="28" y="581" class="body15">не против</text>
 <rect x="144.0" y="551" width="44" height="44" rx="0" fill="none"/>
@@ -1320,7 +1320,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1348,7 +1348,7 @@
 <text x="187.5" y="169" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
 </g>
 <g>
-<rect x="16" y="181" width="206.60000000000002" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="181" width="206.60000000000002" height="56" rx="13" fill="#262019"/>
 <text x="28" y="201" class="meta" style="fill:#9a8d7c">Олег</text>
 <text x="28" y="223" class="body15">ну вот, опять шестёрка</text>
 <rect x="226.60000000000002" y="193" width="44" height="44" rx="0" fill="none"/>
@@ -1357,7 +1357,7 @@
 <circle cx="254.60000000000002" cy="215" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="16" y="245" width="206.60000000000002" height="78" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="245" width="206.60000000000002" height="78" rx="13" fill="#262019"/>
 <text x="28" y="265" class="meta" style="fill:#9a8d7c">Миша</text>
 <rect x="148.60000000000002" y="251" width="62" height="20" rx="8" fill="none" stroke="#bd4b2a" stroke-width="1"/>
 <text x="179.60000000000002" y="265" class="capm" text-anchor="middle" style="fill:#bd4b2a">заявка</text>
@@ -1369,7 +1369,7 @@
 <circle cx="254.60000000000002" cy="301" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="16" y="331" width="239.8" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="331" width="239.8" height="56" rx="13" fill="#262019"/>
 <text x="28" y="351" class="meta" style="fill:#9a8d7c">Аня</text>
 <text x="28" y="373" class="body15">берём, если Олег не против</text>
 <rect x="259.8" y="343" width="44" height="44" rx="0" fill="none"/>
@@ -1378,12 +1378,12 @@
 <circle cx="287.8" cy="365" r="1.8" fill="#9a8d7c"/>
 </g>
 <g>
-<rect x="227.1" y="395" width="131.9" height="56" rx="13" fill="#241c14"/>
+<rect x="227.1" y="395" width="131.9" height="56" rx="13" fill="#302720"/>
 <text x="239.1" y="415" class="meta" style="fill:#9a8d7c">вы</text>
 <text x="239.1" y="437" class="body15">сейчас, думаю</text>
 </g>
 <g>
-<rect x="16" y="459" width="124.0" height="56" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="459" width="124.0" height="56" rx="13" fill="#262019"/>
 <text x="28" y="479" class="meta" style="fill:#9a8d7c">Олег</text>
 <text x="28" y="501" class="body15">не против</text>
 <rect x="144.0" y="471" width="44" height="44" rx="0" fill="none"/>
@@ -1396,13 +1396,13 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <rect x="0" y="97" width="375" height="635" rx="0" fill="#0d0b0a"/>
-<rect x="0" y="97" width="375" height="44" rx="0" fill="#241c14"/>
+<rect x="0" y="97" width="375" height="44" rx="0" fill="#302720"/>
 <g>
 <rect x="16" y="107" width="24" height="12" rx="4" fill="#f0e7dc"/>
 <line x1="28" y1="110" x2="28" y2="116" stroke="#3a2e20" stroke-width="1" />
@@ -1420,7 +1420,7 @@
 <path d="M349 124 L354 119 L359 124" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="0" y1="141" x2="375" y2="141" stroke="#3a2e20" stroke-width="1" />
 <g>
-<rect x="16" y="153" width="343" height="300" rx="13" fill="#17130f" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="153" width="343" height="300" rx="13" fill="#262019"/>
 <text x="28" y="173" class="mono13">Аня · 3</text>
 <text x="187.5" y="173" class="mono13" text-anchor="middle">Олег · 5</text>
 <text x="347" y="173" class="mono13" text-anchor="end">Миша · 2</text>
@@ -1541,11 +1541,11 @@
 </g>
 <rect x="25" y="416" width="46" height="26" rx="5" fill="none" stroke="#bd4b2a" stroke-width="2"/>
 </g>
-<rect x="16" y="465" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="465" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="70.5" y="488.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
-<rect x="133.0" y="465" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="133.0" y="465" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="187.5" y="488.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">сдаться</text>
-<rect x="250.0" y="465" width="109.0" height="36" rx="13" fill="#241c14" stroke="#3a2e20" stroke-width="1"/>
+<rect x="250.0" y="465" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="304.5" y="488.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">…</text>
 <line x1="16" y1="513" x2="359" y2="513" stroke="#3a2e20" stroke-width="1" />
 <text x="16" y="535" class="meta">Олег</text>
@@ -1556,7 +1556,7 @@
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
 <circle cx="34.5" cy="773.5" r="1.4" fill="#f0e7dc"/><circle cx="41.5" cy="773.5" r="1.4" fill="#f0e7dc"/>
 <path d="M33.5 779 Q38 783 42.5 779" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/>
-<rect x="68" y="754" width="239" height="44" rx="8" fill="#241c14"/>
+<rect x="68" y="754" width="239" height="44" rx="8" fill="#302720"/>
 <text x="297" y="782" class="mono13" text-anchor="end">0/128</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

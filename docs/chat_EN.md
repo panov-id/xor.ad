@@ -1150,7 +1150,7 @@ share and every paper code at once.
 
   Nobody from support will ever ask for this code.
 
-  [ that's me ]                        [ decline ]
+  [ that's me ]                        [ does not match ]
 ```
 
 Three lines, chosen because none pretends to be more than it is (the check line added 2026-09-15, below; this said "Two lines" [retired]).

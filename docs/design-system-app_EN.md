@@ -128,6 +128,12 @@ at 375 px is unreadable. The scale was applied to the `<style>` of every
 rendered and judged whole, no overflow appeared at 375 px, and the key-check icon in
 header 08 moved 14 px to sit after a 20 px name.
 
+**Codes sit centred in their field (the owner's decision of 2026-09-18, from the day's
+gallery).** The paper code, the confirmation groups, the transfer code, the check code and
+a support ticket number are set in `--mono` with `text-anchor="middle"` inside their field
+or card, not at the left edge: a code is read and compared, not read left to right.
+Applied to sheets 02 and 12-13 the same evening.
+
 ## Surfaces
 
 **A card by fill, a field by border; the owner's decision of 2026-09-18.** The

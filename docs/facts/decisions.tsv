@@ -50,7 +50,7 @@ app-prototype-spec.2026-08-27.119	2026-08-27	xor.ad/docs/app-prototype-spec_RU.m
 app-prototype-spec.2026-08-27.142	2026-08-27	xor.ad/docs/app-prototype-spec_RU.md:142	xor.ad/docs/app-prototype-spec_EN.md:142	выбирает	chooses
 app-prototype-spec.2026-08-27.145	2026-08-27	xor.ad/docs/app-prototype-spec_RU.md:145	xor.ad/docs/app-prototype-spec_EN.md:145	без счётчика	without one
 design-system-app.2026-08-31.3	2026-08-31	xor.ad/docs/design-system-app_RU.md:3	xor.ad/docs/design-system-app_EN.md:3	Решено 31.08.2026, первое решение этапа 1.	Decided 2026-08-31, the first decision of stage 1.
-design-system-app.2026-08-31.102	2026-08-31	xor.ad/docs/design-system-app_RU.md:194	xor.ad/docs/design-system-app_EN.md:108	Шкала отступов заведена 31.08.2026 — и её не наследуют.	A spacing scale exists as of 2026-08-31 — and the storefronts do not i
+design-system-app.2026-08-31.102	2026-08-31	xor.ad/docs/design-system-app_RU.md:251	xor.ad/docs/design-system-app_EN.md:108	Шкала отступов заведена 31.08.2026 — и её не наследуют.	A spacing scale exists as of 2026-08-31 — and the storefronts do not i
 test-map.2026-08-26.129	2026-08-26	xor.ad/docs/test-map_RU.md:139	xor.ad/docs/test-map_EN.md:128	Фраза выходит, только когда приняты и она, и имя	A phrase goes out only when both it and the name are accepted
 test-map.2026-08-26.154	2026-08-26	xor.ad/docs/test-map_RU.md:164	xor.ad/docs/test-map_EN.md:153	Узел отдаёт ступень, а не точное число	The node returns a step, not an exact number
 test-map.2026-08-26.163	2026-08-26	xor.ad/docs/test-map_RU.md:173	xor.ad/docs/test-map_EN.md:162	Лайк недоступен без своей живой фразы	Liking is unavailable without a live phrase of one's own
@@ -134,7 +134,7 @@ screens.2026-09-15.23	2026-09-15	sosed.place/docs/22-appearance_RU.md:23	sosed.p
 screens.2026-09-15.43	2026-09-15	sosed.place/docs/22-appearance_RU.md:43	sosed.place/docs/22-appearance_EN.md:43	Можно ли выбрать свой цвет	Can one pick one's own colour
 chat.2026-09-15.2564	2026-09-15	xor.ad/docs/chat_RU.md:2680	xor.ad/docs/chat_EN.md:2594	перебирает акцентный цвет по кругу набора витрины	cycles the accent colour round the storefront's set
 depth-client.2026-09-15.853	2026-09-15	xor.ad/docs/depth-client_RU.md:1122	xor.ad/docs/depth-client_EN.md:882	шестнадцать цветов эмулятора	the emulator's sixteen colours
-design-system-app.2026-09-15.120	2026-09-15	xor.ad/docs/design-system-app_RU.md:212	xor.ad/docs/design-system-app_EN.md:127	токены из него не берутся	and no tokens are taken from it
+design-system-app.2026-09-15.120	2026-09-15	xor.ad/docs/design-system-app_RU.md:269	xor.ad/docs/design-system-app_EN.md:127	токены из него не берутся	and no tokens are taken from it
 chat.2026-09-15.762	2026-09-15	xor.ad/docs/chat_RU.md:798	xor.ad/docs/chat_EN.md:764	Оформление — по строке на лицо, а не колонки личности	Appearance — one row per face, not columns on the identity
 screens.2026-09-15.41	2026-09-15	sosed.place/docs/23-phrase-viewer_RU.md:46	sosed.place/docs/23-phrase-viewer_EN.md:41	~~Что делает свайп~~	~~What a swipe does~~
 screens.2026-09-15.40	2026-09-15	sosed.place/docs/24-hints_RU.md:41	sosed.place/docs/24-hints_EN.md:40	~~Отдельный проход или по месту~~	~~A separate walk-through or in place~~
@@ -148,3 +148,4 @@ chat.2026-09-16.668	2026-09-16	xor.ad/docs/chat_RU.md:696	xor.ad/docs/chat_EN.md
 chat.2026-09-17.1022	2026-09-17	xor.ad/docs/chat_RU.md:1031	xor.ad/docs/chat_EN.md:1035	DDL — 17.09.2026 (проход 4)	DDL on 2026-09-17 (pass 4)
 chat.2026-09-18.871	2026-09-18	xor.ad/docs/chat_RU.md:873	xor.ad/docs/chat_EN.md:880	Уход снимает и поставленные лайки — решение владельца 18.09.2026:	Stepping away also removes the likes given — the owner's decision of 2
 chat.2026-09-18.677	2026-09-18	xor.ad/docs/chat_RU.md:677	xor.ad/docs/chat_EN.md:682	Первый круг за свежим столом открывает кнопка «начать игру» — решение 	The first round at a fresh table is opened by a "start the game" butto
+design-system-app.2026-09-18.motion	2026-09-18	xor.ad/docs/design-system-app_RU.md	xor.ad/docs/design-system-app_EN.md	Едет только то, что случилось — решение владельца 18.09.2026:	Only what happened moves — the owner's decision of 2026-09-18:

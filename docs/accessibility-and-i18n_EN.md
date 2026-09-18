@@ -72,7 +72,7 @@ WCAG 2.2 AA; where our rule is stricter than the standard, ours applies.
 | Spacing set by the person | the layout survives line height 1.5, space after a paragraph 2×, letters 0.12em and words 0.16em with no text lost | WCAG 1.4.12 |
 | Zoom | the layout survives 200% text zoom and a 320 CSS px width with no horizontal scrolling | WCAG 1.4.4 and 1.4.10. The feed in columns by `column-width: 330px` (`app-prototype-spec_EN.md` §4): below 330px there is one column, and that it narrows to the screen rather than running off sideways is checked on the mock-up — so far checked only at 375px |
 | Label length | labels and buttons have no fixed width; the layout is checked on the longest string among the translations; a label is never cut with an ellipsis | German runs about a third longer than Russian (part three) |
-| Motion | no `transition` by default; with `prefers-reduced-motion` no animation at all | `design-system-app_EN.md`, the landings |
+| Motion | controls do not slide; only an event moves — an appearance, a departure, a sheet; time is a number and a step of tone, with no pulsing, bars or rings (2.2.2, 2.3.1); with `prefers-reduced-motion` no offsets, an appearance is one frame, no cycles | `design-system-app_EN.md`, the "Motion" section (2026-09-18); the landings |
 | Terminal | a working width of 80 columns; 60 not checked | below, "The terminal: what we do not know" |
 
 **Lifespans do not breach WCAG 2.2.1, but for different reasons** (clarified 2026-09-15

@@ -94,9 +94,69 @@ The delta is kept here and only here. Every difference carries its reason.
 - **The dark theme as a first-class one** rather than an inversion: both
   storefronts are dark by default, and the application starts from that side.
 - **A shadow as distance**, not as blur; a press shortens the distance.
-- **Nothing slides**: not one `transition` by default.
+- **Nothing slides on hover** — but not "nothing slides": the application has
+  events the panel does not, and those move. The "Motion" section below.
 - **The way things are checked** — contrast, and the page judged whole rather
   than component by component.
+
+## Motion
+
+**Only what happened moves — the owner's decision of 2026-09-18:** the panel's rule
+"nothing slides" (`design-system_EN.md`; the reason was a smoothed shift tearing a
+control's state in two) narrows, for the application, to controls. Hover, focus, press,
+the chosen segment, the tab, the counters — snap, and `transition: none` is written
+explicitly. An event moves: a reply or a phrase arrived, someone else's move came in, a
+sheet slid out, the table dimmed after a removal. The review panel of 2026-09-18
+(`reviews/PANEL_2026-09-18_mockups-design.md`, section 1.3) produced a catalogue of 18
+animations with code; here is what of it is the rule.
+
+**Time is a number and a step of tone, with no pulsing.** The conversation's remainder,
+the move deadline, the 30 seconds of confirming the seating are shown as a figure; the
+figure updates by minutes, seconds only in the last minute; the "urgent" threshold is a
+snap of colour to `--err` plus a word for the screen reader. The N2 fade is a 55 % step
+set on entering the last quarter, not a gradual slide. There are no remainder bars, no
+timer rings and no pulsing labels: motion longer than five seconds would need a pause
+(WCAG 2.2.2), and blinking is banned outright (2.3.1). The price is named: the sign
+"it disappears" is visible only as a word, a number and a tone — and that is accepted.
+
+**Tokens.** Five durations and four curves; the properties are only `opacity`,
+`transform`, `clip-path`.
+
+| Token | Value | Where |
+|---|---|---|
+| `--dur-0` | 0 ms | control states, tabs, figures |
+| `--dur-1` | 120 ms | touch, delivery check mark, a row leaving |
+| `--dur-2` | 200 ms | a row, bubble or card appearing, the "undo" toast |
+| `--dur-3` | 280 ms | the bottom sheet, collapsing the board, the viewer's card swap |
+| `--dur-4` | 600 ms | half-period of the skeleton's breathing and the "reconnecting" dot |
+| `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | everything that enters |
+| `--ease-in` | `cubic-bezier(0.7, 0, 0.84, 0)` | everything that leaves |
+| `--ease-io` | `cubic-bezier(0.65, 0, 0.35, 1)` | carrying a piece, a keyboard step of the slider |
+| `--ease-heart` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | the like's heart — the only spring |
+| `--shift-2` | 8 px | entry offset of rows and bubbles |
+
+Composition rules: an entry is `opacity` and `translateY(--shift-2)` with one duration
+and one curve; an exit is `opacity` only and shorter than the entry; a cascade only on
+entry and at most three elements at 40 ms; a chain no longer than 300 ms. Errors appear
+with a snap and without shaking. Layout properties are never animated: height collapses
+after the fade, not with it.
+
+**What never moves:** controls on hover and focus; figures; background, borders,
+shadows; text; the header and the bottom navigation; one's own piece on the board (the
+finger is already there); a theme change; the skeleton by shimmer — only by breathing
+`opacity`.
+
+**`prefers-reduced-motion`:** offsets and `clip-path` go to zero, an appearance is one
+frame (16 ms) rather than none: an element that came from nowhere gets missed; cycles —
+the skeleton's breathing, the reconnecting dot — stop; the swipe in viewer 23 replaces the
+phrase without movement. The number and the step of tone do not depend on this mode,
+because they are not motion.
+
+**How to check:** stylelint lets only the three properties through
+`transition-property` and `@keyframes`; `document.getAnimations()` is empty at the end
+of every scenario; a hard-coded `ms` outside `:root` is a red grep; reduced-motion is
+emulated in Playwright with a positive control — the same checks are red first without
+emulation. None of this has been run yet: there is no application code.
 
 ## How to check
 
@@ -190,7 +250,7 @@ Ten places where one control is described differently; the direction is named, t
 
 ### What the design system has that no screen needs
 
-`--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--panel-2` (no nested surface), `--disp` (no display font named), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them.
+`--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--panel-2` (no nested surface), `--disp` (no display font named), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them. The motion tokens `--dur-*`, `--ease-*`, `--shift-*` are the "Motion" section; they are introduced here.
 
 ## Nothing open
 

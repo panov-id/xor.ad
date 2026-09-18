@@ -69,7 +69,7 @@
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Аня, 24</text>
 <rect x="16" y="54" width="343" height="44" rx="8" fill="#302720"/>
-<text x="28" y="81" class="meta" style="fill:#f0e7dc">ждём Аню</text>
+<text x="28" y="81" class="meta" style="fill:#f0e7dc">ждём ответа</text>
 <text x="347" y="81" class="mono13" text-anchor="end">остаток 3 ч 50 мин</text>
 <rect x="32" y="112" width="311" height="58" rx="13" fill="#262019"/>
 <rect x="32" y="124" width="3" height="34" fill="#bd4b2a"/>
@@ -90,7 +90,7 @@
 <text x="359" y="412" class="mono13" text-anchor="end">в очереди · уйдут, когда Аня согласится</text>
 <rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="330" height="3" rx="1.5" fill="#bd4b2a"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
-<text x="28" y="781" class="body" style="fill:#9a8d7c">написать Ане</text>
+<text x="28" y="781" class="body" style="fill:#9a8d7c">написать</text>
 <text x="295" y="781" class="mono13" text-anchor="end">0/256</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M329 776 L345 776 M339 770 L345 776 L339 782" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

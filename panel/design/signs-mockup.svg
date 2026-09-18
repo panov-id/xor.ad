@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="760" viewBox="0 0 1300 760">
+<title>Три знака продукта — полоса срока, столешница, кольцо радиуса · варианты A/B · 375 px</title>
+<style>
+    @font-face { font-family: "Golos Text"; font-weight: 400 600;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    .body { font-size: 16px; fill: #f0e7dc; }
+    .strong { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+    .meta { font-size: 14px; fill: #9a8d7c; }
+    .acc { font-size: 16px; font-weight: 600; fill: #e0714f; }
+    .disp { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; }
+    .h { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .q { font-size: 16px; fill: #1c140d; }
+</style>
+<rect width="1300" height="760" fill="#ece4d8"/>
+<text x="40" y="44" class="h">Три знака продукта · варианты A и B · геометрия 375 px, токены тёмной темы</text>
+<text x="40" y="68" class="cap">panel #262019 · panel-2 #302720 · border #3a2e20 · accent #bd4b2a · accent-text #e0714f · muted #9a8d7c · fg #f0e7dc</text>
+
+<!-- ============ 1. Полоса срока ============ -->
+<text x="40" y="110" class="cap">1 · исчезновение: полоса остатка срока, без анимации, длина = доля срока, ступень раз в минуту</text>
+<!-- A: bottom bar inside the card -->
+<rect x="40" y="124" width="375" height="180" fill="#0d0b0a"/>
+<rect x="56" y="140" width="343" height="124" rx="13" fill="#262019"/>
+<text x="72" y="174" class="body">Кто-нибудь идёт на набережную</text>
+<text x="72" y="198" class="body">вечером? Возьму термос.</text>
+<text x="72" y="240" class="meta">компания</text>
+<text x="330" y="240" class="meta" text-anchor="end">♡ 3</text>
+<rect x="72" y="252" width="311" height="2" rx="1" fill="#3a2e20"/>
+<rect x="72" y="252" width="187" height="2" rx="1" fill="#bd4b2a"/>
+<text x="56" y="290" class="cap">A · полоса 2 px внутри карточки под подписью, 60 % осталось; --accent на --border</text>
+<!-- B: left edge -->
+<rect x="40" y="316" width="375" height="180" fill="#0d0b0a"/>
+<rect x="56" y="332" width="343" height="124" rx="13" fill="#262019"/>
+<rect x="56" y="332" width="3" height="124" rx="1.5" fill="#3a2e20"/>
+<rect x="56" y="382" width="3" height="74" rx="1.5" fill="#bd4b2a"/>
+<text x="72" y="366" class="body">Кто-нибудь идёт на набережную</text>
+<text x="72" y="390" class="body">вечером? Возьму термос.</text>
+<text x="72" y="432" class="meta">компания</text>
+<text x="330" y="432" class="meta" text-anchor="end">♡ 3</text>
+<text x="56" y="482" class="cap">B · левое ребро 3 px, «наливается» снизу вверх — та же логика, что пузырь-цитата на 08</text>
+
+<!-- ============ 2. Столешница ============ -->
+<text x="470" y="110" class="cap">2 · стол: карточка стола отличается от фразы формой, а не только словом «стол»</text>
+<!-- A: top strip + game icon -->
+<rect x="470" y="124" width="375" height="180" fill="#0d0b0a"/>
+<rect x="486" y="140" width="343" height="140" rx="13" fill="#262019"/>
+<path d="M486 153 a13 13 0 0 1 13 -13 h317 a13 13 0 0 1 13 13 v3 h-343 z" fill="#302720"/>
+<!-- domino icon 20 px -->
+<rect x="502" y="170" width="20" height="10" rx="2" fill="none" stroke="#e0714f" stroke-width="2"/>
+<circle cx="507" cy="175" r="1.5" fill="#e0714f"/><circle cx="512" cy="175" r="1.5" fill="#e0714f"/><circle cx="517" cy="175" r="1.5" fill="#e0714f"/>
+<text x="530" y="180" class="acc">стол</text>
+<text x="574" y="180" class="meta">· домино</text>
+<text x="502" y="212" class="strong">Пятничный</text>
+<text x="502" y="236" class="meta">играют 2 · смотрят 3</text>
+<rect x="502" y="248" width="96" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="550" y="275" class="body" text-anchor="middle">сесть</text>
+<text x="486" y="290" class="cap" transform="translate(0,8)">A · столешница: полоса 4 px --panel-2 по верху и иконка игры 20 px --accent-text перед меткой</text>
+<!-- B: icon only -->
+<rect x="470" y="316" width="375" height="180" fill="#0d0b0a"/>
+<rect x="486" y="332" width="343" height="140" rx="13" fill="#262019"/>
+<rect x="502" y="362" width="20" height="10" rx="2" fill="none" stroke="#e0714f" stroke-width="2"/>
+<circle cx="507" cy="367" r="1.5" fill="#e0714f"/><circle cx="512" cy="367" r="1.5" fill="#e0714f"/><circle cx="517" cy="367" r="1.5" fill="#e0714f"/>
+<text x="530" y="372" class="acc">стол</text>
+<text x="574" y="372" class="meta">· домино</text>
+<text x="502" y="404" class="strong">Пятничный</text>
+<text x="502" y="428" class="meta">играют 2 · смотрят 3</text>
+<rect x="502" y="440" width="96" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="550" y="467" class="body" text-anchor="middle">сесть</text>
+<text x="486" y="490" class="cap">B · только иконка игры перед меткой, без полосы</text>
+
+<!-- ============ 3. Кольцо радиуса ============ -->
+<text x="900" y="110" class="cap">3 · радиус: единственная графика приложения — фильтры и композер</text>
+<!-- A: backing + 2 px rim + display number -->
+<rect x="900" y="124" width="375" height="220" fill="#0d0b0a"/>
+<circle cx="1087" cy="234" r="80" fill="#bd4b2a" fill-opacity="0.08" stroke="#bd4b2a" stroke-width="2"/>
+<circle cx="1087" cy="234" r="3" fill="#f0e7dc"/>
+<circle cx="1167" cy="234" r="12" fill="#f0e7dc"/>
+<circle cx="1167" cy="238" r="12" fill="#0d0b0a" fill-opacity="0.35"/>
+<circle cx="1167" cy="234" r="12" fill="#f0e7dc"/>
+<text x="1087" y="228" class="disp" text-anchor="middle">3 км</text>
+<text x="1087" y="250" class="meta" text-anchor="middle">десятки</text>
+<rect x="916" y="212" width="44" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="938" y="240" class="strong" text-anchor="middle">−</text>
+<rect x="1215" y="212" width="44" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="1237" y="240" class="strong" text-anchor="middle">+</text>
+<text x="900" y="330" class="cap">A · подложка --accent α 0.08, обод 2 px, число display 26, ручка 24 px с тенью-расстоянием 4 px</text>
+<!-- B: as drawn now -->
+<rect x="900" y="356" width="375" height="220" fill="#0d0b0a"/>
+<circle cx="1087" cy="466" r="80" fill="none" stroke="#bd4b2a" stroke-width="1"/>
+<circle cx="1087" cy="466" r="3" fill="#f0e7dc"/>
+<circle cx="1167" cy="466" r="12" fill="#f0e7dc"/>
+<text x="1087" y="460" class="disp" text-anchor="middle">3 км</text>
+<text x="1087" y="482" class="meta" text-anchor="middle">десятки</text>
+<rect x="916" y="444" width="44" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="938" y="472" class="strong" text-anchor="middle">−</text>
+<rect x="1215" y="444" width="44" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="1237" y="472" class="strong" text-anchor="middle">+</text>
+<text x="900" y="562" class="cap">B · как нарисовано сейчас: обод 1 px без подложки, число 26 после шкалы</text>
+
+<!-- ============ Вопросы ============ -->
+<text x="40" y="560" class="h">Вопросы</text>
+<text x="40" y="592" class="q">1. Полоса срока: A — внизу карточки под подписью, или B — левое ребро, «наливается» снизу?</text>
+<text x="40" y="620" class="q">2. Полоса срока — на всех карточках ленты (чужие фразы тоже) или только на своих, в беседах и в просмотре 23?</text>
+<text x="40" y="648" class="q">3. Столешница: A — полоса 4 px по верху и иконка игры, или B — только иконка?</text>
+<text x="40" y="676" class="q">4. Кольцо радиуса: A — подложка и обод 2 px с ручкой на тени, или B — как есть?</text>
+<text x="40" y="716" class="cap">Правило Н2 держится в обоих вариантах: слово или число остаются рядом, полоса — второй канал. Полоса не анимируется: ступень раз в минуту (решение 18.09.2026).</text>
+</svg>

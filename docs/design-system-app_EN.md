@@ -152,6 +152,31 @@ is the control; the application needs two. The figures were recounted by a scrip
 with the WCAG formula on 2026-09-18; on the sheets 291 outlines were removed from
 cards and bubbles and 94 control borders moved to `--border-control`.
 
+## The product's signs
+
+**Three signs in form — the lens quorum's decision of 2026-09-18** (the owner gave
+the word to work unattended until 13:00; the mock-up `panel/design/signs-mockup.svg`
+with variants A/B and four questions, three lenses — visual, UX, accessibility —
+voted independently; the record is in `reviews/PANEL_2026-09-18_mockups-design.md`, section 6).
+
+- **Disappearance — a lifespan bar**, 3 px, at the bottom of the card under the
+  caption (3 votes of 3): the track `--border-control`, the fill `--accent`, the
+  length the share of the lifespan, a step once a minute, no animation. Only on
+  one's own phrases, in a conversation above the input, and in viewer 23 under the
+  words "disappears soon" (3 of 3): a stranger's phrase in the feed is a voice, not
+  a timer, and twenty bars in a row turn the feed into a table of gauges. For the
+  screen reader the bar is `aria-hidden`, the lifespan is a word or a number beside
+  it (N2); in the "no colour" step the bar moves to `--fg`. Rejected: a 3 px left
+  edge — it merges with the quote's rule on 08 and with the border.
+- **The table — a game icon** at 14 px `--accent-text` before the "table" label
+  (3 of 3); the "tabletop" strip is rejected: `--panel-2` on `--panel` gives 1.10:1
+  and would become a third border next to the lifespan bar.
+- **The radius — a ring with a backing** `--accent` at α 0.08, a 2 px rim, a 20 px
+  handle without a shadow (2 of 3; the visual lens was for a rim without a backing,
+  the shadow on the handle was rejected by two): "−"/"+" at 44×44 remain the targets
+  and get an `aria-label`, the value is an `output` with `aria-live="polite"`, the
+  ring and the backing are `aria-hidden`.
+
 ## Motion
 
 **Only what happened moves — the owner's decision of 2026-09-18:** the panel's rule

@@ -60,8 +60,13 @@ for f in sheets:
         if float(m.group(1)) not in SIZES: bump('sizes_off_scale', f.name, m.group(1))
     for m in re.finditer(r'stroke-width[=:]"?([0-9.]+)', t):
         if float(m.group(1)) not in STROKES: bump('strokes_off_scale', f.name, m.group(1))
-    for m in re.finditer(r'\brx="([0-9.]+)"', t):
-        if float(m.group(1)) not in RADII: bump('radii_off_scale', f.name, m.group(1))
+    for m in re.finditer(r'<rect[^>]*>', t):
+        tag = m.group(0)
+        rx = re.search(r'\brx="([0-9.]+)"', tag); h = re.search(r'\bheight="([0-9.]+)"', tag)
+        if not rx: continue
+        r = float(rx.group(1)); hv = float(h.group(1)) if h else None
+        if hv is not None and (abs(2 * r - hv) < 0.01 or hv <= 16): continue   # a pill (--r-pill) or an icon, not a component
+        if r not in RADII: bump('radii_off_scale', f.name, rx.group(1))
     for m in re.finditer(r'#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b', t):
         c = m.group(0).lower()
         if c not in TOKENS: bump('colours_off_token', f.name, c)

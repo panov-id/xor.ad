@@ -83,7 +83,7 @@
 </g>
 <text x="359" y="501" class="mono13" text-anchor="end" style="fill:#ef7a6a">[текст не задан] · повторить</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
-<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="28" y="782" class="body">выходишь?</text>
 <rect x="117.3" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="291" y="782" class="mono13" text-anchor="end">9/256</text>
@@ -142,7 +142,7 @@
 <circle cx="229.70000000000002" cy="326" r="1.8" fill="#9a8d7c"/>
 </g>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
-<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="72" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -247,7 +247,7 @@
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <line x1="0" y1="716" x2="375" y2="716" stroke="#3a2e20" stroke-width="1" />
 <text x="16" y="738" class="meta">отошёл</text>
-<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="28" y="782" class="body">выходишь?</text>
 <rect x="117.3" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="291" y="782" class="mono13" text-anchor="end">9/256</text>
@@ -282,7 +282,7 @@
 <text x="187.5" y="400" class="h" text-anchor="middle">Беседа открыта</text>
 <text x="187.5" y="426" class="meta" text-anchor="middle">Напишите первым.</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
-<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="343" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -317,7 +317,7 @@
 <text x="187.5" y="440" class="meta" text-anchor="middle">Беседа та же, а прежние реплики</text>
 <text x="187.5" y="460" class="meta" text-anchor="middle">сюда не переезжают.</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
-<rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
 <text x="291" y="782" class="mono13" text-anchor="end">0/256</text>
 <rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -494,7 +494,7 @@
 </g>
 <text x="384" y="501" class="mono13" text-anchor="end" style="fill:#ef7a6a">[текст не задан] · повторить</text>
 <line x1="0" y1="740" x2="400" y2="740" stroke="#3a2e20" stroke-width="1" />
-<rect x="16" y="754" width="312" height="44" rx="8" fill="#302720"/>
+<rect x="16" y="742" width="343" height="3" rx="1.5" fill="#80705a"/><rect x="16" y="742" width="298" height="3" rx="1.5" fill="#bd4b2a"/><rect x="16" y="754" width="312" height="44" rx="8" fill="#302720"/>
 <text x="28" y="782" class="body">выходишь?</text>
 <rect x="117.3" y="766" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="316" y="782" class="mono13" text-anchor="end">9/256</text>

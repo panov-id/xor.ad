@@ -33,7 +33,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 2 · смотрят 3</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g>
@@ -121,9 +121,9 @@
 </g>
 <text x="16" y="343" class="meta" style="fill:#f0e7dc">ход: Аня</text>
 <text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4 мин</text>
-<text x="187.5" y="388" class="capm" text-anchor="middle">[текст не задан: речь и доска здесь видны узлу]</text>
+<text x="187.5" y="388" class="capm" text-anchor="middle">за столом шифрования нет: узел видит речь, доску и стикеры</text>
 <g>
-<text x="187.5" y="414" class="meta" text-anchor="middle">[текст не задан: момент посадки]</text>
+<text x="187.5" y="414" class="meta" text-anchor="middle">вы за столом с этого момента</text>
 </g>
 <g>
 <text x="187.5" y="442" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
@@ -174,7 +174,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g>
@@ -301,11 +301,11 @@
 </g>
 <text x="16" y="343" class="cap" style="fill:#e0714f">ваш ход</text>
 <text x="359" y="343" class="mono13" text-anchor="end" style="fill:#9a8d7c">4 мин</text>
-<rect x="16" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
+<rect x="16" y="348" width="109.0" height="44" rx="13" fill="#302720"/>
 <text x="70.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">пас</text>
-<rect x="133.0" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
+<rect x="133.0" y="348" width="109.0" height="44" rx="13" fill="#302720"/>
 <text x="187.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">сдаться</text>
-<rect x="250.0" y="352" width="109.0" height="36" rx="13" fill="#302720"/>
+<rect x="250.0" y="348" width="109.0" height="44" rx="13" fill="#302720"/>
 <text x="304.5" y="375.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">…</text>
 <g>
 <text x="187.5" y="426" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
@@ -357,7 +357,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.55">
@@ -487,7 +487,7 @@
 <text x="187.5" y="390" class="meta" text-anchor="middle">Олег приставил к единице</text>
 </g>
 <g>
-<text x="187.5" y="418" class="meta" text-anchor="middle">[текст не задан: партия окончена]</text>
+<text x="187.5" y="418" class="meta" text-anchor="middle">партия окончена — стол остаётся</text>
 </g>
 <g>
 <rect x="16" y="430" width="120" height="56" rx="13" fill="#262019"/>
@@ -527,7 +527,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.55">
@@ -652,13 +652,13 @@
 </g>
 </g>
 <rect x="16" y="322" width="343" height="150" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1"/>
-<text x="187.5" y="354" class="h" text-anchor="middle">[текст не задан: сыграть ещё?]</text>
+<text x="187.5" y="354" class="h" text-anchor="middle">Сыграть ещё?</text>
 <text x="187.5" y="378" class="meta" text-anchor="middle">подтвердились 2 из 4</text>
 <text x="187.5" y="400" class="mono13" text-anchor="middle" style="fill:#ef7a6a">0:21</text>
-<rect x="117.5" y="418" width="140" height="36" rx="13" fill="#bd4b2a"/>
+<rect x="117.5" y="414" width="140" height="44" rx="13" fill="#bd4b2a"/>
 <text x="187.5" y="441.0" class="body15" text-anchor="middle" style="fill:#fff6f0">я здесь</text>
 <g>
-<text x="187.5" y="500" class="meta" text-anchor="middle">[текст не задан: не подтвердился — зритель]</text>
+<text x="187.5" y="500" class="meta" text-anchor="middle">не нажмёте за 30 с — останетесь зрителем</text>
 </g>
 <g>
 <rect x="16" y="512" width="120" height="56" rx="13" fill="#262019"/>
@@ -784,7 +784,7 @@
 <text x="187.5" y="396" class="h" text-anchor="middle">Вас попросили встать</text>
 <text x="187.5" y="420" class="meta" text-anchor="middle">Большинство играющих попросило.</text>
 <text x="187.5" y="440" class="meta" text-anchor="middle">Сесть снова можно, если стол виден.</text>
-<rect x="117.5" y="460" width="140" height="36" rx="13" fill="#bd4b2a"/>
+<rect x="117.5" y="456" width="140" height="44" rx="13" fill="#bd4b2a"/>
 <text x="187.5" y="483.0" class="body15" text-anchor="middle" style="fill:#fff6f0">В ленту</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="754" width="343" height="44" rx="8" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
@@ -805,7 +805,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <rect x="0" y="97" width="375" height="32" rx="0" fill="#302720"/>
@@ -979,7 +979,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <rect x="0" y="97" width="375" height="32" rx="0" fill="#302720"/>
@@ -1195,7 +1195,7 @@
 <rect x="191.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
 <rect x="235.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
 <rect x="279.5" y="372" width="36" height="44" rx="8" fill="#302720"/>
-<text x="187.5" y="452" class="capm" text-anchor="middle">[текст не задан: отсчёт хода за замком]</text>
+<text x="187.5" y="452" class="capm" text-anchor="middle"></text>
 </g></g>
 <text x="48" y="2832" class="cap">H · Вкладка заперта, вы за столом</text>
 <text x="48" y="2852" class="capm">только поле ПИНа и строка 11:188 — ни доски, ни</text>
@@ -1239,7 +1239,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <rect x="0" y="97" width="375" height="44" rx="0" fill="#302720"/>
@@ -1259,9 +1259,9 @@
 <text x="339" y="124" class="meta" text-anchor="end" style="fill:#f0e7dc">доска</text>
 <path d="M349 117 L354 122 L359 117" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="0" y1="141" x2="375" y2="141" stroke="#3a2e20" stroke-width="1" />
-<text x="187.5" y="167" class="capm" text-anchor="middle">[текст не задан: речь и доска здесь видны узлу]</text>
+<text x="187.5" y="167" class="capm" text-anchor="middle">за столом шифрования нет: узел видит речь, доску и стикеры</text>
 <g>
-<text x="187.5" y="193" class="meta" text-anchor="middle">[текст не задан: момент посадки]</text>
+<text x="187.5" y="193" class="meta" text-anchor="middle">вы за столом с этого момента</text>
 </g>
 <g>
 <text x="187.5" y="221" class="meta" text-anchor="middle">Аня приставила к шестёрке</text>
@@ -1340,7 +1340,7 @@
 <path d="M337 28 L345 21 L353 28 L353 35 L337 35 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <text x="317" y="34" class="mono13" text-anchor="end">12</text>
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 3 · смотрят 2</text>
-<text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
+<rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
 <g opacity="0.35">

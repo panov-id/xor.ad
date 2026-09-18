@@ -29,7 +29,7 @@
 <clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="84" class="meta">читаем всё, отвечаем не сразу — нас мало</text>
 <rect x="16" y="100" width="343" height="158" rx="13" fill="#262019"/>
 <text x="28" y="124" class="mono13" style="fill:#f0e7dc">7K3M9Q2XZ4</text>
@@ -70,7 +70,7 @@
 <clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="84" class="meta">[текст не задан: заголовок частых вопросов]</text>
 <rect x="16" y="96" width="343" height="40" rx="8" fill="#262019"/>
 <text x="28" y="121" class="body15">куда делась фраза</text>
@@ -106,7 +106,7 @@
 <clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="200" width="343" height="236" rx="13" fill="#262019"/>
 <text x="187.5" y="240" class="h" text-anchor="middle">[текст не задан: обращение принято]</text>
 <rect x="88" y="262" width="199" height="44" rx="8" fill="#302720"/>
@@ -126,7 +126,7 @@
 <clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="40" rx="8" fill="#262019"/>
 <text x="28" y="97" class="body15">куда делась фраза</text>
 <path d="M339 87 L344 92 L339 97" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -136,7 +136,7 @@
 <rect x="16" y="160" width="343" height="40" rx="8" fill="#262019"/>
 <text x="28" y="185" class="body15">куда исчезла беседа</text>
 <path d="M339 175 L344 180 L339 185" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="187.5" y="400" class="h" text-anchor="middle">Обращений пока нет</text>
+<g transform="translate(163.5,316) scale(0.857)"><path d="M28 50 V32 M12 34 C8 22 20 8 28 8 C36 8 48 22 44 34 C40 40 16 40 12 34 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></g><text x="187.5" y="400" class="h" text-anchor="middle">Обращений пока нет</text>
 <text x="187.5" y="426" class="meta" text-anchor="middle">Здесь будут ваши обращения и ответы на них.</text>
 <line x1="0" y1="700" x2="375" y2="700" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="724" class="meta">ответ придёт сюда, в это приложение</text>
@@ -155,7 +155,7 @@
 <clipPath id="c481072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481072)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="0" y="57" width="375" height="32" rx="0" fill="#302720"/>
 <circle cx="18" cy="73.0" r="4" fill="#ef7a6a"/>
 <text x="30" y="78.0" class="meta" style="fill:#f0e7dc">Вход закрыт</text>
@@ -181,7 +181,7 @@
 <clipPath id="c4631072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4631072)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="84" class="meta">читаем всё, отвечаем не сразу — нас мало</text>
 <rect x="16" y="100" width="343" height="96" rx="13" fill="#262019"/>
 <text x="28" y="124" class="mono13" style="fill:#f0e7dc">7K3M9Q2XZ4</text>
@@ -218,7 +218,7 @@
 <clipPath id="c8781072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8781072)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Юридические документы</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="64" rx="13" fill="#262019"/>
 <text x="28" y="98" class="body">Пользовательское соглашение</text>
 <text x="28" y="120" class="mono13">редакция 16.09.2026</text>
@@ -254,7 +254,7 @@
 <clipPath id="c12931072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12931072)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Пользовательское соглашение</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="0" y="57" width="375" height="32" rx="0" fill="#302720"/>
 <text x="16" y="78" class="meta" style="fill:#f0e7dc">этот документ существует только на английском</text>
 <line x1="0" y1="89" x2="375" y2="89" stroke="#3a2e20" stroke-width="1"/>
@@ -294,7 +294,7 @@
 <clipPath id="c481994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481994)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Кое-что изменилось</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="86" class="body15">Прочитайте, что стало другим, и отметьте</text>
 <text x="16" y="106" class="body15">согласие — иначе не получится публиковать</text>
 <text x="16" y="126" class="body15">и открывать новые беседы. Начатые разговоры</text>

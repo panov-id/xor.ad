@@ -177,6 +177,20 @@ voted independently; the record is in `reviews/PANEL_2026-09-18_mockups-design.m
   and get an `aria-label`, the value is an `output` with `aria-live="polite"`, the
   ring and the backing are `aria-hidden`.
 
+**Empty states, the header and the tab bar — the lens quorum's decision of 2026-09-18, second round**
+(the mock-up `panel/design/empty-nav-mockup.svg`, the same three lenses; the votes
+split and the third decided): an empty state gets a splash icon at 48 px `--muted`
+above the display heading (UX + accessibility against visual; the icon is
+`aria-hidden`, the heading and the button carry the meaning); the tab bar keeps the
+32×2 `--accent` underline (UX + accessibility: only a shape gives the state without
+colour, 1.4.1; a `--panel-2` plate under the icon failed 1.4.11 at 1.34:1; the active
+item is `aria-current="page"`); the header loses its 1 px bottom line (visual +
+accessibility: `--border` on `--bg` at 1.49:1 is decoration, not a boundary), the
+boundary is air, a 56 header on `--bg`. The splash icons: eight subjects, a 2 px
+stroke, a 56 grid — a house, a bench, a mug, a domino, a knight, a bicycle, a cat, a
+tree; in an empty state the subject follows the place (the feed — the bench,
+conversations — the mug, one's own phrases — the house).
+
 ## Motion
 
 **Only what happened moves — the owner's decision of 2026-09-18:** the panel's rule

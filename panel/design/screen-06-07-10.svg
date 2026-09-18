@@ -30,7 +30,7 @@
 <clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019"/>
 <text x="30" y="102" class="body">кто на набережную к девяти?</text>
 <text x="30" y="126" class="mono13">остаток 3 ч 50 мин</text>
@@ -68,7 +68,7 @@
 <clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019"/>
 <text x="30" y="102" class="body">кто на набережную к девяти?</text>
 <text x="30" y="126" class="mono13">остаток 3 ч 50 мин</text>
@@ -105,7 +105,7 @@
 <clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="116" rx="13" fill="#262019"/>
 <text x="30" y="102" class="body">отдам две табуретки, заберите сегодня</text>
 <rect x="30" y="116" width="59" height="24" rx="8" fill="none"/>
@@ -142,7 +142,7 @@
 <clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019"/>
 <text x="30" y="102" class="body">кто на набережную к девяти?</text>
 <text x="30" y="126" class="mono13">остаток 3 ч 50 мин</text>
@@ -170,7 +170,7 @@
 <clipPath id="c481102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481102)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Мэтч</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="187.5" y="380" class="h" text-anchor="middle">Предложения больше нет</text>
 <text x="187.5" y="404" class="meta" text-anchor="middle">Предложение ушло.</text>
 <rect x="123.5" y="424" width="128" height="44" rx="13" fill="#302720"/>
@@ -183,7 +183,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c4631102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4631102)">
 <text x="16" y="34" class="h">Беседы</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">Предложения</text>
 <rect x="113" y="64" width="24" height="22" rx="8" fill="#302720"/>
 <text x="125" y="80" class="mono13" style="fill:#f0e7dc" text-anchor="middle">2</text>
@@ -234,7 +234,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c8781102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8781102)">
 <text x="16" y="34" class="h">Беседы</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">Предложения</text>
 <rect x="113" y="64" width="24" height="22" rx="8" fill="#302720"/>
 <text x="125" y="80" class="mono13" style="fill:#f0e7dc" text-anchor="middle">2</text>
@@ -303,12 +303,12 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c12931102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12931102)">
 <text x="16" y="34" class="h">Беседы</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">Предложения</text>
 <text x="161" y="81" class="meta" style="fill:#f0e7dc">Беседы</text>
 <rect x="16" y="92" width="87" height="3" rx="0" fill="#bd4b2a"/>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/>
-<text x="187.5" y="400" class="h" text-anchor="middle">Пока никто не зовёт</text>
+<g transform="translate(163.5,316) scale(0.857)"><path d="M14 46 V24 L20 14 L26 22 H34 L40 14 L46 24 V46 Z M22 32 H24 M36 32 H38 M26 40 C28 43 32 43 34 40" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></g><text x="187.5" y="400" class="h" text-anchor="middle">Пока никто не зовёт</text>
 <text x="187.5" y="424" class="meta" text-anchor="middle">Предложение приходит, когда кто-то</text>
 <text x="187.5" y="444" class="meta" text-anchor="middle">лайкает вашу живую фразу.</text>
 <rect x="0" y="748" width="375" height="64" rx="0" fill="#0d0b0a"/>
@@ -333,12 +333,12 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c482054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c482054)">
 <text x="16" y="34" class="h">Беседы</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">Предложения</text>
 <text x="161" y="81" class="meta" style="fill:#f0e7dc">Беседы</text>
 <rect x="161" y="92" width="47" height="3" rx="0" fill="#bd4b2a"/>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/>
-<text x="187.5" y="400" class="h" text-anchor="middle">Бесед пока нет</text>
+<g transform="translate(163.5,316) scale(0.857)"><path d="M14 24 H42 L40 46 H16 Z M42 28 L52 30 L48 40 L40 40 M22 24 C22 14 34 14 34 24 M24 12 H32" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></g><text x="187.5" y="400" class="h" text-anchor="middle">Бесед пока нет</text>
 <text x="187.5" y="424" class="meta" text-anchor="middle">Беседа открывается, когда предложение</text>
 <text x="187.5" y="444" class="meta" text-anchor="middle">принято.</text>
 <rect x="132.0" y="472" width="111" height="44" rx="13" fill="#302720"/>
@@ -364,7 +364,7 @@
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c4632054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4632054)">
 <text x="16" y="34" class="h">Беседы</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">Предложения</text>
 <text x="161" y="81" class="meta" style="fill:#f0e7dc">Беседы</text>
 <rect x="161" y="92" width="47" height="3" rx="0" fill="#bd4b2a"/>
@@ -408,7 +408,7 @@
 <clipPath id="c8782054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8782054)">
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="92" rx="13" fill="#262019" stroke-dasharray="4 3"/>
 <text x="30" y="102" class="body" opacity="0.7">скамейка, термос, без планов</text>
 <text x="30" y="126" class="mono13">проверяется…</text>
@@ -472,7 +472,7 @@
 <clipPath id="c12932054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12932054)">
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="88" class="capm2">О себе</text>
 <text x="16" y="130" class="body">Имя</text>
 <text x="340" y="130" class="meta" text-anchor="end">Женя</text>
@@ -541,7 +541,7 @@
 <clipPath id="c483006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c483006)">
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="88" class="capm2">[текст не задан] · «Помощь»?</text>
 <text x="16" y="130" class="body">Мои уведомления</text>
 <circle cx="164.79999999999998" cy="124" r="4" fill="#bd4b2a"/>
@@ -599,7 +599,7 @@
 <clipPath id="c4633006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4633006)">
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="187.5" y="140" class="h" text-anchor="middle">Своих фраз нет</text>
 <text x="187.5" y="164" class="meta" text-anchor="middle">Свободных мест: 4 из четырёх.</text>
 <rect x="119.5" y="180" width="136" height="44" rx="13" fill="#302720"/>
@@ -652,7 +652,7 @@
 <clipPath id="c8783006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8783006)">
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <rect x="16" y="72" width="343" height="112" rx="13" fill="#262019"/>
 <rect x="30" y="90" width="200" height="14" rx="7" fill="#302720"/>
 <rect x="30" y="116" width="52" height="24" rx="8" fill="#302720"/>
@@ -690,7 +690,7 @@
 <clipPath id="c12933006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12933006)">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="h">Заблокировано: 2</text>
-<line x1="0" y1="56" x2="375" y2="56" stroke="#3a2e20" stroke-width="1"/>
+
 <text x="16" y="90" class="body">блокировка от 12.09.2026</text>
 <text x="359" y="90" class="body15" style="fill:#e0714f" text-anchor="end">снять</text>
 <line x1="16" y1="108" x2="359" y2="108" stroke="#3a2e20" stroke-width="1"/>

@@ -20,6 +20,9 @@
   .cap    { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
   .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
   .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+    .fade rect, .fade path, .fade circle, .fade line { opacity: .55; }
+    .fade text { opacity: 1; }
+    .fade text.body, .fade text.body15, .fade text.t16, .fade text.t16b, .fade text.name, .fade text.h, .fade text.t, .fade text.tb, .fade text.big, .fade text.disp { opacity: .65; }
 </style>
 <rect x="0" y="0" width="1716" height="3978" fill="#000000"/>
 <text x="48" y="60" class="mast">Экраны 06 — Мэтч · 07 — Беседы · 10 — Я (с экраном 09 сверху)</text>
@@ -250,7 +253,7 @@
 <text x="359" y="172" class="meta" text-anchor="end">ждёт вашего ответа</text>
 </g>
 <line x1="16" y1="184" x2="359" y2="184" stroke="#3a2e20" stroke-width="1"/>
-<g opacity="0.55">
+<g class="fade">
 <text x="16" y="214" class="name">Миша, 31</text>
 <text x="16" y="238" class="meta" style="fill:#f0e7dc">тогда в субботу</text>
 <text x="16" y="260" class="mono13" style="fill:#ef7a6a">4 мин</text>

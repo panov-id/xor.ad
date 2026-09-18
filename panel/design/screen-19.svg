@@ -17,6 +17,9 @@
   .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
   .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
   .zone   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #e0714f; }
+    .fade rect, .fade path, .fade circle, .fade line { opacity: .55; }
+    .fade text { opacity: 1; }
+    .fade text.body, .fade text.body15, .fade text.t16, .fade text.t16b, .fade text.name, .fade text.h, .fade text.t, .fade text.tb, .fade text.big, .fade text.disp { opacity: .65; }
 </style>
 <rect x="0" y="0" width="1720" height="2960" rx="0" fill="#000000"/>
 <text x="48" y="60" class="mast">Экран 19 — Стол: подсесть и играть компанией</text>
@@ -360,7 +363,7 @@
 <rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
-<g opacity="0.55">
+<g class="fade">
 <rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
@@ -530,7 +533,7 @@
 <rect x="303" y="59" width="56" height="44" rx="8" fill="none"/><text x="359" y="81" class="meta" text-anchor="end" style="fill:#f0e7dc">встать</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
-<g opacity="0.55">
+<g class="fade">
 <rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
@@ -687,7 +690,7 @@
 <g transform="translate(48,1072)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c481072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481072)">
-<g opacity="0.55">
+<g class="fade">
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="26" class="name">стол у пекарни</text>
 <text x="52" y="46" class="meta">домино</text>
@@ -697,7 +700,7 @@
 <text x="16" y="81" class="meta" style="fill:#f0e7dc">играют 2 · смотрят 3</text>
 </g>
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1" />
-<g opacity="0.55">
+<g class="fade">
 <rect x="16" y="108" width="343" height="208" rx="13" fill="#262019"/>
 <text x="28" y="128" class="mono13">Аня · 3</text>
 <text x="187.5" y="128" class="mono13" text-anchor="middle">Олег · 5</text>
@@ -947,7 +950,7 @@
 <text x="187.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">сдаться</text>
 <rect x="250.0" y="455" width="109.0" height="36" rx="13" fill="#302720"/>
 <text x="304.5" y="478.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">…</text>
-<g opacity="0.55">
+<g class="fade">
 <rect x="227.1" y="503" width="131.9" height="56" rx="13" fill="#302720"/>
 <text x="239.1" y="523" class="meta" style="fill:#9a8d7c">вы</text>
 <text x="239.1" y="545" class="body15">сейчас, думаю</text>

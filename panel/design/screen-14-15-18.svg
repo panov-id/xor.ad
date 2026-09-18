@@ -19,6 +19,9 @@
   .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
   .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
   .en     { font-size: 16px; font-weight: 400; fill: #f0e7dc; }
+    .fade rect, .fade path, .fade circle, .fade line { opacity: .55; }
+    .fade text { opacity: 1; }
+    .fade text.body, .fade text.body15, .fade text.t16, .fade text.t16b, .fade text.name, .fade text.h, .fade text.t, .fade text.tb, .fade text.big, .fade text.disp { opacity: .65; }
 </style>
 <rect x="0" y="0" width="1700" height="3858" rx="0" fill="#000000"/>
 <text x="48" y="60" class="mast">Экраны 14, 15, 18 — Поддержка · Юридические документы · Игра в беседе</text>
@@ -846,7 +849,7 @@
 <text x="16" y="120.0" class="body15" style="fill:#f0e7dc">шашки · 3:2</text>
 <text x="192" y="120.0" class="cap" text-anchor="middle" style="fill:#f0e7dc">партия кончилась</text>
 <text x="359" y="120.0" class="meta" text-anchor="end" style="fill:#f0e7dc">свернуть ˅</text>
-<g opacity="0.55">
+<g class="fade">
 <rect x="51" y="140" width="34" height="34" rx="0" fill="#5a4634"/>
 <rect x="85" y="140" width="34" height="34" rx="0" fill="#2a2018"/>
 <rect x="119" y="140" width="34" height="34" rx="0" fill="#5a4634"/>

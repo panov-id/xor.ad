@@ -326,7 +326,7 @@ Collected 2026-09-16 from the storefront screens 01–24 (research agent; every 
 Six patterns the screens demand without a rule. Their look is settled by the mockup; here is what the mockup must show.
 
 - **R1. Disabled state** (02, 05, 11, 19): the control stays visible, the reason sits next to it in words, not only in colour; it takes focus.
-- **R2. Fading in the last quarter of the span** (07, 08, 23): the span is visible as a word or a number; fading is a second channel, never the only one (accessibility §86).
+- **R2. Fading in the last quarter of the span** (07, 08, 23): the span is visible as a word or a number; fading is a second channel, never the only one (accessibility §86). Surfaces and graphics fade (0.55) and `--fg` text fades (0.65, staying ≥ 4.5:1); `--muted` text does not fade at all — at 0.85 it already gives 4.0:1, at 0.55 2.4:1 (the cluster panels of 2026-09-18, recounted with the WCAG formula).
 - **R3. Skeleton** (11:30): no caption and no text; the card's geometry; the button that started the action is disabled until the answer.
 - **R4. Conversation tombstone** (08, 11:47): stays until touched; neither an error nor an empty state — a third kind.
 - **R5. Status strip in the header** (08:79): one slot, four socket outcomes, "no network" and "we failed" in different words, "the app is out of date" on every screen.

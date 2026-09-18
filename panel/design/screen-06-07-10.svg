@@ -26,7 +26,7 @@
 </style>
 <rect x="0" y="0" width="1716" height="3978" fill="#000000"/>
 <text x="48" y="60" class="mast">Экраны 06 — Мэтч · 07 — Беседы · 10 — Я (с экраном 09 сверху)</text>
-<text x="48" y="88" class="capm">sosed.place · тёмная тема · акцент terra · 375×812 · шрифты Golos Text / JetBrains Mono · тексты из 06, 07, 09, 10 и таблицы экрана 11; нет текста — «[текст не задан]»</text>
+<text x="48" y="88" class="capm">sosed.place · тёмная тема · акцент terra · 375×812 · шрифты Golos Text / JetBrains Mono · тексты из 06, 07, 09, 10 и таблицы экрана 11</text>
 <text x="48" y="108" class="capm">bg #0d0b0a · panel #262019 · panel-2 #302720 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · err #ef7a6a · r-1 8 · r-2 13 · шаг 4</text>
 <g transform="translate(48,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
@@ -137,8 +137,8 @@
 <text x="878" y="988" class="cap">C · Мэтч от оффера — одна фраза</text>
 <text x="878" y="1008" class="capm">автор оффера видит своё объявление и строку</text>
 <text x="878" y="1025" class="capm">«интересуется вашим предложением» с именем и</text>
-<text x="878" y="1042" class="capm">возрастом (06:33); скидка и срок оффера —</text>
-<text x="878" y="1059" class="capm">[текст не задан]</text>
+<text x="878" y="1042" class="capm">возрастом (06:33); скидка и срок оффера — как в</text>
+<text x="878" y="1059" class="capm">ленте: «−20 % · до 21:00» (06:33)</text>
 <g transform="translate(1293,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
@@ -411,7 +411,7 @@
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
-<rect x="16" y="72" width="343" height="92" rx="13" fill="#262019" stroke-dasharray="4 3"/>
+<rect x="16" y="72" width="343" height="92" rx="13" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
 <text x="30" y="102" class="body" opacity="0.7">скамейка, термос, без планов</text>
 <text x="30" y="126" class="mono13">проверяется…</text>
 
@@ -443,7 +443,7 @@
 <text x="345" y="550" class="body15" style="fill:#f0e7dc" text-anchor="end">встать</text>
 <text x="16" y="586" class="mono13">свободно 2 из 4</text>
 <text x="16" y="606" class="mono13">четыре за час сказаны · следующая в 21:40</text>
-<text x="16" y="640" class="capm2">О себе</text>
+
 <text x="16" y="682" class="body">Имя</text>
 <text x="340" y="682" class="meta" text-anchor="end">Женя</text>
 <path d="M350 671 L355 676 L350 681" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -475,7 +475,7 @@
 <text x="16" y="34" class="h">Я</text>
 <path d="M343 28 L351 21 L359 28 L359 35 L343 35 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/>
 
-<text x="16" y="88" class="capm2">О себе</text>
+
 <text x="16" y="130" class="body">Имя</text>
 <text x="340" y="130" class="meta" text-anchor="end">Женя</text>
 <path d="M350 119 L355 124 L350 129" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -533,9 +533,9 @@
 <text x="328.125" y="796" class="navb" text-anchor="middle">Я</text>
 </g></g>
 <text x="1293" y="2892" class="cap">L · «Я» — настройки, предложенный порядок 1/2</text>
-<text x="1293" y="2912" class="capm">группа «О себе» как в файле; вторая группа —</text>
-<text x="1293" y="2929" class="capm">списки и умолчания ленты и бесед (имя группы</text>
-<text x="1293" y="2946" class="capm">не задано, вопрос 7); «Приложение» — только</text>
+<text x="1293" y="2912" class="capm">первая группа без заголовка (10:39); вторая —</text>
+<text x="1293" y="2929" class="capm">списки и умолчания ленты и бесед — «Лента и</text>
+<text x="1293" y="2946" class="capm">беседы» (10:39); «Приложение» — только</text>
 <text x="1293" y="2963" class="capm">то, что о приложении. Пункт-действие без</text>
 <text x="1293" y="2980" class="capm">шеврона</text>
 <g transform="translate(48,3006)">
@@ -607,7 +607,7 @@
 <rect x="119.5" y="180" width="136" height="44" rx="13" fill="#302720"/>
 <text x="187.5" y="208" class="body" style="fill:#f0e7dc" text-anchor="middle">Написать</text>
 <line x1="0" y1="252" x2="375" y2="252" stroke="#3a2e20" stroke-width="1"/>
-<text x="16" y="280" class="capm2">О себе</text>
+
 <text x="16" y="322" class="body">Имя</text>
 <text x="340" y="322" class="meta" text-anchor="end">Женя</text>
 <path d="M350 311 L355 316 L350 321" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

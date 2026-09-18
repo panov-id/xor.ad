@@ -70,7 +70,7 @@ for f in sheets:
         if hv is not None and (abs(2 * r - hv) < 0.01 or hv <= 16): continue   # a pill (--r-pill) or an icon, not a component
         if wv is not None and abs(2 * r - wv) < 0.01: continue                 # a pill by width: the console's 3×20 rib
         if r not in RADII: bump('radii_off_scale', f.name, rx.group(1))
-    for m in re.finditer(r'#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b', t):
+    for m in re.finditer(r'(?<![\w(])#[0-9a-fA-F]{6}\b|(?<![\w(])#[0-9a-fA-F]{3}\b', t):   # url(#c17) is an id, not a colour
         c = m.group(0).lower()
         if c not in TOKENS: bump('colours_off_token', f.name, c)
     counts['placeholders'] += t.count('текст не задан')

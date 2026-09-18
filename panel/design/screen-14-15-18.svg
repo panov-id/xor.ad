@@ -15,6 +15,10 @@
   .mono13 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
   .mono18 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; fill: #f0e7dc; }
   .lab    { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; fill: #9a8d7c; }
+  .disp   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+  .mono16 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 16px; fill: #f0e7dc; }
+  .nav    { font-size: 13px; font-weight: 400; fill: #9a8d7c; }
+  .navb   { font-size: 13px; font-weight: 600; fill: #f0e7dc; }
   .cap    { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
   .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
   .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
@@ -107,20 +111,21 @@
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
 
-<rect x="16" y="200" width="343" height="236" rx="13" fill="#262019"/>
-<text x="187.5" y="240" class="h" text-anchor="middle">Обращение принято</text>
-<rect x="88" y="262" width="199" height="44" rx="8" fill="#302720"/>
-<text x="187.5" y="291" class="mono18" text-anchor="middle">7K3M9Q2XZ4</text>
-<text x="187.5" y="334" class="meta" text-anchor="middle">номер нужен, чтобы сослаться на обращение</text>
-<text x="187.5" y="352" class="meta" text-anchor="middle">в письме, — ответ по нему не показываем</text>
-<text x="187.5" y="380" class="meta" text-anchor="middle">читаем всё, отвечаем не сразу — нас мало</text>
-<rect x="127.5" y="396" width="120" height="44" rx="13" fill="#302720"/>
-<text x="187.5" y="424" class="body15" text-anchor="middle" style="fill:#f0e7dc">к списку</text>
+<g transform="translate(163.5,276) scale(0.857)"><path d="M28 3 A25 25 0 1 1 27.9 3 Z M16 29 L24 37 L40 19" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></g>
+<text x="187.5" y="368" class="disp" text-anchor="middle">Обращение принято</text>
+<rect x="88" y="392" width="199" height="44" rx="8" fill="#302720"/>
+<text x="187.5" y="421" class="mono16" text-anchor="middle">7K3M9Q2XZ4</text>
+<text x="187.5" y="466" class="meta" text-anchor="middle">номер нужен, чтобы сослаться на обращение</text>
+<text x="187.5" y="486" class="meta" text-anchor="middle">в письме, — ответ по нему не показываем</text>
+<text x="187.5" y="516" class="meta" text-anchor="middle">читаем всё, отвечаем не сразу — нас мало</text>
+<rect x="16" y="548" width="343" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
+<text x="187.5" y="576" class="body15" text-anchor="middle" style="fill:#f0e7dc">к списку</text>
 </g></g>
 <text x="878" y="988" class="cap">14C · Подтверждение сразу, с номером</text>
-<text x="878" y="1008" class="capm">номер 10 знаков mono 18 на panel-2 (14:26); строка,</text>
-<text x="878" y="1025" class="capm">что ответ по номеру не отдаётся; срок числом не обещан</text>
-<text x="878" y="1042" class="capm">(14:25); заголовок карточки не задан</text>
+<text x="878" y="1008" class="capm">заголовок «Обращение принято» 26/600 с иконкой 48 --muted,</text>
+<text x="878" y="1025" class="capm">как в пустом состоянии 14D; номер — жетон 16 mono на</text>
+<text x="878" y="1042" class="capm">--panel-2 199×44 (14:26), display коду не достаётся;</text>
+<text x="878" y="1059" class="capm">«к списку» 343×44 контуром; срок числом не обещан (14:25)</text>
 <g transform="translate(1293,150)">
 <rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
 <clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
@@ -1290,5 +1295,46 @@
 <rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
 <path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
-<text x="48" y="4676" class="cap">14H · Ответ прочитан</text><text x="48" y="4696" class="capm">точка «Вам ответили» гаснет по answer_seen (chat_RU.md,</text><text x="48" y="4713" class="capm">answer_seen): строка «ответ прочитан · дата» в --muted,</text><text x="48" y="4730" class="capm">текст ответа остаётся; отметка на «Я» тоже гаснет (14:9)</text>
+<g transform="translate(463,3838)">
+<rect x="0" y="0" width="375" height="812" rx="13" fill="#0d0b0a" stroke="#3a2e20" stroke-width="2"/>
+<clipPath id="c4633838"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4633838)">
+<text x="16" y="34" class="h">Я</text>
+<rect x="16" y="106" width="343" height="44" rx="8" fill="none" data-hit="44"/>
+<text x="16" y="130" class="body">Мои уведомления</text>
+<circle cx="164.8" cy="124" r="4" fill="#bd4b2a"/>
+<path d="M350 119 L355 124 L350 129" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="16" y1="148" x2="359" y2="148" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="154" width="343" height="44" rx="8" fill="none" data-hit="44"/>
+<text x="16" y="178" class="body">Поддержка</text>
+<circle cx="110.08" cy="172" r="4" fill="#bd4b2a"/>
+<path d="M350 167 L355 172 L350 177" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="16" y1="196" x2="359" y2="196" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="202" width="343" height="44" rx="8" fill="none" data-hit="44"/>
+<text x="16" y="226" class="body">Что происходило</text>
+<path d="M350 215 L355 220 L350 225" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="16" y1="244" x2="359" y2="244" stroke="#3a2e20" stroke-width="1"/>
+<rect x="16" y="250" width="343" height="44" rx="8" fill="none" data-hit="44"/>
+<text x="16" y="274" class="body">Отойти</text>
+<text x="340" y="274" class="meta" text-anchor="end">20 мин · час · 4 часа</text>
+<path d="M350 263 L355 268 L350 273" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="16" y1="292" x2="359" y2="292" stroke="#3a2e20" stroke-width="1"/>
+<text x="16" y="332" class="meta">точка стоит, пока ответ не прочитан</text>
+<text x="16" y="352" class="meta">инбокс её не показывает: там разговоры соседей</text>
+<rect x="0" y="748" width="375" height="64" rx="0" fill="#0d0b0a"/>
+<line x1="0" y1="748" x2="375" y2="748" stroke="#3a2e20" stroke-width="1"/>
+<rect x="37.875" y="762" width="18" height="2.5" rx="0" fill="#9a8d7c"/>
+<rect x="37.875" y="768" width="18" height="2.5" rx="0" fill="#9a8d7c"/>
+<rect x="37.875" y="774" width="18" height="2.5" rx="0" fill="#9a8d7c"/>
+<text x="46.875" y="798" class="nav" text-anchor="middle">Лента</text>
+<path d="M131.625 762 h18 v12 h-11 l-4 4 v-4 h-3 z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
+<text x="140.625" y="798" class="nav" text-anchor="middle">Беседы</text>
+<path d="M226.375 770 h16 M234.375 762 v16" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round"/>
+<text x="234.375" y="798" class="nav" text-anchor="middle">Сказать</text>
+<circle cx="328.125" cy="766" r="4.5" fill="none" stroke="#f0e7dc" stroke-width="2"/>
+<path d="M320.125 779 a8 8 0 0 1 16 0" fill="none" stroke="#f0e7dc" stroke-width="2"/>
+<circle cx="339.125" cy="761" r="4" fill="#bd4b2a"/>
+<text x="328.125" y="798" class="navb" text-anchor="middle">Я</text>
+</g></g>
+<text x="463" y="4676" class="cap">14I · Вход в поддержку — точка на «Я»</text><text x="463" y="4696" class="capm">ответ ждёт: точка r=4 --accent на пункте «Поддержка»</text><text x="463" y="4713" class="capm">и на «Я» в нижней навигации, не в инбоксе (14:9);</text><text x="463" y="4730" class="capm">геометрия таббара — как на листе screen-06-07-10.svg</text>
+<text x="48" y="4676" class="cap">14H · Ответ прочитан</text><text x="48" y="4696" class="capm">точка «Вам ответили» гаснет по answer_seen</text><text x="48" y="4713" class="capm">(chat_RU.md): строка «ответ прочитан · дата»</text><text x="48" y="4730" class="capm">в --muted, текст ответа остаётся; отметка</text><text x="48" y="4747" class="capm">на «Я» тоже гаснет (14:9)</text>
 </svg>

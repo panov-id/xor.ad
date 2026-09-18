@@ -380,22 +380,22 @@
 <line x1="0" y1="96" x2="330" y2="96" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="112" width="298" height="112" rx="13" fill="#262019"/>
 <text x="30" y="142" class="body">кто на набережную к девяти?</text>
-<rect x="30" y="158" width="84" height="24" rx="8" fill="none"/>
-<text x="72" y="175" class="meta" text-anchor="middle">компания</text>
+<rect x="30" y="158" width="88" height="24" rx="12" fill="#e2a33b" fill-opacity="0.16"/>
+<text x="74" y="175" class="meta" style="fill:#e2a33b;font-weight:600" text-anchor="middle">компания</text>
 <text x="30" y="208" class="mono13">остаток 3 ч 50 мин</text>
 <rect x="256" y="166" width="44" height="44" rx="0" fill="none"/>
 <path d="M270 188 L278 181 L286 188 L286 195 L270 195 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <rect x="16" y="236" width="298" height="112" rx="13" fill="#262019"/>
 <text x="30" y="266" class="body">ищу четвёртого в домино</text>
 <rect x="30" y="282" width="52" height="24" rx="8" fill="none"/>
-<text x="56" y="299" class="meta" text-anchor="middle">один</text>
+<text x="30" y="299" class="meta">один</text>
 <text x="30" y="332" class="mono13">остаток 1 ч 10 мин</text>
 <rect x="256" y="290" width="44" height="44" rx="0" fill="none"/>
 <path d="M270 312 L278 305 L286 312 L286 319 L270 319 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
 <rect x="16" y="360" width="298" height="112" rx="13" fill="#262019"/>
 <text x="30" y="390" class="body">скамейка, термос, без планов</text>
-<rect x="30" y="406" width="52" height="24" rx="8" fill="none"/>
-<text x="56" y="423" class="meta" text-anchor="middle">туса</text>
+<rect x="30" y="406" width="56" height="24" rx="12" fill="#b48cf2" fill-opacity="0.16"/>
+<text x="58" y="423" class="meta" style="fill:#b48cf2;font-weight:600" text-anchor="middle">туса</text>
 <text x="30" y="456" class="mono13">остаток 2 ч 05 мин</text>
 <rect x="256" y="414" width="44" height="44" rx="0" fill="none"/>
 <path d="M270 436 L278 429 L286 436 L286 443 L270 443 Z" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linejoin="round"/>
@@ -536,8 +536,8 @@
 <rect x="24" y="470" width="327" height="128" rx="13" fill="#302720"/>
 <text x="187.5" y="508" class="h" text-anchor="middle">Предложение ушло</text>
 <text x="187.5" y="534" class="meta" text-anchor="middle">Написанное никуда не отправилось.</text>
-<rect x="127.5" y="550" width="120" height="44" rx="13" fill="none" stroke="#80705a" stroke-width="1"/>
-<text x="187.5" y="578" class="body" text-anchor="middle">закрыть</text>
+<rect x="127.5" y="550" width="120" height="44" rx="22" fill="#f0e7dc"/>
+<text x="187.5" y="578" class="body" style="fill:#0d0b0a;font-weight:600" text-anchor="middle">закрыть</text>
 <rect x="16" y="754" width="343" height="44" rx="8" fill="none" stroke="#9a8d7c" stroke-width="1" stroke-dasharray="5 4"/>
 </g></g>
 <g transform="translate(1293,1994)">

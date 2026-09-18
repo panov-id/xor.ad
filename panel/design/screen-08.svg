@@ -638,7 +638,7 @@
 <line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="112" width="174" height="38" rx="13" fill="#262019"/>
 <text x="28" y="138" class="body">домино у меня есть</text>
-<text x="187.5" y="180" class="meta" text-anchor="middle">собеседник изменил возраст: 39</text>
+<text x="187.5" y="180" class="meta" text-anchor="middle">собеседник изменил возраст · 39</text>
 <rect x="215" y="196" width="144" height="38" rx="13" fill="#302720"/>
 <text x="227" y="222" class="body">возьму термос</text>
 <text x="359" y="252" class="mono13" text-anchor="end">✓</text>

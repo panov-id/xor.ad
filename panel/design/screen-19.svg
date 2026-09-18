@@ -150,7 +150,7 @@
 <circle cx="246.3" cy="552" r="1.8" fill="#9a8d7c"/>
 </g>
 <rect x="16" y="680" width="343" height="44" rx="13" fill="#bd4b2a"/>
-<text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#fff6f0">заявка на следующую игру</text>
+<text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#fff6f0">заявка на следующий круг</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="754" width="44" height="44" rx="0" fill="none"/>
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>
@@ -1171,7 +1171,7 @@
 <rect x="179" y="510" width="180" height="56" rx="13" fill="#302720"/>
 <rect x="16" y="574" width="230" height="56" rx="13" fill="#302720"/>
 <rect x="16" y="680" width="343" height="44" rx="13" fill="#302720"/>
-<text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#9a8d7c">заявка на следующую игру</text>
+<text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#9a8d7c">заявка на следующий круг</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="754" width="44" height="44" rx="0" fill="none"/>
 <circle cx="38" cy="776" r="9" fill="none" stroke="#9a8d7c" stroke-width="2"/>
@@ -1673,7 +1673,7 @@
 <text x="187.5" y="436" class="meta" text-anchor="middle">вы за столом с этого момента</text>
 </g>
 <rect x="16" y="680" width="343" height="44" rx="13" fill="#bd4b2a"/>
-<text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#fff6f0">заявка на следующую игру</text>
+<text x="187.5" y="707.0" class="body15" text-anchor="middle" style="fill:#fff6f0">заявка на следующий круг</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1" />
 <rect x="16" y="754" width="44" height="44" rx="0" fill="none"/>
 <circle cx="38" cy="776" r="9" fill="none" stroke="#f0e7dc" stroke-width="2"/>

@@ -217,6 +217,12 @@ emulation. None of this has been run yet: there is no application code.
   (broken by injection in three ways: a token removed, renamed, and drifted).
 - Every screen's mock-up is an SVG at true geometry, with numbered questions at
   the end, agreed there, and only then CSS.
+- `scripts/check-design-sheets.sh` — the sheets against the system, as a ratchet:
+  seven counts (type sizes off the scale, strokes other than 1/2, radii off the
+  scale, colours that are not tokens, placeholders, text in the raw accent,
+  bordered controls under 44) are held in `docs/facts/design-sheets-baseline.tsv`
+  and may not grow; the probe `test_check-design-sheets.sh` turns them red with
+  eight injections (2026-09-18).
 
 ## Component vocabulary
 

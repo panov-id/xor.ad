@@ -42,27 +42,25 @@
 <line x1="28" y1="184" x2="347" y2="184" stroke="#3a2e20" stroke-width="1"/>
 <circle cx="34" cy="204" r="4" fill="#bd4b2a"/>
 <text x="44" y="209" class="meta" style="fill:#f0e7dc">Вам ответили</text>
-<text x="28" y="232" class="body15">[текст не задан: текст ответа команды —</text>
-<text x="28" y="250" class="body15">две-три строки, дата ответа]</text>
+<text x="28" y="232" class="body15">фраза живёт 4:20 и уходит сама —</text><text x="28" y="250" class="body15">это устройство ленты, не сбой</text>
 <rect x="16" y="270" width="343" height="96" rx="13" fill="#262019"/>
 <text x="28" y="294" class="mono13" style="fill:#f0e7dc">Q2P8XA7LM3</text>
 <text x="347" y="294" class="mono13" text-anchor="end">17.09.2026</text>
 <text x="28" y="320" class="body15">почему нельзя лайкнуть, кнопка серая?</text>
 <line x1="28" y1="334" x2="347" y2="334" stroke="#3a2e20" stroke-width="1"/>
-<text x="28" y="356" class="meta">[текст не задан: ответа пока нет]</text>
-<rect x="16" y="378" width="343" height="96" rx="13" fill="#262019" stroke-dasharray="4 3"/>
+<text x="28" y="356" class="meta">ответа пока нет</text>
+<rect x="16" y="378" width="343" height="96" rx="13" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
 <text x="28" y="402" class="mono13" style="fill:#f0e7dc">M4Z1K8T2RQ</text>
 <text x="347" y="402" class="mono13" text-anchor="end">16.09.2026</text>
-<text x="28" y="428" class="meta">[текст не задан: передано как уведомление</text>
-<text x="28" y="448" class="meta">о незаконном — решение в «Мои уведомления»]</text>
+<text x="28" y="428" class="meta">передано как уведомление о незаконном —</text><text x="28" y="448" class="meta">решение в «Я» → «Мои уведомления»</text>
 <line x1="0" y1="700" x2="375" y2="700" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="724" class="meta">ответ придёт сюда, в это приложение</text>
-<text x="16" y="742" class="meta">[текст не задан: ярлык поля]</text>
+<text x="16" y="742" class="meta">что случилось</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
-<text x="291" y="782" class="mono13" text-anchor="end">0/[?]</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="291" y="782" class="mono13" text-anchor="end">0/1000</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="48" y="988" class="cap">14A · Свои обращения с ответами</text>
 <text x="48" y="1008" class="capm">номер (mono) + дата в шапке карточки; ответ под чертой с</text>
@@ -74,7 +72,7 @@
 <path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="52" y="34" class="name">Поддержка</text>
 
-<text x="16" y="84" class="meta">[текст не задан: заголовок частых вопросов]</text>
+
 <rect x="16" y="96" width="343" height="40" rx="8" fill="#262019"/>
 <text x="28" y="121" class="body15">куда делась фраза</text>
 <path d="M339 111 L344 116 L339 121" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -90,15 +88,14 @@
 <rect x="300" y="278" width="2" height="20" rx="0" fill="#bd4b2a"/>
 <text x="347" y="362" class="mono13" text-anchor="end">62/[?]</text>
 <rect x="16" y="384" width="343" height="44" rx="8" fill="#302720" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
-<text x="28" y="412" class="meta">[текст не задан: почта, необязательно]</text>
+<text x="28" y="412" class="meta">почта</text>
 <text x="16" y="452" class="meta">ответ придёт сюда, в это приложение; оставьте</text>
 <text x="16" y="470" class="meta">почту, если можете потерять доступ к личности</text>
 <text x="16" y="496" class="meta">читаем всё, отвечаем не сразу — нас мало</text>
-<text x="16" y="522" class="meta">[текст не задан: жалоба на незаконное идёт</text>
-<text x="16" y="540" class="meta">в реестр уведомлений и получает его сроки]</text>
+<text x="16" y="522" class="meta">жалоба на незаконное уходит в реестр уведомлений</text><text x="16" y="540" class="meta">и получает его сроки; с формы «сообщить» — быстрее</text>
 <rect x="16" y="566" width="343" height="44" rx="13" fill="#bd4b2a"/>
-<text x="187.5" y="594.0" class="body15" text-anchor="middle" style="fill:#fff6f0">[текст не задан: отправить]</text>
-<text x="16" y="640" class="meta">[текст не задан: три обращения в сутки, осталось 2]</text>
+<text x="187.5" y="594.0" class="body15" text-anchor="middle" style="fill:#fff6f0">отправить</text>
+
 </g></g>
 <text x="463" y="988" class="cap">14B · Новое обращение</text>
 <text x="463" y="1008" class="capm">три частых вопроса строками (14:10) над полем; поле</text>
@@ -111,14 +108,14 @@
 <text x="52" y="34" class="name">Поддержка</text>
 
 <rect x="16" y="200" width="343" height="236" rx="13" fill="#262019"/>
-<text x="187.5" y="240" class="h" text-anchor="middle">[текст не задан: обращение принято]</text>
+<text x="187.5" y="240" class="h" text-anchor="middle">Обращение принято</text>
 <rect x="88" y="262" width="199" height="44" rx="8" fill="#302720"/>
 <text x="187.5" y="291" class="mono18" text-anchor="middle">7K3M9Q2XZ4</text>
 <text x="187.5" y="334" class="meta" text-anchor="middle">номер нужен, чтобы сослаться на обращение</text>
 <text x="187.5" y="352" class="meta" text-anchor="middle">в письме, — ответ по нему не показываем</text>
 <text x="187.5" y="380" class="meta" text-anchor="middle">читаем всё, отвечаем не сразу — нас мало</text>
 <rect x="127.5" y="400" width="120" height="36" rx="13" fill="#302720"/>
-<text x="187.5" y="423.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">[к списку]</text>
+<text x="187.5" y="423.0" class="body15" text-anchor="middle" style="fill:#f0e7dc">к списку</text>
 </g></g>
 <text x="878" y="988" class="cap">14C · Подтверждение сразу, с номером</text>
 <text x="878" y="1008" class="capm">номер 10 знаков mono 18 на panel-2 (14:26); строка,</text>
@@ -143,12 +140,12 @@
 <text x="187.5" y="426" class="meta" text-anchor="middle">Здесь будут ваши обращения и ответы на них.</text>
 <line x1="0" y1="700" x2="375" y2="700" stroke="#3a2e20" stroke-width="1"/>
 <text x="16" y="724" class="meta">ответ придёт сюда, в это приложение</text>
-<text x="16" y="742" class="meta">[текст не задан: ярлык поля]</text>
+<text x="16" y="742" class="meta">что случилось</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/>
-<text x="291" y="782" class="mono13" text-anchor="end">0/[?]</text>
-<rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/>
-<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="291" y="782" class="mono13" text-anchor="end">0/1000</text>
+<rect x="315" y="754" width="44" height="44" rx="8" fill="none" stroke="#80705a" stroke-width="1"/>
+<path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g></g>
 <text x="1293" y="988" class="cap">14D · Пусто</text>
 <text x="1293" y="1008" class="capm">11:268 заголовок + строка, без действия; поле ввода</text>
@@ -163,17 +160,15 @@
 <circle cx="18" cy="73.0" r="4" fill="#ef7a6a"/>
 <text x="30" y="78.0" class="meta" style="fill:#f0e7dc">Вход закрыт</text>
 <line x1="0" y1="89" x2="375" y2="89" stroke="#3a2e20" stroke-width="1"/>
-<text x="16" y="118" class="meta">[текст не задан: сессия заморожена — одно</text>
-<text x="16" y="136" class="meta">обращение в сутки; прежние обращения и ответы</text>
-<text x="16" y="154" class="meta">не показываются]</text>
+<text x="16" y="118" class="meta">Пока вход закрыт — одно обращение в сутки.</text><text x="16" y="136" class="meta">Прежние обращения и ответы</text><text x="16" y="154" class="meta">здесь не показываются.</text>
 <rect x="16" y="176" width="343" height="132" rx="8" fill="#302720"/>
-<text x="28" y="202" class="meta">[текст не задан: ярлык поля]</text>
-<text x="347" y="298" class="mono13" text-anchor="end">0/[?]</text>
+<text x="28" y="202" class="meta">что случилось</text>
+<text x="347" y="298" class="mono13" text-anchor="end">0/1000</text>
 <text x="16" y="332" class="meta">ответ придёт сюда, в это приложение; оставьте</text>
 <text x="16" y="350" class="meta">почту, если можете потерять доступ к личности</text>
 <rect x="16" y="376" width="343" height="44" rx="13" fill="#bd4b2a"/>
-<text x="187.5" y="404.0" class="body15" text-anchor="middle" style="fill:#fff6f0">[текст не задан: отправить]</text>
-<text x="16" y="450" class="meta">[текст не задан: одно обращение в сутки]</text>
+<text x="187.5" y="404.0" class="body15" text-anchor="middle" style="fill:#fff6f0">отправить</text>
+
 </g></g>
 <text x="48" y="1910" class="cap">14E · Заморожена пределом ПИНа — одно в сутки</text>
 <text x="48" y="1930" class="capm">14:21: списка, ответов и точки нет; только поле и</text>
@@ -191,24 +186,24 @@
 <text x="347" y="124" class="mono13" text-anchor="end">18.09.2026</text>
 <text x="28" y="150" class="body15">у меня пропала фраза про набережную</text>
 <line x1="28" y1="164" x2="347" y2="164" stroke="#3a2e20" stroke-width="1"/>
-<text x="28" y="186" class="meta">[текст не задан: ответа пока нет]</text>
+<text x="28" y="186" class="meta">ответа пока нет</text>
 <rect x="16" y="208" width="343" height="96" rx="13" fill="#262019"/>
 <text x="28" y="232" class="mono13" style="fill:#f0e7dc">Q2P8XA7LM3</text>
 <text x="347" y="232" class="mono13" text-anchor="end">18.09.2026</text>
 <text x="28" y="258" class="body15">почему нельзя лайкнуть, кнопка серая?</text>
 <line x1="28" y1="272" x2="347" y2="272" stroke="#3a2e20" stroke-width="1"/>
-<text x="28" y="294" class="meta">[текст не задан: ответа пока нет]</text>
+<text x="28" y="294" class="meta">ответа пока нет</text>
 <rect x="16" y="316" width="343" height="96" rx="13" fill="#262019"/>
 <text x="28" y="340" class="mono13" style="fill:#f0e7dc">M4Z1K8T2RQ</text>
 <text x="347" y="340" class="mono13" text-anchor="end">18.09.2026</text>
 <text x="28" y="366" class="body15">и беседа тоже пропала</text>
 <line x1="28" y1="380" x2="347" y2="380" stroke="#3a2e20" stroke-width="1"/>
-<text x="28" y="402" class="meta">[текст не задан: ответа пока нет]</text>
+<text x="28" y="402" class="meta">ответа пока нет</text>
 <rect x="16" y="436" width="343" height="112" rx="13" fill="#262019" stroke="#ef7a6a" stroke-width="1"/>
 <text x="28" y="462" class="body15" style="fill:#ef7a6a">на сегодня обращений достаточно —</text>
 <text x="28" y="482" class="body15" style="fill:#ef7a6a">если срочно, напишите на почту поддержки</text>
 <text x="28" y="512" class="mono13" style="fill:#f0e7dc">support@sosed.place</text>
-<text x="28" y="534" class="meta">[текст не задан: когда можно снова]</text>
+<text x="28" y="534" class="meta">снова можно в 09:15</text>
 <line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/>
 <rect x="16" y="754" width="343" height="44" rx="8" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
 </g></g>
@@ -243,7 +238,7 @@
 <text x="16" y="366" class="body15" style="fill:#f0e7dc">пожаловаться на решение модератора</text>
 <path d="M339 357 L344 362 L339 367" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="16" y1="384" x2="359" y2="384" stroke="#3a2e20" stroke-width="1"/>
-<text x="16" y="414" class="meta">[текст не задан: кто оператор]</text>
+<text x="16" y="414" class="meta">Кто оператор и куда писать</text>
 <text x="16" y="436" class="body15">Evgenii Panov, бренды PSYTICAN &amp; PEJEDED,</text>
 <text x="16" y="456" class="body15">Лимассол, Кипр</text>
 <text x="16" y="480" class="mono13" style="fill:#f0e7dc">support@sosed.place</text>
@@ -268,13 +263,13 @@
 <text x="16" y="228" class="en">and its apps) is operated by Evgenii Panov,</text>
 <text x="16" y="250" class="en">acting as a private individual under the brands</text>
 <text x="16" y="272" class="en">PSYTICAN &amp; PEJEDED, Limassol, Cyprus (“we”).</text>
-<text x="16" y="294" class="en"></text>
+
 <text x="16" y="316" class="en">Contact: support@sosed.place</text>
 <text x="16" y="360" class="h">2. What sosed is</text>
 <text x="16" y="388" class="en">sosed is an ephemeral, local social service: you</text>
 <text x="16" y="410" class="en">post a short message to people near you right</text>
 <text x="16" y="432" class="en">now, and it fades after a while. Key traits:</text>
-<text x="16" y="454" class="en"></text>
+
 <text x="16" y="476" class="en">• Ephemeral. Messages and chats are temporary</text>
 <text x="16" y="498" class="en">  and disappear over time.</text>
 <text x="16" y="520" class="en">• Area-based, not exact tracking. You choose an</text>
@@ -313,13 +308,11 @@
 <text x="28" y="334" class="meta" style="fill:#e0714f">Читать</text>
 <text x="347" y="334" class="meta" text-anchor="end" style="fill:#e0714f">что изменилось</text>
 <rect x="16" y="372" width="24" height="24" rx="6" fill="none" stroke="#f0e7dc" stroke-width="2"/>
-<text x="52" y="390" class="body15">[текст не задан: принимаю новую редакцию</text>
-<text x="52" y="410" class="body15">перечисленных документов]</text>
+<text x="52" y="390" class="body15">принимаю новую редакцию</text><text x="52" y="410" class="body15">перечисленных документов</text>
 <rect x="16" y="434" width="343" height="44" rx="13" fill="#302720"/>
-<text x="187.5" y="462.0" class="body15" text-anchor="middle" style="fill:#9a8d7c">[текст не задан: принять]</text>
-<text x="16" y="500" class="meta">[текст не задан: кнопка недоступна, пока не</text>
-<text x="16" y="518" class="meta">отмечено согласие]</text>
-<text x="16" y="560" class="meta">[текст не задан: потом — вернуться в ленту]</text>
+<text x="187.5" y="462.0" class="body15" text-anchor="middle" style="fill:#9a8d7c">принять</text>
+<text x="16" y="500" class="meta">кнопка станет доступна после галочки</text>
+<text x="16" y="560" class="meta">потом — вернуться в ленту</text>
 </g></g>
 <text x="48" y="2832" class="cap">15C · Документ изменился — одна галочка на всё</text>
 <text x="48" y="2852" class="capm">11:306 заголовок и строка дословно; перечень</text>
@@ -804,8 +797,7 @@
 <rect x="16" y="512" width="343" height="122" rx="13" fill="#262019" stroke="#bd4b2a" stroke-width="1"/>
 <rect x="16" y="524" width="3" height="98" rx="0" fill="#bd4b2a"/>
 <text x="30" y="540" class="h">вернуть как было</text>
-<text x="30" y="562" class="meta">[текст не задан: Аня просит вернуть</text>
-<text x="30" y="580" class="meta">последний ход — доска откатится на шаг]</text>
+<text x="30" y="562" class="meta">Аня просит вернуть последний ход.</text><text x="30" y="580" class="meta">Доска откатится на шаг.</text>
 <rect x="30" y="592" width="150" height="32" rx="13" fill="#bd4b2a" stroke="#80705a" stroke-width="1"/>
 <text x="105.0" y="613.0" class="body15" text-anchor="middle" style="fill:#fff6f0">согласиться</text>
 <rect x="190" y="592" width="155" height="32" rx="13" fill="#302720" stroke="#80705a" stroke-width="1"/>
@@ -1054,8 +1046,7 @@
 <text x="295.0" y="510" class="meta" text-anchor="middle">о</text>
 <rect x="320.5" y="488" width="36" height="34" rx="8" fill="#302720"/>
 <text x="338.5" y="510" class="meta" text-anchor="middle">п</text>
-<text x="16" y="546" class="meta">[текст не задан: буквы недоступны, пока слово</text>
-<text x="16" y="564" class="meta">на проверке]</text>
+<text x="16" y="546" class="meta"
 <line x1="0" y1="596" x2="375" y2="596" stroke="#3a2e20" stroke-width="1"/>
 <text x="187.5" y="620" class="meta" text-anchor="middle">вы загадали слово · проверяется</text>
 <rect x="16" y="636" width="96" height="38" rx="13" fill="#262019"/>

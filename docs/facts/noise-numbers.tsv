@@ -96,3 +96,4 @@ value	unit	kind	why	example
 32	bytes	prose.figure	длина доказательства auth от ПИНа, описание криптографии, не предел (chat §8.2)	xor.ad/docs/chat_EN.md:1210
 4	chars	prose.figure	длина строки сверки переноса: параметр схемы chat §8.2, числом в реестр пределов не выносится (SEC-5, 15.09.2026)	xor.ad/docs/chat_EN.md:1041
 5	km	prose.figure	круг просмотра по умолчанию для приблизительной точки; предел записан в limits.tsv как area.approx.default 5000 метров, покрытие сопоставляет единицу буквально — как у 3 km	sosed.place/docs/00-mechanics_EN.md:430
+4	min	sample.data	пример строки полосы «ваш ход · 4 мин» в тексте кворума стола 18.09.2026; предел хода задаётся table.move.timeout	sosed.place/docs/19-table_EN.md:35

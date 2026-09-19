@@ -45,6 +45,9 @@ tags:
   - name: safety
     description: Blocks, hiding, stepping away (protocol §4.8, §4.9). Proposed 2026-09-16, not built.
     x-description-ru: Блокировки, скрытие, отлучка (протокол §4.8, §4.9). Предложено 16.09.2026, не построено.
+  - name: offers
+    description: Offers — the venue card in the feed, the redirect, complaints, the venue cabinet at /adv (offers/SPEC_EN.md; protocol §4.13). Described 2026-09-19, not built.
+    x-description-ru: Офферы — карточка заведения в ленте, переход, жалобы, кабинет заведения на /adv (offers/SPEC_RU.md; протокол §4.13). Описано 19.09.2026, не построено.
   - name: support
     description: Support requests (protocol §4.10). Proposed 2026-09-16, not built.
     x-description-ru: Обращения в поддержку (протокол §4.10). Предложено 16.09.2026, не построено.
@@ -78,6 +81,12 @@ components:
       name: x-identity-sign
       description: 'Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window.'
       x-description-ru: 'Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут.'
+    advertiserSession:
+      type: apiKey
+      in: cookie
+      name: adv_session
+      description: The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/adv from the same magic link as the panel, role advertiser; every request checks ownership, not only the role.
+      x-description-ru: Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/adv по той же ссылке на почту, что у панели, роль advertiser; каждый запрос проверяет владение, а не только роль.
   schemas:
     Error:
       type: object
@@ -194,7 +203,8 @@ components:
       description: A feed card — a phrase, or a table on the first page only (protocol §4.2; kind added 2026-09-16, DATA-23). A feed item is a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).
       x-description-ru: Карточка ленты — фраза либо стол только на первой странице (протокол §4.2; kind добавлен 16.09.2026, DATA-23). Карточка — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).
       properties:
-        kind: {type: string, enum: [phrase, table]}
+        kind: {type: string, enum: [phrase, table, offer], description: "offer — a venue's offer (2026-09-19, offers/SPEC_EN.md §7); a private author's offer stays a phrase with offer filled.", x-description-ru: "offer — оффер заведения (19.09.2026, offers/SPEC_RU.md §7); оффер частника остаётся фразой с заполненным offer."}
+        offer: {$ref: "#/components/schemas/OfferCard"}
         game: {type: string, description: Table only., x-description-ru: Только у стола.}
         playing: {type: integer, description: Table only., x-description-ru: Только у стола.}
         watching: {type: integer, description: Table only., x-description-ru: Только у стола.}
@@ -373,6 +383,123 @@ components:
         table: {type: string, format: uuid}
         seat: {type: integer}
         nonce: {$ref: "#/components/schemas/Nonce"}
+    PhraseCreate:
+      type: object
+      required: [text, mode, lat, lon, area_radius, nonce]
+      description: What the composer sends (screen 4). A private author's offer is a phrase with discount_value and conditions (chat spec §8.3); a link and a promo code are not fields here at all (offers/SPEC_EN.md §6.1).
+      x-description-ru: Что отправляет форма фразы (экран 4). Оффер частника — фраза с discount_value и conditions (спека чата §8.3); ссылки и промокода здесь нет вовсе (offers/SPEC_RU.md §6.1).
+      properties:
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        text: {type: string, maxLength: 128}
+        mode: {type: string}
+        lat: {type: number}
+        lon: {type: number}
+        area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
+        discount_value: {type: string, maxLength: 32, description: "Private offer only: «−10 %», «1+1».", x-description-ru: "Только у оффера частника: «−10 %», «1+1»."}
+        conditions: {type: string, maxLength: 128, description: "Private offer only; empty means no limits and no refusal (offers/SPEC_EN.md §3.1).", x-description-ru: "Только у оффера частника; пусто — без ограничений и отказать нельзя (offers/SPEC_RU.md §3.1)."}
+        discount_until: {type: string, format: date-time, description: "Private offer only; not further than 90 days.", x-description-ru: "Только у оффера частника; не дальше 90 дней."}
+    OfferCard:
+      type: object
+      description: The commercial part of a feed card (FeedItem.offer). A venue offer carries venue_name, a promo code and a redirect; a private author's offer only discount, conditions and until (offers/SPEC_EN.md §3, §7).
+      x-description-ru: Коммерческая часть карточки ленты (FeedItem.offer). Оффер заведения несёт venue_name, промокод и переход; оффер частника — только скидку, условия и срок (offers/SPEC_RU.md §3, §7).
+      properties:
+        venue_name: {type: string, description: "Venue offers only.", x-description-ru: "Только у заведения."}
+        discount_value: {type: string}
+        conditions: {type: string, maxLength: 128}
+        discount_until: {type: string, format: date-time}
+        promo_code: {type: string, description: "Venue offers only; copied on the device, never counted.", x-description-ru: "Только у заведения; копируется на устройстве, не считается."}
+        redirect: {type: string, description: "Venue offers only: <storefront domain>/o/<code>; the external address is never shown.", x-description-ru: "Только у заведения: <домен витрины>/o/<код>; внешний адрес не показывается."}
+        redirect_disabled: {type: boolean}
+    OfferExit:
+      type: object
+      properties:
+        domain: {type: string, description: "The full domain shown large on the exit screen (offers/SPEC_EN.md §6.3).", x-description-ru: "Полный домен крупно на экране перехода (offers/SPEC_RU.md §6.3)."}
+        disabled: {type: boolean}
+    OfferComplaintCreate:
+      type: object
+      required: [notifier_email, nonce]
+      properties:
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        notifier_email: {type: string, format: email, description: "Required — the only way to answer (offers/SPEC_EN.md §10.2).", x-description-ru: "Обязательно — единственный способ ответить (offers/SPEC_RU.md §10.2)."}
+        text: {type: string, maxLength: 1000}
+    AdvertiserSignup:
+      type: object
+      required: [email, contact]
+      properties:
+        email: {type: string, format: email}
+        contact: {type: string}
+    Venue:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        address: {type: string}
+        verification_status: {type: string, enum: [unverified, verified, suspended]}
+        verified_at: {type: string, format: date-time}
+    VenueCreate:
+      type: object
+      required: [name, address]
+      properties:
+        name: {type: string}
+        address: {type: string}
+    VenueCode:
+      type: object
+      required: [code]
+      properties:
+        code: {type: string, description: "The activation code from the envelope; long, attempts counted, burnt after several wrong ones (offers/SPEC_EN.md §2.1).", x-description-ru: "Код активации из конверта; длинный, попытки считаются, после нескольких неверных гасится (offers/SPEC_RU.md §2.1)."}
+    OfferCreate:
+      type: object
+      required: [venue_id, offer_text, discount_value, discount_until]
+      description: The cabinet form. A published offer is never edited; «show again» sends a new one with repeated_from (offers/SPEC_EN.md §3.1, §8).
+      x-description-ru: Форма кабинета. Опубликованный оффер не редактируется; «Показать снова» — новый оффер с repeated_from (offers/SPEC_RU.md §3.1, §8).
+      properties:
+        venue_id: {type: string, format: uuid}
+        offer_text: {type: string, maxLength: 128}
+        discount_value: {type: string, maxLength: 32}
+        conditions: {type: string, maxLength: 128}
+        promo_code: {type: string}
+        external_url: {type: string, format: uri, description: "Never shown to people; shorteners refused (offers/SPEC_EN.md §6.1–6.2).", x-description-ru: "Людям не показывается; сокращатели отклоняются (offers/SPEC_RU.md §6.1–6.2)."}
+        discount_until: {type: string, format: date-time}
+        repeated_from: {type: string, format: uuid}
+    AdvOffer:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        venue_id: {type: string, format: uuid}
+        offer_text: {type: string}
+        discount_value: {type: string}
+        conditions: {type: string}
+        promo_code: {type: string}
+        redirect: {type: string}
+        redirect_disabled_at: {type: string, format: date-time}
+        redirect_hits: {type: integer, description: "The only reach figure — clicks, without a person (offers/SPEC_EN.md §2.1).", x-description-ru: "Единственная цифра охвата — переходы, без человека (offers/SPEC_RU.md §2.1)."}
+        complaints: {type: integer}
+        status: {type: string, enum: [active, expired, hidden]}
+        discount_until: {type: string, format: date-time}
+        published_at: {type: string, format: date-time}
+        expires_at: {type: string, format: date-time}
+    AdvComplaint:
+      type: object
+      description: Text and date only — no complainant and no time (offers/SPEC_EN.md §10).
+      x-description-ru: Только текст и дата — без заявителя и без времени (offers/SPEC_RU.md §10).
+      properties:
+        id: {type: string, format: uuid}
+        offer_id: {type: string, format: uuid}
+        text: {type: string}
+        date: {type: string, format: date}
+        status: {type: string, enum: [pending, resolved, rejected]}
+        response: {type: string}
+    ComplaintResponse:
+      type: object
+      required: [text]
+      properties:
+        text: {type: string, maxLength: 1000}
+    ComplaintDecision:
+      type: object
+      required: [status, reason]
+      properties:
+        status: {type: string, enum: [resolved, rejected]}
+        reason: {type: string}
     HideTarget:
       type: object
       description: Exactly one of feed or line (chat spec §8.9, hidden_messages). feed comes from the "…" menu; line is the outcome of a complaint without the "illegal" checkbox (screen 19), not a menu item.
@@ -1222,6 +1349,7 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PhraseCreate"}}}}
       description: Answers 202 at once; visible_at stays empty until the queue's verdict.
       x-description-ru: Отвечает 202 сразу; visible_at пуст до вердикта очереди.
       responses:
@@ -1889,7 +2017,7 @@ paths:
       x-summary-ru: "Скрыть фразу или реплику у себя"
       x-status: spec
       security: [{identitySignature: []}]
-      description: "204; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages)."
+      description: "200 with an id for bringing it back; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages)."
       x-description-ru: "200 с id для возврата; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1935,8 +2063,8 @@ paths:
       x-summary-ru: "Отойти"
       x-status: spec
       security: [{identitySignature: []}]
-      description: "span short/hour/long (away.span.*). In one transaction the phrases go with their likes, matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}."
-      x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками, гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}."
+      description: "span short/hour/long (away.span.*). In one transaction the phrases go with their likes and so do the likes you gave (likes, table_likes; 2026-09-18), matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}."
+      x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками и поставленные лайки (likes, table_likes; 18.09.2026), гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Away"}}}}
@@ -2106,3 +2234,221 @@ paths:
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Statement"}}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
+  /o/{code}:
+    get:
+      tags: [offers]
+      summary: "The exit screen of an offer link"
+      x-summary-ru: "Экран перехода по ссылке оффера"
+      x-status: spec
+      security: []
+      description: "Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled; counts nothing."
+      x-description-ru: "Показывается всегда, всем, при каждом переходе (offers/SPEC_RU.md §6.3): полный домен и погашена ли ссылка; ничего не считает."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: Domain and state., x-description-ru: Домен и состояние., content: {application/json: {schema: {$ref: "#/components/schemas/OfferExit"}}}}
+  /o/{code}/go:
+    get:
+      tags: [offers]
+      summary: "Go to the offer link"
+      x-summary-ru: "Перейти по ссылке оффера"
+      x-status: spec
+      security: []
+      description: "302 to external_url and redirect_hits + 1, nothing about the person; a disabled link answers 410 (offers/SPEC_EN.md §6.2)."
+      x-description-ru: "302 на external_url и redirect_hits + 1, ничего о человеке; погашенная ссылка отвечает 410 (offers/SPEC_RU.md §6.2)."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "302": {description: To the venue., x-description-ru: На сайт заведения.}
+        "410": {description: The link is disabled., x-description-ru: Ссылка погашена.}
+  /o/{code}/report:
+    post:
+      tags: [offers]
+      summary: "Report the offer link"
+      x-summary-ru: "Пожаловаться на ссылку оффера"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once (offers/SPEC_EN.md §10.1, table offer_link_reports)."
+      x-description-ru: "Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу (offers/SPEC_RU.md §10.1, таблица offer_link_reports)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /offers/{id}/complaints:
+    post:
+      tags: [offers]
+      summary: "Complain that the discount was not given"
+      x-summary-ru: "Пожаловаться: скидку не дали"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer (offers/SPEC_EN.md §10, §10.2)."
+      x-description-ru: "Приватна; почта обязательна; сверх месячного лимита принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер (offers/SPEC_RU.md §10, §10.2)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferComplaintCreate"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "202": {description: Accepted., x-description-ru: Принята.}
+  /adv/signup:
+    post:
+      tags: [offers]
+      summary: "Register a venue account"
+      x-summary-ru: "Завести учётную запись заведения"
+      x-status: spec
+      security: []
+      description: "Always 204 — says nothing about whether the address is known; the confirming link comes by e-mail (offers/SPEC_EN.md §2.1)."
+      x-description-ru: "Всегда 204 — не говорит, известен ли адрес; подтверждающая ссылка приходит на почту (offers/SPEC_RU.md §2.1)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/AdvertiserSignup"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /adv/venues:
+    get:
+      tags: [offers]
+      summary: "My venues"
+      x-summary-ru: "Мои заведения"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "Only the account own venues with their verification status."
+      x-description-ru: "Только свои заведения со статусом верификации."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Venue"}}}}}
+    post:
+      tags: [offers]
+      summary: "Add a venue"
+      x-summary-ru: "Добавить заведение"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "unverified until the envelope code (offers/SPEC_EN.md §11); needs a confirmed e-mail."
+      x-description-ru: "unverified до кода из конверта (offers/SPEC_RU.md §11); нужна подтверждённая почта."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCreate"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
+  /adv/venues/{id}:
+    patch:
+      tags: [offers]
+      summary: "Change a venue"
+      x-summary-ru: "Изменить заведение"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "A new address sends the venue back to unverified — a new envelope (offers/SPEC_EN.md §11)."
+      x-description-ru: "Новый адрес возвращает заведение в unverified — новый конверт (offers/SPEC_RU.md §11)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCreate"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
+  /adv/venues/{id}/envelope:
+    post:
+      tags: [offers]
+      summary: "Order the envelope"
+      x-summary-ru: "Заказать конверт"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "An activation code posted to the venue address, alive 30 days (ACTIVATION_CODE_TTL)."
+      x-description-ru: "Код активации письмом на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL)."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "202": {description: Ordered., x-description-ru: Заказан.}
+  /adv/venues/{id}/verify:
+    post:
+      tags: [offers]
+      summary: "Enter the envelope code"
+      x-summary-ru: "Ввести код из конверта"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "verified on a right code; attempts counted, the code burnt after several wrong ones (offers/SPEC_EN.md §2.1, §11)."
+      x-description-ru: "verified при верном коде; попытки считаются, после нескольких неверных код гасится (offers/SPEC_RU.md §2.1, §11)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCode"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
+        "409": {description: Wrong or burnt code., x-description-ru: Код неверный или погашен.}
+  /adv/venues/not-us:
+    post:
+      tags: [offers]
+      summary: "It's not us"
+      x-summary-ru: "Это не мы"
+      x-status: spec
+      security: []
+      description: "No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope (owner's decision of 2026-09-19; offers/SPEC_EN.md §11)."
+      x-description-ru: "Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended; снимается только новым конвертом (решение владельца 19.09.2026; offers/SPEC_RU.md §11)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCode"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /adv/offers:
+    get:
+      tags: [offers]
+      summary: "My offers"
+      x-summary-ru: "Мои офферы"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "Live and expired, with redirect_hits and the complaint count — the only figures (offers/SPEC_EN.md §2.1)."
+      x-description-ru: "Живые и истёкшие, с redirect_hits и числом жалоб — других цифр нет (offers/SPEC_RU.md §2.1)."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/AdvOffer"}}}}}
+    post:
+      tags: [offers]
+      summary: "Publish an offer"
+      x-summary-ru: "Опубликовать оффер"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "Only from a verified venue; published at once and whole after the automatic checks, refused with a reason otherwise (offers/SPEC_EN.md §6, §6.1)."
+      x-description-ru: "Только от verified-заведения; публикуется сразу и целиком после автопроверок, иначе отказ с причиной (offers/SPEC_RU.md §6, §6.1)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferCreate"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The offer., x-description-ru: Оффер., content: {application/json: {schema: {$ref: "#/components/schemas/AdvOffer"}}}}
+        "422": {description: Refused by an automatic check; the reason in ApiError.reason., x-description-ru: Отказ автопроверки; причина в ApiError.reason.}
+  /adv/complaints:
+    get:
+      tags: [offers]
+      summary: "Complaints on my offers"
+      x-summary-ru: "Жалобы на мои офферы"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "Text and date, without the complainant and the time (offers/SPEC_EN.md §10)."
+      x-description-ru: "Текст и дата, без заявителя и без времени (offers/SPEC_RU.md §10)."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/AdvComplaint"}}}}}
+  /adv/complaints/{id}/response:
+    post:
+      tags: [offers]
+      summary: "Answer a complaint"
+      x-summary-ru: "Ответить на жалобу"
+      x-status: spec
+      security: [{advertiserSession: []}]
+      description: "Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3)."
+      x-description-ru: "Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ComplaintResponse"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /admin/offer-complaints/{id}/decision:
+    post:
+      tags: [admin]
+      summary: "Decide an offer complaint"
+      x-summary-ru: "Решить жалобу на оффер"
+      x-status: spec
+      security: [{panelSession: []}]
+      description: "resolved or rejected with a reason; the complainant gets it by e-mail; one instance only (offers/SPEC_EN.md §10.2)."
+      x-description-ru: "resolved или rejected с причиной; заявителю письмом; инстанция одна (offers/SPEC_RU.md §10.2)."
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ComplaintDecision"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /admin/venues/{id}/suspend:
+    post:
+      tags: [admin]
+      summary: "Suspend a venue"
+      x-summary-ru: "Приостановить заведение"
+      x-status: spec
+      security: [{panelSession: []}]
+      description: "By hand after SUSPEND_RESOLVED_COUNT resolved complaints on different offers within SUSPEND_WINDOW_DAYS (offers/SPEC_EN.md §10.2)."
+      x-description-ru: "Руками после SUSPEND_RESOLVED_COUNT обоснованных жалоб по разным офферам за SUSPEND_WINDOW_DAYS (offers/SPEC_RU.md §10.2)."
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}

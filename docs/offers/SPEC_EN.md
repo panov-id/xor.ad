@@ -789,6 +789,10 @@ Additionally:
 - **A "this is not us" button** for the venue → immediate `suspended` for that venue; the
   owner's other places keep working. **It is lifted only by re-verification** — a new envelope with a code
   to the venue's address (added 2026-09-14): there is nobody to decide "is it really them" from correspondence, and nothing to decide it by
+  **It is pressed by whoever holds the envelope — without signing in** (owner's decision of 2026-09-19): the real
+  owner of the place got an envelope nobody there ordered and has no account. They enter the code from that envelope
+  on the "this is not us" page (`POST /adv/venues/not-us`); only whoever holds the envelope knows the code, that is,
+  the address itself. Rate-limited like entering the code.
 - A change of address repeats the verification
 - A photo of the sticker is **not** used as proof — an image is generated and proves nothing
 

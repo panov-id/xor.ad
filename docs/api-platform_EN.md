@@ -356,3 +356,10 @@ on top of it. In the other order every one of them gets migrated a second time.
    environment would bring up a second database and split the state silently, so
    the wizard rejects that configuration. The real answer is due when the pool
    actually grows: one database per environment over the network, or managed.
+6. **Where the feed header gets the place name** (2026-09-19). The Spark mock-ups
+   show "Kolonaki · dozens nearby": the density band is already in the contract
+   (`/feed/density`), the place name is not — no operation describes the field.
+   To decide: who gives it — the node from the phrase's area or the client from a
+   geocoder — and how it is truncated: on a 375 px frame the header has 291 px,
+   "Колонаки · рядом мало людей" takes 290.5 (measured in a browser), and the
+   German "Dutzende in der Nähe" no longer fitted and became "Dutzende nebenan".

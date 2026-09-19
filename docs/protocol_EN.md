@@ -281,6 +281,35 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 |---|---|---|
 | `POST /recovery/reissue` | change the code: `{current: {lookup_id}, next: {lookup_id, wrapped_key}, nonce}`; at most `reissue.day` a day per identity — proof of the current code and the derivatives of a new one born on the device; the new one works and the old one dies **in one transaction**; a miss on the current code counts where `POST /recovery/claim` misses count and towards the `recovery.miss.pause`; the shown-and-confirmed step stays on the device, the node knows nothing of it | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2; `recovery.code.length`, `recovery.miss.shared`) |
 
+### 4.13. Offers (`offers/SPEC_EN.md`, screens 3, 17, 23, 25)
+
+Described 2026-09-19 after auditing the screens against the contract (`docs/screens-api-map_EN.md`):
+until then the contract had no offers at all. A venue offer is a feed card of its own, `kind: offer`
+with an `offer` field; a private author's offer is a phrase with `offer` filled (`discount_value`,
+`conditions`, `discount_until`), sent by `POST /feed`. The venue cabinet talks to the same relay by
+the same e-mailed link as the panel, with the `advertiser` role (`offers/SPEC_EN.md` §2.1); the
+session is a cookie on `/adv`, and every request checks ownership.
+
+| Route | What it does | Origin |
+|---|---|---|
+| `GET /o/:code` | the exit screen: the full domain and whether the link is disabled; counts nothing (§6.3) | **spec** |
+| `GET /o/:code/go` | 302 to the venue's site, `redirect_hits + 1` without a person; a disabled one — 410 (§6.2) | **spec** |
+| `POST /o/:code/report` | a link complaint without an e-mail; two counting ones from different people disable the link at once (§10.1) | **spec** |
+| `POST /offers/:id/complaints` | "the discount was not given": the e-mail is required, private; 3 counting ones hide the offer (§10, §10.2) | **spec** |
+| `POST /adv/signup` | open an account: e-mail and contact; always 204, confirmed by a link (§2.1) | **spec** |
+| `GET /adv/venues` | your venues with their verification status | **spec** |
+| `POST /adv/venues` | add a venue: name and address, `unverified` until the code (§11) | **spec** |
+| `PATCH /adv/venues/:id` | change it; a new address is `unverified` again and a new envelope (§11) | **spec** |
+| `POST /adv/venues/:id/envelope` | order the envelope with the code, 30 days (§11) | **spec** |
+| `POST /adv/venues/:id/verify` | enter the code; attempts counted, the code burnt after several wrong ones (§2.1) | **spec** |
+| `POST /adv/venues/not-us` | "it's not us" without a session: the code from an unordered envelope puts `suspended` at once (owner's decision of 2026-09-19) | **spec** |
+| `GET /adv/offers` | my offers: live and expired, `redirect_hits` and the complaint count — no other figures | **spec** |
+| `POST /adv/offers` | publish from a `verified` venue; the automatic checks or 422 with a reason; "show again" is `repeated_from` (§6, §8) | **spec** |
+| `GET /adv/complaints` | complaints on your offers: text and date, without the complainant and the time (§10) | **spec** |
+| `POST /adv/complaints/:id/response` | answer the moderator privately (§10.3) | **spec** |
+| `POST /admin/offer-complaints/:id/decision` | a decision `resolved` \| `rejected` with a reason; to the complainant by e-mail; one instance (§10.2) | **spec** |
+| `POST /admin/venues/:id/suspend` | suspend a venue by hand after 3 resolved complaints within 90 days (§10.2) | **spec** |
+
 ## 5. Limits
 
 | What | Value | Who enforces it |

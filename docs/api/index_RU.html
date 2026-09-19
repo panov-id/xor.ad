@@ -34,8 +34,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>API узла</h1><a href="index_EN.html">English</a></div>
-<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 105 операций, OpenAPI 3.1.0, 2026-09-17.</p>
-<nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
+<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 122 операций, OpenAPI 3.1.0, 2026-09-17.</p>
+<nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (main.ts).</p>
 <section class="op" id="get-health">
@@ -366,6 +366,22 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Решено</td><td></td></tr><tr><td><code>404</code></td><td>нет такого уведомления</td><td></td></tr><tr><td><code>409</code></td><td>уже решено</td><td></td></tr><tr><td><code>422</code></td><td>неверные поля решения</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/dsa.ts</code></p>
 </section>
+<section class="op" id="post-admin-offer-complaints--id--decision">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/offer-complaints/{id}/decision</code><span class="chip s-spec">спека</span></div>
+<p><strong>Решить жалобу на оффер</strong></p>
+<p>resolved или rejected с причиной; заявителю письмом; инстанция одна (offers/SPEC_RU.md §10.2).</p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-complaintdecision"><code>ComplaintDecision</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-admin-venues--id--suspend">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/venues/{id}/suspend</code><span class="chip s-spec">спека</span></div>
+<p><strong>Приостановить заведение</strong></p>
+<p>Руками после SUSPEND_RESOLVED_COUNT обоснованных жалоб по разным офферам за SUSPEND_WINDOW_DAYS (offers/SPEC_RU.md §10.2).</p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+</section>
 <h2 id="tag-identity">identity</h2>
 <p>Личность и сессия, профиль, перевыпуск бумажного кода (протокол §4.1, §4.11, §4.12). Не построено.</p>
 <section class="op" id="post-identities">
@@ -509,6 +525,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Отвечает 202 сразу; visible_at пуст до вердикта очереди.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-phrasecreate"><code>PhraseCreate</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принято в очередь.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code) либо stepped_away (ApiError); различаются по error.code (протокол §6).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="get-likes">
@@ -903,7 +921,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-away">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/away</code><span class="chip s-spec">спека</span></div>
 <p><strong>Отойти</strong></p>
-<p>span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками, гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}.</p>
+<p>span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками и поставленные лайки (likes, table_likes; 18.09.2026), гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
@@ -917,6 +935,131 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+</section>
+<h2 id="tag-offers">offers</h2>
+<p>Офферы — карточка заведения в ленте, переход, жалобы, кабинет заведения на /adv (offers/SPEC_RU.md; протокол §4.13). Описано 19.09.2026, не построено.</p>
+<section class="op" id="get-o--code">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/o/{code}</code><span class="chip s-spec">спека</span></div>
+<p><strong>Экран перехода по ссылке оффера</strong></p>
+<p>Показывается всегда, всем, при каждом переходе (offers/SPEC_RU.md §6.3): полный домен и погашена ли ссылка; ничего не считает.</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Домен и состояние.</td><td><a href="#schema-offerexit"><code>OfferExit</code></a></td></tr></table></div>
+</section>
+<section class="op" id="get-o--code--go">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/o/{code}/go</code><span class="chip s-spec">спека</span></div>
+<p><strong>Перейти по ссылке оффера</strong></p>
+<p>302 на external_url и redirect_hits + 1, ничего о человеке; погашенная ссылка отвечает 410 (offers/SPEC_RU.md §6.2).</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>302</code></td><td>На сайт заведения.</td><td></td></tr><tr><td><code>410</code></td><td>Ссылка погашена.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-o--code--report">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-spec">спека</span></div>
+<p><strong>Пожаловаться на ссылку оффера</strong></p>
+<p>Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу (offers/SPEC_RU.md §10.1, таблица offer_link_reports).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-offers--id--complaints">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/offers/{id}/complaints</code><span class="chip s-spec">спека</span></div>
+<p><strong>Пожаловаться: скидку не дали</strong></p>
+<p>Приватна; почта обязательна; сверх месячного лимита принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер (offers/SPEC_RU.md §10, §10.2).</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-offercomplaintcreate"><code>OfferComplaintCreate</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принята.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-adv-signup">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/signup</code><span class="chip s-spec">спека</span></div>
+<p><strong>Завести учётную запись заведения</strong></p>
+<p>Всегда 204 — не говорит, известен ли адрес; подтверждающая ссылка приходит на почту (offers/SPEC_RU.md §2.1).</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-advertisersignup"><code>AdvertiserSignup</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-adv-venues">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/venues</code><span class="chip s-spec">спека</span></div>
+<p><strong>Мои заведения</strong></p>
+<p>Только свои заведения со статусом верификации.</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-venue"><code>Venue</code></a>&gt;</td></tr></table></div>
+</section>
+<section class="op" id="post-adv-venues">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues</code><span class="chip s-spec">спека</span></div>
+<p><strong>Добавить заведение</strong></p>
+<p>unverified до кода из конверта (offers/SPEC_RU.md §11); нужна подтверждённая почта.</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+</section>
+<section class="op" id="patch-adv-venues--id">
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/adv/venues/{id}</code><span class="chip s-spec">спека</span></div>
+<p><strong>Изменить заведение</strong></p>
+<p>Новый адрес возвращает заведение в unverified — новый конверт (offers/SPEC_RU.md §11).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+</section>
+<section class="op" id="post-adv-venues--id--envelope">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/envelope</code><span class="chip s-spec">спека</span></div>
+<p><strong>Заказать конверт</strong></p>
+<p>Код активации письмом на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Заказан.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-adv-venues--id--verify">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/verify</code><span class="chip s-spec">спека</span></div>
+<p><strong>Ввести код из конверта</strong></p>
+<p>verified при верном коде; попытки считаются, после нескольких неверных код гасится (offers/SPEC_RU.md §2.1, §11).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr><tr><td><code>409</code></td><td>Код неверный или погашен.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-adv-venues-not-us">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/not-us</code><span class="chip s-spec">спека</span></div>
+<p><strong>Это не мы</strong></p>
+<p>Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended; снимается только новым конвертом (решение владельца 19.09.2026; offers/SPEC_RU.md §11).</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-adv-offers">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/offers</code><span class="chip s-spec">спека</span></div>
+<p><strong>Мои офферы</strong></p>
+<p>Живые и истёкшие, с redirect_hits и числом жалоб — других цифр нет (offers/SPEC_RU.md §2.1).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-advoffer"><code>AdvOffer</code></a>&gt;</td></tr></table></div>
+</section>
+<section class="op" id="post-adv-offers">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/offers</code><span class="chip s-spec">спека</span></div>
+<p><strong>Опубликовать оффер</strong></p>
+<p>Только от verified-заведения; публикуется сразу и целиком после автопроверок, иначе отказ с причиной (offers/SPEC_RU.md §6, §6.1).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-offercreate"><code>OfferCreate</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Оффер.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>422</code></td><td>Отказ автопроверки; причина в ApiError.reason.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="get-adv-complaints">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/complaints</code><span class="chip s-spec">спека</span></div>
+<p><strong>Жалобы на мои офферы</strong></p>
+<p>Текст и дата, без заявителя и без времени (offers/SPEC_RU.md §10).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-advcomplaint"><code>AdvComplaint</code></a>&gt;</td></tr></table></div>
+</section>
+<section class="op" id="post-adv-complaints--id--response">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/complaints/{id}/response</code><span class="chip s-spec">спека</span></div>
+<p><strong>Ответить на жалобу</strong></p>
+<p>Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3).</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<p><a href="#schema-complaintresponse"><code>ComplaintResponse</code></a></p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
 <h2 id="tag-support">support</h2>
 <p>Обращения в поддержку (протокол §4.10). Предложено 16.09.2026, не построено.</p>
@@ -975,7 +1118,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
 <p>Карточка ленты — фраза либо стол только на первой странице (протокол §4.2; kind добавлен 16.09.2026, DATA-23). Карточка — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td>Только у стола и только после вердикта очереди (17.09.2026).</td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;]</span></td><td>нет</td><td>Только в GET /likes, у фразы и оффера частника (17.09.2026).</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).</td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;, &quot;offer&quot;]</span></td><td>нет</td><td>offer — оффер заведения (19.09.2026, offers/SPEC_RU.md §7); оффер частника остаётся фразой с заполненным offer.</td></tr><tr><td><code>offer</code></td><td><a href="#schema-offercard"><code>OfferCard</code></a></td><td>нет</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td>Только у стола и только после вердикта очереди (17.09.2026).</td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;]</span></td><td>нет</td><td>Только в GET /likes, у фразы и оффера частника (17.09.2026).</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).</td></tr></table></div></section>
 <section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
@@ -1027,6 +1170,36 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-blocktarget"><div class="op-head"><code class="path">BlockTarget</code></div>
 <p>Ровно одно из feed, chat или table+seat (спека чата §8.9). Ответ 204 в любом случае — не оракул.</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>feed</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>chat</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>table</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-phrasecreate"><div class="op-head"><code class="path">PhraseCreate</code></div>
+<p>Что отправляет форма фразы (экран 4). Оффер частника — фраза с discount_value и conditions (спека чата §8.3); ссылки и промокода здесь нет вовсе (offers/SPEC_RU.md §6.1).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>да</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>да</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>да</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code> <span class="src">maxLength: 32</span></td><td>нет</td><td>Только у оффера частника: «−10 %», «1+1».</td></tr><tr><td><code>conditions</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td>Только у оффера частника; пусто — без ограничений и отказать нельзя (offers/SPEC_RU.md §3.1).</td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td>Только у оффера частника; не дальше 90 дней.</td></tr></table></div></section>
+<section class="op" id="schema-offercard"><div class="op-head"><code class="path">OfferCard</code></div>
+<p>Коммерческая часть карточки ленты (FeedItem.offer). Оффер заведения несёт venue_name, промокод и переход; оффер частника — только скидку, условия и срок (offers/SPEC_RU.md §3, §7).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>venue_name</code></td><td><code>string</code></td><td>нет</td><td>Только у заведения.</td></tr><tr><td><code>discount_value</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>нет</td><td>Только у заведения; копируется на устройстве, не считается.</td></tr><tr><td><code>redirect</code></td><td><code>string</code></td><td>нет</td><td>Только у заведения: &lt;домен витрины&gt;/o/&lt;код&gt;; внешний адрес не показывается.</td></tr><tr><td><code>redirect_disabled</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-offerexit"><div class="op-head"><code class="path">OfferExit</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>domain</code></td><td><code>string</code></td><td>нет</td><td>Полный домен крупно на экране перехода (offers/SPEC_RU.md §6.3).</td></tr><tr><td><code>disabled</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-offercomplaintcreate"><div class="op-head"><code class="path">OfferComplaintCreate</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>да</td><td></td></tr><tr><td><code>notifier_email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>да</td><td>Обязательно — единственный способ ответить (offers/SPEC_RU.md §10.2).</td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 1000</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-advertisersignup"><div class="op-head"><code class="path">AdvertiserSignup</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>да</td><td></td></tr><tr><td><code>contact</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-venue"><div class="op-head"><code class="path">Venue</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>verification_status</code></td><td><code>string</code> <span class="src">enum: [&quot;unverified&quot;, &quot;verified&quot;, &quot;suspended&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>verified_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-venuecreate"><div class="op-head"><code class="path">VenueCreate</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-venuecode"><div class="op-head"><code class="path">VenueCode</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>code</code></td><td><code>string</code></td><td>да</td><td>Код активации из конверта; длинный, попытки считаются, после нескольких неверных гасится (offers/SPEC_RU.md §2.1).</td></tr></table></div></section>
+<section class="op" id="schema-offercreate"><div class="op-head"><code class="path">OfferCreate</code></div>
+<p>Форма кабинета. Опубликованный оффер не редактируется; «Показать снова» — новый оффер с repeated_from (offers/SPEC_RU.md §3.1, §8).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>да</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code> <span class="src">maxLength: 32</span></td><td>да</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>external_url</code></td><td><code>string</code> <span class="src">format: &quot;uri&quot;</span></td><td>нет</td><td>Людям не показывается; сокращатели отклоняются (offers/SPEC_RU.md §6.1–6.2).</td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>да</td><td></td></tr><tr><td><code>repeated_from</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-advoffer"><div class="op-head"><code class="path">AdvOffer</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>redirect</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>redirect_disabled_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>redirect_hits</code></td><td><code>integer</code></td><td>нет</td><td>Единственная цифра охвата — переходы, без человека (offers/SPEC_RU.md §2.1).</td></tr><tr><td><code>complaints</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;active&quot;, &quot;expired&quot;, &quot;hidden&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>published_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-advcomplaint"><div class="op-head"><code class="path">AdvComplaint</code></div>
+<p>Только текст и дата — без заявителя и без времени (offers/SPEC_RU.md §10).</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>offer_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>date</code></td><td><code>string</code> <span class="src">format: &quot;date&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;pending&quot;, &quot;resolved&quot;, &quot;rejected&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>response</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-complaintresponse"><div class="op-head"><code class="path">ComplaintResponse</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 1000</span></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-complaintdecision"><div class="op-head"><code class="path">ComplaintDecision</code></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;resolved&quot;, &quot;rejected&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>reason</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
 <section class="op" id="schema-hidetarget"><div class="op-head"><code class="path">HideTarget</code></div>
 <p>Ровно одно из feed или line (спека чата §8.9, hidden_messages). feed — из меню «…»; line — исход жалобы без галочки «незаконно» (экран 19), не пункт меню.</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>feed</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>line</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>

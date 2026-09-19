@@ -90,8 +90,8 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /identities` | creates an identity: the public half of the key, name, age; the node returns `identity_id`; at most 10 per hour and 30 per day per address (2026-09-15) | **spec** (agreed 2026-09-17) (§8.2) |
-| `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **spec** (agreed 2026-09-17) (§8.2) |
+| `POST /identities` | creates an identity: the public half of the key, name, age, the PIN's `auth_hash` with the node's share and the paper code's `lookup_id` at once (`IdentityCreate`, 2026-09-19); under 13 — `too_young`; the node returns `identity_id`; at most 10 per hour and 30 per day per address (2026-09-15) | **spec** (agreed 2026-09-17) (§8.2) |
+| `POST /vault/share` | exchanges proof of knowing the PIN for the node's share of the vault key; a wrong PIN answers `attempts_left`, the tenth `pin_locked` (2026-09-19); ten wrong attempts lock access until the paper code, the share kept (2026-09-14; "burn the share" [retired]) | **spec** (agreed 2026-09-17) (§8.2) |
 | `POST /sessions/invite` | a transfer code for another device: nine characters, two minutes, one use; **requires a PIN proof** (§8.2, 2026-09-11) | **spec** |
 | `POST /vault/pin` | changing the PIN `{nonce, current_auth, next_auth_hash, next_share}`: the proof of the old PIN is `auth` of §8.2 (the node compares its hash with `vault_shares.auth_hash`), the new hash and the reissued share — **spec** (proposed 2026-09-11, agreed 2026-09-17), body 2026-09-17 (SEC-1 of pass 5), the handle does not exist yet | **spec** (agreed 2026-09-17) (§8.2) |
 | `POST /identities/close` | "start over": closing an identity `{nonce, auth}` — the PIN proof is the same `auth` of §8.2, not the stored hash — **spec** (proposed 2026-09-11, agreed 2026-09-17), body 2026-09-17, the handle does not exist yet | **spec** (agreed 2026-09-17) (§8.2) |
@@ -100,6 +100,9 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 | `POST /recovery/claim` | raising an identity from the paper code | **spec** (agreed 2026-09-17) (§8.2, §13) |
 | `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy — `required` for all three since 2026-09-15 | **spec** (agreed 2026-09-17) (2026-08-29) |
 | `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **spec** (agreed 2026-09-17) (2026-08-29) |
+| `POST /vault/init` | set the first PIN on a new device after a transfer or a recovery: `{auth_hash, share, nonce}`; the old PIN is not needed, but only against a one-time first-PIN grant after an approved transfer or a recovery, otherwise 409 (screen 13; 2026-09-19) | **spec** |
+| `POST /sessions/:lookup_id/approve` | the old device confirms the transfer, "it's me", once the four characters matched; only a session of the identity that issued the invite, once, within its 120 seconds (screen 13; 2026-09-19) | **spec** |
+| `POST /sessions/:lookup_id/reject` | the old device refuses, "doesn't match"; the code dies (screen 13; 2026-09-19) | **spec** |
 
 **Registration is the two steps of screen 2, both mandatory:** who you are — name and age; what
 brings you back — the PIN with the share exchange and the paper code (two requests in the second step).
@@ -134,6 +137,8 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 | `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **spec** (agreed 2026-09-17) (§8.6) |
 | `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8; panel, SEC-8) |
 | `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8) |
+| `POST /matches/:id/decline` | "not now": the match decline is written at once (screens 6, 7; 2026-09-19) | **spec** |
+| `DELETE /matches/:id/decline` | undo the decline — only within the seconds of the undo row (2026-09-19) | **spec** |
 
 ### 4.4. The socket
 
@@ -271,7 +276,8 @@ Turning a request into an Article 16 notice is the client's act: the text is car
 | Route | What it does | Origin |
 |---|---|---|
 | `GET /identities/me` | your own profile: `{name, name_pending, age, filter_age_min, filter_age_max, languages, stepped_away_until, phrases: [{id, expires_at}], table: {id, seat}}` — your own live things with their timers for screens 9 and 10 (CON-17) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 10) |
-| `PATCH /identities/me` | edit `{name, age, filter_age_min, filter_age_max, languages}` — any subset; a name goes to the moderation queue (**202**, the verdict as a `name_verdict` frame), refusal `name_frozen` with a live phrase or an open chat and `paused` during the pause after refusals; age across the 20/21 border only upwards, `age_step_down`; the filter — bounds anything inside the band (by the year, 2026-09-17), not wider than the band — `filter_out_of_band`; up to three languages (`identities.languages`); at most `profile.patch.day` edits a day per identity | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2, §8.3; `name.length`, `filter.age.step`, `filter.age.min_width`) |
+| `PATCH /identities/me` | edit `{name, age, filter_age_min, filter_age_max, languages, filter_modes}` (`filter_modes` — 2026-09-19) — any subset; a name goes to the moderation queue (**202**, the verdict as a `name_verdict` frame), refusal `name_frozen` with a live phrase or an open chat and `paused` during the pause after refusals; age across the 20/21 border only upwards, `age_step_down`; the filter — bounds anything inside the band (by the year, 2026-09-17), not wider than the band — `filter_out_of_band`; up to three languages (`identities.languages`); at most `profile.patch.day` edits a day per identity | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2, §8.3; `name.length`, `filter.age.step`, `filter.age.min_width`) |
+| `GET /identities/appearance` | read the appearance `{theme, contrast, accent}` kept on the node; the device copy draws the first frame (screen 22; 2026-09-19) | **spec** |
 
 Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each face.
 
@@ -288,20 +294,20 @@ until then the contract had no offers at all. A venue offer is a feed card of it
 with an `offer` field; a private author's offer is a phrase with `offer` filled (`discount_value`,
 `conditions`, `discount_until`), sent by `POST /feed`. The venue cabinet talks to the same relay by
 the same e-mailed link as the panel, with the `advertiser` role (`offers/SPEC_EN.md` §2.1); the
-session is a cookie on `/adv`, and every request checks ownership.
+session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-19), and every request checks ownership.
 
 | Route | What it does | Origin |
 |---|---|---|
 | `GET /o/:code` | the exit screen: the full domain and whether the link is disabled; counts nothing (§6.3) | **spec** |
-| `GET /o/:code/go` | 302 to the venue's site, `redirect_hits + 1` without a person; a disabled one — 410 (§6.2) | **spec** |
+| `GET /o/:code/go` | 302 to the venue's site, `redirect_hits + 1` without a person; a disabled one — 410, an unknown code — 404; `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, link previews are not counted (§6.2; panel 2026-09-19) | **spec** |
 | `POST /o/:code/report` | a link complaint without an e-mail; two counting ones from different people disable the link at once (§10.1) | **spec** |
-| `POST /offers/:id/complaints` | "the discount was not given": the e-mail is required, private; 3 counting ones hide the offer (§10, §10.2) | **spec** |
+| `POST /offers/:id/complaints` | "the discount was not given": the e-mail is required, private; 3 counting ones hide the offer; 202 with `{id, counts_towards_autohide}`, no e-mail — 422 (§10, §10.2) | **spec** |
 | `POST /adv/signup` | open an account: e-mail and contact; always 204, confirmed by a link (§2.1) | **spec** |
 | `GET /adv/venues` | your venues with their verification status | **spec** |
-| `POST /adv/venues` | add a venue: name and address, `unverified` until the code (§11) | **spec** |
+| `POST /adv/venues` | add a venue: name and address, `unverified` until the code; 201 with `Location` (§11) | **spec** |
 | `PATCH /adv/venues/:id` | change it; a new address is `unverified` again and a new envelope (§11) | **spec** |
 | `POST /adv/venues/:id/envelope` | order the envelope with the code, 30 days (§11) | **spec** |
-| `POST /adv/venues/:id/verify` | enter the code; attempts counted, the code burnt after several wrong ones (§2.1) | **spec** |
+| `POST /adv/venues/:id/verify` | enter the code; attempts counted, the code burnt after several wrong ones; a wrong one — 422, a burnt one — 409 (§2.1) | **spec** |
 | `POST /adv/venues/not-us` | "it's not us" without a session: the code from an unordered envelope puts `suspended` at once (owner's decision of 2026-09-19) | **spec** |
 | `GET /adv/offers` | my offers: live and expired, `redirect_hits` and the complaint count — no other figures | **spec** |
 | `POST /adv/offers` | publish from a `verified` venue; the automatic checks or 422 with a reason; "show again" is `repeated_from` (§6, §8) | **spec** |

@@ -82,3 +82,15 @@ the appearance choice (22). References are in the agents' reports; the lead has 
 2. Offers: a section of the contract of their own — the largest gap, half of screen 17 and the feed cards.
 3. Schemas where there is only prose: `POST /feed`, `GET /inbox`, `/feed/density`, `POST /identities`, `/legal/*`, `PUT /identities/appearance`.
 4. ~~Take the NOT VERIFIED items through a second pass~~ — done 2026-09-19: all 13 claims held, one refined (the feed filters), one with a caveat (the game state).
+
+## Closed in the contract on the evening of 2026-09-19
+By the 14-point list the owner agreed: the `/inbox` rows — the `InboxItem` schema;
+`/feed/density` — `{band: nobody | few | tens | hundreds}`; the mode filter — `filter_modes` on the
+profile; the quota — `Profile.quota {used, of, next_at}`; declining a match — `POST` and `DELETE
+/matches/{id}/decline`; the conversation span handle — the `ChatSpan` body, the lifetime —
+`InboxItem.chat_expires_at`; creating an identity — `IdentityCreate`, the `too_young` refusal; the
+PIN — `attempts_left` and `pin_locked`; a new device — `POST /vault/init` and a body for
+`/recovery/claim`; the transfer — `POST /sessions/{lookup_id}/approve` and `/reject`; documents — a
+manifest schema and `LegalAccept`; appearance — `Appearance` and `GET /identities/appearance`; the
+table — `TableView.seats` and `Board.over`; support — `SupportRequest.body`, `read_at`, `maxLength`
+1000. The contract has 128 operations (39 built, 89 described), `scripts/check-openapi.sh` is green.

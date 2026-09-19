@@ -82,3 +82,15 @@
 2. Офферы: отдельный раздел контракта — самая большая дыра, половина экрана 17 и карточки в ленте.
 3. Схемы там, где есть только проза: `POST /feed`, `GET /inbox`, `/feed/density`, `POST /identities`, `/legal/*`, `PUT /identities/appearance`.
 4. ~~Пройти пункты НЕ ПРОВЕРЕНО вторым кругом~~ — пройдено 19.09.2026: все 13 заявок подтвердились, одна уточнена (фильтры ленты), одна с оговоркой (состояние партии).
+
+## Закрыто в контракте 19.09.2026 вечером
+По списку из 14 пунктов, согласованному владельцем: строки `/inbox` — схема `InboxItem`;
+`/feed/density` — `{band: nobody | few | tens | hundreds}`; фильтр режима — `filter_modes` в
+профиле; квота — `Profile.quota {used, of, next_at}`; отказ от мэтча — `POST` и `DELETE
+/matches/{id}/decline`; ручка срока беседы — тело `ChatSpan`, срок — `InboxItem.chat_expires_at`;
+создание личности — `IdentityCreate`, отказ `too_young`; ПИН — `attempts_left` и `pin_locked`;
+новое устройство — `POST /vault/init` и тело `/recovery/claim`; перенос — `POST
+/sessions/{lookup_id}/approve` и `/reject`; документы — схема манифеста и `LegalAccept`;
+оформление — `Appearance` и `GET /identities/appearance`; стол — `TableView.seats` и `Board.over`;
+поддержка — `SupportRequest.body`, `read_at`, `maxLength` 1000. Контракт — 128 операций (39
+построено, 89 описано), `scripts/check-openapi.sh` зелёный.

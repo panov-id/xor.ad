@@ -81,23 +81,24 @@ apply to it by default: where a rule is shared, that is said explicitly.
 
 ## 2.1. The advertising cabinet — a folder in the storefront's repository
 
-**The cabinet lives next to the landing page, in its brand's repository, and opens at a path on
-the same domain:**
+**The cabinet lives next to the landing page, in its brand's repository, and opens on its own
+subdomain — the owner's decision of 2026-09-19:**
 
-    sosed.place/adv        code in sosed.place/adv/
-    neighbro.place/adv     code in neighbro.place/adv/
+    adv.sosed.place        code in sosed.place/adv/
+    adv.neighbro.place     code in neighbro.place/adv/
 
-No new repository appears, and no new zone or certificate either — a path on a domain that
-already works. Each storefront's face is its own, the same as its landing page: its own
+No new repository appears; a DNS record and the subdomain's certificate do — that is deployment
+work. [retired] A path `sosed.place/adv` on the same domain used to stand here: the review panel
+of 2026-09-19 showed that a shared origin hands the cabinet to any XSS in the neighbour's
+application — a script on the neighbour's page calls `/adv/…` at its own address and the browser
+attaches the venue's cookie; `HttpOnly` forbids reading it, not using it. Each storefront's face is its own, the same as its landing page: its own
 geometry, its own fonts, its own tone. A Cypriot bakery enters the sosed cabinet and sees
 sosed, not a generic administrative interface.
 
-**A shared domain means shared browser storage, and that is fenced off by a rule.** The cabinet
-and the neighbour's application live on one origin, so technically the cabinet could read the
-neighbour's UID sitting there. Forbidden: the cabinet **neither reads nor writes anything from
-the neighbour's storage**, and keeps its own under its own key prefix. A neighbour's identity
-and an advertiser's account are never linked, in either direction — including when the baker
-and the neighbour are one person on one phone.
+**An origin of its own means browser storage of its own.** The cabinet and the neighbour's
+application live on different origins, so the neighbour's storage is closed to the cabinet by the
+browser itself, not only by a rule; the rule stays: the cabinet **reads and writes nothing from the
+neighbour's storage**.
 
 **The backend is shared.** The cabinet talks to the same relay as everything else and uses the
 same authorisation and the same roles (`relay/node/src/access/roles.ts`). Magic-link sign-in,
@@ -160,10 +161,10 @@ time; hence generous length, counted attempts, and after a few wrong ones the co
 extinguished and a new envelope is needed. Better an honest person writes to us than a stranger
 guesses it.
 
-**The session is a cookie with `HttpOnly`, `Secure`, `SameSite=Lax` and `Path=/adv`.**
-`HttpOnly` because the domain is shared with the neighbour's application: no script on the page
-should be able to read an advertiser's session at all, not even our own. `Path` narrows the
-scope, but relying on it alone is wrong — it limits sending, not access.
+**The session is a cookie `__Host-adv` with `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/` and no
+`Domain`** (2026-09-19). The browser accepts the `__Host-` prefix only with `Secure`, no `Domain`
+and `Path=/` — such a cookie goes neither to the storefront nor to other subdomains. `HttpOnly` so
+that even the cabinet's own script cannot read it.
 
 **Every request checks ownership, not only the role.** The role says "may read offers", but the
 query is always bounded by the account's own profile. Rights without an ownership check hand
@@ -792,7 +793,7 @@ Additionally:
   **It is pressed by whoever holds the envelope — without signing in** (owner's decision of 2026-09-19): the real
   owner of the place got an envelope nobody there ordered and has no account. They enter the code from that envelope
   on the "this is not us" page (`POST /adv/venues/not-us`); only whoever holds the envelope knows the code, that is,
-  the address itself. Rate-limited like entering the code.
+  the address itself. Rate-limited like entering the code, and wrong codes spend the same attempt counter as entering the code in the cabinet: there is no second channel for guessing.
 - A change of address repeats the verification
 - A photo of the sticker is **not** used as proof — an image is generated and proves nothing
 

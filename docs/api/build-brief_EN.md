@@ -1,7 +1,7 @@
 # API build brief — 2026-09-17
 
 What to program, in what order, and what to check against. The contract's canon is `docs/api/openapi.yaml`
-(122 operations: 39 built, 83 from the spec, 0 proposed; `GET /likes` and `POST/DELETE /tables/{id}/like` agreed 2026-09-17; on 2026-09-19 17 offer operations were added — protocol §4.13 — and are not yet placed in this brief's order), the protocol —
+(128 operations: 39 built, 89 from the spec, 0 proposed; `GET /likes` and `POST/DELETE /tables/{id}/like` agreed 2026-09-17; on 2026-09-19 17 offer operations were added — protocol §4.13 — and 6 operations from the screens audit (`docs/screens-api-map_EN.md`); they are placed in the order below — steps 1, 4 and 10), the protocol —
 `protocol_EN.md`, the data — the chat spec `chat_EN.md` and the offers spec, the tests — `test-map_EN.md`. Pair — `build-brief_RU.md`.
 
 ## 1. Before the first line
@@ -39,7 +39,13 @@ the `?after` cursor, the `{items, next}` answer. The socket — frames from the 
 | 8. Notices and games | `chat_games`, `tables`, `table_seats`, `table_lines`, `table_games`, `table_scores`, `support_requests` | `POST /tables`, `GET /tables/{id}`, `POST /tables/{id}/seat`, `DELETE /tables/{id}/seat`, `POST /tables/{id}/ticket`, `POST /tables/{id}/lines`, `POST /tables/{id}/moves`, `POST /tables/{id}/confirm`, `POST /tables/{id}/proposals`, `POST /tables/{id}/proposals/{pid}`, `POST /tables/{id}/resign`, `POST /tables/{id}/congratulate`, `POST /tables/{id}/kick`, `/chats/{id}/game*`, `POST /support`, `GET /support`, `POST /support/{no}/seen`, `GET /statements` | §15, §23 | `table.*`, `sticker.minute`, `support.*`, `chat.messages.minute` |
 | 9. The web face | — | by the same protocol | all | — |
 
-Offers (`advertisers`, `venues`, `offers`, `offer_link_reports`, the offers spec) — after the chat, as a separate run.
+**Added 2026-09-19 by the screens audit and the review panel.** Step 1 gets `POST /vault/init` (only against a first-PIN grant), `POST /sessions/{lookup_id}/approve` and `/reject` (only by the inviting identity, once), `GET /identities/appearance` and new fields: the `IdentityCreate` body, `attempts_left`, `pin_locked`, `filter_modes`, `quota`; step 4 — `POST` and `DELETE /matches/{id}/decline` and a typed `InboxItem`; tests — map §3.7–3.8, §4.11, §9.13.
+
+| Step | Tables | Operations | Tests (map) | Limits |
+|---|---|---|---|---|
+| 10. Offers (after the chat, `offers/SPEC_EN.md`, protocol §4.13) | `advertisers`, `venues`, `offers`, `offer_complaints`, `business_responses`, `offer_link_reports` | `GET /o/{code}`, `GET /o/{code}/go`, `POST /o/{code}/report`, `POST /offers/{id}/complaints`, `POST /adv/signup`, `GET`/`POST /adv/venues`, `PATCH /adv/venues/{id}`, `POST /adv/venues/{id}/envelope`, `POST /adv/venues/{id}/verify`, `POST /adv/venues/not-us`, `GET`/`POST /adv/offers`, `GET /adv/complaints`, `POST /adv/complaints/{id}/response`, `POST /admin/offer-complaints/{id}/decision`, `POST /admin/venues/{id}/suspend` | §24 | `FEED_OFFER_QUOTA`, `AUTOHIDE_COMPLAINTS`, `COMPLAINT_MONTHLY_LIMIT`, `ACTIVATION_CODE_TTL`, `PRIVATE_ACTIVE_OFFERS`, `SUSPEND_RESOLVED_COUNT`, `SUSPEND_WINDOW_DAYS` (SPEC §4) |
+
+The first item of step 10 is not code but deployment: a DNS record and the subdomain certificate of `adv.<storefront>` for `adv.sosed.place` and `adv.neighbro.place` (SPEC §2.1, 2026-09-19).
 
 ## 4. What holds the code
 

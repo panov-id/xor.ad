@@ -46,8 +46,8 @@ tags:
     description: Blocks, hiding, stepping away (protocol §4.8, §4.9). Proposed 2026-09-16, not built.
     x-description-ru: Блокировки, скрытие, отлучка (протокол §4.8, §4.9). Предложено 16.09.2026, не построено.
   - name: offers
-    description: Offers — the venue card in the feed, the redirect, complaints, the venue cabinet at /adv (offers/SPEC_EN.md; protocol §4.13). Described 2026-09-19, not built.
-    x-description-ru: Офферы — карточка заведения в ленте, переход, жалобы, кабинет заведения на /adv (offers/SPEC_RU.md; протокол §4.13). Описано 19.09.2026, не построено.
+    description: Offers — the venue card in the feed, the redirect, complaints, the venue cabinet at adv.<storefront> (offers/SPEC_EN.md; protocol §4.13). Described 2026-09-19, not built.
+    x-description-ru: Офферы — карточка заведения в ленте, переход, жалобы, кабинет заведения на adv.<витрина> (offers/SPEC_RU.md; протокол §4.13). Описано 19.09.2026, не построено.
   - name: support
     description: Support requests (protocol §4.10). Proposed 2026-09-16, not built.
     x-description-ru: Обращения в поддержку (протокол §4.10). Предложено 16.09.2026, не построено.
@@ -84,9 +84,9 @@ components:
     advertiserSession:
       type: apiKey
       in: cookie
-      name: adv_session
-      description: The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/adv from the same magic link as the panel, role advertiser; every request checks ownership, not only the role.
-      x-description-ru: Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/adv по той же ссылке на почту, что у панели, роль advertiser; каждый запрос проверяет владение, а не только роль.
+      name: __Host-adv
+      description: "The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/, no Domain, on its own origin adv.<storefront> (2026-09-19: a shared origin with the app handed the cabinet to any XSS there) from the same magic link as the panel, role advertiser; every request checks ownership, not only the role."
+      x-description-ru: "Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/, без Domain, на своём источнике adv.<витрина> (19.09.2026: общий источник с приложением отдавал кабинет любой XSS в нём) по той же ссылке на почту, что у панели, роль advertiser; каждый запрос проверяет владение, а не только роль."
   schemas:
     Error:
       type: object
@@ -259,9 +259,10 @@ components:
           properties:
             code:
               type: string
-              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, not_found]
+              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, not_found, too_young, pin_locked]
             message: {type: string}
             reason: {type: string}
+            attempts_left: {type: integer, description: "On a wrong PIN: how many are left before the lock (screen 12).", x-description-ru: "При неверном ПИН: сколько осталось до замка (экран 12)."}
     Page:
       type: object
       description: A page of items and the cursor of the next one; an empty next is the end (protocol §6).
@@ -302,6 +303,7 @@ components:
         watching: {type: integer}
         name: {type: string, description: "After the queue's verdict; absent while pending or refused (2026-09-17).", x-description-ru: "После вердикта очереди; пусто, пока ждёт или отклонено (17.09.2026)."}
         like_count: {type: integer, description: Public like count (2026-09-17)., x-description-ru: Публичное число лайков (17.09.2026).}
+        seats: {type: array, description: "Who sits where — the names the screens write («Аня · 3», «ход: Аня»), the role and the size of a hand, never its tiles (chat spec §6.1).", x-description-ru: "Кто где сидит — имена, которые пишут экраны («Аня · 3», «ход: Аня»), роль и размер руки, но не её фишки (спека чата §6.1).", items: {type: object, properties: {seat: {type: integer}, name: {type: string}, role: {type: string, enum: [playing, watching]}, hand_count: {type: integer}}}}
         board: {$ref: "#/components/schemas/Board"}
         lines: {type: array, items: {$ref: "#/components/schemas/TableLine"}}
     Board:
@@ -313,6 +315,7 @@ components:
         state: {type: object}
         turn: {type: integer}
         score: {type: object}
+        over: {type: boolean, description: "The game ended; the score is final (screens 18 D, 19 C).", x-description-ru: "Партия окончена; счёт итоговый (экраны 18 D, 19 C)."}
         expires_at: {type: string, format: date-time}
         pending: {type: object, description: 'The open proposal or the running confirmation: {kind, id, class, set, answers, until}; survives a restart (OPS-12).', x-description-ru: 'Открытое предложение или идущий отсчёт: {kind, id, class, set, answers, until}; переживает перезапуск (OPS-12).'}
     TableLine:
@@ -383,6 +386,63 @@ components:
         table: {type: string, format: uuid}
         seat: {type: integer}
         nonce: {$ref: "#/components/schemas/Nonce"}
+    InboxItem:
+      type: object
+      description: "A row of GET /inbox (screens 6, 7, 8 G, 20). The last line is decrypted on the device and is not here. name and age come in offer_interest as in a match: a like on a private offer makes a match at once (offers/SPEC_EN.md §7; owner's decision of 2026-09-19)."
+      x-description-ru: "Строка GET /inbox (экраны 6, 7, 8 G, 20). Последняя реплика расшифровывается на устройстве и здесь её нет. Имя и возраст в offer_interest отдаются так же, как в мэтче: лайк на оффер частника сразу даёт мэтч (offers/SPEC_RU.md §7; решение владельца 19.09.2026)."
+      properties:
+        kind: {type: string, enum: [match, offer_interest, chat]}
+        id: {type: string, format: uuid}
+        name: {type: string}
+        age: {type: integer}
+        phrase: {type: object, properties: {text: {type: string}, mode: {type: string}}}
+        waiting_for_you: {type: boolean}
+        unread: {type: boolean}
+        chat_expires_at: {type: string, format: date-time}
+        state: {type: string, enum: [pending, open, ended]}
+    IdentityCreate:
+      type: object
+      required: [sign_pub, name, age, auth_hash, share, recovery_lookup_id, nonce]
+      description: "Everything registration sends at once (screen 2): the key, a name and an age, the PIN's auth_hash with the node's share, and the paper code's lookup_id. Under 13 — too_young."
+      x-description-ru: "Всё, что регистрация шлёт разом (экран 2): ключ, имя и возраст, auth_hash ПИН с долей узла и lookup_id бумажного кода. Младше 13 — too_young."
+      properties:
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        sign_pub: {type: string}
+        name: {type: string}
+        age: {type: integer, minimum: 13}
+        auth_hash: {type: string}
+        share: {type: string}
+        recovery_lookup_id: {type: string}
+    VaultInit:
+      type: object
+      required: [auth_hash, share, nonce]
+      properties:
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        auth_hash: {type: string}
+        share: {type: string}
+    RecoveryClaim:
+      type: object
+      required: [lookup_id]
+      properties:
+        lookup_id: {type: string}
+    LegalAccept:
+      type: object
+      required: [document, revision_sha256, nonce]
+      properties:
+        nonce: {$ref: "#/components/schemas/Nonce"}
+        document: {type: string}
+        revision_sha256: {type: string}
+    Appearance:
+      type: object
+      properties:
+        theme: {type: string, enum: [light, dark, system]}
+        contrast: {type: string, enum: [normal, raised, maximum]}
+        accent: {type: string, enum: [terra, amber, turquoise, azure, violet, carmine]}
+    ChatSpan:
+      type: object
+      required: [span]
+      properties:
+        span: {type: integer, enum: [10, 30, 60, 260]}
     PhraseCreate:
       type: object
       required: [text, mode, lat, lon, area_radius, nonce]
@@ -518,16 +578,18 @@ components:
       required: [body, nonce]
       properties:
         nonce: {$ref: "#/components/schemas/Nonce"}
-        body: {type: string}
+        body: {type: string, maxLength: 1000}
         email: {type: string, format: email}
     SupportRequest:
       type: object
       properties:
         public_no: {type: string}
         created_at: {type: string, format: date-time}
+        body: {type: string, description: "What the person wrote — the list shows it (screen 14 A).", x-description-ru: "Что человек написал — список его показывает (экран 14 A)."}
         answer: {type: string}
         answered_at: {type: string, format: date-time}
         answer_seen: {type: boolean}
+        read_at: {type: string, format: date-time, description: "When the answer was read (screen 14 H).", x-description-ru: "Когда ответ прочитан (экран 14 H)."}
     Profile:
       type: object
       properties:
@@ -537,6 +599,8 @@ components:
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
+        filter_modes: {type: array, items: {type: string}, description: "Which modes the feed shows (screen 3 filters); empty is all.", x-description-ru: "Какие режимы показывает лента (фильтры экрана 3); пусто — все."}
+        quota: {type: object, description: "Live phrases against the ceiling and when the next slot frees (screens 4, 9, 10).", x-description-ru: "Живые фразы против потолка и когда освободится следующее место (экраны 4, 9, 10).", properties: {used: {type: integer}, of: {type: integer}, next_at: {type: string, format: date-time}}}
         stepped_away_until: {type: string, format: date-time}
         phrases:
           type: array
@@ -558,6 +622,7 @@ components:
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
+        filter_modes: {type: array, items: {type: string}}
     Nonce:
       type: string
       pattern: '^[A-Za-z0-9_-]{22}$'
@@ -1032,6 +1097,8 @@ paths:
       x-internal: true
       x-source: relay/node/src/routes/admin.ts
       security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Keys without their secrets., x-description-ru: Ключи без секретов.}
     post:
@@ -1203,6 +1270,7 @@ paths:
       x-description-ru: Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано. Не больше 10 в час и 30 в сутки по адресу (15.09.2026).
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/IdentityCreate"}}}}
       responses:
         "200": {description: identity_id, x-description-ru: identity_id}
         "429": {description: Address limit., x-description-ru: Предел адреса.}
@@ -1273,6 +1341,19 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Closed., x-description-ru: Закрыта.}
   /identities/appearance:
+    get:
+      tags: [identity]
+      summary: "Read the appearance"
+      x-summary-ru: "Прочитать оформление"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "The choice kept on the node (screen 22); the device copy draws the first frame."
+      x-description-ru: "Выбор, хранящийся на узле (экран 22); копия на устройстве рисует первый кадр."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "200": {description: The appearance., x-description-ru: Оформление., content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
     put:
       tags: [identity]
       summary: The identity's appearance for this face
@@ -1283,6 +1364,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: One row per face named by the API key — theme, contrast step, an accent from that face's set.
       x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1310,8 +1392,9 @@ paths:
       security: [{publishableKey: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryClaim"}}}}
       responses:
-        "200": {description: Raised., x-description-ru: Поднята.}
+        "200": {description: Raised; the wrapped key comes back., x-description-ru: Поднята; возвращается обёрнутый ключ., content: {application/json: {schema: {type: object, properties: {wrapped_key: {type: string}}}}}}
   /legal/manifest:
     get:
       tags: [identity]
@@ -1324,7 +1407,7 @@ paths:
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
-        "200": {description: The manifest., x-description-ru: Манифест.}
+        "200": {description: The manifest., x-description-ru: Манифест., content: {application/json: {schema: {type: object, properties: {documents: {type: array, items: {type: object, properties: {document: {type: string}, revision_date: {type: string, format: date}, revision_sha256: {type: string}, lang: {type: string}}}}}}}}}
   /legal/accept:
     post:
       tags: [identity]
@@ -1336,6 +1419,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       description: Document, date, hash; one row each.
       x-description-ru: Документ, дата, хэш; по строке на каждое.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/LegalAccept"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1416,7 +1500,7 @@ paths:
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The band., x-description-ru: Ступень.}
+        "200": {description: "The band: few is below the floor of 5 (feed.nearby.floor)", x-description-ru: "Ступень: few — ниже порога 5 (feed.nearby.floor)", content: {application/json: {schema: {type: object, properties: {band: {type: string, enum: [nobody, few, tens, hundreds]}}}}}}
   /feed/{id}/like:
     post:
       tags: [chat]
@@ -1475,7 +1559,7 @@ paths:
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: A page — a count only on offers; next cursor (protocol §6)., x-description-ru: Страница — счётчик только на предложениях; следующий курсор (протокол §6)., content: {application/json: {schema: {$ref: "#/components/schemas/Page"}}}}
+        "200": {description: A page — a count only on offers; next cursor (protocol §6)., x-description-ru: Страница — счётчик только на предложениях; следующий курсор (протокол §6)., content: {application/json: {schema: {type: object, properties: {items: {type: array, items: {$ref: "#/components/schemas/InboxItem"}}, next: {type: string}}}}}}
   /chats/{id}/ticket:
     post:
       tags: [chat]
@@ -1534,6 +1618,7 @@ paths:
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ChatSpan"}}}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2129,7 +2214,7 @@ paths:
       x-description-ru: "answer_seen = true (схема support_requests)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
-        - {name: no, in: path, required: true, schema: {type: string}}
+        - {name: "no", in: path, required: true, schema: {type: string}}
       responses:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2243,8 +2328,11 @@ paths:
       security: []
       description: "Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled; counts nothing."
       x-description-ru: "Показывается всегда, всем, при каждом переходе (offers/SPEC_RU.md §6.3): полный домен и погашена ли ссылка; ничего не считает."
+      parameters:
+        - {name: code, in: path, required: true, schema: {type: string, minLength: 10}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
+        "404": {description: No such code., x-description-ru: Такого кода нет.}
         "200": {description: Domain and state., x-description-ru: Домен и состояние., content: {application/json: {schema: {$ref: "#/components/schemas/OfferExit"}}}}
   /o/{code}/go:
     get:
@@ -2253,11 +2341,14 @@ paths:
       x-summary-ru: "Перейти по ссылке оффера"
       x-status: spec
       security: []
-      description: "302 to external_url and redirect_hits + 1, nothing about the person; a disabled link answers 410 (offers/SPEC_EN.md §6.2)."
-      x-description-ru: "302 на external_url и redirect_hits + 1, ничего о человеке; погашенная ссылка отвечает 410 (offers/SPEC_RU.md §6.2)."
+      description: "302 to external_url and redirect_hits + 1, nothing about the person; a disabled link answers 410, an unknown code 404. The answer carries Cache-Control: no-store, so no cache replays a link after it is disabled, and Referrer-Policy: no-referrer, so the venue never learns the /o/ code; HEAD and known link-preview agents get the 302 without counting (offers/SPEC_EN.md §6.2; review panel 2026-09-19)."
+      x-description-ru: "302 на external_url и redirect_hits + 1, ничего о человеке; погашенная ссылка отвечает 410, неизвестный код — 404. Ответ несёт Cache-Control: no-store, чтобы кэш не отдал ссылку после гашения, и Referrer-Policy: no-referrer, чтобы заведение не узнало код /o/; HEAD и известные роботы-превьюеры получают 302 без счёта (offers/SPEC_RU.md §6.2; панель ревью 19.09.2026)."
+      parameters:
+        - {name: code, in: path, required: true, schema: {type: string, minLength: 10}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
-        "302": {description: To the venue., x-description-ru: На сайт заведения.}
+        "302": {description: To the venue., x-description-ru: На сайт заведения., headers: {Location: {schema: {type: string, format: uri}}, Cache-Control: {schema: {type: string, const: no-store}}, Referrer-Policy: {schema: {type: string, const: no-referrer}}}}
+        "404": {description: No such code., x-description-ru: Такого кода нет.}
         "410": {description: The link is disabled., x-description-ru: Ссылка погашена.}
   /o/{code}/report:
     post:
@@ -2266,9 +2357,10 @@ paths:
       x-summary-ru: "Пожаловаться на ссылку оффера"
       x-status: spec
       security: [{identitySignature: []}]
-      description: "No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once (offers/SPEC_EN.md §10.1, table offer_link_reports)."
-      x-description-ru: "Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу (offers/SPEC_RU.md §10.1, таблица offer_link_reports)."
+      description: "No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once; a report that does not count goes to the moderator with high priority and disables nothing; it never spends COMPLAINT_MONTHLY_LIMIT (offers/SPEC_EN.md §10.1, table offer_link_reports)."
+      x-description-ru: "Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу; незасчитанная идёт модератору с высоким приоритетом и ничего не гасит; COMPLAINT_MONTHLY_LIMIT не расходует (offers/SPEC_RU.md §10.1, таблица offer_link_reports)."
       parameters:
+        - {name: code, in: path, required: true, schema: {type: string, minLength: 10}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2280,14 +2372,16 @@ paths:
       x-summary-ru: "Пожаловаться: скидку не дали"
       x-status: spec
       security: [{identitySignature: []}]
-      description: "Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer (offers/SPEC_EN.md §10, §10.2)."
-      x-description-ru: "Приватна; почта обязательна; сверх месячного лимита принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер (offers/SPEC_RU.md §10, §10.2)."
+      description: "Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer; a report counts only if the complainant's first publication is older than a day and came before the offer's day, frozen at the moment of the report (offers/SPEC_EN.md §3, §10, §10.2)."
+      x-description-ru: "Приватна; почта обязательна; сверх месячного лимита принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер; засчитывается жалоба того, чья первая публикация старше суток и раньше дня выхода оффера, значение замораживается в момент жалобы (offers/SPEC_RU.md §3, §10, §10.2)."
       parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferComplaintCreate"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
-        "202": {description: Accepted., x-description-ru: Принята.}
+        "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
+        "422": {description: "No e-mail: the only way to answer — the form names this reason", x-description-ru: "Нет почты: единственного способа ответить — форма называет эту причину"}
   /adv/signup:
     post:
       tags: [offers]
@@ -2324,7 +2418,7 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCreate"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
+        "201": {description: Created; Location names the venue., x-description-ru: Создано; Location называет заведение., headers: {Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
   /adv/venues/{id}:
     patch:
       tags: [offers]
@@ -2334,6 +2428,8 @@ paths:
       security: [{advertiserSession: []}]
       description: "A new address sends the venue back to unverified — a new envelope (offers/SPEC_EN.md §11)."
       x-description-ru: "Новый адрес возвращает заведение в unverified — новый конверт (offers/SPEC_RU.md §11)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCreate"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2347,6 +2443,8 @@ paths:
       security: [{advertiserSession: []}]
       description: "An activation code posted to the venue address, alive 30 days (ACTIVATION_CODE_TTL)."
       x-description-ru: "Код активации письмом на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Ordered., x-description-ru: Заказан.}
@@ -2359,11 +2457,14 @@ paths:
       security: [{advertiserSession: []}]
       description: "verified on a right code; attempts counted, the code burnt after several wrong ones (offers/SPEC_EN.md §2.1, §11)."
       x-description-ru: "verified при верном коде; попытки считаются, после нескольких неверных код гасится (offers/SPEC_RU.md §2.1, §11)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCode"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
-        "409": {description: Wrong or burnt code., x-description-ru: Код неверный или погашен.}
+        "422": {description: Wrong code; the attempt is counted., x-description-ru: Код неверный; попытка засчитана.}
+        "409": {description: The code is burnt — a new envelope is needed., x-description-ru: Код погашен — нужен новый конверт.}
   /adv/venues/not-us:
     post:
       tags: [offers]
@@ -2371,12 +2472,12 @@ paths:
       x-summary-ru: "Это не мы"
       x-status: spec
       security: []
-      description: "No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope (owner's decision of 2026-09-19; offers/SPEC_EN.md §11)."
-      x-description-ru: "Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended; снимается только новым конвертом (решение владельца 19.09.2026; offers/SPEC_RU.md §11)."
+      description: "No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope; wrong codes spend the same attempt counter as /verify (owner's decision of 2026-09-19; offers/SPEC_EN.md §11)."
+      x-description-ru: "Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended; снимается только новым конвертом; неверные коды расходуют тот же счётчик попыток, что /verify (решение владельца 19.09.2026; offers/SPEC_RU.md §11)."
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCode"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "204": {description: "Always 204, for a right and a wrong code alike: the answer does not tell whether a code exists; a right one suspends the venue (review panel 2026-09-19)", x-description-ru: "Всегда 204, на верный и неверный код одинаково: ответ не выдаёт, существует ли код; верный приостанавливает заведение (панель ревью 19.09.2026)"}
   /adv/offers:
     get:
       tags: [offers]
@@ -2400,7 +2501,7 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferCreate"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The offer., x-description-ru: Оффер., content: {application/json: {schema: {$ref: "#/components/schemas/AdvOffer"}}}}
+        "201": {description: Published; Location names the offer., x-description-ru: Опубликован; Location называет оффер., headers: {Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/AdvOffer"}}}}
         "422": {description: Refused by an automatic check; the reason in ApiError.reason., x-description-ru: Отказ автопроверки; причина в ApiError.reason.}
   /adv/complaints:
     get:
@@ -2423,6 +2524,8 @@ paths:
       security: [{advertiserSession: []}]
       description: "Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3)."
       x-description-ru: "Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ComplaintResponse"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2436,6 +2539,8 @@ paths:
       security: [{panelSession: []}]
       description: "resolved or rejected with a reason; the complainant gets it by e-mail; one instance only (offers/SPEC_EN.md §10.2)."
       x-description-ru: "resolved или rejected с причиной; заявителю письмом; инстанция одна (offers/SPEC_RU.md §10.2)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ComplaintDecision"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2449,6 +2554,82 @@ paths:
       security: [{panelSession: []}]
       description: "By hand after SUSPEND_RESOLVED_COUNT resolved complaints on different offers within SUSPEND_WINDOW_DAYS (offers/SPEC_EN.md §10.2)."
       x-description-ru: "Руками после SUSPEND_RESOLVED_COUNT обоснованных жалоб по разным офферам за SUSPEND_WINDOW_DAYS (offers/SPEC_RU.md §10.2)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /matches/{id}/decline:
+    post:
+      tags: [chat]
+      summary: "Not now"
+      x-summary-ru: "Не сейчас"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "Decline a match; written at once, can be undone while the undo row lives (screens 6, 7)."
+      x-description-ru: "Отказаться от мэтча; записывается сразу, вернуть можно, пока живёт строка с отменой (экраны 6, 7)."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+    delete:
+      tags: [chat]
+      summary: "Undo the decline"
+      x-summary-ru: "Вернуть отказ"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "Within the seconds of the undo row only."
+      x-description-ru: "Только в секунды строки с отменой."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /vault/init:
+    post:
+      tags: [identity]
+      summary: "Set the first PIN on this device"
+      x-summary-ru: "Завести первый ПИН на этом устройстве"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "After a transfer or a recovery: the new device registers its auth_hash and share; the old PIN is not needed (screen 13). Only against a one-time first-PIN grant that an approved transfer or a recovery claim leaves on this identity; the call consumes it; without one — 409 unauthorized, so a signing key alone never replaces the PIN (chat canon: a PIN change needs the old PIN)."
+      x-description-ru: "После переноса или восстановления: новое устройство регистрирует свой auth_hash и долю; прежний ПИН не нужен (экран 13). Только по одноразовому праву «первый ПИН», которое оставляет на личности одобренный перенос или восстановление; вызов его расходует; без права — 409 unauthorized, так что один ключ подписи ПИН не подменяет (канон чата: смена ПИН требует прежний)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultInit"}}}}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /sessions/{lookup_id}/approve:
+    post:
+      tags: [identity]
+      summary: "It's me"
+      x-summary-ru: "Это я"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "The old device confirms the transfer after the four characters matched (screen 13). Only a session of the identity that issued the invite, once, within the invite's 120 seconds; otherwise not_found."
+      x-description-ru: "Старое устройство подтверждает перенос, когда четыре знака совпали (экран 13). Только сессией той личности, что выдала приглашение, один раз, в пределах его 120 секунд; иначе not_found."
+      parameters:
+        - {name: lookup_id, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /sessions/{lookup_id}/reject:
+    post:
+      tags: [identity]
+      summary: "Doesn't match"
+      x-summary-ru: "Не совпадает"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "The old device refuses; the code dies (screen 13). Only a session of the identity that issued the invite, once; otherwise not_found."
+      x-description-ru: "Старое устройство отказывает; код гаснет (экран 13). Только сессией той личности, что выдала приглашение, один раз; иначе not_found."
+      parameters:
+        - {name: lookup_id, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}

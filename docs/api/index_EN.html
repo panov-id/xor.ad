@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>Node API</h1><a href="index_RU.html">Русский</a></div>
-<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 122 operations, OpenAPI 3.1.0, 2026-09-17.</p>
+<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 128 operations, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Schemas</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).</p>
@@ -278,6 +278,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/admin/secret-keys</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
 <p><strong>Secret keys</strong></p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Keys without their secrets.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
 </section>
@@ -371,6 +372,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Decide an offer complaint</strong></p>
 <p>resolved or rejected with a reason; the complainant gets it by e-mail; one instance only (offers/SPEC_EN.md §10.2).</p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-complaintdecision"><code>ComplaintDecision</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
@@ -380,6 +382,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Suspend a venue</strong></p>
 <p>By hand after SUSPEND_RESOLVED_COUNT resolved complaints on different offers within SUSPEND_WINDOW_DAYS (offers/SPEC_EN.md §10.2).</p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <h2 id="tag-identity">identity</h2>
@@ -390,6 +393,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-identitycreate"><code>IdentityCreate</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-share">
@@ -432,12 +437,22 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><a href="#schema-identityclose"><code>IdentityClose</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
 </section>
+<section class="op" id="get-identities-appearance">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
+<p><strong>Read the appearance</strong></p>
+<p>The choice kept on the node (screen 22); the device copy draws the first frame.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The appearance.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+</section>
 <section class="op" id="put-identities-appearance">
 <div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
 <p><strong>The identity&#x27;s appearance for this face</strong></p>
 <p>One row per face named by the API key — theme, contrast step, an accent from that face&#x27;s set.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-appearance"><code>Appearance</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-sessions-claim">
@@ -455,7 +470,9 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Raise an identity with the paper code</strong></p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised.</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-recoveryclaim"><code>RecoveryClaim</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised; the wrapped key comes back.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="get-legal-manifest">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-spec">spec</span></div>
@@ -463,7 +480,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The manifest.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The manifest.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-legal-accept">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-spec">spec</span></div>
@@ -471,6 +488,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Document, date, hash; one row each.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-legalaccept"><code>LegalAccept</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Recorded.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-me">
@@ -508,6 +527,32 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-vault-init">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-spec">spec</span></div>
+<p><strong>Set the first PIN on this device</strong></p>
+<p>After a transfer or a recovery: the new device registers its auth_hash and share; the old PIN is not needed (screen 13). Only against a one-time first-PIN grant that an approved transfer or a recovery claim leaves on this identity; the call consumes it; without one — 409 unauthorized, so a signing key alone never replaces the PIN (chat canon: a PIN change needs the old PIN).</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-sessions--lookup-id--approve">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/approve</code><span class="chip s-spec">spec</span></div>
+<p><strong>It&#x27;s me</strong></p>
+<p>The old device confirms the transfer after the four characters matched (screen 13). Only a session of the identity that issued the invite, once, within the invite&#x27;s 120 seconds; otherwise not_found.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-sessions--lookup-id--reject">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/reject</code><span class="chip s-spec">spec</span></div>
+<p><strong>Doesn&#x27;t match</strong></p>
+<p>The old device refuses; the code dies (screen 13). Only a session of the identity that issued the invite, once; otherwise not_found.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <h2 id="tag-feed">feed</h2>
 <p>The feed (protocol §4.2). Not built.</p>
@@ -550,7 +595,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>A band from &quot;nobody here yet&quot; to &quot;hundreds&quot;, asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The band.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The band: few is below the floor of 5 (feed.nearby.floor)</td><td><code>object</code></td></tr></table></div>
 </section>
 <h2 id="tag-chat">chat</h2>
 <p>Like, match, chat, games in a chat (protocol §4.3, §4.7). Not built.</p>
@@ -581,7 +626,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Offers and conversations in one answer</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>A page — a count only on offers; next cursor (protocol §6).</td><td><a href="#schema-page"><code>Page</code></a></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>A page — a count only on offers; next cursor (protocol §6).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--ticket">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/ticket</code><span class="chip s-spec">spec</span></div>
@@ -607,6 +652,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>10, 30 or 60 minutes, or while we talk (260 minutes).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Request body · <code>application/json</code></h3>
+<p><a href="#schema-chatspan"><code>ChatSpan</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-chats--id">
@@ -727,6 +774,22 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-received"><code>Received</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-matches--id--decline">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/decline</code><span class="chip s-spec">spec</span></div>
+<p><strong>Not now</strong></p>
+<p>Decline a match; written at once, can be undone while the undo row lives (screens 6, 7).</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+</section>
+<section class="op" id="delete-matches--id--decline">
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/matches/{id}/decline</code><span class="chip s-spec">spec</span></div>
+<p><strong>Undo the decline</strong></p>
+<p>Within the seconds of the undo row only.</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <h2 id="tag-tables">tables</h2>
 <p>Tables — a game for a company (protocol §4.6). Proposed 2026-09-16, not built.</p>
@@ -937,38 +1000,40 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <h2 id="tag-offers">offers</h2>
-<p>Offers — the venue card in the feed, the redirect, complaints, the venue cabinet at /adv (offers/SPEC_EN.md; protocol §4.13). Described 2026-09-19, not built.</p>
+<p>Offers — the venue card in the feed, the redirect, complaints, the venue cabinet at adv.&lt;storefront&gt; (offers/SPEC_EN.md; protocol §4.13). Described 2026-09-19, not built.</p>
 <section class="op" id="get-o--code">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/o/{code}</code><span class="chip s-spec">spec</span></div>
 <p><strong>The exit screen of an offer link</strong></p>
 <p>Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled; counts nothing.</p>
 <h3>Access</h3><p>no access control</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Domain and state.</td><td><a href="#schema-offerexit"><code>OfferExit</code></a></td></tr></table></div>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>No such code.</td><td></td></tr><tr><td><code>200</code></td><td>Domain and state.</td><td><a href="#schema-offerexit"><code>OfferExit</code></a></td></tr></table></div>
 </section>
 <section class="op" id="get-o--code--go">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/o/{code}/go</code><span class="chip s-spec">spec</span></div>
 <p><strong>Go to the offer link</strong></p>
-<p>302 to external_url and redirect_hits + 1, nothing about the person; a disabled link answers 410 (offers/SPEC_EN.md §6.2).</p>
+<p>302 to external_url and redirect_hits + 1, nothing about the person; a disabled link answers 410, an unknown code 404. The answer carries Cache-Control: no-store, so no cache replays a link after it is disabled, and Referrer-Policy: no-referrer, so the venue never learns the /o/ code; HEAD and known link-preview agents get the 302 without counting (offers/SPEC_EN.md §6.2; review panel 2026-09-19).</p>
 <h3>Access</h3><p>no access control</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>302</code></td><td>To the venue.</td><td></td></tr><tr><td><code>410</code></td><td>The link is disabled.</td><td></td></tr></table></div>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>302</code></td><td>To the venue.</td><td></td></tr><tr><td><code>404</code></td><td>No such code.</td><td></td></tr><tr><td><code>410</code></td><td>The link is disabled.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-o--code--report">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-spec">spec</span></div>
 <p><strong>Report the offer link</strong></p>
-<p>No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once (offers/SPEC_EN.md §10.1, table offer_link_reports).</p>
+<p>No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once; a report that does not count goes to the moderator with high priority and disables nothing; it never spends COMPLAINT_MONTHLY_LIMIT (offers/SPEC_EN.md §10.1, table offer_link_reports).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
-<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-offers--id--complaints">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/offers/{id}/complaints</code><span class="chip s-spec">spec</span></div>
 <p><strong>Complain that the discount was not given</strong></p>
-<p>Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer (offers/SPEC_EN.md §10, §10.2).</p>
+<p>Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer; a report counts only if the complainant&#x27;s first publication is older than a day and came before the offer&#x27;s day, frozen at the moment of the report (offers/SPEC_EN.md §3, §10, §10.2).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
-<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-offercomplaintcreate"><code>OfferComplaintCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Accepted.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Accepted; whether it counts is frozen now.</td><td><code>object</code></td></tr><tr><td><code>422</code></td><td>No e-mail: the only way to answer — the form names this reason</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-adv-signup">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/adv/signup</code><span class="chip s-spec">spec</span></div>
@@ -993,13 +1058,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Created; Location names the venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
 </section>
 <section class="op" id="patch-adv-venues--id">
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/adv/venues/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Change a venue</strong></p>
 <p>A new address sends the venue back to unverified — a new envelope (offers/SPEC_EN.md §11).</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
@@ -1009,6 +1075,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Order the envelope</strong></p>
 <p>An activation code posted to the venue address, alive 30 days (ACTIVATION_CODE_TTL).</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Ordered.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-adv-venues--id--verify">
@@ -1016,18 +1083,19 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Enter the envelope code</strong></p>
 <p>verified on a right code; attempts counted, the code burnt after several wrong ones (offers/SPEC_EN.md §2.1, §11).</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr><tr><td><code>409</code></td><td>Wrong or burnt code.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr><tr><td><code>422</code></td><td>Wrong code; the attempt is counted.</td><td></td></tr><tr><td><code>409</code></td><td>The code is burnt — a new envelope is needed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-adv-venues-not-us">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/not-us</code><span class="chip s-spec">spec</span></div>
 <p><strong>It&#x27;s not us</strong></p>
-<p>No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope (owner&#x27;s decision of 2026-09-19; offers/SPEC_EN.md §11).</p>
+<p>No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope; wrong codes spend the same attempt counter as /verify (owner&#x27;s decision of 2026-09-19; offers/SPEC_EN.md §11).</p>
 <h3>Access</h3><p>no access control</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Always 204, for a right and a wrong code alike: the answer does not tell whether a code exists; a right one suspends the venue (review panel 2026-09-19)</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-adv-offers">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/adv/offers</code><span class="chip s-spec">spec</span></div>
@@ -1043,7 +1111,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-offercreate"><code>OfferCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The offer.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>422</code></td><td>Refused by an automatic check; the reason in ApiError.reason.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Published; Location names the offer.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>422</code></td><td>Refused by an automatic check; the reason in ApiError.reason.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-adv-complaints">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/adv/complaints</code><span class="chip s-spec">spec</span></div>
@@ -1057,6 +1125,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Answer a complaint</strong></p>
 <p>Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3).</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-complaintresponse"><code>ComplaintResponse</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
@@ -1086,7 +1155,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Clear the answer-waiting dot</strong></p>
 <p>answer_seen = true (schema support_requests).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
-<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>False</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>no</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <h2 id="schemas">Schemas</h2>
@@ -1145,10 +1214,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code> <span class="src">enum: [&quot;grid&quot;, &quot;free&quot;, &quot;dots&quot;, &quot;deck&quot;, &quot;dice&quot;, &quot;physics&quot;, &quot;word&quot;]</span></td><td>yes</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>yes</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>yes</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>yes</td><td></td></tr><tr><td><code>seats</code></td><td><code>integer</code> <span class="src">minimum: 2, maximum: 6</span></td><td>yes</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td>Optional, up to 24 graphemes counted by the node; goes through the moderation queue, the verdict as a name_verdict frame with table (2026-09-17).</td></tr></table></div></section>
 <section class="op" id="schema-tableview"><div class="op-head"><code class="path">TableView</code></div>
 <p>The table minus what is hidden — your own hand, the backs of others&#x27; (chat spec §6.1).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>no</td><td>Your own seat number; a spectator sits too (seat_no).</td></tr><tr><td><code>is_playing</code></td><td><code>boolean</code></td><td>no</td><td>false for a spectator (playing_from is empty).</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td>After the queue&#x27;s verdict; absent while pending or refused (2026-09-17).</td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td>Public like count (2026-09-17).</td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>no</td><td></td></tr><tr><td><code>lines</code></td><td>array&lt;<a href="#schema-tableline"><code>TableLine</code></a>&gt;</td><td>no</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>no</td><td>Your own seat number; a spectator sits too (seat_no).</td></tr><tr><td><code>is_playing</code></td><td><code>boolean</code></td><td>no</td><td>false for a spectator (playing_from is empty).</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td>After the queue&#x27;s verdict; absent while pending or refused (2026-09-17).</td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td>Public like count (2026-09-17).</td></tr><tr><td><code>seats</code></td><td>array&lt;<code>object</code>&gt;</td><td>no</td><td>Who sits where — the names the screens write («Аня · 3», «ход: Аня»), the role and the size of a hand, never its tiles (chat spec §6.1).</td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>no</td><td></td></tr><tr><td><code>lines</code></td><td>array&lt;<a href="#schema-tableline"><code>TableLine</code></a>&gt;</td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-board"><div class="op-head"><code class="path">Board</code></div>
 <p>Board state — seq, state by class (jsonb), whose turn, score by seat, expires_at (chat spec §6, table_games / chat_games).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>state</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>turn</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>score</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>no</td><td>The open proposal or the running confirmation: {kind, id, class, set, answers, until}; survives a restart (OPS-12).</td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>state</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>turn</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>score</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>over</code></td><td><code>boolean</code></td><td>no</td><td>The game ended; the score is final (screens 18 D, 19 C).</td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>no</td><td>The open proposal or the running confirmation: {kind, id, class, set, answers, until}; survives a restart (OPS-12).</td></tr></table></div></section>
 <section class="op" id="schema-tableline"><div class="op-head"><code class="path">TableLine</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;line&quot;, &quot;application&quot;, &quot;refusal&quot;, &quot;sticker&quot;, &quot;move&quot;, &quot;congratulation&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>sticker</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-tablelinecreate"><div class="op-head"><code class="path">TableLineCreate</code></div>
@@ -1170,6 +1239,22 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-blocktarget"><div class="op-head"><code class="path">BlockTarget</code></div>
 <p>Exactly one of feed, chat, or table+seat (chat spec §8.9). The answer is 204 whatever happens — not an oracle.</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>feed</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>chat</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>table</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-inboxitem"><div class="op-head"><code class="path">InboxItem</code></div>
+<p>A row of GET /inbox (screens 6, 7, 8 G, 20). The last line is decrypted on the device and is not here. name and age come in offer_interest as in a match: a like on a private offer makes a match at once (offers/SPEC_EN.md §7; owner&#x27;s decision of 2026-09-19).</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;match&quot;, &quot;offer_interest&quot;, &quot;chat&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>age</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>phrase</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>waiting_for_you</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>unread</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>chat_expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;pending&quot;, &quot;open&quot;, &quot;ended&quot;]</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-identitycreate"><div class="op-head"><code class="path">IdentityCreate</code></div>
+<p>Everything registration sends at once (screen 2): the key, a name and an age, the PIN&#x27;s auth_hash with the node&#x27;s share, and the paper code&#x27;s lookup_id. Under 13 — too_young.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>sign_pub</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>age</code></td><td><code>integer</code> <span class="src">minimum: 13</span></td><td>yes</td><td></td></tr><tr><td><code>auth_hash</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>share</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>recovery_lookup_id</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-vaultinit"><div class="op-head"><code class="path">VaultInit</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>auth_hash</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>share</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-recoveryclaim"><div class="op-head"><code class="path">RecoveryClaim</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-legalaccept"><div class="op-head"><code class="path">LegalAccept</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>document</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>revision_sha256</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<section class="op" id="schema-appearance"><div class="op-head"><code class="path">Appearance</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>theme</code></td><td><code>string</code> <span class="src">enum: [&quot;light&quot;, &quot;dark&quot;, &quot;system&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>contrast</code></td><td><code>string</code> <span class="src">enum: [&quot;normal&quot;, &quot;raised&quot;, &quot;maximum&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>accent</code></td><td><code>string</code> <span class="src">enum: [&quot;terra&quot;, &quot;amber&quot;, &quot;turquoise&quot;, &quot;azure&quot;, &quot;violet&quot;, &quot;carmine&quot;]</span></td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-chatspan"><div class="op-head"><code class="path">ChatSpan</code></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>span</code></td><td><code>integer</code> <span class="src">enum: [10, 30, 60, 260]</span></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-phrasecreate"><div class="op-head"><code class="path">PhraseCreate</code></div>
 <p>What the composer sends (screen 4). A private author&#x27;s offer is a phrase with discount_value and conditions (chat spec §8.3); a link and a promo code are not fields here at all (offers/SPEC_EN.md §6.1).</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>yes</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>yes</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>yes</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>yes</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code> <span class="src">maxLength: 32</span></td><td>no</td><td>Private offer only: «−10 %», «1+1».</td></tr><tr><td><code>conditions</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td>Private offer only; empty means no limits and no refusal (offers/SPEC_EN.md §3.1).</td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td>Private offer only; not further than 90 days.</td></tr></table></div></section>
@@ -1206,14 +1291,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-away"><div class="op-head"><code class="path">Away</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>span</code></td><td><code>string</code> <span class="src">enum: [&quot;short&quot;, &quot;hour&quot;, &quot;long&quot;]</span></td><td>yes</td><td>away.span.short / hour / long.</td></tr></table></div></section>
 <section class="op" id="schema-supportcreate"><div class="op-head"><code class="path">SupportCreate</code></div>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>body</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>no</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>body</code></td><td><code>string</code> <span class="src">maxLength: 1000</span></td><td>yes</td><td></td></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-supportrequest"><div class="op-head"><code class="path">SupportRequest</code></div>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>public_no</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>answer</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>answered_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>answer_seen</code></td><td><code>boolean</code></td><td>no</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>public_no</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>body</code></td><td><code>string</code></td><td>no</td><td>What the person wrote — the list shows it (screen 14 A).</td></tr><tr><td><code>answer</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>answered_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>answer_seen</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>read_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td>When the answer was read (screen 14 H).</td></tr></table></div></section>
 <section class="op" id="schema-profile"><div class="op-head"><code class="path">Profile</code></div>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>name_pending</code></td><td><code>string</code></td><td>no</td><td>A name awaiting the queue&#x27;s verdict.</td></tr><tr><td><code>age</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr><tr><td><code>stepped_away_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>phrases</code></td><td>array&lt;<code>object</code>&gt;</td><td>no</td><td>Your own live phrases with their timers (screens 9 and 10).</td></tr><tr><td><code>table</code></td><td><code>object</code></td><td>no</td><td>Your own seat, if any.</td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>name_pending</code></td><td><code>string</code></td><td>no</td><td>A name awaiting the queue&#x27;s verdict.</td></tr><tr><td><code>age</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr><tr><td><code>filter_modes</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td>Which modes the feed shows (screen 3 filters); empty is all.</td></tr><tr><td><code>quota</code></td><td><code>object</code></td><td>no</td><td>Live phrases against the ceiling and when the next slot frees (screens 4, 9, 10).</td></tr><tr><td><code>stepped_away_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>phrases</code></td><td>array&lt;<code>object</code>&gt;</td><td>no</td><td>Your own live phrases with their timers (screens 9 and 10).</td></tr><tr><td><code>table</code></td><td><code>object</code></td><td>no</td><td>Your own seat, if any.</td></tr></table></div></section>
 <section class="op" id="schema-profilepatch"><div class="op-head"><code class="path">ProfilePatch</code></div>
 <p>Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds anything inside the band (2026-09-17).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>age</code></td><td><code>integer</code> <span class="src">minimum: 13</span></td><td>no</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>age</code></td><td><code>integer</code> <span class="src">minimum: 13</span></td><td>no</td><td></td></tr><tr><td><code>filter_age_min</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>filter_age_max</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>languages</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr><tr><td><code>filter_modes</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-nonce"><div class="op-head"><code class="path">Nonce</code></div>
 <p>16 random bytes, base64url without padding (nonce.bytes); protocol §2.</p>
 <p><code>string</code> <span class="src">pattern: &quot;^[A-Za-z0-9_-]{22}$&quot;</span></p></section>

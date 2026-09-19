@@ -85,6 +85,8 @@ through three different wrappers and cannot be counted by eye.
 | 3.4 | The `local` half never leaves the device | intercept the registration traffic: only `auth` in the body | nothing to check |
 | 3.5 | A share belongs to a device, not to an identity | another live session of the same identity cannot reach it | nothing to check |
 | 3.6 | The warning appears with three attempts left | the seventh miss → a warning flag in the response | nothing to check |
+| 3.7 | **`POST /vault/init` only against a one-time first-PIN grant** (review panel 2026-09-19) | a signing key without the grant → 409 `unauthorized`; after an approved transfer → accepted, a repeat → 409 | nothing to check |
+| 3.8 | **A wrong PIN answers `attempts_left`, the tenth `pin_locked`** (2026-09-19) | three misses → `attempts_left` 7; the tenth → code `pin_locked` | nothing to check |
 
 ## 4. Moving an identity to another device (step 1)
 
@@ -101,6 +103,7 @@ through three different wrappers and cannot be counted by eye.
 | 4.8a | **`depth` does not start without its wrapper** (`depth-client_EN.md` §2.1, 2026-09-14) | the image without `DEPTH_WRAPPED=1` → refuses and says why; through the wrapper → starts, `docker inspect` gives `LogConfig.Type = none` | nothing to check |
 | 4.9 | **No link and no QR: no separate page exists for the pairing** | there is no route for an invitation; the node accepts only a `lookup_id` | nothing to check |
 | 4.10 | The second half of the code never leaves for the server | intercept the move traffic: only `lookup_id` and envelopes in the requests | nothing to check |
+| 4.11 | **"It's me" and "doesn't match" — only by a session of the inviting identity, once** (review panel 2026-09-19) | `approve` with another signature → `not_found`; a second `approve` → `not_found`; `reject` → the code dies | nothing to check |
 
 ## 5. Recovery by the paper code (step 1)
 
@@ -205,6 +208,7 @@ through three different wrappers and cannot be counted by eye.
 | 9.10 | **Whoever accepted first is told nothing about the other's action** | their response carries neither the peer's `accepted_at` nor any sign of a view | nothing to check |
 | 9.11 | The card returns name, age, mode and the remainders of both phrases (one for a match from an offer) — and nothing else (edited 2026-09-14: "timer" [retired]) | the response holds neither the peer's `identity_id` nor their other phrases | nothing to check |
 | 9.12 | No match opens while the name stands rejected | `name_state = rejected` → a mutual like creates no card | nothing to check |
+| 9.13 | **"Not now" is written at once and undone only within the undo seconds** (2026-09-19) | `POST /matches/{id}/decline` → declined; `DELETE` in time → back; after it → refused | nothing to check |
 
 ## 10. A match from an offer is one-sided (step 4)
 
@@ -430,6 +434,21 @@ the spec, not from whatever turned out to be convenient to check.
 | 23.11 | What is liked leaves the delivery: after `POST /feed/:id/like` the phrase is absent from this person's `GET /feed` but present in `GET /likes` with `state: liked`; after `DELETE` it is back (2026-09-17) | a like, two deliveries, a take-back | nothing to check |
 | 23.12 | A table like: `POST /tables/:id/like` does not seat (`GET /tables/:id` without a seat — 404), `like_count` +1 is seen by those seated, the table is in `GET /likes`; a repeat the same; `DELETE` → 204 and −1 (2026-09-17) | two people, one seated | nothing to check |
 | 23.13 | A table name: `POST /tables` with `name` — the table is delivered at once without `name`, after the queue's verdict `name` is there; refused — a `name_verdict` frame with `table` to the author, the table lives; 25 graphemes → 400 (2026-09-17) | three settings | nothing to check |
+
+## 24. Offers (step 10, `offers/SPEC_EN.md`, protocol §4.13)
+
+| # | What must be true | What proves it | State |
+|---|---|---|---|
+| 24.1 | The cabinet lives on its own origin, the `__Host-adv` cookie never goes to the storefront (SPEC §2.1, 2026-09-19) | a storefront request with a cabinet session → no cookie in it | nothing to check |
+| 24.2 | Every cabinet request checks ownership, not the role (SPEC §2.1) | another's `venue_id` in `PATCH /adv/venues/{id}` → refused | nothing to check |
+| 24.3 | Only a `verified` venue publishes; the automatic checks refuse with a reason (§6.1) | `unverified` → refused; a shortener in the link → 422 with a reason | nothing to check |
+| 24.4 | The envelope code: a wrong one — 422 and the attempt counted, a burnt one — 409 (§2.1) | a run of wrong ones → the code burnt → 409 | nothing to check |
+| 24.5 | "It's not us" answers 204 to any code and spends the same counter as entering the code (§11, 2026-09-19) | wrong codes in `not-us` burn the code for `/verify` | nothing to check |
+| 24.6 | A discount complaint counts by the complainant's first publication, the value frozen (§3, §10) | a complainant without a publication older than a day → 202 with `counts_towards_autohide: false` | nothing to check |
+| 24.7 | Three counting complaints from different people hide the offer (§10) | three → `hidden`; two and one not counting → `active` | nothing to check |
+| 24.8 | Two counting link reports disable it at once, a non-counting one goes to the moderator (§10.1) | two at once → `redirect_disabled_at` set once | nothing to check |
+| 24.9 | `/o/{code}/go`: `no-store`, `no-referrer`, previews not counted, an unknown code — 404 (§6.2, 2026-09-19) | response headers; `HEAD` does not change `redirect_hits` | nothing to check |
+| 24.10 | A published offer is never edited; "show again" is a new one with `repeated_from` (§3.1, §8) | no edit of a published one; a repeat → a new row | nothing to check |
 
 ## Read together with
 

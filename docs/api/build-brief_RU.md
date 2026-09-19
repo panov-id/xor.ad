@@ -1,7 +1,7 @@
 # Бриф на код API — 17.09.2026
 
 Что программировать, в каком порядке и обо что проверять. Канон контракта — `docs/api/openapi.yaml`
-(122 операции: построено 39, из спеки 83, предложено 0; `GET /likes` и `POST/DELETE /tables/{id}/like` утверждены 17.09.2026; 19.09.2026 добавлены 17 операций офферов — протокол §4.13, — в порядок этого брифа они ещё не вписаны), протокол —
+(128 операций: построено 39, из спеки 89, предложено 0; `GET /likes` и `POST/DELETE /tables/{id}/like` утверждены 17.09.2026; 19.09.2026 добавлены 17 операций офферов — протокол §4.13 — и 6 операций по сверке экранов (`docs/screens-api-map_RU.md`); вписаны в порядок ниже — шаги 1, 4 и 10), протокол —
 `protocol_RU.md`, данные — спека чата `chat_RU.md` и спека офферов, тесты — `test-map_RU.md`. Пара — `build-brief_EN.md`.
 
 ## 1. Перед первой строкой
@@ -39,7 +39,13 @@ reason?}}`, 429 с `Retry-After`, 409 «примите заново» своей
 | 8. Уведомления и игры | `chat_games`, `tables`, `table_seats`, `table_lines`, `table_games`, `table_scores`, `support_requests` | `POST /tables`, `GET /tables/{id}`, `POST /tables/{id}/seat`, `DELETE /tables/{id}/seat`, `POST /tables/{id}/ticket`, `POST /tables/{id}/lines`, `POST /tables/{id}/moves`, `POST /tables/{id}/confirm`, `POST /tables/{id}/proposals`, `POST /tables/{id}/proposals/{pid}`, `POST /tables/{id}/resign`, `POST /tables/{id}/congratulate`, `POST /tables/{id}/kick`, `/chats/{id}/game*`, `POST /support`, `GET /support`, `POST /support/{no}/seen`, `GET /statements` | §15, §23 | `table.*`, `sticker.minute`, `support.*`, `chat.messages.minute` |
 | 9. Веб-лицо | — | по тому же протоколу | все | — |
 
-Офферы (`advertisers`, `venues`, `offers`, `offer_link_reports`, спека офферов) — после чата, отдельным заходом.
+**Дописано 19.09.2026 по сверке экранов и панели ревью.** Шаг 1 получает `POST /vault/init` (только по праву «первый ПИН»), `POST /sessions/{lookup_id}/approve` и `/reject` (только выдавшей личностью, один раз), `GET /identities/appearance` и новые поля: тело `IdentityCreate`, `attempts_left`, `pin_locked`, `filter_modes`, `quota`; шаг 4 — `POST` и `DELETE /matches/{id}/decline` и типизированный `InboxItem`; тесты — карта §3.7–3.8, §4.11, §9.13.
+
+| Шаг | Таблицы | Операции | Тесты (карта) | Пределы |
+|---|---|---|---|---|
+| 10. Офферы (после чата, `offers/SPEC_RU.md`, протокол §4.13) | `advertisers`, `venues`, `offers`, `offer_complaints`, `business_responses`, `offer_link_reports` | `GET /o/{code}`, `GET /o/{code}/go`, `POST /o/{code}/report`, `POST /offers/{id}/complaints`, `POST /adv/signup`, `GET`/`POST /adv/venues`, `PATCH /adv/venues/{id}`, `POST /adv/venues/{id}/envelope`, `POST /adv/venues/{id}/verify`, `POST /adv/venues/not-us`, `GET`/`POST /adv/offers`, `GET /adv/complaints`, `POST /adv/complaints/{id}/response`, `POST /admin/offer-complaints/{id}/decision`, `POST /admin/venues/{id}/suspend` | §24 | `FEED_OFFER_QUOTA`, `AUTOHIDE_COMPLAINTS`, `COMPLAINT_MONTHLY_LIMIT`, `ACTIVATION_CODE_TTL`, `PRIVATE_ACTIVE_OFFERS`, `SUSPEND_RESOLVED_COUNT`, `SUSPEND_WINDOW_DAYS` (SPEC §4) |
+
+Первый пункт шага 10 — не код, а выкат: запись DNS и сертификат поддомена `adv.<витрина>` для `adv.sosed.place` и `adv.neighbro.place` (SPEC §2.1, 19.09.2026).
 
 ## 4. Что держит код
 

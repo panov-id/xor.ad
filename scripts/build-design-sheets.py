@@ -24,6 +24,8 @@ are kept only when the parameter is non-empty and not "0" (data-if="!name" — t
 A sheet's <style> may hold the line /* kit:tokens */: it is replaced by
 panel/design/kit/tokens.css, so the palette and the type steps live in one place.
 """
+import ast
+import operator
 import re
 import sys
 import pathlib
@@ -55,6 +57,23 @@ def fmt(v):
     return f"{v:g}" if isinstance(v, float) else str(v)
 
 
+OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv}
+
+
+def arith(node, names):
+    """Numbers, parameter names and + - * / only — no eval: the review panel of 2026-09-19
+    showed that eval with empty builtins still reaches object attributes."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.Name) and node.id in names:
+        return names[node.id]
+    if isinstance(node, ast.BinOp) and type(node.op) in OPS:
+        return OPS[type(node.op)](arith(node.left, names), arith(node.right, names))
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        return -arith(node.operand, names)
+    raise ValueError(f"не арифметика: {ast.dump(node)[:60]}")
+
+
 def substitute(text, params, where):
     def one(m):
         key = m.group(1).strip()
@@ -64,7 +83,7 @@ def substitute(text, params, where):
             raise SystemExit(f"✗ {where}: не понял подстановку {{{key}}}")
         names = {k: float(v) for k, v in params.items() if NUMBER.match(v)}
         try:
-            return fmt(float(eval(key, {"__builtins__": {}}, names)))
+            return fmt(float(arith(ast.parse(key, mode="eval").body, names)))
         except Exception as e:
             raise SystemExit(f"✗ {where}: {{{key}}} — {e}")
     return re.sub(r"\{([^{}]+)\}", one, text)
@@ -95,6 +114,8 @@ def resolve(element, base, where):
         if child.tag == f"{{{SVG}}}use" and "#" in href and not href.startswith("#"):
             file, _, ident = href.partition("#")
             lib_path = (base / file).resolve()
+            if not lib_path.is_relative_to(DESIGN.resolve()):   # a href may not leave panel/design
+                raise SystemExit(f"✗ {where}: {href} ведёт за пределы panel/design")
             symbols = library(lib_path)
             if ident not in symbols:
                 raise SystemExit(f"✗ {where}: в {file} нет символа #{ident}")

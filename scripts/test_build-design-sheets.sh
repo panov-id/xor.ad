@@ -33,6 +33,10 @@ sheet '<use href="kit/components.svg#pill" data-count="3"/>'
 expect 0 'x="112"' "data-if=count оставлен при счётчике 3, ширина по умолчанию 120"
 sheet '<use href="kit/components.svg#nope"/>'
 expect 1 'нет символа #nope' "неизвестный символ — красный"
+sheet '<use href="kit/components.svg#pill" data-w="().__class__"/>'
+expect 1 'не арифметика' "атрибут объекта вместо числа — красный, eval нет"
+sheet '<use href="../../../../etc/x.svg#pill"/>'
+expect 1 'за пределы panel/design' "href за пределы panel/design — красный"
 sheet '<use href="kit/components.svg#pill"/>'
 python3 "$build" >/dev/null
 expect 0 'все собраны' "свежий лист — зелёный" --check

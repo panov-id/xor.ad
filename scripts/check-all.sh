@@ -119,6 +119,9 @@ run_in_docker check-panel-font-weights "$here/check-panel-font-weights.sh"
 if [ "$with_tests" = 1 ]; then
   echo
   echo "ПРОБЫ ВОРОТ"
+  run test-design-palettes          bash "$here/test_design-palettes.sh"
+  run_in_docker test_check-design-text    "$here/test_check-design-text.sh"
+  run_in_docker test_check-design-spacing "$here/test_check-design-spacing.sh"
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
   run test_check-facts-open     bash "$here/test_check-facts-open.sh"

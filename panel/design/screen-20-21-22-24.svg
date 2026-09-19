@@ -264,7 +264,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
-<g data-kit="composer-float" transform="translate(24,688)">
+<g data-kit="composer-float" transform="translate(24,684)">
   <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
   <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
   <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">сказать соседям…</text>
@@ -272,6 +272,16 @@
   <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
+ <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
 </g>
 </g>
 <text x="1317" y="966" class="capb">20 · предложение отойти: полоса под шапкой</text>

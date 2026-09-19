@@ -304,7 +304,7 @@ sets: one primary button lived at heights 44, 48, 52 and 56, and the like on 06�
 a house. Rolling Spark across the sheets took five agents and a second pass for the
 divergences. The kit closes that.
 
-- `panel/design/kit/components.svg` — 81 symbols (`<symbol>`) in eight families:
+- `panel/design/kit/components.svg` — 92 symbols (`<symbol>`) in eight families:
   icons (18), buttons, fields, choice, chips and signs, cards, headers and
   navigation, bars, rows, sheets. Colour is only `var(--token)`, so one symbol
   serves the dark and the light frame.

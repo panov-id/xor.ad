@@ -318,6 +318,8 @@
   <text x="327" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">вернуть</text>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -381,6 +383,8 @@
   <text x="12" y="63" class="k-mono">1 ч 40 мин</text>
   </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -408,6 +412,8 @@
   <g><text x="171.5" y="144" text-anchor="middle" class="k-body" style="fill:var(--muted)">лайкает вашу живую фразу.</text></g>
   </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -438,6 +444,8 @@
 </g></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -470,6 +478,8 @@
 <rect x="28" y="353" width="200" height="12" rx="6" style="fill:var(--panel-2)" />
 <rect x="28" y="371" width="60" height="10" rx="5" style="fill:var(--panel-2)" />
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -561,6 +571,8 @@
   <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -660,6 +672,8 @@
   <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -739,6 +753,8 @@
   <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -814,6 +830,8 @@
   <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -851,6 +869,8 @@
 <rect x="30" y="566" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
 <rect x="16" y="604" width="100" height="10" rx="5" style="fill:var(--panel-2)" />
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
@@ -1075,6 +1095,8 @@
   <text x="16" y="29.5" class="k-body" style="fill:var(--bg)">подсказки снова покажутся по одной</text>
   </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>

@@ -95,7 +95,8 @@
 <use href="kit/components.svg#chip" x="32" y="657" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
 <use href="kit/components.svg#like" x="232" y="646" data-count="8" data-c="var(--muted)" data-f="none"/>
 <use href="kit/components.svg#icon-button" x="299" y="646" data-icon="icon-more" data-name="ещё"/>
-<use href="kit/components.svg#composer-float" x="24" y="688" data-placeholder="сказать соседям…"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
+ <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
 </g>
 </g>
 <text x="1317" y="966" class="capb">20 · предложение отойти: полоса под шапкой</text>

@@ -420,6 +420,8 @@
 </symbol>
 <!-- the tab bar: three items, the active one fg with 14/600 and a 32×3 accent bar; a dot on «Я» -->
 <symbol id="tabbar" data-p-a1="1" data-p-a2="" data-p-a3="" data-p-dot="" data-p-dot2="" data-p-l1="Лента" data-p-l2="Беседы" data-p-l3="Я">
+  <!-- the band between the floating composer (ends 736) and the bar (748) is ground too: the feed scrolls under the composer, not out below it (review panel 2026-09-19) -->
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)"/>
   <rect width="375" height="64" style="fill:var(--bg)"/>
   <rect width="375" height="1" style="fill:var(--border)"/>
   <g data-if="a1"><use href="components.svg#icon-nav-feed" x="40.5" y="2" data-c="var(--fg)"/><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">{l1}</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)"/></g>

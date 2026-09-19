@@ -149,6 +149,8 @@
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -261,6 +263,8 @@
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -372,6 +376,8 @@
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Հոսք</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -437,6 +443,8 @@
   <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">party</text></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -502,6 +510,8 @@
   <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">Party</text></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -567,6 +577,8 @@
   <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">խնջույք</text></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Հոսք</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -668,6 +680,8 @@
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -769,6 +783,8 @@
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
@@ -870,6 +886,8 @@
   <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
 <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
   <rect width="375" height="1" style="fill:var(--border)" />
   <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Հոսք</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>

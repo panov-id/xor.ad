@@ -1,35 +1,393 @@
+<!-- Built by scripts/build-design-sheets.py from panel/design/sheets/screen-25.svg — edit the source, not this file. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1740" height="1952" viewBox="0 0 1740 1952">
 <title>25 · Мои лайки</title>
 <style>
-    @font-face { font-family: "Golos Text"; font-weight: 400 600;
+/* kit tokens — panel/design/kit/tokens.css, inserted by scripts/build-design-sheets.py.
+       Values: docs/design-system-app_RU.md, «Токены», «Поверхности», «Огонёк». A frame
+       picks its theme with class k-dark or k-light on its group; kit symbols read only var(). */
+    /* Golos in two subsets: without the Cyrillic one, every Russian line falls back to another face
+       (found 2026-09-19 by a rebuild hand on sheet 17: Latin rendered visibly bolder than Cyrillic) */
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
     @font-face { font-family: "JetBrains Mono"; font-weight: 400;
       src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
     text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
-    .t    { font-size: 16px; font-weight: 400; fill: #f0e7dc; }
-    .tb   { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
-    .h    { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
-    .m    { font-size: 16px; font-weight: 400; fill: #9a8d7c; }
-    .mb   { font-size: 16px; font-weight: 600; fill: #9a8d7c; }
-    .err  { font-size: 16px; font-weight: 400; fill: #ef7a6a; }
-    .acc  { font-size: 14px; font-weight: 600; fill: #d56343; }
-    .code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; fill: #f0e7dc; letter-spacing: 1px; }
-    .lab  { font-size: 14px; font-weight: 600; fill: #e0714f; }
-    .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+    .k-dark {
+      --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
+      --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; --ok: #9ecb7a; --err: #ef7a6a;
+      --cat-amber: #e2a33b; --cat-teal: #3fb59a; --cat-violet: #b48cf2; --scrim: #000000; --shadow: #3a2e20;
+    }
+    .k-light {
+      --bg: #ece4d8; --panel: #fdfaf4; --panel-2: #e6dbc9; --border: #221a12; --border-control: #857562;
+      --fg: #1c140d; --muted: #6b5f4c; --muted-2: #857562; --on-fg-muted: #ab9d88;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; --ok: #4b712c; --err: #a3311f;
+      --cat-amber: #7a4a00; --cat-teal: #146b58; --cat-violet: #5b36a8; --scrim: #000000; --shadow: #857562;
+    }
+    /* --on-fg-muted: quiet text on an --fg ground (the composer): 5.10 dark, 6.85 light — the light --muted-2 gives 4.08 there */
+    /* the seven steps of «Типографика» */
+    .k-display { font-size: 26px; font-weight: 400; fill: var(--fg); }
+    .k-title { font-size: 20px; font-weight: 600; fill: var(--fg); }
+    .k-body { font-size: 16px; font-weight: 400; fill: var(--fg); }
+    .k-strong { font-size: 16px; font-weight: 600; fill: var(--fg); }
+    .k-meta-strong { font-size: 14px; font-weight: 600; fill: var(--fg); }
+    .k-meta { font-size: 14px; font-weight: 400; fill: var(--muted); }
+    .k-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted); }
+    /* Н2: the last quarter of a phrase's life */
+    .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
+    .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
     .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
     .capm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
     .sheet { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
     .sheetm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
-    .fade rect, .fade path, .fade circle, .fade line { opacity: .55; }
-    .fade text { opacity: 1; }
-    .fade text.body, .fade text.body15, .fade text.t16, .fade text.t16b, .fade text.name, .fade text.h, .fade text.t, .fade text.tb, .fade text.big, .fade text.disp { opacity: .65; }
+    .rim { fill: none; stroke: #3a2e20; stroke-width: 2; }
 </style>
-<rect width="1740" height="1952" style="fill:#302720"/>
+<rect width="1740" height="1952" style="fill:#302720" />
 <text x="48" y="34" class="sheet">25 · Мои лайки</text>
 <text x="48" y="56" class="sheetm">375×812 · тёмная тема, акцент terra · токены sosed.place · карточки ленты (экран 3), новые сверху</text>
-<g transform="translate(48,72)"><clipPath id="c0"><rect width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c0)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#0d0b0a;" /><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;" /><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#80705a;stroke-width:2"/><text x="36" y="33" class="mono" style="font-size:14px">Я</text><text x="187.5" y="34" class="h" text-anchor="middle">Мои лайки</text><rect x="24" y="68" width="327" height="44" rx="8" style="fill:#302720;" /><text x="40" y="96" class="tb" >снято · вернуть</text><rect x="24" y="124" width="327" height="134" rx="13" style="fill:#262019;" /><text x="40" y="156" class="h" >Кто-нибудь идёт на</text><text x="40" y="182" class="h" >набережную вечером? Возьму</text><text x="40" y="208" class="h" >термос.</text><rect x="40" y="216" width="295" height="3" rx="1.5" style="fill:#80705a"/><rect x="40" y="216" width="197" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="40" y="238" class="mono" >один · скоро исчезнет</text><rect x="263" y="210" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 242.5 C269 232.5 274 221.5 285 230.5 C296 221.5 301 232.5 285 242.5 Z" style="fill:#bd4b2a;stroke:#bd4b2a;stroke-width:2;stroke-linejoin:round"/><text x="311" y="238" class="mono" >3</text><rect x="24" y="270" width="327" height="178" rx="13" style="fill:#262019;" /><text x="40" y="302" class="h" >Кто-нибудь идёт на</text><text x="40" y="328" class="h" >набережную вечером? Возьму</text><text x="40" y="354" class="h" >термос.</text><rect x="40" y="362" width="295" height="3" rx="1.5" style="fill:#80705a"/><rect x="40" y="362" width="197" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="40" y="384" class="mono" >один · предложение поговорить</text><rect x="263" y="396" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 428.5 C269 418.5 274 407.5 285 416.5 C296 407.5 301 418.5 285 428.5 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="311" y="424" class="mono" >3</text><rect x="40" y="396" width="200" height="44" rx="22" style="fill:#f0e7dc;" /><text x="140" y="424" class="tb" text-anchor="middle" style="fill:#0d0b0a">к предложению</text><rect x="24" y="460" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="478" width="14" height="14" rx="3" fill="none" stroke="#3fb59a" stroke-width="2"/><circle cx="44" cy="482" r="1.5" fill="#3fb59a"/><circle cx="50" cy="482" r="1.5" fill="#3fb59a"/><circle cx="44" cy="488" r="1.5" fill="#3fb59a"/><circle cx="50" cy="488" r="1.5" fill="#3fb59a"/><rect x="58" y="473" width="52" height="24" rx="12" style="fill:#3fb59a;fill-opacity:0.10"/><text x="84" y="490" class="lab" text-anchor="middle" style="fill:#3fb59a">стол</text><text x="40" y="518" class="tb" >Пятничный</text><text x="40" y="542" class="m" >виселица · играют 2, смотрят 4</text><rect x="263" y="558" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 590.5 C269 580.5 274 569.5 285 578.5 C296 569.5 301 580.5 285 590.5 Z" style="fill:#bd4b2a;stroke:#bd4b2a;stroke-width:2;stroke-linejoin:round"/><text x="311" y="586" class="mono" >5</text><rect x="40" y="558" width="120" height="44" rx="22" style="fill:#f0e7dc;" /><text x="100.0" y="586" class="tb" text-anchor="middle" style="fill:#0d0b0a">сесть</text><text x="40" y="622" class="m" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text><rect x="24" y="648" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="661" width="136" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="108" y="678" class="lab" text-anchor="middle" style="fill:#e0714f">оффер частника</text><text x="40" y="706" class="t" >Отдаю два табурета, забирать сегодня.</text><text x="40" y="730" class="m" >−10 % · до 20 сентября, 12:00</text><text x="40" y="754" class="lab" >предложение поговорить</text><rect x="263" y="772" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 804.5 C269 794.5 274 783.5 285 792.5 C296 783.5 301 794.5 285 804.5 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><rect x="40" y="772" width="200" height="44" rx="22" style="fill:#f0e7dc;" /><text x="140" y="800" class="tb" text-anchor="middle" style="fill:#0d0b0a">к предложению</text><rect x="107" y="828" width="160" height="44" rx="8" fill="none" data-hit="44"/><text x="187" y="858" class="acc" text-anchor="middle" >показать ещё</text></g><rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/><text x="0" y="842" class="cap">1 · список</text><text x="0" y="862" class="capm">«снято · вернуть», фраза, предложение, стол, оффер,</text><text x="0" y="880" class="capm">«показать ещё»</text></g>
-<g transform="translate(471,72)"><clipPath id="c1"><rect width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c1)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#0d0b0a;" /><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;" /><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#80705a;stroke-width:2"/><text x="36" y="33" class="mono" style="font-size:14px">Я</text><text x="187.5" y="34" class="h" text-anchor="middle">Мои лайки</text><text x="24" y="330" class="t" >Лайкните фразу или стол в ленте — они</text><text x="24" y="354" class="t" >соберутся здесь.</text><rect x="24" y="402" width="327" height="44" rx="22" style="fill:#f0e7dc;" /><text x="187.5" y="430" class="tb" text-anchor="middle" style="fill:#0d0b0a">В ленту</text></g><rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/><text x="0" y="842" class="cap">2 · пусто</text><text x="0" y="862" class="capm">экран 11: «Лайкнутого нет» — без заголовка, действие</text><text x="0" y="880" class="capm">«В ленту»</text></g>
-<g transform="translate(894,72)"><clipPath id="c2"><rect width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c2)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#0d0b0a;" /><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;" /><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#80705a;stroke-width:2"/><text x="36" y="33" class="mono" style="font-size:14px">Я</text><text x="187.5" y="34" class="h" text-anchor="middle">Мои лайки</text><rect x="24" y="68" width="327" height="134" rx="13" style="fill:#262019;" /><rect x="40" y="86" width="240" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="110" width="180" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="140" width="60" height="12" rx="6" style="fill:#302720;" /><circle cx="285" cy="176" r="11" style="fill:#302720"/><rect x="24" y="214" width="327" height="178" rx="13" style="fill:#262019;" /><rect x="40" y="232" width="240" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="256" width="180" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="286" width="60" height="12" rx="6" style="fill:#302720;" /><circle cx="285" cy="362" r="11" style="fill:#302720"/><rect x="24" y="404" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="422" width="240" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="446" width="180" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="476" width="60" height="12" rx="6" style="fill:#302720;" /><circle cx="285" cy="524" r="11" style="fill:#302720"/><rect x="24" y="592" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="610" width="240" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="634" width="180" height="14" rx="6" style="fill:#302720;" /><rect x="40" y="664" width="60" height="12" rx="6" style="fill:#302720;" /><circle cx="285" cy="738" r="11" style="fill:#302720"/></g><rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/><text x="0" y="842" class="cap">3 · скелет загрузки</text><text x="0" y="862" class="capm">та же геометрия карточек, без подписи (Н3)</text></g>
-<g transform="translate(1317,72)"><clipPath id="c3"><rect width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c3)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#0d0b0a;" /><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;" /><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#80705a;stroke-width:2"/><text x="36" y="33" class="mono" style="font-size:14px">Я</text><text x="187.5" y="34" class="h" text-anchor="middle">Мои лайки</text><rect x="0" y="56" width="375" height="96" rx="0" style="fill:#302720;" /><text x="24" y="84" class="tb" >Нет связи</text><rect x="255" y="57" width="96" height="44" rx="22" style="fill:#f0e7dc;" /><text x="303.0" y="85" class="tb" text-anchor="middle" style="fill:#0d0b0a">повторить</text><text x="24" y="112" class="m" style="font-size:14px">Похоже, интернет пропал. Набранное на месте,</text><text x="24" y="132" class="m" style="font-size:14px">лента — та, что успела прийти.</text><line x1="0" y1="152" x2="375" y2="152" style="stroke:#3a2e20;stroke-width:1"/><rect x="24" y="164" width="327" height="44" rx="8" style="fill:#302720;" /><text x="40" y="192" class="tb" >снято · вернуть</text><rect x="24" y="220" width="327" height="134" rx="13" style="fill:#262019;" /><text x="40" y="252" class="h" >Кто-нибудь идёт на</text><text x="40" y="278" class="h" >набережную вечером? Возьму</text><text x="40" y="304" class="h" >термос.</text><rect x="40" y="312" width="295" height="3" rx="1.5" style="fill:#80705a"/><rect x="40" y="312" width="197" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="40" y="334" class="mono" >один · скоро исчезнет</text><rect x="263" y="306" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 338.5 C269 328.5 274 317.5 285 326.5 C296 317.5 301 328.5 285 338.5 Z" style="fill:#bd4b2a;stroke:#bd4b2a;stroke-width:2;stroke-linejoin:round"/><text x="311" y="334" class="mono" >3</text><rect x="24" y="366" width="327" height="178" rx="13" style="fill:#262019;" /><text x="40" y="398" class="h" >Кто-нибудь идёт на</text><text x="40" y="424" class="h" >набережную вечером? Возьму</text><text x="40" y="450" class="h" >термос.</text><rect x="40" y="458" width="295" height="3" rx="1.5" style="fill:#80705a"/><rect x="40" y="458" width="197" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="40" y="480" class="mono" >один · предложение поговорить</text><rect x="263" y="492" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 524.5 C269 514.5 274 503.5 285 512.5 C296 503.5 301 514.5 285 524.5 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="311" y="520" class="mono" >3</text><rect x="40" y="492" width="200" height="44" rx="22" style="fill:#f0e7dc;" /><text x="140" y="520" class="tb" text-anchor="middle" style="fill:#0d0b0a">к предложению</text><rect x="24" y="556" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="574" width="14" height="14" rx="3" fill="none" stroke="#3fb59a" stroke-width="2"/><circle cx="44" cy="578" r="1.5" fill="#3fb59a"/><circle cx="50" cy="578" r="1.5" fill="#3fb59a"/><circle cx="44" cy="584" r="1.5" fill="#3fb59a"/><circle cx="50" cy="584" r="1.5" fill="#3fb59a"/><rect x="58" y="569" width="52" height="24" rx="12" style="fill:#3fb59a;fill-opacity:0.10"/><text x="84" y="586" class="lab" text-anchor="middle" style="fill:#3fb59a">стол</text><text x="40" y="614" class="tb" >Пятничный</text><text x="40" y="638" class="m" >виселица · играют 2, смотрят 4</text><rect x="263" y="654" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 686.5 C269 676.5 274 665.5 285 674.5 C296 665.5 301 676.5 285 686.5 Z" style="fill:#bd4b2a;stroke:#bd4b2a;stroke-width:2;stroke-linejoin:round"/><text x="311" y="682" class="mono" >5</text><rect x="40" y="654" width="120" height="44" rx="22" style="fill:#f0e7dc;" /><text x="100.0" y="682" class="tb" text-anchor="middle" style="fill:#0d0b0a">сесть</text><text x="40" y="718" class="m" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text><rect x="24" y="744" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="757" width="136" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="108" y="774" class="lab" text-anchor="middle" style="fill:#e0714f">оффер частника</text><text x="40" y="802" class="t" >Отдаю два табурета, забирать сегодня.</text><text x="40" y="826" class="m" >−10 % · до 20 сентября, 12:00</text><text x="40" y="850" class="lab" >предложение поговорить</text><rect x="263" y="868" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 900.5 C269 890.5 274 879.5 285 888.5 C296 879.5 301 890.5 285 900.5 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><rect x="40" y="868" width="200" height="44" rx="22" style="fill:#f0e7dc;" /><text x="140" y="896" class="tb" text-anchor="middle" style="fill:#0d0b0a">к предложению</text></g><rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/><text x="0" y="842" class="cap">4 · нет сети</text><text x="0" y="862" class="capm">полоса состояния в шапке (Н5); список — что успел</text><text x="0" y="880" class="capm">прийти</text></g>
-<g transform="translate(48,1012)"><clipPath id="c4"><rect width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c4)"><rect x="0" y="0" width="375" height="812" rx="0" style="fill:#0d0b0a;" /><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;" /><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#80705a;stroke-width:2"/><text x="36" y="33" class="mono" style="font-size:14px">Я</text><text x="187.5" y="34" class="h" text-anchor="middle">Мои лайки</text><rect x="24" y="68" width="327" height="44" rx="8" style="fill:#302720;" /><text x="40" y="96" class="tb" >снято · вернуть</text><g class="fade"><rect x="24" y="124" width="327" height="134" rx="13" style="fill:#262019;" /><text x="40" y="156" class="h" >Кто-нибудь идёт на</text><text x="40" y="182" class="h" >набережную вечером? Возьму</text><text x="40" y="208" class="h" >термос.</text><rect x="40" y="216" width="295" height="3" rx="1.5" style="fill:#80705a"/><rect x="40" y="216" width="197" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="40" y="238" class="mono" >один · скоро исчезнет</text><rect x="263" y="210" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 242.5 C269 232.5 274 221.5 285 230.5 C296 221.5 301 232.5 285 242.5 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="311" y="238" class="mono" >2</text></g><rect x="24" y="270" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="288" width="14" height="14" rx="3" fill="none" stroke="#3fb59a" stroke-width="2"/><circle cx="44" cy="292" r="1.5" fill="#3fb59a"/><circle cx="50" cy="292" r="1.5" fill="#3fb59a"/><circle cx="44" cy="298" r="1.5" fill="#3fb59a"/><circle cx="50" cy="298" r="1.5" fill="#3fb59a"/><rect x="58" y="283" width="52" height="24" rx="12" style="fill:#3fb59a;fill-opacity:0.10"/><text x="84" y="300" class="lab" text-anchor="middle" style="fill:#3fb59a">стол</text><text x="40" y="328" class="tb" >Пятничный</text><text x="40" y="352" class="m" >виселица · играют 2, смотрят 4</text><rect x="263" y="368" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 400.5 C269 390.5 274 379.5 285 388.5 C296 379.5 301 390.5 285 400.5 Z" style="fill:#bd4b2a;stroke:#bd4b2a;stroke-width:2;stroke-linejoin:round"/><text x="311" y="396" class="mono" >5</text><rect x="40" y="368" width="120" height="44" rx="22" style="fill:#f0e7dc;" /><text x="100.0" y="396" class="tb" text-anchor="middle" style="fill:#0d0b0a">сесть</text><text x="40" y="432" class="m" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text><rect x="24" y="458" width="327" height="176" rx="13" style="fill:#262019;" /><rect x="40" y="471" width="136" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="108" y="488" class="lab" text-anchor="middle" style="fill:#e0714f">оффер частника</text><text x="40" y="516" class="t" >Отдаю два табурета, забирать сегодня.</text><text x="40" y="540" class="m" >−10 % · до 20 сентября, 12:00</text><text x="40" y="564" class="lab" >предложение поговорить</text><rect x="263" y="582" width="44" height="44" rx="8" fill="none" data-hit="44"/><path d="M285 614.5 C269 604.5 274 593.5 285 602.5 C296 593.5 301 604.5 285 614.5 Z" style="fill:#bd4b2a;stroke:#bd4b2a;stroke-width:2;stroke-linejoin:round"/><rect x="40" y="582" width="200" height="44" rx="22" style="fill:#f0e7dc;" /><text x="140" y="610" class="tb" text-anchor="middle" style="fill:#0d0b0a">к предложению</text><rect x="107" y="640" width="160" height="44" rx="8" fill="none" data-hit="44"/><text x="187" y="670" class="acc" text-anchor="middle" >показать ещё</text></g><rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/><text x="0" y="842" class="cap">5 · после снятия лайка</text><text x="0" y="862" class="capm">карточка гаснет по Н2 (55 %), сердце снова контуром,</text><text x="0" y="880" class="capm">лайков 3 → 2; карточка вернулась в ленту (25:10)</text></g>
+<rect x="47" y="71" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,72)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c0"><rect width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c0)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Я</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  </g>
+  <g data-kit="row-undo" transform="translate(24,68)">
+  <rect width="327" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="16" y="27" class="k-body">снято</text>
+  <text x="311" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">вернуть</text>
+</g>
+  
+  <rect x="24" y="124" width="327" height="134" rx="13" style="fill:var(--panel)" />
+  <text x="40" y="156" class="k-title">Кто-нибудь идёт на</text>
+  <text x="40" y="182" class="k-title">набережную вечером? Возьму</text>
+  <text x="40" y="208" class="k-title">термос.</text>
+  <g data-kit="lifespan" transform="translate(40,216)">
+  <rect width="295" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="197" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <text x="40" y="238" class="k-mono">один · скоро исчезнет</text>
+  <g data-kit="like" transform="translate(263,210)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <rect x="24" y="270" width="327" height="186" rx="13" style="fill:var(--panel)" />
+  <text x="40" y="302" class="k-title">Кто-нибудь идёт на</text>
+  <text x="40" y="328" class="k-title">набережную вечером? Возьму</text>
+  <text x="40" y="354" class="k-title">термос.</text>
+  <g data-kit="lifespan" transform="translate(40,362)">
+  <rect width="295" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="197" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <text x="40" y="384" class="k-mono">один · предложение поговорить</text>
+  <g data-kit="button-pill" transform="translate(40,396)">
+  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
+</g>
+  <g data-kit="like" transform="translate(263,396)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  
+  <rect x="24" y="468" width="327" height="176" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(39,485)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(58,481)">
+  <rect width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
+</g>
+  <text x="40" y="526" class="k-strong">Пятничный</text>
+  <text x="40" y="550" class="k-body" style="fill:var(--muted)">виселица · играют 2, смотрят 4</text>
+  <g data-kit="button-pill" transform="translate(40,566)">
+  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
+</g>
+  <g data-kit="like" transform="translate(263,566)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">5</text></g>
+</g>
+  <text x="40" y="630" class="k-meta" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text>
+  
+  <rect x="24" y="656" width="327" height="176" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(40,669)">
+  <rect x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="68" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер частника</text>
+</g>
+  <text x="40" y="714" class="k-body">Отдаю два табурета, забирать сегодня.</text>
+  <text x="40" y="738" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
+  <text x="40" y="762" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
+  <g data-kit="button-pill" transform="translate(40,780)">
+  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
+</g>
+  <g data-kit="like" transform="translate(263,780)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g data-kit="button-secondary" transform="translate(24,844)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">показать ещё</text>
+</g>
+</g></g>
+<text x="48" y="914" class="cap">1 · список</text>
+<text x="48" y="934" class="capm">«снято · вернуть», фраза, предложение, стол, оффер,</text>
+<text x="48" y="952" class="capm">«показать ещё»</text>
+<rect x="470" y="71" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,72)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c1"><rect width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c1)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Я</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  </g>
+  <text x="24" y="330" class="k-body">Лайкните фразу или стол в ленте — они</text>
+  <text x="24" y="354" class="k-body">соберутся здесь.</text>
+  <g data-kit="button-secondary" transform="translate(24,402)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">В ленту</text>
+</g>
+</g></g>
+<text x="471" y="914" class="cap">2 · пусто</text>
+<text x="471" y="934" class="capm">экран 11: «Лайкнутого нет» — без заголовка, действие</text>
+<text x="471" y="952" class="capm">«В ленту»</text>
+<rect x="893" y="71" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(894,72)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c2"><rect width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c2)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Я</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  </g>
+  <g data-kit="card-skeleton" transform="translate(24,68)">
+  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
+  <rect x="16" y="98" width="88" height="24" rx="12" style="fill:var(--panel-2)" />
+  <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
+</g>
+  <g data-kit="card-skeleton" transform="translate(24,240)">
+  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
+  <rect x="16" y="98" width="88" height="24" rx="12" style="fill:var(--panel-2)" />
+  <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
+</g>
+  <g data-kit="card-skeleton" transform="translate(24,412)">
+  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
+  <rect x="16" y="98" width="88" height="24" rx="12" style="fill:var(--panel-2)" />
+  <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
+</g>
+  <g data-kit="card-skeleton" transform="translate(24,584)">
+  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
+  <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
+  <rect x="16" y="98" width="88" height="24" rx="12" style="fill:var(--panel-2)" />
+  <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
+</g>
+</g></g>
+<text x="894" y="914" class="cap">3 · скелет загрузки</text>
+<text x="894" y="934" class="capm">та же геометрия карточек, без подписи (Н3)</text>
+<rect x="1316" y="71" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(1317,72)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c3"><rect width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c3)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Я</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  </g>
+  <g data-kit="card-error" transform="translate(24,64)">
+  <rect width="327" height="152" rx="13" style="fill:var(--panel-2)" />
+  <circle cx="24" cy="28" r="8" style="fill:var(--err)" />
+  <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
+  <text x="42" y="34" class="k-strong">Нет связи</text>
+  <text x="16" y="62" class="k-meta" style="fill:var(--fg)">Похоже, интернет пропал. Набранное</text>
+  <g><text x="16" y="82" class="k-meta" style="fill:var(--fg)">на месте, лента — та, что успела прийти.</text></g>
+  <g data-kit="button-secondary" transform="translate(16,92)">
+  <rect x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="147.5" y="27.5" text-anchor="middle" class="k-strong">повторить</text>
+</g>
+</g>
+  <g data-kit="row-undo" transform="translate(24,226)">
+  <rect width="327" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="16" y="27" class="k-body">снято</text>
+  <text x="311" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">вернуть</text>
+</g>
+  
+  <rect x="24" y="282" width="327" height="134" rx="13" style="fill:var(--panel)" />
+  <text x="40" y="314" class="k-title">Кто-нибудь идёт на</text>
+  <text x="40" y="340" class="k-title">набережную вечером? Возьму</text>
+  <text x="40" y="366" class="k-title">термос.</text>
+  <g data-kit="lifespan" transform="translate(40,374)">
+  <rect width="295" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="197" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <text x="40" y="396" class="k-mono">один · скоро исчезнет</text>
+  <g data-kit="like" transform="translate(263,368)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <rect x="24" y="428" width="327" height="186" rx="13" style="fill:var(--panel)" />
+  <text x="40" y="460" class="k-title">Кто-нибудь идёт на</text>
+  <text x="40" y="486" class="k-title">набережную вечером? Возьму</text>
+  <text x="40" y="512" class="k-title">термос.</text>
+  <g data-kit="lifespan" transform="translate(40,520)">
+  <rect width="295" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="197" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <text x="40" y="542" class="k-mono">один · предложение поговорить</text>
+  <g data-kit="button-pill" transform="translate(40,554)">
+  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
+</g>
+  <g data-kit="like" transform="translate(263,554)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  
+  <rect x="24" y="626" width="327" height="176" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(39,643)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(58,639)">
+  <rect width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
+</g>
+  <text x="40" y="684" class="k-strong">Пятничный</text>
+  <text x="40" y="708" class="k-body" style="fill:var(--muted)">виселица · играют 2, смотрят 4</text>
+  <g data-kit="button-pill" transform="translate(40,724)">
+  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
+</g>
+  <g data-kit="like" transform="translate(263,724)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">5</text></g>
+</g>
+  <text x="40" y="788" class="k-meta" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text>
+  
+  <rect x="24" y="814" width="327" height="176" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(40,827)">
+  <rect x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="68" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер частника</text>
+</g>
+  <text x="40" y="872" class="k-body">Отдаю два табурета, забирать сегодня.</text>
+  <text x="40" y="896" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
+  <text x="40" y="920" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
+  <g data-kit="button-pill" transform="translate(40,938)">
+  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
+</g>
+  <g data-kit="like" transform="translate(263,938)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+</g></g>
+<text x="1317" y="914" class="cap">4 · нет сети</text>
+<text x="1317" y="934" class="capm">полоса состояния в шапке (Н5); список — что успел</text>
+<text x="1317" y="952" class="capm">прийти</text>
+<rect x="47" y="1011" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,1012)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c4"><rect width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c4)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Я</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  </g>
+  <g data-kit="row-undo" transform="translate(24,68)">
+  <rect width="327" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="16" y="27" class="k-body">снято</text>
+  <text x="311" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">вернуть</text>
+</g>
+  <g class="k-fade">
+  
+  <rect x="24" y="124" width="327" height="134" rx="13" style="fill:var(--panel)" />
+  <text x="40" y="156" class="k-title">Кто-нибудь идёт на</text>
+  <text x="40" y="182" class="k-title">набережную вечером? Возьму</text>
+  <text x="40" y="208" class="k-title">термос.</text>
+  <g data-kit="lifespan" transform="translate(40,216)">
+  <rect width="295" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="197" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <text x="40" y="238" class="k-mono">один · скоро исчезнет</text>
+  <g data-kit="like" transform="translate(263,210)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  </g>
+  
+  <rect x="24" y="270" width="327" height="176" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(39,287)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(58,283)">
+  <rect width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
+</g>
+  <text x="40" y="328" class="k-strong">Пятничный</text>
+  <text x="40" y="352" class="k-body" style="fill:var(--muted)">виселица · играют 2, смотрят 4</text>
+  <g data-kit="button-pill" transform="translate(40,368)">
+  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
+</g>
+  <g data-kit="like" transform="translate(263,368)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">5</text></g>
+</g>
+  <text x="40" y="432" class="k-meta" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text>
+  
+  <rect x="24" y="458" width="327" height="184" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(40,471)">
+  <rect x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="68" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер частника</text>
+</g>
+  <text x="40" y="516" class="k-body">Отдаю два табурета, забирать сегодня.</text>
+  <text x="40" y="540" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
+  <text x="40" y="564" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
+  <g data-kit="button-pill" transform="translate(40,582)">
+  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
+</g>
+  <g data-kit="like" transform="translate(263,582)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g data-kit="button-secondary" transform="translate(24,654)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">показать ещё</text>
+</g>
+</g></g>
+<text x="48" y="1854" class="cap">5 · после снятия лайка</text>
+<text x="48" y="1874" class="capm">карточка гаснет по Н2 (55 %), сердце снова контуром,</text>
+<text x="48" y="1892" class="capm">лайков 3 → 2; карточка вернулась в ленту (25:10)</text>
 </svg>

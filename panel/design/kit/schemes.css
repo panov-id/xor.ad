@@ -1,0 +1,18 @@
+    /* kit schemes — built by scripts/design-palettes.py; edit the script, not this file.
+       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-rasta or k-rasta-light. */
+    .k-dark.k-acc-terra { --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; }
+    .k-light.k-acc-terra { --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; }
+    .k-dark.k-acc-amber { --accent: #d68a1f; --accent-ink: #1a1509; --accent-text: #d68a1f; }
+    .k-light.k-acc-amber { --accent: #d68a1f; --accent-ink: #1a1509; --accent-text: #8e5c15; }
+    .k-dark.k-acc-turquoise { --accent: #1fa99a; --accent-ink: #1a1509; --accent-text: #1fa99a; }
+    .k-light.k-acc-turquoise { --accent: #1fa99a; --accent-ink: #1a1509; --accent-text: #157369; }
+    .k-dark.k-acc-azure { --accent: #336eb2; --accent-ink: #fff6f0; --accent-text: #528bcd; }
+    .k-light.k-acc-azure { --accent: #336eb2; --accent-ink: #fff6f0; --accent-text: #3068a8; }
+    .k-dark.k-acc-violet { --accent: #8550c5; --accent-ink: #fff6f0; --accent-text: #9e74d1; }
+    .k-light.k-acc-violet { --accent: #8550c5; --accent-ink: #fff6f0; --accent-text: #814ac3; }
+    .k-dark.k-acc-carmine { --accent: #cc2f27; --accent-ink: #fff6f0; --accent-text: #df5f59; }
+    .k-light.k-acc-carmine { --accent: #cc2f27; --accent-ink: #fff6f0; --accent-text: #c12d25; }
+    .k-neighbro { --bg: #0c0b09; --panel: #24211a; --panel-2: #2e2a21; --border: #3a331f; --border-control: #796a41; --fg: #ede8dd; --muted: #989082; --muted-2: #928979; --accent: #c6a24e; --ok: #9ecb7a; --err: #ff8a80; --scrim: #000000; --shadow: #3a331f; --on-fg-muted: #5f5a4e; --accent-text: #c6a24e; --accent-ink: #1a1509; --cat-amber: #c6a24e; --cat-teal: #1fb39a; --cat-violet: #a66fe8; }
+    .k-neighbro-light { --bg: #e9e6dd; --panel: #f4f1e8; --panel-2: #ded9cc; --border: #1e1b14; --border-control: #857a62; --fg: #181510; --muted: #5f5a4e; --muted-2: #5c5749; --accent: #c6a24e; --ok: #4b712c; --err: #a3311f; --scrim: #000000; --shadow: #857a62; --on-fg-muted: #b0a894; --accent-text: #7c6228; --accent-ink: #1a1509; --cat-amber: #735b25; --cat-teal: #126a5c; --cat-violet: #793fbe; }
+    .k-rasta { --bg: #0b0a06; --panel: #221f14; --panel-2: #2c281a; --border: #3a3420; --border-control: #7a6d3e; --fg: #f5eed6; --muted: #a39a7a; --muted-2: #6e6647; --accent: #d7261e; --ok: #3fbf5f; --err: #ff7a6e; --scrim: #000000; --shadow: #1f6b35; --on-fg-muted: #6e6647; --accent-text: #e6554e; --accent-ink: #fff6f0; --cat-amber: #f2b705; --cat-teal: #2e9e4f; --cat-violet: #e35951; }
+    .k-rasta-light { --bg: #f3ecd2; --panel: #fffaea; --panel-2: #ece2c2; --border: #1c1a10; --border-control: #8a7b45; --fg: #15130b; --muted: #5e5636; --muted-2: #8a7b45; --accent: #b81c15; --ok: #1f6b35; --err: #a3211a; --scrim: #000000; --shadow: #1f6b35; --on-fg-muted: #b8ad84; --accent-text: #b81c15; --accent-ink: #fff6f0; --cat-amber: #8a6400; --cat-teal: #1f6b35; --cat-violet: #a3211a; }

@@ -171,10 +171,10 @@ buttons and the floating composer; radius 13 stays. The rules:
 |---|---|---|
 | Categories | a 24 px pill chip, the category colour at 10 % (the fresh-eye panel of 2026-09-19: at 16 % the text fell under 4.5 on its own tint), the offer and expired chips as a 1 px outline without a fill (terra reaches 5.10 only on the bare panel), text 14/600 in that colour: company `--cat-amber` #e2a33b, offer `--accent-text` #e0714f, table `--cat-teal` #3fb59a, party `--cat-violet` #b48cf2, "alone" — `--muted` without a chip | on `--panel` 7.32 / 5.10 / 6.36 / 6.12 |
 | Light theme | the same roles as dark pairs: amber #7a4a00, teal #146b58, violet #5b36a8 | on the light `--bg` 7.18 / 6.16 / 7.94 |
-| The phrase in the feed | 20/600 (`--fs-title`), under it a 3 px lifespan bar in the category colour on a `--border-control` track; the word with the remaining time stays beside it — the bar is not the only carrier | — |
-| The feed header | "Kolonaki · 12 people nearby" instead of the logo: the place from the area and a live count from the node; under 5 — "few people nearby" (the limit `feed.nearby.floor`) | — |
+| The phrase in the feed | 20/600 (`--fs-title`), under it a 3 px lifespan bar in the category colour on a `--border-control` track; the time left as a number only on your own phrase; on someone else's — the bar and, in the last quarter, the words "soon gone", so the bar is not the only carrier (N2) and another person's time left is never a number (screen 23, decided 2026-09-15, restored by the owner on 2026-09-19 after the audit against the contract: `FeedItem` carries no lifetime) | — |
+| The feed header | "Kolonaki · dozens nearby" instead of the logo: the place from the area and the density band of `/feed/density` — "nobody here yet", "few people nearby", "dozens", "hundreds"; no exact number (owner's decision of 2026-09-19: the `/feed/density` contract gives no exact number, or density would be profiled) | — |
 | Secondary buttons on a card | a 44 pill rx 22, fill `--fg`, ink `--bg` ("save", "sit down") | 16.06 |
-| The composer | a floating 52 pill rx 26 in `--fg` over the feed with a 36 `--accent` send circle — the frame's one filled accent button (N7 unchanged); the feed gets a 64 bottom inset | — |
+| The composer | a floating 52 pill rx 26 in `--fg` over the feed with a 36 `--accent` send circle — the frame's one filled accent button (N7 unchanged); the feed scrolls under the composer, the 64 bottom inset applies only at the end of the results (owner's decision of 2026-09-19: a card that meets the composer is not dropped for the inset) | — |
 | The tab bar | three items: Feed · Conversations · Me (there were four; "Say" moved into the composer) | — |
 
 The roll-out across the 14 sheets is a separate pass; until then the rules live here and on the mock-up.
@@ -295,6 +295,73 @@ emulation. None of this has been run yet: there is no application code.
   card hides is not counted. Established 2026-09-18 after three clipped lines and
   two toasts the text ratchet never saw; the probe `test_check-design-text.sh`
   plants five injections.
+
+## The kit
+
+**A component is drawn once — the owner's decision of 2026-09-19.** Until that day
+each of the 14 sheets drew its own buttons and cards, by four "hands" with four class
+sets: one primary button lived at heights 44, 48, 52 and 56, and the like on 06–09 was
+a house. Rolling Spark across the sheets took five agents and a second pass for the
+divergences. The kit closes that.
+
+- `panel/design/kit/components.svg` — 81 symbols (`<symbol>`) in eight families:
+  icons (18), buttons, fields, choice, chips and signs, cards, headers and
+  navigation, bars, rows, sheets. Colour is only `var(--token)`, so one symbol
+  serves the dark and the light frame.
+- `panel/design/kit/tokens.css` — the `.k-dark` and `.k-light` tokens, the seven
+  type steps as `k-*` classes, rule Н2 as `.k-fade`.
+- `panel/design/sheets/*.svg` — the sheets' sources; a component is placed as
+  `<use href="kit/components.svg#button-primary" x y data-label="…">`.
+- `scripts/build-design-sheets.py` builds the flat `panel/design/<sheet>.svg` from a
+  source; the gates, the render and the gallery read the flat sheet. The flat sheet
+  is edited only through its source: `--check` in `check-all.sh` goes red when the
+  built sheet drifts from its source and the kit; the probe
+  `test_build-design-sheets.sh` plants eight injections.
+- The kit sheet is `panel/design/app-kit.svg`.
+
+**Why a build and not `<use>` in the sheet itself.** Measured 2026-09-19 in the
+Playwright image: Chromium draws an external `<use>` but loads no `@font-face` for its
+text (it falls back to a serif), and the text itself is invisible to the DOM — the
+text gate would stop seeing it.
+
+**Decisions the kit holds (2026-09-19):** the primary button is 44 everywhere; the
+shadow as distance, +3,+3 in the `--shadow` token (`#3a2e20` / `#857562`), belongs to
+what stands above the plane — the primary button, the floating composer, the toast —
+and the disabled button is flat, a second channel for Н1; the selected segment is a
+light `--fg` plaque; "show more", "got it" and the empty state's action are outlines
+in `--border-control`; the like is a heart everywhere. By measurement: `--accent` on
+`--fg` gives 4.08, so the toast's action is bold `--bg` (16.06), and the composer's
+placeholder is a new token `--on-fg-muted` (`#6b5f4c` / `#ab9d88`, 5.10 / 6.85).
+
+**Spacing around a button — the owner's request of 2026-09-19** ("captions under buttons
+are not centred, the space under buttons to the block's edge is too small"). A button
+inside a filled block keeps at least 16 px to its bottom and at least 12 to its sides; the
+line under a lone button — a reason, a note, "asks for the PIN" — sits on its centre or
+starts exactly at its left edge. Codes in two fields sit as a pair centred in the frame,
+and so does the prompt above them. The kit cards grew for this rule: offer 200→212, table
+164→168, hint 132→136. Measured by `scripts/check-design-spacing.sh` in a browser, the
+probe `test_check-design-spacing.sh` plants four injections; it sees only kit buttons
+(`data-kit`), not a button drawn by hand.
+
+**Colour schemes — the owner's request of 2026-09-19** ("examples in other colour
+schemes", "a rasta colour"). The kit is drawn with the same symbols in 16 schemes: the six
+accents of screen 22 (terra, amber, turquoise, azure, violet, carmine) on the dark and the
+light ground, neighbro.place and rasta — each in two themes. The schemes are derived by
+`scripts/design-palettes.py` into `panel/design/kit/schemes.css`: an accent keeps its hue
+and saturation, its lightness moves until the pair meets its bar — text 4.5, a control rim
+3.0; 76 pairs in all, none below. neighbro.place gets its own surfaces: the landing's
+`--panel` `#14120e` on `#0c0b09` is 1.06:1 and a card would vanish. Rasta: red is the
+action, gold and green are the categories, the button shadow is green. The schemes are
+inserted only into the kit sheet, by the `/* kit:schemes */` mark; `--check` in
+`check-all.sh` goes red on a stale `schemes.css` and on a pair below its bar.
+
+**Kit v2 (2026-09-19).** Words hard-coded in the symbols became parameters (the tab bar,
+"return", "save", "sit down", "end", "got it"), cards and bubbles got their height and
+lines as parameters, and 11 symbols were added: a conversation row, a liked quote, the
+table header, a centred header, an accent pill, a chosen row, an error card, a sheet with
+text, an empty state without an action, a choice row, time in words. After the symbols
+were rewritten, the 14 sheets matched the previous render pixel for pixel. The kit's
+share of each sheet is counted by `scripts/design-kit-share.py`.
 
 ## Component vocabulary
 

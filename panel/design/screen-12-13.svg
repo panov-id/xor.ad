@@ -1,191 +1,972 @@
+<!-- Built by scripts/build-design-sheets.py from panel/design/sheets/screen-12-13.svg — edit the source, not this file. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="2163" height="3950" viewBox="0 0 2163 3950">
 <title>12 · Личность и безопасность — 13 · Перенос и восстановление</title>
 <style>
-  @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
-    src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
-  @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
-    src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
-  @font-face { font-family: "JetBrains Mono"; font-weight: 400;
-    src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
-  text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
-  .t    { font-size: 16px; font-weight: 400; fill: #f0e7dc; }
-  .tb   { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
-  .h    { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
-  .hb   { font-size: 20px; font-weight: 600; fill: #f0e7dc; }
-  .m    { font-size: 16px; font-weight: 400; fill: #9a8d7c; }
-  .mb   { font-size: 16px; font-weight: 600; fill: #9a8d7c; }
-  .meta { font-size: 14px; font-weight: 400; fill: #9a8d7c; }
-  .err  { font-size: 16px; font-weight: 400; fill: #ef7a6a; }
-  .acc  { font-size: 14px; font-weight: 600; fill: #e0714f; }
-  .code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; fill: #f0e7dc; letter-spacing: 1px; }
-  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
-  .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
-  .capm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
-  .sheet { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
-  .sheetm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
+/* kit tokens — panel/design/kit/tokens.css, inserted by scripts/build-design-sheets.py.
+       Values: docs/design-system-app_RU.md, «Токены», «Поверхности», «Огонёк». A frame
+       picks its theme with class k-dark or k-light on its group; kit symbols read only var(). */
+    /* Golos in two subsets: without the Cyrillic one, every Russian line falls back to another face
+       (found 2026-09-19 by a rebuild hand on sheet 17: Latin rendered visibly bolder than Cyrillic) */
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    .k-dark {
+      --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
+      --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; --ok: #9ecb7a; --err: #ef7a6a;
+      --cat-amber: #e2a33b; --cat-teal: #3fb59a; --cat-violet: #b48cf2; --scrim: #000000; --shadow: #3a2e20;
+    }
+    .k-light {
+      --bg: #ece4d8; --panel: #fdfaf4; --panel-2: #e6dbc9; --border: #221a12; --border-control: #857562;
+      --fg: #1c140d; --muted: #6b5f4c; --muted-2: #857562; --on-fg-muted: #ab9d88;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; --ok: #4b712c; --err: #a3311f;
+      --cat-amber: #7a4a00; --cat-teal: #146b58; --cat-violet: #5b36a8; --scrim: #000000; --shadow: #857562;
+    }
+    /* --on-fg-muted: quiet text on an --fg ground (the composer): 5.10 dark, 6.85 light — the light --muted-2 gives 4.08 there */
+    /* the seven steps of «Типографика» */
+    .k-display { font-size: 26px; font-weight: 400; fill: var(--fg); }
+    .k-title { font-size: 20px; font-weight: 600; fill: var(--fg); }
+    .k-body { font-size: 16px; font-weight: 400; fill: var(--fg); }
+    .k-strong { font-size: 16px; font-weight: 600; fill: var(--fg); }
+    .k-meta-strong { font-size: 14px; font-weight: 600; fill: var(--fg); }
+    .k-meta { font-size: 14px; font-weight: 400; fill: var(--muted); }
+    .k-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted); }
+    /* Н2: the last quarter of a phrase's life */
+    .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
+    .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+    .capm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
+    .sheet { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+    .sheetm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
+    .frame { fill: none; stroke: #1c140d; stroke-width: 2; }
 </style>
-<rect width="2163" height="3950" style="fill:#000000"/>
+<rect width="2163" height="3950" style="fill:#000000" />
 <text x="48" y="34" class="sheet">12 · Личность и безопасность — 13 · Перенос и восстановление личности</text>
 <text x="48" y="56" class="sheetm">375×812 · тёмная тема, акцент terra · токены sosed.place: bg #0d0b0a · panel #262019 · panel-2 #302720 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · accent-text #e0714f · err #ef7a6a · r-1 8 · r-2 13 · Golos Text 16/24 · JetBrains Mono для кода</text>
 <text x="48" y="76" class="sheetm">кадры 1–8 — экран 12; 9–13 — экран 13, состав А (отдающий, из настроек); 14–17 — состав Б (принимающий, с заставки «у меня уже есть»)</text>
-<g transform="translate(48,100)">
-<clipPath id="c0"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c0)"><rect width="375" height="812" style="fill:#0d0b0a"/><clipPath id="clip-body-0"><rect x="0" y="57" width="375" height="755"/></clipPath><g clip-path="url(#clip-body-0)"><text x="24" y="86" class="m">Ни одно действие на этом экране не</text><text x="24" y="110" class="m">откатывается</text><line x1="24" y1="142" x2="351" y2="142" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="172" class="tb">Перенести на другое устройство</text><text x="24" y="194" class="meta">спросит ПИН</text><path d="M343 168.0 L349 174.0 L343 180.0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><line x1="24" y1="206" x2="351" y2="206" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="236" class="tb">Сменить ПИН</text><text x="24" y="258" class="meta">спросит ПИН</text><path d="M343 232.0 L349 238.0 L343 244.0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><line x1="24" y1="270" x2="351" y2="270" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="300" class="tb">Перевыпустить бумажный код</text><text x="24" y="322" class="meta">только предъявлением текущего</text><path d="M343 296.0 L349 302.0 L343 308.0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><line x1="24" y1="334" x2="351" y2="334" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="366" class="tb">Начать заново</text><text x="24" y="394" class="m">Новая личность вместо этой. Исчезнет:</text><text x="24" y="422" class="t">живых фраз</text><text x="351" y="422" class="tb" text-anchor="end">2</text><text x="24" y="446" class="t">открытых бесед</text><text x="351" y="446" class="tb" text-anchor="end">3</text><text x="24" y="470" class="t">ждущих предложений</text><text x="351" y="470" class="tb" text-anchor="end">1</text><text x="24" y="494" class="t">сохранённых офферов</text><text x="351" y="494" class="tb" text-anchor="end">2</text><text x="24" y="518" class="meta">Офферы лежат на устройстве и новой</text><text x="24" y="538" class="meta">личности не достаются.</text><text x="24" y="562" class="meta">Бумажный код станет бесполезен:</text><text x="24" y="582" class="meta">личности, которую он возвращает, больше</text><text x="24" y="602" class="meta">не будет.</text><rect x="24" y="630" width="327" height="48" rx="13" style="fill:#262019;stroke:#ef7a6a;stroke-width:1;"/><text x="187.5" y="660.0" class="tb" text-anchor="middle" style="fill:#ef7a6a">начать заново</text><text x="24" y="698" class="meta">спросит ПИН</text><line x1="24" y1="726" x2="351" y2="726" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="762" class="tb">Что хранится на этом устройстве</text><text x="24" y="794" class="t">Локальная база</text><text x="351" y="794" class="tb" text-anchor="end">12,4 МБ</text><text x="24" y="818" class="t">Сохранённых офферов</text><text x="351" y="818" class="tb" text-anchor="end">2</text><rect x="24" y="840" width="327" height="40" rx="8" style="fill:#262019;"/><text x="36" y="865" class="t">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text><rect x="24" y="888" width="327" height="40" rx="8" style="fill:#262019;"/><text x="36" y="913" class="t">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text><text x="24" y="950" class="meta">История бесед и строки ходов лежат</text><text x="24" y="970" class="meta">только здесь. Стирание необратимо:</text><text x="24" y="990" class="meta">личность, фразы и открытые беседы</text><text x="24" y="1010" class="meta">остаются, прежние разговоры в них</text><text x="24" y="1030" class="meta">замолкают.</text><rect x="24" y="1058" width="327" height="48" rx="13" style="fill:#262019;stroke:#ef7a6a;stroke-width:1;"/><text x="187.5" y="1088.0" class="tb" text-anchor="middle" style="fill:#ef7a6a">стереть историю бесед</text><text x="24" y="1126" class="meta">ПИН не спрашивает</text><line x1="24" y1="1154" x2="351" y2="1154" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="1190" class="tb">Мои уведомления</text><text x="24" y="1222" class="t">Квитанций уведомлений</text><text x="351" y="1222" class="tb" text-anchor="end">1</text><text x="24" y="1250" class="meta">Живут на устройстве; «начать заново» их</text><text x="24" y="1270" class="meta">не стирает. Стёртая квитанция — решение</text><text x="24" y="1290" class="meta">по ней больше не увидеть.</text><rect x="24" y="1318" width="327" height="48" rx="13" style="fill:#262019;stroke:#ef7a6a;stroke-width:1;"/><text x="187.5" y="1348.0" class="tb" text-anchor="middle" style="fill:#ef7a6a">стереть квитанции</text></g><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Личность и безопасность</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(48,100)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c0"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c0)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<clipPath id="clip-body-0">
+<rect x="0" y="57" width="375" height="755" />
+</clipPath>
+<g clip-path="url(#clip-body-0)">
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">Ни одно действие на этом экране не</text>
+<text x="24" y="110" class="k-body" style="fill:var(--muted)">откатывается</text>
+<line x1="24" y1="142" x2="351" y2="142" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="172" class="k-strong">Перенести на другое устройство</text>
+<text x="24" y="194" class="k-meta">спросит ПИН</text>
+<g data-kit="icon-chevron-right" transform="translate(323,151)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+<line x1="24" y1="206" x2="351" y2="206" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="236" class="k-strong">Сменить ПИН</text>
+<text x="24" y="258" class="k-meta">спросит ПИН</text>
+<g data-kit="icon-chevron-right" transform="translate(323,215)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+<line x1="24" y1="270" x2="351" y2="270" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="300" class="k-strong">Перевыпустить бумажный код</text>
+<text x="24" y="322" class="k-meta">только предъявлением текущего</text>
+<g data-kit="icon-chevron-right" transform="translate(323,279)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+<line x1="24" y1="334" x2="351" y2="334" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="366" class="k-strong">Начать заново</text>
+<text x="24" y="394" class="k-body" style="fill:var(--muted)">Новая личность вместо этой. Исчезнет:</text>
+<text x="24" y="422" class="k-body">живых фраз</text>
+<text x="351" y="422" text-anchor="end" class="k-strong">2</text>
+<text x="24" y="446" class="k-body">открытых бесед</text>
+<text x="351" y="446" text-anchor="end" class="k-strong">3</text>
+<text x="24" y="470" class="k-body">ждущих предложений</text>
+<text x="351" y="470" text-anchor="end" class="k-strong">1</text>
+<text x="24" y="494" class="k-body">сохранённых офферов</text>
+<text x="351" y="494" text-anchor="end" class="k-strong">2</text>
+<text x="24" y="518" class="k-meta">Офферы лежат на устройстве и новой</text>
+<text x="24" y="538" class="k-meta">личности не достаются.</text>
+<text x="24" y="562" class="k-meta">Бумажный код станет бесполезен:</text>
+<text x="24" y="582" class="k-meta">личности, которую он возвращает, больше</text>
+<text x="24" y="602" class="k-meta">не будет.</text>
+<g data-kit="button-danger" transform="translate(24,632)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--err);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--err)">начать заново</text>
+</g>
+<text x="187.5" y="698" text-anchor="middle" class="k-meta">спросит ПИН</text>
+<line x1="24" y1="726" x2="351" y2="726" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="762" class="k-strong">Что хранится на этом устройстве</text>
+<text x="24" y="794" class="k-body">Локальная база</text>
+<text x="351" y="794" text-anchor="end" class="k-strong">12,4 МБ</text>
+<text x="24" y="818" class="k-body">Сохранённых офферов</text>
+<text x="351" y="818" text-anchor="end" class="k-strong">2</text>
+<rect x="24" y="840" width="327" height="40" rx="8" style="fill:var(--panel)" />
+<text x="36" y="865" class="k-body">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text>
+<rect x="24" y="888" width="327" height="40" rx="8" style="fill:var(--panel)" />
+<text x="36" y="913" class="k-body">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text>
+<text x="24" y="950" class="k-meta">История бесед и строки ходов лежат</text>
+<text x="24" y="970" class="k-meta">только здесь. Стирание необратимо:</text>
+<text x="24" y="990" class="k-meta">личность, фразы и открытые беседы</text>
+<text x="24" y="1010" class="k-meta">остаются, прежние разговоры в них</text>
+<text x="24" y="1030" class="k-meta">замолкают.</text>
+<g data-kit="button-danger" transform="translate(24,1060)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--err);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--err)">стереть историю бесед</text>
+</g>
+<text x="24" y="1126" class="k-meta">ПИН не спрашивает</text>
+<line x1="24" y1="1154" x2="351" y2="1154" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="1190" class="k-strong">Мои уведомления</text>
+<text x="24" y="1222" class="k-body">Квитанций уведомлений</text>
+<text x="351" y="1222" text-anchor="end" class="k-strong">1</text>
+<text x="24" y="1250" class="k-meta">Живут на устройстве; «начать заново» их</text>
+<text x="24" y="1270" class="k-meta">не стирает. Стёртая квитанция — решение</text>
+<text x="24" y="1290" class="k-meta">по ней больше не увидеть.</text>
+<g data-kit="button-danger" transform="translate(24,1320)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--err);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--err)">стереть квитанции</text>
+</g>
+</g>
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Личность и безопасность</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">1 · 12, список — верх</text>
 <text x="0" y="862" class="capm">«Ни одно действие … не откатывается» под шапкой;</text>
 <text x="0" y="880" class="capm">три пункта с «спросит ПИН»; «начать заново» с ценой</text>
 <text x="0" y="898" class="capm">числами</text>
 </g>
-<g transform="translate(471,100)">
-<clipPath id="c1"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c1)"><rect width="375" height="812" style="fill:#0d0b0a"/><clipPath id="clip-body-578"><rect x="0" y="57" width="375" height="755"/></clipPath><g clip-path="url(#clip-body-578)"><text x="24" y="-492" class="m">Ни одно действие на этом экране не</text><text x="24" y="-468" class="m">откатывается</text><line x1="24" y1="-436" x2="351" y2="-436" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="-406" class="tb">Перенести на другое устройство</text><text x="24" y="-384" class="meta">спросит ПИН</text><path d="M343 -410.0 L349 -404.0 L343 -398.0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><line x1="24" y1="-372" x2="351" y2="-372" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="-342" class="tb">Сменить ПИН</text><text x="24" y="-320" class="meta">спросит ПИН</text><path d="M343 -346.0 L349 -340.0 L343 -334.0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><line x1="24" y1="-308" x2="351" y2="-308" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="-278" class="tb">Перевыпустить бумажный код</text><text x="24" y="-256" class="meta">только предъявлением текущего</text><path d="M343 -282.0 L349 -276.0 L343 -270.0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><line x1="24" y1="-244" x2="351" y2="-244" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="-212" class="tb">Начать заново</text><text x="24" y="-184" class="m">Новая личность вместо этой. Исчезнет:</text><text x="24" y="-156" class="t">живых фраз</text><text x="351" y="-156" class="tb" text-anchor="end">2</text><text x="24" y="-132" class="t">открытых бесед</text><text x="351" y="-132" class="tb" text-anchor="end">3</text><text x="24" y="-108" class="t">ждущих предложений</text><text x="351" y="-108" class="tb" text-anchor="end">1</text><text x="24" y="-84" class="t">сохранённых офферов</text><text x="351" y="-84" class="tb" text-anchor="end">2</text><text x="24" y="-60" class="meta">Офферы лежат на устройстве и новой</text><text x="24" y="-40" class="meta">личности не достаются.</text><text x="24" y="-16" class="meta">Бумажный код станет бесполезен:</text><text x="24" y="4" class="meta">личности, которую он возвращает, больше</text><text x="24" y="24" class="meta">не будет.</text><rect x="24" y="52" width="327" height="48" rx="13" style="fill:#262019;stroke:#ef7a6a;stroke-width:1;"/><text x="187.5" y="82.0" class="tb" text-anchor="middle" style="fill:#ef7a6a">начать заново</text><text x="24" y="120" class="meta">спросит ПИН</text><line x1="24" y1="148" x2="351" y2="148" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="184" class="tb">Что хранится на этом устройстве</text><text x="24" y="216" class="t">Локальная база</text><text x="351" y="216" class="tb" text-anchor="end">12,4 МБ</text><text x="24" y="240" class="t">Сохранённых офферов</text><text x="351" y="240" class="tb" text-anchor="end">2</text><rect x="24" y="262" width="327" height="40" rx="8" style="fill:#262019;"/><text x="36" y="287" class="t">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text><rect x="24" y="310" width="327" height="40" rx="8" style="fill:#262019;"/><text x="36" y="335" class="t">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text><text x="24" y="372" class="meta">История бесед и строки ходов лежат</text><text x="24" y="392" class="meta">только здесь. Стирание необратимо:</text><text x="24" y="412" class="meta">личность, фразы и открытые беседы</text><text x="24" y="432" class="meta">остаются, прежние разговоры в них</text><text x="24" y="452" class="meta">замолкают.</text><rect x="24" y="480" width="327" height="48" rx="13" style="fill:#262019;stroke:#ef7a6a;stroke-width:1;"/><text x="187.5" y="510.0" class="tb" text-anchor="middle" style="fill:#ef7a6a">стереть историю бесед</text><text x="24" y="548" class="meta">ПИН не спрашивает</text><line x1="24" y1="576" x2="351" y2="576" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="612" class="tb">Мои уведомления</text><text x="24" y="644" class="t">Квитанций уведомлений</text><text x="351" y="644" class="tb" text-anchor="end">1</text><text x="24" y="672" class="meta">Живут на устройстве; «начать заново» их</text><text x="24" y="692" class="meta">не стирает. Стёртая квитанция — решение</text><text x="24" y="712" class="meta">по ней больше не увидеть.</text><rect x="24" y="740" width="327" height="48" rx="13" style="fill:#262019;stroke:#ef7a6a;stroke-width:1;"/><text x="187.5" y="770.0" class="tb" text-anchor="middle" style="fill:#ef7a6a">стереть квитанции</text></g><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Личность и безопасность</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(471,100)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c1"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c1)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<clipPath id="clip-body-578">
+<rect x="0" y="57" width="375" height="755" />
+</clipPath>
+<g clip-path="url(#clip-body-578)">
+<text x="24" y="-492" class="k-body" style="fill:var(--muted)">Ни одно действие на этом экране не</text>
+<text x="24" y="-468" class="k-body" style="fill:var(--muted)">откатывается</text>
+<line x1="24" y1="-436" x2="351" y2="-436" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="-406" class="k-strong">Перенести на другое устройство</text>
+<text x="24" y="-384" class="k-meta">спросит ПИН</text>
+<g data-kit="icon-chevron-right" transform="translate(323,-427)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+<line x1="24" y1="-372" x2="351" y2="-372" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="-342" class="k-strong">Сменить ПИН</text>
+<text x="24" y="-320" class="k-meta">спросит ПИН</text>
+<g data-kit="icon-chevron-right" transform="translate(323,-363)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+<line x1="24" y1="-308" x2="351" y2="-308" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="-278" class="k-strong">Перевыпустить бумажный код</text>
+<text x="24" y="-256" class="k-meta">только предъявлением текущего</text>
+<g data-kit="icon-chevron-right" transform="translate(323,-299)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+<line x1="24" y1="-244" x2="351" y2="-244" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="-212" class="k-strong">Начать заново</text>
+<text x="24" y="-184" class="k-body" style="fill:var(--muted)">Новая личность вместо этой. Исчезнет:</text>
+<text x="24" y="-156" class="k-body">живых фраз</text>
+<text x="351" y="-156" text-anchor="end" class="k-strong">2</text>
+<text x="24" y="-132" class="k-body">открытых бесед</text>
+<text x="351" y="-132" text-anchor="end" class="k-strong">3</text>
+<text x="24" y="-108" class="k-body">ждущих предложений</text>
+<text x="351" y="-108" text-anchor="end" class="k-strong">1</text>
+<text x="24" y="-84" class="k-body">сохранённых офферов</text>
+<text x="351" y="-84" text-anchor="end" class="k-strong">2</text>
+<text x="24" y="-60" class="k-meta">Офферы лежат на устройстве и новой</text>
+<text x="24" y="-40" class="k-meta">личности не достаются.</text>
+<text x="24" y="-16" class="k-meta">Бумажный код станет бесполезен:</text>
+<text x="24" y="4" class="k-meta">личности, которую он возвращает, больше</text>
+<text x="24" y="24" class="k-meta">не будет.</text>
+<g data-kit="button-danger" transform="translate(24,54)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--err);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--err)">начать заново</text>
+</g>
+<text x="187.5" y="120" text-anchor="middle" class="k-meta">спросит ПИН</text>
+<line x1="24" y1="148" x2="351" y2="148" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="184" class="k-strong">Что хранится на этом устройстве</text>
+<text x="24" y="216" class="k-body">Локальная база</text>
+<text x="351" y="216" text-anchor="end" class="k-strong">12,4 МБ</text>
+<text x="24" y="240" class="k-body">Сохранённых офферов</text>
+<text x="351" y="240" text-anchor="end" class="k-strong">2</text>
+<rect x="24" y="262" width="327" height="40" rx="8" style="fill:var(--panel)" />
+<text x="36" y="287" class="k-body">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text>
+<rect x="24" y="310" width="327" height="40" rx="8" style="fill:var(--panel)" />
+<text x="36" y="335" class="k-body">[оффер] · скидка · до ДД.ММ ЧЧ:ММ</text>
+<text x="24" y="372" class="k-meta">История бесед и строки ходов лежат</text>
+<text x="24" y="392" class="k-meta">только здесь. Стирание необратимо:</text>
+<text x="24" y="412" class="k-meta">личность, фразы и открытые беседы</text>
+<text x="24" y="432" class="k-meta">остаются, прежние разговоры в них</text>
+<text x="24" y="452" class="k-meta">замолкают.</text>
+<g data-kit="button-danger" transform="translate(24,482)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--err);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--err)">стереть историю бесед</text>
+</g>
+<text x="24" y="548" class="k-meta">ПИН не спрашивает</text>
+<line x1="24" y1="576" x2="351" y2="576" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="612" class="k-strong">Мои уведомления</text>
+<text x="24" y="644" class="k-body">Квитанций уведомлений</text>
+<text x="351" y="644" text-anchor="end" class="k-strong">1</text>
+<text x="24" y="672" class="k-meta">Живут на устройстве; «начать заново» их</text>
+<text x="24" y="692" class="k-meta">не стирает. Стёртая квитанция — решение</text>
+<text x="24" y="712" class="k-meta">по ней больше не увидеть.</text>
+<g data-kit="button-danger" transform="translate(24,742)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--err);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--err)">стереть квитанции</text>
+</g>
+</g>
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Личность и безопасность</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">2 · 12, список — низ (прокручено)</text>
 <text x="0" y="862" class="capm">«Что хранится»: база в МБ, два оффера, «стереть историю</text>
 <text x="0" y="880" class="capm">бесед»;</text>
 <text x="0" y="898" class="capm">«Мои уведомления» и «стереть квитанции»</text>
 </g>
-<g transform="translate(894,100)">
-<clipPath id="c2"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c2)"><rect width="375" height="812" style="fill:#0d0b0a"/><text x="187.5" y="300" class="h" text-anchor="middle">Введите ПИН</text><text x="187.5" y="332" class="m" text-anchor="middle">Шесть цифр — и вы на месте.</text><rect x="24" y="364" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="139.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="171.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="203.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="235.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="267.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><text x="187.5" y="452" class="acc" text-anchor="middle">забыли ПИН?</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(894,100)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c2"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c2)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<text x="187.5" y="300" text-anchor="middle" class="k-title">Введите ПИН</text>
+<text x="187.5" y="332" text-anchor="middle" class="k-body" style="fill:var(--muted)">Шесть цифр — и вы на месте.</text>
+<g data-kit="field-pin" transform="translate(24,364)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+</g>
+<text x="187.5" y="452" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">забыли ПИН?</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">3 · 12, замок</text>
 <text x="0" y="862" class="capm">только поле ПИНа: ни имени, ни числа бесед; «забыли ПИН?»</text>
 <text x="0" y="880" class="capm">→ бумажный код</text>
 </g>
-<g transform="translate(1317,100)">
-<clipPath id="c3"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c3)"><rect width="375" height="812" style="fill:#0d0b0a"/><text x="187.5" y="300" class="h" text-anchor="middle">Введите ПИН</text><text x="187.5" y="332" class="m" text-anchor="middle">За столом ваш ход.</text><rect x="24" y="364" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="139.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="171.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="203.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="235.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="267.5" cy="388" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><text x="187.5" y="452" class="acc" text-anchor="middle">забыли ПИН?</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1317,100)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c3"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c3)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<text x="187.5" y="300" text-anchor="middle" class="k-title">Введите ПИН</text>
+<text x="187.5" y="332" text-anchor="middle" class="k-body" style="fill:var(--muted)">За столом ваш ход.</text>
+<g data-kit="field-pin" transform="translate(24,364)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+</g>
+<text x="187.5" y="452" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">забыли ПИН?</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">4 · 12, замок, вы за столом</text>
 <text x="0" y="862" class="capm">единственное исключение: строка «За столом ваш ход.»</text>
 <text x="0" y="880" class="capm">вместо второй</text>
 </g>
-<g transform="translate(1740,100)">
-<clipPath id="c4"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c4)"><rect width="375" height="812" style="fill:#0d0b0a"/><text x="187.5" y="260" class="h" text-anchor="middle">Введите ПИН</text><rect x="24" y="284" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="308" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="139.5" cy="308" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="171.5" cy="308" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="203.5" cy="308" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="235.5" cy="308" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="267.5" cy="308" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="32" cy="354" r="8" style="fill:#ef7a6a"/><text x="32" y="359" class="tb" text-anchor="middle" style="fill:#0d0b0a;font-size:13px">!</text><text x="52" y="360" class="err">Осталось попыток: 3. После этого</text><text x="52" y="384" class="err">вход на этом устройстве закроется до</text><text x="52" y="408" class="err">бумажного кода.</text><text x="187.5" y="460" class="acc" text-anchor="middle">забыли ПИН?</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1740,100)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c4"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c4)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<text x="187.5" y="260" text-anchor="middle" class="k-title">Введите ПИН</text>
+<g data-kit="field-pin" transform="translate(24,284)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+</g>
+<circle cx="32" cy="354" r="8" style="fill:var(--err)" />
+<text x="32" y="359" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">!</text>
+<text x="52" y="360" class="k-body" style="fill:var(--err)">Осталось попыток: 3. После этого</text>
+<text x="52" y="384" class="k-body" style="fill:var(--err)">вход на этом устройстве закроется до</text>
+<text x="52" y="408" class="k-body" style="fill:var(--err)">бумажного кода.</text>
+<text x="187.5" y="460" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">забыли ПИН?</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">5 · 12, замок, осталось попыток 3</text>
 <text x="0" y="862" class="capm">с седьмой ошибки счётчик говорит прямо; текст спеки §8.2</text>
 <text x="0" y="880" class="capm">дословно</text>
 </g>
-<g transform="translate(48,1050)">
-<clipPath id="c5"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c5)"><rect width="375" height="812" style="fill:#0d0b0a"/><text x="187.5" y="220" class="h" text-anchor="middle">Подождите</text><text x="24" y="252" class="t">Следующая попытка — в 14:05. Ожидание</text><text x="24" y="276" class="t">растёт после пятой ошибки; если это не</text><text x="24" y="300" class="t">ваши ошибки, вашей сессией пользуется</text><text x="24" y="324" class="t">кто-то ещё.</text><rect x="24" y="356" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><circle cx="107.5" cy="380" r="6" style="fill:none;stroke:#3a2e20;stroke-width:1"/><circle cx="139.5" cy="380" r="6" style="fill:none;stroke:#3a2e20;stroke-width:1"/><circle cx="171.5" cy="380" r="6" style="fill:none;stroke:#3a2e20;stroke-width:1"/><circle cx="203.5" cy="380" r="6" style="fill:none;stroke:#3a2e20;stroke-width:1"/><circle cx="235.5" cy="380" r="6" style="fill:none;stroke:#3a2e20;stroke-width:1"/><circle cx="267.5" cy="380" r="6" style="fill:none;stroke:#3a2e20;stroke-width:1"/><circle cx="32" cy="426" r="8" style="fill:#ef7a6a"/><text x="32" y="431" class="tb" text-anchor="middle" style="fill:#0d0b0a;font-size:13px">!</text><text x="52" y="432" class="err">Осталось попыток: 2. После этого</text><text x="52" y="456" class="err">вход на этом устройстве закроется до</text><text x="52" y="480" class="err">бумажного кода.</text><rect x="24" y="520" width="327" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="550.0" class="tb" text-anchor="middle">Ввести бумажный код</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(48,1050)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c5"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c5)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<text x="187.5" y="220" text-anchor="middle" class="k-title">Подождите</text>
+<text x="24" y="252" class="k-body">Следующая попытка — в 14:05. Ожидание</text>
+<text x="24" y="276" class="k-body">растёт после пятой ошибки; если это не</text>
+<text x="24" y="300" class="k-body">ваши ошибки, вашей сессией пользуется</text>
+<text x="24" y="324" class="k-body">кто-то ещё.</text>
+<g data-kit="field-pin" transform="translate(24,356)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+</g>
+<circle cx="32" cy="426" r="8" style="fill:var(--err)" />
+<text x="32" y="431" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">!</text>
+<text x="52" y="432" class="k-body" style="fill:var(--err)">Осталось попыток: 2. После этого</text>
+<text x="52" y="456" class="k-body" style="fill:var(--err)">вход на этом устройстве закроется до</text>
+<text x="52" y="480" class="k-body" style="fill:var(--err)">бумажного кода.</text>
+<g data-kit="button-secondary" transform="translate(24,522)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">Ввести бумажный код</text>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">6 · 12, замок, ожидание</text>
-<text x="0" y="862" class="capm">восьмая ошибка — час: «в 14:05»; поле недоступно (Н1);</text>
+<text x="0" y="862" class="capm">восьмая ошибка — 10 минут: «в 14:05»; поле недоступно (Н1);</text>
 <text x="0" y="880" class="capm">верный ПИН тоже не примется; выход — бумажный код</text>
 </g>
-<g transform="translate(471,1050)">
-<clipPath id="c6"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c6)"><rect width="375" height="812" style="fill:#0d0b0a"/><text x="187.5" y="220" class="h" text-anchor="middle">Введите ПИН</text><rect x="24" y="244" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="268" r="6" style="fill:#f0e7dc"/><circle cx="139.5" cy="268" r="6" style="fill:#f0e7dc"/><circle cx="171.5" cy="268" r="6" style="fill:#f0e7dc"/><circle cx="203.5" cy="268" r="6" style="fill:#f0e7dc"/><circle cx="235.5" cy="268" r="6" style="fill:#f0e7dc"/><circle cx="267.5" cy="268" r="6" style="fill:#f0e7dc"/><rect x="24" y="316" width="327" height="186" rx="13" style="fill:#302720;"/><text x="40" y="352" class="hb">У нас не получилось</text><text x="40" y="378" class="t">ПИН проверяется у нас, а мы сейчас</text><text x="40" y="402" class="t">не отвечаем. Это не неверный ПИН —</text><text x="40" y="426" class="t">попробуйте чуть позже.</text><rect x="40" y="458" width="295" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="488.0" class="tb" text-anchor="middle">повторить</text><text x="187.5" y="542" class="acc" text-anchor="middle">забыли ПИН?</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(471,1050)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c6"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c6)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<text x="187.5" y="220" text-anchor="middle" class="k-title">Введите ПИН</text>
+<g data-kit="field-pin" transform="translate(24,244)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+</g>
+<g data-kit="card-error" transform="translate(24,316)">
+  <rect width="327" height="180" rx="13" style="fill:var(--panel-2)" />
+  <circle cx="24" cy="28" r="8" style="fill:var(--err)" />
+  <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
+  <text x="42" y="34" class="k-strong">У нас не получилось</text>
+  <text x="16" y="62" class="k-meta" style="fill:var(--fg)">ПИН проверяется у нас, а мы сейчас</text>
+  <g><text x="16" y="82" class="k-meta" style="fill:var(--fg)">не отвечаем. Это не неверный ПИН —</text></g>
+  <g><text x="16" y="102" class="k-meta" style="fill:var(--fg)">попробуйте чуть позже.</text></g>
+  <g data-kit="button-secondary" transform="translate(16,120)">
+  <rect x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="147.5" y="27.5" text-anchor="middle" class="k-strong">повторить</text>
+</g>
+</g>
+<text x="187.5" y="542" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">забыли ПИН?</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">7 · 12, заперто: у нас не получилось</text>
 <text x="0" y="862" class="capm">ПИН набран, вердикта нет; строка 11 говорит «это не</text>
 <text x="0" y="880" class="capm">неверный ПИН»</text>
 </g>
-<g transform="translate(894,1050)">
-<clipPath id="c7"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c7)"><rect width="375" height="812" style="fill:#0d0b0a"/><text x="187.5" y="260" class="h" text-anchor="middle">Вход закрыт</text><text x="24" y="292" class="t">Десять неверных ПИНов — вход на этом</text><text x="24" y="316" class="t">устройстве закрыт до бумажного кода.</text><text x="24" y="340" class="t">Переписка цела: после кода откроется</text><text x="24" y="364" class="t">прежним ПИНом.</text><rect x="27" y="407" width="327" height="48" rx="13" style="fill:#3a2e20;"/><rect x="24" y="404" width="327" height="48" rx="13" style="fill:#bd4b2a;"/><text x="187.5" y="434.0" class="tb" text-anchor="middle" style="fill:#fff6f0">Ввести код</text><rect x="24" y="464" width="327" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="494.0" class="tb" text-anchor="middle">Написать в поддержку</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(894,1050)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c7"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c7)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<text x="187.5" y="260" text-anchor="middle" class="k-title">Вход закрыт</text>
+<text x="24" y="292" class="k-body">Десять неверных ПИНов — вход на этом</text>
+<text x="24" y="316" class="k-body">устройстве закрыт до бумажного кода.</text>
+<text x="24" y="340" class="k-body">Переписка цела: после кода откроется</text>
+<text x="24" y="364" class="k-body">прежним ПИНом.</text>
+<g data-kit="button-primary" transform="translate(24,406)">
+  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Ввести код</text>
+</g>
+<g data-kit="button-secondary" transform="translate(24,466)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">Написать в поддержку</text>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">8 · 12, вход закрыт (десятая ошибка)</text>
 <text x="0" y="862" class="capm">заморозка: предел ПИНа; два действия из строки 11</text>
 </g>
-<g transform="translate(1317,1050)">
-<clipPath id="c8"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c8)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Перенос на другое устройство</text><text x="24" y="92" class="tb">Что уедет и что останется</text><text x="24" y="124" class="t">бесед замолчит до перевыпуска ключа</text><text x="351" y="124" class="tb" text-anchor="end">3</text><text x="24" y="148" class="t">живых фраз останется в ленте</text><text x="351" y="148" class="tb" text-anchor="end">2</text><text x="24" y="176" class="meta">Переписка на этом устройстве никуда не</text><text x="24" y="196" class="meta">денется, но станет нечитаемой навсегда.</text><line x1="24" y1="228" x2="351" y2="228" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="260" class="t">Личность переедет на другое устройство.</text><text x="24" y="284" class="t">Здесь она замрёт: новые сообщения</text><text x="24" y="308" class="t">приходить перестанут, а переписка на</text><text x="24" y="332" class="t">этом устройстве станет нечитаемой</text><text x="24" y="356" class="t">навсегда — даже если вы вернёте</text><text x="24" y="380" class="t">личность сюда.</text><text x="24" y="416" class="t">На новом устройстве беседы будут те же,</text><text x="24" y="440" class="t">но пустые: истории у него нет и взяться</text><text x="24" y="464" class="t">ей неоткуда.</text><rect x="27" y="719" width="327" height="48" rx="13" style="fill:#3a2e20;"/><rect x="24" y="716" width="327" height="48" rx="13" style="fill:#bd4b2a;"/><text x="187.5" y="746.0" class="tb" text-anchor="middle" style="fill:#fff6f0">перенести на другое устройство</text><text x="24" y="788" class="meta">спросит ПИН</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1317,1050)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c8"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c8)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Перенос на другое устройство</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-strong">Что уедет и что останется</text>
+<text x="24" y="124" class="k-body">бесед замолчит до перевыпуска ключа</text>
+<text x="351" y="124" text-anchor="end" class="k-strong">3</text>
+<text x="24" y="148" class="k-body">живых фраз останется в ленте</text>
+<text x="351" y="148" text-anchor="end" class="k-strong">2</text>
+<text x="24" y="176" class="k-meta">Переписка на этом устройстве никуда не</text>
+<text x="24" y="196" class="k-meta">денется, но станет нечитаемой навсегда.</text>
+<line x1="24" y1="228" x2="351" y2="228" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="260" class="k-body">Личность переедет на другое устройство.</text>
+<text x="24" y="284" class="k-body">Здесь она замрёт: новые сообщения</text>
+<text x="24" y="308" class="k-body">приходить перестанут, а переписка на</text>
+<text x="24" y="332" class="k-body">этом устройстве станет нечитаемой</text>
+<text x="24" y="356" class="k-body">навсегда — даже если вы вернёте</text>
+<text x="24" y="380" class="k-body">личность сюда.</text>
+<text x="24" y="416" class="k-body">На новом устройстве беседы будут те же,</text>
+<text x="24" y="440" class="k-body">но пустые: истории у него нет и взяться</text>
+<text x="24" y="464" class="k-body">ей неоткуда.</text>
+<g data-kit="button-primary" transform="translate(24,718)">
+  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">перенести на другое устройство</text>
+</g>
+<text x="187.5" y="788" text-anchor="middle" class="k-meta">спросит ПИН</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">9 · 13 А, цена числами</text>
 <text x="0" y="862" class="capm">отдающий; бесед 3, фраз 2; две цитаты «что должно быть</text>
 <text x="0" y="880" class="capm">сказано»</text>
 </g>
-<g transform="translate(1740,1050)">
-<clipPath id="c9"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c9)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Перенос на другое устройство</text><text x="24" y="92" class="tb">Что уедет и что останется</text><text x="24" y="124" class="t">бесед замолчит до перевыпуска ключа</text><text x="351" y="124" class="tb" text-anchor="end">3</text><text x="24" y="148" class="t">живых фраз останется в ленте</text><text x="351" y="148" class="tb" text-anchor="end">2</text><text x="24" y="176" class="meta">Переписка на этом устройстве никуда не</text><text x="24" y="196" class="meta">денется, но станет нечитаемой навсегда.</text><line x1="24" y1="228" x2="351" y2="228" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="260" class="t">Личность переедет на другое устройство.</text><text x="24" y="284" class="t">Здесь она замрёт: новые сообщения</text><text x="24" y="308" class="t">приходить перестанут, а переписка на</text><text x="24" y="332" class="t">этом устройстве станет нечитаемой</text><text x="24" y="356" class="t">навсегда — даже если вы вернёте</text><text x="24" y="380" class="t">личность сюда.</text><text x="24" y="416" class="t">На новом устройстве беседы будут те же,</text><text x="24" y="440" class="t">но пустые: истории у него нет и взяться</text><text x="24" y="464" class="t">ей неоткуда.</text><rect x="27" y="719" width="327" height="48" rx="13" style="fill:#3a2e20;"/><rect x="24" y="716" width="327" height="48" rx="13" style="fill:#bd4b2a;"/><text x="187.5" y="746.0" class="tb" text-anchor="middle" style="fill:#fff6f0">перенести на другое устройство</text><text x="24" y="788" class="meta">спросит ПИН</text><rect x="0" y="0" width="375" height="812" rx="0" style="fill:rgba(13,11,10,0.72);"/><rect x="0" y="512" width="375" height="300" rx="24" style="fill:#262019;"/><rect x="167.5" y="522" width="40" height="4" rx="2" style="fill:#3a2e20;"/><text x="24" y="564" class="h">ПИН</text><text x="24" y="596" class="m">Перенос не откатить — подтвердите</text><text x="24" y="620" class="m">ПИНом, что это вы.</text><rect x="24" y="652" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="676" r="6" style="fill:#f0e7dc"/><circle cx="139.5" cy="676" r="6" style="fill:#f0e7dc"/><circle cx="171.5" cy="676" r="6" style="fill:#f0e7dc"/><circle cx="203.5" cy="676" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="235.5" cy="676" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><circle cx="267.5" cy="676" r="6" style="fill:none;stroke:#9a8d7c;stroke-width:1"/><rect x="24" y="724" width="327" height="48" rx="13" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="754.0" class="mb" text-anchor="middle">дальше</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1740,1050)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c9"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c9)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Перенос на другое устройство</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-strong">Что уедет и что останется</text>
+<text x="24" y="124" class="k-body">бесед замолчит до перевыпуска ключа</text>
+<text x="351" y="124" text-anchor="end" class="k-strong">3</text>
+<text x="24" y="148" class="k-body">живых фраз останется в ленте</text>
+<text x="351" y="148" text-anchor="end" class="k-strong">2</text>
+<text x="24" y="176" class="k-meta">Переписка на этом устройстве никуда не</text>
+<text x="24" y="196" class="k-meta">денется, но станет нечитаемой навсегда.</text>
+<line x1="24" y1="228" x2="351" y2="228" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="260" class="k-body">Личность переедет на другое устройство.</text>
+<text x="24" y="284" class="k-body">Здесь она замрёт: новые сообщения</text>
+<text x="24" y="308" class="k-body">приходить перестанут, а переписка на</text>
+<text x="24" y="332" class="k-body">этом устройстве станет нечитаемой</text>
+<text x="24" y="356" class="k-body">навсегда — даже если вы вернёте</text>
+<text x="24" y="380" class="k-body">личность сюда.</text>
+<text x="24" y="416" class="k-body">На новом устройстве беседы будут те же,</text>
+<text x="24" y="440" class="k-body">но пустые: истории у него нет и взяться</text>
+<text x="24" y="464" class="k-body">ей неоткуда.</text>
+<g data-kit="button-primary" transform="translate(24,718)">
+  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">перенести на другое устройство</text>
+</g>
+<text x="187.5" y="788" text-anchor="middle" class="k-meta">спросит ПИН</text>
+<rect x="0" y="0" width="375" height="812" rx="0" style="fill:var(--bg);fill-opacity:0.72" />
+<rect x="0" y="512" width="375" height="300" rx="24" style="fill:var(--panel)" />
+<rect x="167.5" y="522" width="40" height="4" rx="2" style="fill:var(--border)" />
+<text x="24" y="564" class="k-title">ПИН</text>
+<text x="24" y="596" class="k-body" style="fill:var(--muted)">Перенос не откатить — подтвердите</text>
+<text x="24" y="620" class="k-body" style="fill:var(--muted)">ПИНом, что это вы.</text>
+<g data-kit="field-pin" transform="translate(24,652)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+</g>
+<g data-kit="button-primary-disabled" transform="translate(24,726)">
+  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
+  <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — после шести цифр</text></g>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">10 · 13 А, ПИН перед переносом</text>
 <text x="0" y="862" class="capm">лист снизу; «дальше» неактивна до шести цифр</text>
 </g>
-<g transform="translate(48,2000)">
-<clipPath id="c10"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c10)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Перенос на другое устройство</text><rect x="24" y="80" width="327" height="132" rx="13" style="fill:#302720;"/><text x="187.5" y="142" class="code" text-anchor="middle" style="font-size:34px;letter-spacing:2px">K7Q - M3F - 2X9</text><text x="187.5" y="180" class="code" text-anchor="middle" style="font-size:22px;fill:#9a8d7c">2:00</text><rect x="24" y="236" width="327" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="266.0" class="tb" text-anchor="middle">продлить</text><text x="24" y="312" class="meta">Выпишет новый код и погасит прежний.</text><line x1="24" y1="340" x2="351" y2="340" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="372" class="t">Приглашение одноразовое и живёт две</text><text x="24" y="396" class="t">минуты. На новом устройстве эти</text><text x="24" y="420" class="t">символы набирают руками; регистр не</text><text x="24" y="444" class="t">важен, дефисы можно не набирать.</text><text x="24" y="480" class="t">Здесь личность замрёт: новые сообщения</text><text x="24" y="504" class="t">приходить перестанут, а переписка на</text><text x="24" y="528" class="t">этом устройстве станет нечитаемой</text><text x="24" y="552" class="t">навсегда — даже если вы вернёте</text><text x="24" y="576" class="t">личность сюда.</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(48,2000)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c10"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c10)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Перенос на другое устройство</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="code-display" transform="translate(24,80)">
+  <rect width="327" height="72" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="46" text-anchor="middle" class="k-mono" style="font-size:26px;fill:var(--fg);letter-spacing:2px">K7Q - M3F - 2X9</text>
+  </g>
+<text x="187.5" y="182" text-anchor="middle" class="k-mono" style="font-size:20px;letter-spacing:1px">2:00</text>
+<g data-kit="button-secondary" transform="translate(24,238)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">продлить</text>
+</g>
+<text x="187.5" y="304" text-anchor="middle" class="k-meta">Выпишет новый код и погасит прежний.</text>
+<line x1="24" y1="340" x2="351" y2="340" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="372" class="k-body">Приглашение одноразовое и живёт две</text>
+<text x="24" y="396" class="k-body">минуты. На новом устройстве эти</text>
+<text x="24" y="420" class="k-body">символы набирают руками; регистр не</text>
+<text x="24" y="444" class="k-body">важен, дефисы можно не набирать.</text>
+<text x="24" y="480" class="k-body">Здесь личность замрёт: новые сообщения</text>
+<text x="24" y="504" class="k-body">приходить перестанут, а переписка на</text>
+<text x="24" y="528" class="k-body">этом устройстве станет нечитаемой</text>
+<text x="24" y="552" class="k-body">навсегда — даже если вы вернёте</text>
+<text x="24" y="576" class="k-body">личность сюда.</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">11 · 13 А, код показан</text>
 <text x="0" y="862" class="capm">K7Q - M3F - 2X9 моно 34px; таймер 2:00; «продлить» = новый</text>
 <text x="0" y="880" class="capm">код</text>
 </g>
-<g transform="translate(471,2000)">
-<clipPath id="c11"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c11)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Перенос на другое устройство</text><rect x="24" y="80" width="327" height="132" rx="13" style="fill:#302720;"/><text x="187.5" y="142" class="code" text-anchor="middle" style="font-size:34px;letter-spacing:2px">K7Q - M3F - 2X9</text><text x="187.5" y="180" class="code" text-anchor="middle" style="font-size:22px;fill:#9a8d7c">2:00</text><rect x="24" y="236" width="327" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="266.0" class="tb" text-anchor="middle">продлить</text><text x="24" y="312" class="meta">Выпишет новый код и погасит прежний.</text><line x1="24" y1="340" x2="351" y2="340" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="372" class="t">Приглашение одноразовое и живёт две</text><text x="24" y="396" class="t">минуты. На новом устройстве эти</text><text x="24" y="420" class="t">символы набирают руками; регистр не</text><text x="24" y="444" class="t">важен, дефисы можно не набирать.</text><text x="24" y="480" class="t">Здесь личность замрёт: новые сообщения</text><text x="24" y="504" class="t">приходить перестанут, а переписка на</text><text x="24" y="528" class="t">этом устройстве станет нечитаемой</text><text x="24" y="552" class="t">навсегда — даже если вы вернёте</text><text x="24" y="576" class="t">личность сюда.</text><rect x="0" y="0" width="375" height="812" rx="0" style="fill:rgba(13,11,10,0.72);"/><rect x="24" y="184.0" width="327" height="444" rx="13" style="fill:#262019;"/><rect x="40" y="200.0" width="295" height="96" rx="13" style="fill:#302720;"/><text x="187.5" y="262.0" class="code" text-anchor="middle" style="font-size:44px;letter-spacing:6px">7HXK</text><text x="40" y="328.0" class="hb">Совпадает с экраном нового</text><text x="40" y="352.0" class="hb">устройства?</text><text x="40" y="388.0" class="meta">назвалось</text><text x="335" y="388.0" class="t" text-anchor="end">Chrome · Android</text><text x="40" y="412.0" class="meta">когда</text><text x="335" y="412.0" class="t" text-anchor="end">только что, 13:58</text><text x="40" y="448.0" class="meta">Никто из поддержки не попросит этот</text><text x="40" y="468.0" class="meta">код.</text><rect x="40" y="504.0" width="141" height="48" rx="13" style="fill:#302720;stroke:#80705a;stroke-width:1;"/><text x="110.5" y="534.0" class="tb" text-anchor="middle">это я</text><rect x="194" y="504.0" width="141" height="48" rx="13" style="fill:#302720;stroke:#80705a;stroke-width:1;"/><text x="264.5" y="534.0" class="tb" text-anchor="middle">не совпадает</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(471,2000)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c11"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c11)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Перенос на другое устройство</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="code-display" transform="translate(24,80)">
+  <rect width="327" height="72" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="46" text-anchor="middle" class="k-mono" style="font-size:26px;fill:var(--fg);letter-spacing:2px">K7Q - M3F - 2X9</text>
+  </g>
+<text x="187.5" y="182" text-anchor="middle" class="k-mono" style="font-size:20px;letter-spacing:1px">2:00</text>
+<line x1="24" y1="316" x2="351" y2="316" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="348" class="k-body">Приглашение одноразовое и живёт две</text>
+<text x="24" y="372" class="k-body">минуты. На новом устройстве эти</text>
+<text x="24" y="396" class="k-body">символы набирают руками; регистр не</text>
+<text x="24" y="420" class="k-body">важен, дефисы можно не набирать.</text>
+<text x="24" y="456" class="k-body">Здесь личность замрёт: новые сообщения</text>
+<text x="24" y="480" class="k-body">приходить перестанут, а переписка на</text>
+<text x="24" y="504" class="k-body">этом устройстве станет нечитаемой</text>
+<text x="24" y="528" class="k-body">навсегда — даже если вы вернёте</text>
+<text x="24" y="552" class="k-body">личность сюда.</text>
+<rect x="0" y="0" width="375" height="812" rx="0" style="fill:var(--bg);fill-opacity:0.72" />
+<rect x="24" y="184" width="327" height="358" rx="13" style="fill:var(--panel)" />
+<g data-kit="code-display" transform="translate(40,200)">
+  <rect width="295" height="72" rx="13" style="fill:var(--panel-2)" />
+  <text x="147.5" y="46" text-anchor="middle" class="k-mono" style="font-size:26px;fill:var(--fg);letter-spacing:2px">7HXK</text>
+  </g>
+<text x="40" y="304" class="k-title">Совпадает с экраном нового</text>
+<text x="40" y="328" class="k-title">устройства?</text>
+<text x="40" y="364" class="k-meta">назвалось</text>
+<text x="335" y="364" text-anchor="end" class="k-body">Chrome · Android</text>
+<text x="40" y="388" class="k-meta">когда</text>
+<text x="335" y="388" text-anchor="end" class="k-body">только что, 13:58</text>
+<text x="40" y="424" class="k-meta">Никто из поддержки не попросит этот</text>
+<text x="40" y="444" class="k-meta">код.</text>
+<g data-kit="button-secondary" transform="translate(40,482)">
+  <rect x="0.5" y="0.5" width="140" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="70.5" y="27.5" text-anchor="middle" class="k-strong">это я</text>
+</g>
+<g data-kit="button-secondary" transform="translate(194,482)">
+  <rect x="0.5" y="0.5" width="140" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="70.5" y="27.5" text-anchor="middle" class="k-strong">не совпадает</text>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">12 · 13 А, окно «это я»</text>
 <text x="0" y="862" class="capm">строка сверки 7HXK над «назвалось / когда»;</text>
 <text x="0" y="880" class="capm">вопрос «совпадает с экраном нового устройства?»</text>
 <text x="0" y="898" class="capm">две равные кнопки контуром (chat_RU.md:1138); слово отказа «не совпадает» по кворуму (13:87)</text>
 </g>
-<g transform="translate(894,2000)">
-<clipPath id="c12"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c12)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Перенос на другое устройство</text><text x="24" y="92" class="tb">Что уедет и что останется</text><text x="24" y="124" class="t">бесед замолчит до перевыпуска ключа</text><text x="351" y="124" class="tb" text-anchor="end">3</text><text x="24" y="148" class="t">живых фраз останется в ленте</text><text x="351" y="148" class="tb" text-anchor="end">2</text><line x1="24" y1="184" x2="351" y2="184" style="stroke:#3a2e20;stroke-width:1"/><rect x="24" y="208" width="327" height="162" rx="13" style="fill:#302720;"/><text x="40" y="244" class="hb">У нас не получилось</text><text x="40" y="270" class="t">Код переноса не выдали — это на</text><text x="40" y="294" class="t">нашей стороне. Личность пока здесь.</text><rect x="40" y="326" width="295" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="356.0" class="tb" text-anchor="middle">повторить</text><rect x="24" y="716" width="327" height="48" rx="13" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="746.0" class="mb" text-anchor="middle">перенести на другое устройство</text><text x="24" y="788" class="meta">спросит ПИН</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(894,2000)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c12"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c12)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Перенос на другое устройство</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-strong">Что уедет и что останется</text>
+<text x="24" y="124" class="k-body">бесед замолчит до перевыпуска ключа</text>
+<text x="351" y="124" text-anchor="end" class="k-strong">3</text>
+<text x="24" y="148" class="k-body">живых фраз останется в ленте</text>
+<text x="351" y="148" text-anchor="end" class="k-strong">2</text>
+<line x1="24" y1="184" x2="351" y2="184" style="stroke:var(--border);stroke-width:1" />
+<g data-kit="card-error" transform="translate(24,208)">
+  <rect width="327" height="162" rx="13" style="fill:var(--panel-2)" />
+  <circle cx="24" cy="28" r="8" style="fill:var(--err)" />
+  <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
+  <text x="42" y="34" class="k-strong">У нас не получилось</text>
+  <text x="16" y="62" class="k-meta" style="fill:var(--fg)">Код переноса не выдали — это на</text>
+  <g><text x="16" y="82" class="k-meta" style="fill:var(--fg)">нашей стороне. Личность пока здесь.</text></g>
+  <g data-kit="button-secondary" transform="translate(16,102)">
+  <rect x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="147.5" y="27.5" text-anchor="middle" class="k-strong">повторить</text>
+</g>
+</g>
+<g data-kit="button-primary-disabled" transform="translate(24,700)">
+  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">перенести на другое устройство</text>
+  <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">недоступно, пока код не выдан</text></g>
+</g>
+<text x="187.5" y="788" text-anchor="middle" class="k-meta">спросит ПИН</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">13 · 13 А, перенос: у нас не получилось</text>
 <text x="0" y="862" class="capm">код не выдан, личность здесь; кнопка переноса недоступна</text>
 </g>
-<g transform="translate(1317,2000)">
-<clipPath id="c13"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c13)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">У меня уже есть</text><text x="24" y="92" class="m">Код с другого устройства — если личность</text><text x="24" y="116" class="m">там ещё живёт. Бумажный — если</text><text x="24" y="140" class="m">устройства больше нет.</text><text x="24" y="188" class="m">Код с другого устройства</text><text x="351" y="188" class="meta" text-anchor="end">9 символов</text><rect x="24" y="198" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><rect x="22" y="196" width="331" height="52" rx="10" style="fill:none;stroke:#e0714f;stroke-width:2;"/><text x="187.5" y="228" class="code" text-anchor="middle" style="font-size:18px;">___ - ___ - ___</text><line x1="24" y1="274" x2="163.5" y2="274" style="stroke:#3a2e20;stroke-width:1"/><text x="187.5" y="279" class="meta" text-anchor="middle">или</text><line x1="211.5" y1="274" x2="351" y2="274" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="310" class="m">Бумажный код</text><text x="351" y="310" class="meta" text-anchor="end">16 символов</text><rect x="24" y="320" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><text x="187.5" y="350" class="code" text-anchor="middle" style="font-size:18px;">____ ____ ____ ____</text><text x="24" y="392" class="meta">Личность вернётся по коду. Переписка —</text><text x="24" y="412" class="meta">нет: её нет ни у нас, ни где-либо ещё.</text><rect x="24" y="740" width="327" height="48" rx="13" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="770.0" class="mb" text-anchor="middle">вернуть личность</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1317,2000)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c13"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c13)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">У меня уже есть</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-body" style="fill:var(--muted)">Код с другого устройства — если личность</text>
+<text x="24" y="116" class="k-body" style="fill:var(--muted)">там ещё живёт. Бумажный — если</text>
+<text x="24" y="140" class="k-body" style="fill:var(--muted)">устройства больше нет.</text>
+<text x="24" y="188" class="k-body" style="fill:var(--muted)">Код с другого устройства</text>
+<text x="351" y="188" text-anchor="end" class="k-meta">9 символов</text>
+<g data-kit="field-code" transform="translate(24,198)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">___ - ___ - ___</text>
+</g>
+<rect x="21" y="195" width="333" height="54" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2" />
+<line x1="24" y1="274" x2="163.5" y2="274" style="stroke:var(--border);stroke-width:1" />
+<text x="187.5" y="279" text-anchor="middle" class="k-meta">или</text>
+<line x1="211.5" y1="274" x2="351" y2="274" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="310" class="k-body" style="fill:var(--muted)">Бумажный код</text>
+<text x="351" y="310" text-anchor="end" class="k-meta">16 символов</text>
+<g data-kit="field-code" transform="translate(24,320)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">____ ____ ____ ____</text>
+</g>
+<text x="24" y="392" class="k-meta">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="412" class="k-meta">нет: её нет ни у нас, ни где-либо ещё.</text>
+<g data-kit="button-primary-disabled" transform="translate(24,724)">
+  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">вернуть личность</text>
+  <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">когда введён один из кодов</text></g>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">14 · 13 Б, с заставки: два поля</text>
 <text x="0" y="862" class="capm">принимающий; 9 символов переноса или 16 бумажного;</text>
 <text x="0" y="880" class="capm">кнопка без имени</text>
 </g>
-<g transform="translate(1740,2000)">
-<clipPath id="c14"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c14)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">У меня уже есть</text><text x="24" y="92" class="m">Код с другого устройства — если личность</text><text x="24" y="116" class="m">там ещё живёт. Бумажный — если</text><text x="24" y="140" class="m">устройства больше нет.</text><text x="24" y="188" class="m">Код с другого устройства</text><text x="351" y="188" class="meta" text-anchor="end">9 символов</text><rect x="24" y="198" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><text x="187.5" y="228" class="code" text-anchor="middle" style="font-size:18px;">K7Q - M3F - 2X9</text><rect x="24" y="258" width="327" height="96" rx="13" style="fill:#302720;"/><text x="187.5" y="320" class="code" text-anchor="middle" style="font-size:44px;letter-spacing:6px">7HXK</text><text x="24" y="378" class="m">Покажите это прежнему устройству:</text><text x="24" y="402" class="m">там сверят и нажмут «это я».</text><line x1="24" y1="446" x2="163.5" y2="446" style="stroke:#3a2e20;stroke-width:1"/><text x="187.5" y="451" class="meta" text-anchor="middle">или</text><line x1="211.5" y1="446" x2="351" y2="446" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="482" class="m">Бумажный код</text><text x="351" y="482" class="meta" text-anchor="end">16 символов</text><rect x="24" y="492" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="522" class="code" text-anchor="middle" style="font-size:18px;">____ ____ ____ ____</text><text x="24" y="564" class="meta">Личность вернётся по коду. Переписка —</text><text x="24" y="584" class="meta">нет: её нет ни у нас, ни где-либо ещё.</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1740,2000)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c14"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c14)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">У меня уже есть</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-body" style="fill:var(--muted)">Код с другого устройства — если личность</text>
+<text x="24" y="116" class="k-body" style="fill:var(--muted)">там ещё живёт. Бумажный — если</text>
+<text x="24" y="140" class="k-body" style="fill:var(--muted)">устройства больше нет.</text>
+<text x="24" y="188" class="k-body" style="fill:var(--muted)">Код с другого устройства</text>
+<text x="351" y="188" text-anchor="end" class="k-meta">9 символов</text>
+<g data-kit="field-code" transform="translate(24,198)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">K7Q - M3F - 2X9</text>
+</g>
+<g data-kit="code-display" transform="translate(24,258)">
+  <rect width="327" height="72" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="46" text-anchor="middle" class="k-mono" style="font-size:26px;fill:var(--fg);letter-spacing:2px">7HXK</text>
+  </g>
+<text x="24" y="354" class="k-body" style="fill:var(--muted)">Покажите это прежнему устройству:</text>
+<text x="24" y="378" class="k-body" style="fill:var(--muted)">там сверят и нажмут «это я».</text>
+<line x1="24" y1="422" x2="163.5" y2="422" style="stroke:var(--border);stroke-width:1" />
+<text x="187.5" y="427" text-anchor="middle" class="k-meta">или</text>
+<line x1="211.5" y1="422" x2="351" y2="422" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="458" class="k-body" style="fill:var(--muted)">Бумажный код</text>
+<text x="351" y="458" text-anchor="end" class="k-meta">16 символов</text>
+<g data-kit="field-code" transform="translate(24,468)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">____ ____ ____ ____</text>
+</g>
+<text x="24" y="540" class="k-meta">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="560" class="k-meta">нет: её нет ни у нас, ни где-либо ещё.</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">15 · 13 Б, код введён — строка сверки</text>
 <text x="0" y="862" class="capm">4 символа крупно; бумажное поле закрыто; ждём «это я» на</text>
 <text x="0" y="880" class="capm">прежнем</text>
 </g>
-<g transform="translate(48,2950)">
-<clipPath id="c15"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c15)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">У меня уже есть</text><text x="24" y="92" class="m">Код с другого устройства — если личность</text><text x="24" y="116" class="m">там ещё живёт. Бумажный — если</text><text x="24" y="140" class="m">устройства больше нет.</text><text x="24" y="188" class="m">Код с другого устройства</text><text x="351" y="188" class="meta" text-anchor="end">9 символов</text><rect x="24" y="198" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><text x="187.5" y="228" class="code" text-anchor="middle" style="font-size:18px;">K7Q - M3F - 2X8</text><circle cx="32" cy="268" r="8" style="fill:#ef7a6a"/><text x="32" y="273" class="tb" text-anchor="middle" style="fill:#0d0b0a;font-size:13px">!</text><text x="52" y="274" class="err">Код не подошёл или истёк. Новый</text><text x="52" y="298" class="err">покажет прежнее устройство, если</text><text x="52" y="322" class="err">оно на связи.</text><rect x="24" y="354" width="327" height="48" rx="13" style="fill:#262019;stroke:#f0e7dc;stroke-width:1;"/><text x="187.5" y="384.0" class="tb" text-anchor="middle">Ввести новый</text><line x1="24" y1="430" x2="163.5" y2="430" style="stroke:#3a2e20;stroke-width:1"/><text x="187.5" y="435" class="meta" text-anchor="middle">или</text><line x1="211.5" y1="430" x2="351" y2="430" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="466" class="m">Бумажный код</text><text x="351" y="466" class="meta" text-anchor="end">16 символов</text><rect x="24" y="476" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><text x="187.5" y="506" class="code" text-anchor="middle" style="font-size:18px;">____ ____ ____ ____</text><text x="24" y="548" class="meta">Личность вернётся по коду. Переписка —</text><text x="24" y="568" class="meta">нет: её нет ни у нас, ни где-либо ещё.</text><rect x="24" y="740" width="327" height="48" rx="13" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="770.0" class="mb" text-anchor="middle">вернуть личность</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(48,2950)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c15"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c15)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">У меня уже есть</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-body" style="fill:var(--muted)">Код с другого устройства — если личность</text>
+<text x="24" y="116" class="k-body" style="fill:var(--muted)">там ещё живёт. Бумажный — если</text>
+<text x="24" y="140" class="k-body" style="fill:var(--muted)">устройства больше нет.</text>
+<text x="24" y="188" class="k-body" style="fill:var(--muted)">Код с другого устройства</text>
+<text x="351" y="188" text-anchor="end" class="k-meta">9 символов</text>
+<g data-kit="field-code" transform="translate(24,198)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">K7Q - M3F - 2X8</text>
+</g>
+<circle cx="32" cy="268" r="8" style="fill:var(--err)" />
+<text x="32" y="273" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">!</text>
+<text x="52" y="274" class="k-body" style="fill:var(--err)">Код не подошёл или истёк. Новый</text>
+<text x="52" y="298" class="k-body" style="fill:var(--err)">покажет прежнее устройство, если</text>
+<text x="52" y="322" class="k-body" style="fill:var(--err)">оно на связи.</text>
+<g data-kit="button-secondary" transform="translate(24,356)">
+  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">Ввести новый</text>
+</g>
+<line x1="24" y1="430" x2="163.5" y2="430" style="stroke:var(--border);stroke-width:1" />
+<text x="187.5" y="435" text-anchor="middle" class="k-meta">или</text>
+<line x1="211.5" y1="430" x2="351" y2="430" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="466" class="k-body" style="fill:var(--muted)">Бумажный код</text>
+<text x="351" y="466" text-anchor="end" class="k-meta">16 символов</text>
+<g data-kit="field-code" transform="translate(24,476)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">____ ____ ____ ____</text>
+</g>
+<text x="24" y="548" class="k-meta">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="568" class="k-meta">нет: её нет ни у нас, ни где-либо ещё.</text>
+<g data-kit="button-primary-disabled" transform="translate(24,724)">
+  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">вернуть личность</text>
+  <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">когда введён один из кодов</text></g>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">16 · 13 Б, код не подошёл или истёк</text>
 <text x="0" y="862" class="capm">одна строка на опечатку и истёкший код; «Ввести новый»</text>
 </g>
-<g transform="translate(471,2950)">
-<clipPath id="c16"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#c16)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">У меня уже есть</text><text x="24" y="92" class="m">Код с другого устройства — если личность</text><text x="24" y="116" class="m">там ещё живёт. Бумажный — если</text><text x="24" y="140" class="m">устройства больше нет.</text><text x="24" y="188" class="m">Код с другого устройства</text><text x="351" y="188" class="meta" text-anchor="end">9 символов</text><rect x="24" y="198" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="228" class="code" text-anchor="middle" style="font-size:18px;">___ - ___ - ___</text><rect x="24" y="258" width="327" height="198" rx="13" style="fill:#302720;"/><text x="40" y="294" class="hb">Перенос отменён</text><text x="40" y="330" class="meta">сверка</text><text x="187.5" y="334" class="code" text-anchor="middle">7HXK</text><text x="40" y="364" class="t">Этот код ввели ещё на одном</text><text x="40" y="388" class="t">устройстве, и перенос отменён.</text><text x="40" y="412" class="t">Личность на прежнем месте —</text><text x="40" y="436" class="t">начните заново, с новым кодом.</text><line x1="24" y1="484" x2="163.5" y2="484" style="stroke:#3a2e20;stroke-width:1"/><text x="187.5" y="489" class="meta" text-anchor="middle">или</text><line x1="211.5" y1="484" x2="351" y2="484" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="520" class="m">Бумажный код</text><text x="351" y="520" class="meta" text-anchor="end">16 символов</text><rect x="24" y="530" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="560" class="code" text-anchor="middle" style="font-size:18px;">____ ____ ____ ____</text><text x="24" y="602" class="meta">Личность вернётся по коду. Переписка —</text><text x="24" y="622" class="meta">нет: её нет ни у нас, ни где-либо ещё.</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(471,2950)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="c16"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#c16)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">У меня уже есть</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-body" style="fill:var(--muted)">Код с другого устройства — если личность</text>
+<text x="24" y="116" class="k-body" style="fill:var(--muted)">там ещё живёт. Бумажный — если</text>
+<text x="24" y="140" class="k-body" style="fill:var(--muted)">устройства больше нет.</text>
+<text x="24" y="188" class="k-body" style="fill:var(--muted)">Код с другого устройства</text>
+<text x="351" y="188" text-anchor="end" class="k-meta">9 символов</text>
+<g data-kit="field-code" transform="translate(24,198)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">___ - ___ - ___</text>
+</g>
+<rect x="24" y="258" width="327" height="198" rx="13" style="fill:var(--panel-2)" />
+<text x="40" y="294" class="k-title">Перенос отменён</text>
+<text x="40" y="330" class="k-meta">сверка</text>
+<text x="187.5" y="334" text-anchor="middle" class="k-mono" style="fill:var(--fg);letter-spacing:1px;font-size:26px">7HXK</text>
+<text x="40" y="364" class="k-body">Этот код ввели ещё на одном</text>
+<text x="40" y="388" class="k-body">устройстве, и перенос отменён.</text>
+<text x="40" y="412" class="k-body">Личность на прежнем месте —</text>
+<text x="40" y="436" class="k-body">начните заново, с новым кодом.</text>
+<line x1="24" y1="484" x2="163.5" y2="484" style="stroke:var(--border);stroke-width:1" />
+<text x="187.5" y="489" text-anchor="middle" class="k-meta">или</text>
+<line x1="211.5" y1="484" x2="351" y2="484" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="520" class="k-body" style="fill:var(--muted)">Бумажный код</text>
+<text x="351" y="520" text-anchor="end" class="k-meta">16 символов</text>
+<g data-kit="field-code" transform="translate(24,530)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">____ ____ ____ ____</text>
+</g>
+<text x="24" y="602" class="k-meta">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="622" class="k-meta">нет: её нет ни у нас, ни где-либо ещё.</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">17 · 13 Б, перенос отменён</text>
 <text x="0" y="862" class="capm">тот же код ввели на двух устройствах; действия нет — новый</text>
 <text x="0" y="880" class="capm">код; строка сверки 7HXK — те же четыре символа, что</text>
 <text x="0" y="898" class="capm">на кадре 15 (chat_RU.md:1149)</text>
 </g>
-<g transform="translate(894,2950)">
-<clipPath id="cRefused"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#cRefused)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Перенос на другое устройство</text><rect x="24" y="80" width="327" height="178" rx="13" style="fill:#302720;"/><text x="40" y="116" class="hb">Перенос отклонён</text><text x="40" y="152" class="meta">сверка</text><text x="187.5" y="156" class="code" text-anchor="middle">7HXK</text><text x="40" y="186" class="t">Переноса не было: личность</text><text x="40" y="210" class="t">осталась на этом устройстве.</text><text x="40" y="234" class="t">Код погас — начните заново.</text><line x1="24" y1="290" x2="351" y2="290" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="322" class="t">До нажатия «это я» вторая сторона не</text><text x="24" y="346" class="t">получает ничего.</text><text x="24" y="382" class="meta">Приглашение одноразовое: тот же код</text><text x="24" y="402" class="meta">больше не подойдёт.</text><rect x="27" y="719" width="327" height="48" rx="13" style="fill:#3a2e20;"/><rect x="24" y="716" width="327" height="48" rx="13" style="fill:#bd4b2a;"/><text x="187.5" y="746.0" class="tb" text-anchor="middle" style="fill:#fff6f0">перенести на другое устройство</text><text x="24" y="788" class="meta">спросит ПИН</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(894,2950)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="cRefused"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#cRefused)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Перенос на другое устройство</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<rect x="24" y="80" width="327" height="178" rx="13" style="fill:var(--panel-2)" />
+<text x="40" y="116" class="k-title">Перенос отклонён</text>
+<text x="40" y="152" class="k-meta">сверка</text>
+<text x="187.5" y="156" text-anchor="middle" class="k-mono" style="fill:var(--fg);letter-spacing:1px;font-size:26px">7HXK</text>
+<text x="40" y="186" class="k-body">Переноса не было: личность</text>
+<text x="40" y="210" class="k-body">осталась на этом устройстве.</text>
+<text x="40" y="234" class="k-body">Код погас — начните заново.</text>
+<line x1="24" y1="290" x2="351" y2="290" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="322" class="k-body">До нажатия «это я» вторая сторона не</text>
+<text x="24" y="346" class="k-body">получает ничего.</text>
+<text x="24" y="382" class="k-meta">Приглашение одноразовое: тот же код</text>
+<text x="24" y="402" class="k-meta">больше не подойдёт.</text>
+<g data-kit="button-primary" transform="translate(24,718)">
+  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">перенести на другое устройство</text>
+</g>
+<text x="187.5" y="788" text-anchor="middle" class="k-meta">спросит ПИН</text>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">18 · 13 А, отклонено (заголовок и тело — текст мой)</text>
 <text x="0" y="862" class="capm">после «отклонить» на кадре 12: переноса не было</text>
 <text x="0" y="880" class="capm">(chat_RU.md:1147), приглашение одноразовое</text>
 <text x="0" y="898" class="capm">(13-devices_RU.md:55); кнопка и «спросит ПИН» — с кадра 9</text>
 </g>
-<g transform="translate(1317,2950)">
-<clipPath id="cNewPin"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#cNewPin)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Личность переехала сюда</text><text x="24" y="92" class="t">Этому устройству нужен свой ПИН: доля</text><text x="24" y="116" class="t">хранилища принадлежит устройству, а не</text><text x="24" y="140" class="t">личности.</text><text x="24" y="178" class="m">ПИН</text><rect x="24" y="188" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="139.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="171.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="203.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="235.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="267.5" cy="212" r="6" style="fill:#f0e7dc"/><text x="24" y="270" class="m">повторите ПИН</text><rect x="24" y="280" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="139.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="171.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="203.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="235.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="267.5" cy="304" r="6" style="fill:#f0e7dc"/><line x1="24" y1="360" x2="351" y2="360" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="392" class="t">На новом устройстве беседы будут те же,</text><text x="24" y="416" class="t">но пустые: истории у него нет и взяться</text><text x="24" y="440" class="t">ей неоткуда.</text><text x="24" y="476" class="meta">Прежнее устройство замерло: новых</text><text x="24" y="496" class="meta">сообщений оно больше не получает.</text><rect x="27" y="743" width="327" height="48" rx="13" style="fill:#3a2e20;"/><rect x="24" y="740" width="327" height="48" rx="13" style="fill:#bd4b2a;"/><text x="187.5" y="770" class="tb" text-anchor="middle" style="fill:#fff6f0">дальше</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1317,2950)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="cNewPin"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#cNewPin)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Личность переехала сюда</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-body">Этому устройству нужен свой ПИН: доля</text>
+<text x="24" y="116" class="k-body">хранилища принадлежит устройству, а не</text>
+<text x="24" y="140" class="k-body">личности.</text>
+<text x="24" y="178" class="k-body" style="fill:var(--muted)">ПИН</text>
+<g data-kit="field-pin" transform="translate(24,188)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+</g>
+<text x="24" y="270" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<g data-kit="field-pin" transform="translate(24,280)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+</g>
+<line x1="24" y1="360" x2="351" y2="360" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="392" class="k-body">На новом устройстве беседы будут те же,</text>
+<text x="24" y="416" class="k-body">но пустые: истории у него нет и взяться</text>
+<text x="24" y="440" class="k-body">ей неоткуда.</text>
+<text x="24" y="476" class="k-meta">Прежнее устройство замерло: новых</text>
+<text x="24" y="496" class="k-meta">сообщений оно больше не получает.</text>
+<g data-kit="button-primary" transform="translate(24,742)">
+  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">дальше</text>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">19 · 13 Б, свой ПИН (заголовок — текст мой)</text>
 <text x="0" y="862" class="capm">после кода переноса (кадр 15): «доля хранилища</text>
 <text x="0" y="880" class="capm">принадлежит устройству, а не личности»</text>
 <text x="0" y="898" class="capm">(13-devices_RU.md:60, 61, 64)</text>
 </g>
-<g transform="translate(1740,2950)">
-<clipPath id="cPaperPin"><rect width="375" height="812" rx="24"/></clipPath>
-<g clip-path="url(#cPaperPin)"><rect width="375" height="812" style="fill:#0d0b0a"/><rect x="0" y="0" width="375" height="56" rx="0" style="fill:#0d0b0a;"/><path d="M34 20 L24 28 L34 36" style="fill:none;stroke:#f0e7dc;stroke-width:2"/><text x="56" y="34" class="h">Новый ПИН</text><text x="24" y="92" class="t">Личность вернулась. ПИН задаётся заново,</text><text x="24" y="116" class="t">с новой долей, и история этого</text><text x="24" y="140" class="t">устройства теряется.</text><text x="24" y="178" class="m">ПИН</text><rect x="24" y="188" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="139.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="171.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="203.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="235.5" cy="212" r="6" style="fill:#f0e7dc"/><circle cx="267.5" cy="212" r="6" style="fill:#f0e7dc"/><text x="24" y="270" class="m">повторите ПИН</text><rect x="24" y="280" width="327" height="48" rx="8" style="fill:#262019;stroke:#80705a;stroke-width:1;"/><circle cx="107.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="139.5" cy="304" r="6" style="fill:#f0e7dc"/><circle cx="171.5" cy="304" r="6" style="fill:#f0e7dc"/><line x1="24" y1="360" x2="351" y2="360" style="stroke:#3a2e20;stroke-width:1"/><text x="24" y="392" class="t">Личность вернётся по коду. Переписка —</text><text x="24" y="416" class="t">нет: её нет ни у нас, ни где-либо ещё.</text><text x="24" y="452" class="meta">Прежний бумажный код использован.</text><text x="24" y="472" class="meta">Перевыпуск — по 12:89, вопрос открыт.</text><text x="24" y="728" class="m">дальше — когда ПИН повторён</text><rect x="24" y="740" width="327" height="48" rx="13" style="fill:#262019;stroke:#80705a;stroke-width:1;" stroke-dasharray="4 4"/><text x="187.5" y="770" class="mb" text-anchor="middle">дальше</text></g>
-<rect width="375" height="812" rx="24" style="fill:none;stroke:#3a2e20;stroke-width:2"/>
+<g transform="translate(1740,2950)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)" />
+<clipPath id="cPaperPin"><rect width="375" height="812" rx="24" /></clipPath>
+<g clip-path="url(#cPaperPin)">
+<rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title">Новый ПИН</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<text x="24" y="92" class="k-body">Личность вернулась. ПИН задаётся заново,</text>
+<text x="24" y="116" class="k-body">с новой долей, и история этого</text>
+<text x="24" y="140" class="k-body">устройства теряется.</text>
+<text x="24" y="178" class="k-body" style="fill:var(--muted)">ПИН</text>
+<g data-kit="field-pin" transform="translate(24,188)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+</g>
+<text x="24" y="270" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<g data-kit="field-pin" transform="translate(24,280)">
+  <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="115.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="147.5" cy="24" r="6" style="fill:var(--fg);stroke:var(--muted);stroke-width:1" />
+  <circle cx="179.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="211.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+  <circle cx="243.5" cy="24" r="6" style="fill:none;stroke:var(--muted);stroke-width:1" />
+</g>
+<line x1="24" y1="360" x2="351" y2="360" style="stroke:var(--border);stroke-width:1" />
+<text x="24" y="392" class="k-body">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="416" class="k-body">нет: её нет ни у нас, ни где-либо ещё.</text>
+<text x="24" y="452" class="k-meta">Прежний бумажный код использован.</text>
+<text x="24" y="472" class="k-meta">Перевыпуск — по 12:89, вопрос открыт.</text>
+<g data-kit="button-primary-disabled" transform="translate(24,724)">
+  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
+  <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — когда ПИН повторён</text></g>
+</g>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2" />
 <text x="0" y="842" class="cap">20 · 13 Б, новый ПИН (заголовок — текст мой)</text>
 <text x="0" y="862" class="capm">«забыт ПИН — задаётся новый с новой долей, и история</text>
 <text x="0" y="880" class="capm">этого устройства теряется» (chat_RU.md:1254);</text>

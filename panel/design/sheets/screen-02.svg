@@ -1,0 +1,288 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3009" height="1962" viewBox="0 0 3009 1962">
+<title>02 · О себе — два шага регистрации</title>
+<style>
+/* kit:tokens */
+    .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+    .capm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
+    .sheet { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+    .sheetm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
+</style>
+<rect width="3009" height="1962" style="fill:#302720"/>
+<text x="48" y="34" class="sheet">02 · О себе — два шага регистрации</text>
+<text x="48" y="56" class="sheetm">375×812 · тёмная тема, акцент terra · собрано из kit/components.svg (panel/design/sheets/screen-02.svg) · Golos Text · JetBrains Mono для кода</text>
+<g transform="translate(48,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c0"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c0)">
+<rect width="375" height="56" style="fill:var(--bg)"/>
+<text x="24" y="34" class="k-title">Кто вы</text>
+<text x="351" y="34" text-anchor="end" class="k-mono">1 / 2</text>
+<use href="kit/components.svg#field" x="24" y="108" data-w="327" data-label="Язык" data-value="Русский"/>
+<use href="kit/components.svg#icon-chevron-down" x="307" y="108"/>
+<use href="kit/components.svg#field-focus" x="24" y="196" data-w="327" data-label="Как вас называть"/>
+<text x="351" y="262" text-anchor="end" class="k-mono">осталось 24</text>
+<use href="kit/components.svg#field" x="24" y="284" data-w="112" data-label="возраст" data-value=""/>
+<text x="148" y="312" class="k-body" style="fill:var(--muted)">сюда с 13 лет</text>
+<use href="kit/components.svg#checkbox" x="24" y="344" data-w="327" data-label="принимаю соглашение,"/>
+<text x="60" y="391" class="k-body">политику и правила</text>
+<text x="24" y="420" class="k-meta-strong" style="fill:var(--accent-text)">Пользовательское соглашение</text>
+<text x="24" y="448" class="k-meta-strong" style="fill:var(--accent-text)">Политика конфиденциальности</text>
+<text x="24" y="476" class="k-meta-strong" style="fill:var(--accent-text)">Правила сообщества</text>
+<rect x="24" y="492" width="327" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — после согласия"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">1 · шаг 1, пусто</text>
+<text x="0" y="862" class="capm">«дальше» неактивна: согласия нет (Н1)</text>
+</g>
+<g transform="translate(471,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c1"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c1)">
+<rect width="375" height="56" style="fill:var(--bg)"/>
+<text x="24" y="34" class="k-title">Кто вы</text>
+<text x="351" y="34" text-anchor="end" class="k-mono">1 / 2</text>
+<use href="kit/components.svg#field" x="24" y="108" data-w="327" data-label="Язык" data-value="Русский"/>
+<use href="kit/components.svg#icon-chevron-down" x="307" y="108"/>
+<use href="kit/components.svg#field" x="24" y="196" data-w="327" data-label="Как вас называть" data-value="Женя"/>
+<text x="351" y="262" text-anchor="end" class="k-mono">осталось 20</text>
+<use href="kit/components.svg#field" x="24" y="284" data-w="112" data-label="возраст" data-value="12"/>
+<circle cx="160" cy="306" r="8" style="fill:var(--err)"/><text x="160" y="311" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">!</text>
+<text x="176" y="312" class="k-body" style="fill:var(--err)">сюда с 13 лет</text>
+<use href="kit/components.svg#checkbox-checked" x="24" y="344" data-w="327" data-label="принимаю соглашение,"/>
+<text x="60" y="391" class="k-body">политику и правила</text>
+<text x="24" y="420" class="k-meta-strong" style="fill:var(--accent-text)">Пользовательское соглашение</text>
+<text x="24" y="448" class="k-meta-strong" style="fill:var(--accent-text)">Политика конфиденциальности</text>
+<text x="24" y="476" class="k-meta-strong" style="fill:var(--accent-text)">Правила сообщества</text>
+<rect x="24" y="492" width="327" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#button-primary" x="24" y="744" data-w="327" data-label="дальше"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">2 · шаг 1, ошибка возраста</text>
+<text x="0" y="862" class="capm">«сюда с 13 лет» стояла до ввода, после отказа узла —</text>
+<text x="0" y="880" class="capm">красная и со знаком</text>
+</g>
+<g transform="translate(894,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c2"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c2)">
+<use href="kit/components.svg#header-center" x="0" y="0" data-title="Чем вы вернётесь" data-back="" data-right="2 / 2"/>
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="96" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="166" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="176" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
+<rect x="24" y="264" width="200" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="24" y="286" width="327" height="72" rx="13" style="fill:var(--panel)"/>
+<rect x="40" y="314" width="295" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="24" y="374" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="24" y="402" width="327" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="24" y="424" width="327" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="24" y="446" width="327" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="24" y="468" width="327" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="24" y="490" width="327" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="24" y="512" width="180" height="12" rx="6" style="fill:var(--panel-2)"/>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — когда код получен"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">3 · шаг 2, ждём долю</text>
+<text x="0" y="862" class="capm">скелет на месте кода без подписи (Н3); «дальше»</text>
+<text x="0" y="880" class="capm">недоступна</text>
+</g>
+<g transform="translate(1317,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c3"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c3)">
+<use href="kit/components.svg#header-center" x="0" y="0" data-title="Чем вы вернётесь" data-back="" data-right="2 / 2"/>
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="96" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="166" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="176" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
+<text x="24" y="276" class="k-body" style="fill:var(--muted)">Бумажный код восстановления</text>
+<rect x="24" y="286" width="327" height="72" rx="13" style="fill:var(--panel-2)"/>
+<text x="187.5" y="329" text-anchor="middle" class="k-mono" style="font-size:20px;fill:var(--fg);letter-spacing:1px">8K3P Q7ZW XN2M 5AY9</text>
+<text x="24" y="386" class="k-strong">Запишите этот код на бумаге.</text>
+<text x="24" y="408" class="k-body">Это единственный способ вернуть вашу</text>
+<text x="24" y="430" class="k-body">личность. Почты и пароля у нас нет —</text>
+<text x="24" y="452" class="k-body">если вы потеряете устройство, очистите</text>
+<text x="24" y="474" class="k-body">данные сайта или браузер сам сотрёт их,</text>
+<text x="24" y="496" class="k-body">когда ему станет тесно на диске,</text>
+<text x="24" y="518" class="k-body">восстановить вас будет нечем, и</text>
+<text x="24" y="540" class="k-body">подсказать код мы не сможем: у нас его</text>
+<text x="24" y="562" class="k-body">нет. Никто из поддержки не попросит</text>
+<text x="24" y="584" class="k-body">этот код. Второй раз он показан не будет.</text>
+<text x="24" y="612" class="k-body" style="fill:var(--muted)">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="634" class="k-body" style="fill:var(--muted)">нет: её нет ни у нас, ни где-либо ещё.</text>
+<text x="187.5" y="654" text-anchor="middle" class="k-body" style="fill:var(--muted)">Записали? Введите вторую и четвёртую</text>
+<use href="kit/components.svg#field-code" x="73.5" y="668" data-w="108" data-value="____"/>
+<use href="kit/components.svg#field-code" x="193.5" y="668" data-w="108" data-value="____"/>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — когда код записан"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">4 · шаг 2, код показан</text>
+<text x="0" y="862" class="capm">четыре группы по четыре; подтверждение — группы 2 и 4</text>
+</g>
+<g transform="translate(1740,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c4"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c4)">
+<use href="kit/components.svg#header-center" x="0" y="0" data-title="Чем вы вернётесь" data-back="" data-right="2 / 2"/>
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="96" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="166" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="176" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
+<use href="kit/components.svg#card-error" x="24" y="270" data-w="327" data-title="У нас не получилось" data-l1="Мы не ответили — это на нашей стороне." data-l2="Имя, возраст и ПИН на месте — код" data-l3="покажем, как только ответим." data-h="180"/>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — когда код получен"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">5 · шаг 2, у нас не получилось</text>
+<text x="0" y="862" class="capm">экран 11: «У нас не получилось» · «Повторить»; ПИН на</text>
+<text x="0" y="880" class="capm">месте</text>
+</g>
+<g transform="translate(2163,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c5"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c5)">
+<use href="kit/components.svg#header-center" x="0" y="0" data-title="Чем вы вернётесь" data-back="" data-right="2 / 2"/>
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="96" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="166" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="176" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
+<use href="kit/components.svg#card-error" x="24" y="270" data-w="327" data-title="Нет связи" data-l1="Похоже, интернет пропал." data-l2="Имя, возраст и ПИН на месте — код" data-l3="покажем, как только появится связь." data-h="180"/>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — когда код получен"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">6 · шаг 2, нет сети</text>
+<text x="0" y="862" class="capm">экран 11: «Нет связи» · «Повторить»</text>
+</g>
+<g transform="translate(2586,72)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c6"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c6)">
+<rect width="375" height="56" style="fill:var(--bg)"/>
+<text x="24" y="34" class="k-title">Кто вы</text>
+<text x="351" y="34" text-anchor="end" class="k-mono">1 / 2</text>
+<use href="kit/components.svg#field" x="24" y="108" data-w="327" data-label="Язык" data-value="Русский"/>
+<use href="kit/components.svg#icon-chevron-down" x="307" y="108"/>
+<use href="kit/components.svg#field-focus" x="24" y="196" data-w="327" data-label="Как вас называть"/>
+<text x="351" y="262" text-anchor="end" class="k-mono">осталось 24</text>
+<use href="kit/components.svg#field" x="24" y="284" data-w="112" data-label="возраст" data-value=""/>
+<text x="148" y="312" class="k-body" style="fill:var(--muted)">сюда с 13 лет</text>
+<use href="kit/components.svg#checkbox" x="24" y="344" data-w="327" data-label="принимаю соглашение,"/>
+<text x="60" y="391" class="k-body">политику и правила</text>
+<text x="24" y="420" class="k-meta-strong" style="fill:var(--accent-text)">Пользовательское соглашение</text>
+<text x="24" y="448" class="k-meta-strong" style="fill:var(--accent-text)">Политика конфиденциальности</text>
+<text x="24" y="476" class="k-meta-strong" style="fill:var(--accent-text)">Правила сообщества</text>
+<rect x="24" y="492" width="327" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — после согласия"/>
+<rect width="375" height="812" style="fill:var(--bg);fill-opacity:0.7"/>
+<rect x="0" y="96" width="375" height="716" rx="24" style="fill:var(--panel)"/>
+<rect x="167.5" y="104" width="40" height="4" rx="2" style="fill:var(--border-control)"/>
+<text x="24" y="146" class="k-title">Пользовательское соглашение</text>
+<use href="kit/components.svg#icon-button" x="321" y="116" data-icon="icon-close" data-name="закрыть"/>
+<text x="24" y="192" class="k-meta">этот документ существует только на английском</text>
+<rect x="0" y="208" width="375" height="1" style="fill:var(--border)"/>
+<rect x="24" y="226" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="248" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="270" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="292" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="314" width="134" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="336" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="358" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="380" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="402" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="424" width="143" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="446" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="468" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="490" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="512" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="534" width="141" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="556" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="578" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="600" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="622" width="327" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="24" y="644" width="212" height="10" rx="5" style="fill:var(--panel-2)"/>
+<text x="24" y="700" class="k-mono">[текст документа: sosed.place/legal, EN]</text>
+<use href="kit/components.svg#button-secondary" x="24" y="744" data-w="327" data-label="закрыть"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">7 · документ поверх шага 1</text>
+<text x="0" y="862" class="capm">лист снизу; строка «только на английском» (экран 15)</text>
+</g>
+<g transform="translate(48,1022)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c7"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c7)">
+<use href="kit/components.svg#header-center" x="0" y="0" data-title="Чем вы вернётесь" data-back="" data-right="2 / 2"/>
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="96" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="166" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="176" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
+<text x="24" y="276" class="k-body" style="fill:var(--muted)">Бумажный код восстановления</text>
+<rect x="24" y="286" width="327" height="72" rx="13" style="fill:var(--panel-2)"/>
+<text x="187.5" y="329" text-anchor="middle" class="k-mono" style="font-size:20px;fill:var(--fg);letter-spacing:1px">8K3P Q7ZW XN2M 5AY9</text>
+<text x="24" y="386" class="k-strong">Запишите этот код на бумаге.</text>
+<text x="24" y="408" class="k-body">Это единственный способ вернуть вашу</text>
+<text x="24" y="430" class="k-body">личность. Почты и пароля у нас нет —</text>
+<text x="24" y="452" class="k-body">если вы потеряете устройство, очистите</text>
+<text x="24" y="474" class="k-body">данные сайта или браузер сам сотрёт их,</text>
+<text x="24" y="496" class="k-body">когда ему станет тесно на диске,</text>
+<text x="24" y="518" class="k-body">восстановить вас будет нечем, и</text>
+<text x="24" y="540" class="k-body">подсказать код мы не сможем: у нас его</text>
+<text x="24" y="562" class="k-body">нет. Никто из поддержки не попросит</text>
+<text x="24" y="584" class="k-body">этот код. Второй раз он показан не будет.</text>
+<text x="24" y="612" class="k-body" style="fill:var(--muted)">Личность вернётся по коду. Переписка —</text>
+<text x="24" y="634" class="k-body" style="fill:var(--muted)">нет: её нет ни у нас, ни где-либо ещё.</text>
+<text x="187.5" y="654" text-anchor="middle" class="k-body" style="fill:var(--muted)">Записали? Введите вторую и четвёртую</text>
+<use href="kit/components.svg#field-code" x="73.5" y="668" data-w="108" data-value="Q7ZW"/>
+<use href="kit/components.svg#field-code" x="193.5" y="668" data-w="108" data-value="5AY9"/>
+<use href="kit/components.svg#button-primary" x="24" y="744" data-w="327" data-label="дальше"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">8 · шаг 2, код подтверждён</text>
+<text x="0" y="862" class="capm">вторая и четвёртая группы введены верно — «дальше»</text>
+<text x="0" y="880" class="capm">активна; «не пропускает, пока не введены две группы»</text>
+<text x="0" y="898" class="capm">(chat_RU.md:1302, 02-name-screen_RU.md:72)</text>
+</g>
+<g transform="translate(471,1022)" class="k-dark">
+<rect width="375" height="812" rx="24" style="fill:var(--bg)"/>
+<clipPath id="c8"><rect width="375" height="812" rx="24"/></clipPath>
+<g clip-path="url(#c8)">
+<use href="kit/components.svg#header-center" x="0" y="0" data-title="Чем вы вернётесь" data-back="" data-right="2 / 2"/>
+<text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="96" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="166" class="k-body" style="fill:var(--muted)">повторите ПИН</text>
+<use href="kit/components.svg#field-pin" x="24" y="176" data-d1="var(--fg)" data-d2="var(--fg)" data-d3="var(--fg)" data-d4="var(--fg)" data-d5="var(--fg)" data-d6="var(--fg)"/>
+<text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
+<text x="24" y="276" class="k-body" style="fill:var(--muted)">Бумажный код восстановления</text>
+<rect x="24" y="286" width="327" height="72" rx="13" style="fill:var(--panel-2)"/>
+<text x="187.5" y="329" text-anchor="middle" class="k-mono" style="font-size:20px;fill:var(--fg);letter-spacing:1px">8K3P Q7ZW XN2M 5AY9</text>
+<text x="24" y="386" class="k-strong">Запишите этот код на бумаге.</text>
+<text x="24" y="408" class="k-body">Это единственный способ вернуть вашу</text>
+<text x="24" y="430" class="k-body">личность. Почты и пароля у нас нет —</text>
+<text x="24" y="452" class="k-body">если вы потеряете устройство, очистите</text>
+<text x="24" y="474" class="k-body">данные сайта или браузер сам сотрёт их,</text>
+<text x="24" y="496" class="k-body">когда ему станет тесно на диске,</text>
+<text x="24" y="518" class="k-body">восстановить вас будет нечем, и</text>
+<text x="24" y="540" class="k-body">подсказать код мы не сможем: у нас его</text>
+<text x="24" y="562" class="k-body">нет. Никто из поддержки не попросит</text>
+<text x="24" y="584" class="k-body">этот код. Второй раз он показан не будет.</text>
+<text x="187.5" y="606" text-anchor="middle" class="k-body" style="fill:var(--muted)">Записали? Введите вторую и четвёртую</text>
+<use href="kit/components.svg#field-code" x="73.5" y="616" data-w="108" data-value="Q7ZW"/>
+<use href="kit/components.svg#field-code" x="193.5" y="616" data-w="108" data-value="5A49"/>
+<circle cx="90.5" cy="684" r="8" style="fill:var(--err)"/><text x="90.5" y="689" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">!</text>
+<text x="201.5" y="690" text-anchor="middle" class="k-body" style="fill:var(--err)">Не совпадает с кодом —</text>
+<text x="201.5" y="712" text-anchor="middle" class="k-body" style="fill:var(--err)">сверьте с бумагой.</text>
+<use href="kit/components.svg#button-primary-disabled" x="24" y="728" data-w="327" data-label="дальше" data-reason="дальше — когда группы совпадут"/>
+</g>
+<rect width="375" height="812" rx="24" style="fill:none;stroke:var(--border);stroke-width:2"/>
+<text x="0" y="842" class="cap">9 · шаг 2, группы не совпали</text>
+<text x="0" y="862" class="capm">«Не совпадает с кодом — сверьте с бумагой.»</text>
+<text x="0" y="880" class="capm">(entry-cluster.md:261); экран прокручен к подтверждению; ошибка</text>
+<text x="0" y="898" class="capm">стоит личности (02-name-screen_RU.md:72, 82)</text>
+</g>
+</svg>

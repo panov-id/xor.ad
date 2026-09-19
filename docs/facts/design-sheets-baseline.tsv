@@ -1,10 +1,10 @@
 # Ratchet baseline of scripts/check-design-sheets.sh: a count may fall, never grow.
 # Rewritten by --write-baseline; the date is the day the bar was lowered.
 measure	value
-sizes_off_scale	22
+sizes_off_scale	0
 strokes_off_scale	0
-radii_off_scale	100
-colours_off_token	36
+radii_off_scale	83
+colours_off_token	14
 placeholders	0
 accent_text	0
-small_bordered_controls	5
+small_bordered_controls	0

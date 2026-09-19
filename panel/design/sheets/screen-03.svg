@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2163" height="1020" viewBox="0 0 2163 1020">
+<title>Экран 03 — Лента · 375×812</title>
+<style>
+/* kit:tokens */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="2163" height="1020" style="fill:#ece4d8"/>
+<text x="48" y="52" class="sheet-title">Экран 03 — Лента · 375×812</text>
+<text x="48" y="78" class="cap">sosed.place/docs/03-feed-screen_RU.md · тёмная тема, акцент terra · тексты состояний — экран 11</text>
+
+<!-- 1 · the feed -->
+<rect x="47" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c48"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#bar-at-table" x="0" y="56" data-text="вы за столом"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="108"/>
+  <use href="kit/components.svg#card-phrase-own" x="16" y="280" data-l1="Ищу, с кем поиграть в го."/>
+  <use href="kit/components.svg#card-offer" x="16" y="376" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе от двух" data-t2="скидка до 30 сентября, 18:00"/>
+  <use href="kit/components.svg#card-table" x="16" y="600" data-name="Пятничный" data-who="играют 2, смотрят 3" data-likes="5"/>
+  <!-- «дальше, чем вы просили»: a phrase card with a distance line above it; no symbol carries that line -->
+  <rect x="16" y="780" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+  <text x="32" y="808" class="k-meta">дальше, чем вы просили</text>
+  <text x="32" y="836" class="k-body">Играем в настолки в парке.</text>
+  <use href="kit/components.svg#chip" x="32" y="856" data-w="56" data-label="туса" data-c="var(--cat-violet)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="48" y="966" class="capb">03 · лента: фраза, своя на проверке, оффер,</text>
+<text x="48" y="984" class="capb">стол, «дальше, чем просили»</text>
+
+<!-- 2 · the filter panel -->
+<rect x="470" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c471"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c471)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="Фильтры" data-back=""/>
+  <use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="16" y="80" class="k-strong">языки</text>
+  <text x="359" y="80" text-anchor="end" class="k-meta">чьи сообщения показывать</text>
+  <use href="kit/components.svg#select-pill" x="16" y="88" data-w="80" data-label="ru ×"/>
+  <use href="kit/components.svg#select-pill" x="104" y="88" data-w="80" data-label="en ×"/>
+  <use href="kit/components.svg#button-secondary" x="192" y="88" data-w="84" data-label="+ язык"/>
+  <text x="16" y="154" class="k-strong">возраст</text>
+  <text x="359" y="154" text-anchor="end" class="k-meta">своя полоса</text>
+  <!-- the age band has no numbers: the slider's own labels stay empty, the edge words are drawn here -->
+  <rect x="16" y="170" width="4" height="24" rx="2" style="fill:var(--border)"/>
+  <rect x="355" y="170" width="4" height="24" rx="2" style="fill:var(--border)"/>
+  <use href="kit/components.svg#slider-range" x="24" y="160" data-a="86" data-b="327" data-la="" data-lb=""/>
+  <text x="16" y="222" class="k-meta">по году, чисел нет</text>
+  <text x="359" y="222" text-anchor="end" class="k-meta">без ограничения</text>
+  <rect x="16" y="236" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <text x="28" y="263" class="k-meta" style="fill:var(--fg)">Вам стало больше лет — фильтр сузился</text>
+  <rect x="16" y="292" width="343" height="1" style="fill:var(--border)"/>
+  <text x="16" y="318" class="k-strong">радиус</text>
+  <text x="359" y="318" text-anchor="end" class="k-meta">схема, не карта</text>
+  <rect x="16" y="330" width="343" height="44" rx="8" style="fill:var(--panel)"/>
+  <text x="32" y="357" class="k-meta">район или город</text>
+  <circle cx="187.5" cy="466" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3"/>
+  <use href="kit/components.svg#radius-handle" x="16" y="366" data-word="десятки"/>
+  <text x="187.5" y="646" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Колонаки, Афины · примерно</text>
+  <rect x="16" y="658" width="343" height="1" style="fill:var(--border)"/>
+  <text x="16" y="684" class="k-strong">режим</text>
+  <use href="kit/components.svg#segments" x="16" y="694" data-l1="один" data-l2="компания" data-l3="туса" data-s1="" data-s2="1"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="471" y="966" class="capb">03 · панель фильтров: языки (из шапки, 18.09.2026),</text>
+<text x="471" y="984" class="capb">возраст без чисел, радиус-схема, режим</text>
+
+<!-- 3 · empty -->
+<rect x="893" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(894,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c894"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c894)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом мало людей"/>
+  <!-- the bench sign of the empty feed: not in the kit -->
+  <g transform="translate(163.5,256) scale(0.857)"><path d="M6 26 H50 M10 26 V46 M46 26 V46 M6 36 H50 M14 14 H42 V26" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></g>
+  <text x="187.5" y="340" text-anchor="middle" class="k-display">Здесь пока тихо</text>
+  <text x="187.5" y="378" text-anchor="middle" class="k-body" style="fill:var(--muted)">В вашем круге сейчас никто не говорит.</text>
+  <text x="187.5" y="402" text-anchor="middle" class="k-body" style="fill:var(--muted)">Шире круг — больше голосов.</text>
+  <use href="kit/components.svg#button-secondary" x="16" y="430" data-label="Расширить круг · около десятка"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="894" y="966" class="capb">03 · пусто: «Здесь пока тихо», кнопка со</text>
+<text x="894" y="984" class="capb">ступенью; шапка ниже порога 5 —</text>
+<text x="894" y="1002" class="capb">«рядом мало людей» (feed.nearby.floor)</text>
+
+<!-- 4 · loading -->
+<rect x="1316" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(1317,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1317"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0"/>
+  <use href="kit/components.svg#card-skeleton" x="16" y="64"/>
+  <use href="kit/components.svg#card-skeleton" x="16" y="236"/>
+  <use href="kit/components.svg#card-skeleton" x="16" y="408"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="1317" y="966" class="capb">03 · загрузка: скелет карточек, без подписи</text>
+<text x="1317" y="984" class="capb">(Н3)</text>
+
+<!-- 5 · end of the feed -->
+<rect x="1739" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(1740,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1740"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Вечером у фонтана кто-нибудь" data-l2="будет? Принесу колонку." data-chip="туса" data-chipw="56" data-c="var(--cat-violet)" data-likes="2"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Есть у кого зарядка type-c на час?" data-l2="" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
+  <!-- a phrase without a category says «один» in the chip's place; the symbol has no such slot -->
+  <text x="32" y="247" class="k-meta">один</text>
+  <!-- a private offer: no venue, the text on two lines, «частник», like and «…»; card-offer draws a venue and «сохранить» -->
+  <rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)"/>
+  <use href="kit/components.svg#chip-outline" x="32" y="317"/>
+  <text x="343" y="334" text-anchor="end" class="k-strong">−10 %</text>
+  <text x="32" y="358" class="k-body">Отдаю два табурета, забирать</text>
+  <text x="32" y="382" class="k-body">сегодня.</text>
+  <text x="32" y="410" class="k-meta">условия: ограничений нет</text>
+  <text x="32" y="432" class="k-meta">скидка до 20 сентября, 12:00</text>
+  <text x="32" y="474" class="k-meta">частник</text>
+  <use href="kit/components.svg#like" x="249" y="446" data-count=""/>
+  <use href="kit/components.svg#icon-button" x="307" y="446" data-icon="icon-more" data-name="ещё"/>
+  <use href="kit/components.svg#button-secondary" x="16" y="514" data-label="показать ещё"/>
+  <text x="187.5" y="576" text-anchor="middle" class="k-meta">ещё десятки сообщений на других языках</text>
+  <use href="kit/components.svg#button-text" x="156" y="580" data-w="64" data-label="показать"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0"/>
+  <use href="kit/components.svg#toast" x="16" y="624" data-text="лайкнуто" data-action="вернуть"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="1740" y="966" class="capb">03 · конец выдачи: «показать ещё», строка</text>
+<text x="1740" y="984" class="capb">языков, «лайкнуто · вернуть»</text>
+</svg>

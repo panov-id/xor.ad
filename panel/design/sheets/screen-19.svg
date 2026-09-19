@@ -1,0 +1,1466 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="3882" viewBox="0 0 1720 3882" font-family="'Golos Text', Inter, system-ui, sans-serif">
+<title>sosed.place — screen 19, the table</title>
+<style>
+/* kit:tokens */
+  .mast { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+  .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+  .capm { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+</style>
+<rect x="0" y="0" width="1720" height="3882" rx="0" fill="#000000"/>
+<text x="48" y="60" class="mast">Экран 19 — Стол: подсесть и играть компанией</text>
+<text x="48" y="88" class="capm">sosed.place · тёмная тема · акцент terra · 375×812 · шрифты Golos Text / JetBrains Mono · доска: домино (свободный стол), тот же движок, что экран 18</text>
+<text x="48" y="108" class="capm">bg #0d0b0a · panel #262019 · panel-2 #302720 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · err #ef7a6a · r-1 8 · r-2 13 · шаг 4</text>
+<g class="k-dark" transform="translate(48,150)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 2 · смотрят 3" data-leave="встать"/>
+<g>
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="128" class="k-mono">Аня · 3</text>
+<text x="187.5" y="128" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="128" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="181" x2="53" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="173" x2="82" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="181" x2="127" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="173" x2="156" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="173" x2="204" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="173" x2="252" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="196" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="218" x2="260" y2="218"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="223.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="229.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+</g>
+<text x="16" y="343" class="k-meta" style="fill:var(--fg)">ход: Аня</text>
+<text x="359" y="343" class="k-mono" text-anchor="end" style="fill:var(--muted)">4 мин</text>
+<text x="187.5" y="381" class="k-mono" text-anchor="middle">за столом шифрования нет:</text><text x="187.5" y="398" class="k-mono" text-anchor="middle">узел видит речь, доску и стикеры</text>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="414" data-text="вы за столом с этого момента"/>
+</g>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="442" data-text="Аня приставила к шестёрке"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="470" data-w="206.6" data-name="Олег" data-text="ну вот, опять шестёрка"/>
+<use href="kit/components.svg#icon-button" x="226.6" y="466" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="534" data-w="198.3" data-name="Миша" data-text="кто-нибудь ещё сядет?"/>
+<use href="kit/components.svg#icon-button" x="218.3" y="530" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<use href="kit/components.svg#button-primary" x="16" y="680" data-w="343" data-label="заявка на следующий круг"/>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-counter="0/128"/>
+</g></g>
+<text x="48" y="988" class="cap">A · Зритель только что подсел</text>
+<text x="48" y="1008" class="capm">шапка: имя стола / игра, лайки, «играют 2 · смотрят</text>
+<text x="48" y="1025" class="capm">3», «встать»; доска целиком без рук (чужие руки —</text>
+<text x="48" y="1042" class="capm">счётом); ход и срок; реплики с момента посадки;</text>
+<text x="48" y="1059" class="capm">кнопка заявки; поле 128 со стикером</text>
+<g class="k-dark" transform="translate(459,150)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c459150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c459150)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<g>
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="128" class="k-mono">Аня · 3</text>
+<text x="187.5" y="128" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="128" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="181" x2="53" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="173" x2="82" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="181" x2="127" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="173" x2="156" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="173" x2="204" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="173" x2="252" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="196" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="218" x2="260" y2="218"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="223.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="229.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<text x="28" y="274" class="k-mono">ваша рука</text>
+<g>
+<rect x="28" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="48" y1="285" x2="48" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="32.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="38.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="43.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="52.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="58.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="63.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="76" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="96" y1="285" x2="96" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="80.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="86.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="91.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="124" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="144" y1="285" x2="144" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="128.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="172" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="192" y1="285" x2="192" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="182.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="202.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+</g>
+<rect x="25" y="279" width="46" height="26" rx="4" style="fill:none;stroke:var(--accent);stroke-width:2"/>
+</g>
+<text x="16" y="343" class="k-strong" style="fill:var(--accent-text)">ваш ход</text>
+<text x="359" y="343" class="k-mono" text-anchor="end" style="fill:var(--muted)">4 мин</text>
+<use href="kit/components.svg#button-secondary" x="16" y="348" data-w="109" data-label="пас"/>
+<use href="kit/components.svg#button-secondary" x="133" y="348" data-w="109" data-label="сдаться"/>
+<use href="kit/components.svg#button-secondary" x="250" y="348" data-w="109" data-label="…"/>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="426" data-text="Аня приставила к шестёрке"/>
+</g>
+<g>
+<rect x="16" y="438" width="206.60000000000002" height="106" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="458" class="k-meta" style="fill:var(--muted)">Миша</text>
+<rect x="148.60000000000002" y="444" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
+<text x="179.60000000000002" y="458" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
+<text x="28" y="480" class="k-body">возьмите на следующую,</text>
+<text x="28" y="502" class="k-body">играю нормально</text>
+<rect x="28" y="514" width="182.60000000000002" height="24" rx="8" style="fill:var(--panel-2)"/>
+<text x="119.30000000000001" y="530" class="k-mono" text-anchor="middle" style="fill:var(--muted)">отказать · сначала почему</text>
+<use href="kit/components.svg#icon-button" x="226.6" y="500" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<rect x="227.1" y="552" width="131.9" height="56" rx="13" style="fill:var(--panel-2)"/>
+<text x="239.1" y="572" class="k-meta" style="fill:var(--muted)">вы</text>
+<text x="239.1" y="594" class="k-body">сейчас, думаю</text>
+</g>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-value="ход" data-caret="42.5"/>
+<text x="293" y="782" class="k-mono" text-anchor="end">3/128</text>
+</g></g>
+<text x="459" y="988" class="cap">B · Играющий, ваш ход</text>
+<text x="459" y="1008" class="capm">«ваш ход» в акценте и отсчёт 5 минут; своя рука</text>
+<text x="459" y="1025" class="capm">внизу доски, взятая фишка обведена; пас / сдаться /</text>
+<text x="459" y="1042" class="capm">«…» (ничья, вернуть как было, высадить, поздравить,</text>
+<text x="459" y="1059" class="capm">правила); заявка зрителя с неактивным «отказать»</text>
+<g class="k-dark" transform="translate(870,150)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c870150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c870150)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<g class="k-fade">
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="128" class="k-mono">Аня · 3</text>
+<text x="187.5" y="128" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="128" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="181" x2="53" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="173" x2="82" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="181" x2="127" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="173" x2="156" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="173" x2="204" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="173" x2="252" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="196" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="218" x2="260" y2="218"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="223.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="229.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<text x="28" y="274" class="k-mono">ваша рука</text>
+<g>
+<rect x="28" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="48" y1="285" x2="48" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="32.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="38.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="43.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="52.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="58.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="63.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="76" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="96" y1="285" x2="96" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="80.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="86.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="91.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="124" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="144" y1="285" x2="144" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="128.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="172" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="192" y1="285" x2="192" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="182.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="202.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+</g>
+</g>
+<text x="16" y="343" class="k-strong" style="fill:var(--fg)">партия окончена</text>
+<text x="359" y="343" class="k-mono" text-anchor="end">кон 2:1</text>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="390" data-text="Олег приставил к единице"/>
+</g>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="418" data-text="партия окончена — стол остаётся"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="446" data-w="120" data-name="Аня" data-text="ещё одну?"/>
+<use href="kit/components.svg#icon-button" x="140" y="442" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<use href="kit/components.svg#button-secondary" x="16" y="628" data-w="343" data-label="поздравить с победой"/>
+<use href="kit/components.svg#button-primary" x="16" y="680" data-w="343" data-label="сыграть ещё"/>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-counter="0/128"/>
+</g></g>
+<text x="870" y="988" class="cap">C · Партия кончилась — стол остался</text>
+<text x="870" y="1008" class="capm">доска погашена на 55%, строка «партия окончена» и</text>
+<text x="870" y="1025" class="capm">счёт кона; «сыграть ещё» первичная, «поздравить с</text>
+<text x="870" y="1042" class="capm">победой» вторичная; поле живо</text>
+<g class="k-dark" transform="translate(1281,150)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c1281150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1281150)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<g class="k-fade">
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="128" class="k-mono">Аня · 3</text>
+<text x="187.5" y="128" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="128" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="181" x2="53" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="173" x2="82" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="181" x2="127" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="173" x2="156" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="173" x2="204" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="173" x2="252" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="196" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="218" x2="260" y2="218"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="223.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="229.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<text x="28" y="274" class="k-mono">ваша рука</text>
+<g>
+<rect x="28" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="48" y1="285" x2="48" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="32.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="38.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="43.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="52.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="58.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="63.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="76" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="96" y1="285" x2="96" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="80.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="86.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="91.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="124" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="144" y1="285" x2="144" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="128.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="286.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="297.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="172" y="282" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="192" y1="285" x2="192" y2="299"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="182.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="202.0" cy="292.0" r="1.8" style="fill:var(--bg)"/>
+</g>
+</g>
+<rect x="16" y="322" width="343" height="155" rx="13" style="fill:var(--panel-2)"/>
+<text x="187.5" y="354" class="k-title" text-anchor="middle">Сыграть ещё?</text>
+<use href="kit/components.svg#system-line" x="16" y="378" data-text="подтвердились 2 из 4"/>
+<text x="187.5" y="400" class="k-mono" text-anchor="middle" style="fill:var(--err)">0:21</text>
+<use href="kit/components.svg#button-primary" x="117.5" y="414" data-w="140" data-label="я здесь"/>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="500" data-text="не нажмёте за 30 с — останетесь зрителем"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="528" data-w="120" data-name="Аня" data-text="ещё одну?"/>
+<use href="kit/components.svg#icon-button" x="140" y="524" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-counter="0/128"/>
+</g></g>
+<text x="1281" y="988" class="cap">C2 · «Сыграть ещё» — подтверждение 30 с</text>
+<text x="1281" y="1008" class="capm">карточка на месте строки хода: счёт без имён</text>
+<text x="1281" y="1025" class="capm">«подтвердились 2 из 4», отсчёт в err, «я здесь»; не</text>
+<text x="1281" y="1042" class="capm">нажавший становится зрителем — строка «Вы теперь</text>
+<text x="1281" y="1059" class="capm">смотрите» приходит после (11:144)</text>
+<g class="k-dark" transform="translate(48,1072)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c481072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481072)">
+<g class="k-fade">
+<use href="kit/components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/>
+<text x="52" y="26" class="k-title">стол у пекарни</text>
+<use href="kit/components.svg#chip" x="52" y="32" data-w="72" data-label="домино" data-c="var(--cat-teal)"/>
+<use href="kit/components.svg#like" x="291" y="6" data-count="12"/>
+<text x="16" y="81" class="k-meta" style="fill:var(--fg)">играют 2 · смотрят 3</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96"  style="stroke:var(--border);stroke-width:1"/>
+<g class="k-fade">
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="128" class="k-mono">Аня · 3</text>
+<text x="187.5" y="128" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="128" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="181" x2="53" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="173" x2="82" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="181" x2="127" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="173" x2="156" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="173" x2="204" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="173" x2="252" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="196" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="218" x2="260" y2="218"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="223.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="229.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+</g>
+<rect x="16" y="362" width="343" height="157" rx="13" style="fill:var(--panel)"/>
+<text x="187.5" y="396" class="k-title" text-anchor="middle">Вас попросили встать</text>
+<use href="kit/components.svg#system-line" x="16" y="420" data-text="Большинство играющих попросило."/>
+<use href="kit/components.svg#system-line" x="16" y="440" data-text="Сесть снова можно, если стол виден."/>
+<use href="kit/components.svg#button-primary" x="117.5" y="456" data-w="140" data-label="В ленту"/>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="343" height="44" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/>
+</g></g>
+<text x="48" y="1910" class="cap">D · Высадка</text>
+<text x="48" y="1930" class="capm">Н4: надгробие над погашенной доской, реплики сняты,</text>
+<text x="48" y="1947" class="capm">поле закрыто (пунктир); текст 11:160 говорит</text>
+<text x="48" y="1964" class="capm">«сидящих», описание 19:47 — «играющих» (вопрос</text>
+<text x="48" y="1981" class="capm">обхода №1)</text>
+<g class="k-dark" transform="translate(459,1072)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4591072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4591072)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<use href="kit/components.svg#bar-connection" x="0" y="97" data-text="У нас не получилось" data-c="var(--err)"/>
+<line x1="0" y1="129" x2="375" y2="129"  style="stroke:var(--border);stroke-width:1"/>
+<g>
+<rect x="16" y="141" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="161" class="k-mono">Аня · 3</text>
+<text x="187.5" y="161" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="161" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="192" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="214" x2="53" y2="214"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="197.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="203.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="203.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="208.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="208.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="219.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="219.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="225.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="225.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="230.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="230.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="206" x2="82" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="192" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="214" x2="127" y2="214"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="197.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="208.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="219.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="230.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="206" x2="156" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="206" x2="204" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="206" x2="252" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="229" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="251" x2="260" y2="251"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="234.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="245.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="245.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="256.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="262.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="267.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<text x="28" y="307" class="k-mono">ваша рука</text>
+<g>
+<rect x="28" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="48" y1="318" x2="48" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="32.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="38.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="43.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="52.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="58.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="63.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="76" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="96" y1="318" x2="96" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="80.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="86.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="91.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="124" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="144" y1="318" x2="144" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="128.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="172" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="192" y1="318" x2="192" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="182.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="202.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+</g>
+<rect x="25" y="312" width="46" height="26" rx="4" style="fill:none;stroke:var(--accent);stroke-width:2"/>
+</g>
+<text x="16" y="376" class="k-strong" style="fill:var(--accent-text)">ваш ход</text>
+<text x="359" y="376" class="k-mono" text-anchor="end" style="fill:var(--muted)">3 мин</text>
+<text x="16" y="399" class="k-meta">Мы не отвечаем, а время хода</text>
+<text x="16" y="417" class="k-meta">идёт: через пять минут</text>
+<text x="16" y="435" class="k-meta">засчитают пас.</text>
+<use href="kit/components.svg#button-secondary" x="249" y="397" data-w="110" data-label="повторить"/>
+<use href="kit/components.svg#button-secondary" x="16" y="455" data-w="109" data-label="пас"/>
+<use href="kit/components.svg#button-secondary" x="133" y="455" data-w="109" data-label="сдаться"/>
+<use href="kit/components.svg#button-secondary" x="250" y="455" data-w="109" data-label="…"/>
+<g class="k-fade">
+<rect x="227.1" y="503" width="131.9" height="56" rx="13" style="fill:var(--panel-2)"/>
+<text x="239.1" y="523" class="k-meta" style="fill:var(--muted)">вы</text>
+<text x="239.1" y="545" class="k-body">сейчас, думаю</text>
+</g>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-value="ход" data-caret="42.5"/>
+<text x="293" y="782" class="k-mono" text-anchor="end">3/128</text>
+</g></g>
+<text x="459" y="1910" class="cap">E · Стол: у нас не получилось</text>
+<text x="459" y="1930" class="capm">Н5 полоса с точкой err под шапкой; строка 11:184 у</text>
+<text x="459" y="1947" class="capm">доски, «Повторить»; отсчёт хода идёт (2:48); своя</text>
+<text x="459" y="1964" class="capm">реплика ждёт без ✓; поле живо</text>
+<g class="k-dark" transform="translate(870,1072)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8701072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8701072)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<use href="kit/components.svg#bar-connection" x="0" y="97" data-text="Нет связи" data-c="var(--muted)"/>
+<line x1="0" y1="129" x2="375" y2="129"  style="stroke:var(--border);stroke-width:1"/>
+<g>
+<rect x="16" y="141" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="161" class="k-mono">Аня · 3</text>
+<text x="187.5" y="161" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="161" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="192" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="214" x2="53" y2="214"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="197.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="203.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="203.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="208.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="208.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="219.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="219.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="225.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="225.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="230.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="230.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="206" x2="82" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="192" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="214" x2="127" y2="214"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="197.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="208.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="219.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="230.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="206" x2="156" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="206" x2="204" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="203" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="206" x2="252" y2="222"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="214.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="208.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="219.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="229" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="251" x2="260" y2="251"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="234.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="245.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="245.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="256.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="262.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="267.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<text x="28" y="307" class="k-mono">ваша рука</text>
+<g>
+<rect x="28" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="48" y1="318" x2="48" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="32.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="38.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="43.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="52.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="58.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="63.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="76" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="96" y1="318" x2="96" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="80.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="86.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="91.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="124" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="144" y1="318" x2="144" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="128.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="319.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="330.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="172" y="315" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="192" y1="318" x2="192" y2="332"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="182.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="202.0" cy="325.0" r="1.8" style="fill:var(--bg)"/>
+</g>
+<rect x="25" y="312" width="46" height="26" rx="4" style="fill:none;stroke:var(--accent);stroke-width:2"/>
+</g>
+<text x="16" y="376" class="k-strong" style="fill:var(--accent-text)">ваш ход</text>
+<text x="359" y="376" class="k-mono" text-anchor="end" style="fill:var(--err)">0:40</text>
+<text x="16" y="399" class="k-meta">Время хода идёт и без связи:</text>
+<text x="16" y="417" class="k-meta">через пять минут</text>
+<text x="16" y="435" class="k-meta">засчитают пас.</text>
+<use href="kit/components.svg#button-secondary" x="249" y="397" data-w="110" data-label="повторить"/>
+<use href="kit/components.svg#button-secondary" x="16" y="455" data-w="109" data-label="пас"/>
+<use href="kit/components.svg#button-secondary" x="133" y="455" data-w="109" data-label="сдаться"/>
+<use href="kit/components.svg#button-secondary" x="250" y="455" data-w="109" data-label="…"/>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="519" data-text="Аня приставила к шестёрке"/>
+</g>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-value="ход" data-caret="42.5"/>
+<text x="293" y="782" class="k-mono" text-anchor="end">3/128</text>
+</g></g>
+<text x="870" y="1910" class="cap">F · Связь пропала за столом</text>
+<text x="870" y="1930" class="capm">тот же слот Н5, точка muted; текст 11:174; отсчёт в</text>
+<text x="870" y="1947" class="capm">err на последней минуте (0:40); кнопки играющего</text>
+<text x="870" y="1964" class="capm">остаются — нажать нельзя, пока нет связи (вопрос)</text>
+<g class="k-dark" transform="translate(1281,1072)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12811072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12811072)">
+<g>
+<use href="kit/components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/>
+<text x="52" y="26" class="k-title">стол у пекарни</text>
+<use href="kit/components.svg#chip" x="52" y="32" data-w="72" data-label="домино" data-c="var(--cat-teal)"/>
+<use href="kit/components.svg#like" x="291" y="6" data-count="12"/>
+<text x="16" y="81" class="k-meta" style="fill:var(--fg)">играют 2 · смотрят 3</text>
+</g>
+<line x1="0" y1="96" x2="375" y2="96"  style="stroke:var(--border);stroke-width:1"/>
+<g>
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<rect x="56" y="201.0" width="44" height="22" rx="4" style="fill:var(--panel-2)"/>
+<rect x="108" y="201.0" width="44" height="22" rx="4" style="fill:var(--panel-2)"/>
+<rect x="160" y="201.0" width="44" height="22" rx="4" style="fill:var(--panel-2)"/>
+<rect x="212" y="201.0" width="44" height="22" rx="4" style="fill:var(--panel-2)"/>
+<rect x="264" y="201.0" width="44" height="22" rx="4" style="fill:var(--panel-2)"/>
+</g>
+<rect x="16" y="328" width="120" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="319" y="328" width="40" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="16" y="382" width="200" height="56" rx="13" style="fill:var(--panel-2)"/>
+<rect x="16" y="446" width="150" height="56" rx="13" style="fill:var(--panel-2)"/>
+<rect x="179" y="510" width="180" height="56" rx="13" style="fill:var(--panel-2)"/>
+<rect x="16" y="574" width="230" height="56" rx="13" style="fill:var(--panel-2)"/>
+<use href="kit/components.svg#button-primary-disabled" x="16" y="664" data-label="заявка на следующий круг" data-reason="недоступна до ответа"/>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--muted);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--muted)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--muted)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--muted);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder=""/>
+</g></g>
+<text x="1281" y="1910" class="cap">G · Скелет посадки</text>
+<text x="1281" y="1930" class="capm">Н3: доска и реплики плашками без подписи (19:22,</text>
+<text x="1281" y="1947" class="capm">11:30); имя, игра, числа и лайки уже известны с</text>
+<text x="1281" y="1964" class="capm">карточки; заявка и отправка недоступны до ответа</text>
+<g class="k-dark" transform="translate(48,1994)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c481994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481994)">
+<rect x="177.5" y="263" width="20" height="14" rx="3" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<path d="M181.5 263 V259 a6 6 0 0 1 12 0 V263" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<text x="187.5" y="318" class="k-title" text-anchor="middle">Введите ПИН</text>
+<text x="187.5" y="344" class="k-meta" text-anchor="middle" style="fill:var(--fg)">За столом ваш ход.</text>
+<rect x="59.5" y="372" width="36" height="44" rx="8" style="fill:var(--panel-2)"/>
+<rect x="103.5" y="372" width="36" height="44" rx="8" style="fill:var(--panel-2)"/>
+<rect x="147.5" y="372" width="36" height="44" rx="8" style="fill:var(--panel-2)"/>
+<rect x="191.5" y="372" width="36" height="44" rx="8" style="fill:var(--panel-2)"/>
+<rect x="235.5" y="372" width="36" height="44" rx="8" style="fill:var(--panel-2)"/>
+<rect x="279.5" y="372" width="36" height="44" rx="8" style="fill:var(--panel-2)"/>
+<text x="187.5" y="452" class="k-mono" text-anchor="middle"></text>
+</g></g>
+<text x="48" y="2832" class="cap">H · Вкладка заперта, вы за столом</text>
+<text x="48" y="2852" class="capm">только поле ПИНа и строка 11:188 — ни доски, ни</text>
+<text x="48" y="2869" class="capm">реплик (19:24, 12:39); показывать ли остаток хода за</text>
+<text x="48" y="2886" class="capm">замком — вопрос</text>
+<g class="k-dark" transform="translate(459,1994)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4591994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4591994)">
+<rect x="16" y="8" width="343" height="84" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
+<text x="187.5" y="48.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">шапка · 96</text>
+<text x="187.5" y="70.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">имя стола / игра · лайки · играют N ·</text>
+<text x="187.5" y="86.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">смотрят M · встать</text>
+<rect x="16" y="108" width="343" height="208" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
+<text x="187.5" y="210.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">доска · 208</text>
+<text x="187.5" y="232.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">8×8 по 24 = 192 + рамка; зрителю без рук,</text>
+<text x="187.5" y="248.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">играющему рука внизу</text>
+<rect x="16" y="322" width="343" height="88" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
+<text x="187.5" y="364.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">ход · срок 5:00 · кнопки играющего · 88</text>
+<text x="187.5" y="386.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">зрителю здесь только строка хода, кнопок нет</text>
+<rect x="16" y="414" width="343" height="262" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
+<text x="187.5" y="543.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">реплики и ходы · прокрутка · ≈256</text>
+<text x="187.5" y="565.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">с момента посадки; ≈ 4 строки; заявки и</text>
+<text x="187.5" y="581.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">отказы — такие же пузыри</text>
+<rect x="16" y="680" width="343" height="44" rx="13" stroke-dasharray="6 4" style="fill:var(--panel-2);stroke:var(--accent);stroke-width:1"/>
+<text x="187.5" y="707.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">зрителю: заявка на следующую игру · 44</text>
+<rect x="16" y="746" width="343" height="60" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
+<text x="187.5" y="781.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">поле 128 · стикер · отправить · 72</text>
+</g></g>
+<text x="459" y="2832" class="cap">L1 · Раскладка 1 — доска сверху, схема зон</text>
+<text x="459" y="2852" class="capm">всё на одном экране без раскрытий: доска 208 (8×8 по</text>
+<text x="459" y="2869" class="capm">24 умещается), 88 на ход и кнопки, репликам ≈256 у</text>
+<text x="459" y="2886" class="capm">играющего и ≈300 у зрителя; поле у большого пальца</text>
+<g class="k-dark" transform="translate(870,1994)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8701994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8701994)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<rect x="0" y="97" width="375" height="44" rx="0" style="fill:var(--panel-2)"/>
+<g>
+<rect x="16" y="107" width="24" height="12" rx="4" style="fill:var(--fg)"/>
+<line x1="28" y1="110" x2="28" y2="116"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="18.8" cy="109.8" r="1.1" style="fill:var(--bg)"/>
+<circle cx="25.2" cy="109.8" r="1.1" style="fill:var(--bg)"/>
+<circle cx="18.8" cy="113.0" r="1.1" style="fill:var(--bg)"/>
+<circle cx="25.2" cy="113.0" r="1.1" style="fill:var(--bg)"/>
+<circle cx="18.8" cy="116.2" r="1.1" style="fill:var(--bg)"/>
+<circle cx="25.2" cy="116.2" r="1.1" style="fill:var(--bg)"/>
+<circle cx="30.8" cy="109.8" r="1.1" style="fill:var(--bg)"/>
+<circle cx="37.2" cy="116.2" r="1.1" style="fill:var(--bg)"/>
+</g>
+<text x="48" y="124" class="k-strong" style="fill:var(--accent-text)">ваш ход · 4 мин</text>
+<text x="339" y="124" class="k-meta" text-anchor="end" style="fill:var(--fg)">доска</text>
+<path d="M349 117 L354 122 L359 117" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<line x1="0" y1="141" x2="375" y2="141"  style="stroke:var(--border);stroke-width:1"/>
+<text x="187.5" y="160" class="k-mono" text-anchor="middle">за столом шифрования нет:</text><text x="187.5" y="177" class="k-mono" text-anchor="middle">узел видит речь, доску и стикеры</text>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="193" data-text="вы за столом с этого момента"/>
+</g>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="221" data-text="Аня приставила к шестёрке"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="249" data-w="206.6" data-name="Олег" data-text="ну вот, опять шестёрка"/>
+<use href="kit/components.svg#icon-button" x="226.6" y="245" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<rect x="16" y="297" width="206.60000000000002" height="106" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="317" class="k-meta" style="fill:var(--muted)">Миша</text>
+<rect x="148.60000000000002" y="303" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
+<text x="179.60000000000002" y="317" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
+<text x="28" y="339" class="k-body">возьмите на следующую,</text>
+<text x="28" y="361" class="k-body">играю нормально</text>
+<rect x="28" y="373" width="182.60000000000002" height="24" rx="8" style="fill:var(--panel-2)"/>
+<text x="119.30000000000001" y="389" class="k-mono" text-anchor="middle" style="fill:var(--muted)">отказать · сначала почему</text>
+<use href="kit/components.svg#icon-button" x="226.6" y="359" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="427" data-w="239.8" data-name="Аня" data-text="берём, если Олег не против"/>
+<use href="kit/components.svg#icon-button" x="259.8" y="423" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<rect x="227.1" y="475" width="131.9" height="56" rx="13" style="fill:var(--panel-2)"/>
+<text x="239.1" y="495" class="k-meta" style="fill:var(--muted)">вы</text>
+<text x="239.1" y="517" class="k-body">сейчас, думаю</text>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="555" data-w="124" data-name="Олег" data-text="не против"/>
+<use href="kit/components.svg#icon-button" x="144" y="551" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="619" data-text="Миша приставил к двойке"/>
+</g>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-counter="0/128"/>
+</g></g>
+<text x="870" y="2832" class="cap">L2a · Раскладка 2 — доска свёрнута</text>
+<text x="870" y="2852" class="capm">полоса 44 под шапкой: фишка, «ваш ход · 4 мин»,</text>
+<text x="870" y="2869" class="capm">«доска ▾»; репликам 600 ≈ 8 строк; свой ход</text>
+<text x="870" y="2886" class="capm">открывает доску сам (вопрос)</text>
+<g class="k-dark" transform="translate(1281,1994)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12811994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12811994)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 3 · смотрят 2" data-leave="встать"/>
+<g opacity="0.35">
+<g>
+<use href="kit/components.svg#system-line" x="16" y="169" data-text="Аня приставила к шестёрке"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="197" data-w="206.6" data-name="Олег" data-text="ну вот, опять шестёрка"/>
+<use href="kit/components.svg#icon-button" x="226.6" y="193" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<rect x="16" y="245" width="206.60000000000002" height="78" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="265" class="k-meta" style="fill:var(--muted)">Миша</text>
+<rect x="148.60000000000002" y="251" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
+<text x="179.60000000000002" y="265" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
+<text x="28" y="287" class="k-body">возьмите на следующую,</text>
+<text x="28" y="309" class="k-body">играю нормально</text>
+<use href="kit/components.svg#icon-button" x="226.6" y="279" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<use href="kit/components.svg#bubble-theirs" x="16" y="347" data-w="239.8" data-name="Аня" data-text="берём, если Олег не против"/>
+<use href="kit/components.svg#icon-button" x="259.8" y="343" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<g>
+<rect x="227.1" y="395" width="131.9" height="56" rx="13" style="fill:var(--panel-2)"/>
+<text x="239.1" y="415" class="k-meta" style="fill:var(--muted)">вы</text>
+<text x="239.1" y="437" class="k-body">сейчас, думаю</text>
+</g>
+<g>
+</g>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-counter="0/128"/>
+</g>
+<rect x="0" y="97" width="375" height="635" rx="0" style="fill:var(--bg)"/>
+<rect x="0" y="97" width="375" height="44" rx="0" style="fill:var(--panel-2)"/>
+<g>
+<rect x="16" y="107" width="24" height="12" rx="4" style="fill:var(--fg)"/>
+<line x1="28" y1="110" x2="28" y2="116"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="18.8" cy="109.8" r="1.1" style="fill:var(--bg)"/>
+<circle cx="25.2" cy="109.8" r="1.1" style="fill:var(--bg)"/>
+<circle cx="18.8" cy="113.0" r="1.1" style="fill:var(--bg)"/>
+<circle cx="25.2" cy="113.0" r="1.1" style="fill:var(--bg)"/>
+<circle cx="18.8" cy="116.2" r="1.1" style="fill:var(--bg)"/>
+<circle cx="25.2" cy="116.2" r="1.1" style="fill:var(--bg)"/>
+<circle cx="30.8" cy="109.8" r="1.1" style="fill:var(--bg)"/>
+<circle cx="37.2" cy="116.2" r="1.1" style="fill:var(--bg)"/>
+</g>
+<text x="48" y="124" class="k-strong" style="fill:var(--accent-text)">ваш ход · 4 мин</text>
+<text x="339" y="124" class="k-meta" text-anchor="end" style="fill:var(--fg)">свернуть</text>
+<path d="M349 124 L354 119 L359 124" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<line x1="0" y1="141" x2="375" y2="141"  style="stroke:var(--border);stroke-width:1"/>
+<g>
+<rect x="16" y="153" width="343" height="300" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="173" class="k-mono">Аня · 3</text>
+<text x="187.5" y="173" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="173" class="k-mono" text-anchor="end">Миша · 2</text>
+<g>
+<rect x="34" y="204" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="226" x2="53" y2="226"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="209.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="209.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="215.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="215.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="220.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="220.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="231.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="231.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="237.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="237.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="242.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="242.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="215" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="218" x2="82" y2="234"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="226.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="226.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="204" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="226" x2="127" y2="226"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="209.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="220.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="231.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="242.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="215" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="218" x2="156" y2="234"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="226.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="215" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="218" x2="204" y2="234"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="226.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="226.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="215" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="218" x2="252" y2="234"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="226.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="220.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="231.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="241" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="263" x2="260" y2="263"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="246.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="246.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="257.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="257.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="268.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="274.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="279.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<text x="28" y="411" class="k-mono">ваша рука</text>
+<g>
+<rect x="28" y="419" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="48" y1="422" x2="48" y2="436"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="32.6" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="38.0" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="43.4" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="52.6" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="58.0" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="63.4" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="76" y="419" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="96" y1="422" x2="96" y2="436"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="80.6" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="86.0" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="91.4" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="124" y="419" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="144" y1="422" x2="144" y2="436"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="128.6" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="128.6" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="139.4" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="423.6" r="1.8" style="fill:var(--bg)"/>
+<circle cx="148.6" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+<circle cx="159.4" cy="434.4" r="1.8" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="172" y="419" width="44" height="24" rx="4" style="fill:var(--fg)"/>
+<line x1="192" y1="422" x2="192" y2="436"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="182.0" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+<circle cx="202.0" cy="429.0" r="1.8" style="fill:var(--bg)"/>
+</g>
+<rect x="25" y="416" width="46" height="26" rx="4" style="fill:none;stroke:var(--accent);stroke-width:2"/>
+</g>
+<use href="kit/components.svg#button-secondary" x="16" y="469" data-w="109" data-label="пас"/>
+<use href="kit/components.svg#button-secondary" x="133" y="469" data-w="109" data-label="сдаться"/>
+<use href="kit/components.svg#button-secondary" x="250" y="469" data-w="109" data-label="…"/>
+<line x1="16" y1="529" x2="359" y2="529"  style="stroke:var(--border);stroke-width:1"/>
+<text x="16" y="551" class="k-meta">Олег</text>
+<text x="16" y="573" class="k-body">не против</text>
+<text x="359" y="551" class="k-mono" text-anchor="end">последняя реплика</text>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder="" data-counter="0/128"/>
+</g></g>
+<text x="1281" y="2832" class="cap">L2b · Раскладка 2 — доска раскрыта</text>
+<text x="1281" y="2852" class="capm">лист от полосы до поля: доска 300 (го и нарды</text>
+<text x="1281" y="2869" class="capm">выигрывают), кнопки, последняя реплика под доской,</text>
+<text x="1281" y="2886" class="capm">поле остаётся; реплики за листом на 35%</text>
+<g class="k-dark" transform="translate(48,2916)">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c482916"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c482916)">
+<use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chipw="72" data-chip="домино" data-likes="12" data-who="играют 2 · смотрят 4" data-leave="встать"/>
+<g>
+<rect x="16" y="108" width="343" height="208" rx="13" style="fill:var(--panel)"/>
+<text x="28" y="128" class="k-mono">Аня · 3</text>
+<text x="187.5" y="128" class="k-mono" text-anchor="middle">Олег · 5</text>
+<text x="347" y="128" class="k-mono" text-anchor="end">Миша · смотрит</text>
+<g>
+<rect x="34" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="37" y1="181" x2="53" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="39.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="170.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="192.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="39.1" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="50.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="60" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="82" y1="173" x2="82" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="65.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="65.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="76.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="87.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="98.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="108" y="159" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="111" y1="181" x2="127" y2="181"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="113.1" cy="164.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="175.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="113.1" cy="186.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="124.9" cy="197.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="134" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="156" y1="173" x2="156" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="139.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="150.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="167.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="161.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="172.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="182" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="204" y1="173" x2="204" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="187.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="193.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="187.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="198.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="215.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="230" y="170" width="44" height="22" rx="4" style="fill:var(--fg)"/>
+<line x1="252" y1="173" x2="252" y2="189"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="241.0" cy="181.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="175.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.1" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="268.9" cy="186.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+<g>
+<rect x="241" y="196" width="22" height="44" rx="4" style="fill:var(--fg)"/>
+<line x1="244" y1="218" x2="260" y2="218"  style="stroke:var(--border);stroke-width:1"/>
+<circle cx="246.1" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="201.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="212.9" r="2.0" style="fill:var(--bg)"/>
+<circle cx="246.1" cy="223.1" r="2.0" style="fill:var(--bg)"/>
+<circle cx="252.0" cy="229.0" r="2.0" style="fill:var(--bg)"/>
+<circle cx="257.9" cy="234.9" r="2.0" style="fill:var(--bg)"/>
+</g>
+</g>
+<text x="16" y="343" class="k-meta" style="fill:var(--fg)">ход: Аня</text>
+<text x="359" y="343" class="k-mono" text-anchor="end" style="fill:var(--muted)">4 мин</text>
+<text x="187.5" y="388" class="k-mono" text-anchor="middle">за столом шифрования нет: узел видит речь,</text>
+<text x="187.5" y="406" class="k-mono" text-anchor="middle">доску и стикеры</text>
+<g>
+<use href="kit/components.svg#system-line" x="16" y="436" data-text="вы за столом с этого момента"/>
+</g>
+<use href="kit/components.svg#button-primary" x="16" y="680" data-w="343" data-label="заявка на следующий круг"/>
+<line x1="0" y1="740" x2="375" y2="740"  style="stroke:var(--border);stroke-width:1"/>
+<rect x="16" y="754" width="44" height="44" rx="0" style="fill:none"/>
+<circle cx="38" cy="776" r="9" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<circle cx="34.5" cy="773.5" r="1.4" style="fill:var(--fg)"/><circle cx="41.5" cy="773.5" r="1.4" style="fill:var(--fg)"/>
+<path d="M33.5 779 Q38 783 42.5 779" stroke-linecap="round" style="fill:none;stroke:var(--fg);stroke-width:2"/>
+<use href="kit/components.svg#message-input" x="68" y="754" data-w="291" data-placeholder=""/>
+<rect x="68.5" y="754.5" width="234" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1"/>
+<line x1="82" y1="764" x2="82" y2="788" style="stroke:var(--fg);stroke-width:2"/>
+<text x="293" y="782" class="k-mono" text-anchor="end">0/128</text>
+</g></g>
+<text x="48" y="3754" class="cap">A0 · Момент посадки</text>
+<text x="48" y="3774" class="capm">сразу после «сесть»: доска приходит раскрытой,</text>
+<text x="48" y="3791" class="capm">строка узлу и «вы за столом с этого момента»</text>
+<text x="48" y="3808" class="capm">(19:35); реплик до посадки нет (19:36); «сесть»</text>
+<text x="48" y="3825" class="capm">больше нет — в шапке «встать»; поле ввода</text>
+<text x="48" y="3842" class="capm">открыто, отправка контуром (Н7)</text>
+</svg>

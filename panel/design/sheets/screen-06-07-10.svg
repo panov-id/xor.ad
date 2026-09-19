@@ -1,0 +1,453 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1716" height="4930" viewBox="0 0 1716 4930">
+<title>sosed.place — screens 06, 07, 10 (with 09 on top)</title>
+<style>
+/* kit:tokens */
+  .cap    { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+  .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+  .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+</style>
+<rect x="0" y="0" width="1716" height="4930" fill="#000000"/>
+<text x="48" y="60" class="mast">Экраны 06 — Мэтч · 07 — Беседы · 10 — Я (с экраном 09 сверху)</text>
+<text x="48" y="88" class="capm">sosed.place · тёмная тема · акцент terra · 375×812 · кит panel/design/kit/components.svg · тексты из 06, 07, 09, 10 и таблицы экрана 11</text>
+<text x="48" y="108" class="capm">bg #0d0b0a · panel #262019 · panel-2 #302720 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · err #ef7a6a · r-1 8 · r-2 13 · шаг 4</text>
+<!-- A -->
+<g transform="translate(48,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Мэтч"/>
+<rect x="16" y="72" width="343" height="112" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="102" class="k-title">кто на набережную к девяти?</text>
+<use href="kit/components.svg#lifespan" x="30" y="116" data-w="315" data-f="210" data-c="var(--accent)"/>
+<use href="kit/components.svg#countdown" x="30" y="146" data-text="остаток 3 ч 50 мин"/>
+<use href="kit/components.svg#icon-heart" x="308" y="124"/>
+<use href="kit/components.svg#card-match" x="16" y="196" data-name="Аня, 24" data-l1="ищу четвёртого в домино" data-note="остаток 1 ч 10 мин"/>
+<text x="30" y="392" class="k-meta" style="fill:var(--fg)">Чат не проверяется. Никто не читает,</text>
+<text x="30" y="412" class="k-meta" style="fill:var(--fg)">что вы здесь пишете, — ни мы, ни</text>
+<text x="30" y="432" class="k-meta" style="fill:var(--fg)">фильтр. Переписка шифруется на ваших</text>
+<text x="30" y="452" class="k-meta" style="fill:var(--fg)">устройствах: наш сервер переносит её,</text>
+<text x="30" y="472" class="k-meta" style="fill:var(--fg)">но прочитать не может. Игра —</text>
+<text x="30" y="492" class="k-meta" style="fill:var(--fg)">исключение: ходы, доску и загаданное в</text>
+<text x="30" y="512" class="k-meta" style="fill:var(--fg)">виселице слово сервер видит, иначе он</text>
+<text x="30" y="532" class="k-meta" style="fill:var(--fg)">не мог бы следить за правилами. Если</text>
+<text x="30" y="552" class="k-meta" style="fill:var(--fg)">человек ведёт себя плохо — заблокируйте</text>
+<text x="30" y="572" class="k-meta" style="fill:var(--fg)">и пожалуйтесь: опишите своими словами,</text>
+<text x="30" y="592" class="k-meta" style="fill:var(--fg)">что произошло.</text>
+<use href="kit/components.svg#button-primary" x="16" y="618" data-label="поговорить"/>
+<use href="kit/components.svg#button-secondary" x="16" y="674" data-label="не сейчас"/>
+</g></g>
+<!-- B -->
+<g transform="translate(463,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
+<use href="kit/components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/>
+<text x="52" y="35" class="k-title">Аня, 24</text>
+<rect x="16" y="54" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+<text x="28" y="81" class="k-meta" style="fill:var(--fg)">ждём ответа</text>
+<text x="347" y="81" text-anchor="end" class="k-mono">остаток 3 ч 50 мин</text>
+<use href="kit/components.svg#quote-like" x="32" y="112" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
+<use href="kit/components.svg#quote-like" x="32" y="178" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
+<use href="kit/components.svg#system-line" x="16" y="268" data-text="вы предложили поговорить · Аня ещё не ответила"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="284" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
+<use href="kit/components.svg#bubble-mine" x="16" y="354" data-w="146" data-text="возьму термос" data-mark=""/>
+<text x="359" y="412" text-anchor="end" class="k-mono">в очереди · уйдут, когда Аня согласится</text>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="330" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<!-- C -->
+<g transform="translate(878,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Мэтч"/>
+<rect x="16" y="72" width="343" height="154" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="102" class="k-title">отдам две табуретки,</text>
+<text x="30" y="128" class="k-title">заберите сегодня</text>
+<use href="kit/components.svg#lifespan" x="30" y="142" data-w="315" data-f="210" data-c="var(--accent-text)"/>
+<use href="kit/components.svg#chip-outline" x="30" y="154"/>
+<use href="kit/components.svg#countdown" x="30" y="210" data-text="остаток 5 ч 12 мин"/>
+<text x="345" y="210" text-anchor="end" class="k-mono">−20 % · до 21:00</text>
+<rect x="16" y="238" width="343" height="76" rx="13" style="fill:var(--panel-2)"/>
+<text x="30" y="268" class="k-title">Олег, 40</text>
+<text x="30" y="294" class="k-meta" style="fill:var(--fg)">интересуется вашим предложением</text>
+<text x="30" y="350" class="k-meta" style="fill:var(--fg)">Чат не проверяется. Никто не читает,</text>
+<text x="30" y="370" class="k-meta" style="fill:var(--fg)">что вы здесь пишете, — ни мы, ни</text>
+<text x="30" y="390" class="k-meta" style="fill:var(--fg)">фильтр. Переписка шифруется на ваших</text>
+<text x="30" y="410" class="k-meta" style="fill:var(--fg)">устройствах: наш сервер переносит её,</text>
+<text x="30" y="430" class="k-meta" style="fill:var(--fg)">но прочитать не может. Игра —</text>
+<text x="30" y="450" class="k-meta" style="fill:var(--fg)">исключение: ходы, доску и загаданное в</text>
+<text x="30" y="470" class="k-meta" style="fill:var(--fg)">виселице слово сервер видит, иначе он</text>
+<text x="30" y="490" class="k-meta" style="fill:var(--fg)">не мог бы следить за правилами. Если</text>
+<text x="30" y="510" class="k-meta" style="fill:var(--fg)">человек ведёт себя плохо — заблокируйте</text>
+<text x="30" y="530" class="k-meta" style="fill:var(--fg)">и пожалуйтесь: опишите своими словами,</text>
+<text x="30" y="550" class="k-meta" style="fill:var(--fg)">что произошло.</text>
+<use href="kit/components.svg#button-primary" x="16" y="576" data-label="поговорить"/>
+<use href="kit/components.svg#button-secondary" x="16" y="632" data-label="не сейчас"/>
+</g></g>
+<!-- D -->
+<g transform="translate(1293,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Мэтч"/>
+<rect x="16" y="72" width="343" height="112" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="102" class="k-title">кто на набережную к девяти?</text>
+<use href="kit/components.svg#lifespan" x="30" y="116" data-w="315" data-f="210" data-c="var(--accent)"/>
+<use href="kit/components.svg#countdown" x="30" y="146" data-text="остаток 3 ч 50 мин"/>
+<use href="kit/components.svg#icon-heart" x="308" y="124"/>
+<use href="kit/components.svg#card-match" x="16" y="196" data-name="Аня, 24" data-l1="ищу четвёртого в домино" data-note="остаток 1 ч 10 мин"/>
+<rect x="16" y="372" width="343" height="156" rx="13" style="fill:var(--panel)"/>
+<text x="187.5" y="408" text-anchor="middle" class="k-title">Сначала имя</text>
+<text x="187.5" y="432" text-anchor="middle" class="k-meta">Ваше имя не прошло проверку, и мэтч</text>
+<text x="187.5" y="452" text-anchor="middle" class="k-meta">не откроется, пока не примут новое.</text>
+<use href="kit/components.svg#button-secondary" x="107.5" y="468" data-w="160" data-label="Сменить имя"/>
+</g></g>
+<!-- E -->
+<g transform="translate(48,1102)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c481102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481102)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Мэтч"/>
+<text x="187.5" y="380" text-anchor="middle" class="k-title">Предложения больше нет</text>
+<text x="187.5" y="404" text-anchor="middle" class="k-meta">Предложение ушло.</text>
+<use href="kit/components.svg#button-secondary" x="123.5" y="424" data-w="128" data-label="закрыть"/>
+</g></g>
+<!-- F -->
+<g transform="translate(463,1102)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4631102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4631102)">
+<text x="16" y="34" class="k-title">Беседы</text>
+<use href="kit/components.svg#tabs" x="16" y="52" data-l1="Предложения" data-w1="150" data-a1="1" data-l2="Беседы" data-w2="80" data-a2="" data-dot="1"/>
+<use href="kit/components.svg#badge-count" x="142" y="63" data-n="2"/>
+<use href="kit/components.svg#row-chat" x="16" y="104" data-name="Аня, 24" data-line="ищу четвёртого в домино" data-time="1 ч 10 мин" data-wait="ждёт вашего ответа"/>
+<use href="kit/components.svg#row-chat" x="16" y="176" data-name="Олег, 40" data-line="интересуется вашим предложением" data-time="5 ч 12 мин" data-wait="ждёт вашего ответа"/>
+<use href="kit/components.svg#row-chat" x="16" y="248" data-name="Миша, 31" data-line="скамейка, термос, без планов" data-time="2 ч 05 мин"/>
+<text x="347" y="311" text-anchor="end" class="k-meta">ответа пока нет</text>
+<use href="kit/components.svg#row-undo" x="16" y="688" data-text="отклонено"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-dot2="1" data-a1="" data-a2="1" data-a3=""/>
+</g></g>
+<!-- G -->
+<g transform="translate(878,1102)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8781102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8781102)">
+<text x="16" y="34" class="k-title">Беседы</text>
+<use href="kit/components.svg#tabs" x="16" y="52" data-l1="Предложения" data-w1="150" data-a1="" data-l2="Беседы" data-w2="80" data-a2="1" data-dot="1"/>
+<use href="kit/components.svg#badge-count" x="142" y="63" data-n="2"/>
+<use href="kit/components.svg#row-chat" x="16" y="104" data-name="Аня, 24" data-line="и это тоже моё было" data-time="52 мин" data-wait="ждёт вашего ответа" data-dot="1" data-sel="1"/>
+<g class="k-fade">
+<text x="28" y="200" class="k-strong">Миша, 31</text>
+<text x="28" y="221" class="k-meta" style="fill:var(--fg)">тогда в субботу</text>
+<text x="28" y="239" class="k-mono" style="fill:var(--err)">4 мин</text>
+</g>
+<use href="kit/components.svg#row-chat" x="16" y="248" data-name="Лена, 27" data-line="ок, до встречи" data-time="закончилась"/>
+<use href="kit/components.svg#row-chat" x="16" y="320" data-name="Олег, 40" data-line="домино у меня есть" data-time="3 ч 12 мин" data-wait="ждёт вашего ответа" data-dot="1" data-sel="1"/>
+<use href="kit/components.svg#row-chat" x="16" y="392" data-name="Ира, 35" data-line="тогда до завтра" data-time="1 ч 40 мин"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-dot2="1" data-a1="" data-a2="1" data-a3=""/>
+</g></g>
+<!-- H -->
+<g transform="translate(1293,1102)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12931102"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12931102)">
+<text x="16" y="34" class="k-title">Беседы</text>
+<use href="kit/components.svg#tabs" x="16" y="52" data-l1="Предложения" data-w1="150" data-a1="1" data-l2="Беседы" data-w2="80" data-a2="" data-dot=""/>
+<use href="kit/components.svg#empty-state" x="16" y="316" data-icon="icon-heart" data-title="Пока никто не зовёт" data-l1="Предложение приходит, когда кто-то" data-l2="лайкает вашу живую фразу." data-action=""/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-a1="" data-a2="1" data-a3=""/>
+</g></g>
+<!-- I -->
+<g transform="translate(48,2054)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c482054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c482054)">
+<text x="16" y="34" class="k-title">Беседы</text>
+<use href="kit/components.svg#tabs" x="16" y="52" data-l1="Предложения" data-w1="150" data-a1="" data-l2="Беседы" data-w2="80" data-a2="1" data-dot=""/>
+<use href="kit/components.svg#empty-state" x="16" y="316" data-title="Бесед пока нет" data-l1="Беседа открывается, когда предложение" data-l2="принято." data-action="В ленту"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-a1="" data-a2="1" data-a3=""/>
+</g></g>
+<!-- J -->
+<g transform="translate(463,2054)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4632054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4632054)">
+<text x="16" y="34" class="k-title">Беседы</text>
+<use href="kit/components.svg#tabs" x="16" y="52" data-l1="Предложения" data-w1="150" data-a1="" data-l2="Беседы" data-w2="80" data-a2="1" data-dot=""/>
+<rect x="28" y="116" width="104" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="28" y="137" width="220" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="28" y="155" width="60" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="28" y="188" width="128" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="28" y="209" width="170" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="28" y="227" width="60" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="28" y="260" width="96" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="28" y="281" width="240" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="28" y="299" width="60" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="28" y="332" width="120" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="28" y="353" width="200" height="12" rx="6" style="fill:var(--panel-2)"/>
+<rect x="28" y="371" width="60" height="10" rx="5" style="fill:var(--panel-2)"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-a1="" data-a2="1" data-a3=""/>
+</g></g>
+<!-- K -->
+<g transform="translate(878,2054)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8782054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8782054)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
+<use href="kit/components.svg#card-phrase-own" x="16" y="72" data-l1="скамейка, термос, без планов"/>
+<rect x="16" y="168" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="198" class="k-body">кто на набережную к девяти?</text>
+<text x="30" y="229" class="k-meta">фраза</text>
+<use href="kit/components.svg#countdown" x="30" y="267" data-text="остаток 3 ч 50 мин"/>
+<use href="kit/components.svg#like" x="196" y="240" data-count="3"/>
+<use href="kit/components.svg#button-text" x="290" y="240" data-w="60" data-label="удалить"/>
+<rect x="16" y="300" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="330" class="k-body">отдам две табуретки, заберите сегодня</text>
+<use href="kit/components.svg#chip-outline" x="30" y="344"/>
+<use href="kit/components.svg#countdown" x="30" y="399" data-text="остаток 5 ч 12 мин"/>
+<use href="kit/components.svg#like" x="196" y="372" data-count="1"/>
+<use href="kit/components.svg#button-text" x="290" y="372" data-w="60" data-label="удалить"/>
+<rect x="16" y="432" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="462" class="k-body">домино у подъезда</text>
+<use href="kit/components.svg#chip" x="30" y="476" data-w="52" data-label="стол" data-c="var(--cat-teal)"/>
+<use href="kit/components.svg#countdown" x="30" y="532" data-text="остаток 40 мин"/>
+<text x="345" y="532" text-anchor="end" class="k-mono">играют 3 · смотрят 2</text>
+<use href="kit/components.svg#button-text" x="30" y="540" data-w="90" data-label="вернуться"/>
+<use href="kit/components.svg#like" x="196" y="540" data-count="2"/>
+<use href="kit/components.svg#button-text" x="300" y="540" data-w="56" data-label="встать"/>
+<text x="16" y="614" class="k-mono">свободно 2 из 4</text>
+<text x="16" y="634" class="k-mono">четыре за час сказаны · следующая в 21:40</text>
+<use href="kit/components.svg#row-setting" x="16" y="652" data-label="Имя" data-value="Женя"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<!-- L -->
+<g transform="translate(1293,2054)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12932054"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12932054)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
+<use href="kit/components.svg#row-setting" x="16" y="100" data-label="Имя" data-value="Женя"/>
+<use href="kit/components.svg#row-setting" x="16" y="148" data-label="возраст" data-value="37"/>
+<use href="kit/components.svg#row-setting" x="16" y="196" data-label="Языки ленты" data-value="ru · en"/>
+<text x="16" y="280" class="k-mono">Лента и беседы</text>
+<use href="kit/components.svg#row-setting" x="16" y="292" data-label="Мои лайки" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="340" data-label="Скрытые фразы" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="388" data-label="Заблокировано: 2" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="436" data-label="Зона и режим по умолчанию" data-value="1 км · один"/>
+<use href="kit/components.svg#row-setting" x="16" y="484" data-label="Срок молчания по умолчанию" data-value="час"/>
+<text x="16" y="568" class="k-mono">Приложение</text>
+<use href="kit/components.svg#row-setting" x="16" y="580" data-label="Язык интерфейса" data-value="русский"/>
+<use href="kit/components.svg#row-setting" x="16" y="628" data-label="Оформление" data-value="тёмная · terra"/>
+<use href="kit/components.svg#row-plain" x="16" y="676" data-label="Показать подсказки снова"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<!-- M -->
+<g transform="translate(48,3006)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c483006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c483006)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
+<use href="kit/components.svg#row-setting" x="16" y="100" data-label="Мои уведомления" data-value=""/>
+<use href="kit/components.svg#dot" x="160.8" y="120"/>
+<use href="kit/components.svg#row-setting" x="16" y="148" data-label="Поддержка" data-value=""/>
+<use href="kit/components.svg#dot" x="106" y="168"/>
+<use href="kit/components.svg#row-setting" x="16" y="196" data-label="Что происходило" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="244" data-label="Отойти" data-value="20 мин · час · 4 часа"/>
+<rect x="16" y="316" width="343" height="56" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="350" class="k-body">Личность и безопасность</text>
+<use href="kit/components.svg#icon-chevron-right" x="305" y="322"/>
+<text x="16" y="398" class="k-meta">перенос устройства, смена ПИНа, перевыпуск</text>
+<text x="16" y="418" class="k-meta">бумажного кода, «начать заново» — необратимо</text>
+<text x="16" y="472" class="k-mono">Документы</text>
+<use href="kit/components.svg#row-setting" x="16" y="484" data-label="Соглашение" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="532" data-label="Политика" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="580" data-label="Правила" data-value=""/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<!-- N -->
+<g transform="translate(463,3006)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4633006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4633006)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
+<use href="kit/components.svg#empty-state" x="16" y="56" data-icon="icon-nav-me" data-title="Своих фраз нет" data-l1="Свободных мест: 4 из четырёх." data-l2="" data-action="Написать"/>
+<rect x="0" y="284" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#row-setting" x="16" y="324" data-label="Имя" data-value="Женя"/>
+<use href="kit/components.svg#row-setting" x="16" y="372" data-label="возраст" data-value="37"/>
+<use href="kit/components.svg#row-setting" x="16" y="420" data-label="Языки ленты" data-value="ru · en"/>
+<text x="16" y="504" class="k-mono">Лента и беседы</text>
+<use href="kit/components.svg#row-setting" x="16" y="516" data-label="Мои лайки" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="564" data-label="Скрытые фразы" data-value=""/>
+<use href="kit/components.svg#row-setting" x="16" y="612" data-label="Заблокировано: 0" data-value=""/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<!-- O -->
+<g transform="translate(878,3006)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8783006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8783006)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
+<rect x="16" y="72" width="343" height="84" rx="13" style="fill:var(--panel)"/>
+<rect x="30" y="94" width="220" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="30" y="126" width="180" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="16" y="168" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<rect x="30" y="186" width="200" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="30" y="212" width="52" height="24" rx="12" style="fill:var(--panel-2)"/>
+<rect x="30" y="262" width="120" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="16" y="300" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<rect x="30" y="318" width="260" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="30" y="344" width="52" height="24" rx="12" style="fill:var(--panel-2)"/>
+<rect x="30" y="394" width="120" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="16" y="432" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+<rect x="30" y="450" width="150" height="14" rx="7" style="fill:var(--panel-2)"/>
+<rect x="30" y="476" width="52" height="24" rx="12" style="fill:var(--panel-2)"/>
+<rect x="30" y="566" width="120" height="10" rx="5" style="fill:var(--panel-2)"/>
+<rect x="16" y="604" width="100" height="10" rx="5" style="fill:var(--panel-2)"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<!-- P -->
+<g transform="translate(1293,3006)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12933006"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12933006)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Заблокировано: 2"/>
+<use href="kit/components.svg#row-plain" x="16" y="60" data-label="блокировка от 12.09.2026"/>
+<use href="kit/components.svg#button-text" x="303" y="63" data-w="56" data-label="снять"/>
+<use href="kit/components.svg#row-plain" x="16" y="108" data-label="блокировка от 16.09.2026"/>
+<use href="kit/components.svg#button-text" x="303" y="111" data-w="56" data-label="снять"/>
+<text x="16" y="184" class="k-meta">Столы этого человека появятся в ленте</text>
+<text x="16" y="204" class="k-meta">при следующем входе</text>
+</g></g>
+<!-- Q -->
+<g transform="translate(48,3958)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c483958"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c483958)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Язык интерфейса"/>
+<use href="kit/components.svg#row-plain" x="16" y="60" data-label="как в браузере · русский" data-sel="1"/>
+<use href="kit/components.svg#row-plain" x="16" y="108" data-label="русский"/>
+<use href="kit/components.svg#row-plain" x="16" y="156" data-label="English"/>
+<use href="kit/components.svg#row-plain" x="16" y="204" data-label="Deutsch"/>
+<use href="kit/components.svg#row-plain" x="16" y="252" data-label="Հայերեն"/>
+<text x="16" y="330" class="k-meta">Надписи приложения. Чьи сообщения показывать —</text>
+<text x="16" y="350" class="k-meta">решают «Языки ленты»</text>
+</g></g>
+<!-- R -->
+<g transform="translate(463,3958)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4633958"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4633958)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 60 мин"/>
+<use href="kit/components.svg#quote-like" x="32" y="120" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
+<use href="kit/components.svg#quote-like" x="32" y="186" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
+<use href="kit/components.svg#system-line" x="16" y="276" data-text="Аня согласилась · беседа открыта"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="292" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark="✓"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="381" data-w="146" data-text="возьму термос"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="343" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<!-- S -->
+<g transform="translate(878,3958)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8783958"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8783958)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Возраст"/>
+<use href="kit/components.svg#field" x="16" y="72" data-value="21"/>
+<text x="16" y="140" class="k-meta">Внутри своей полосы возраст правится свободно</text>
+<use href="kit/components.svg#sheet-text" x="0" y="524" data-h="288" data-title="Перейти в полосу 21+?" data-l1="Переход через границу 20/21 необратим:" data-l2="взрослый не уходит в подростковую" data-l3="песочницу. Обратно вернуться нельзя." data-yes="сохранить" data-no="Отмена"/>
+</g></g>
+<!-- T -->
+<g transform="translate(1293,3958)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12933958"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12933958)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#row-plain" x="16" y="60" data-label="Что происходило"/>
+<use href="kit/components.svg#row-plain" x="16" y="108" data-label="Отойти"/>
+<use href="kit/components.svg#row-plain" x="16" y="156" data-label="Показать подсказки снова"/>
+<text x="16" y="228" class="k-meta">Стирает память устройства о закрытых подсказках</text>
+<use href="kit/components.svg#row-plain" x="16" y="246" data-label="Мои лайки"/>
+<use href="kit/components.svg#toast" x="16" y="684" data-text="подсказки снова покажутся по одной" data-action=""/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<text x="48" y="988" class="cap">A · Мэтч — карточка предложения</text>
+<text x="48" y="1008" class="capm">своя фраза сверху (приглушённый домик, свой</text>
+<text x="48" y="1025" class="capm">остаток), чужая ниже  имя и возраст, режим,</text>
+<text x="48" y="1042" class="capm">текст, свой остаток; предупреждение целиком;</text>
+<text x="48" y="1059" class="capm">«поговорить» и «не сейчас» равным весом</text>
+<text x="463" y="988" class="cap">B · Нажали первым — беседа ждёт (08)</text>
+<text x="463" y="1008" class="capm">решение владельца 18.09.2026  обе фразы цитатами,</text>
+<text x="463" y="1025" class="capm">строка-статус, свои реплики в очереди без ✓ и одна</text>
+<text x="463" y="1042" class="capm">mono-строка; срок в шапке — срок мэтча (кворум 3/3)</text>
+<text x="878" y="988" class="cap">C · Мэтч от оффера — одна фраза</text>
+<text x="878" y="1008" class="capm">автор оффера видит своё объявление и строку</text>
+<text x="878" y="1025" class="capm">«интересуется вашим предложением» с именем и</text>
+<text x="878" y="1042" class="capm">возрастом (06 33); скидка и срок оффера — как в</text>
+<text x="878" y="1059" class="capm">ленте  «−20 % · до 21 00» (06 33)</text>
+<text x="1293" y="988" class="cap">D · Мэтч ждёт вашего имени</text>
+<text x="1293" y="1008" class="capm">11 167  «Сначала имя / Ваше имя не прошло</text>
+<text x="1293" y="1025" class="capm">проверку… / Сменить имя» вместо</text>
+<text x="1293" y="1042" class="capm">предупреждения и кнопок; вторая сторона не</text>
+<text x="1293" y="1059" class="capm">узнаёт ничего</text>
+<text x="48" y="1940" class="cap">E · Предложение исчезло до нажатия «поговорить»</text>
+<text x="48" y="1960" class="capm">11 168  строка вместо карточки, причина не</text>
+<text x="48" y="1977" class="capm">называется; «Закрыть» ведёт в «Предложения»</text>
+<text x="463" y="1940" class="cap">F · Вкладка «Предложения» со счётчиком 2</text>
+<text x="463" y="1960" class="capm">счётчик считает ждущие вашего ответа (2 из</text>
+<text x="463" y="1977" class="capm">3); пункт  имя, чужая фраза, меньший из двух</text>
+<text x="463" y="1994" class="capm">остатков, статус справа; внизу строка с</text>
+<text x="463" y="2011" class="capm">отменой «отклонено · вернуть» (07 32). Состав</text>
+<text x="463" y="2028" class="capm">пункта — вопрос 4</text>
+<text x="878" y="1940" class="cap">G · Вкладка «Беседы»</text>
+<text x="878" y="1960" class="capm">как в кадре G экрана 08  имя, обрывок,</text>
+<text x="878" y="1977" class="capm">остаток; «ждёт вашего ответа»; точка «новое»</text>
+<text x="878" y="1994" class="capm">+ подложка panel-2; угасающий — 55% и остаток</text>
+<text x="878" y="2011" class="capm">err (Н2); «закончилась» словом на месте</text>
+<text x="878" y="2028" class="capm">остатка; точка на вкладке и в навигации</text>
+<text x="1293" y="1940" class="cap">H · Пусто в «Предложениях»</text>
+<text x="1293" y="1960" class="capm">11 150, без действия и без счётчика на</text>
+<text x="1293" y="1977" class="capm">вкладке; подчёркивание активной вкладки</text>
+<text x="1293" y="1994" class="capm">остаётся</text>
+<text x="48" y="2892" class="cap">I · Пусто в «Беседах»</text>
+<text x="48" y="2912" class="capm">11 151 с действием «В ленту»; точки на</text>
+<text x="48" y="2929" class="capm">вкладке нет — нечего показывать</text>
+<text x="463" y="2892" class="cap">J · Скелет списка (Н3)</text>
+<text x="463" y="2912" class="capm">без подписи, та же геометрия пункта row-chat 64 px </text>
+<text x="463" y="2929" class="capm">имя, обрывок, остаток; счётчик и точка не</text>
+<text x="463" y="2946" class="capm">рисуются до ответа</text>
+<text x="878" y="2892" class="cap">K · «Я» — верх  живое (экран 09)</text>
+<text x="878" y="2912" class="capm">блок на проверке пунктиром и приглушённо (Н6)</text>
+<text x="878" y="2929" class="capm">с «проверяется…»; фраза / оффер / стол с</text>
+<text x="878" y="2946" class="capm">типом, остатком, числом лайков и глаголом по</text>
+<text x="878" y="2963" class="capm">сущности (удалить / встать); у стола «играют</text>
+<text x="878" y="2980" class="capm">· смотрят»; ниже квота двумя счётами (09 36)</text>
+<text x="1293" y="2892" class="cap">L · «Я» — настройки, предложенный порядок 1/2</text>
+<text x="1293" y="2912" class="capm">первая группа без заголовка (10 39); вторая —</text>
+<text x="1293" y="2929" class="capm">списки и умолчания ленты и бесед — «Лента и</text>
+<text x="1293" y="2946" class="capm">беседы» (10 39); «Приложение» — только</text>
+<text x="1293" y="2963" class="capm">то, что о приложении. Пункт-действие без</text>
+<text x="1293" y="2980" class="capm">шеврона</text>
+<text x="48" y="3844" class="cap">M · «Я» — настройки 2/2</text>
+<text x="48" y="3864" class="capm">точки на «Мои уведомления» и «Поддержка»</text>
+<text x="48" y="3881" class="capm">(10 39-40); «Отойти» со сроками экрана 20;</text>
+<text x="48" y="3898" class="capm">«Личность и безопасность» карточкой с зазором</text>
+<text x="48" y="3915" class="capm">(10 49-54) и строкой о необратимом; три</text>
+<text x="48" y="3932" class="capm">документа экрана 15</text>
+<text x="463" y="3844" class="cap">N · «Я» — пусто в живом, «Заблокировано  0»</text>
+<text x="463" y="3864" class="capm">11 152  «Своих фраз нет / Свободных мест  N</text>
+<text x="463" y="3881" class="capm">из четырёх / Написать» на месте живого,</text>
+<text x="463" y="3898" class="capm">настройки поднимаются к нему; «Заблокировано </text>
+<text x="463" y="3915" class="capm">0» остаётся пунктом (10 47, матрица 10×пусто)</text>
+<text x="878" y="3844" class="cap">O · «Я» — скелет живого (Н3)</text>
+<text x="878" y="3864" class="capm">матрица 09×загрузка (09 30)  скелет карточек</text>
+<text x="878" y="3881" class="capm">той же геометрии без подписи; настройки ниже</text>
+<text x="878" y="3898" class="capm">не рисуются до ответа — они тоже с узла</text>
+<text x="878" y="3915" class="capm">(матрица 10×загрузка)</text>
+<text x="1293" y="3844" class="cap">P · «Заблокировано  2» — список с возвратом</text>
+<text x="1293" y="3864" class="capm">10 47  строка «блокировка от &lt;дата&gt; · снять»,</text>
+<text x="1293" y="3881" class="capm">без имён и фраз; пояснение, что снятие</text>
+<text x="1293" y="3898" class="capm">пересчитает столы при следующем входе в</text>
+<text x="1293" y="3915" class="capm">ленту, — «Столы этого человека появятся в ленте при следующем входе»</text>
+<text x="48" y="4796" class="cap">Q · «Язык интерфейса» — подэкран (10 31)</text><text x="48" y="4816" class="capm">по умолчанию из браузера, дальше как выбрано; четыре</text><text x="48" y="4833" class="capm">языка листа i18n; строки 48 с зоной 44, галочка</text><text x="48" y="4850" class="capm">--accent-text; строка под списком</text><text x="48" y="4867" class="capm">разводит «Языки ленты»</text>
+<text x="463" y="4796" class="cap">R · Мэтч принят обоими — беседа открылась</text>
+<text x="463" y="4816" class="capm">«Аня согласилась · беседа открыта»  переход из кадра B —</text>
+<text x="463" y="4833" class="capm">шапка ждущей беседы сменилась живой, очередь доставлена</text>
+<text x="463" y="4850" class="capm">(✓ у обеих реплик), срок беседы</text><text x="463" y="4867" class="capm">пошёл со второго нажатия</text>
+<text x="463" y="4884" class="capm">(06 11, 06 33; chat_RU.md 2055 — срок со второго</text><text x="463" y="4901" class="capm">нажатия); тот же миг — кадр I листа 08</text>
+<text x="878" y="4796" class="cap">S · Возраст  граница 20/21 — до сохранения</text>
+<text x="878" y="4816" class="capm">10 17–19 «переход через границу 20/21, и он необратим </text>
+<text x="878" y="4833" class="capm">взрослый не уходит в подростковую песочницу»; лист снизу</text>
+<text x="878" y="4850" class="capm">поверх поля, «сохранить» — единственная залитая кнопка;</text>
+<text x="878" y="4867" class="capm">заголовок-вопрос «Перейти в полосу 21+?» — текст мой</text>
+<text x="1293" y="4796" class="cap">T · «Показать подсказки снова» — подтверждение</text>
+<text x="1293" y="4816" class="capm">10 44 и 24 13 «стирает память устройства о закрытых</text>
+<text x="1293" y="4833" class="capm">подсказках»; строка подтверждения «подсказки снова</text>
+<text x="1293" y="4850" class="capm">покажутся по одной» — текст мой, в описании не задан</text>
+<text x="1293" y="4867" class="capm">(опора — 24 10 «не больше одной за раз»)</text>
+</svg>

@@ -1,0 +1,614 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+<!--
+  The app kit: every component of the screens as a <symbol>, drawn once.
+  Sheets use them as <use href="kit/components.svg#id" x y data-param="…"/> and
+  scripts/build-design-sheets.py flattens them. Colours are only var(token)
+  from kit/tokens.css, so one symbol serves the dark and the light frame.
+  Parameters: data-p-<name> is the default, {name} and {arithmetic} substitute,
+  <g data-if="name"> / data-if="!name" keep a block when the parameter is set / empty.
+  Families: 1 icons · 2 buttons · 3 fields · 4 choice · 5 chips and signs ·
+  6 cards · 7 headers and navigation · 8 bars, rows, sheets.
+  The inventory these were taken from: 50 components of the dictionary
+  (docs/design-system-app_RU.md, «Словарь компонентов») across the 14 sheets, 2026-09-19.
+-->
+
+<!-- ═══ 1 · icons: a glyph in a 44 box, stroke 2, colour {c} ═══ -->
+<symbol id="icon-back" data-p-c="var(--fg)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></symbol>
+<symbol id="icon-close" data-p-c="var(--fg)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round"/></symbol>
+<symbol id="icon-filter" data-p-c="var(--fg)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
+<symbol id="icon-more" data-p-c="var(--fg)"><circle cx="15" cy="22" r="2" style="fill:{c}"/><circle cx="22" cy="22" r="2" style="fill:{c}"/><circle cx="29" cy="22" r="2" style="fill:{c}"/></symbol>
+<symbol id="icon-heart" data-p-c="var(--muted)" data-p-f="none"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:{f};stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
+<symbol id="icon-house" data-p-c="var(--accent)"><path d="M14 26 L22 19 L30 26 L30 33 L14 33 Z" style="fill:none;stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
+<symbol id="icon-game" data-p-c="var(--fg)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:{c};stroke-width:2"/><circle cx="17.5" cy="17.5" r="1.8" style="fill:{c}"/><circle cx="26.5" cy="17.5" r="1.8" style="fill:{c}"/><circle cx="22" cy="22" r="1.8" style="fill:{c}"/><circle cx="17.5" cy="26.5" r="1.8" style="fill:{c}"/><circle cx="26.5" cy="26.5" r="1.8" style="fill:{c}"/></symbol>
+<symbol id="icon-send" data-p-c="var(--accent-ink)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></symbol>
+<symbol id="icon-chevron-down" data-p-c="var(--muted)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></symbol>
+<symbol id="icon-chevron-right" data-p-c="var(--muted)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></symbol>
+<symbol id="icon-check" data-p-c="var(--fg)"><path d="M15 22 L20 27 L29 17" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></symbol>
+<symbol id="icon-key" data-p-c="var(--fg)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:{c};stroke-width:2"/><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round"/></symbol>
+<symbol id="icon-grid" data-p-c="var(--cat-teal)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:{c};stroke-width:2"/><circle cx="5.5" cy="5.5" r="1.5" style="fill:{c}"/><circle cx="10.5" cy="5.5" r="1.5" style="fill:{c}"/><circle cx="5.5" cy="10.5" r="1.5" style="fill:{c}"/><circle cx="10.5" cy="10.5" r="1.5" style="fill:{c}"/></symbol>
+<symbol id="icon-nav-feed" data-p-c="var(--muted)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round"/></symbol>
+<symbol id="icon-nav-chats" data-p-c="var(--muted)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
+<symbol id="icon-nav-me" data-p-c="var(--muted)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:{c};stroke-width:2"/><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round"/></symbol>
+
+<!-- an icon with its 44 zone; the name is for the screen reader and is shown on the kit sheet only -->
+<symbol id="icon-button" data-p-icon="icon-close" data-p-c="var(--fg)" data-p-name="закрыть">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="components.svg#{icon}" data-c="{c}"/>
+</symbol>
+<symbol id="icon-button-filled" data-p-icon="icon-game" data-p-name="игра">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <use href="components.svg#{icon}" data-c="var(--fg)"/>
+</symbol>
+
+<!-- ═══ 2 · buttons ═══ -->
+<!-- primary: accent fill, 16/600 on accent-ink, the shadow as distance +3,+3 (owner 2026-09-19: shadows where a thing stands above the plane); the disabled one is flat -->
+<symbol id="button-primary" data-p-w="343" data-p-h="44" data-p-label="Дальше">
+  <rect x="3" y="3" width="{w}" height="{h}" rx="13" style="fill:var(--shadow)"/>
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--accent)"/>
+  <text x="{w/2}" y="{h/2+5.5}" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">{label}</text>
+</symbol>
+<!-- Н1: disabled is visible, not faded — panel-2 with muted ink, and the reason in words under it -->
+<symbol id="button-primary-disabled" data-p-w="343" data-p-h="44" data-p-label="Дальше" data-p-reason="">
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--panel-2)"/>
+  <text x="{w/2}" y="{h/2+5.5}" text-anchor="middle" class="k-strong" style="fill:var(--muted)">{label}</text>
+  <g data-if="reason"><text x="{w/2}" y="{h+22}" text-anchor="middle" class="k-meta">{reason}</text></g>
+</symbol>
+<!-- secondary: an outline in border-control on bare ground, equal weight to the default choice -->
+<symbol id="button-secondary" data-p-w="343" data-p-h="44" data-p-label="Отмена">
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1"/>
+  <text x="{w/2}" y="{h/2+5.5}" text-anchor="middle" class="k-strong">{label}</text>
+</symbol>
+<!-- the light pill of spark: secondary actions on a card, 44 rx 22, fg with bg ink -->
+<symbol id="button-pill" data-p-w="140" data-p-label="сохранить">
+  <rect width="{w}" height="44" rx="22" style="fill:var(--fg)"/>
+  <text x="{w/2}" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">{label}</text>
+</symbol>
+<symbol id="button-pill-check" data-p-w="175" data-p-label="сохранено">
+  <rect width="{w}" height="44" rx="22" style="fill:var(--fg)"/>
+  <use href="components.svg#icon-check" x="8" y="0" data-c="var(--bg)"/>
+  <text x="{w/2+12}" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">{label}</text>
+</symbol>
+<!-- danger: the loud end of a sheet, «удалить», «стереть»; outline in err, never filled -->
+<symbol id="button-danger" data-p-w="343" data-p-h="44" data-p-label="Удалить">
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="13" style="fill:none;stroke:var(--err);stroke-width:1"/>
+  <text x="{w/2}" y="{h/2+5.5}" text-anchor="middle" class="k-strong" style="fill:var(--err)">{label}</text>
+</symbol>
+<!-- a word action: «вернуть», «забыли ПИН?», «показать»; the zone is 44 tall -->
+<symbol id="button-text" data-p-w="100" data-p-label="вернуть" data-p-anchor="start">
+  <rect width="{w}" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">{label}</text>
+</symbol>
+<!-- Н7: the send button is filled only while typing; empty — rim and muted arrow, not disabled -->
+<symbol id="button-send-empty">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1"/>
+  <use href="components.svg#icon-send" data-c="var(--muted)"/>
+</symbol>
+<symbol id="button-send-typing">
+  <rect width="44" height="44" rx="8" style="fill:var(--accent)"/>
+  <use href="components.svg#icon-send" data-c="var(--accent-ink)"/>
+</symbol>
+
+<!-- ═══ 3 · fields ═══ -->
+<!-- a field: panel with a 1 px border-control rim, rx 8, 16 px text; label above in meta -->
+<symbol id="field" data-p-w="343" data-p-h="44" data-p-label="" data-p-value="" data-p-placeholder="" data-p-counter="">
+  <g data-if="label"><text x="0" y="-10" class="k-meta">{label}</text></g>
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/>
+  <g data-if="value"><text x="16" y="28" class="k-body">{value}</text></g>
+  <g data-if="placeholder"><text x="16" y="28" class="k-body" style="fill:var(--muted)">{placeholder}</text></g>
+  <g data-if="counter"><text x="{w-12}" y="27" text-anchor="end" class="k-mono">{counter}</text></g>
+</symbol>
+<!-- focus: the same field plus one ring 2 px accent-text, 2 px outside -->
+<symbol id="field-focus" data-p-w="343" data-p-h="44" data-p-label="" data-p-value="" data-p-counter="">
+  <use href="components.svg#field" data-w="{w}" data-h="{h}" data-label="{label}" data-value="{value}" data-counter="{counter}"/>
+  <rect x="-3" y="-3" width="{w+6}" height="{h+6}" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2"/>
+</symbol>
+<!-- error: rim in err and the reason under it in words; what was typed stays -->
+<symbol id="field-error" data-p-w="343" data-p-h="44" data-p-label="" data-p-value="" data-p-error="не подошло">
+  <g data-if="label"><text x="0" y="-10" class="k-meta">{label}</text></g>
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="8" style="fill:var(--panel);stroke:var(--err);stroke-width:1"/>
+  <text x="16" y="28" class="k-body">{value}</text>
+  <text x="0" y="{h+22}" class="k-meta" style="fill:var(--err)">{error}</text>
+</symbol>
+<!-- closed: dashed rim, muted text; the field says why in its own line -->
+<symbol id="field-closed" data-p-w="343" data-p-h="44" data-p-text="беседа закончилась">
+  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/>
+  <text x="16" y="28" class="k-body" style="fill:var(--muted)">{text}</text>
+</symbol>
+<!-- the message row of a conversation: a field on panel-2 without rim, and the send button -->
+<symbol id="message-input" data-p-w="343" data-p-value="" data-p-placeholder="написать" data-p-counter="" data-p-caret="" data-p-state="">
+  <rect width="{w-56}" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <g data-if="placeholder"><g data-if="!value"><text x="16" y="28" class="k-body" style="fill:var(--muted)">{placeholder}</text></g></g>
+  <g data-if="value"><text x="16" y="28" class="k-body">{value}</text></g>
+  <g data-if="caret"><rect x="{caret}" y="12" width="2" height="20" style="fill:var(--accent-text)"/></g>
+  <g data-if="counter"><text x="{w-68}" y="27" text-anchor="end" class="k-mono">{counter}</text></g>
+  <g data-if="!state"><g data-if="!value"><use href="components.svg#button-send-empty" x="{w-44}"/></g>
+  <g data-if="value"><use href="components.svg#button-send-typing" x="{w-44}"/></g></g>
+  <g data-if="state"><rect x="{w-44}" width="44" height="44" rx="8" style="fill:var(--panel-2)"/><use href="components.svg#icon-send" x="{w-44}" data-c="var(--muted)"/></g>
+</symbol>
+<!-- the PIN: six dots in a field 327×48; filled dots are d1…d6 = var(fg) -->
+<symbol id="field-pin" data-p-d1="none" data-p-d2="none" data-p-d3="none" data-p-d4="none" data-p-d5="none" data-p-d6="none" data-p-closed="">
+  <g data-if="!closed"><rect x="0.5" y="0.5" width="326" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/></g>
+  <g data-if="closed"><rect x="0.5" y="0.5" width="326" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/></g>
+  <circle cx="83.5" cy="24" r="6" style="fill:{d1};stroke:var(--muted);stroke-width:1"/>
+  <circle cx="115.5" cy="24" r="6" style="fill:{d2};stroke:var(--muted);stroke-width:1"/>
+  <circle cx="147.5" cy="24" r="6" style="fill:{d3};stroke:var(--muted);stroke-width:1"/>
+  <circle cx="179.5" cy="24" r="6" style="fill:{d4};stroke:var(--muted);stroke-width:1"/>
+  <circle cx="211.5" cy="24" r="6" style="fill:{d5};stroke:var(--muted);stroke-width:1"/>
+  <circle cx="243.5" cy="24" r="6" style="fill:{d6};stroke:var(--muted);stroke-width:1"/>
+</symbol>
+<!-- a code by groups: mono, centred in its field (owner's decision 2026-09-18) -->
+<symbol id="field-code" data-p-w="327" data-p-value="____ ____ ____ ____" data-p-closed="" data-p-ty="30">
+  <g data-if="!closed"><rect x="0.5" y="0.5" width="{w-1}" height="47" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/></g>
+  <g data-if="closed"><rect x="0.5" y="0.5" width="{w-1}" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/></g>
+  <text x="{w/2}" y="{ty}" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">{value}</text>
+</symbol>
+<!-- a code shown for reading and checking: mono 26, centred, on panel-2 -->
+<symbol id="code-display" data-p-w="327" data-p-value="7HXK 2MPA" data-p-note="">
+  <rect width="{w}" height="72" rx="13" style="fill:var(--panel-2)"/>
+  <text x="{w/2}" y="46" text-anchor="middle" class="k-mono" style="font-size:26px;fill:var(--fg);letter-spacing:2px">{value}</text>
+  <g data-if="note"><text x="{w/2}" y="96" text-anchor="middle" class="k-meta">{note}</text></g>
+</symbol>
+<!-- consent: 24 box rx 6 with a 44 zone over box and label; checked — accent fill and accent-ink tick -->
+<symbol id="checkbox" data-p-label="Мне есть 18 лет" data-p-w="343">
+  <rect width="{w}" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <rect x="0.5" y="10.5" width="23" height="23" rx="6" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/>
+  <text x="36" y="27" class="k-body">{label}</text>
+</symbol>
+<symbol id="checkbox-checked" data-p-label="Мне есть 18 лет" data-p-w="343">
+  <rect width="{w}" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <rect x="0" y="10" width="24" height="24" rx="6" style="fill:var(--accent)"/>
+  <path d="M6 22 L10.5 26.5 L18 17.5" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/>
+  <text x="36" y="27" class="k-body">{label}</text>
+</symbol>
+
+<!-- ═══ 4 · choice ═══ -->
+<!-- tabs: labels 14/600, the active one fg with a 3 px accent underline, the rest muted; a hairline under -->
+<symbol id="tabs" data-p-l1="Предложения" data-p-l2="Беседы" data-p-w1="118" data-p-w2="80" data-p-a1="1" data-p-a2="" data-p-count="" data-p-dot="">
+  <rect x="0" y="0" width="{w1}" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <rect x="{w1+8}" y="0" width="{w2}" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <g data-if="a1"><text x="{w1/2}" y="27" text-anchor="middle" class="k-meta-strong">{l1}</text><rect x="0" y="41" width="{w1}" height="3" style="fill:var(--accent)"/></g>
+  <g data-if="!a1"><text x="{w1/2}" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--muted)">{l1}</text></g>
+  <g data-if="a2"><text x="{w1+8+w2/2}" y="27" text-anchor="middle" class="k-meta-strong">{l2}</text><rect x="{w1+8}" y="41" width="{w2}" height="3" style="fill:var(--accent)"/></g>
+  <g data-if="!a2"><text x="{w1+8+w2/2}" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--muted)">{l2}</text></g>
+  <g data-if="dot"><circle cx="{w1+8+w2-6}" cy="14" r="4" style="fill:var(--accent)"/></g>
+  <rect x="-16" y="44" width="375" height="1" style="fill:var(--border)"/>
+</symbol>
+<!-- segments: a 343×44 track rx 13 with a rim; the chosen one a panel-2 thumb rx 8, 14/600 -->
+<symbol id="segments" data-p-l1="всё" data-p-l2="фразы" data-p-l3="столы" data-p-s1="1" data-p-s2="" data-p-s3="">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1"/>
+  <g data-if="s1"><rect x="3" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)"/><text x="59.2" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">{l1}</text></g>
+  <g data-if="!s1"><text x="59.2" y="27" text-anchor="middle" class="k-meta">{l1}</text></g>
+  <g data-if="s2"><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)"/><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">{l2}</text></g>
+  <g data-if="!s2"><text x="171.5" y="27" text-anchor="middle" class="k-meta">{l2}</text></g>
+  <g data-if="s3"><rect x="227.67" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)"/><text x="283.8" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">{l3}</text></g>
+  <g data-if="!s3"><text x="283.8" y="27" text-anchor="middle" class="k-meta">{l3}</text></g>
+</symbol>
+<!-- zone steps: five 44-high cells; the chosen one panel-2 and 14/600 -->
+<symbol id="zone-steps" data-p-sel="2">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1"/>
+  <rect x="{3+(sel-1)*67.4}" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)"/>
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">дом</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">улица</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">район</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">город</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">шире</text>
+</symbol>
+<!-- the age slider: track 6 rx 3, range in accent, thumbs r14 with a 44 zone -->
+<symbol id="slider-range" data-p-a="40" data-p-b="240" data-p-la="25" data-p-lb="45">
+  <rect x="0" y="19" width="327" height="6" rx="3" style="fill:var(--panel-2)"/>
+  <rect x="{a}" y="19" width="{b-a}" height="6" rx="3" style="fill:var(--accent)"/>
+  <circle cx="{a}" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
+  <circle cx="{b}" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
+  <text x="{a}" y="64" text-anchor="middle" class="k-meta">{la}</text>
+  <text x="{b}" y="64" text-anchor="middle" class="k-meta">{lb}</text>
+</symbol>
+<!-- the viewing radius handle: a smooth ring without numbers, density said in a word -->
+<symbol id="radius-handle" data-p-word="десятки">
+  <circle cx="171.5" cy="100" r="88" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2"/>
+  <circle cx="171.5" cy="100" r="4" style="fill:var(--fg)"/>
+  <circle cx="259.5" cy="100" r="10" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
+  <use href="components.svg#button-secondary" x="0" y="212" data-w="44" data-label="−"/>
+  <text x="171.5" y="241" text-anchor="middle" class="k-meta">рядом · {word}</text>
+  <use href="components.svg#button-secondary" x="299" y="212" data-w="44" data-label="+"/>
+</symbol>
+<!-- a pill that opens a choice: «молчание · час», «ru ×» -->
+<symbol id="select-pill" data-p-w="147" data-p-label="молчание · час">
+  <rect width="{w}" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <text x="12" y="27" class="k-meta-strong">{label}</text>
+  <use href="components.svg#icon-chevron-down" x="{w-38}"/>
+</symbol>
+<!-- an accent swatch, labelled in a word; chosen — a ring and a tick -->
+<symbol id="swatch" data-p-c="#bd4b2a" data-p-label="терра" data-p-sel="">
+  <rect width="76" height="76" rx="8" data-hit="44" style="fill:none"/>
+  <circle cx="38" cy="26" r="18" style="fill:{c}"/>
+  <g data-if="sel"><circle cx="38" cy="26" r="24" style="fill:none;stroke:var(--fg);stroke-width:2"/><path d="M31 26 L36 31 L45 21" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/><text x="38" y="70" text-anchor="middle" class="k-meta-strong">{label}</text></g>
+  <g data-if="!sel"><text x="38" y="70" text-anchor="middle" class="k-meta">{label}</text></g>
+</symbol>
+
+<!-- ═══ 5 · chips and signs ═══ -->
+<!-- a category chip: 24 high pill, 10 % tint of the category colour, 14/600 in the colour -->
+<symbol id="chip" data-p-w="88" data-p-label="компания" data-p-c="var(--cat-amber)">
+  <rect width="{w}" height="24" rx="12" style="fill:{c};fill-opacity:0.10"/>
+  <text x="{w/2}" y="17" text-anchor="middle" class="k-meta-strong" style="fill:{c}">{label}</text>
+</symbol>
+<!-- «оффер» and a stale chip: a 1 px outline, no tint -->
+<symbol id="chip-outline" data-p-w="64" data-p-label="оффер" data-p-c="var(--accent-text)">
+  <rect x="0.5" y="0.5" width="{w-1}" height="23" rx="11.5" style="fill:none;stroke:{c};stroke-width:1"/>
+  <text x="{w/2}" y="17" text-anchor="middle" class="k-meta-strong" style="fill:{c}">{label}</text>
+</symbol>
+<!-- the lifespan of a phrase: 3 px on a border-control track, filled in the category colour -->
+<symbol id="lifespan" data-p-w="311" data-p-f="207" data-p-c="var(--cat-amber)">
+  <rect width="{w}" height="3" rx="1.5" style="fill:var(--border-control)"/>
+  <rect width="{f}" height="3" rx="1.5" style="fill:{c}"/>
+</symbol>
+<!-- remaining time in words, mono; near the end — err -->
+<symbol id="countdown" data-p-text="остаток 2 ч 50 мин" data-p-c="var(--muted)">
+  <text x="0" y="0" class="k-mono" style="fill:{c}">{text}</text>
+</symbol>
+<!-- a like: the heart in a 44 zone and the count; liked — filled accent -->
+<symbol id="like" data-p-count="3" data-p-c="var(--muted)" data-p-f="none">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="components.svg#icon-heart" data-c="{c}" data-f="{f}"/>
+  <g data-if="count"><text x="44" y="28" class="k-meta">{count}</text></g>
+</symbol>
+<!-- a counter on a tab or a row: 24×22 panel-2, mono -->
+<symbol id="badge-count" data-p-n="2">
+  <rect width="24" height="22" rx="8" style="fill:var(--panel-2)"/>
+  <text x="12" y="15.5" text-anchor="middle" class="k-mono" style="fill:var(--fg)">{n}</text>
+</symbol>
+<!-- the dot: «new from the last visit», r4 accent -->
+<symbol id="dot"><circle cx="4" cy="4" r="4" style="fill:var(--accent)"/></symbol>
+<!-- the key-check sign after a name: tap opens the code -->
+<symbol id="key-badge">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="components.svg#icon-key"/>
+</symbol>
+
+<!-- ═══ 6 · cards: panel fill, rx 13, no rim; a button inside keeps 16 to the bottom and the sides (owner 2026-09-19) ═══ -->
+<!-- a phrase in the feed: 20/600, lifespan under it, chip, like and «…» on the right; time left only on your own phrase (screen 23, 2026-09-15) — someone else's card leaves data-time empty -->
+<symbol id="card-phrase" data-p-w="343" data-p-l1="Кто-нибудь идёт на набережную" data-p-l2="вечером? Возьму термос." data-p-l3="" data-p-chip="компания" data-p-chipw="88" data-p-c="var(--cat-amber)" data-p-f="207" data-p-time="" data-p-likes="3" data-p-h="160" data-p-more="1">
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--panel)"/>
+  <text x="16" y="36" class="k-title">{l1}</text>
+  <g data-if="l2"><text x="16" y="64" class="k-title">{l2}</text></g>
+  <g data-if="l3"><text x="16" y="92" class="k-title">{l3}</text></g>
+  <use href="components.svg#lifespan" x="16" y="{h-80}" data-w="{w-32}" data-f="{f}" data-c="{c}"/>
+  <g data-if="time"><g data-if="chip"><use href="components.svg#chip" x="16" y="{h-62}" data-w="{chipw}" data-label="{chip}" data-c="{c}"/></g>
+  <use href="components.svg#countdown" x="16" y="{h-18}" data-text="{time}"/>
+  <use href="components.svg#like" x="{w-110}" y="{h-62}" data-count="{likes}"/>
+  <g data-if="more"><use href="components.svg#icon-button" x="{w-52}" y="{h-62}" data-icon="icon-more" data-name="ещё"/></g></g>
+  <g data-if="!time"><g data-if="chip"><use href="components.svg#chip" x="16" y="{h-50}" data-w="{chipw}" data-label="{chip}" data-c="{c}"/></g>
+  <use href="components.svg#like" x="{w-110}" y="{h-60}" data-count="{likes}"/>
+  <g data-if="more"><use href="components.svg#icon-button" x="{w-52}" y="{h-60}" data-icon="icon-more" data-name="ещё"/></g></g>
+</symbol>
+<!-- Н6: my phrase before the verdict — dashed rim, muted text, «проверяется» in words -->
+<symbol id="card-phrase-own" data-p-w="343" data-p-l1="Ищу компанию на пробежку" data-p-l2="ваша · проверяется, пока видна только вам" data-p-right="">
+  <rect x="0.5" y="0.5" width="{w-1}" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1"/>
+  <text x="16" y="36" class="k-title" style="fill:var(--muted)">{l1}</text>
+  <text x="16" y="64" class="k-meta">{l2}</text>
+  <g data-if="right"><text x="{w-16}" y="64" text-anchor="end" class="k-meta">{right}</text></g>
+</symbol>
+<!-- a table: grid sign, chip «стол · игра», name, who is there; «сесть» pill, like, «…» -->
+<symbol id="card-table" data-p-w="343" data-p-name="Виселица у фонтана" data-p-game="виселица" data-p-who="играют 2, смотрят 3" data-p-likes="5" data-p-chip="стол" data-p-chipw="52" data-p-cta="сесть" data-p-ctaw="104" data-p-h="168" data-p-note="">
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--panel)"/>
+  <use href="components.svg#icon-grid" x="16" y="20"/>
+  <use href="components.svg#chip" x="38" y="16" data-w="{chipw}" data-label="{chip}" data-c="var(--cat-teal)"/>
+  <text x="{chipw+48}" y="33" class="k-meta">· {game}</text>
+  <text x="16" y="68" class="k-strong">{name}</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">{who}</text>
+  <use href="components.svg#button-pill" x="16" y="{h-60}" data-w="{ctaw}" data-label="{cta}"/>
+  <use href="components.svg#like" x="{w-110}" y="{h-60}" data-count="{likes}"/>
+  <use href="components.svg#icon-button" x="{w-52}" y="{h-60}" data-icon="icon-more" data-name="ещё"/>
+  <g data-if="note"><text x="16" y="{h-72}" class="k-meta">{note}</text></g>
+</symbol>
+<!-- an offer: outline chip, discount on the right, venue, text, terms; «сохранить» pill -->
+<symbol id="card-offer" data-p-w="343" data-p-venue="Кофейня «Зерно»" data-p-discount="−15 %" data-p-text="Второй кофе в подарок до обеда" data-p-t1="до 12:00 · по будням" data-p-t2="срок до 30.09" data-p-who="" data-p-chip="оффер" data-p-chipw="64" data-p-cta="сохранить" data-p-ctaw="140" data-p-h="212">
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--panel)"/>
+  <use href="components.svg#chip-outline" x="16" y="16" data-w="{chipw}" data-label="{chip}"/>
+  <g data-if="who"><text x="{chipw+28}" y="33" class="k-meta">{who}</text></g>
+  <text x="{w-16}" y="33" text-anchor="end" class="k-strong">{discount}</text>
+  <g data-if="venue"><text x="16" y="68" class="k-strong">{venue}</text></g>
+  <text x="16" y="94" class="k-body">{text}</text>
+  <text x="16" y="120" class="k-meta">{t1}</text>
+  <g data-if="t2"><text x="16" y="142" class="k-meta">{t2}</text></g>
+  <use href="components.svg#button-pill" x="16" y="{h-60}" data-w="{ctaw}" data-label="{cta}"/>
+  <use href="components.svg#icon-button" x="{w-52}" y="{h-60}" data-icon="icon-more" data-name="ещё"/>
+</symbol>
+<!-- an offer that is no longer live: everything muted, the status in words, the chip an outline in muted -->
+<symbol id="card-offer-stale" data-p-w="343" data-p-venue="Кофейня «Зерно»" data-p-status="срок вышел">
+  <rect width="{w}" height="96" rx="13" style="fill:var(--panel)"/>
+  <use href="components.svg#chip-outline" x="16" y="16" data-c="var(--muted)"/>
+  <text x="{w-16}" y="33" text-anchor="end" class="k-meta-strong" style="fill:var(--muted)">{status}</text>
+  <text x="16" y="72" class="k-strong" style="fill:var(--muted)">{venue}</text>
+</symbol>
+<!-- the other person of a match: panel-2, name, chip, their phrase, lifespan -->
+<symbol id="card-match" data-p-w="343" data-p-name="Аня, 31" data-p-l1="Кто идёт на набережную?" data-p-chip="компания" data-p-chipw="88" data-p-c="var(--cat-amber)" data-p-note="ответа пока нет">
+  <rect width="{w}" height="160" rx="13" style="fill:var(--panel-2)"/>
+  <text x="16" y="36" class="k-title">{name}</text>
+  <use href="components.svg#chip" x="16" y="52" data-w="{chipw}" data-label="{chip}" data-c="{c}"/>
+  <text x="16" y="108" class="k-title">{l1}</text>
+  <use href="components.svg#lifespan" x="16" y="122" data-w="{w-32}" data-c="{c}"/>
+  <text x="16" y="146" class="k-meta">{note}</text>
+</symbol>
+<!-- Н4: the tombstone of a conversation — neither error nor empty; stays until touched -->
+<symbol id="card-tombstone" data-p-w="343" data-p-title="Беседа закончилась" data-p-line="собеседник ушёл · история не хранится" data-p-line2="" data-p-cta="закрыть" data-p-ctaw="120">
+  <rect width="{w}" height="140" rx="13" style="fill:var(--panel)"/>
+  <text x="{w/2}" y="40" text-anchor="middle" class="k-title">{title}</text>
+  <text x="{w/2}" y="66" text-anchor="middle" class="k-meta">{line}</text>
+  <g data-if="line2"><text x="{w/2}" y="86" text-anchor="middle" class="k-meta">{line2}</text></g>
+  <use href="components.svg#button-pill" x="{w/2-ctaw/2}" y="80" data-w="{ctaw}" data-label="{cta}"/>
+</symbol>
+<!-- Н3: the skeleton — the card's own geometry, no words -->
+<symbol id="card-skeleton" data-p-w="343">
+  <rect width="{w}" height="160" rx="13" style="fill:var(--panel)"/>
+  <rect x="16" y="22" width="{w-48}" height="14" rx="7" style="fill:var(--panel-2)"/>
+  <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)"/>
+  <rect x="16" y="80" width="{w-32}" height="3" rx="1.5" style="fill:var(--panel-2)"/>
+  <rect x="16" y="98" width="88" height="24" rx="12" style="fill:var(--panel-2)"/>
+  <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)"/>
+</symbol>
+<!-- an empty state: sign, title 26, two lines, one action -->
+<symbol id="empty-state" data-p-icon="icon-nav-chats" data-p-title="Пока тихо" data-p-l1="Бесед нет. Они начинаются" data-p-l2="с мэтча в ленте." data-p-action="В ленту">
+  <use href="components.svg#{icon}" x="149.5" y="0" data-c="var(--muted)"/>
+  <text x="171.5" y="88" text-anchor="middle" class="k-display">{title}</text>
+  <text x="171.5" y="120" text-anchor="middle" class="k-body" style="fill:var(--muted)">{l1}</text>
+  <g data-if="l2"><text x="171.5" y="144" text-anchor="middle" class="k-body" style="fill:var(--muted)">{l2}</text></g>
+  <g data-if="action"><use href="components.svg#button-secondary" x="0" y="168" data-label="{action}"/></g>
+</symbol>
+<!-- a first-meeting hint: panel-2 with an accent edge, one line, «понятно» as an outline -->
+<symbol id="card-hint" data-p-w="343" data-p-l1="Проведите по фразе влево —" data-p-l2="она скроется из вашей ленты." data-p-l3="" data-p-l4="" data-p-cta="понятно" data-p-h="136">
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--panel-2)"/>
+  <rect width="4" height="{h}" rx="2" style="fill:var(--accent)"/>
+  <text x="20" y="34" class="k-body">{l1}</text>
+  <g data-if="l2"><text x="20" y="58" class="k-body">{l2}</text></g>
+  <g data-if="l3"><text x="20" y="82" class="k-body">{l3}</text></g>
+  <g data-if="l4"><text x="20" y="106" class="k-body">{l4}</text></g>
+  <use href="components.svg#button-secondary" x="20" y="{h-60}" data-w="140" data-label="{cta}"/>
+</symbol>
+<!-- a support ticket: mono id, date, the last line; the dot when support answered -->
+<symbol id="card-ticket" data-p-w="343" data-p-id="№ 4F2A-91" data-p-date="18.09" data-p-line="Жалоба на фразу · рассмотрена" data-p-dot="">
+  <rect width="{w}" height="96" rx="13" style="fill:var(--panel)"/>
+  <text x="16" y="32" class="k-mono" style="fill:var(--fg)">{id}</text>
+  <text x="{w-16}" y="32" text-anchor="end" class="k-mono">{date}</text>
+  <rect x="16" y="46" width="{w-32}" height="1" style="fill:var(--border)"/>
+  <g data-if="dot"><circle cx="20" cy="71" r="4" style="fill:var(--accent)"/><text x="32" y="76" class="k-meta" style="fill:var(--fg)">{line}</text></g>
+  <g data-if="!dot"><text x="16" y="76" class="k-meta">{line}</text></g>
+</symbol>
+<!-- a chat bubble: theirs panel on the left, mine panel-2 on the right; no rim -->
+<symbol id="bubble-theirs" data-p-w="220" data-p-text="Привет! Я у входа." data-p-text2="" data-p-name="">
+  <g data-if="!text2"><rect width="{w}" height="40" rx="13" style="fill:var(--panel)"/><text x="14" y="25.5" class="k-body">{text}</text></g>
+  <g data-if="text2"><rect width="{w}" height="62" rx="13" style="fill:var(--panel)"/><text x="14" y="26" class="k-body">{text}</text><text x="14" y="48" class="k-body">{text2}</text></g>
+  <g data-if="name"><text x="14" y="-6" class="k-meta">{name}</text></g>
+</symbol>
+<symbol id="bubble-mine" data-p-w="200" data-p-text="Иду, пять минут." data-p-text2="" data-p-mark="✓" data-p-markc="var(--muted)">
+  <g data-if="!text2"><rect x="{343-w}" width="{w}" height="40" rx="13" style="fill:var(--panel-2)"/><text x="{343-w+14}" y="25.5" class="k-body">{text}</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:{markc}">{mark}</text></g>
+  <g data-if="text2"><rect x="{343-w}" width="{w}" height="62" rx="13" style="fill:var(--panel-2)"/><text x="{343-w+14}" y="26" class="k-body">{text}</text><text x="{343-w+14}" y="48" class="k-body">{text2}</text>
+  <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:{markc}">{mark}</text></g>
+</symbol>
+<!-- a system line in a conversation: centred, muted, no bubble, not encrypted -->
+<symbol id="system-line" data-p-text="Аня положила фишку на e4">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">{text}</text>
+</symbol>
+
+<!-- ═══ 7 · headers and navigation ═══ -->
+<!-- the feed header of spark: place and the live count, filter on the right -->
+<symbol id="header-feed" data-p-title="Колонаки · рядом десятки">
+  <rect width="375" height="56" style="fill:var(--bg)"/>
+  <text x="16" y="35" class="k-title">{title}</text>
+  <use href="components.svg#icon-button" x="315" y="6" data-icon="icon-filter" data-name="фильтр"/>
+</symbol>
+<!-- a screen header: back, title, an optional word action on the right -->
+<symbol id="header-screen" data-p-title="Настройки" data-p-back="1" data-p-action="">
+  <rect width="375" height="56" style="fill:var(--bg)"/>
+  <g data-if="back"><use href="components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/><text x="52" y="35" class="k-title">{title}</text></g>
+  <g data-if="!back"><text x="16" y="35" class="k-title">{title}</text></g>
+  <g data-if="action"><text x="359" y="34" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">{action}</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)"/>
+</symbol>
+<!-- the conversation header: back, name, key sign, game; second row — silence, time, «закончить» -->
+<symbol id="header-chat" data-p-name="Аня, 31" data-p-namew="73" data-p-time="остаток 52 мин" data-p-timec="var(--muted)" data-p-score="" data-p-end="закончить" data-p-silence="молчание · час" data-p-silencew="147">
+  <rect width="375" height="104" style="fill:var(--bg)"/>
+  <use href="components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/>
+  <text x="52" y="35" class="k-title">{name}</text>
+  <use href="components.svg#key-badge" x="{56+namew}" y="6"/>
+  <g data-if="score"><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">{score}</text></g>
+  <use href="components.svg#icon-button-filled" x="315" y="6"/>
+  <use href="components.svg#select-pill" x="16" y="56" data-w="{silencew}" data-label="{silence}"/>
+  <use href="components.svg#countdown" x="{silencew+28}" y="83" data-text="{time}" data-c="{timec}"/>
+  <g data-if="end"><text x="359" y="83" text-anchor="end" class="k-meta-strong">{end}</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)"/>
+</symbol>
+<!-- the tab bar: three items, the active one fg with 14/600 and a 32×3 accent bar; a dot on «Я» -->
+<symbol id="tabbar" data-p-a1="1" data-p-a2="" data-p-a3="" data-p-dot="" data-p-dot2="" data-p-l1="Лента" data-p-l2="Беседы" data-p-l3="Я">
+  <rect width="375" height="64" style="fill:var(--bg)"/>
+  <rect width="375" height="1" style="fill:var(--border)"/>
+  <g data-if="a1"><use href="components.svg#icon-nav-feed" x="40.5" y="2" data-c="var(--fg)"/><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">{l1}</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)"/></g>
+  <g data-if="!a1"><use href="components.svg#icon-nav-feed" x="40.5" y="2"/><text x="62.5" y="54" text-anchor="middle" class="k-meta">{l1}</text></g>
+  <g data-if="a2"><use href="components.svg#icon-nav-chats" x="165.5" y="2" data-c="var(--fg)"/><text x="187.5" y="54" text-anchor="middle" class="k-meta-strong">{l2}</text><rect x="171.5" y="60" width="32" height="3" style="fill:var(--accent)"/></g>
+  <g data-if="!a2"><use href="components.svg#icon-nav-chats" x="165.5" y="2"/><text x="187.5" y="54" text-anchor="middle" class="k-meta">{l2}</text></g>
+  <g data-if="a3"><use href="components.svg#icon-nav-me" x="290.5" y="2" data-c="var(--fg)"/><text x="312.5" y="54" text-anchor="middle" class="k-meta-strong">{l3}</text><rect x="296.5" y="60" width="32" height="3" style="fill:var(--accent)"/></g>
+  <g data-if="!a3"><use href="components.svg#icon-nav-me" x="290.5" y="2"/><text x="312.5" y="54" text-anchor="middle" class="k-meta">{l3}</text></g>
+  <g data-if="dot"><circle cx="326" cy="12" r="4" style="fill:var(--accent)"/></g>
+  <g data-if="dot2"><circle cx="201" cy="12" r="4" style="fill:var(--accent)"/></g>
+</symbol>
+<!-- the floating composer of spark: a 327×52 fg pill with the accent send circle -->
+<symbol id="composer-float" data-p-placeholder="сказать соседям…">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)"/>
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)"/>
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">{placeholder}</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)"/>
+  <use href="components.svg#icon-send" x="279" y="4" data-c="var(--accent-ink)"/>
+</symbol>
+<!-- a settings row: label, value on the right, chevron; 48 pitch with a hairline -->
+<symbol id="row-setting" data-p-label="Акцент" data-p-value="терра">
+  <rect width="343" height="48" data-hit="44" style="fill:none"/>
+  <text x="0" y="30" class="k-body">{label}</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">{value}</text>
+  <use href="components.svg#icon-chevron-right" x="305" y="2"/>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)"/>
+</symbol>
+
+<!-- ═══ 8 · bars, rows, sheets ═══ -->
+<!-- Н5: one slot under the header, four socket outcomes; the dot's colour is the second channel -->
+<symbol id="bar-connection" data-p-text="Переподключаемся…" data-p-c="var(--muted)">
+  <rect width="375" height="32" style="fill:var(--panel-2)"/>
+  <circle cx="20" cy="16" r="4" style="fill:{c}"/>
+  <text x="34" y="21" class="k-meta" style="fill:var(--fg)">{text}</text>
+</symbol>
+<!-- «вы за столом — вернуться»: exactly one, stays when the table has left the feed -->
+<symbol id="bar-at-table" data-p-text="вы за столом · виселица" data-p-action="вернуться">
+  <rect width="375" height="44" style="fill:var(--panel-2)"/>
+  <text x="16" y="27" class="k-meta" style="fill:var(--fg)">{text}</text>
+  <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">{action}</text>
+</symbol>
+<!-- «документы изменились»: the list and one tick, the feed stays readable -->
+<symbol id="bar-documents" data-p-text="Изменились правила и политика" data-p-action="прочитать">
+  <rect width="375" height="44" style="fill:var(--panel-2)"/>
+  <text x="16" y="27" class="k-meta" style="fill:var(--fg)">{text}</text>
+  <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">{action}</text>
+</symbol>
+<!-- a row with undo: the refusal is written at once, «вернуть» for a few seconds -->
+<symbol id="row-undo" data-p-w="343" data-p-text="скрыто" data-p-action="вернуть">
+  <rect width="{w}" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <text x="16" y="27" class="k-body">{text}</text>
+  <text x="{w-16}" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">{action}</text>
+</symbol>
+<!-- a toast over the feed: fg ground, bg ink; the action bold in bg — accent on fg is 4.08, below 4.5 (measured 2026-09-19) -->
+<symbol id="toast" data-p-w="343" data-p-text="сохранено в «Мои лайки»" data-p-action="вернуть">
+  <rect x="3" y="3" width="{w}" height="48" rx="13" style="fill:var(--shadow)"/>
+  <rect width="{w}" height="48" rx="13" style="fill:var(--fg)"/>
+  <text x="16" y="29.5" class="k-body" style="fill:var(--bg)">{text}</text>
+  <g data-if="action"><text x="{w-16}" y="29.5" text-anchor="end" class="k-strong" style="fill:var(--bg);text-decoration:underline">{action}</text></g>
+</symbol>
+<!-- a console row (21): time in mono, a 3 px stripe by kind, the text -->
+<symbol id="row-console" data-p-time="12:04" data-p-c="var(--border)" data-p-text="Фраза прошла проверку">
+  <text x="0" y="15" class="k-mono">{time}</text>
+  <rect x="48" y="0" width="3" height="20" rx="1.5" style="fill:{c}"/>
+  <text x="62" y="15" class="k-body">{text}</text>
+</symbol>
+<!-- the «…» sheet: from quiet to loud, rows 56, the loud one in err -->
+<symbol id="sheet-actions" data-p-r1="Скрыть" data-p-r2="Не показывать этого автора" data-p-r3="Пожаловаться">
+  <rect width="375" height="236" rx="24" style="fill:var(--panel)"/>
+  <rect x="0" y="200" width="375" height="36" style="fill:var(--panel)"/>
+  <rect x="167.5" y="8" width="40" height="4" rx="2" style="fill:var(--border-control)"/>
+  <text x="16" y="56" class="k-body">{r1}</text>
+  <rect x="16" y="76" width="343" height="1" style="fill:var(--border)"/>
+  <text x="16" y="112" class="k-body">{r2}</text>
+  <rect x="16" y="132" width="343" height="1" style="fill:var(--border)"/>
+  <text x="16" y="168" class="k-body" style="fill:var(--err)">{r3}</text>
+</symbol>
+<!-- a question with two buttons: scrim, a bottom panel, no default; the risk in a line -->
+<symbol id="sheet-question" data-p-title="Закончить беседу?" data-p-l1="История не сохраняется, вернуть её нельзя." data-p-yes="Закончить" data-p-no="Отмена">
+  <rect x="0" y="-532" width="375" height="532" style="fill:var(--scrim);fill-opacity:0.55"/>
+  <rect width="375" height="280" rx="24" style="fill:var(--panel)"/>
+  <rect x="0" y="240" width="375" height="40" style="fill:var(--panel)"/>
+  <text x="16" y="48" class="k-title">{title}</text>
+  <text x="16" y="80" class="k-meta" style="fill:var(--fg)">{l1}</text>
+  <use href="components.svg#button-primary" x="16" y="116" data-label="{yes}"/>
+  <use href="components.svg#button-secondary" x="16" y="172" data-label="{no}"/>
+</symbol>
+<!-- what disappears, in numbers, before the press -->
+<symbol id="list-cost" data-p-l1="фразы в ленте" data-p-n1="2" data-p-l2="беседы" data-p-n2="3" data-p-l3="места за столами" data-p-n3="1">
+  <text x="0" y="20" class="k-body">{l1}</text><text x="343" y="20" text-anchor="end" class="k-strong">{n1}</text>
+  <rect y="34" width="343" height="1" style="fill:var(--border)"/>
+  <text x="0" y="60" class="k-body">{l2}</text><text x="343" y="60" text-anchor="end" class="k-strong">{n2}</text>
+  <rect y="74" width="343" height="1" style="fill:var(--border)"/>
+  <text x="0" y="100" class="k-body">{l3}</text><text x="343" y="100" text-anchor="end" class="k-strong">{n3}</text>
+</symbol>
+<!-- ═══ kit v2 (2026-09-19): symbols the rebuild hands had to draw by hand ═══ -->
+<!-- a list row of conversations: name, the last line, time; the dot and «ждёт вашего ответа» when it is your turn -->
+<symbol id="row-chat" data-p-w="343" data-p-name="Аня, 24" data-p-line="и это тоже моё было" data-p-time="52 мин" data-p-wait="" data-p-dot="" data-p-sel="">
+  <!-- 72 tall on a 72 pitch: name 24, line 45, time 63 (top ≈11, bottom ≈9) — the owner found 24/44/60 in 64 «слеплено», 2026-09-19 -->
+  <g data-if="sel"><rect width="{w}" height="72" rx="8" style="fill:var(--panel-2)"/></g>
+  <g data-if="!sel"><rect width="{w}" height="72" rx="8" data-hit="44" style="fill:none"/></g>
+  <text x="12" y="24" class="k-strong">{name}</text>
+  <text x="12" y="45" class="k-meta" style="fill:var(--fg)">{line}</text>
+  <text x="12" y="63" class="k-mono">{time}</text>
+  <g data-if="wait"><text x="{w-12}" y="63" text-anchor="end" class="k-meta" style="fill:var(--accent-text)">{wait}</text></g>
+  <g data-if="dot"><circle cx="{w-16}" cy="22" r="4" style="fill:var(--accent)"/></g>
+</symbol>
+<!-- a liked phrase quoted in a conversation: accent edge, heart, the phrase, who liked -->
+<symbol id="quote-like" data-p-w="343" data-p-text="«набережная, к девяти, компания»" data-p-by="лайкнули">
+  <rect width="{w}" height="58" rx="13" style="fill:var(--panel)"/>
+  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)"/>
+  <use href="components.svg#icon-heart" x="4" y="7" data-c="var(--accent)" data-f="var(--accent)"/>
+  <text x="46" y="26" class="k-body">{text}</text>
+  <text x="46" y="46" class="k-meta">{by}</text>
+</symbol>
+<!-- the table header (19): name, game chip, likes, who plays, «встать» -->
+<symbol id="header-table" data-p-name="стол у пекарни" data-p-chip="домино" data-p-chipw="72" data-p-likes="12" data-p-who="играют 2 · смотрят 3" data-p-leave="встать">
+  <rect width="375" height="96" style="fill:var(--bg)"/>
+  <use href="components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/>
+  <text x="52" y="26" class="k-title">{name}</text>
+  <use href="components.svg#chip" x="52" y="34" data-w="{chipw}" data-label="{chip}" data-c="var(--cat-teal)"/>
+  <use href="components.svg#like" x="289" y="6" data-count="{likes}"/>
+  <text x="16" y="82" class="k-meta" style="fill:var(--fg)">{who}</text>
+  <g data-if="leave"><rect x="303" y="52" width="56" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="359" y="82" text-anchor="end" class="k-meta-strong">{leave}</text></g>
+  <rect x="0" y="95" width="375" height="1" style="fill:var(--border)"/>
+</symbol>
+<!-- a screen header with the title centred and the way back labelled («‹ Я»), a counter on the right («1 / 2») -->
+<symbol id="header-center" data-p-title="Мои лайки" data-p-back="Я" data-p-right="" data-p-arrow="1">
+  <rect width="375" height="56" style="fill:var(--bg)"/>
+  <g data-if="arrow"><use href="components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-name="назад"/></g>
+  <g data-if="back"><text x="40" y="34" class="k-mono">{back}</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title">{title}</text>
+  <g data-if="right"><text x="359" y="34" text-anchor="end" class="k-mono">{right}</text></g>
+</symbol>
+<!-- an accent pill with a heart: «лайк» on the full-screen phrase (23); liked — filled heart -->
+<symbol id="button-accent-pill" data-p-w="121" data-p-label="лайк" data-p-f="none">
+  <rect x="3" y="3" width="{w}" height="44" rx="22" style="fill:var(--shadow)"/>
+  <rect width="{w}" height="44" rx="22" style="fill:var(--accent)"/>
+  <use href="components.svg#icon-heart" x="{w/2-46}" y="0" data-c="var(--accent-ink)" data-f="{f}"/>
+  <text x="{w/2+10}" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">{label}</text>
+</symbol>
+<!-- a chosen full-width row (20: «час» among durations) — the light plaque of segments, full width -->
+<symbol id="row-choice" data-p-w="343" data-p-label="час" data-p-sel="">
+  <g data-if="sel"><rect width="{w}" height="44" rx="13" style="fill:var(--fg)"/><text x="{w/2}" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">{label}</text></g>
+  <g data-if="!sel"><rect x="0.5" y="0.5" width="{w-1}" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1"/><text x="{w/2}" y="27.5" text-anchor="middle" class="k-strong">{label}</text></g>
+</symbol>
+<!-- «у нас не получилось / нет связи» as a card: the sign, a title, up to three lines, «повторить» -->
+<symbol id="card-error" data-p-w="327" data-p-title="У нас не получилось" data-p-l1="Мы не ответили — это на нашей стороне." data-p-l2="" data-p-l3="" data-p-cta="повторить" data-p-h="162">
+  <rect width="{w}" height="{h}" rx="13" style="fill:var(--panel-2)"/>
+  <circle cx="24" cy="28" r="8" style="fill:var(--err)"/>
+  <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
+  <text x="42" y="34" class="k-strong">{title}</text>
+  <text x="16" y="62" class="k-meta" style="fill:var(--fg)">{l1}</text>
+  <g data-if="l2"><text x="16" y="82" class="k-meta" style="fill:var(--fg)">{l2}</text></g>
+  <g data-if="l3"><text x="16" y="102" class="k-meta" style="fill:var(--fg)">{l3}</text></g>
+  <use href="components.svg#button-secondary" x="16" y="{h-60}" data-w="{w-32}" data-label="{cta}"/>
+</symbol>
+<!-- a bottom sheet with a question and a few lines: title, up to four lines, primary, secondary -->
+<symbol id="sheet-text" data-p-title="Точно? История исчезнет у обоих" data-p-l1="Беседа закроется у обоих сразу." data-p-l2="" data-p-l3="" data-p-l4="" data-p-yes="Закончить" data-p-no="Отмена" data-p-h="300">
+  <rect x="0" y="-{812-h}" width="375" height="{812-h}" style="fill:var(--scrim);fill-opacity:0.55"/>
+  <rect width="375" height="{h}" rx="24" style="fill:var(--panel)"/>
+  <rect x="0" y="{h-40}" width="375" height="40" style="fill:var(--panel)"/>
+  <text x="16" y="44" class="k-title">{title}</text>
+  <text x="16" y="74" class="k-meta" style="fill:var(--fg)">{l1}</text>
+  <g data-if="l2"><text x="16" y="94" class="k-meta" style="fill:var(--fg)">{l2}</text></g>
+  <g data-if="l3"><text x="16" y="114" class="k-meta" style="fill:var(--fg)">{l3}</text></g>
+  <g data-if="l4"><text x="16" y="134" class="k-meta" style="fill:var(--fg)">{l4}</text></g>
+  <use href="components.svg#button-primary" x="16" y="{h-120}" data-label="{yes}"/>
+  <use href="components.svg#button-secondary" x="16" y="{h-64}" data-label="{no}"/>
+</symbol>
+<!-- an empty state with a title 20 and no action (07 H, 14 D) -->
+<symbol id="empty-quiet" data-p-icon="icon-nav-chats" data-p-title="Обращений пока нет" data-p-l1="Здесь будут ваши обращения и ответы на них." data-p-l2="">
+  <use href="components.svg#{icon}" x="149.5" y="0" data-c="var(--muted)"/>
+  <text x="171.5" y="76" text-anchor="middle" class="k-title">{title}</text>
+  <text x="171.5" y="102" text-anchor="middle" class="k-meta">{l1}</text>
+  <g data-if="l2"><text x="171.5" y="122" text-anchor="middle" class="k-meta">{l2}</text></g>
+</symbol>
+<!-- a list row with a value and no chevron (the language list, action rows); a tick when chosen -->
+<symbol id="row-plain" data-p-w="343" data-p-label="русский" data-p-value="" data-p-valuec="var(--muted)" data-p-sel="" data-p-c="var(--fg)">
+  <rect width="{w}" height="48" data-hit="44" style="fill:none"/>
+  <text x="0" y="30" class="k-body" style="fill:{c}">{label}</text>
+  <g data-if="value"><text x="{w}" y="30" text-anchor="end" class="k-meta" style="fill:{valuec}">{value}</text></g>
+  <g data-if="sel"><use href="components.svg#icon-check" x="{w-44}" y="2" data-c="var(--accent-text)"/></g>
+  <rect x="0" y="47" width="{w}" height="1" style="fill:var(--border)"/>
+</symbol>
+<!-- a timer or a remaining time in words, sans (23 «скоро исчезнет», 20 «до 15:02») -->
+<symbol id="timer-words" data-p-text="скоро исчезнет" data-p-c="var(--muted)" data-p-anchor="start">
+  <text x="0" y="0" text-anchor="{anchor}" class="k-meta" style="fill:{c}">{text}</text>
+</symbol>
+</svg>

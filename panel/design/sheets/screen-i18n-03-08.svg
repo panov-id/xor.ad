@@ -1,0 +1,325 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1317" height="4650" viewBox="0 0 1317 4650">
+<title>Экраны 03 и 08 — стресс длины строк: EN, DE, HY · 375×812</title>
+<style>
+/* kit:tokens */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .phone { stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="1317" height="4650" style="fill:#ece4d8"/>
+<g transform="translate(48,130)" class="k-dark" data-frame="feed.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c00"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c00)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#bar-at-table" x="0" y="56" data-text="you are at a table" data-action="return"/>
+<use href="kit/components.svg#card-phrase" x="16" y="108" data-h="160" data-l1="Anyone going to the embankment" data-l2="tonight? I'll bring a thermos." data-l3="" data-chip="company" data-chipw="80" data-time=""/>
+<rect x="16.5" y="276.5" width="342" height="97" rx="13" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" stroke-dasharray="5 4"/>
+<text x="32" y="310" class="k-title" data-max="311" style="fill:var(--muted)">Looking for someone to play</text>
+<text x="32" y="336" class="k-title" data-max="311" style="fill:var(--muted)">Go with.</text>
+<text x="32" y="362" class="k-meta" data-max="72">checking…</text>
+<use href="kit/components.svg#countdown" x="140" y="362" data-text="40 min left"/>
+<text x="343" y="362" class="k-meta" text-anchor="end" data-max="100">alone</text>
+<use href="kit/components.svg#card-offer" x="16" y="382" data-chip="offer" data-chipw="64" data-venue="Kolos Bakery" data-discount="−20 %" data-text="Second croissant at half price." data-t1="conditions: when ordering two or more" data-t2="discount until 30 September, 18:00" data-cta="Save"/>
+<use href="kit/components.svg#card-table" x="16" y="602" data-chip="table" data-chipw="64" data-game="hangman" data-name="Friday one" data-who="2 playing, 3 watching" data-likes="5" data-cta="sit down" data-ctaw="104"/>
+<!-- «farther than you asked»: a phrase card with a distance line above it; no symbol carries that line -->
+<rect x="16" y="778" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="806" class="k-meta" data-max="311">farther than you asked</text>
+<text x="32" y="834" class="k-body" data-max="311">Board games in the park.</text>
+<use href="kit/components.svg#chip" x="32" y="854" data-w="64" data-label="party" data-c="var(--cat-violet)"/>
+<use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Conversations" data-l3="Me"/>
+</g></g>
+<g transform="translate(471,130)" class="k-dark" data-frame="feed.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c01"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c01)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#bar-at-table" x="0" y="56" data-text="Sie sitzen an einem Tisch" data-action="zurück"/>
+<use href="kit/components.svg#card-phrase" x="16" y="108" data-h="182" data-l1="Geht heute Abend jemand an die" data-l2="Promenade? Ich bringe eine" data-l3="Thermoskanne mit." data-chip="Gesellschaft" data-chipw="118" data-time=""/>
+<use href="kit/components.svg#card-phrase-own" x="16" y="296" data-l1="Suche jemanden zum Go-Spielen." data-l2="wird geprüft… · noch 40 Min" data-right="allein"/>
+<use href="kit/components.svg#card-offer" x="16" y="386" data-chip="Angebot" data-chipw="82" data-venue="Bäckerei „Kolos“" data-discount="−20 %" data-text="Zweites Croissant zum halben Preis." data-t1="Bedingungen: ab zwei Stück pro Bestellung" data-t2="Rabatt bis 30. September, 18:00" data-cta="Speichern"/>
+<use href="kit/components.svg#card-table" x="16" y="604" data-chip="Tisch" data-chipw="66" data-game="Galgenmännchen" data-name="Freitagsrunde" data-who="2 spielen, 3 schauen zu" data-likes="5" data-cta="Platz nehmen" data-ctaw="136"/>
+<!-- «farther than you asked»: a phrase card with a distance line above it; no symbol carries that line -->
+<rect x="16" y="778" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="806" class="k-meta" data-max="311">weiter weg, als Sie wollten</text>
+<text x="32" y="834" class="k-body" data-max="311">Wir spielen Brettspiele im Park.</text>
+<use href="kit/components.svg#chip" x="32" y="854" data-w="66" data-label="Party" data-c="var(--cat-violet)"/>
+<use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · Dutzende nebenan"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="den Nachbarn sagen…"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
+</g></g>
+<g transform="translate(894,130)" class="k-dark" data-frame="feed.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c02"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c02)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#bar-at-table" x="0" y="56" data-text="Դուք սեղանի մոտ եք" data-action="վերադառնալ"/>
+<use href="kit/components.svg#card-phrase" x="16" y="108" data-h="160" data-l1="Որևէ մեկը երեկոյան առափնյա" data-l2="գնո՞ւմ է։ Թերմոս կվերցնեմ։" data-l3="" data-chip="ընկերություն" data-chipw="122" data-time=""/>
+<use href="kit/components.svg#card-phrase-own" x="16" y="276" data-l1="Փնտրում եմ գո խաղալու ընկեր։" data-l2="ստուգվում է… · մնաց 40 ր" data-right="մենակ"/>
+<use href="kit/components.svg#card-offer" x="16" y="368" data-chip="առաջարկ" data-chipw="82" data-venue="«Կոլոս» փռատուն" data-discount="−20 %" data-text="Երկրորդ կրուասանը կես գնով։" data-t1="պայմաններ՝ երկուսից պատվիրելիս" data-t2="զեղչը մինչև սեպտեմբերի 30, 18:00" data-cta="Պահպանել"/>
+<use href="kit/components.svg#card-table" x="16" y="588" data-chip="սեղան" data-chipw="66" data-game="կախաղան" data-name="Ուրբաթյան" data-who="խաղում են 2, դիտում են 3" data-likes="5" data-cta="նստել" data-ctaw="104"/>
+<!-- «farther than you asked»: a phrase card with a distance line above it; no symbol carries that line -->
+<rect x="16" y="764" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="792" class="k-meta" data-max="311">ավելի հեռու, քան խնդրել եք</text>
+<text x="32" y="820" class="k-body" data-max="311">Սեղանի խաղեր ենք խաղում այգում։</text>
+<use href="kit/components.svg#chip" x="32" y="840" data-w="82" data-label="խնջույք" data-c="var(--cat-violet)"/>
+<use href="kit/components.svg#header-feed" x="0" y="0" data-title="Կոլոնակի · մոտ տասնյակներ"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="ասել հարևաններին…"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Հոսք" data-l2="Զրույցներ" data-l3="Ես"/>
+</g></g>
+<g transform="translate(48,1030)" class="k-dark" data-frame="filters.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c10"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c10)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Filters" data-back="" data-max="290"/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-close" data-name="закрыть"/>
+<text x="16" y="94" class="k-strong" data-max="150">Age</text>
+<text x="359" y="94" class="k-meta" text-anchor="end" data-max="302.2">your own band</text>
+<rect x="16" y="124" width="4" height="24" rx="2" style="fill:var(--border)"/>
+<rect x="355" y="124" width="4" height="24" rx="2" style="fill:var(--border)"/>
+<use href="kit/components.svg#slider-range" x="24" y="114" data-a="86" data-b="327" data-la="" data-lb=""/>
+<text x="16" y="176" class="k-meta" data-max="343">by the year, no numbers</text>
+<text x="359" y="176" class="k-meta" text-anchor="end" data-max="150.67999999999998">no limit</text>
+<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">You have grown older — the filter narrowed</text>
+<rect x="16" y="254" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="282" class="k-strong" data-max="150">Radius</text>
+<text x="359" y="282" class="k-meta" text-anchor="end" data-max="273.4">a diagram, not a map</text>
+<use href="kit/components.svg#field" x="16" y="298" data-w="343" data-placeholder="district or city" data-max="311"/>
+<circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2"/>
+<circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3"/>
+<circle cx="187.5" cy="450" r="4" style="fill:var(--fg)"/>
+<circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
+<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
+<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">dozens</text>
+<use href="kit/components.svg#button-secondary" x="16" y="428" data-w="44" data-label="−"/>
+<use href="kit/components.svg#button-secondary" x="315" y="428" data-w="44" data-label="+"/>
+<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athens · approximate</text>
+<rect x="16" y="584" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="612" class="k-strong" data-max="343">Mode</text>
+<use href="kit/components.svg#segments" x="16" y="628" data-l1="alone" data-l2="company" data-l3="party" data-s1="" data-s2="1"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Conversations" data-l3="Me"/>
+</g></g>
+<g transform="translate(471,1030)" class="k-dark" data-frame="filters.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c11"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c11)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Filter" data-back="" data-max="290"/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-close" data-name="закрыть"/>
+<text x="16" y="94" class="k-strong" data-max="150">Alter</text>
+<text x="359" y="94" class="k-meta" text-anchor="end" data-max="283.0">Ihr eigener Bereich</text>
+<rect x="16" y="124" width="4" height="24" rx="2" style="fill:var(--border)"/>
+<rect x="355" y="124" width="4" height="24" rx="2" style="fill:var(--border)"/>
+<use href="kit/components.svg#slider-range" x="24" y="114" data-a="86" data-b="327" data-la="" data-lb=""/>
+<text x="16" y="176" class="k-meta" data-max="343">jahrweise, ohne Zahlen</text>
+<text x="359" y="176" class="k-meta" text-anchor="end" data-max="158.51999999999998">ohne Obergrenze</text>
+<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Sie sind älter geworden — der Filter wurde enger</text>
+<rect x="16" y="254" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="282" class="k-strong" data-max="150">Radius</text>
+<text x="359" y="282" class="k-meta" text-anchor="end" data-max="273.4">Schema, keine Karte</text>
+<use href="kit/components.svg#field" x="16" y="298" data-w="343" data-placeholder="Stadtteil oder Stadt" data-max="311"/>
+<circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2"/>
+<circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3"/>
+<circle cx="187.5" cy="450" r="4" style="fill:var(--fg)"/>
+<circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
+<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
+<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">Dutzende</text>
+<use href="kit/components.svg#button-secondary" x="16" y="428" data-w="44" data-label="−"/>
+<use href="kit/components.svg#button-secondary" x="315" y="428" data-w="44" data-label="+"/>
+<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athen · ungefähr</text>
+<rect x="16" y="584" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="612" class="k-strong" data-max="343">Modus</text>
+<use href="kit/components.svg#segments" x="16" y="628" data-l1="allein" data-l2="Gesellschaft" data-l3="Party" data-s1="" data-s2="1"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
+</g></g>
+<g transform="translate(894,1030)" class="k-dark" data-frame="filters.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c12"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c12)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Զտիչներ" data-back="" data-max="290"/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-close" data-name="закрыть"/>
+<text x="16" y="94" class="k-strong" data-max="150">Տարիք</text>
+<text x="359" y="94" class="k-meta" text-anchor="end" data-max="283.0">ձեր սեփական միջակայքը</text>
+<rect x="16" y="124" width="4" height="24" rx="2" style="fill:var(--border)"/>
+<rect x="355" y="124" width="4" height="24" rx="2" style="fill:var(--border)"/>
+<use href="kit/components.svg#slider-range" x="24" y="114" data-a="86" data-b="327" data-la="" data-lb=""/>
+<text x="16" y="176" class="k-meta" data-max="343">տարով, առանց թվերի</text>
+<text x="359" y="176" class="k-meta" text-anchor="end" data-max="189.88">առանց սահմանափակման</text>
+<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Դուք մեծացել եք — ֆիլտրը նեղացավ</text>
+<rect x="16" y="254" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="282" class="k-strong" data-max="150">Շառավիղ</text>
+<text x="359" y="282" class="k-meta" text-anchor="end" data-max="263.8">սխեմա, ոչ քարտեզ</text>
+<use href="kit/components.svg#field" x="16" y="298" data-w="343" data-placeholder="թաղամաս կամ քաղաք" data-max="311"/>
+<circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2"/>
+<circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3"/>
+<circle cx="187.5" cy="450" r="4" style="fill:var(--fg)"/>
+<circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
+<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 կմ</text>
+<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">տասնյակներ</text>
+<use href="kit/components.svg#button-secondary" x="16" y="428" data-w="44" data-label="−"/>
+<use href="kit/components.svg#button-secondary" x="315" y="428" data-w="44" data-label="+"/>
+<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Կոլոնակի, Աթենք · մոտավոր</text>
+<rect x="16" y="584" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="612" class="k-strong" data-max="343">Ռեժիմ</text>
+<use href="kit/components.svg#segments" x="16" y="628" data-l1="մենակ" data-l2="ընկերություն" data-l3="խնջույք" data-s1="" data-s2="1"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Հոսք" data-l2="Զրույցներ" data-l3="Ես"/>
+</g></g>
+<g transform="translate(48,1930)" class="k-dark" data-frame="end.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c20"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c20)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Anyone at the fountain tonight?" data-l2="I'll bring a speaker." data-chip="party" data-chipw="64" data-c="var(--cat-violet)" data-likes="2" data-time=""/>
+<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
+<!-- a phrase without a category says «alone» in the chip's place; the symbol has no such slot -->
+<text x="32" y="247" class="k-meta" data-max="200">alone</text>
+<!-- a private offer: no venue, no save pill, «private» with like and «…»; card-offer always draws the pill -->
+<rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)"/>
+<use href="kit/components.svg#chip-outline" x="32" y="317" data-w="64" data-label="offer"/>
+<text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
+<text x="32" y="358" class="k-body" data-max="311">Giving away two stools, pick up</text>
+<text x="32" y="382" class="k-body" data-max="311">today.</text>
+<text x="32" y="410" class="k-meta" data-max="311">conditions: none</text>
+<text x="32" y="432" class="k-meta" data-max="311">discount until 20 September, 12:00</text>
+<text x="32" y="474" class="k-meta" data-max="200">private</text>
+<use href="kit/components.svg#like" x="249" y="446" data-count=""/>
+<use href="kit/components.svg#icon-button" x="307" y="446" data-icon="icon-more" data-name="ещё"/>
+<use href="kit/components.svg#button-secondary" x="16" y="514" data-label="show more"/>
+<text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">dozens more messages in other languages</text>
+<!-- «show» centred under the line: button-text sets its word from the left edge -->
+<rect x="127.5" y="580" width="120" height="44" rx="8" style="fill:none" data-hit="44"/>
+<text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">show</text>
+<use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
+<use href="kit/components.svg#toast" x="16" y="624" data-text="liked" data-action="undo"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Conversations" data-l3="Me"/>
+</g></g>
+<g transform="translate(471,1930)" class="k-dark" data-frame="end.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c21"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c21)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Ist heute Abend jemand am Brunnen?" data-l2="Ich bringe eine Box mit." data-chip="Party" data-chipw="66" data-c="var(--cat-violet)" data-likes="2" data-time=""/>
+<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Hat jemand ein Type-C-Ladegerät" data-l2="für eine Stunde?" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
+<!-- a phrase without a category says «alone» in the chip's place; the symbol has no such slot -->
+<text x="32" y="247" class="k-meta" data-max="200">allein</text>
+<!-- a private offer: no venue, no save pill, «private» with like and «…»; card-offer always draws the pill -->
+<rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)"/>
+<use href="kit/components.svg#chip-outline" x="32" y="317" data-w="82" data-label="Angebot"/>
+<text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
+<text x="32" y="358" class="k-body" data-max="311">Gebe zwei Hocker ab, heute</text>
+<text x="32" y="382" class="k-body" data-max="311">abholen.</text>
+<text x="32" y="410" class="k-meta" data-max="311">Bedingungen: keine</text>
+<text x="32" y="432" class="k-meta" data-max="311">Rabatt bis 20. September, 12:00</text>
+<text x="32" y="474" class="k-meta" data-max="200">Privatperson</text>
+<use href="kit/components.svg#like" x="249" y="446" data-count=""/>
+<use href="kit/components.svg#icon-button" x="307" y="446" data-icon="icon-more" data-name="ещё"/>
+<use href="kit/components.svg#button-secondary" x="16" y="514" data-label="mehr anzeigen"/>
+<text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">Dutzende weitere Nachrichten in anderen Sprachen</text>
+<!-- «show» centred under the line: button-text sets its word from the left edge -->
+<rect x="127.5" y="580" width="120" height="44" rx="8" style="fill:none" data-hit="44"/>
+<text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">anzeigen</text>
+<use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · Dutzende nebenan"/>
+<use href="kit/components.svg#toast" x="16" y="624" data-text="geliked" data-action="rückgängig"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="den Nachbarn sagen…"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
+</g></g>
+<g transform="translate(894,1930)" class="k-dark" data-frame="end.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c22"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c22)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Երեկոյան շատրվանի մոտ որևէ մեկը" data-l2="կլինի՞։ Բարձրախոս կբերեմ։" data-chip="խնջույք" data-chipw="82" data-c="var(--cat-violet)" data-likes="2" data-time=""/>
+<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Որևէ մեկը type-c լիցքավորիչ ունի՞" data-l2="մեկ ժամով։" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
+<!-- a phrase without a category says «alone» in the chip's place; the symbol has no such slot -->
+<text x="32" y="247" class="k-meta" data-max="200">մենակ</text>
+<!-- a private offer: no venue, no save pill, «private» with like and «…»; card-offer always draws the pill -->
+<rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)"/>
+<use href="kit/components.svg#chip-outline" x="32" y="317" data-w="82" data-label="առաջարկ"/>
+<text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
+<text x="32" y="358" class="k-body" data-max="311">Տալիս եմ երկու աթոռակ, վերցնել</text>
+<text x="32" y="382" class="k-body" data-max="311">այսօր։</text>
+<text x="32" y="410" class="k-meta" data-max="311">պայմաններ՝ չկան</text>
+<text x="32" y="432" class="k-meta" data-max="311">զեղչը մինչև սեպտեմբերի 20, 12:00</text>
+<text x="32" y="474" class="k-meta" data-max="200">մասնավոր</text>
+<use href="kit/components.svg#like" x="249" y="446" data-count=""/>
+<use href="kit/components.svg#icon-button" x="307" y="446" data-icon="icon-more" data-name="ещё"/>
+<use href="kit/components.svg#button-secondary" x="16" y="514" data-label="ցույց տալ ևս"/>
+<text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">տասնյակ այլ հաղորդագրություններ այլ լեզուներով</text>
+<!-- «show» centred under the line: button-text sets its word from the left edge -->
+<rect x="127.5" y="580" width="120" height="44" rx="8" style="fill:none" data-hit="44"/>
+<text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">ցույց տալ</text>
+<use href="kit/components.svg#header-feed" x="0" y="0" data-title="Կոլոնակի · մոտ տասնյակներ"/>
+<use href="kit/components.svg#toast" x="16" y="624" data-text="հավանել եք" data-action="հետարկել"/>
+<use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="ասել հարևաններին…"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Հոսք" data-l2="Զրույցներ" data-l3="Ես"/>
+</g></g>
+<g transform="translate(48,2830)" class="k-dark" data-frame="chatA.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c30"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c30)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anya, 24" data-namew="88" data-score="1:0" data-silence="silence · an hour" data-silencew="160" data-time="52 min left" data-end="end it"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="116" data-w="194.2" data-text="so, the embankment?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="164" data-w="212.2" data-text="nine works." data-text2="the bench by the pier" data-markc="var(--ok)"/>
+<use href="kit/components.svg#quote-like" x="16" y="250" data-w="343" data-text="“embankment, by nine, company”" data-by="liked"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="318" data-w="248.0" data-text="and that one was mine too"/>
+<use href="kit/components.svg#icon-button" x="268" y="316" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#system-line" x="16" y="384" data-text="Anya placed a tile on e4"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="398" data-w="104.6" data-text="good move" data-markc="var(--ok)"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="462" data-w="194.2" data-text="but I'll win anyway" data-mark="not sent · retry" data-markc="var(--err)"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-value="coming out?" data-placeholder="" data-caret="112.6" data-counter="9/256"/>
+</g></g>
+<g transform="translate(471,2830)" class="k-dark" data-frame="chatA.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c31"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c31)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anja, 24" data-namew="88" data-score="1:0" data-silence="Stille · eine Stunde" data-silencew="158" data-time="noch 52 Min." data-end="Beenden"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="116" data-w="203.2" data-text="also, zur Promenade?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="164" data-w="167.4" data-text="neun passt." data-text2="die Bank am Pier" data-markc="var(--ok)"/>
+<use href="kit/components.svg#quote-like" x="16" y="250" data-w="343" data-text="„Promenade, gegen neun, Gesellschaft“" data-by="geliked"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="318" data-w="239.0" data-text="und das war auch von mir"/>
+<use href="kit/components.svg#icon-button" x="259" y="316" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#system-line" x="16" y="384" data-text="Anja hat einen Stein auf e4 gelegt"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="398" data-w="104.6" data-text="guter Zug" data-markc="var(--ok)"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="462" data-w="248.0" data-text="aber ich gewinne trotzdem" data-mark="nicht gesendet · erneut" data-markc="var(--err)"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-value="kommst du?" data-placeholder="" data-caret="103.6" data-counter="9/256"/>
+</g></g>
+<g transform="translate(894,2830)" class="k-dark" data-frame="chatA.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c32"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c32)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Անի, 24" data-namew="78" data-score="1:0" data-silence="լռություն · մեկ ժամ" data-silencew="158" data-time="մնաց 52 րոպե" data-end="ավարտել"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="116" data-w="158.4" data-text="ուրեմն առափնյա՞"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="164" data-w="295" data-text="ինը հարմար է։" data-text2="նստարանը նավամատույցի մոտ" data-markc="var(--ok)"/>
+<use href="kit/components.svg#quote-like" x="16" y="250" data-w="343" data-text="«առափնյա, ինը, ընկերություն»" data-by="հավանել են"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="318" data-w="149.4" data-text="և դա էլ իմն էր"/>
+<use href="kit/components.svg#icon-button" x="169.4" y="316" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#system-line" x="16" y="384" data-text="Անին քար դրեց e4-ի վրա"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="398" data-w="95.7" data-text="լավ քայլ" data-markc="var(--ok)"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="462" data-w="257.0" data-text="բայց ես միևնույն է կհաղթեմ" data-mark="չի ուղարկվել · կրկնել" data-markc="var(--err)"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-value="դուրս գալի՞ս ես" data-placeholder="" data-caret="148.4" data-counter="9/256"/>
+</g></g>
+<g transform="translate(48,3730)" class="k-dark" data-frame="chatX.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c40"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c40)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anya, 24" data-namew="88" data-score="1:0" data-silence="silence · an hour" data-silencew="160" data-time="52 min left" data-end="end it"/>
+<use href="kit/components.svg#bar-connection" x="0" y="104" data-text="reconnecting…"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="248.0" data-text="and that one was mine too"/>
+<use href="kit/components.svg#row-chat" x="16" y="216" data-name="Anya, 24" data-line="and that one was mine too" data-time="52 min" data-wait="waiting for your reply" data-dot="1" data-sel="1"/>
+<use href="kit/components.svg#card-tombstone" x="16" y="592" data-title="The conversation ended" data-line="There is nothing here any more." data-cta="Close"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#field-closed" x="16" y="754" data-w="343" data-text=""/>
+</g></g>
+<g transform="translate(471,3730)" class="k-dark" data-frame="chatX.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c41"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c41)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anja, 24" data-namew="88" data-score="1:0" data-silence="Stille · eine Stunde" data-silencew="158" data-time="noch 52 Min." data-end="Beenden"/>
+<use href="kit/components.svg#bar-connection" x="0" y="104" data-text="Verbindung wird wiederhergestellt…"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="239.0" data-text="und das war auch von mir"/>
+<use href="kit/components.svg#row-chat" x="16" y="216" data-name="Anja, 24" data-line="und das war auch von mir" data-time="52 Min." data-wait="wartet auf Ihre Antwort" data-dot="1" data-sel="1"/>
+<use href="kit/components.svg#card-tombstone" x="16" y="592" data-title="Das Gespräch ist beendet" data-line="Hier ist nichts mehr." data-cta="Schließen"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#field-closed" x="16" y="754" data-w="343" data-text=""/>
+</g></g>
+<g transform="translate(894,3730)" class="k-dark" data-frame="chatX.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c42"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c42)"><rect width="375" height="812" style="fill:var(--bg)"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Անի, 24" data-namew="78" data-score="1:0" data-silence="լռություն · մեկ ժամ" data-silencew="158" data-time="մնաց 52 րոպե" data-end="ավարտել"/>
+<use href="kit/components.svg#bar-connection" x="0" y="104" data-text="վերամիանում ենք…"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="149.4" data-text="և դա էլ իմն էր"/>
+<use href="kit/components.svg#row-chat" x="16" y="216" data-name="Անի, 24" data-line="և դա էլ իմն էր" data-time="52 րոպե" data-wait="սպասում է ձեր պատասխանին" data-dot="1" data-sel="1"/>
+<use href="kit/components.svg#card-tombstone" x="16" y="592" data-title="Զրույցն ավարտվեց" data-line="Այստեղ այլևս ոչինչ չկա։" data-cta="Փակել"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#field-closed" x="16" y="754" data-w="343" data-text=""/>
+</g></g>
+<text x="48" y="52" class="sheet-title">Экраны 03 и 08 — стресс длины строк · EN, DE, HY · 375×812</text>
+<text x="48" y="78" class="cap">геометрия screen-03.svg и screen-08.svg без изменений; EN — из sosed.place/docs/*_EN.md, DE и HY — черновой перевод, не строки продукта; ширины элементов не подгонялись</text>
+<text x="48" y="96" class="cap">HY: у Golos Text нет армянских глифов — кадр рисуется системным fallback браузера рендера</text>
+<text x="48" y="970" class="capb">EN · 03 · лента, кадр 1</text>
+<text x="471" y="970" class="capb">DE · 03 · лента, кадр 1</text>
+<text x="894" y="970" class="capb">HY · 03 · лента, кадр 1</text>
+<text x="48" y="1870" class="capb">EN · 03 · панель фильтров, кадр 2</text>
+<text x="471" y="1870" class="capb">DE · 03 · панель фильтров, кадр 2</text>
+<text x="894" y="1870" class="capb">HY · 03 · панель фильтров, кадр 2</text>
+<text x="48" y="2770" class="capb">EN · 03 · конец выдачи, кадр 5: «показать</text>
+<text x="48" y="2788" class="capb">ещё», строка языков, «лайкнуто · вернуть»</text>
+<text x="471" y="2770" class="capb">DE · 03 · конец выдачи, кадр 5: «показать</text>
+<text x="471" y="2788" class="capb">ещё», строка языков, «лайкнуто · вернуть»</text>
+<text x="894" y="2770" class="capb">HY · 03 · конец выдачи, кадр 5: «показать</text>
+<text x="894" y="2788" class="capb">ещё», строка языков, «лайкнуто · вернуть»</text>
+<text x="48" y="3670" class="capb">EN · 08 · беседа живая, кадр A</text>
+<text x="471" y="3670" class="capb">DE · 08 · беседа живая, кадр A</text>
+<text x="894" y="3670" class="capb">HY · 08 · беседа живая, кадр A</text>
+<text x="48" y="4570" class="capb">EN · 08 · составной кадр: полоса</text>
+<text x="48" y="4588" class="capb">«переподключаемся», строка списка «ждёт вашего</text>
+<text x="48" y="4606" class="capb">ответа», надгробие — не состояние продукта,</text>
+<text x="471" y="4570" class="capb">DE · 08 · составной кадр: полоса</text>
+<text x="471" y="4588" class="capb">«переподключаемся», строка списка «ждёт вашего</text>
+<text x="471" y="4606" class="capb">ответа», надгробие — не состояние продукта,</text>
+<text x="894" y="4570" class="capb">HY · 08 · составной кадр: полоса</text>
+<text x="894" y="4588" class="capb">«переподключаемся», строка списка «ждёт вашего</text>
+<text x="894" y="4606" class="capb">ответа», надгробие — не состояние продукта,</text>
+</svg>

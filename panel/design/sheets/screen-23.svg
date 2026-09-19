@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2586" height="1904" viewBox="0 0 2586 1904">
+<title>Экран 23 — Фраза во весь экран · 375×812</title>
+<style>
+/* kit:tokens */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="2586" height="1904" style="fill:#ece4d8"/>
+<text x="48" y="52" class="sheet-title">Экран 23 — Фраза во весь экран · 375×812</text>
+<text x="48" y="78" class="cap">sosed.place/docs/23-phrase-viewer_RU.md · листаются все карточки ленты · свайп только на сенсорном</text>
+<rect x="47" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c48"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <use href="kit/components.svg#chip" x="271" y="16" data-w="88" data-label="компания"/>
+  <g class="k-fade">
+  <text x="24" y="140" class="k-display">Кто-нибудь идёт на</text>
+  <text x="24" y="176" class="k-display">набережную вечером?</text>
+  <text x="24" y="212" class="k-display">Возьму термос, у меня</text>
+  <text x="24" y="248" class="k-display">есть плед и два</text>
+  <text x="24" y="284" class="k-display">стакана.</text>
+  </g>
+  <use href="kit/components.svg#timer-words" x="24" y="360"/>
+  <use href="kit/components.svg#lifespan" x="24" y="372" data-w="327" data-f="39"/>
+  <use href="kit/components.svg#like" x="12" y="384" data-count="3"/>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="150" data-label="скрыть"/>
+  <use href="kit/components.svg#button-accent-pill" x="178" y="752"/>
+  <rect x="311" y="752" width="48" height="44" rx="22" style="fill:var(--panel-2)"/>
+  <use href="kit/components.svg#icon-more" x="313" y="752"/>
+</g></g>
+<text x="48" y="966" class="capb">23 · чужая фраза: угасание + «скоро исчезнет»</text>
+<text x="48" y="984" class="capb">(Н2), лайк, скрыть, «…»</text>
+<rect x="470" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c471"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c471)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <text x="359" y="35" text-anchor="end" class="k-meta">один</text>
+  <text x="24" y="140" class="k-display">Ищу, с кем поиграть в го</text>
+  <text x="24" y="176" class="k-display">по субботам. Доска моя,</text>
+  <text x="24" y="212" class="k-display">камни тоже.</text>
+  <use href="kit/components.svg#timer-words" x="24" y="288" data-text="ваша фраза · исчезнет через 2:41"/>
+  <use href="kit/components.svg#like" x="12" y="312" data-count="1"/>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="343" data-label="снять"/>
+</g></g>
+<text x="471" y="966" class="capb">23 · своя фраза: срок числом, только «снять»</text>
+<rect x="893" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(894,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c894"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c894)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <use href="kit/components.svg#chip-outline" x="24" y="79"/>
+  <text x="351" y="96" text-anchor="end" class="k-display" style="font-weight:600">−20 %</text>
+  <text x="24" y="136" class="k-display" style="font-weight:600">Пекарня «Колос»</text>
+  <text x="24" y="184" class="k-display">Второй круассан за</text>
+  <text x="24" y="220" class="k-display">полцены до вечера.</text>
+  <text x="24" y="264" class="k-meta" style="fill:var(--fg)">условия: при заказе от двух</text>
+  <text x="24" y="288" class="k-meta" style="fill:var(--fg)">скидка до 30 сентября, 18:00</text>
+  <!-- the promo code plate: no symbol -->
+  <rect x="24" y="304" width="210" height="40" rx="8" style="fill:var(--panel-2)"/>
+  <text x="36" y="330" class="k-meta">промокод</text>
+  <text x="222" y="330" text-anchor="end" class="k-meta-strong">КОЛОС20</text>
+  <use href="kit/components.svg#button-text" x="24" y="349" data-w="140" data-label="перейти на сайт →"/>
+  <text x="24" y="412" class="k-meta">откроется через наш редирект,</text>
+  <text x="24" y="432" class="k-meta">с предупреждением о выходе наружу</text>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="150" data-label="скрыть"/>
+  <!-- «сохранить» in the accent pill of the viewer row -->
+  <rect x="178" y="752" width="121" height="44" rx="22" style="fill:var(--accent)"/>
+  <text x="238.5" y="780" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">сохранить</text>
+  <rect x="311" y="752" width="48" height="44" rx="22" style="fill:var(--panel-2)"/>
+  <use href="kit/components.svg#icon-more" x="313" y="752"/>
+</g></g>
+<text x="894" y="966" class="capb">23 · оффер заведения: скидка, срок, промокод,</text>
+<text x="894" y="984" class="capb">ссылка; «Сохранить»</text>
+<rect x="1316" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(1317,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1317"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <use href="kit/components.svg#icon-grid" x="23" y="83"/>
+  <use href="kit/components.svg#chip" x="46" y="79" data-w="52" data-label="стол" data-c="var(--cat-teal)"/>
+  <text x="106" y="96" class="k-meta">· виселица</text>
+  <text x="24" y="136" class="k-display" style="font-weight:600">Пятничный</text>
+  <text x="24" y="172" class="k-body">играют 2, смотрят 3</text>
+  <text x="24" y="248" class="k-meta">сядьте, чтобы увидеть доску</text>
+  <use href="kit/components.svg#like" x="12" y="264" data-count="5"/>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="104" data-label="скрыть"/>
+  <!-- the heart-only accent pill: button-accent-pill sets its heart for a word beside it -->
+  <rect x="132" y="752" width="80" height="44" rx="22" style="fill:var(--accent)"/>
+  <use href="kit/components.svg#icon-heart" x="150" y="752" data-c="var(--accent-ink)" data-f="none"/>
+  <use href="kit/components.svg#button-pill" x="224" y="752" data-w="75" data-label="сесть"/>
+  <rect x="311" y="752" width="48" height="44" rx="22" style="fill:var(--panel-2)"/>
+  <use href="kit/components.svg#icon-more" x="313" y="752"/>
+</g></g>
+<text x="1317" y="966" class="capb">23 · стол: игра, имя, «играют N, смотрят M»,</text>
+<text x="1317" y="984" class="capb">лайк-закладка, «сесть»</text>
+<rect x="1739" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(1740,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1740"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <use href="kit/components.svg#chip" x="271" y="16" data-w="88" data-label="компания"/>
+  <text x="24" y="140" class="k-display">Кто-нибудь идёт на</text>
+  <text x="24" y="176" class="k-display">набережную вечером?</text>
+  <text x="24" y="212" class="k-display">Возьму термос, у меня</text>
+  <text x="24" y="248" class="k-display">есть плед и два</text>
+  <text x="24" y="284" class="k-display">стакана.</text>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="150" data-label="скрыть"/>
+  <use href="kit/components.svg#button-accent-pill" x="178" y="752"/>
+  <rect x="311" y="752" width="48" height="44" rx="22" style="fill:var(--panel-2)"/>
+  <use href="kit/components.svg#icon-more" x="313" y="752"/>
+  <rect width="375" height="812" style="fill:var(--scrim);fill-opacity:0.62"/>
+  <!-- the swipe explainer: two gesture rows and a note; card-hint holds two body lines only -->
+  <rect x="24" y="300" width="327" height="200" rx="13" style="fill:var(--panel)"/>
+  <use href="kit/components.svg#icon-chevron-right" x="30" y="318" data-c="var(--fg)"/>
+  <text x="72" y="346" class="k-strong">вправо — лайк</text>
+  <use href="kit/components.svg#icon-back" x="30" y="358"/>
+  <text x="72" y="386" class="k-strong">влево — скрыть</text>
+  <text x="40" y="422" class="k-meta">скрытое вернёте в «Я»</text>
+  <use href="kit/components.svg#button-secondary" x="40" y="440" data-w="295" data-label="понятно"/>
+</g></g>
+<text x="1740" y="966" class="capb">23 · первый свайп не срабатывает, а объясняет</text>
+<text x="1740" y="984" class="capb">(экран 24)</text>
+<rect x="2162" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(2163,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c2163"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c2163)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <use href="kit/components.svg#chip" x="307" y="16" data-w="52" data-label="туса" data-c="var(--cat-violet)"/>
+  <text x="24" y="140" class="k-display">Играем в настолки в</text>
+  <text x="24" y="176" class="k-display">парке, места есть.</text>
+  <use href="kit/components.svg#like" x="12" y="220" data-count="1"/>
+  <use href="kit/components.svg#toast" x="16" y="624" data-text="скрыто" data-action="вернуть"/>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="150" data-label="скрыть"/>
+  <use href="kit/components.svg#button-accent-pill" x="178" y="752"/>
+  <rect x="311" y="752" width="48" height="44" rx="22" style="fill:var(--panel-2)"/>
+  <use href="kit/components.svg#icon-more" x="313" y="752"/>
+</g></g>
+<text x="2163" y="966" class="capb">23 · после свайпа влево: следующая карточка и</text>
+<text x="2163" y="984" class="capb">«скрыто · вернуть»</text>
+<rect x="47" y="1021" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,1022)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c48b"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48b)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+  <use href="kit/components.svg#chip" x="307" y="16" data-w="52" data-label="туса" data-c="var(--cat-violet)"/>
+  <text x="24" y="140" class="k-display">Играем в настолки в</text>
+  <text x="24" y="176" class="k-display">парке, места есть.</text>
+  <use href="kit/components.svg#like" x="12" y="220" data-count="2" data-c="var(--accent)" data-f="var(--accent)"/>
+  <!-- the toast with a heart before its word: the toast symbol starts its text at 16 -->
+  <use href="kit/components.svg#toast" x="16" y="624" data-text="" data-action="вернуть"/>
+  <use href="kit/components.svg#icon-heart" x="24" y="627" data-c="var(--accent)" data-f="var(--accent)"/>
+  <text x="66" y="653.5" class="k-body" style="fill:var(--bg)">лайкнуто</text>
+  <rect x="271" y="626" width="88" height="44" data-hit="44" style="fill:none"/>
+  <!-- previous / next: word actions with a chevron; no symbol pairs a chevron with a word -->
+  <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+  <text x="52" y="712" class="k-meta">предыдущая</text>
+  <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+  <text x="323" y="712" text-anchor="end" class="k-meta">следующая</text>
+  <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+  <use href="kit/components.svg#button-pill" x="16" y="752" data-w="150" data-label="скрыть"/>
+  <use href="kit/components.svg#button-accent-pill" x="178" y="752" data-f="var(--accent-ink)"/>
+  <rect x="311" y="752" width="48" height="44" rx="22" style="fill:var(--panel-2)"/>
+  <use href="kit/components.svg#icon-more" x="313" y="752"/>
+</g></g>
+<text x="48" y="1868" class="capb">23 · после лайка: следующая карточка и</text>
+<text x="48" y="1886" class="capb">«лайкнуто · вернуть» (03:15, 05:18, 23:25)</text>
+</svg>

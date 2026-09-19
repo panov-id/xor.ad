@@ -1,0 +1,416 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2163" height="3216" viewBox="0 0 2163 3216">
+<title>Экран 17 — Оффер: кабинет заведения и сохранённое · 375×812</title>
+<style>
+/* kit:tokens */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted-2); letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .row-title { font-size: 16px; font-weight: 600; fill: #1c140d; }
+</style>
+<rect width="2163" height="3216" style="fill:#ece4d8"/>
+<text x="48" y="52" class="sheet-title">Экран 17 — Оффер: кабинет заведения, сохранённое, переход по ссылке · 375×812</text>
+<text x="48" y="78" class="capb" style="fill:#6b5f4c">sosed.place/docs/17-offer_RU.md · xor.ad/docs/offers/SPEC_RU.md §6.2–6.3, §10 · экран 11 · экран 12 · токены кита</text>
+<text x="48" y="114" class="row-title">Кабинет заведения — отдельный веб-вход по почте, не приложение (sosed.place/adv)</text>
+<text x="48" y="1156" class="row-title">Приложение соседа — сохранённое, переход по ссылке, ссылка отключена</text>
+<text x="48" y="2198" class="row-title">Кабинет заведения — пограничные состояния: вход, верификация, публикация, жалобы</text>
+<g transform="translate(48,138)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c48_138"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48_138)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv</text>
+    <text x="24" y="108" class="k-display">Рекламный кабинет</text>
+    <text x="24" y="140" class="k-meta">Вход только по ссылке из письма.</text>
+    <text x="24" y="160" class="k-meta">Ссылка одноразовая и живёт 15 минут;</text>
+    <text x="24" y="180" class="k-meta">открывается в том же браузере,</text>
+    <text x="24" y="200" class="k-meta">где её запросили.</text>
+    <use href="kit/components.svg#field" x="24" y="258" data-w="327" data-label="почта" data-value="kolos@example.com"/>
+    <use href="kit/components.svg#button-primary" x="24" y="326" data-w="327" data-label="прислать ссылку"/>
+    <rect x="24" y="394" width="327" height="64" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="420" class="k-meta" style="fill:var(--fg)">если адрес зарегистрирован,</text>
+    <text x="40" y="440" class="k-meta" style="fill:var(--fg)">письмо отправлено</text>
+    <text x="24" y="498" class="k-meta">Ни из ленты, ни с лендинга кабинет</text>
+    <text x="24" y="518" class="k-meta">не открывается: видимой двери нет.</text>
+    <text x="24" y="780" class="cap">sosed.place/adv · без нижней навигации</text>
+  </g></g>
+<text x="48" y="984" class="capb">17 · вход заведения: почта → ссылка в письме;</text>
+<text x="48" y="1002" class="capb">ответ не выдаёт, есть ли учётная запись</text>
+<g transform="translate(471,138)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c471_138"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c471_138)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/venues</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">заведения</text>
+    <text x="24" y="108" class="k-display">Верификация</text>
+    <rect x="24" y="132" width="327" height="116" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="162" class="k-strong">Пекарня «Колос»</text>
+    <text x="40" y="186" class="k-meta" style="fill:var(--fg)">Макариу 12, Лимасол</text>
+    <text x="40" y="226" class="k-meta-strong" style="fill:var(--accent-text)">не подтверждена</text>
+    <rect x="24" y="264" width="327" height="88" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="292" class="k-strong">конверт с кодом отправлен на адрес</text>
+    <text x="40" y="316" class="k-meta" style="fill:var(--fg)">Макариу 12, Лимасол</text>
+    <text x="40" y="338" class="k-meta">код живёт 30 дней</text>
+    <use href="kit/components.svg#field" x="24" y="392" data-w="327" data-label="код из конверта"/>
+    <text x="24" y="456" class="k-meta">после нескольких неверных код гасится,</text>
+    <text x="24" y="474" class="k-meta">нужен новый конверт</text>
+    <use href="kit/components.svg#button-primary-disabled" x="24" y="498" data-w="327" data-label="подтвердить" data-reason="введите код из конверта"/>
+    <text x="24" y="600" class="k-meta">Пока точка не подтверждена, оффер</text>
+    <text x="24" y="620" class="k-meta">опубликовать нельзя. У каждого заведения</text>
+    <text x="24" y="640" class="k-meta">свой конверт.</text>
+    <text x="24" y="764" class="cap">статус точки: заявка → конверт →</text>
+    <text x="24" y="782" class="cap">код → verified</text>
+  </g></g>
+<text x="471" y="984" class="capb">17 · точка не подтверждена: конверт с кодом</text>
+<text x="471" y="1002" class="capb">отправлен на адрес; ввод кода из конверта</text>
+<g transform="translate(894,138)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c894_138"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c894_138)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/offers/new</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">мои офферы</text>
+    <text x="24" y="100" class="k-display">Новый оффер</text>
+    <text x="24" y="124" class="k-meta">Пекарня «Колос» · Макариу 12</text>
+    <use href="kit/components.svg#field" x="24" y="162" data-w="327" data-label="текст" data-value="Второй круассан за полцены." data-counter="27/128"/>
+    <use href="kit/components.svg#field" x="24" y="242" data-w="327" data-label="скидка" data-value="−20 %"/>
+    <use href="kit/components.svg#field" x="24" y="322" data-w="327" data-label="условия" data-value="при заказе от двух" data-counter="18/128"/>
+    <text x="24" y="386" class="k-meta">пусто — значит без ограничений</text>
+    <use href="kit/components.svg#field" x="24" y="426" data-w="327" data-label="скидка действует до" data-value="30.09.2026 · 18:00"/>
+    <text x="24" y="490" class="k-meta">не дальше 90 дней от публикации</text>
+    <use href="kit/components.svg#field" x="24" y="530" data-w="327" data-label="промокод" data-value="КОЛОС20"/>
+    <use href="kit/components.svg#field" x="24" y="610" data-w="327" data-label="ссылка" data-value="https://kolos.cy/croissant"/>
+    <text x="24" y="674" class="k-meta">в ленте покажется как sosed.place/o/…</text>
+    <text x="24" y="692" class="k-meta">сокращатели не принимаются</text>
+    <use href="kit/components.svg#button-secondary" x="24" y="712" data-w="327" data-label="предпросмотр"/>
+    <text x="24" y="792" class="cap">экран прокручивается; поля ниже — за кадром</text>
+  </g></g>
+<text x="894" y="984" class="capb">17 · форма оффера: текст 128, скидка, условия,</text>
+<text x="894" y="1002" class="capb">срок до 90 дней, промокод, ссылка</text>
+<g transform="translate(1317,138)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1317_138"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317_138)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/offers/new</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">к форме</text>
+    <text x="24" y="100" class="k-display">Так увидит сосед</text>
+    <use href="kit/components.svg#card-offer" x="16" y="124" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе от двух" data-t2="скидка до 30 сентября, 18:00"/>
+    <text x="24" y="368" class="k-meta" style="fill:var(--fg)">Ссылка: sosed.place/o/k7f2q</text>
+    <text x="24" y="388" class="k-meta" style="fill:var(--fg)">→ kolos.cy, через наш редирект,</text>
+    <text x="24" y="408" class="k-meta" style="fill:var(--fg)">с предупреждением о выходе наружу.</text>
+    <text x="24" y="448" class="k-meta">Оффер публикуется сразу и целиком.</text>
+    <text x="24" y="468" class="k-meta">Опубликованный оффер не редактируется:</text>
+    <text x="24" y="488" class="k-meta">ни текст, ни скидка, ни условия.</text>
+    <text x="24" y="508" class="k-meta">Карточка живёт в ленте 4 часа 20 минут,</text>
+    <text x="24" y="528" class="k-meta">скидка — до 30 сентября, 18:00.</text>
+    <use href="kit/components.svg#button-primary" x="24" y="640" data-w="327" data-label="опубликовать"/>
+    <use href="kit/components.svg#button-secondary" x="24" y="696" data-w="327" data-label="к форме"/>
+    <text x="24" y="780" class="cap">карточка та же, что в ленте (экран 03)</text>
+  </g></g>
+<text x="1317" y="984" class="capb">17 · предпросмотр карточкой из ленты;</text>
+<text x="1317" y="1002" class="capb">«опубликовать»; редактирования не будет</text>
+<g transform="translate(1740,138)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1740_138"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740_138)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/offers</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">заведения</text>
+    <text x="24" y="100" class="k-display">Мои офферы</text>
+    <rect x="271" y="72" width="80" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="351" y="100" class="k-meta-strong" text-anchor="end" style="fill:var(--accent-text)">+ новый</text>
+    <rect x="24" y="124" width="327" height="172" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="152" class="k-meta-strong" style="fill:var(--accent-text)">в ленте</text>
+    <text x="335" y="152" class="k-strong" text-anchor="end">−20 %</text>
+    <text x="40" y="176" class="k-body">Второй круассан за полцены.</text>
+    <text x="40" y="200" class="k-meta">скидка до 30 сентября, 18:00</text>
+    <rect x="40" y="216" width="295" height="1" style="fill:var(--border)"/>
+    <text x="40" y="244" class="k-meta" style="fill:var(--fg)">переходов по ссылке</text>
+    <text x="335" y="244" class="k-title" text-anchor="end">37</text>
+    <text x="40" y="272" class="k-meta" style="fill:var(--fg)">жалоб</text>
+    <text x="335" y="272" class="k-title" text-anchor="end" style="fill:var(--accent-text)">2</text>
+    <rect x="24" y="312" width="327" height="92" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="340" class="k-meta">истёк</text>
+    <text x="335" y="340" class="k-meta" text-anchor="end">переходов 4</text>
+    <text x="40" y="364" class="k-body" style="fill:var(--muted)">Кофе с собой −15 % до 12:00.</text>
+    <rect x="223" y="358" width="120" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="335" y="388" class="k-meta-strong" text-anchor="end" style="fill:var(--accent-text)">показать снова</text>
+    <text x="24" y="444" class="k-strong">Жалобы · «скидку не дали»</text>
+    <rect x="24" y="460" width="327" height="104" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="486" class="k-meta">16 сентября</text>
+    <text x="40" y="510" class="k-meta" style="fill:var(--fg)">Пришёл за вторым круассаном —</text>
+    <text x="40" y="530" class="k-meta" style="fill:var(--fg)">сказали, что акция только по будням.</text>
+    <text x="40" y="550" class="k-meta" style="fill:var(--fg)">В условиях этого не было.</text>
+    <rect x="24" y="576" width="327" height="84" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="602" class="k-meta">17 сентября</text>
+    <text x="40" y="626" class="k-meta" style="fill:var(--fg)">Скидку дали, но на один круассан,</text>
+    <text x="40" y="646" class="k-meta" style="fill:var(--fg)">а не на заказ.</text>
+    <use href="kit/components.svg#field" x="24" y="694" data-w="327" data-label="ответ модератору"/>
+    <text x="24" y="800" class="cap">жалоба: текст и дата, без личности и времени</text>
+  </g></g>
+<text x="1740" y="984" class="capb">17 · кабинет: живой оффер, переходы, жалобы</text>
+<text x="1740" y="1002" class="capb">«скидку не дали» текстом и датой; без сохранений</text>
+<g transform="translate(48,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c48_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48_1180)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+    <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+    <use href="kit/components.svg#chip-outline" x="24" y="79"/>
+    <text x="351" y="100" class="k-display" text-anchor="end">−20 %</text>
+    <text x="24" y="136" class="k-display">Пекарня «Колос»</text>
+    <text x="24" y="184" class="k-display">Второй круассан за</text>
+    <text x="24" y="220" class="k-display">полцены до вечера.</text>
+    <text x="24" y="264" class="k-meta" style="fill:var(--fg)">условия: при заказе от двух</text>
+    <text x="24" y="288" class="k-meta" style="fill:var(--fg)">скидка до 30 сентября, 18:00</text>
+    <rect x="24" y="304" width="210" height="40" rx="8" style="fill:var(--panel-2)"/>
+    <text x="36" y="330" class="k-meta">промокод</text>
+    <text x="222" y="330" class="k-meta-strong" text-anchor="end">КОЛОС20</text>
+    <use href="kit/components.svg#button-text" x="24" y="349" data-w="200" data-label="перейти на сайт →"/>
+    <text x="24" y="398" class="k-meta">откроется через наш редирект,</text>
+    <text x="24" y="418" class="k-meta">с предупреждением о выходе наружу</text>
+    <use href="kit/components.svg#toast" x="16" y="624" data-text="сохранено на этом устройстве" data-action="в «Я»"/>
+    <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+    <text x="52" y="712" class="k-meta">предыдущая</text>
+    <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="323" y="712" class="k-meta" text-anchor="end">следующая</text>
+    <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+    <use href="kit/components.svg#button-pill" x="16" y="746" data-w="96" data-label="скрыть"/>
+    <use href="kit/components.svg#button-pill-check" x="124" y="746" data-w="175" data-label="сохранено"/>
+    <use href="kit/components.svg#icon-button" x="315" y="746" data-icon="icon-more" data-name="ещё"/>
+  </g></g>
+<text x="48" y="2026" class="capb">17/23 · после «Сохранить»: кнопка гаснет в контур</text>
+<text x="48" y="2044" class="capb">с галочкой «сохранено»; тост «сохранено</text><text x="48" y="2061" class="capb">на этом устройстве — в «Я»»</text>
+<g transform="translate(471,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c471_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c471_1180)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+    <text x="50" y="35" class="k-meta" style="fill:var(--fg)">назад</text>
+    <text x="359" y="35" class="k-meta" text-anchor="end">Я</text>
+    <text x="24" y="88" class="k-strong">Что хранится на этом устройстве</text>
+    <text x="24" y="114" class="k-meta" style="fill:var(--fg)">Локальная база</text>
+    <text x="351" y="114" class="k-meta" text-anchor="end" style="fill:var(--fg)">12,4 МБ</text>
+    <text x="24" y="138" class="k-meta" style="fill:var(--fg)">Сохранённых офферов</text>
+    <text x="351" y="138" class="k-meta" text-anchor="end" style="fill:var(--fg)">3</text>
+    <text x="24" y="164" class="k-meta">Единственное, что переживает 4:20.</text>
+    <text x="24" y="184" class="k-meta">Стирается вместе с историей бесед.</text>
+    <use href="kit/components.svg#card-offer" x="16" y="200" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе от двух" data-t2="скидка до 30 сентября, 18:00"/>
+    <rect x="16" y="420" width="343" height="168" rx="13" style="fill:var(--panel)"/>
+    <use href="kit/components.svg#chip-outline" x="32" y="428"/>
+    <text x="343" y="448" class="k-strong" text-anchor="end">−20 %</text>
+    <text x="32" y="472" class="k-strong">Пекарня «Колос» · Макариу 12</text>
+    <text x="32" y="496" class="k-body">Второй круассан за полцены.</text>
+    <text x="32" y="520" class="k-meta">условия: при заказе от двух</text>
+    <text x="32" y="540" class="k-meta">скидка до 30 сентября, 18:00</text>
+    <rect x="32" y="550" width="170" height="30" rx="8" style="fill:var(--panel-2)"/>
+    <text x="44" y="570" class="k-meta">промокод</text>
+    <text x="190" y="570" class="k-meta-strong" text-anchor="end">КОЛОС20</text>
+    <rect x="263" y="544" width="80" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="343" y="570" class="k-meta-strong" text-anchor="end" style="fill:var(--accent-text)">ссылка →</text>
+    <rect x="16" y="596" width="343" height="108" rx="13" style="fill:var(--panel)"/>
+    <use href="kit/components.svg#chip-outline" x="32" y="604" data-c="var(--muted)"/>
+    <text x="343" y="621" class="k-meta-strong" text-anchor="end" style="fill:var(--muted)">уже не в ленте</text>
+    <text x="32" y="646" class="k-strong" style="fill:var(--muted)">Кофейня «Угол» · Анексартисиас 3</text>
+    <text x="32" y="668" class="k-body" style="fill:var(--muted)">Второй капучино бесплатно.</text>
+    <text x="343" y="668" class="k-strong" text-anchor="end" style="fill:var(--muted)">−10 %</text>
+    <text x="32" y="692" class="k-meta">скидка до 21 сентября, 22:00</text>
+    <text x="343" y="692" class="k-meta" text-anchor="end">ссылка →</text>
+    <rect x="16" y="712" width="343" height="108" rx="13" style="fill:var(--panel)"/>
+    <use href="kit/components.svg#chip-outline" x="32" y="720" data-c="var(--muted)"/>
+    <text x="343" y="737" class="k-meta-strong" text-anchor="end" style="fill:var(--muted)">срок вышел</text>
+    <text x="32" y="762" class="k-strong" style="fill:var(--muted)">Книжный «Полка» · Гладстонос 7</text>
+    <text x="32" y="784" class="k-body" style="fill:var(--muted)">Книга дня со скидкой.</text>
+    <text x="343" y="784" class="k-strong" text-anchor="end" style="fill:var(--muted)">−30 %</text>
+    <text x="32" y="808" class="k-meta">скидка до 12 сентября, 20:00</text>
+    <text x="343" y="808" class="k-meta" text-anchor="end">ссылка →</text>
+  </g></g>
+<text x="471" y="2026" class="capb">12 · список сохранённого: живой, «уже не в</text>
+<text x="471" y="2044" class="capb">ленте», «срок вышел» — гаснет, не исчезает</text>
+<g transform="translate(894,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c894_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c894_1180)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+    <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+    <text x="24" y="120" class="k-display">Вы покидаете sosed</text>
+    <use href="kit/components.svg#code-display" x="24" y="160" data-value="kolos.cy"/>
+    <text x="24" y="276" class="k-body">Это ссылка автора оффера.</text>
+    <text x="24" y="302" class="k-body">Мы её не проверяли.</text>
+    <use href="kit/components.svg#button-primary" x="24" y="560" data-w="327" data-label="Продолжить"/>
+    <use href="kit/components.svg#button-secondary" x="24" y="616" data-w="327" data-label="Отмена"/>
+    <rect x="24" y="672" width="327" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="187.5" y="700" class="k-strong" text-anchor="middle" style="fill:var(--accent-text)">Ссылка ведёт не туда</text>
+    <text x="24" y="780" class="cap">жалоба без почты; хватит двух</text>
+    <text x="24" y="798" class="cap">от разных людей</text>
+  </g></g>
+<text x="894" y="2026" class="capb">17 · экран перехода: домен целиком, «мы её</text>
+<text x="894" y="2044" class="capb">не проверяли», продолжить / отмена / жалоба</text>
+<g transform="translate(1317,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1317_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317_1180)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+    <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+    <text x="24" y="120" class="k-display">Вы покидаете sosed</text>
+    <use href="kit/components.svg#code-display" x="24" y="160" data-value="kolos.cy"/>
+    <text x="24" y="276" class="k-body">Это ссылка автора оффера.</text>
+    <text x="24" y="302" class="k-body">Мы её не проверяли.</text>
+    <use href="kit/components.svg#button-primary" x="24" y="560" data-w="327" data-label="Продолжить"/>
+    <use href="kit/components.svg#button-secondary" x="24" y="616" data-w="327" data-label="Отмена"/>
+    <use href="kit/components.svg#toast" x="16" y="684" data-text="принято — ещё одна погасит ссылку" data-action=""/>
+  </g></g>
+<text x="1317" y="2026" class="capb">17 · после «ссылка ведёт не туда»: строка</text>
+<text x="1317" y="2044" class="capb">подтверждения «жалоба принята — ещё одна</text><text x="1317" y="2061" class="capb">погасит ссылку»; переход остаётся</text>
+<g transform="translate(1740,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1740_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740_1180)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
+    <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
+    <use href="kit/components.svg#chip-outline" x="24" y="79"/>
+    <text x="351" y="100" class="k-display" text-anchor="end">−20 %</text>
+    <text x="24" y="136" class="k-display">Пекарня «Колос»</text>
+    <text x="24" y="184" class="k-display">Второй круассан за</text>
+    <text x="24" y="220" class="k-display">полцены до вечера.</text>
+    <text x="24" y="264" class="k-meta" style="fill:var(--fg)">условия: при заказе от двух</text>
+    <text x="24" y="288" class="k-meta" style="fill:var(--fg)">скидка до 30 сентября, 18:00</text>
+    <rect x="24" y="304" width="210" height="40" rx="8" style="fill:var(--panel-2)"/>
+    <text x="36" y="330" class="k-meta">промокод</text>
+    <text x="222" y="330" class="k-meta-strong" text-anchor="end">КОЛОС20</text>
+    <rect x="24" y="364" width="327" height="84" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="392" class="k-strong">Ссылка отключена</text>
+    <text x="40" y="416" class="k-meta" style="fill:var(--fg)">После жалоб переход по этой ссылке</text>
+    <text x="40" y="436" class="k-meta" style="fill:var(--fg)">закрыт. Сам оффер на месте.</text>
+    <rect x="16" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <use href="kit/components.svg#icon-back" x="14" y="684" data-c="var(--muted)"/>
+    <text x="52" y="712" class="k-meta">предыдущая</text>
+    <rect x="199" y="684" width="160" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="323" y="712" class="k-meta" text-anchor="end">следующая</text>
+    <use href="kit/components.svg#icon-chevron-right" x="316" y="684"/>
+    <use href="kit/components.svg#button-pill" x="16" y="746" data-w="150" data-label="скрыть"/>
+    <use href="kit/components.svg#button-pill" x="178" y="746" data-w="121" data-label="сохранить"/>
+    <use href="kit/components.svg#icon-button" x="315" y="746" data-icon="icon-more" data-name="ещё"/>
+  </g></g>
+<text x="1740" y="2026" class="capb">17/11 · «Ссылка отключена» вместо перехода;</text>
+<text x="1740" y="2044" class="capb">оффер жив, «Сохранить» и промокод остаются</text>
+<g transform="translate(48,2222)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c48_2222"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48_2222)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv</text>
+    <text x="24" y="108" class="k-display">Ссылка истекла</text>
+    <text x="24" y="144" class="k-meta" style="fill:var(--fg)">Ссылка одноразовая и живёт 15 минут;</text>
+    <text x="24" y="164" class="k-meta" style="fill:var(--fg)">она гаснет при первом использовании.</text>
+    <text x="24" y="196" class="k-meta">Открывается в том же браузере,</text>
+    <text x="24" y="216" class="k-meta">где её запросили.</text>
+    <use href="kit/components.svg#field" x="24" y="258" data-w="327" data-label="почта" data-value="kolos@example.com"/>
+    <use href="kit/components.svg#button-primary" x="24" y="326" data-w="327" data-label="прислать ссылку"/>
+    <text x="24" y="408" class="k-meta">Число запросов на один адрес ограничено.</text>
+    <text x="24" y="428" class="k-meta">Письмо приходит на тот же адрес.</text>
+  </g></g>
+<text x="48" y="3068" class="capb">17 · ссылка истекла (заголовок</text><text x="48" y="3085" class="capb">— текст мой): 15 минут и одно</text>
+<text x="48" y="3103" class="capb">использование (SPEC_RU.md:142) — запросить новую</text>
+<text x="48" y="3121" class="capb">sosed.place/adv · без нижней навигации</text>
+<g transform="translate(471,2222)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c471_2222"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c471_2222)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/venues</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">заведения</text>
+    <text x="24" y="108" class="k-display">Верификация</text>
+    <rect x="24" y="132" width="327" height="92" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="162" class="k-strong">Пекарня «Колос»</text>
+    <text x="40" y="186" class="k-meta" style="fill:var(--fg)">Макариу 12, Лимасол</text>
+    <text x="40" y="210" class="k-meta-strong" style="fill:var(--accent-text)">не подтверждена</text>
+    <use href="kit/components.svg#field-error" x="24" y="270" data-w="327" data-label="код из конверта" data-value="4KQ2-9XZ1" data-error="Код неверный"/>
+    <text x="24" y="360" class="k-meta">После нескольких неверных код гасится,</text>
+    <text x="24" y="380" class="k-meta">нужен новый конверт.</text>
+    <use href="kit/components.svg#button-primary" x="24" y="400" data-w="327" data-label="подтвердить"/>
+    <rect x="24" y="472" width="327" height="1" style="fill:var(--border)"/>
+    <text x="24" y="504" class="k-meta" style="fill:var(--fg)">Конверта не запрашивали и точку не заводили?</text>
+    <text x="24" y="534" class="k-meta">Заведение приостанавливается сразу; остальные</text>
+    <text x="24" y="554" class="k-meta">точки владельца работают. Снимается только</text>
+    <text x="24" y="574" class="k-meta">новым конвертом с кодом на адрес заведения.</text>
+    <use href="kit/components.svg#button-secondary" x="24" y="592" data-w="327" data-label="это не мы"/>
+  </g></g>
+<text x="471" y="3068" class="capb">17 · код неверный (заголовок —</text><text x="471" y="3085" class="capb">текст мой); ниже — «это не мы»</text>
+<text x="471" y="3103" class="capb">SPEC_RU.md:754–757 — точка встаёт сразу</text>
+<text x="471" y="3121" class="capb">SPEC §11 · «это не мы» → suspended этого заведения</text>
+<g transform="translate(894,2222)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c894_2222"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c894_2222)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/offers</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">мои офферы</text>
+    <text x="24" y="108" class="k-display">Опубликовано</text>
+    <text x="24" y="144" class="k-meta" style="fill:var(--fg)">Оффер публикуется немедленно и целиком,</text>
+    <text x="24" y="164" class="k-meta" style="fill:var(--fg)">включая ссылку, без премодерации.</text>
+    <text x="24" y="184" class="k-meta" style="fill:var(--fg)">Автоматические проверки пройдены.</text>
+    <use href="kit/components.svg#card-offer" x="16" y="204" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе от двух" data-t2="скидка до 30 сентября, 18:00"/>
+    <text x="24" y="448" class="k-meta" style="fill:var(--fg)">Ссылка: sosed.place/o/k7f2q</text>
+    <text x="24" y="476" class="k-meta">Карточка живёт в ленте 4 часа 20 минут,</text>
+    <text x="24" y="496" class="k-meta">скидка — до 30 сентября, 18:00.</text>
+    <text x="24" y="524" class="k-meta">Модерация постфактум: по жалобам и по</text>
+    <text x="24" y="544" class="k-meta">выборочному просмотру. Опубликованный</text>
+    <text x="24" y="564" class="k-meta">оффер не редактируется.</text>
+    <use href="kit/components.svg#button-primary" x="24" y="640" data-w="327" data-label="к моим офферам"/>
+    <use href="kit/components.svg#button-secondary" x="24" y="696" data-w="327" data-label="новый оффер"/>
+  </g></g>
+<text x="894" y="3068" class="capb">17 · «Опубликовано» (заголовок —</text><text x="894" y="3085" class="capb">текст мой): оффер в ленте сразу</text>
+<text x="894" y="3103" class="capb">(SPEC_RU.md:440); «ждёт проверки» спека не даёт</text>
+<text x="894" y="3121" class="capb">ручной очереди на проверку ссылок нет (SPEC §6)</text>
+<g transform="translate(1317,2222)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1317_2222"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317_2222)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/offers/new</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">к форме</text>
+    <text x="24" y="108" class="k-display">Публикация отклонена</text>
+    <rect x="24" y="132" width="327" height="116" rx="13" style="fill:var(--panel-2)"/>
+    <text x="40" y="162" class="k-meta-strong" style="fill:var(--err)">Дубль текста живого оффера</text>
+    <text x="40" y="188" class="k-meta" style="fill:var(--fg)">У вас уже висит оффер с этим текстом.</text>
+    <text x="40" y="208" class="k-meta" style="fill:var(--fg)">Измените текст или дождитесь, пока</text>
+    <text x="40" y="228" class="k-meta" style="fill:var(--fg)">прежний истечёт.</text>
+    <text x="24" y="288" class="k-strong">Что проверяется при публикации</text>
+    <text x="24" y="322" class="k-meta" style="fill:var(--fg)">стоп-слова запрещённых категорий</text>
+    <text x="351" y="322" class="k-meta" text-anchor="end">пройдено</text>
+    <text x="24" y="352" class="k-meta" style="fill:var(--fg)">ссылка в списках фишинга</text>
+    <text x="351" y="352" class="k-meta" text-anchor="end">пройдено</text>
+    <text x="24" y="382" class="k-meta" style="fill:var(--fg)">ссылка-сокращатель</text>
+    <text x="351" y="382" class="k-meta" text-anchor="end">пройдено</text>
+    <text x="24" y="412" class="k-meta" style="fill:var(--fg)">дубль текста живого оффера</text>
+    <text x="351" y="412" class="k-meta-strong" text-anchor="end" style="fill:var(--err)">не прошло</text>
+    <text x="24" y="442" class="k-meta" style="fill:var(--fg)">живых офферов — не больше предела</text>
+    <text x="351" y="442" class="k-meta" text-anchor="end">пройдено</text>
+    <text x="24" y="482" class="k-meta">Проверки выполняются мгновенно, без участия</text>
+    <text x="24" y="502" class="k-meta">человека; причина называется автору.</text>
+    <use href="kit/components.svg#button-primary" x="24" y="640" data-w="327" data-label="к форме"/>
+  </g></g>
+<text x="1317" y="3068" class="capb">17 · отказ автопроверки: причина сверху,</text>
+<text x="1317" y="3086" class="capb">остальные проверки списком (SPEC_RU.md §6.1)</text>
+<text x="1317" y="3104" class="capb">SPEC §6.1 · не прошёл — оффер не публикуется</text>
+<g transform="translate(1740,2222)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1740_2222"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740_2222)">
+    <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
+    <rect x="0" y="0" width="375" height="56" style="fill:var(--panel)"/>
+    <text x="16" y="35" class="k-mono">sosed.place/adv/offers</text>
+    <rect x="271" y="6" width="88" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="359" y="35" class="k-meta" text-anchor="end">заведения</text>
+    <text x="24" y="96" class="k-display">Мои офферы</text>
+    <rect x="24" y="116" width="327" height="116" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="144" class="k-meta-strong" style="fill:var(--err)">скрыт по жалобам</text>
+    <text x="40" y="170" class="k-body">Второй круассан за полцены.</text>
+    <text x="40" y="194" class="k-meta">жалоб 3 от разных людей</text>
+    <text x="40" y="216" class="k-meta">до 19.09, 14:00</text>
+    <text x="24" y="264" class="k-strong">Жалобы · «скидку не дали»</text>
+    <rect x="24" y="280" width="327" height="116" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="306" class="k-meta">16 сентября</text>
+    <text x="40" y="330" class="k-meta" style="fill:var(--fg)">Пришёл за вторым круассаном — сказали,</text>
+    <text x="40" y="350" class="k-meta" style="fill:var(--fg)">что акция только по будням.</text>
+    <text x="40" y="378" class="k-meta-strong" style="fill:var(--accent-text)">ждёт вашего ответа</text>
+    <text x="335" y="378" class="k-meta" text-anchor="end">разбор до 19.09, 14:00</text>
+    <rect x="24" y="412" width="327" height="92" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="438" class="k-meta">12 сентября</text>
+    <text x="40" y="462" class="k-meta" style="fill:var(--fg)">Условия были скрыты мелким шрифтом.</text>
+    <text x="40" y="490" class="k-meta-strong">признана обоснованной: условия скрыты</text>
+    <rect x="24" y="520" width="327" height="72" rx="13" style="fill:var(--panel)"/>
+    <text x="40" y="546" class="k-meta">9 сентября</text>
+    <text x="40" y="570" class="k-meta" style="fill:var(--fg)">Пришёл, и мне отказали.</text>
+    <text x="335" y="570" class="k-meta" text-anchor="end">отклонена</text>
+    <text x="24" y="622" class="k-meta" style="fill:var(--fg)">обоснованных по разным офферам</text>
+    <text x="24" y="642" class="k-meta" style="fill:var(--fg)">за 90 дней</text>
+    <text x="351" y="622" class="k-meta-strong" text-anchor="end">1 из 3</text>
+    <text x="24" y="664" class="k-meta">три — и заведение приостанавливают</text>
+    <use href="kit/components.svg#field" x="24" y="704" data-w="223" data-label="ответ модератору"/>
+    <use href="kit/components.svg#button-primary" x="255" y="704" data-w="96" data-label="ответить"/>
+  </g></g>
+<text x="1740" y="3068" class="capb">17 · жалобы со статусом и сроком, счётчик</text>
+<text x="1740" y="3086" class="capb">обоснованных, «ответить», «скрыт по жалобам»</text>
+<text x="1740" y="3104" class="capb">(SPEC_RU.md §10.1–10.2)</text>
+<text x="1740" y="3122" class="capb">SPEC §10.2 · разбор 24 ч · 3 за 90 дней</text>
+</svg>

@@ -1,89 +1,1315 @@
+<!-- Built by scripts/build-design-sheets.py from panel/design/sheets/screen-i18n-03-08.svg — edit the source, not this file. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1317" height="4650" viewBox="0 0 1317 4650">
 <title>Экраны 03 и 08 — стресс длины строк: EN, DE, HY · 375×812</title>
 <style>
-    @font-face { font-family: "Golos Text"; font-weight: 400 600; src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
-    @font-face { font-family: "JetBrains Mono"; font-weight: 400; src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+/* kit tokens — panel/design/kit/tokens.css, inserted by scripts/build-design-sheets.py.
+       Values: docs/design-system-app_RU.md, «Токены», «Поверхности», «Огонёк». A frame
+       picks its theme with class k-dark or k-light on its group; kit symbols read only var(). */
+    /* Golos in two subsets: without the Cyrillic one, every Russian line falls back to another face
+       (found 2026-09-19 by a rebuild hand on sheet 17: Latin rendered visibly bolder than Cyrillic) */
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
     text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
-    .t16 { font-size: 16px; fill: #f0e7dc; } .t16b { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
-    .t14 { font-size: 14px; fill: #9a8d7c; } .t14fg { font-size: 14px; fill: #f0e7dc; } .t14b { font-size: 14px; font-weight: 600; fill: #f0e7dc; }
-    .t18b { font-size: 20px; font-weight: 600; fill: #f0e7dc; } .t22b { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
-    .acc { font-size: 14px; font-weight: 600; fill: #e0714f; }
-    .name, .h { font-size: 20px; font-weight: 600; fill: #f0e7dc; } .body { font-size: 16px; fill: #f0e7dc; } .body15 { font-size: 16px; fill: #f0e7dc; }
-    .meta { font-size: 14px; fill: #9a8d7c; } .mono13 { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+    .k-dark {
+      --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
+      --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; --ok: #9ecb7a; --err: #ef7a6a;
+      --cat-amber: #e2a33b; --cat-teal: #3fb59a; --cat-violet: #b48cf2; --scrim: #000000; --shadow: #3a2e20;
+    }
+    .k-light {
+      --bg: #ece4d8; --panel: #fdfaf4; --panel-2: #e6dbc9; --border: #221a12; --border-control: #857562;
+      --fg: #1c140d; --muted: #6b5f4c; --muted-2: #857562; --on-fg-muted: #ab9d88;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; --ok: #4b712c; --err: #a3311f;
+      --cat-amber: #7a4a00; --cat-teal: #146b58; --cat-violet: #5b36a8; --scrim: #000000; --shadow: #857562;
+    }
+    /* --on-fg-muted: quiet text on an --fg ground (the composer): 5.10 dark, 6.85 light — the light --muted-2 gives 4.08 there */
+    /* the seven steps of «Типографика» */
+    .k-display { font-size: 26px; font-weight: 400; fill: var(--fg); }
+    .k-title { font-size: 20px; font-weight: 600; fill: var(--fg); }
+    .k-body { font-size: 16px; font-weight: 400; fill: var(--fg); }
+    .k-strong { font-size: 16px; font-weight: 600; fill: var(--fg); }
+    .k-meta-strong { font-size: 14px; font-weight: 600; fill: var(--fg); }
+    .k-meta { font-size: 14px; font-weight: 400; fill: var(--muted); }
+    .k-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted); }
+    /* Н2: the last quarter of a phrase's life */
+    .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
+    .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
     .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
     .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
     .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .phone { stroke: #1c140d; stroke-width: 2; }
 </style>
-<rect width="1317" height="4650" style="fill:#ece4d8"/>
+<rect width="1317" height="4650" style="fill:#ece4d8" />
+<g transform="translate(48,130)" class="k-dark" data-frame="feed.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c00"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c00)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="bar-at-table" transform="translate(0,56)">
+  <rect width="375" height="44" style="fill:var(--panel-2)" />
+  <text x="16" y="27" class="k-meta" style="fill:var(--fg)">you are at a table</text>
+  <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">return</text>
+</g>
+<g data-kit="card-phrase" transform="translate(16,108)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Anyone going to the embankment</text>
+  <g><text x="16" y="64" class="k-title">tonight? I'll bring a thermos.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect width="80" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="40" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">company</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+<rect x="16.5" y="276.5" width="342" height="97" rx="13" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" stroke-dasharray="5 4" />
+<text x="32" y="310" class="k-title" data-max="311" style="fill:var(--muted)">Looking for someone to play</text>
+<text x="32" y="336" class="k-title" data-max="311" style="fill:var(--muted)">Go with.</text>
+<text x="32" y="362" class="k-meta" data-max="72">checking…</text>
+<g data-kit="countdown" transform="translate(140,362)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">40 min left</text>
+</g>
+<text x="343" y="362" class="k-meta" text-anchor="end" data-max="100">alone</text>
+<g data-kit="card-offer" transform="translate(16,382)">
+  <rect width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(16,16)">
+  <rect x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">offer</text>
+</g>
+  <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
+  <g><text x="16" y="68" class="k-strong">Kolos Bakery</text></g>
+  <text x="16" y="94" class="k-body">Second croissant at half price.</text>
+  <text x="16" y="120" class="k-meta">conditions: when ordering two or more</text>
+  <g><text x="16" y="142" class="k-meta">discount until 30 September, 18:00</text></g>
+  <g data-kit="button-pill" transform="translate(16,152)">
+  <rect width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Save</text>
+</g>
+  <g data-kit="icon-button" transform="translate(291,152)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+</g>
+<g data-kit="card-table" transform="translate(16,602)">
+  <rect width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect width="64" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">table</text>
+</g>
+  <text x="112" y="33" class="k-meta">· hangman</text>
+  <text x="16" y="68" class="k-strong">Friday one</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">2 playing, 3 watching</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect width="104" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="52" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">sit down</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">5</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+
+<rect x="16" y="778" width="343" height="160" rx="13" style="fill:var(--panel)" />
+<text x="32" y="806" class="k-meta" data-max="311">farther than you asked</text>
+<text x="32" y="834" class="k-body" data-max="311">Board games in the park.</text>
+<g data-kit="chip" transform="translate(32,854)">
+  <rect width="64" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">party</text>
+</g>
+<g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title">Kolonaki · dozens nearby</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+<g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">say to your neighbours…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Conversations</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(471,130)" class="k-dark" data-frame="feed.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c01"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c01)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="bar-at-table" transform="translate(0,56)">
+  <rect width="375" height="44" style="fill:var(--panel-2)" />
+  <text x="16" y="27" class="k-meta" style="fill:var(--fg)">Sie sitzen an einem Tisch</text>
+  <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">zurück</text>
+</g>
+<g data-kit="card-phrase" transform="translate(16,108)">
+  <rect width="343" height="182" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Geht heute Abend jemand an die</text>
+  <g><text x="16" y="64" class="k-title">Promenade? Ich bringe eine</text></g>
+  <g><text x="16" y="92" class="k-title">Thermoskanne mit.</text></g>
+  <g data-kit="lifespan" transform="translate(16,102)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,132)">
+  <rect width="118" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="59" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">Gesellschaft</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,122)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,122)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+<g data-kit="card-phrase-own" transform="translate(16,296)">
+  <rect x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
+  <text x="16" y="36" class="k-title" style="fill:var(--muted)">Suche jemanden zum Go-Spielen.</text>
+  <text x="16" y="64" class="k-meta">wird geprüft… · noch 40 Min</text>
+  <g><text x="327" y="64" text-anchor="end" class="k-meta">allein</text></g>
+</g>
+<g data-kit="card-offer" transform="translate(16,386)">
+  <rect width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(16,16)">
+  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">Angebot</text>
+</g>
+  <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
+  <g><text x="16" y="68" class="k-strong">Bäckerei „Kolos“</text></g>
+  <text x="16" y="94" class="k-body">Zweites Croissant zum halben Preis.</text>
+  <text x="16" y="120" class="k-meta">Bedingungen: ab zwei Stück pro Bestellung</text>
+  <g><text x="16" y="142" class="k-meta">Rabatt bis 30. September, 18:00</text></g>
+  <g data-kit="button-pill" transform="translate(16,152)">
+  <rect width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Speichern</text>
+</g>
+  <g data-kit="icon-button" transform="translate(291,152)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+</g>
+<g data-kit="card-table" transform="translate(16,604)">
+  <rect width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect width="66" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">Tisch</text>
+</g>
+  <text x="114" y="33" class="k-meta">· Galgenmännchen</text>
+  <text x="16" y="68" class="k-strong">Freitagsrunde</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">2 spielen, 3 schauen zu</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect width="136" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="68" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Platz nehmen</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">5</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+
+<rect x="16" y="778" width="343" height="160" rx="13" style="fill:var(--panel)" />
+<text x="32" y="806" class="k-meta" data-max="311">weiter weg, als Sie wollten</text>
+<text x="32" y="834" class="k-body" data-max="311">Wir spielen Brettspiele im Park.</text>
+<g data-kit="chip" transform="translate(32,854)">
+  <rect width="66" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">Party</text>
+</g>
+<g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title">Kolonaki · Dutzende nebenan</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+<g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">den Nachbarn sagen…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Gespräche</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ich</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(894,130)" class="k-dark" data-frame="feed.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c02"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c02)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="bar-at-table" transform="translate(0,56)">
+  <rect width="375" height="44" style="fill:var(--panel-2)" />
+  <text x="16" y="27" class="k-meta" style="fill:var(--fg)">Դուք սեղանի մոտ եք</text>
+  <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">վերադառնալ</text>
+</g>
+<g data-kit="card-phrase" transform="translate(16,108)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Որևէ մեկը երեկոյան առափնյա</text>
+  <g><text x="16" y="64" class="k-title">գնո՞ւմ է։ Թերմոս կվերցնեմ։</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect width="122" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="61" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">ընկերություն</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+<g data-kit="card-phrase-own" transform="translate(16,276)">
+  <rect x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
+  <text x="16" y="36" class="k-title" style="fill:var(--muted)">Փնտրում եմ գո խաղալու ընկեր։</text>
+  <text x="16" y="64" class="k-meta">ստուգվում է… · մնաց 40 ր</text>
+  <g><text x="327" y="64" text-anchor="end" class="k-meta">մենակ</text></g>
+</g>
+<g data-kit="card-offer" transform="translate(16,368)">
+  <rect width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(16,16)">
+  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">առաջարկ</text>
+</g>
+  <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
+  <g><text x="16" y="68" class="k-strong">«Կոլոս» փռատուն</text></g>
+  <text x="16" y="94" class="k-body">Երկրորդ կրուասանը կես գնով։</text>
+  <text x="16" y="120" class="k-meta">պայմաններ՝ երկուսից պատվիրելիս</text>
+  <g><text x="16" y="142" class="k-meta">զեղչը մինչև սեպտեմբերի 30, 18:00</text></g>
+  <g data-kit="button-pill" transform="translate(16,152)">
+  <rect width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Պահպանել</text>
+</g>
+  <g data-kit="icon-button" transform="translate(291,152)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+</g>
+<g data-kit="card-table" transform="translate(16,588)">
+  <rect width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect width="66" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">սեղան</text>
+</g>
+  <text x="114" y="33" class="k-meta">· կախաղան</text>
+  <text x="16" y="68" class="k-strong">Ուրբաթյան</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">խաղում են 2, դիտում են 3</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect width="104" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="52" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">նստել</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">5</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+
+<rect x="16" y="764" width="343" height="160" rx="13" style="fill:var(--panel)" />
+<text x="32" y="792" class="k-meta" data-max="311">ավելի հեռու, քան խնդրել եք</text>
+<text x="32" y="820" class="k-body" data-max="311">Սեղանի խաղեր ենք խաղում այգում։</text>
+<g data-kit="chip" transform="translate(32,840)">
+  <rect width="82" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">խնջույք</text>
+</g>
+<g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title">Կոլոնակի · մոտ տասնյակներ</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+<g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">ասել հարևաններին…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Հոսք</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Զրույցներ</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ես</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(48,1030)" class="k-dark" data-frame="filters.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c10"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c10)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)" data-max="290">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><text x="16" y="35" class="k-title">Filters</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-close" transform="translate(0,0)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+<text x="16" y="94" class="k-strong" data-max="150">Age</text>
+<text x="359" y="94" class="k-meta" text-anchor="end" data-max="302.2">your own band</text>
+<rect x="16" y="124" width="4" height="24" rx="2" style="fill:var(--border)" />
+<rect x="355" y="124" width="4" height="24" rx="2" style="fill:var(--border)" />
+<g data-kit="slider-range" transform="translate(24,114)">
+  <rect x="0" y="19" width="327" height="6" rx="3" style="fill:var(--panel-2)" />
+  <rect x="86" y="19" width="241" height="6" rx="3" style="fill:var(--accent)" />
+  <circle cx="86" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <circle cx="327" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <text x="86" y="64" text-anchor="middle" class="k-meta" />
+  <text x="327" y="64" text-anchor="middle" class="k-meta" />
+</g>
+<text x="16" y="176" class="k-meta" data-max="343">by the year, no numbers</text>
+<text x="359" y="176" class="k-meta" text-anchor="end" data-max="150.67999999999998">no limit</text>
+<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)" />
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">You have grown older — the filter narrowed</text>
+<rect x="16" y="254" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="282" class="k-strong" data-max="150">Radius</text>
+<text x="359" y="282" class="k-meta" text-anchor="end" data-max="273.4">a diagram, not a map</text>
+<g data-kit="field" transform="translate(16,298)" data-max="311">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body" style="fill:var(--muted)">district or city</text></g>
+  </g>
+<circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2" />
+<circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3" />
+<circle cx="187.5" cy="450" r="4" style="fill:var(--fg)" />
+<circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
+<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">dozens</text>
+<g data-kit="button-secondary" transform="translate(16,428)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
+</g>
+<g data-kit="button-secondary" transform="translate(315,428)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
+</g>
+<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athens · approximate</text>
+<rect x="16" y="584" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="612" class="k-strong" data-max="343">Mode</text>
+<g data-kit="segments" transform="translate(16,628)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">alone</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">company</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">party</text></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Conversations</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(471,1030)" class="k-dark" data-frame="filters.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c11"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c11)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)" data-max="290">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><text x="16" y="35" class="k-title">Filter</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-close" transform="translate(0,0)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+<text x="16" y="94" class="k-strong" data-max="150">Alter</text>
+<text x="359" y="94" class="k-meta" text-anchor="end" data-max="283.0">Ihr eigener Bereich</text>
+<rect x="16" y="124" width="4" height="24" rx="2" style="fill:var(--border)" />
+<rect x="355" y="124" width="4" height="24" rx="2" style="fill:var(--border)" />
+<g data-kit="slider-range" transform="translate(24,114)">
+  <rect x="0" y="19" width="327" height="6" rx="3" style="fill:var(--panel-2)" />
+  <rect x="86" y="19" width="241" height="6" rx="3" style="fill:var(--accent)" />
+  <circle cx="86" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <circle cx="327" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <text x="86" y="64" text-anchor="middle" class="k-meta" />
+  <text x="327" y="64" text-anchor="middle" class="k-meta" />
+</g>
+<text x="16" y="176" class="k-meta" data-max="343">jahrweise, ohne Zahlen</text>
+<text x="359" y="176" class="k-meta" text-anchor="end" data-max="158.51999999999998">ohne Obergrenze</text>
+<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)" />
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Sie sind älter geworden — der Filter wurde enger</text>
+<rect x="16" y="254" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="282" class="k-strong" data-max="150">Radius</text>
+<text x="359" y="282" class="k-meta" text-anchor="end" data-max="273.4">Schema, keine Karte</text>
+<g data-kit="field" transform="translate(16,298)" data-max="311">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body" style="fill:var(--muted)">Stadtteil oder Stadt</text></g>
+  </g>
+<circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2" />
+<circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3" />
+<circle cx="187.5" cy="450" r="4" style="fill:var(--fg)" />
+<circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
+<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">Dutzende</text>
+<g data-kit="button-secondary" transform="translate(16,428)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
+</g>
+<g data-kit="button-secondary" transform="translate(315,428)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
+</g>
+<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athen · ungefähr</text>
+<rect x="16" y="584" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="612" class="k-strong" data-max="343">Modus</text>
+<g data-kit="segments" transform="translate(16,628)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">allein</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">Gesellschaft</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">Party</text></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Gespräche</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ich</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(894,1030)" class="k-dark" data-frame="filters.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c12"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c12)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-screen" transform="translate(0,0)" data-max="290">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><text x="16" y="35" class="k-title">Զտիչներ</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-close" transform="translate(0,0)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+<text x="16" y="94" class="k-strong" data-max="150">Տարիք</text>
+<text x="359" y="94" class="k-meta" text-anchor="end" data-max="283.0">ձեր սեփական միջակայքը</text>
+<rect x="16" y="124" width="4" height="24" rx="2" style="fill:var(--border)" />
+<rect x="355" y="124" width="4" height="24" rx="2" style="fill:var(--border)" />
+<g data-kit="slider-range" transform="translate(24,114)">
+  <rect x="0" y="19" width="327" height="6" rx="3" style="fill:var(--panel-2)" />
+  <rect x="86" y="19" width="241" height="6" rx="3" style="fill:var(--accent)" />
+  <circle cx="86" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <circle cx="327" cy="22" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <text x="86" y="64" text-anchor="middle" class="k-meta" />
+  <text x="327" y="64" text-anchor="middle" class="k-meta" />
+</g>
+<text x="16" y="176" class="k-meta" data-max="343">տարով, առանց թվերի</text>
+<text x="359" y="176" class="k-meta" text-anchor="end" data-max="189.88">առանց սահմանափակման</text>
+<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)" />
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Դուք մեծացել եք — ֆիլտրը նեղացավ</text>
+<rect x="16" y="254" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="282" class="k-strong" data-max="150">Շառավիղ</text>
+<text x="359" y="282" class="k-meta" text-anchor="end" data-max="263.8">սխեմա, ոչ քարտեզ</text>
+<g data-kit="field" transform="translate(16,298)" data-max="311">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body" style="fill:var(--muted)">թաղամաս կամ քաղաք</text></g>
+  </g>
+<circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2" />
+<circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3" />
+<circle cx="187.5" cy="450" r="4" style="fill:var(--fg)" />
+<circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 կմ</text>
+<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">տասնյակներ</text>
+<g data-kit="button-secondary" transform="translate(16,428)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
+</g>
+<g data-kit="button-secondary" transform="translate(315,428)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
+</g>
+<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Կոլոնակի, Աթենք · մոտավոր</text>
+<rect x="16" y="584" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="612" class="k-strong" data-max="343">Ռեժիմ</text>
+<g data-kit="segments" transform="translate(16,628)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">մենակ</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">ընկերություն</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">խնջույք</text></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Հոսք</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Զրույցներ</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ես</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(48,1930)" class="k-dark" data-frame="end.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c20"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c20)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="card-phrase" transform="translate(16,-40)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Anyone at the fountain tonight?</text>
+  <g><text x="16" y="64" class="k-title">I'll bring a speaker.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-violet)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect width="64" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">party</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+<g data-kit="card-phrase" transform="translate(16,132)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Anyone got a type-c charger</text>
+  <g><text x="16" y="64" class="k-title">for an hour?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+
+<text x="32" y="247" class="k-meta" data-max="200">alone</text>
+
+<rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)" />
+<g data-kit="chip-outline" transform="translate(32,317)">
+  <rect x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">offer</text>
+</g>
+<text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
+<text x="32" y="358" class="k-body" data-max="311">Giving away two stools, pick up</text>
+<text x="32" y="382" class="k-body" data-max="311">today.</text>
+<text x="32" y="410" class="k-meta" data-max="311">conditions: none</text>
+<text x="32" y="432" class="k-meta" data-max="311">discount until 20 September, 12:00</text>
+<text x="32" y="474" class="k-meta" data-max="200">private</text>
+<g data-kit="like" transform="translate(249,446)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+<g data-kit="icon-button" transform="translate(307,446)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+<g data-kit="button-secondary" transform="translate(16,514)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">show more</text>
+</g>
+<text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">dozens more messages in other languages</text>
+
+<rect x="127.5" y="580" width="120" height="44" rx="8" style="fill:none" data-hit="44" />
+<text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">show</text>
+<g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title">Kolonaki · dozens nearby</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+<g data-kit="toast" transform="translate(16,624)">
+  <rect x="3" y="3" width="343" height="48" rx="13" style="fill:var(--shadow)" />
+  <rect width="343" height="48" rx="13" style="fill:var(--fg)" />
+  <text x="16" y="29.5" class="k-body" style="fill:var(--bg)">liked</text>
+  <g><text x="327" y="29.5" text-anchor="end" class="k-strong" style="fill:var(--bg);text-decoration:underline">undo</text></g>
+</g>
+<g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">say to your neighbours…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Conversations</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(471,1930)" class="k-dark" data-frame="end.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c21"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c21)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="card-phrase" transform="translate(16,-40)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Ist heute Abend jemand am Brunnen?</text>
+  <g><text x="16" y="64" class="k-title">Ich bringe eine Box mit.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-violet)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect width="66" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">Party</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+<g data-kit="card-phrase" transform="translate(16,132)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Hat jemand ein Type-C-Ladegerät</text>
+  <g><text x="16" y="64" class="k-title">für eine Stunde?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+
+<text x="32" y="247" class="k-meta" data-max="200">allein</text>
+
+<rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)" />
+<g data-kit="chip-outline" transform="translate(32,317)">
+  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">Angebot</text>
+</g>
+<text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
+<text x="32" y="358" class="k-body" data-max="311">Gebe zwei Hocker ab, heute</text>
+<text x="32" y="382" class="k-body" data-max="311">abholen.</text>
+<text x="32" y="410" class="k-meta" data-max="311">Bedingungen: keine</text>
+<text x="32" y="432" class="k-meta" data-max="311">Rabatt bis 20. September, 12:00</text>
+<text x="32" y="474" class="k-meta" data-max="200">Privatperson</text>
+<g data-kit="like" transform="translate(249,446)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+<g data-kit="icon-button" transform="translate(307,446)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+<g data-kit="button-secondary" transform="translate(16,514)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">mehr anzeigen</text>
+</g>
+<text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">Dutzende weitere Nachrichten in anderen Sprachen</text>
+
+<rect x="127.5" y="580" width="120" height="44" rx="8" style="fill:none" data-hit="44" />
+<text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">anzeigen</text>
+<g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title">Kolonaki · Dutzende nebenan</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+<g data-kit="toast" transform="translate(16,624)">
+  <rect x="3" y="3" width="343" height="48" rx="13" style="fill:var(--shadow)" />
+  <rect width="343" height="48" rx="13" style="fill:var(--fg)" />
+  <text x="16" y="29.5" class="k-body" style="fill:var(--bg)">geliked</text>
+  <g><text x="327" y="29.5" text-anchor="end" class="k-strong" style="fill:var(--bg);text-decoration:underline">rückgängig</text></g>
+</g>
+<g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">den Nachbarn sagen…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Gespräche</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ich</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(894,1930)" class="k-dark" data-frame="end.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c22"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c22)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="card-phrase" transform="translate(16,-40)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Երեկոյան շատրվանի մոտ որևէ մեկը</text>
+  <g><text x="16" y="64" class="k-title">կլինի՞։ Բարձրախոս կբերեմ։</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-violet)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect width="82" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">խնջույք</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+<g data-kit="card-phrase" transform="translate(16,132)">
+  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="16" y="36" class="k-title">Որևէ մեկը type-c լիցքավորիչ ունի՞</text>
+  <g><text x="16" y="64" class="k-title">մեկ ժամով։</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+
+<text x="32" y="247" class="k-meta" data-max="200">մենակ</text>
+
+<rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)" />
+<g data-kit="chip-outline" transform="translate(32,317)">
+  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">առաջարկ</text>
+</g>
+<text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
+<text x="32" y="358" class="k-body" data-max="311">Տալիս եմ երկու աթոռակ, վերցնել</text>
+<text x="32" y="382" class="k-body" data-max="311">այսօր։</text>
+<text x="32" y="410" class="k-meta" data-max="311">պայմաններ՝ չկան</text>
+<text x="32" y="432" class="k-meta" data-max="311">զեղչը մինչև սեպտեմբերի 20, 12:00</text>
+<text x="32" y="474" class="k-meta" data-max="200">մասնավոր</text>
+<g data-kit="like" transform="translate(249,446)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+<g data-kit="icon-button" transform="translate(307,446)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+<g data-kit="button-secondary" transform="translate(16,514)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">ցույց տալ ևս</text>
+</g>
+<text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">տասնյակ այլ հաղորդագրություններ այլ լեզուներով</text>
+
+<rect x="127.5" y="580" width="120" height="44" rx="8" style="fill:none" data-hit="44" />
+<text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">ցույց տալ</text>
+<g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title">Կոլոնակի · մոտ տասնյակներ</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+<g data-kit="toast" transform="translate(16,624)">
+  <rect x="3" y="3" width="343" height="48" rx="13" style="fill:var(--shadow)" />
+  <rect width="343" height="48" rx="13" style="fill:var(--fg)" />
+  <text x="16" y="29.5" class="k-body" style="fill:var(--bg)">հավանել եք</text>
+  <g><text x="327" y="29.5" text-anchor="end" class="k-strong" style="fill:var(--bg);text-decoration:underline">հետարկել</text></g>
+</g>
+<g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">ասել հարևաններին…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Հոսք</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Զրույցներ</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ես</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<g transform="translate(48,2830)" class="k-dark" data-frame="chatA.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c30"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c30)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Anya, 24</text>
+  <g data-kit="key-badge" transform="translate(144,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text></g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="160" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">silence · an hour</text>
+  <g data-kit="icon-chevron-down" transform="translate(122,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(188,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">52 min left</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">end it</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,116)">
+  <g><rect width="194.2" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">so, the embankment?</text></g>
+  </g>
+<g data-kit="bubble-mine" transform="translate(16,164)">
+  <g><rect x="130.8" width="212.2" height="62" rx="13" style="fill:var(--panel-2)" /><text x="144.8" y="26" class="k-body">nine works.</text><text x="144.8" y="48" class="k-body">the bench by the pier</text>
+  <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
+</g>
+<g data-kit="quote-like" transform="translate(16,250)">
+  <rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
+  <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <text x="46" y="26" class="k-body">“embankment, by nine, company”</text>
+  <text x="46" y="46" class="k-meta">liked</text>
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,318)">
+  <g><rect width="248.0" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">and that one was mine too</text></g>
+  </g>
+<g data-kit="icon-button" transform="translate(268,316)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--muted)" /><circle cx="22" cy="22" r="2" style="fill:var(--muted)" /><circle cx="29" cy="22" r="2" style="fill:var(--muted)" /></g>
+</g>
+<g data-kit="system-line" transform="translate(16,384)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">Anya placed a tile on e4</text>
+</g>
+<g data-kit="bubble-mine" transform="translate(16,398)">
+  <g><rect x="238.4" width="104.6" height="40" rx="13" style="fill:var(--panel-2)" /><text x="252.4" y="25.5" class="k-body">good move</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
+  </g>
+<g data-kit="bubble-mine" transform="translate(16,462)">
+  <g><rect x="148.8" width="194.2" height="40" rx="13" style="fill:var(--panel-2)" /><text x="162.8" y="25.5" class="k-body">but I'll win anyway</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--err)">not sent · retry</text></g>
+  </g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="lifespan" transform="translate(16,742)">
+  <rect width="343" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
+</g>
+<g data-kit="message-input" transform="translate(16,754)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><text x="16" y="28" class="k-body">coming out?</text></g>
+  <g><rect x="112.6" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">9/256</text></g>
+  <g><g><g data-kit="button-send-typing" transform="translate(299,0)">
+  <rect width="44" height="44" rx="8" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g></g>
+  </g>
+</g></g>
+<g transform="translate(471,2830)" class="k-dark" data-frame="chatA.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c31"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c31)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Anja, 24</text>
+  <g data-kit="key-badge" transform="translate(144,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text></g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="158" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">Stille · eine Stunde</text>
+  <g data-kit="icon-chevron-down" transform="translate(120,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(186,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">noch 52 Min.</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">Beenden</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,116)">
+  <g><rect width="203.2" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">also, zur Promenade?</text></g>
+  </g>
+<g data-kit="bubble-mine" transform="translate(16,164)">
+  <g><rect x="175.6" width="167.4" height="62" rx="13" style="fill:var(--panel-2)" /><text x="189.6" y="26" class="k-body">neun passt.</text><text x="189.6" y="48" class="k-body">die Bank am Pier</text>
+  <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
+</g>
+<g data-kit="quote-like" transform="translate(16,250)">
+  <rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
+  <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <text x="46" y="26" class="k-body">„Promenade, gegen neun, Gesellschaft“</text>
+  <text x="46" y="46" class="k-meta">geliked</text>
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,318)">
+  <g><rect width="239.0" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">und das war auch von mir</text></g>
+  </g>
+<g data-kit="icon-button" transform="translate(259,316)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--muted)" /><circle cx="22" cy="22" r="2" style="fill:var(--muted)" /><circle cx="29" cy="22" r="2" style="fill:var(--muted)" /></g>
+</g>
+<g data-kit="system-line" transform="translate(16,384)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">Anja hat einen Stein auf e4 gelegt</text>
+</g>
+<g data-kit="bubble-mine" transform="translate(16,398)">
+  <g><rect x="238.4" width="104.6" height="40" rx="13" style="fill:var(--panel-2)" /><text x="252.4" y="25.5" class="k-body">guter Zug</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
+  </g>
+<g data-kit="bubble-mine" transform="translate(16,462)">
+  <g><rect x="95" width="248.0" height="40" rx="13" style="fill:var(--panel-2)" /><text x="109" y="25.5" class="k-body">aber ich gewinne trotzdem</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--err)">nicht gesendet · erneut</text></g>
+  </g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="lifespan" transform="translate(16,742)">
+  <rect width="343" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
+</g>
+<g data-kit="message-input" transform="translate(16,754)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><text x="16" y="28" class="k-body">kommst du?</text></g>
+  <g><rect x="103.6" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">9/256</text></g>
+  <g><g><g data-kit="button-send-typing" transform="translate(299,0)">
+  <rect width="44" height="44" rx="8" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g></g>
+  </g>
+</g></g>
+<g transform="translate(894,2830)" class="k-dark" data-frame="chatA.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c32"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c32)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Անի, 24</text>
+  <g data-kit="key-badge" transform="translate(134,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text></g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="158" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">լռություն · մեկ ժամ</text>
+  <g data-kit="icon-chevron-down" transform="translate(120,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(186,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">մնաց 52 րոպե</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">ավարտել</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,116)">
+  <g><rect width="158.4" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">ուրեմն առափնյա՞</text></g>
+  </g>
+<g data-kit="bubble-mine" transform="translate(16,164)">
+  <g><rect x="48" width="295" height="62" rx="13" style="fill:var(--panel-2)" /><text x="62" y="26" class="k-body">ինը հարմար է։</text><text x="62" y="48" class="k-body">նստարանը նավամատույցի մոտ</text>
+  <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
+</g>
+<g data-kit="quote-like" transform="translate(16,250)">
+  <rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
+  <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <text x="46" y="26" class="k-body">«առափնյա, ինը, ընկերություն»</text>
+  <text x="46" y="46" class="k-meta">հավանել են</text>
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,318)">
+  <g><rect width="149.4" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">և դա էլ իմն էր</text></g>
+  </g>
+<g data-kit="icon-button" transform="translate(169.4,316)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--muted)" /><circle cx="22" cy="22" r="2" style="fill:var(--muted)" /><circle cx="29" cy="22" r="2" style="fill:var(--muted)" /></g>
+</g>
+<g data-kit="system-line" transform="translate(16,384)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">Անին քար դրեց e4-ի վրա</text>
+</g>
+<g data-kit="bubble-mine" transform="translate(16,398)">
+  <g><rect x="247.3" width="95.7" height="40" rx="13" style="fill:var(--panel-2)" /><text x="261.3" y="25.5" class="k-body">լավ քայլ</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
+  </g>
+<g data-kit="bubble-mine" transform="translate(16,462)">
+  <g><rect x="86" width="257.0" height="40" rx="13" style="fill:var(--panel-2)" /><text x="100" y="25.5" class="k-body">բայց ես միևնույն է կհաղթեմ</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--err)">չի ուղարկվել · կրկնել</text></g>
+  </g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="lifespan" transform="translate(16,742)">
+  <rect width="343" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
+</g>
+<g data-kit="message-input" transform="translate(16,754)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><text x="16" y="28" class="k-body">դուրս գալի՞ս ես</text></g>
+  <g><rect x="148.4" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">9/256</text></g>
+  <g><g><g data-kit="button-send-typing" transform="translate(299,0)">
+  <rect width="44" height="44" rx="8" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g></g>
+  </g>
+</g></g>
+<g transform="translate(48,3730)" class="k-dark" data-frame="chatX.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c40"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c40)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Anya, 24</text>
+  <g data-kit="key-badge" transform="translate(144,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text></g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="160" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">silence · an hour</text>
+  <g data-kit="icon-chevron-down" transform="translate(122,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(188,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">52 min left</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">end it</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="bar-connection" transform="translate(0,104)">
+  <rect width="375" height="32" style="fill:var(--panel-2)" />
+  <circle cx="20" cy="16" r="4" style="fill:var(--muted)" />
+  <text x="34" y="21" class="k-meta" style="fill:var(--fg)">reconnecting…</text>
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,152)">
+  <g><rect width="248.0" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">and that one was mine too</text></g>
+  </g>
+<g data-kit="row-chat" transform="translate(16,216)">
+  
+  <g><rect width="343" height="72" rx="8" style="fill:var(--panel-2)" /></g>
+  <text x="12" y="24" class="k-strong">Anya, 24</text>
+  <text x="12" y="45" class="k-meta" style="fill:var(--fg)">and that one was mine too</text>
+  <text x="12" y="63" class="k-mono">52 min</text>
+  <g><text x="331" y="63" text-anchor="end" class="k-meta" style="fill:var(--accent-text)">waiting for your reply</text></g>
+  <g><circle cx="327" cy="22" r="4" style="fill:var(--accent)" /></g>
+</g>
+<g data-kit="card-tombstone" transform="translate(16,592)">
+  <rect width="343" height="140" rx="13" style="fill:var(--panel)" />
+  <text x="171.5" y="40" text-anchor="middle" class="k-title">The conversation ended</text>
+  <text x="171.5" y="66" text-anchor="middle" class="k-meta">There is nothing here any more.</text>
+  <g data-kit="button-pill" transform="translate(111.5,80)">
+  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Close</text>
+</g>
+</g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="field-closed" transform="translate(16,754)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <text x="16" y="28" class="k-body" style="fill:var(--muted)" />
+</g>
+</g></g>
+<g transform="translate(471,3730)" class="k-dark" data-frame="chatX.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c41"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c41)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Anja, 24</text>
+  <g data-kit="key-badge" transform="translate(144,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text></g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="158" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">Stille · eine Stunde</text>
+  <g data-kit="icon-chevron-down" transform="translate(120,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(186,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">noch 52 Min.</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">Beenden</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="bar-connection" transform="translate(0,104)">
+  <rect width="375" height="32" style="fill:var(--panel-2)" />
+  <circle cx="20" cy="16" r="4" style="fill:var(--muted)" />
+  <text x="34" y="21" class="k-meta" style="fill:var(--fg)">Verbindung wird wiederhergestellt…</text>
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,152)">
+  <g><rect width="239.0" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">und das war auch von mir</text></g>
+  </g>
+<g data-kit="row-chat" transform="translate(16,216)">
+  
+  <g><rect width="343" height="72" rx="8" style="fill:var(--panel-2)" /></g>
+  <text x="12" y="24" class="k-strong">Anja, 24</text>
+  <text x="12" y="45" class="k-meta" style="fill:var(--fg)">und das war auch von mir</text>
+  <text x="12" y="63" class="k-mono">52 Min.</text>
+  <g><text x="331" y="63" text-anchor="end" class="k-meta" style="fill:var(--accent-text)">wartet auf Ihre Antwort</text></g>
+  <g><circle cx="327" cy="22" r="4" style="fill:var(--accent)" /></g>
+</g>
+<g data-kit="card-tombstone" transform="translate(16,592)">
+  <rect width="343" height="140" rx="13" style="fill:var(--panel)" />
+  <text x="171.5" y="40" text-anchor="middle" class="k-title">Das Gespräch ist beendet</text>
+  <text x="171.5" y="66" text-anchor="middle" class="k-meta">Hier ist nichts mehr.</text>
+  <g data-kit="button-pill" transform="translate(111.5,80)">
+  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Schließen</text>
+</g>
+</g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="field-closed" transform="translate(16,754)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <text x="16" y="28" class="k-body" style="fill:var(--muted)" />
+</g>
+</g></g>
+<g transform="translate(894,3730)" class="k-dark" data-frame="chatX.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c42"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c42)"><rect width="375" height="812" style="fill:var(--bg)" />
+<g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Անի, 24</text>
+  <g data-kit="key-badge" transform="translate(134,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g><text x="263" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text></g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="158" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">լռություն · մեկ ժամ</text>
+  <g data-kit="icon-chevron-down" transform="translate(120,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(186,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">մնաց 52 րոպե</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">ավարտել</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="bar-connection" transform="translate(0,104)">
+  <rect width="375" height="32" style="fill:var(--panel-2)" />
+  <circle cx="20" cy="16" r="4" style="fill:var(--muted)" />
+  <text x="34" y="21" class="k-meta" style="fill:var(--fg)">վերամիանում ենք…</text>
+</g>
+<g data-kit="bubble-theirs" transform="translate(16,152)">
+  <g><rect width="149.4" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">և դա էլ իմն էր</text></g>
+  </g>
+<g data-kit="row-chat" transform="translate(16,216)">
+  
+  <g><rect width="343" height="72" rx="8" style="fill:var(--panel-2)" /></g>
+  <text x="12" y="24" class="k-strong">Անի, 24</text>
+  <text x="12" y="45" class="k-meta" style="fill:var(--fg)">և դա էլ իմն էր</text>
+  <text x="12" y="63" class="k-mono">52 րոպե</text>
+  <g><text x="331" y="63" text-anchor="end" class="k-meta" style="fill:var(--accent-text)">սպասում է ձեր պատասխանին</text></g>
+  <g><circle cx="327" cy="22" r="4" style="fill:var(--accent)" /></g>
+</g>
+<g data-kit="card-tombstone" transform="translate(16,592)">
+  <rect width="343" height="140" rx="13" style="fill:var(--panel)" />
+  <text x="171.5" y="40" text-anchor="middle" class="k-title">Զրույցն ավարտվեց</text>
+  <text x="171.5" y="66" text-anchor="middle" class="k-meta">Այստեղ այլևս ոչինչ չկա։</text>
+  <g data-kit="button-pill" transform="translate(111.5,80)">
+  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Փակել</text>
+</g>
+</g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="field-closed" transform="translate(16,754)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <text x="16" y="28" class="k-body" style="fill:var(--muted)" />
+</g>
+</g></g>
 <text x="48" y="52" class="sheet-title">Экраны 03 и 08 — стресс длины строк · EN, DE, HY · 375×812</text>
 <text x="48" y="78" class="cap">геометрия screen-03.svg и screen-08.svg без изменений; EN — из sosed.place/docs/*_EN.md, DE и HY — черновой перевод, не строки продукта; ширины элементов не подгонялись</text>
 <text x="48" y="96" class="cap">HY: у Golos Text нет армянских глифов — кадр рисуется системным fallback браузера рендера</text>
-<g transform="translate(48,130)" data-frame="feed.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c00"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c00)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="0" y="56" width="375" height="40" style="fill:#302720"/><text x="16" y="81" class="t14fg" text-anchor="start" data-el="feed.EN.at_table" data-max="280.6">you are at a table</text><text x="359" y="81" class="acc" text-anchor="end" data-el="feed.EN.back" data-max="343">return</text><rect x="16" y="105" width="343" height="124" rx="13" style="fill:#262019"/><text x="32" y="141" class="t18b" text-anchor="start" data-el="feed.EN.c1a" data-max="311">Anyone going to the embankment</text><text x="32" y="167" class="t18b" text-anchor="start" data-el="feed.EN.c1b" data-max="311">tonight? I&#x27;ll bring a thermos.</text><rect x="32" y="177" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="177" width="207" height="3" rx="1.5" style="fill:#e2a33b"/><rect x="32" y="188" width="80" height="24" rx="12" style="fill:#e2a33b;fill-opacity:0.10"/><text x="72" y="205" class="t14b" text-anchor="middle" style="fill:#e2a33b">company</text><rect x="232" y="177" width="44" height="44" rx="8" style="fill:none"/><path d="M254 209 C238 199 243 188 254 197 C265 188 270 199 254 209 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="205" class="t14">3</text><rect x="299" y="177" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="199" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="199" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="199" r="2" style="fill:#f0e7dc"/><text x="32" y="225" class="mono13">2 h 50 min left</text><rect x="16" y="238" width="343" height="98" rx="13" style="fill:#262019;stroke:#9a8d7c;stroke-width:1" stroke-dasharray="5 4"/><text x="32" y="272" class="t18b" text-anchor="start" data-el="feed.EN.c2a" data-max="311" style="fill:#9a8d7c">Looking for someone to play</text><text x="32" y="298" class="t18b" text-anchor="start" data-el="feed.EN.c2b" data-max="311" style="fill:#9a8d7c">Go with.</text><text x="32" y="324" class="t14" text-anchor="start" data-el="feed.EN.checking" data-max="72">checking…</text><text x="140" y="324" class="mono13">40 min left</text><text x="343" y="324" class="t14" text-anchor="end" data-el="feed.EN.alone" data-max="100">alone</text><rect x="16" y="345" width="343" height="196" rx="13" style="fill:#262019"/><rect x="32" y="358" width="64" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="64" y="375" class="t14b" text-anchor="middle" style="fill:#e0714f">offer</text><text x="343" y="375" class="t16b" text-anchor="end" data-el="feed.EN.disc" data-max="80">−20 %</text><text x="32" y="397" class="t16b" text-anchor="start" data-el="feed.EN.bakery" data-max="311">Kolos Bakery</text><text x="32" y="421" class="t16" text-anchor="start" data-el="feed.EN.croissant" data-max="311">Second croissant at half price.</text><text x="32" y="449" class="t14" text-anchor="start" data-el="feed.EN.cond" data-max="311">conditions: when ordering two or more</text><text x="32" y="471" class="t14" text-anchor="start" data-el="feed.EN.until" data-max="311">discount until 30 September, 18:00</text><rect x="32" y="485" width="140" height="44" rx="22" style="fill:#f0e7dc"/><text x="102" y="513" class="t16b" text-anchor="middle" data-el="feed.EN.save" data-max="116" style="fill:#0d0b0a">Save</text><rect x="299" y="485" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="507" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="507" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="507" r="2" style="fill:#f0e7dc"/><rect x="16" y="550" width="343" height="144" rx="13" style="fill:#262019"/><rect x="32" y="563" width="64" height="24" rx="12" style="fill:#3fb59a;fill-opacity:0.10"/><text x="64" y="580" class="t14b" text-anchor="middle" style="fill:#3fb59a">table</text><text x="106" y="580" class="t14" text-anchor="start" data-el="feed.EN.game" data-max="237">· hangman</text><text x="32" y="602" class="t16b" text-anchor="start" data-el="feed.EN.tname" data-max="311">Friday one</text><text x="32" y="624" class="t14fg" text-anchor="start" data-el="feed.EN.seats" data-max="311">2 playing, 3 watching</text><rect x="32" y="638" width="104" height="44" rx="22" style="fill:#f0e7dc"/><text x="84" y="666" class="t16b" text-anchor="middle" data-el="feed.EN.sit" data-max="80" style="fill:#0d0b0a">sit down</text><rect x="232" y="638" width="44" height="44" rx="8" style="fill:none"/><path d="M 254 670 C 238 660 243 649 254 658 C 265 649 270 660 254 670 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="666" class="t14">5</text><rect x="299" y="638" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="660" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="660" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="660" r="2" style="fill:#f0e7dc"/><rect x="16" y="748" width="343" height="122" rx="13" style="fill:#262019"/><text x="32" y="776" class="t14" text-anchor="start" data-el="feed.EN.farther" data-max="311">farther than you asked</text><text x="32" y="804" class="t16" text-anchor="start" data-el="feed.EN.c5" data-max="311" style="fill:#f0e7dc">Board games in the park.</text><rect x="32" y="829" width="64" height="24" rx="12" style="fill:#b48cf2;fill-opacity:0.10"/><text x="64" y="846" class="t14b" text-anchor="middle" style="fill:#b48cf2">party</text><rect x="232" y="818" width="44" height="44" rx="8" style="fill:none"/><path d="M 254 850 C 238 840 243 829 254 838 C 265 829 270 840 254 850 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="846" class="t14">1</text><rect x="299" y="818" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="840" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="840" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="840" r="2" style="fill:#f0e7dc"/><rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="34" class="t18b" text-anchor="start" data-el="feed.EN.header" data-max="299">Kolonaki · 12 people nearby</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#f0e7dc;stroke-width:2;stroke-linejoin:round"/><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="feed.EN.tab_feed" data-max="125">Feed</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="feed.EN.tab_chats" data-max="125">Conversations</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="feed.EN.tab_me" data-max="125">Me</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-<rect x="24" y="684" width="327" height="52" rx="26" style="fill:#f0e7dc"/><text x="44" y="716" class="t16" style="fill:#6b5f4c">say to your neighbours…</text><circle cx="325" cy="710" r="18" style="fill:#bd4b2a"/><path d="M319 710 L331 710 M326 705 L331 710 L326 715" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round"/><rect x="303" y="688" width="44" height="44" rx="8" fill="none" data-hit="44"/></g></g>
 <text x="48" y="970" class="capb">EN · 03 · лента, кадр 1</text>
-<g transform="translate(471,130)" data-frame="feed.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c01"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c01)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="0" y="56" width="375" height="40" style="fill:#302720"/><text x="16" y="81" class="t14fg" text-anchor="start" data-el="feed.DE.at_table" data-max="280.6">Sie sitzen an einem Tisch</text><text x="359" y="81" class="acc" text-anchor="end" data-el="feed.DE.back" data-max="343">zurück</text><rect x="16" y="105" width="343" height="135" rx="13" style="fill:#262019"/><text x="32" y="129" class="t18b" text-anchor="start" data-el="feed.DE.c1a" data-max="311">Geht heute Abend jemand an die</text><text x="32" y="155" class="t18b" text-anchor="start" data-el="feed.DE.c1b" data-max="311">Promenade? Ich bringe eine</text><text x="32" y="181" class="t18b" text-anchor="start" data-el="feed.DE.c1c" data-max="311">Thermoskanne mit.</text><rect x="32" y="191" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="191" width="207" height="3" rx="1.5" style="fill:#e2a33b"/><rect x="32" y="197" width="118" height="24" rx="12" style="fill:#e2a33b;fill-opacity:0.10"/><text x="91" y="214" class="t14b" text-anchor="middle" style="fill:#e2a33b">Gesellschaft</text><rect x="232" y="186" width="44" height="44" rx="8" style="fill:none"/><path d="M254 218 C238 208 243 197 254 206 C265 197 270 208 254 218 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="214" class="t14">3</text><rect x="299" y="186" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="208" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="208" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="208" r="2" style="fill:#f0e7dc"/><text x="32" y="234" class="mono13">noch 2 Std 50 Min</text><rect x="16" y="249" width="343" height="76" rx="13" style="fill:#262019;stroke:#9a8d7c;stroke-width:1" stroke-dasharray="5 4"/><text x="32" y="283" class="t18b" text-anchor="start" data-el="feed.DE.c2" data-max="311" style="fill:#9a8d7c">Suche jemanden zum Go-Spielen.</text><text x="32" y="311" class="t14" text-anchor="start" data-el="feed.DE.checking" data-max="90">wird geprüft…</text><text x="150" y="311" class="mono13">noch 40 Min</text><text x="343" y="311" class="t14" text-anchor="end" data-el="feed.DE.alone" data-max="100">allein</text><rect x="16" y="334" width="343" height="196" rx="13" style="fill:#262019"/><rect x="32" y="347" width="82" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="73" y="364" class="t14b" text-anchor="middle" style="fill:#e0714f">Angebot</text><text x="343" y="364" class="t16b" text-anchor="end" data-el="feed.DE.disc" data-max="80">−20 %</text><text x="32" y="386" class="t16b" text-anchor="start" data-el="feed.DE.bakery" data-max="311">Bäckerei „Kolos“</text><text x="32" y="410" class="t16" text-anchor="start" data-el="feed.DE.croissant" data-max="311">Zweites Croissant zum halben Preis.</text><text x="32" y="438" class="t14" text-anchor="start" data-el="feed.DE.cond" data-max="311">Bedingungen: ab zwei Stück pro Bestellung</text><text x="32" y="460" class="t14" text-anchor="start" data-el="feed.DE.until" data-max="311">Rabatt bis 30. September, 18:00</text><rect x="32" y="474" width="140" height="44" rx="22" style="fill:#f0e7dc"/><text x="102" y="502" class="t16b" text-anchor="middle" data-el="feed.DE.save" data-max="116" style="fill:#0d0b0a">Speichern</text><rect x="299" y="474" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="496" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="496" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="496" r="2" style="fill:#f0e7dc"/><rect x="16" y="539" width="343" height="144" rx="13" style="fill:#262019"/><rect x="32" y="552" width="66" height="24" rx="12" style="fill:#3fb59a;fill-opacity:0.10"/><text x="65" y="569" class="t14b" text-anchor="middle" style="fill:#3fb59a">Tisch</text><text x="108" y="569" class="t14" text-anchor="start" data-el="feed.DE.game" data-max="235">· Galgenmännchen</text><text x="32" y="591" class="t16b" text-anchor="start" data-el="feed.DE.tname" data-max="311">Freitagsrunde</text><text x="32" y="613" class="t14fg" text-anchor="start" data-el="feed.DE.seats" data-max="311">2 spielen, 3 schauen zu</text><rect x="32" y="627" width="104" height="44" rx="22" style="fill:#f0e7dc"/><text x="84" y="655" class="t16b" text-anchor="middle" data-el="feed.DE.sit" data-max="80" style="fill:#0d0b0a">Platz nehmen</text><rect x="232" y="627" width="44" height="44" rx="8" style="fill:none"/><path d="M 254 659 C 238 649 243 638 254 647 C 265 638 270 649 254 659 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="655" class="t14">5</text><rect x="299" y="627" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="649" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="649" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="649" r="2" style="fill:#f0e7dc"/><rect x="16" y="748" width="343" height="122" rx="13" style="fill:#262019"/><text x="32" y="776" class="t14" text-anchor="start" data-el="feed.DE.farther" data-max="311">weiter weg, als Sie wollten</text><text x="32" y="804" class="t16" text-anchor="start" data-el="feed.DE.c5" data-max="311" style="fill:#f0e7dc">Wir spielen Brettspiele im Park.</text><rect x="32" y="829" width="66" height="24" rx="12" style="fill:#b48cf2;fill-opacity:0.10"/><text x="65" y="846" class="t14b" text-anchor="middle" style="fill:#b48cf2">Party</text><rect x="232" y="818" width="44" height="44" rx="8" style="fill:none"/><path d="M 254 850 C 238 840 243 829 254 838 C 265 829 270 840 254 850 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="846" class="t14">1</text><rect x="299" y="818" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="840" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="840" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="840" r="2" style="fill:#f0e7dc"/><rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="34" class="t18b" text-anchor="start" data-el="feed.DE.header" data-max="299">Kolonaki · 12 Leute in der Nähe</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#f0e7dc;stroke-width:2;stroke-linejoin:round"/><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="feed.DE.tab_feed" data-max="125">Feed</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="feed.DE.tab_chats" data-max="125">Gespräche</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="feed.DE.tab_me" data-max="125">Ich</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-<rect x="24" y="684" width="327" height="52" rx="26" style="fill:#f0e7dc"/><text x="44" y="716" class="t16" style="fill:#6b5f4c">den Nachbarn sagen…</text><circle cx="325" cy="710" r="18" style="fill:#bd4b2a"/><path d="M319 710 L331 710 M326 705 L331 710 L326 715" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round"/><rect x="303" y="688" width="44" height="44" rx="8" fill="none" data-hit="44"/></g></g>
 <text x="471" y="970" class="capb">DE · 03 · лента, кадр 1</text>
-<g transform="translate(894,130)" data-frame="feed.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c02"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c02)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="0" y="56" width="375" height="40" style="fill:#302720"/><text x="16" y="81" class="t14fg" text-anchor="start" data-el="feed.HY.at_table" data-max="247.0">Դուք սեղանի մոտ եք</text><text x="359" y="81" class="acc" text-anchor="end" data-el="feed.HY.back" data-max="343">վերադառնալ</text><rect x="16" y="105" width="343" height="124" rx="13" style="fill:#262019"/><text x="32" y="141" class="t18b" text-anchor="start" data-el="feed.HY.c1a" data-max="311">Որևէ մեկը երեկոյան առափնյա</text><text x="32" y="167" class="t18b" text-anchor="start" data-el="feed.HY.c1b" data-max="311">գնո՞ւմ է։ Թերմոս կվերցնեմ։</text><rect x="32" y="177" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="177" width="207" height="3" rx="1.5" style="fill:#e2a33b"/><rect x="32" y="188" width="122" height="24" rx="12" style="fill:#e2a33b;fill-opacity:0.10"/><text x="93" y="205" class="t14b" text-anchor="middle" style="fill:#e2a33b">ընկերություն</text><rect x="232" y="177" width="44" height="44" rx="8" style="fill:none"/><path d="M254 209 C238 199 243 188 254 197 C265 188 270 199 254 209 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="205" class="t14">3</text><rect x="299" y="177" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="199" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="199" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="199" r="2" style="fill:#f0e7dc"/><text x="32" y="225" class="mono13">մնաց 2 ժ 50 ր</text><rect x="16" y="238" width="343" height="76" rx="13" style="fill:#262019;stroke:#9a8d7c;stroke-width:1" stroke-dasharray="5 4"/><text x="32" y="272" class="t18b" text-anchor="start" data-el="feed.HY.c2" data-max="311" style="fill:#9a8d7c">Փնտրում եմ գո խաղալու ընկեր։</text><text x="32" y="300" class="t14" text-anchor="start" data-el="feed.HY.checking" data-max="95">ստուգվում է…</text><text x="155" y="300" class="mono13">մնաց 40 ր</text><text x="343" y="300" class="t14" text-anchor="end" data-el="feed.HY.alone" data-max="100">մենակ</text><rect x="16" y="323" width="343" height="196" rx="13" style="fill:#262019"/><rect x="32" y="336" width="82" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="73" y="353" class="t14b" text-anchor="middle" style="fill:#e0714f">առաջարկ</text><text x="343" y="353" class="t16b" text-anchor="end" data-el="feed.HY.disc" data-max="80">−20 %</text><text x="32" y="375" class="t16b" text-anchor="start" data-el="feed.HY.bakery" data-max="311">«Կոլոս» փռատուն</text><text x="32" y="399" class="t16" text-anchor="start" data-el="feed.HY.croissant" data-max="311">Երկրորդ կրուասանը կես գնով։</text><text x="32" y="427" class="t14" text-anchor="start" data-el="feed.HY.cond" data-max="311">պայմաններ՝ երկուսից պատվիրելիս</text><text x="32" y="449" class="t14" text-anchor="start" data-el="feed.HY.until" data-max="311">զեղչը մինչև սեպտեմբերի 30, 18:00</text><rect x="32" y="463" width="140" height="44" rx="22" style="fill:#f0e7dc"/><text x="102" y="491" class="t16b" text-anchor="middle" data-el="feed.HY.save" data-max="116" style="fill:#0d0b0a">Պահպանել</text><rect x="299" y="463" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="485" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="485" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="485" r="2" style="fill:#f0e7dc"/><rect x="16" y="528" width="343" height="144" rx="13" style="fill:#262019"/><rect x="32" y="541" width="66" height="24" rx="12" style="fill:#3fb59a;fill-opacity:0.10"/><text x="65" y="558" class="t14b" text-anchor="middle" style="fill:#3fb59a">սեղան</text><text x="108" y="558" class="t14" text-anchor="start" data-el="feed.HY.game" data-max="235">· կախաղան</text><text x="32" y="580" class="t16b" text-anchor="start" data-el="feed.HY.tname" data-max="311">Ուրբաթյան</text><text x="32" y="602" class="t14fg" text-anchor="start" data-el="feed.HY.seats" data-max="311">խաղում են 2, դիտում են 3</text><rect x="32" y="616" width="104" height="44" rx="22" style="fill:#f0e7dc"/><text x="84" y="644" class="t16b" text-anchor="middle" data-el="feed.HY.sit" data-max="80" style="fill:#0d0b0a">նստել</text><rect x="232" y="616" width="44" height="44" rx="8" style="fill:none"/><path d="M254 648 C238 638 243 627 254 636 C265 627 270 638 254 648 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="644" class="t14">5</text><rect x="299" y="616" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="638" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="638" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="638" r="2" style="fill:#f0e7dc"/><rect x="16" y="748" width="343" height="122" rx="13" style="fill:#262019"/><text x="32" y="776" class="t14" text-anchor="start" data-el="feed.HY.farther" data-max="311">ավելի հեռու, քան խնդրել եք</text><text x="32" y="804" class="t16" text-anchor="start" data-el="feed.HY.c5" data-max="311" style="fill:#f0e7dc">Սեղանի խաղեր ենք խաղում այգում։</text><rect x="32" y="829" width="82" height="24" rx="12" style="fill:#b48cf2;fill-opacity:0.10"/><text x="73" y="846" class="t14b" text-anchor="middle" style="fill:#b48cf2">խնջույք</text><rect x="232" y="818" width="44" height="44" rx="8" style="fill:none"/><path d="M 254 850 C 238 840 243 829 254 838 C 265 829 270 840 254 850 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="846" class="t14">1</text><rect x="299" y="818" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="840" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="840" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="840" r="2" style="fill:#f0e7dc"/><rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="34" class="t18b" text-anchor="start" data-el="feed.HY.header" data-max="299">Կոլոնակի · մոտ 12 մարդ</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#f0e7dc;stroke-width:2;stroke-linejoin:round"/><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="feed.HY.tab_feed" data-max="125">Հոսք</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="feed.HY.tab_chats" data-max="125">Զրույցներ</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="feed.HY.tab_me" data-max="125">Ես</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-<rect x="24" y="684" width="327" height="52" rx="26" style="fill:#f0e7dc"/><text x="44" y="716" class="t16" style="fill:#6b5f4c">ասել հարևաններին…</text><circle cx="325" cy="710" r="18" style="fill:#bd4b2a"/><path d="M319 710 L331 710 M326 705 L331 710 L326 715" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round"/><rect x="303" y="688" width="44" height="44" rx="8" fill="none" data-hit="44"/></g></g>
 <text x="894" y="970" class="capb">HY · 03 · лента, кадр 1</text>
-<g transform="translate(48,1030)" data-frame="filters.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c10"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c10)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="36" class="t18b" text-anchor="start" data-el="filters.EN.filters" data-max="290">Filters</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M331.0 22.0 L343.0 34.0 M343.0 22.0 L331.0 34.0" style="stroke:#f0e7dc;stroke-width:2;stroke-linecap:round"/><text x="16" y="94" class="t16b" text-anchor="start" data-el="filters.EN.age" data-max="150">Age</text><text x="359" y="94" class="t14" text-anchor="end" data-el="filters.EN.band" data-max="302.2">your own band</text><rect x="24" y="133" width="327" height="6" rx="3" style="fill:#302720"/><rect x="16" y="124" width="4" height="24" rx="2" style="fill:#3a2e20"/><rect x="355" y="124" width="4" height="24" rx="2" style="fill:#3a2e20"/><rect x="110" y="133" width="241" height="6" rx="3" style="fill:#bd4b2a"/><circle cx="110" cy="136" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><circle cx="351" cy="136" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><text x="359" y="176" class="t14" text-anchor="end" data-el="filters.EN.nolimit" data-max="150.67999999999998">no limit</text><text x="16" y="176" class="t14" text-anchor="start" data-el="filters.EN.byyear" data-max="343">by the year, no numbers</text><rect x="16" y="196" width="343" height="40" rx="8" style="fill:#302720"/><text x="28" y="221" class="t14fg" text-anchor="start" data-el="filters.EN.shifted" data-max="319">You have grown older — the filter narrowed</text><line x1="16" y1="250" x2="359" y2="250" style="stroke:#3a2e20;stroke-width:1"/><text x="16" y="278" class="t16b" text-anchor="start" data-el="filters.EN.radius" data-max="150">Radius</text><text x="359" y="278" class="t14" text-anchor="end" data-el="filters.EN.scheme" data-max="273.4">a diagram, not a map</text><rect x="16" y="294" width="343" height="40" rx="8" style="fill:#262019"/><text x="32" y="319" class="t14" text-anchor="start" data-el="filters.EN.district" data-max="311">district or city</text><circle cx="187.5" cy="446" r="88" style="fill:#262019;stroke:#bd4b2a;stroke-width:2"/><circle cx="187.5" cy="446" r="30.8" style="fill:none;stroke:#3a2e20;stroke-width:1;stroke-dasharray:3 3"/><circle cx="187.5" cy="446" r="4" style="fill:#f0e7dc"/><circle cx="275.5" cy="446" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><text x="187.5" y="434" class="t22b" text-anchor="middle" data-el="filters.EN.km" data-max="160">3 km</text><text x="187.5" y="458" class="t14" text-anchor="middle" data-el="filters.EN.dozens" data-max="160">dozens</text><rect x="16" y="424" width="44" height="44" rx="8" style="fill:none;stroke:#f0e7dc;stroke-width:1"/><text x="38" y="453" class="t22b" text-anchor="middle">−</text><rect x="315" y="424" width="44" height="44" rx="8" style="fill:none;stroke:#f0e7dc;stroke-width:1"/><text x="337" y="453" class="t22b" text-anchor="middle">+</text><text x="187.5" y="558" class="t14fg" text-anchor="middle" data-el="filters.EN.place" data-max="343">Kolonaki, Athens · approximate</text><line x1="16" y1="580" x2="359" y2="580" style="stroke:#3a2e20;stroke-width:1"/><text x="16" y="608" class="t16b" text-anchor="start" data-el="filters.EN.mode" data-max="343">Mode</text><rect x="16" y="624" width="343" height="44" rx="13" style="fill:none;stroke:#80705a;stroke-width:1"/><text x="73.17" y="652" class="t14fg" text-anchor="middle" data-el="filters.EN.seg_alone" data-max="100">alone</text><rect x="133.33" y="627" width="108.33" height="38" rx="10" style="fill:#f0e7dc"/><text x="187.5" y="652" class="t14b" text-anchor="middle" data-el="filters.EN.seg_company" data-max="100" style="fill:#1c140d">company</text><text x="301.83" y="652" class="t14fg" text-anchor="middle" data-el="filters.EN.seg_party" data-max="100">party</text><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="filters.EN.tab_feed" data-max="125">Feed</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="filters.EN.tab_chats" data-max="125">Conversations</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="filters.EN.tab_me" data-max="125">Me</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-</g></g>
 <text x="48" y="1870" class="capb">EN · 03 · панель фильтров, кадр 2</text>
-<g transform="translate(471,1030)" data-frame="filters.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c11"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c11)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="36" class="t18b" text-anchor="start" data-el="filters.DE.filters" data-max="290">Filter</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M331.0 22.0 L343.0 34.0 M343.0 22.0 L331.0 34.0" style="stroke:#f0e7dc;stroke-width:2;stroke-linecap:round"/><text x="16" y="94" class="t16b" text-anchor="start" data-el="filters.DE.age" data-max="150">Alter</text><text x="359" y="94" class="t14" text-anchor="end" data-el="filters.DE.band" data-max="283.0">Ihr eigener Bereich</text><rect x="24" y="133" width="327" height="6" rx="3" style="fill:#302720"/><rect x="16" y="124" width="4" height="24" rx="2" style="fill:#3a2e20"/><rect x="355" y="124" width="4" height="24" rx="2" style="fill:#3a2e20"/><rect x="110" y="133" width="241" height="6" rx="3" style="fill:#bd4b2a"/><circle cx="110" cy="136" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><circle cx="351" cy="136" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><text x="359" y="176" class="t14" text-anchor="end" data-el="filters.DE.nolimit" data-max="158.51999999999998">ohne Obergrenze</text><text x="16" y="176" class="t14" text-anchor="start" data-el="filters.DE.byyear" data-max="343">jahrweise, ohne Zahlen</text><rect x="16" y="196" width="343" height="40" rx="8" style="fill:#302720"/><text x="28" y="221" class="t14fg" text-anchor="start" data-el="filters.DE.shifted" data-max="319">Sie sind älter geworden — der Filter wurde enger</text><line x1="16" y1="250" x2="359" y2="250" style="stroke:#3a2e20;stroke-width:1"/><text x="16" y="278" class="t16b" text-anchor="start" data-el="filters.DE.radius" data-max="150">Radius</text><text x="359" y="278" class="t14" text-anchor="end" data-el="filters.DE.scheme" data-max="273.4">Schema, keine Karte</text><rect x="16" y="294" width="343" height="40" rx="8" style="fill:#262019"/><text x="32" y="319" class="t14" text-anchor="start" data-el="filters.DE.district" data-max="311">Stadtteil oder Stadt</text><circle cx="187.5" cy="446" r="88" style="fill:#262019;stroke:#bd4b2a;stroke-width:2"/><circle cx="187.5" cy="446" r="30.8" style="fill:none;stroke:#3a2e20;stroke-width:1;stroke-dasharray:3 3"/><circle cx="187.5" cy="446" r="4" style="fill:#f0e7dc"/><circle cx="275.5" cy="446" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><text x="187.5" y="434" class="t22b" text-anchor="middle" data-el="filters.DE.km" data-max="160">3 km</text><text x="187.5" y="458" class="t14" text-anchor="middle" data-el="filters.DE.dozens" data-max="160">Dutzende</text><rect x="16" y="424" width="44" height="44" rx="8" style="fill:none;stroke:#f0e7dc;stroke-width:1"/><text x="38" y="453" class="t22b" text-anchor="middle">−</text><rect x="315" y="424" width="44" height="44" rx="8" style="fill:none;stroke:#f0e7dc;stroke-width:1"/><text x="337" y="453" class="t22b" text-anchor="middle">+</text><text x="187.5" y="558" class="t14fg" text-anchor="middle" data-el="filters.DE.place" data-max="343">Kolonaki, Athen · ungefähr</text><line x1="16" y1="580" x2="359" y2="580" style="stroke:#3a2e20;stroke-width:1"/><text x="16" y="608" class="t16b" text-anchor="start" data-el="filters.DE.mode" data-max="343">Modus</text><rect x="16" y="624" width="343" height="44" rx="13" style="fill:none;stroke:#80705a;stroke-width:1"/><text x="73.17" y="652" class="t14fg" text-anchor="middle" data-el="filters.DE.seg_alone" data-max="100">allein</text><rect x="133.33" y="627" width="108.33" height="38" rx="10" style="fill:#f0e7dc"/><text x="187.5" y="652" class="t14b" text-anchor="middle" data-el="filters.DE.seg_company" data-max="100" style="fill:#1c140d">Gesellschaft</text><text x="301.83" y="652" class="t14fg" text-anchor="middle" data-el="filters.DE.seg_party" data-max="100">Party</text><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="filters.DE.tab_feed" data-max="125">Feed</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="filters.DE.tab_chats" data-max="125">Gespräche</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="filters.DE.tab_me" data-max="125">Ich</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-</g></g>
 <text x="471" y="1870" class="capb">DE · 03 · панель фильтров, кадр 2</text>
-<g transform="translate(894,1030)" data-frame="filters.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c12"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c12)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="36" class="t18b" text-anchor="start" data-el="filters.HY.filters" data-max="290">Զտիչներ</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M331.0 22.0 L343.0 34.0 M343.0 22.0 L331.0 34.0" style="stroke:#f0e7dc;stroke-width:2;stroke-linecap:round"/><text x="16" y="94" class="t16b" text-anchor="start" data-el="filters.HY.age" data-max="150">Տարիք</text><text x="359" y="94" class="t14" text-anchor="end" data-el="filters.HY.band" data-max="283.0">ձեր սեփական միջակայքը</text><rect x="24" y="133" width="327" height="6" rx="3" style="fill:#302720"/><rect x="16" y="124" width="4" height="24" rx="2" style="fill:#3a2e20"/><rect x="355" y="124" width="4" height="24" rx="2" style="fill:#3a2e20"/><rect x="110" y="133" width="241" height="6" rx="3" style="fill:#bd4b2a"/><circle cx="110" cy="136" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><circle cx="351" cy="136" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><text x="359" y="176" class="t14" text-anchor="end" data-el="filters.HY.nolimit" data-max="189.88">առանց սահմանափակման</text><text x="16" y="176" class="t14" text-anchor="start" data-el="filters.HY.byyear" data-max="343">տարով, առանց թվերի</text><rect x="16" y="196" width="343" height="40" rx="8" style="fill:#302720"/><text x="28" y="221" class="t14fg" text-anchor="start" data-el="filters.HY.shifted" data-max="319">Դուք մեծացել եք — ֆիլտրը նեղացավ</text><line x1="16" y1="250" x2="359" y2="250" style="stroke:#3a2e20;stroke-width:1"/><text x="16" y="278" class="t16b" text-anchor="start" data-el="filters.HY.radius" data-max="150">Շառավիղ</text><text x="359" y="278" class="t14" text-anchor="end" data-el="filters.HY.scheme" data-max="263.8">սխեմա, ոչ քարտեզ</text><rect x="16" y="294" width="343" height="40" rx="8" style="fill:#262019"/><text x="32" y="319" class="t14" text-anchor="start" data-el="filters.HY.district" data-max="311">թաղամաս կամ քաղաք</text><circle cx="187.5" cy="446" r="88" style="fill:#262019;stroke:#bd4b2a;stroke-width:2"/><circle cx="187.5" cy="446" r="30.8" style="fill:none;stroke:#3a2e20;stroke-width:1;stroke-dasharray:3 3"/><circle cx="187.5" cy="446" r="4" style="fill:#f0e7dc"/><circle cx="275.5" cy="446" r="14" style="fill:#f0e7dc;stroke:#0d0b0a;stroke-width:2"/><text x="187.5" y="434" class="t22b" text-anchor="middle" data-el="filters.HY.km" data-max="160">3 կմ</text><text x="187.5" y="458" class="t14" text-anchor="middle" data-el="filters.HY.dozens" data-max="160">տասնյակներ</text><rect x="16" y="424" width="44" height="44" rx="8" style="fill:none;stroke:#f0e7dc;stroke-width:1"/><text x="38" y="453" class="t22b" text-anchor="middle">−</text><rect x="315" y="424" width="44" height="44" rx="8" style="fill:none;stroke:#f0e7dc;stroke-width:1"/><text x="337" y="453" class="t22b" text-anchor="middle">+</text><text x="187.5" y="558" class="t14fg" text-anchor="middle" data-el="filters.HY.place" data-max="343">Կոլոնակի, Աթենք · մոտավոր</text><line x1="16" y1="580" x2="359" y2="580" style="stroke:#3a2e20;stroke-width:1"/><text x="16" y="608" class="t16b" text-anchor="start" data-el="filters.HY.mode" data-max="343">Ռեժիմ</text><rect x="16" y="624" width="343" height="44" rx="13" style="fill:none;stroke:#80705a;stroke-width:1"/><text x="73.17" y="652" class="t14fg" text-anchor="middle" data-el="filters.HY.seg_alone" data-max="100">մենակ</text><rect x="133.33" y="627" width="108.33" height="38" rx="10" style="fill:#f0e7dc"/><text x="187.5" y="652" class="t14b" text-anchor="middle" data-el="filters.HY.seg_company" data-max="100" style="fill:#1c140d">ընկերություն</text><text x="301.83" y="652" class="t14fg" text-anchor="middle" data-el="filters.HY.seg_party" data-max="100">խնջույք</text><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="filters.HY.tab_feed" data-max="125">Հոսք</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="filters.HY.tab_chats" data-max="125">Զրույցներ</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="filters.HY.tab_me" data-max="125">Ես</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-</g></g>
 <text x="894" y="1870" class="capb">HY · 03 · панель фильтров, кадр 2</text>
-<g transform="translate(48,1930)" data-frame="end.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c20"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c20)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="16" y="16" width="343" height="124" rx="13" style="fill:#262019"/><text x="32" y="52" class="t18b" text-anchor="start" data-el="end.EN.e1a" data-max="311">Anyone at the fountain tonight?</text><text x="32" y="78" class="t18b" text-anchor="start" data-el="end.EN.e1b" data-max="311">I&#x27;ll bring a speaker.</text><rect x="32" y="88" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="88" width="207" height="3" rx="1.5" style="fill:#b48cf2"/><text x="232" y="116" class="mono13" text-anchor="end">2 h 50 min left</text><rect x="32" y="99" width="64" height="24" rx="12" style="fill:#b48cf2;fill-opacity:0.10"/><text x="64" y="116" class="t14b" text-anchor="middle" style="fill:#b48cf2">party</text><rect x="232" y="88" width="44" height="44" rx="8" style="fill:none"/><path d="M254 120 C238 110 243 99 254 108 C265 99 270 110 254 120 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="116" class="t14">2</text><rect x="299" y="88" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="110" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="110" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="110" r="2" style="fill:#f0e7dc"/><rect x="16" y="152" width="343" height="100" rx="13" style="fill:#262019"/><text x="32" y="186" class="t16" text-anchor="start" data-el="end.EN.e2" data-max="311" style="fill:#f0e7dc">Anyone got a type-c charger for an hour?</text><rect x="32" y="198" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="198" width="207" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="232" y="228" class="mono13" text-anchor="end">40 min left</text><text x="32" y="228" class="t14" text-anchor="start" data-el="end.EN.alone" data-max="200">alone</text><rect x="232" y="200" width="44" height="44" rx="8" style="fill:none"/><path d="M254 232 C238 222 243 211 254 220 C265 211 270 222 254 232 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="228" class="t14">0</text><rect x="299" y="200" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="222" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="222" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="222" r="2" style="fill:#f0e7dc"/><rect x="16" y="264" width="343" height="198" rx="13" style="fill:#262019"/><rect x="32" y="277" width="64" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="64" y="294" class="t14b" text-anchor="middle" style="fill:#e0714f">offer</text><text x="343" y="294" class="t16b" text-anchor="end" data-el="end.EN.disc10" data-max="80">−10 %</text><text x="32" y="318" class="t16" text-anchor="start" data-el="end.EN.e3a" data-max="311">Giving away two stools, pick up</text><text x="32" y="342" class="t16" text-anchor="start" data-el="end.EN.e3b" data-max="311">today.</text><text x="32" y="370" class="t14" text-anchor="start" data-el="end.EN.cond0" data-max="311">conditions: none</text><text x="32" y="392" class="t14" text-anchor="start" data-el="end.EN.until20" data-max="311">discount until 20 September, 12:00</text><text x="32" y="434" class="t14" text-anchor="start" data-el="end.EN.private" data-max="200">private</text><rect x="232" y="406" width="44" height="44" rx="8" style="fill:none"/><path d="M254 438 C238 428 243 417 254 426 C265 417 270 428 254 438 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><rect x="299" y="406" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="428" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="428" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="428" r="2" style="fill:#f0e7dc"/><rect x="16" y="486" width="343" height="44" rx="22" style="fill:#f0e7dc"/><text x="187.5" y="514" class="t16b" text-anchor="middle" data-el="end.EN.more" data-max="311" style="fill:#0d0b0a">show more</text><text x="187.5" y="554" class="t14" text-anchor="middle" data-el="end.EN.langs" data-max="343">dozens more messages in other languages</text><text x="187.5" y="576" class="acc" text-anchor="middle" data-el="end.EN.show" data-max="343">show</text><rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="34" class="t18b" text-anchor="start" data-el="end.EN.header" data-max="299">Kolonaki · 12 people nearby</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#f0e7dc;stroke-width:2;stroke-linejoin:round"/><rect x="16" y="616" width="343" height="48" rx="13" style="fill:#f0e7dc"/><text x="32" y="646" class="t16" text-anchor="start" data-el="end.EN.liked" data-max="260.6" style="fill:#1c140d">liked</text><text x="343" y="646" class="t16b" text-anchor="end" data-el="end.EN.undo" data-max="311" style="fill:#e0714f">undo</text><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="end.EN.tab_feed" data-max="125">Feed</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="end.EN.tab_chats" data-max="125">Conversations</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="end.EN.tab_me" data-max="125">Me</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-<rect x="24" y="684" width="327" height="52" rx="26" style="fill:#f0e7dc"/><text x="44" y="716" class="t16" style="fill:#6b5f4c">say to your neighbours…</text><circle cx="325" cy="710" r="18" style="fill:#bd4b2a"/><path d="M319 710 L331 710 M326 705 L331 710 L326 715" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round"/><rect x="303" y="688" width="44" height="44" rx="8" fill="none" data-hit="44"/></g></g>
 <text x="48" y="2770" class="capb">EN · 03 · конец выдачи, кадр 5: «показать</text>
 <text x="48" y="2788" class="capb">ещё», строка языков, «лайкнуто · вернуть»</text>
-<g transform="translate(471,1930)" data-frame="end.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c21"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c21)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="16" y="16" width="343" height="124" rx="13" style="fill:#262019"/><text x="32" y="52" class="t18b" text-anchor="start" data-el="end.DE.e1a" data-max="311">Ist heute Abend jemand am Brunnen?</text><text x="32" y="78" class="t18b" text-anchor="start" data-el="end.DE.e1b" data-max="311">Ich bringe eine Box mit.</text><rect x="32" y="88" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="88" width="207" height="3" rx="1.5" style="fill:#b48cf2"/><text x="232" y="116" class="mono13" text-anchor="end">noch 2 Std 50 Min</text><rect x="32" y="99" width="66" height="24" rx="12" style="fill:#b48cf2;fill-opacity:0.10"/><text x="65" y="116" class="t14b" text-anchor="middle" style="fill:#b48cf2">Party</text><rect x="232" y="88" width="44" height="44" rx="8" style="fill:none"/><path d="M254 120 C238 110 243 99 254 108 C265 99 270 110 254 120 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="116" class="t14">2</text><rect x="299" y="88" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="110" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="110" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="110" r="2" style="fill:#f0e7dc"/><rect x="16" y="152" width="343" height="100" rx="13" style="fill:#262019"/><text x="32" y="188" class="t18b" text-anchor="start" data-el="end.DE.e2" data-max="311">Hat jemand ein Type-C-Ladegerät</text><rect x="32" y="198" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="198" width="207" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="232" y="228" class="mono13" text-anchor="end">noch 40 Min</text><text x="32" y="210" class="t16" text-anchor="start" data-el="end.DE.e2b" data-max="311" style="fill:#f0e7dc">für eine Stunde?</text><text x="32" y="228" class="t14" text-anchor="start" data-el="end.DE.alone" data-max="200">allein</text><rect x="232" y="200" width="44" height="44" rx="8" style="fill:none"/><path d="M254 232 C238 222 243 211 254 220 C265 211 270 222 254 232 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="228" class="t14">0</text><rect x="299" y="200" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="222" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="222" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="222" r="2" style="fill:#f0e7dc"/><rect x="16" y="264" width="343" height="198" rx="13" style="fill:#262019"/><rect x="32" y="277" width="82" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="73" y="294" class="t14b" text-anchor="middle" style="fill:#e0714f">Angebot</text><text x="343" y="294" class="t16b" text-anchor="end" data-el="end.DE.disc10" data-max="80">−10 %</text><text x="32" y="318" class="t16" text-anchor="start" data-el="end.DE.e3a" data-max="311">Gebe zwei Hocker ab, heute</text><text x="32" y="342" class="t16" text-anchor="start" data-el="end.DE.e3b" data-max="311">abholen.</text><text x="32" y="370" class="t14" text-anchor="start" data-el="end.DE.cond0" data-max="311">Bedingungen: keine</text><text x="32" y="392" class="t14" text-anchor="start" data-el="end.DE.until20" data-max="311">Rabatt bis 20. September, 12:00</text><text x="32" y="434" class="t14" text-anchor="start" data-el="end.DE.private" data-max="200">Privatperson</text><rect x="232" y="406" width="44" height="44" rx="8" style="fill:none"/><path d="M254 438 C238 428 243 417 254 426 C265 417 270 428 254 438 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><rect x="299" y="406" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="428" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="428" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="428" r="2" style="fill:#f0e7dc"/><rect x="16" y="486" width="343" height="44" rx="22" style="fill:#f0e7dc"/><text x="187.5" y="514" class="t16b" text-anchor="middle" data-el="end.DE.more" data-max="311" style="fill:#0d0b0a">mehr anzeigen</text><text x="187.5" y="554" class="t14" text-anchor="middle" data-el="end.DE.langs" data-max="343">Dutzende weitere Nachrichten in anderen Sprachen</text><text x="187.5" y="576" class="acc" text-anchor="middle" data-el="end.DE.show" data-max="343">anzeigen</text><rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="34" class="t18b" text-anchor="start" data-el="end.DE.header" data-max="299">Kolonaki · 12 Leute in der Nähe</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#f0e7dc;stroke-width:2;stroke-linejoin:round"/><rect x="16" y="616" width="343" height="48" rx="13" style="fill:#f0e7dc"/><text x="32" y="646" class="t16" text-anchor="start" data-el="end.DE.liked" data-max="203.0" style="fill:#1c140d">geliked</text><text x="343" y="646" class="t16b" text-anchor="end" data-el="end.DE.undo" data-max="311" style="fill:#e0714f">rückgängig</text><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="end.DE.tab_feed" data-max="125">Feed</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="end.DE.tab_chats" data-max="125">Gespräche</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="end.DE.tab_me" data-max="125">Ich</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-<rect x="24" y="684" width="327" height="52" rx="26" style="fill:#f0e7dc"/><text x="44" y="716" class="t16" style="fill:#6b5f4c">den Nachbarn sagen…</text><circle cx="325" cy="710" r="18" style="fill:#bd4b2a"/><path d="M319 710 L331 710 M326 705 L331 710 L326 715" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round"/><rect x="303" y="688" width="44" height="44" rx="8" fill="none" data-hit="44"/></g></g>
 <text x="471" y="2770" class="capb">DE · 03 · конец выдачи, кадр 5: «показать</text>
 <text x="471" y="2788" class="capb">ещё», строка языков, «лайкнуто · вернуть»</text>
-<g transform="translate(894,1930)" data-frame="end.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c22"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c22)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<rect x="16" y="16" width="343" height="124" rx="13" style="fill:#262019"/><text x="32" y="52" class="t18b" text-anchor="start" data-el="end.HY.e1a" data-max="311">Երեկոյան շատրվանի մոտ որևէ մեկը</text><text x="32" y="78" class="t18b" text-anchor="start" data-el="end.HY.e1b" data-max="311">կլինի՞։ Բարձրախոս կբերեմ։</text><rect x="32" y="88" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="88" width="207" height="3" rx="1.5" style="fill:#b48cf2"/><text x="232" y="116" class="mono13" text-anchor="end">մնաց 2 ժ 50 ր</text><rect x="32" y="99" width="82" height="24" rx="12" style="fill:#b48cf2;fill-opacity:0.10"/><text x="73" y="116" class="t14b" text-anchor="middle" style="fill:#b48cf2">խնջույք</text><rect x="232" y="88" width="44" height="44" rx="8" style="fill:none"/><path d="M254 120 C238 110 243 99 254 108 C265 99 270 110 254 120 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="116" class="t14">2</text><rect x="299" y="88" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="110" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="110" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="110" r="2" style="fill:#f0e7dc"/><rect x="16" y="152" width="343" height="100" rx="13" style="fill:#262019"/><text x="32" y="188" class="t18b" text-anchor="start" data-el="end.HY.e2" data-max="311">Որևէ մեկը type-c լիցքավորիչ ունի՞</text><rect x="32" y="198" width="311" height="3" rx="1.5" style="fill:#80705a"/><rect x="32" y="198" width="207" height="3" rx="1.5" style="fill:#9a8d7c"/><text x="232" y="228" class="mono13" text-anchor="end">մնաց 40 ր</text><text x="32" y="210" class="t16" text-anchor="start" data-el="end.HY.e2b" data-max="311" style="fill:#f0e7dc">մեկ ժամով։</text><text x="32" y="228" class="t14" text-anchor="start" data-el="end.HY.alone" data-max="200">մենակ</text><rect x="232" y="200" width="44" height="44" rx="8" style="fill:none"/><path d="M254 232 C238 222 243 211 254 220 C265 211 270 222 254 232 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="276" y="228" class="t14">0</text><rect x="299" y="200" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="222" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="222" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="222" r="2" style="fill:#f0e7dc"/><rect x="16" y="264" width="343" height="198" rx="13" style="fill:#262019"/><rect x="32" y="277" width="82" height="24" rx="12" style="fill:none;stroke:#e0714f;stroke-width:1"/><text x="73" y="294" class="t14b" text-anchor="middle" style="fill:#e0714f">առաջարկ</text><text x="343" y="294" class="t16b" text-anchor="end" data-el="end.HY.disc10" data-max="80">−10 %</text><text x="32" y="318" class="t16" text-anchor="start" data-el="end.HY.e3a" data-max="311">Տալիս եմ երկու աթոռակ, վերցնել</text><text x="32" y="342" class="t16" text-anchor="start" data-el="end.HY.e3b" data-max="311">այսօր։</text><text x="32" y="370" class="t14" text-anchor="start" data-el="end.HY.cond0" data-max="311">պայմաններ՝ չկան</text><text x="32" y="392" class="t14" text-anchor="start" data-el="end.HY.until20" data-max="311">զեղչը մինչև սեպտեմբերի 20, 12:00</text><text x="32" y="434" class="t14" text-anchor="start" data-el="end.HY.private" data-max="200">մասնավոր</text><rect x="232" y="406" width="44" height="44" rx="8" style="fill:none"/><path d="M254 438 C238 428 243 417 254 426 C265 417 270 428 254 438 Z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><rect x="299" y="406" width="44" height="44" rx="8" style="fill:none"/><circle cx="314" cy="428" r="2" style="fill:#f0e7dc"/><circle cx="321" cy="428" r="2" style="fill:#f0e7dc"/><circle cx="328" cy="428" r="2" style="fill:#f0e7dc"/><rect x="16" y="486" width="343" height="44" rx="22" style="fill:#f0e7dc"/><text x="187.5" y="514" class="t16b" text-anchor="middle" data-el="end.HY.more" data-max="311" style="fill:#0d0b0a">ցույց տալ ևս</text><text x="187.5" y="554" class="t14" text-anchor="middle" data-el="end.HY.langs" data-max="343">տասնյակ այլ հաղորդագրություններ այլ լեզուներով</text><text x="187.5" y="576" class="acc" text-anchor="middle" data-el="end.HY.show" data-max="343">ցույց տալ</text><rect x="0" y="0" width="375" height="56" style="fill:#0d0b0a"/><text x="16" y="34" class="t18b" text-anchor="start" data-el="end.HY.header" data-max="299">Կոլոնակի · մոտ 12 մարդ</text><rect x="315" y="6" width="44" height="44" rx="8" style="fill:none"/><path d="M327.0 18.0 L347.0 18.0 L339.0 27.0 L339.0 36.0 L335.0 38.0 L335.0 27.0 Z" style="fill:none;stroke:#f0e7dc;stroke-width:2;stroke-linejoin:round"/><rect x="16" y="616" width="343" height="48" rx="13" style="fill:#f0e7dc"/><text x="32" y="646" class="t16" text-anchor="start" data-el="end.HY.liked" data-max="222.2" style="fill:#1c140d">հավանել եք</text><text x="343" y="646" class="t16b" text-anchor="end" data-el="end.HY.undo" data-max="311" style="fill:#e0714f">հետարկել</text><rect x="0" y="748" width="375" height="64" style="fill:#0d0b0a"/><line x1="0" y1="748" x2="375" y2="748" style="stroke:#3a2e20;stroke-width:1"/><rect x="53.5" y="762" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="768" width="18" height="2.5" style="fill:#f0e7dc"/><rect x="53.5" y="774" width="18" height="2.5" style="fill:#f0e7dc"/><text x="62.5" y="796" class="t14b" text-anchor="middle" data-el="end.HY.tab_feed" data-max="125">Հոսք</text><path d="M177.5 762 h20 v12 h-12 l-5 4 v-4 h-3 z" style="fill:none;stroke:#9a8d7c;stroke-width:2;stroke-linejoin:round"/><text x="187.5" y="796" class="t14" text-anchor="middle" data-el="end.HY.tab_chats" data-max="125">Զրույցներ</text><circle cx="312.5" cy="766" r="4.5" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><path d="M303.5 779 a9 7 0 0 1 18 0" style="fill:none;stroke:#9a8d7c;stroke-width:2"/><circle cx="323.5" cy="761" r="4" style="fill:#bd4b2a"/><text x="312.5" y="796" class="t14" text-anchor="middle" data-el="end.HY.tab_me" data-max="125">Ես</text><rect x="46.5" y="804" width="32" height="2" style="fill:#bd4b2a"/>
-<rect x="24" y="684" width="327" height="52" rx="26" style="fill:#f0e7dc"/><text x="44" y="716" class="t16" style="fill:#6b5f4c">ասել հարևաններին…</text><circle cx="325" cy="710" r="18" style="fill:#bd4b2a"/><path d="M319 710 L331 710 M326 705 L331 710 L326 715" style="fill:none;stroke:#fff6f0;stroke-width:2;stroke-linecap:round"/><rect x="303" y="688" width="44" height="44" rx="8" fill="none" data-hit="44"/></g></g>
 <text x="894" y="2770" class="capb">HY · 03 · конец выдачи, кадр 5: «показать</text>
 <text x="894" y="2788" class="capb">ещё», строка языков, «лайкнуто · вернуть»</text>
-<g transform="translate(48,2830)" data-frame="chatA.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c30"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c30)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="52" y="34" class="name" text-anchor="start" data-el="chatA.EN.name" data-max="200">Anya, 24</text><circle cx="145.6" cy="31" r="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M149.6 31 L160.6 31 M156.6 31 L156.6 35 M160.1 31 L160.1 35" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/><rect x="323" y="6" width="44" height="44" rx="8" fill="#302720"/><rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><circle cx="340" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/><circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/><text x="315" y="34" class="mono13" text-anchor="end">1:0</text><rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/><text x="28" y="81" class="meta" text-anchor="start" data-el="chatA.EN.silence" data-max="111">silence · an hour</text><path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="175" y="81" class="meta" text-anchor="start" data-el="chatA.EN.left" data-max="124.95999999999998" style="fill:#9a8d7c">52 min left</text><text x="359" y="81" class="meta" text-anchor="end" data-el="chatA.EN.end" data-max="184" style="fill:#f0e7dc">end it</text><line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/><rect x="16.0" y="112" width="194.2" height="38" rx="13" fill="#262019"/><text x="28" y="138" class="body" text-anchor="start" data-el="chatA.EN.b1_0" data-max="287">so, the embankment?</text><rect x="146.8" y="158" width="212.2" height="62" rx="13" fill="#302720"/><text x="158.8" y="184" class="body" text-anchor="start" data-el="chatA.EN.b2_0" data-max="287">nine works.</text><text x="158.8" y="208" class="body" text-anchor="start" data-el="chatA.EN.b2_1" data-max="287">the bench by the pier</text><text x="359" y="235" class="mono13" text-anchor="end" style="fill:#9a8d7c">✓</text><rect x="32" y="244" width="311" height="58" rx="13" fill="#262019"/><rect x="32" y="256" width="3" height="34" fill="#bd4b2a"/><path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/><text x="70" y="269" class="body15" text-anchor="start" data-el="chatA.EN.quote" data-max="261">“embankment, by nine, company”</text><text x="70" y="290" class="meta" text-anchor="start" data-el="chatA.EN.likedby" data-max="261">liked</text><rect x="16.0" y="310" width="248.0" height="38" rx="13" fill="#262019"/><text x="28" y="336" class="body" text-anchor="start" data-el="chatA.EN.b3_0" data-max="287">and that one was mine too</text><rect x="268.0" y="304" width="44" height="44" fill="none"/><circle cx="284.0" cy="326" r="1.8" fill="#9a8d7c"/><circle cx="290.0" cy="326" r="1.8" fill="#9a8d7c"/><circle cx="296.0" cy="326" r="1.8" fill="#9a8d7c"/><text x="187.5" y="372" class="meta" text-anchor="middle" data-el="chatA.EN.move" data-max="343">Anya placed a tile on e4</text><rect x="254.4" y="386" width="104.6" height="38" rx="13" fill="#302720"/><text x="266.4" y="412" class="body" text-anchor="start" data-el="chatA.EN.b4_0" data-max="287">good move</text><text x="359" y="439" class="mono13" text-anchor="end" style="fill:#9a8d7c">✓</text><rect x="164.8" y="448" width="194.2" height="38" rx="13" fill="#302720"/><text x="176.8" y="474" class="body" text-anchor="start" data-el="chatA.EN.b5_0" data-max="287">but I&#x27;ll win anyway</text><text x="359" y="501" class="mono13" text-anchor="end" data-el="chatA.EN.err" data-max="343" style="fill:#ef7a6a">not sent · retry</text><line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/><text x="28" y="782" class="body" text-anchor="start" data-el="chatA.EN.inp" data-max="215">coming out?</text><rect x="128.6" y="766" width="2" height="20" fill="#bd4b2a"/><text x="291" y="782" class="mono13" text-anchor="end">9/256</text><rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/><path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</g></g>
 <text x="48" y="3670" class="capb">EN · 08 · беседа живая, кадр A</text>
-<g transform="translate(471,2830)" data-frame="chatA.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c31"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c31)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="52" y="34" class="name" text-anchor="start" data-el="chatA.DE.name" data-max="200">Anja, 24</text><circle cx="145.6" cy="31" r="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M149.6 31 L160.6 31 M156.6 31 L156.6 35 M160.1 31 L160.1 35" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/><rect x="323" y="6" width="44" height="44" rx="8" fill="#302720"/><rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><circle cx="340" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/><circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/><text x="315" y="34" class="mono13" text-anchor="end">1:0</text><rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/><text x="28" y="81" class="meta" text-anchor="start" data-el="chatA.DE.silence" data-max="111">Stille · eine Stunde</text><path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="175" y="81" class="meta" text-anchor="start" data-el="chatA.DE.left" data-max="117.12" style="fill:#9a8d7c">noch 52 Min.</text><text x="359" y="81" class="meta" text-anchor="end" data-el="chatA.DE.end" data-max="184" style="fill:#f0e7dc">Beenden</text><line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/><rect x="16.0" y="112" width="203.2" height="38" rx="13" fill="#262019"/><text x="28" y="138" class="body" text-anchor="start" data-el="chatA.DE.b1_0" data-max="287">also, zur Promenade?</text><rect x="191.6" y="158" width="167.4" height="62" rx="13" fill="#302720"/><text x="203.6" y="184" class="body" text-anchor="start" data-el="chatA.DE.b2_0" data-max="287">neun passt.</text><text x="203.6" y="208" class="body" text-anchor="start" data-el="chatA.DE.b2_1" data-max="287">die Bank am Pier</text><text x="359" y="235" class="mono13" text-anchor="end" style="fill:#9a8d7c">✓</text><rect x="32" y="244" width="311" height="58" rx="13" fill="#262019"/><rect x="32" y="256" width="3" height="34" fill="#bd4b2a"/><path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/><text x="70" y="269" class="body15" text-anchor="start" data-el="chatA.DE.quote" data-max="261">„Promenade, gegen neun, Gesellschaft“</text><text x="70" y="290" class="meta" text-anchor="start" data-el="chatA.DE.likedby" data-max="261">geliked</text><rect x="16.0" y="310" width="239.0" height="38" rx="13" fill="#262019"/><text x="28" y="336" class="body" text-anchor="start" data-el="chatA.DE.b3_0" data-max="287">und das war auch von mir</text><rect x="259.0" y="304" width="44" height="44" fill="none"/><circle cx="275.0" cy="326" r="1.8" fill="#9a8d7c"/><circle cx="281.0" cy="326" r="1.8" fill="#9a8d7c"/><circle cx="287.0" cy="326" r="1.8" fill="#9a8d7c"/><text x="187.5" y="372" class="meta" text-anchor="middle" data-el="chatA.DE.move" data-max="343">Anja hat einen Stein auf e4 gelegt</text><rect x="254.4" y="386" width="104.6" height="38" rx="13" fill="#302720"/><text x="266.4" y="412" class="body" text-anchor="start" data-el="chatA.DE.b4_0" data-max="287">guter Zug</text><text x="359" y="439" class="mono13" text-anchor="end" style="fill:#9a8d7c">✓</text><rect x="111.0" y="448" width="248.0" height="38" rx="13" fill="#302720"/><text x="123.0" y="474" class="body" text-anchor="start" data-el="chatA.DE.b5_0" data-max="287">aber ich gewinne trotzdem</text><text x="359" y="501" class="mono13" text-anchor="end" data-el="chatA.DE.err" data-max="343" style="fill:#ef7a6a">nicht gesendet · erneut</text><line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/><text x="28" y="782" class="body" text-anchor="start" data-el="chatA.DE.inp" data-max="215">kommst du?</text><rect x="119.6" y="766" width="2" height="20" fill="#bd4b2a"/><text x="291" y="782" class="mono13" text-anchor="end">9/256</text><rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/><path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</g></g>
 <text x="471" y="3670" class="capb">DE · 08 · беседа живая, кадр A</text>
-<g transform="translate(894,2830)" data-frame="chatA.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c32"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c32)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="52" y="34" class="name" text-anchor="start" data-el="chatA.HY.name" data-max="200">Անի, 24</text><circle cx="135.4" cy="31" r="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M139.4 31 L150.4 31 M146.4 31 L146.4 35 M149.9 31 L149.9 35" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/><rect x="323" y="6" width="44" height="44" rx="8" fill="#302720"/><rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><circle cx="340" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/><circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/><text x="315" y="34" class="mono13" text-anchor="end">1:0</text><rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/><text x="28" y="81" class="meta" text-anchor="start" data-el="chatA.HY.silence" data-max="111">լռություն · մեկ ժամ</text><path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="175" y="81" class="meta" text-anchor="start" data-el="chatA.HY.left" data-max="117.12" style="fill:#9a8d7c">մնաց 52 րոպե</text><text x="359" y="81" class="meta" text-anchor="end" data-el="chatA.HY.end" data-max="184" style="fill:#f0e7dc">ավարտել</text><line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/><rect x="16.0" y="112" width="158.4" height="38" rx="13" fill="#262019"/><text x="28" y="138" class="body" text-anchor="start" data-el="chatA.HY.b1_0" data-max="287">ուրեմն առափնյա՞</text><rect x="111.0" y="158" width="248.0" height="62" rx="13" fill="#302720"/><text x="123.0" y="184" class="body" text-anchor="start" data-el="chatA.HY.b2_0" data-max="287">ինը հարմար է։</text><text x="123.0" y="208" class="body" text-anchor="start" data-el="chatA.HY.b2_1" data-max="287">նստարանը նավամատույցի մոտ</text><text x="359" y="235" class="mono13" text-anchor="end" style="fill:#9a8d7c">✓</text><rect x="32" y="244" width="311" height="58" rx="13" fill="#262019"/><rect x="32" y="256" width="3" height="34" fill="#bd4b2a"/><path d="M46 264 L54 257 L62 264 L62 271 L46 271 Z" fill="none" stroke="#bd4b2a" stroke-width="2" stroke-linejoin="round"/><text x="70" y="269" class="body15" text-anchor="start" data-el="chatA.HY.quote" data-max="261">«առափնյա, ինը, ընկերություն»</text><text x="70" y="290" class="meta" text-anchor="start" data-el="chatA.HY.likedby" data-max="261">հավանել են</text><rect x="16.0" y="310" width="149.4" height="38" rx="13" fill="#262019"/><text x="28" y="336" class="body" text-anchor="start" data-el="chatA.HY.b3_0" data-max="287">և դա էլ իմն էր</text><rect x="169.4" y="304" width="44" height="44" fill="none"/><circle cx="185.4" cy="326" r="1.8" fill="#9a8d7c"/><circle cx="191.4" cy="326" r="1.8" fill="#9a8d7c"/><circle cx="197.4" cy="326" r="1.8" fill="#9a8d7c"/><text x="187.5" y="372" class="meta" text-anchor="middle" data-el="chatA.HY.move" data-max="343">Անին քար դրեց e4-ի վրա</text><rect x="263.3" y="386" width="95.7" height="38" rx="13" fill="#302720"/><text x="275.3" y="412" class="body" text-anchor="start" data-el="chatA.HY.b4_0" data-max="287">լավ քայլ</text><text x="359" y="439" class="mono13" text-anchor="end" style="fill:#9a8d7c">✓</text><rect x="102.0" y="448" width="257.0" height="38" rx="13" fill="#302720"/><text x="114.0" y="474" class="body" text-anchor="start" data-el="chatA.HY.b5_0" data-max="287">բայց ես միևնույն է կհաղթեմ</text><text x="359" y="501" class="mono13" text-anchor="end" data-el="chatA.HY.err" data-max="343" style="fill:#ef7a6a">չի ուղարկվել · կրկնել</text><line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="754" width="287" height="44" rx="8" fill="#302720"/><text x="28" y="782" class="body" text-anchor="start" data-el="chatA.HY.inp" data-max="215">դուրս գալի՞ս ես</text><rect x="164.4" y="766" width="2" height="20" fill="#bd4b2a"/><text x="291" y="782" class="mono13" text-anchor="end">9/256</text><rect x="315" y="754" width="44" height="44" rx="8" fill="#bd4b2a"/><path d="M327 776 L345 776 M338 769 L345 776 L338 783" fill="none" stroke="#fff6f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</g></g>
 <text x="894" y="3670" class="capb">HY · 08 · беседа живая, кадр A</text>
-<g transform="translate(48,3730)" data-frame="chatX.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c40"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c40)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="52" y="34" class="name" text-anchor="start" data-el="chatX.EN.name" data-max="200">Anya, 24</text><circle cx="145.6" cy="31" r="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M149.6 31 L160.6 31 M156.6 31 L156.6 35 M160.1 31 L160.1 35" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/><rect x="323" y="6" width="44" height="44" rx="8" fill="#302720"/><rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><circle cx="340" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/><circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/><text x="315" y="34" class="mono13" text-anchor="end">1:0</text><rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/><text x="28" y="81" class="meta" text-anchor="start" data-el="chatX.EN.silence" data-max="111">silence · an hour</text><path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="175" y="81" class="meta" text-anchor="start" data-el="chatX.EN.left" data-max="124.95999999999998" style="fill:#9a8d7c">52 min left</text><text x="359" y="81" class="meta" text-anchor="end" data-el="chatX.EN.end" data-max="184" style="fill:#f0e7dc">end it</text><line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/><rect x="0" y="97" width="375" height="28" fill="#302720"/><text x="187.5" y="116" class="meta" text-anchor="middle" data-el="chatX.EN.reconnect" data-max="343" style="fill:#f0e7dc">reconnecting…</text><rect x="16.0" y="140" width="248.0" height="38" rx="13" fill="#262019"/><text x="28" y="166" class="body" text-anchor="start" data-el="chatX.EN.b3_0" data-max="287">and that one was mine too</text><rect x="0" y="200" width="375" height="88" fill="#302720"/><text x="16" y="230" class="name" text-anchor="start" data-el="chatX.EN.row_name" data-max="300">Anya, 24</text><circle cx="351" cy="224" r="4" fill="#bd4b2a"/><text x="16" y="254" class="meta" text-anchor="start" data-el="chatX.EN.snippet" data-max="343" style="fill:#f0e7dc">and that one was mine too</text><text x="16" y="276" class="mono13" text-anchor="start" data-el="chatX.EN.left2" data-max="100">52 min</text><text x="359" y="276" class="meta" text-anchor="end" data-el="chatX.EN.waits" data-max="287.32">waiting for your reply</text><line x1="16" y1="288" x2="359" y2="288" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="592" width="343" height="132" rx="13" fill="#262019"/><text x="187.5" y="628" class="h" text-anchor="middle" data-el="chatX.EN.ended" data-max="311">The conversation ended</text><text x="187.5" y="654" class="meta" text-anchor="middle" data-el="chatX.EN.nothing" data-max="311">There is nothing here any more.</text><rect x="127.5" y="672" width="120" height="36" rx="13" fill="#302720"/><text x="187.5" y="695" class="body15" text-anchor="middle" data-el="chatX.EN.close" data-max="96">Close</text><line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="754" width="343" height="44" rx="8" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
-</g></g>
 <text x="48" y="4570" class="capb">EN · 08 · составной кадр: полоса</text>
 <text x="48" y="4588" class="capb">«переподключаемся», строка списка «ждёт вашего</text>
 <text x="48" y="4606" class="capb">ответа», надгробие — не состояние продукта,</text>
-<g transform="translate(471,3730)" data-frame="chatX.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c41"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c41)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="52" y="34" class="name" text-anchor="start" data-el="chatX.DE.name" data-max="200">Anja, 24</text><circle cx="145.6" cy="31" r="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M149.6 31 L160.6 31 M156.6 31 L156.6 35 M160.1 31 L160.1 35" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/><rect x="323" y="6" width="44" height="44" rx="8" fill="#302720"/><rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><circle cx="340" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/><circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/><text x="315" y="34" class="mono13" text-anchor="end">1:0</text><rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/><text x="28" y="81" class="meta" text-anchor="start" data-el="chatX.DE.silence" data-max="111">Stille · eine Stunde</text><path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="175" y="81" class="meta" text-anchor="start" data-el="chatX.DE.left" data-max="117.12" style="fill:#9a8d7c">noch 52 Min.</text><text x="359" y="81" class="meta" text-anchor="end" data-el="chatX.DE.end" data-max="184" style="fill:#f0e7dc">Beenden</text><line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/><rect x="0" y="97" width="375" height="28" fill="#302720"/><text x="187.5" y="116" class="meta" text-anchor="middle" data-el="chatX.DE.reconnect" data-max="343" style="fill:#f0e7dc">Verbindung wird wiederhergestellt…</text><rect x="16.0" y="140" width="239.0" height="38" rx="13" fill="#262019"/><text x="28" y="166" class="body" text-anchor="start" data-el="chatX.DE.b3_0" data-max="287">und das war auch von mir</text><rect x="0" y="200" width="375" height="88" fill="#302720"/><text x="16" y="230" class="name" text-anchor="start" data-el="chatX.DE.row_name" data-max="300">Anja, 24</text><circle cx="351" cy="224" r="4" fill="#bd4b2a"/><text x="16" y="254" class="meta" text-anchor="start" data-el="chatX.DE.snippet" data-max="343" style="fill:#f0e7dc">und das war auch von mir</text><text x="16" y="276" class="mono13" text-anchor="start" data-el="chatX.DE.left2" data-max="100">52 Min.</text><text x="359" y="276" class="meta" text-anchor="end" data-el="chatX.DE.waits" data-max="280.03999999999996">wartet auf Ihre Antwort</text><line x1="16" y1="288" x2="359" y2="288" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="592" width="343" height="132" rx="13" fill="#262019"/><text x="187.5" y="628" class="h" text-anchor="middle" data-el="chatX.DE.ended" data-max="311">Das Gespräch ist beendet</text><text x="187.5" y="654" class="meta" text-anchor="middle" data-el="chatX.DE.nothing" data-max="311">Hier ist nichts mehr.</text><rect x="127.5" y="672" width="120" height="36" rx="13" fill="#302720"/><text x="187.5" y="695" class="body15" text-anchor="middle" data-el="chatX.DE.close" data-max="96">Schließen</text><line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="754" width="343" height="44" rx="8" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
-</g></g>
 <text x="471" y="4570" class="capb">DE · 08 · составной кадр: полоса</text>
 <text x="471" y="4588" class="capb">«переподключаемся», строка списка «ждёт вашего</text>
 <text x="471" y="4606" class="capb">ответа», надгробие — не состояние продукта,</text>
-<g transform="translate(894,3730)" data-frame="chatX.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:#0d0b0a;stroke:#1c140d;stroke-width:2"/><clipPath id="c42"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c42)"><rect width="375" height="812" style="fill:#0d0b0a"/>
-<path d="M34 19 L24 28 L34 37" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="52" y="34" class="name" text-anchor="start" data-el="chatX.HY.name" data-max="200">Անի, 24</text><circle cx="135.4" cy="31" r="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><path d="M139.4 31 L150.4 31 M146.4 31 L146.4 35 M149.9 31 L149.9 35" fill="none" stroke="#f0e7dc" stroke-width="2" stroke-linecap="round"/><rect x="323" y="6" width="44" height="44" rx="8" fill="#302720"/><rect x="335" y="18" width="20" height="20" rx="4" fill="none" stroke="#f0e7dc" stroke-width="2"/><circle cx="340" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="23" r="1.8" fill="#f0e7dc"/><circle cx="345" cy="28" r="1.8" fill="#f0e7dc"/><circle cx="340" cy="33" r="1.8" fill="#f0e7dc"/><circle cx="350" cy="33" r="1.8" fill="#f0e7dc"/><text x="315" y="34" class="mono13" text-anchor="end">1:0</text><rect x="16" y="60" width="147" height="32" rx="8" fill="#302720"/><text x="28" y="81" class="meta" text-anchor="start" data-el="chatX.HY.silence" data-max="111">լռություն · մեկ ժամ</text><path d="M143 73 L148 78 L153 73" fill="none" stroke="#9a8d7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="175" y="81" class="meta" text-anchor="start" data-el="chatX.HY.left" data-max="117.12" style="fill:#9a8d7c">մնաց 52 րոպե</text><text x="359" y="81" class="meta" text-anchor="end" data-el="chatX.HY.end" data-max="184" style="fill:#f0e7dc">ավարտել</text><line x1="0" y1="96" x2="375" y2="96" stroke="#3a2e20" stroke-width="1"/><rect x="0" y="97" width="375" height="28" fill="#302720"/><text x="187.5" y="116" class="meta" text-anchor="middle" data-el="chatX.HY.reconnect" data-max="343" style="fill:#f0e7dc">վերամիանում ենք…</text><rect x="16.0" y="140" width="149.4" height="38" rx="13" fill="#262019"/><text x="28" y="166" class="body" text-anchor="start" data-el="chatX.HY.b3_0" data-max="287">և դա էլ իմն էր</text><rect x="0" y="200" width="375" height="88" fill="#302720"/><text x="16" y="230" class="name" text-anchor="start" data-el="chatX.HY.row_name" data-max="300">Անի, 24</text><circle cx="351" cy="224" r="4" fill="#bd4b2a"/><text x="16" y="254" class="meta" text-anchor="start" data-el="chatX.HY.snippet" data-max="343" style="fill:#f0e7dc">և դա էլ իմն էր</text><text x="16" y="276" class="mono13" text-anchor="start" data-el="chatX.HY.left2" data-max="100">52 րոպե</text><text x="359" y="276" class="meta" text-anchor="end" data-el="chatX.HY.waits" data-max="280.03999999999996">սպասում է ձեր պատասխանին</text><line x1="16" y1="288" x2="359" y2="288" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="592" width="343" height="132" rx="13" fill="#262019"/><text x="187.5" y="628" class="h" text-anchor="middle" data-el="chatX.HY.ended" data-max="311">Զրույցն ավարտվեց</text><text x="187.5" y="654" class="meta" text-anchor="middle" data-el="chatX.HY.nothing" data-max="311">Այստեղ այլևս ոչինչ չկա։</text><rect x="127.5" y="672" width="120" height="36" rx="13" fill="#302720"/><text x="187.5" y="695" class="body15" text-anchor="middle" data-el="chatX.HY.close" data-max="96">Փակել</text><line x1="0" y1="740" x2="375" y2="740" stroke="#3a2e20" stroke-width="1"/><rect x="16" y="754" width="343" height="44" rx="8" fill="#262019" stroke="#80705a" stroke-width="1" stroke-dasharray="4 3"/>
-</g></g>
 <text x="894" y="4570" class="capb">HY · 08 · составной кадр: полоса</text>
 <text x="894" y="4588" class="capb">«переподключаемся», строка списка «ждёт вашего</text>
 <text x="894" y="4606" class="capb">ответа», надгробие — не состояние продукта,</text>

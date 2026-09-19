@@ -1,0 +1,279 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="3882" viewBox="0 0 1700 3882">
+<title>sosed.place — screen 08, the conversation</title>
+<style>
+/* kit:tokens */
+  .cap    { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
+  .capm   { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #9a8d7c; }
+  .mast   { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
+</style>
+<rect x="0" y="0" width="1700" height="3882" fill="#000000"/>
+<text x="48" y="60" class="mast">Экран 08 — Беседа</text>
+<text x="48" y="88" class="capm">sosed.place · тёмная тема · акцент terra · 375×812 и 1030×812 · кит panel/design/kit/components.svg</text>
+<text x="48" y="108" class="capm">bg #0d0b0a · panel #262019 · panel-2 #302720 · border #3a2e20 · fg #f0e7dc · muted #9a8d7c · accent #bd4b2a · err #ef7a6a · r-1 8 · r-2 13</text>
+
+<!-- A · live -->
+<g transform="translate(48,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин" data-score="1:0"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#quote-like" x="32" y="257" data-w="311" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
+<use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#system-line" x="16" y="387" data-text="Аня положила фишку на e4"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="401" data-w="118" data-text="ход хороший"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="468" data-w="210" data-text="но я всё равно выиграю" data-mark="не отправлено · повторить" data-markc="var(--err)"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-value="выходишь?" data-caret="105.3" data-counter="9/256"/>
+</g></g>
+<text x="48" y="988" class="cap">A · Беседа живая</text>
+<text x="48" y="1008" class="capm">имя+возраст, значок сверки, ручка молчания,</text>
+<text x="48" y="1025" class="capm">остаток, 🎲 со счётом, строка лайка, ход, ✓ и</text>
+<text x="48" y="1042" class="capm">ошибка</text>
+
+<!-- B · fading -->
+<g transform="translate(463,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 13 мин" data-timec="var(--err)"/>
+<g class="k-fade">
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#quote-like" x="32" y="257" data-w="311" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
+<use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+</g>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="72" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<text x="463" y="988" class="cap">B · Угасает — последняя четверть срока</text>
+<text x="463" y="1008" class="capm">Н2: счётчик тишины числом в шапке (err) + реплики</text>
+<text x="463" y="1025" class="capm">на 55% — второй канал, не единственный</text>
+
+<!-- C · ended by the other side -->
+<g transform="translate(878,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">
+<use href="kit/components.svg#header-chat" x="0" y="0" style="opacity:.55" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="257" data-w="184" data-text="и это тоже моё было"/>
+<use href="kit/components.svg#card-tombstone" x="16" y="584" data-line="Здесь больше ничего нет."/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#field-closed" x="16" y="754"/>
+</g></g>
+<text x="878" y="988" class="cap">C · Закончилась у собеседника</text>
+<text x="878" y="1008" class="capm">Н4 надгробие до касания; история читается, поле</text>
+<text x="878" y="1025" class="capm">закрыто (пунктир), «закончить» и ручка погашены</text>
+
+<!-- D · reconnecting + away -->
+<g transform="translate(1293,150)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
+<use href="kit/components.svg#bar-connection" x="0" y="104"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="176" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="200" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="289" data-w="184" data-text="и это тоже моё было"/>
+<use href="kit/components.svg#icon-button" x="204" y="287" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="337" data-w="98" data-text="иду" data-mark=""/>
+<rect x="0" y="716" width="375" height="1" style="fill:var(--border)"/>
+<text x="16" y="735" class="k-meta">отошёл</text>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-value="выходишь?" data-caret="105.3" data-counter="9/256"/>
+</g></g>
+<text x="1293" y="988" class="cap">D · Переподключаемся + «отошёл»</text>
+<text x="1293" y="1008" class="capm">Н5 полоса в шапке; «иду» стоит в очереди без ✓;</text>
+<text x="1293" y="1025" class="capm">метка «отошёл» над живым полем; набранное на месте</text>
+
+<!-- E · empty, just opened -->
+<g transform="translate(48,1072)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c481072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c481072)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 60 мин"/>
+<text x="187.5" y="404" text-anchor="middle" class="k-title">Беседа открыта</text>
+<text x="187.5" y="430" text-anchor="middle" class="k-meta">Напишите первым.</text>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="343" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<text x="48" y="1910" class="cap">E · Пусто — только что открылась</text>
+<text x="48" y="1930" class="capm">строка вместо пустой ленты (11:189); ручка на</text>
+<text x="48" y="1947" class="capm">умолчании «час»</text>
+
+<!-- E2 · empty after moving device -->
+<g transform="translate(463,1072)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4631072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4631072)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
+<text x="187.5" y="392" text-anchor="middle" class="k-title">История осталась</text>
+<text x="187.5" y="416" text-anchor="middle" class="k-title">на прежнем устройстве</text>
+<text x="187.5" y="444" text-anchor="middle" class="k-meta">Беседа та же, а прежние реплики</text>
+<text x="187.5" y="464" text-anchor="middle" class="k-meta">сюда не переезжают.</text>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<text x="463" y="1910" class="cap">E2 · Пусто — после переноса</text>
+<text x="463" y="1930" class="capm">та же беседа без истории (11:190); заголовок в две</text>
+<text x="463" y="1947" class="capm">строки — 375 px не вмещает одной</text>
+
+<!-- F · skeleton -->
+<g transform="translate(878,1072)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8781072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8781072)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
+<rect x="16" y="120" width="180" height="40" rx="13" style="fill:var(--panel-2)"/>
+<rect x="139" y="168" width="220" height="40" rx="13" style="fill:var(--panel-2)"/>
+<rect x="16" y="216" width="140" height="40" rx="13" style="fill:var(--panel-2)"/>
+<rect x="263" y="264" width="96" height="40" rx="13" style="fill:var(--panel-2)"/>
+<rect x="16" y="312" width="240" height="62" rx="13" style="fill:var(--panel-2)"/>
+<rect x="199" y="382" width="160" height="40" rx="13" style="fill:var(--panel-2)"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-placeholder="" data-state="1"/>
+</g></g>
+<text x="878" y="1910" class="cap">F · Скелет — история расшифровывается</text>
+<text x="878" y="1930" class="capm">Н3: без подписи, геометрия реплик; отправка</text>
+<text x="878" y="1947" class="capm">недоступна до ответа; шапка уже известна из списка</text>
+
+<!-- G · wide screen from 1030 px -->
+<g transform="translate(48,1994)" class="k-dark">
+<rect x="0" y="0" width="1030" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c481994"><rect width="1030" height="812" rx="13"/></clipPath><g clip-path="url(#c481994)">
+<rect x="330" y="0" width="1" height="812" style="fill:var(--border)"/>
+<rect x="630" y="0" width="1" height="812" style="fill:var(--border)"/>
+<text x="16" y="34" class="k-title">Лента</text>
+<text x="274" y="34" text-anchor="end" class="k-meta" style="fill:var(--fg)">Сказать</text>
+<text x="306" y="34" text-anchor="end" class="k-meta" style="fill:var(--fg)">Я</text>
+<use href="kit/components.svg#dot" x="310" y="18"/>
+<rect x="16" y="56" width="64" height="44" data-hit="44" style="fill:none"/>
+<rect x="16" y="64" width="64" height="28" rx="8" style="fill:var(--panel-2)"/>
+<text x="48" y="83" text-anchor="middle" class="k-meta">21–45</text>
+<rect x="88" y="56" width="56" height="44" data-hit="44" style="fill:none"/>
+<rect x="88" y="64" width="56" height="28" rx="8" style="fill:var(--panel-2)"/>
+<text x="116" y="83" text-anchor="middle" class="k-meta">2 км</text>
+<rect x="0" y="96" width="330" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#card-phrase" x="16" y="112" data-w="298" data-l1="кто на набережную" data-l2="к девяти?" data-chip="компания" data-chipw="88" data-c="var(--cat-amber)" data-f="190" data-time="" data-likes=""/>
+<use href="kit/components.svg#card-phrase" x="16" y="284" data-w="298" data-l1="ищу четвёртого в домино" data-l2="" data-chip="" data-c="var(--muted)" data-f="60" data-time="" data-likes=""/>
+<text x="32" y="399" class="k-meta">один</text>
+<use href="kit/components.svg#card-phrase" x="16" y="456" data-w="298" data-l1="скамейка, термос," data-l2="без планов" data-chip="туса" data-chipw="56" data-c="var(--cat-violet)" data-f="110" data-time="" data-likes=""/>
+<g transform="translate(330,0)">
+<text x="16" y="34" class="k-title">Беседы</text>
+<use href="kit/components.svg#tabs" x="16" y="52" data-l1="Предложения" data-w1="150" data-a1="" data-l2="Беседы" data-w2="80" data-a2="1" data-dot="1"/>
+<use href="kit/components.svg#badge-count" x="142" y="63" data-n="2"/>
+<use href="kit/components.svg#row-chat" x="16" y="104" data-w="268" data-name="Аня, 24" data-line="и это тоже моё было" data-time="52 мин" data-wait="ждёт вашего ответа" data-dot="1" data-sel="1"/>
+<g class="k-fade">
+<text x="28" y="200" class="k-strong">Миша, 31</text>
+<text x="28" y="221" class="k-meta" style="fill:var(--fg)">тогда в субботу</text>
+<text x="28" y="239" class="k-mono" style="fill:var(--err)">4 мин</text>
+</g>
+<use href="kit/components.svg#row-chat" x="16" y="248" data-w="268" data-name="Лена, 27" data-line="ок, до встречи" data-time="закончилась"/>
+<use href="kit/components.svg#row-chat" x="16" y="320" data-w="268" data-name="Олег, 40" data-line="домино у меня есть" data-time="3 ч 12 мин" data-wait="ждёт вашего ответа" data-dot="1" data-sel="1"/>
+</g>
+<g transform="translate(630,0)">
+<rect x="1" y="0" width="400" height="104" style="fill:var(--bg)"/>
+<text x="16" y="35" class="k-title">Аня, 24</text>
+<use href="kit/components.svg#key-badge" x="88.4" y="6"/>
+<text x="340" y="34" text-anchor="end" class="k-mono" style="fill:var(--fg)">1:0</text>
+<use href="kit/components.svg#icon-button-filled" x="348" y="6"/>
+<use href="kit/components.svg#select-pill" x="16" y="56"/>
+<use href="kit/components.svg#countdown" x="175" y="83" data-text="остаток 52 мин"/>
+<text x="384" y="83" text-anchor="end" class="k-meta-strong">закончить</text>
+<rect x="0" y="103" width="400" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="41" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#quote-like" x="32" y="257" data-w="336" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
+<use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#system-line" x="28.5" y="387" data-text="Аня положила фишку на e4"/>
+<use href="kit/components.svg#bubble-mine" x="41" y="401" data-w="118" data-text="ход хороший"/>
+<use href="kit/components.svg#bubble-mine" x="41" y="468" data-w="210" data-text="но я всё равно выиграю" data-mark="не отправлено · повторить" data-markc="var(--err)"/>
+<rect x="0" y="740" width="400" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="368" data-f="320" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="368" data-value="выходишь?" data-caret="105.3" data-counter="9/256"/>
+</g>
+</g></g>
+<text x="48" y="2832" class="cap">G · Широкий экран от 1030 px: лента 330 + беседы 300 + беседа 400</text>
+<text x="48" y="2852" class="capm">пункт 07: имя, обрывок, остаток, «ждёт вашего ответа», точка «новое»; угасающий пункт (Миша) и «закончилась» (Лена); точка на вкладке</text>
+
+<!-- H · refusal or match expired before consent -->
+<g transform="translate(1293,1072)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12931072"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12931072)">
+<use href="kit/components.svg#icon-button" x="4" y="6" data-icon="icon-back" data-c="var(--muted)" data-name="назад"/>
+<text x="52" y="35" class="k-title" style="fill:var(--muted)">Аня, 24</text>
+<g style="opacity:.55">
+<rect x="16" y="54" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+<text x="28" y="81" class="k-meta">ждём ответа</text>
+</g>
+<g class="k-fade">
+<use href="kit/components.svg#quote-like" x="32" y="112" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
+<use href="kit/components.svg#quote-like" x="32" y="178" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
+<use href="kit/components.svg#system-line" x="16" y="268" data-text="вы предложили поговорить"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="284" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
+<use href="kit/components.svg#bubble-mine" x="16" y="354" data-w="146" data-text="возьму термос" data-mark=""/>
+</g>
+<use href="kit/components.svg#card-tombstone" x="24" y="470" data-w="327" data-title="Предложение ушло" data-line="Написанное никуда не отправилось."/>
+<use href="kit/components.svg#field-closed" x="16" y="754" data-text=""/>
+</g></g>
+<text x="1293" y="1910" class="cap">H · Отказ или срок мэтча вышел — до согласия</text>
+<text x="1293" y="1930" class="capm">надгробие Н4 поверх ждущей беседы (решение владельца</text>
+<text x="1293" y="1947" class="capm">18.09.2026); очередь погашена, поле закрыто; причина</text>
+<text x="1293" y="1964" class="capm">скрыта намеренно (06:26); заголовок 20 как у «Беседа закончилась»</text>
+
+<!-- I · the second one agreed -->
+<g transform="translate(1293,1994)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c12931994"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c12931994)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 60 мин"/>
+<use href="kit/components.svg#quote-like" x="32" y="120" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
+<use href="kit/components.svg#quote-like" x="32" y="186" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
+<use href="kit/components.svg#system-line" x="16" y="276" data-text="Аня согласилась · беседа открыта"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="292" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
+<use href="kit/components.svg#bubble-mine" x="16" y="362" data-w="146" data-text="возьму термос"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="343" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<text x="1293" y="2832" class="cap">I · Согласие второго — очередь ушла</text>
+<text x="1293" y="2852" class="capm">строка «в очереди» исчезла, ✓ под последней; шапка</text>
+<text x="1293" y="2869" class="capm">живой беседы, срок беседы пошёл с этого момента;</text>
+<text x="1293" y="2886" class="capm">системная строка «Аня согласилась · беседа открыта»</text>
+
+<!-- J · «закончить» confirmation -->
+<g transform="translate(48,2916)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c482916"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c482916)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#sheet-text" x="0" y="532" data-h="280" data-title="Точно? История исчезнет у обоих" data-l1="Беседа закроется у обоих сразу." data-l2="Собеседник видит то же," data-l3="что и при истечении срока." data-yes="закончить" data-no="Отмена"/>
+</g></g>
+<text x="48" y="3754" class="cap">J · «закончить» — подтверждение</text>
+<text x="48" y="3774" class="capm">08:38 «точно? история исчезнет у обоих» — лист снизу</text>
+<text x="48" y="3791" class="capm">поверх живой беседы; цена словами 08:115 «собеседник</text>
+<text x="48" y="3808" class="capm">видит то же надгробие, что и при истечении срока»;</text>
+<text x="48" y="3825" class="capm">«закончить» залито, «Отмена» — контур</text>
+
+<!-- K · system line about an age change -->
+<g transform="translate(463,2916)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c4632916"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4632916)">
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Олег, 39" data-namew="81.5" data-time="остаток 52 мин"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="домино у меня есть"/>
+<use href="kit/components.svg#system-line" x="16" y="188" data-text="собеседник изменил возраст · 39"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="204" data-w="146" data-text="возьму термос"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="271" data-w="222" data-text="и это тоже моё было"/>
+<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="343" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
+</g></g>
+<text x="463" y="3754" class="cap">K · Системная строка о смене возраста</text>
+<text x="463" y="3774" class="capm">10:21–23: во все открытые беседы уходит строка</text>
+<text x="463" y="3791" class="capm">«собеседник изменил возраст: 39»; стоит между</text>
+<text x="463" y="3808" class="capm">репликами как состояние, шапка уже несёт новое</text>
+<text x="463" y="3825" class="capm">число — имя при открытой беседе заморожено (10:25)</text>
+</svg>

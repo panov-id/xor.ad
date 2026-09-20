@@ -446,6 +446,84 @@ Deno.test("another session's share cannot be reached from this one", async () =>
   assertEquals(attempt.status, 401);
 });
 
+
+Deno.test("the first PIN needs a grant, spends it, and works only once", async () => {
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { identity_id: string; session_id: string };
+  const fresh = crypto.getRandomValues(new Uint8Array(32));
+  const freshAuth = crypto.getRandomValues(new Uint8Array(32));
+  const freshHash = await auth.sha256hex(freshAuth);
+  const payload = { auth_hash: freshHash, share: authBase64(fresh) };
+
+  // Without a grant: a signing key alone never replaces a PIN.
+  const ungranted = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/init", payload,
+  );
+  assertEquals(ungranted.status, 409);
+  assertEquals((ungranted.body as { error: { code: string } }).error.code, "unauthorized");
+
+  // What an approved transfer or a recovery leaves behind.
+  await database.queryOrThrow(
+    `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
+    [created.identity_id],
+  );
+
+  const granted = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/init", payload,
+  );
+  assertEquals(granted.status, 204);
+
+  // The grant is gone, and a second call cannot take a second first PIN.
+  const [row] = await database.queryOrThrow<{ first_pin_grant_at: Date | null }>(
+    `SELECT first_pin_grant_at FROM identities WHERE id = $1`,
+    [created.identity_id],
+  );
+  assertEquals(row.first_pin_grant_at, null);
+  const again = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/init", payload,
+  );
+  assertEquals(again.status, 409);
+
+  // And the new PIN is the one that opens the new share; the old one does not.
+  const opened = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", { auth: authBase64(freshAuth) },
+  );
+  assertEquals(opened.status, 200);
+  assertEquals((opened.body as { share: string }).share, authBase64(fresh));
+
+  const old = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(AUTH),
+  );
+  assertEquals(old.status, 409);
+});
+
+Deno.test("a first PIN clears a lock left by the previous device's misses", async () => {
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { identity_id: string; session_id: string };
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+  for (let i = 0; i < 10; i++) {
+    await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+    await clearDelay(created.session_id);
+  }
+  assert((await attemptsLeft(created.session_id)).locked_at, "entry was not closed");
+
+  await database.queryOrThrow(
+    `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
+    [created.identity_id],
+  );
+  const freshAuth = crypto.getRandomValues(new Uint8Array(32));
+  const set = await signedCall(pair.privateKey, created.session_id, "POST", "/vault/init", {
+    auth_hash: await auth.sha256hex(freshAuth),
+    share: authBase64(crypto.getRandomValues(new Uint8Array(32))),
+  });
+  assertEquals(set.status, 204);
+
+  // The paper code is the way out of a lock, and this is what the way out leaves.
+  const row = await attemptsLeft(created.session_id);
+  assertEquals(row.locked_at, null);
+  assertEquals(row.attempts_left, 10);
+});
+
 Deno.test("the eleventh registration from one address is refused", async () => {
   const address = "203.0.113.7";
   for (let i = 0; i < 10; i++) {

@@ -543,7 +543,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-init">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-built">built</span></div>
 <p><strong>Set the first PIN on this device</strong></p>
 <p>After a transfer or a recovery: the new device registers its auth_hash and share; the old PIN is not needed (screen 13). Only against a one-time first-PIN grant that an approved transfer or a recovery claim leaves on this identity; the call consumes it; without one — 409 unauthorized, so a signing key alone never replaces the PIN (chat canon: a PIN change needs the old PIN).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -551,6 +551,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>No first-PIN grant on this identity, or it was already spent — code unauthorized. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it (2026-09-20).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-sessions--lookup-id--approve">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/approve</code><span class="chip s-spec">spec</span></div>

@@ -543,7 +543,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-vault-init">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-built">построено</span></div>
 <p><strong>Завести первый ПИН на этом устройстве</strong></p>
 <p>После переноса или восстановления: новое устройство регистрирует свой auth_hash и долю; прежний ПИН не нужен (экран 13). Только по одноразовому праву «первый ПИН», которое оставляет на личности одобренный перенос или восстановление; вызов его расходует; без права — 409 unauthorized, так что один ключ подписи ПИН не подменяет (канон чата: смена ПИН требует прежний).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -551,6 +551,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>Права «первый ПИН» на этой личности нет либо оно уже израсходовано — code unauthorized. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается (20.09.2026).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-sessions--lookup-id--approve">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/approve</code><span class="chip s-spec">спека</span></div>

@@ -373,7 +373,73 @@ async function vaultShare(req: Request): Promise<Response> {
   return answer;
 }
 
+
+interface VaultInitBody {
+  auth_hash?: unknown;
+  share?: unknown;
+}
+
+// POST /vault/init — the first PIN on a device that did not choose the old one.
+//
+// A transfer or a recovery leaves a one-time grant on the identity, and this
+// route spends it. Without the grant the answer is 409 unauthorized, and that
+// refusal is the whole reason the column exists: a signing key alone must never
+// replace a PIN, because the canon's other rule — a PIN change needs the old one
+// — would otherwise be worth nothing to anybody holding a stolen key.
+//
+// Runs on an unfinished registration for the same reason /vault/share does: the
+// device that just arrived by transfer has no paper code of its own yet.
+async function vaultInit(req: Request): Promise<Response> {
+  const caller = await callerOf(req, { allowUnfinishedSignup: true });
+  if (caller instanceof Response) return caller;
+
+  const body = await readJson<VaultInitBody>(req);
+  if (!body) return refuse("invalid_body", "the body is not json", 400);
+  if (!isText(body.auth_hash, 512)) return refuse("invalid_body", "auth_hash is missing", 400);
+  const share = isText(body.share, 512) ? base64urlToBytes(body.share) : null;
+  if (!share || share.length !== SHARE_BYTES) {
+    return refuse("invalid_body", `share must be ${SHARE_BYTES} bytes, base64url`, 400);
+  }
+  if (!configured()) {
+    return refuse("unavailable", "this node cannot store a vault share right now", 503);
+  }
+  const sealed = await sealShare(share);
+
+  const answer = await transaction<Response>(async (run) => {
+    // Spent in the same statement that reads it, so two calls racing cannot both
+    // find a grant. An empty result is the refusal, not an error to recover from.
+    const spent = await run<{ id: string }>(
+      `UPDATE identities SET first_pin_grant_at = NULL
+        WHERE id = $1 AND first_pin_grant_at IS NOT NULL AND closed_at IS NULL
+        RETURNING id`,
+      [caller.identityId],
+    );
+    if (spent.length === 0) {
+      inc("relay_vault_init_total", { result: "no_grant" });
+      return refuse("unauthorized", "no first-PIN grant on this identity", 409);
+    }
+
+    // The row is the device's, so it is written rather than inserted: the session
+    // already has a share from whatever it was before, and the counter goes back
+    // to ten because this is a PIN nobody has got wrong yet.
+    await run(
+      `INSERT INTO vault_shares (session, auth_hash, share_enc)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (session) DO UPDATE
+          SET auth_hash = EXCLUDED.auth_hash, share_enc = EXCLUDED.share_enc,
+              attempts_left = 10, next_attempt_at = NULL, locked_at = NULL,
+              burned_at = NULL, last_used_at = now()`,
+      [caller.sessionId, body.auth_hash, sealed],
+    );
+    inc("relay_vault_init_total", { result: "set" });
+    return new Response(null, { status: 204, headers: sunsetHeader() });
+  }).catch(() => refuse("unavailable", "the node cannot write right now", 503));
+
+  return answer;
+}
+
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
 route("POST", "/recovery/confirm", (c) => confirmRecovery(c.req));
 route("POST", "/vault/share", (c) => vaultShare(c.req));
+route("POST", "/vault/init", (c) => vaultInit(c.req));

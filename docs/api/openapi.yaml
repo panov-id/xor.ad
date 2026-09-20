@@ -2883,7 +2883,8 @@ paths:
       tags: [identity]
       summary: "Set the first PIN on this device"
       x-summary-ru: "Завести первый ПИН на этом устройстве"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
       description: "After a transfer or a recovery: the new device registers its auth_hash and share; the old PIN is not needed (screen 13). Only against a one-time first-PIN grant that an approved transfer or a recovery claim leaves on this identity; the call consumes it; without one — 409 unauthorized, so a signing key alone never replaces the PIN (chat canon: a PIN change needs the old PIN)."
       x-description-ru: "После переноса или восстановления: новое устройство регистрирует свой auth_hash и долю; прежний ПИН не нужен (экран 13). Только по одноразовому праву «первый ПИН», которое оставляет на личности одобренный перенос или восстановление; вызов его расходует; без права — 409 unauthorized, так что один ключ подписи ПИН не подменяет (канон чата: смена ПИН требует прежний)."

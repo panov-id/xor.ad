@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 225 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter |
+| `relay/node/test` | 227 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **235** | **about chat and feed — 0; about the request signature — 12, about step 1's routes against a live Postgres — 16 (2026-09-20)** |
+| **Total** | **237** | **about chat and feed — 0; about the request signature — 12, about step 1's routes against a live Postgres — 18 (2026-09-20)** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day

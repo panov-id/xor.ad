@@ -11,8 +11,14 @@
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
     @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
-    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2500-257F, U+2700-27BF;
       src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx3cwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
     text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
     .k-dark {
       --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
@@ -38,6 +44,42 @@
     /* Н2: the last quarter of a phrase's life */
     .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
     .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    /* storefront characters — night brief 2026-09-20, docs/reviews/NIGHT_2026-09-20_design.md. A frame adds b-sosed or
+       b-neighbro to its theme class; without one nothing below applies and the kit draws as before. */
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlSHYjedg.woff2) format("woff2"); }
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYg.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0bkXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0aUXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0akXa.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/xn7gYHE41ni1AdIRggOxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/xn7gYHE41ni1AdIRggSxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/xn7gYHE41ni1AdIRggexSg.woff2) format("woff2"); }
+    .k-sig { display: none; }
+    /* sosed.place — the courtyard in the evening: a poster on the entrance door. Dense, flat, square, 1 px border */
+    .b-sosed text { font-family: "Golos Text", system-ui, sans-serif; }
+    .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
+    .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
+    .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-ctl-shadow { display: none; }
+    .b-sosed .k-life { display: none; }
+    .b-sosed .k-sig-tag { display: inline; }
+    /* neighbro.place — the promenade at noon: light, airy, rounded, no borders, a soft lift */
+    .b-neighbro text { font-family: "Manrope", system-ui, sans-serif; }
+    .b-neighbro .k-head { font-family: "Commissioner", "Manrope", sans-serif; font-weight: 800; }
+    .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
+    .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
+    .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-ctl-shadow { display: none; }
+    .b-neighbro .k-life { display: none; }
+    .b-neighbro .k-sig-edge { display: inline; }
     .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
     .capm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
     .sheet { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
@@ -74,7 +116,7 @@
 <text x="148" y="312" class="k-body" style="fill:var(--muted)">сюда с 13 лет</text>
 <g data-kit="checkbox" transform="translate(24,344)">
   <rect width="327" height="44" rx="8" data-hit="44" style="fill:none" />
-  <rect x="0.5" y="10.5" width="23" height="23" rx="6" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <rect x="0.5" y="10.5" width="23" height="23" rx="4" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <text x="36" y="27" class="k-body">принимаю соглашение,</text>
 </g>
 <text x="60" y="391" class="k-body">политику и правила</text>
@@ -83,7 +125,7 @@
 <text x="24" y="476" class="k-meta-strong" style="fill:var(--accent-text)">Правила сообщества</text>
 <rect x="24" y="492" width="327" height="1" style="fill:var(--border)" />
 <g data-kit="button-primary-disabled" transform="translate(24,732)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — после согласия</text></g>
 </g>
@@ -130,8 +172,8 @@
 <text x="24" y="476" class="k-meta-strong" style="fill:var(--accent-text)">Правила сообщества</text>
 <rect x="24" y="492" width="327" height="1" style="fill:var(--border)" />
 <g data-kit="button-primary" transform="translate(24,744)">
-  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
-  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <rect class="k-ctl-shadow" x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--accent)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">дальше</text>
 </g>
 </g>
@@ -150,7 +192,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Чем вы вернётесь</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Чем вы вернётесь</text>
   <g><text x="359" y="34" text-anchor="end" class="k-mono">2 / 2</text></g>
 </g>
 <text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
@@ -185,7 +227,7 @@
 <rect x="24" y="490" width="327" height="12" rx="6" style="fill:var(--panel-2)" />
 <rect x="24" y="512" width="180" height="12" rx="6" style="fill:var(--panel-2)" />
 <g data-kit="button-primary-disabled" transform="translate(24,732)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — когда код получен</text></g>
 </g>
@@ -205,7 +247,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Чем вы вернётесь</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Чем вы вернётесь</text>
   <g><text x="359" y="34" text-anchor="end" class="k-mono">2 / 2</text></g>
 </g>
 <text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
@@ -254,7 +296,7 @@
   <text x="54" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">____</text>
 </g>
 <g data-kit="button-primary-disabled" transform="translate(24,732)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — когда код записан</text></g>
 </g>
@@ -273,7 +315,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Чем вы вернётесь</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Чем вы вернётесь</text>
   <g><text x="359" y="34" text-anchor="end" class="k-mono">2 / 2</text></g>
 </g>
 <text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
@@ -298,7 +340,7 @@
 </g>
 <text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
 <g data-kit="card-error" transform="translate(24,270)">
-  <rect width="327" height="180" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-card" width="327" height="180" rx="13" style="fill:var(--panel-2)" />
   <circle cx="24" cy="28" r="8" style="fill:var(--err)" />
   <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
   <text x="42" y="34" class="k-strong">У нас не получилось</text>
@@ -306,12 +348,12 @@
   <g><text x="16" y="82" class="k-meta" style="fill:var(--fg)">Имя, возраст и ПИН на месте — код</text></g>
   <g><text x="16" y="102" class="k-meta" style="fill:var(--fg)">покажем, как только ответим.</text></g>
   <g data-kit="button-secondary" transform="translate(16,120)">
-  <rect x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="147.5" y="27.5" text-anchor="middle" class="k-strong">повторить</text>
 </g>
 </g>
 <g data-kit="button-primary-disabled" transform="translate(24,732)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — когда код получен</text></g>
 </g>
@@ -331,7 +373,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Чем вы вернётесь</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Чем вы вернётесь</text>
   <g><text x="359" y="34" text-anchor="end" class="k-mono">2 / 2</text></g>
 </g>
 <text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
@@ -356,7 +398,7 @@
 </g>
 <text x="24" y="248" class="k-body" style="fill:var(--err)">этот ПИН легко угадать</text>
 <g data-kit="card-error" transform="translate(24,270)">
-  <rect width="327" height="180" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-card" width="327" height="180" rx="13" style="fill:var(--panel-2)" />
   <circle cx="24" cy="28" r="8" style="fill:var(--err)" />
   <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
   <text x="42" y="34" class="k-strong">Нет связи</text>
@@ -364,12 +406,12 @@
   <g><text x="16" y="82" class="k-meta" style="fill:var(--fg)">Имя, возраст и ПИН на месте — код</text></g>
   <g><text x="16" y="102" class="k-meta" style="fill:var(--fg)">покажем, как только появится связь.</text></g>
   <g data-kit="button-secondary" transform="translate(16,120)">
-  <rect x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="147.5" y="27.5" text-anchor="middle" class="k-strong">повторить</text>
 </g>
 </g>
 <g data-kit="button-primary-disabled" transform="translate(24,732)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — когда код получен</text></g>
 </g>
@@ -406,7 +448,7 @@
 <text x="148" y="312" class="k-body" style="fill:var(--muted)">сюда с 13 лет</text>
 <g data-kit="checkbox" transform="translate(24,344)">
   <rect width="327" height="44" rx="8" data-hit="44" style="fill:none" />
-  <rect x="0.5" y="10.5" width="23" height="23" rx="6" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <rect x="0.5" y="10.5" width="23" height="23" rx="4" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <text x="36" y="27" class="k-body">принимаю соглашение,</text>
 </g>
 <text x="60" y="391" class="k-body">политику и правила</text>
@@ -415,14 +457,14 @@
 <text x="24" y="476" class="k-meta-strong" style="fill:var(--accent-text)">Правила сообщества</text>
 <rect x="24" y="492" width="327" height="1" style="fill:var(--border)" />
 <g data-kit="button-primary-disabled" transform="translate(24,732)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — после согласия</text></g>
 </g>
 <rect width="375" height="812" style="fill:var(--bg);fill-opacity:0.7" />
 <rect x="0" y="96" width="375" height="716" rx="24" style="fill:var(--panel)" />
 <rect x="167.5" y="104" width="40" height="4" rx="2" style="fill:var(--border-control)" />
-<text x="24" y="146" class="k-title">Пользовательское соглашение</text>
+<text x="41" y="146" class="k-title">Пользовательское соглашение</text>
 <g data-kit="icon-button" transform="translate(321,116)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-close" transform="translate(0,0)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
@@ -451,7 +493,7 @@
 <rect x="24" y="644" width="212" height="10" rx="5" style="fill:var(--panel-2)" />
 <text x="24" y="700" class="k-mono">[текст документа: sosed.place/legal, EN]</text>
 <g data-kit="button-secondary" transform="translate(24,744)">
-  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">закрыть</text>
 </g>
 </g>
@@ -469,7 +511,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Чем вы вернётесь</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Чем вы вернётесь</text>
   <g><text x="359" y="34" text-anchor="end" class="k-mono">2 / 2</text></g>
 </g>
 <text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
@@ -518,8 +560,8 @@
   <text x="54" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">5AY9</text>
 </g>
 <g data-kit="button-primary" transform="translate(24,744)">
-  <rect x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
-  <rect width="327" height="44" rx="13" style="fill:var(--accent)" />
+  <rect class="k-ctl-shadow" x="3" y="3" width="327" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--accent)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">дальше</text>
 </g>
 </g>
@@ -539,7 +581,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Чем вы вернётесь</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Чем вы вернётесь</text>
   <g><text x="359" y="34" text-anchor="end" class="k-mono">2 / 2</text></g>
 </g>
 <text x="24" y="86" class="k-body" style="fill:var(--muted)">ПИН</text>
@@ -589,7 +631,7 @@
 <text x="201.5" y="690" text-anchor="middle" class="k-body" style="fill:var(--err)">Не совпадает с кодом —</text>
 <text x="201.5" y="712" text-anchor="middle" class="k-body" style="fill:var(--err)">сверьте с бумагой.</text>
 <g data-kit="button-primary-disabled" transform="translate(24,728)">
-  <rect width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
   <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — когда группы совпадут</text></g>
 </g>

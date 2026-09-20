@@ -163,7 +163,7 @@
 <text x="28" y="402" class="k-meta">ответа пока нет</text>
 <rect x="16" y="436" width="343" height="112" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:1"/>
 <text x="28" y="462" class="k-body" style="fill:var(--err)">на сегодня обращений достаточно —</text>
-<text x="28" y="482" class="k-body" style="fill:var(--err)">если срочно, напишите на почту поддержки</text>
+<text x="28" y="482" class="k-body" style="fill:var(--err)">если срочно, напишите на почту</text><text x="28" y="504" class="k-body" style="fill:var(--err)">поддержки</text>
 <text x="28" y="512" class="k-mono" style="fill:var(--fg)">support@sosed.place</text>
 <text x="28" y="534" class="k-meta">снова можно в 09:15</text>
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1"/>

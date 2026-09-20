@@ -11,8 +11,14 @@
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
     @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
-    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2500-257F, U+2700-27BF;
       src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx3cwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
     text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
     .k-dark {
       --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
@@ -38,6 +44,42 @@
     /* Н2: the last quarter of a phrase's life */
     .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
     .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    /* storefront characters — night brief 2026-09-20, docs/reviews/NIGHT_2026-09-20_design.md. A frame adds b-sosed or
+       b-neighbro to its theme class; without one nothing below applies and the kit draws as before. */
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlSHYjedg.woff2) format("woff2"); }
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYg.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0bkXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0aUXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0akXa.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/xn7gYHE41ni1AdIRggOxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/xn7gYHE41ni1AdIRggSxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/xn7gYHE41ni1AdIRggexSg.woff2) format("woff2"); }
+    .k-sig { display: none; }
+    /* sosed.place — the courtyard in the evening: a poster on the entrance door. Dense, flat, square, 1 px border */
+    .b-sosed text { font-family: "Golos Text", system-ui, sans-serif; }
+    .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
+    .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
+    .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-ctl-shadow { display: none; }
+    .b-sosed .k-life { display: none; }
+    .b-sosed .k-sig-tag { display: inline; }
+    /* neighbro.place — the promenade at noon: light, airy, rounded, no borders, a soft lift */
+    .b-neighbro text { font-family: "Manrope", system-ui, sans-serif; }
+    .b-neighbro .k-head { font-family: "Commissioner", "Manrope", sans-serif; font-weight: 800; }
+    .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
+    .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
+    .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-ctl-shadow { display: none; }
+    .b-neighbro .k-life { display: none; }
+    .b-neighbro .k-sig-edge { display: inline; }
     .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
     .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
     .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
@@ -51,39 +93,42 @@
   <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">return</text>
 </g>
 <g data-kit="card-phrase" transform="translate(16,108)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
-  <text x="16" y="36" class="k-title">Anyone going to the embankment</text>
-  <g><text x="16" y="64" class="k-title">tonight? I'll bring a thermos.</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect class="k-card" width="343" height="188" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Anyone going to the</text>
+  <g><text x="16" y="64" class="k-title">embankment tonight? I'll</text></g>
+  <g><text x="16" y="92" class="k-title">bring a thermos.</text></g>
+  <g data-kit="lifespan" transform="translate(16,108)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-  <g><g><g data-kit="chip" transform="translate(16,110)">
-  <rect width="80" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <g><g><g data-kit="chip" transform="translate(16,138)">
+  <rect class="k-chipr" width="80" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="40" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">company</text>
 </g></g>
-  <g data-kit="like" transform="translate(233,100)">
+  <g data-kit="like" transform="translate(233,128)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <g><g data-kit="icon-button" transform="translate(291,128)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g></g></g>
 </g>
-<rect x="16.5" y="276.5" width="342" height="97" rx="13" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" stroke-dasharray="5 4" />
-<text x="32" y="310" class="k-title" data-max="311" style="fill:var(--muted)">Looking for someone to play</text>
-<text x="32" y="336" class="k-title" data-max="311" style="fill:var(--muted)">Go with.</text>
-<text x="32" y="362" class="k-meta" data-max="72">checking…</text>
-<g data-kit="countdown" transform="translate(140,362)">
+<rect x="16.5" y="304.5" width="342" height="97" rx="13" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" stroke-dasharray="5 4" />
+<text x="32" y="338" class="k-title" data-max="311" style="fill:var(--muted)">Looking for someone to play</text>
+<text x="32" y="364" class="k-title" data-max="311" style="fill:var(--muted)">Go with.</text>
+<text x="32" y="390" class="k-meta" data-max="72">checking…</text>
+<g data-kit="countdown" transform="translate(140,390)">
   <text x="0" y="0" class="k-mono" style="fill:var(--muted)">40 min left</text>
 </g>
-<text x="343" y="362" class="k-meta" text-anchor="end" data-max="100">alone</text>
-<g data-kit="card-offer" transform="translate(16,382)">
-  <rect width="343" height="212" rx="13" style="fill:var(--panel)" />
+<text x="343" y="390" class="k-meta" text-anchor="end" data-max="100">alone</text>
+<g data-kit="card-offer" transform="translate(16,410)">
+  <rect class="k-card" width="343" height="212" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(16,16)">
-  <rect x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">offer</text>
 </g>
   <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
@@ -92,7 +137,7 @@
   <text x="16" y="120" class="k-meta">conditions: when ordering two or more</text>
   <g><text x="16" y="142" class="k-meta">discount until 30 September, 18:00</text></g>
   <g data-kit="button-pill" transform="translate(16,152)">
-  <rect width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="140" height="44" rx="22" style="fill:var(--fg)" />
   <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Save</text>
 </g>
   <g data-kit="icon-button" transform="translate(291,152)">
@@ -100,18 +145,18 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
 </g>
-<g data-kit="card-table" transform="translate(16,602)">
-  <rect width="343" height="168" rx="13" style="fill:var(--panel)" />
+<g data-kit="card-table" transform="translate(16,630)">
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(38,16)">
-  <rect width="64" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <rect class="k-chipr" width="64" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
   <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">table</text>
 </g>
   <text x="112" y="33" class="k-meta">· hangman</text>
   <text x="16" y="68" class="k-strong">Friday one</text>
   <text x="16" y="94" class="k-meta" style="fill:var(--fg)">2 playing, 3 watching</text>
   <g data-kit="button-pill" transform="translate(16,108)">
-  <rect width="104" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="104" height="44" rx="22" style="fill:var(--fg)" />
   <text x="52" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">sit down</text>
 </g>
   <g data-kit="like" transform="translate(233,108)">
@@ -125,16 +170,16 @@
 </g>
   </g>
 
-<rect x="16" y="778" width="343" height="160" rx="13" style="fill:var(--panel)" />
-<text x="32" y="806" class="k-meta" data-max="311">farther than you asked</text>
-<text x="32" y="834" class="k-body" data-max="311">Board games in the park.</text>
-<g data-kit="chip" transform="translate(32,854)">
-  <rect width="64" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+<rect x="16" y="806" width="343" height="160" rx="13" style="fill:var(--panel)" />
+<text x="32" y="834" class="k-meta" data-max="311">farther than you asked</text>
+<text x="32" y="862" class="k-body" data-max="311">Board games in the park.</text>
+<g data-kit="chip" transform="translate(32,882)">
+  <rect class="k-chipr" width="64" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">party</text>
 </g>
 <g data-kit="header-feed" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <text x="16" y="35" class="k-title">Kolonaki · dozens nearby</text>
+  <text x="16" y="35" class="k-title k-head">Kolonaki · dozens nearby</text>
   <g data-kit="icon-button" transform="translate(315,6)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
@@ -166,16 +211,18 @@
   <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">zurück</text>
 </g>
 <g data-kit="card-phrase" transform="translate(16,108)">
-  <rect width="343" height="182" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="182" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
   <text x="16" y="36" class="k-title">Geht heute Abend jemand an die</text>
   <g><text x="16" y="64" class="k-title">Promenade? Ich bringe eine</text></g>
   <g><text x="16" y="92" class="k-title">Thermoskanne mit.</text></g>
-  <g data-kit="lifespan" transform="translate(16,102)">
+  <g data-kit="lifespan" transform="translate(16,102)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
   <g><g><g data-kit="chip" transform="translate(16,132)">
-  <rect width="118" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <rect class="k-chipr" width="118" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="59" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">Gesellschaft</text>
 </g></g>
   <g data-kit="like" transform="translate(233,122)">
@@ -189,15 +236,15 @@
 </g></g></g>
 </g>
 <g data-kit="card-phrase-own" transform="translate(16,296)">
-  <rect x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
+  <rect class="k-card" x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
   <text x="16" y="36" class="k-title" style="fill:var(--muted)">Suche jemanden zum Go-Spielen.</text>
   <text x="16" y="64" class="k-meta">wird geprüft… · noch 40 Min</text>
   <g><text x="327" y="64" text-anchor="end" class="k-meta">allein</text></g>
 </g>
 <g data-kit="card-offer" transform="translate(16,386)">
-  <rect width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="212" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(16,16)">
-  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">Angebot</text>
 </g>
   <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
@@ -206,7 +253,7 @@
   <text x="16" y="120" class="k-meta">Bedingungen: ab zwei Stück pro Bestellung</text>
   <g><text x="16" y="142" class="k-meta">Rabatt bis 30. September, 18:00</text></g>
   <g data-kit="button-pill" transform="translate(16,152)">
-  <rect width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="140" height="44" rx="22" style="fill:var(--fg)" />
   <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Speichern</text>
 </g>
   <g data-kit="icon-button" transform="translate(291,152)">
@@ -215,17 +262,17 @@
 </g>
 </g>
 <g data-kit="card-table" transform="translate(16,604)">
-  <rect width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(38,16)">
-  <rect width="66" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <rect class="k-chipr" width="66" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
   <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">Tisch</text>
 </g>
   <text x="114" y="33" class="k-meta">· Galgenmännchen</text>
   <text x="16" y="68" class="k-strong">Freitagsrunde</text>
   <text x="16" y="94" class="k-meta" style="fill:var(--fg)">2 spielen, 3 schauen zu</text>
   <g data-kit="button-pill" transform="translate(16,108)">
-  <rect width="136" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="136" height="44" rx="22" style="fill:var(--fg)" />
   <text x="68" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Platz nehmen</text>
 </g>
   <g data-kit="like" transform="translate(233,108)">
@@ -243,12 +290,12 @@
 <text x="32" y="806" class="k-meta" data-max="311">weiter weg, als Sie wollten</text>
 <text x="32" y="834" class="k-body" data-max="311">Wir spielen Brettspiele im Park.</text>
 <g data-kit="chip" transform="translate(32,854)">
-  <rect width="66" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <rect class="k-chipr" width="66" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">Party</text>
 </g>
 <g data-kit="header-feed" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <text x="16" y="35" class="k-title">Kolonaki · Dutzende nebenan</text>
+  <text x="16" y="35" class="k-title k-head">Kolonaki · Dutzende nebenan</text>
   <g data-kit="icon-button" transform="translate(315,6)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
@@ -280,15 +327,17 @@
   <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">վերադառնալ</text>
 </g>
 <g data-kit="card-phrase" transform="translate(16,108)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
   <text x="16" y="36" class="k-title">Որևէ մեկը երեկոյան առափնյա</text>
   <g><text x="16" y="64" class="k-title">գնո՞ւմ է։ Թերմոս կվերցնեմ։</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
   <g><g><g data-kit="chip" transform="translate(16,110)">
-  <rect width="122" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <rect class="k-chipr" width="122" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="61" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">ընկերություն</text>
 </g></g>
   <g data-kit="like" transform="translate(233,100)">
@@ -302,15 +351,15 @@
 </g></g></g>
 </g>
 <g data-kit="card-phrase-own" transform="translate(16,276)">
-  <rect x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
+  <rect class="k-card" x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
   <text x="16" y="36" class="k-title" style="fill:var(--muted)">Փնտրում եմ գո խաղալու ընկեր։</text>
   <text x="16" y="64" class="k-meta">ստուգվում է… · մնաց 40 ր</text>
   <g><text x="327" y="64" text-anchor="end" class="k-meta">մենակ</text></g>
 </g>
 <g data-kit="card-offer" transform="translate(16,368)">
-  <rect width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="212" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(16,16)">
-  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">առաջարկ</text>
 </g>
   <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
@@ -319,7 +368,7 @@
   <text x="16" y="120" class="k-meta">պայմաններ՝ երկուսից պատվիրելիս</text>
   <g><text x="16" y="142" class="k-meta">զեղչը մինչև սեպտեմբերի 30, 18:00</text></g>
   <g data-kit="button-pill" transform="translate(16,152)">
-  <rect width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="140" height="44" rx="22" style="fill:var(--fg)" />
   <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Պահպանել</text>
 </g>
   <g data-kit="icon-button" transform="translate(291,152)">
@@ -328,17 +377,17 @@
 </g>
 </g>
 <g data-kit="card-table" transform="translate(16,588)">
-  <rect width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(38,16)">
-  <rect width="66" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <rect class="k-chipr" width="66" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
   <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">սեղան</text>
 </g>
   <text x="114" y="33" class="k-meta">· կախաղան</text>
   <text x="16" y="68" class="k-strong">Ուրբաթյան</text>
   <text x="16" y="94" class="k-meta" style="fill:var(--fg)">խաղում են 2, դիտում են 3</text>
   <g data-kit="button-pill" transform="translate(16,108)">
-  <rect width="104" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="104" height="44" rx="22" style="fill:var(--fg)" />
   <text x="52" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">նստել</text>
 </g>
   <g data-kit="like" transform="translate(233,108)">
@@ -356,12 +405,12 @@
 <text x="32" y="792" class="k-meta" data-max="311">ավելի հեռու, քան խնդրել եք</text>
 <text x="32" y="820" class="k-body" data-max="311">Սեղանի խաղեր ենք խաղում այգում։</text>
 <g data-kit="chip" transform="translate(32,840)">
-  <rect width="82" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <rect class="k-chipr" width="82" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">խնջույք</text>
 </g>
 <g data-kit="header-feed" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <text x="16" y="35" class="k-title">Կոլոնակի · մոտ տասնյակներ</text>
+  <text x="16" y="35" class="k-title k-head">Կոլոնակի · մոտ տասնյակներ</text>
   <g data-kit="icon-button" transform="translate(315,6)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
@@ -389,7 +438,7 @@
 <g transform="translate(48,1030)" class="k-dark" data-frame="filters.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c10"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c10)"><rect width="375" height="812" style="fill:var(--bg)" />
 <g data-kit="header-screen" transform="translate(0,0)" data-max="290">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <g><text x="16" y="35" class="k-title">Filters</text></g>
+  <g><text x="16" y="35" class="k-title k-head">Filters</text></g>
   <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="icon-button" transform="translate(315,6)">
@@ -426,11 +475,11 @@
 <text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
 <text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">dozens</text>
 <g data-kit="button-secondary" transform="translate(16,428)">
-  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
 </g>
 <g data-kit="button-secondary" transform="translate(315,428)">
-  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
 </g>
 <text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athens · approximate</text>
@@ -456,7 +505,7 @@
 <g transform="translate(471,1030)" class="k-dark" data-frame="filters.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c11"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c11)"><rect width="375" height="812" style="fill:var(--bg)" />
 <g data-kit="header-screen" transform="translate(0,0)" data-max="290">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <g><text x="16" y="35" class="k-title">Filter</text></g>
+  <g><text x="16" y="35" class="k-title k-head">Filter</text></g>
   <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="icon-button" transform="translate(315,6)">
@@ -477,12 +526,12 @@
 </g>
 <text x="16" y="176" class="k-meta" data-max="343">jahrweise, ohne Zahlen</text>
 <text x="359" y="176" class="k-meta" text-anchor="end" data-max="158.51999999999998">ohne Obergrenze</text>
-<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)" />
-<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Sie sind älter geworden — der Filter wurde enger</text>
-<rect x="16" y="254" width="343" height="1" style="fill:var(--border)" />
-<text x="16" y="282" class="k-strong" data-max="150">Radius</text>
-<text x="359" y="282" class="k-meta" text-anchor="end" data-max="273.4">Schema, keine Karte</text>
-<g data-kit="field" transform="translate(16,298)" data-max="311">
+<rect x="16" y="196" width="343" height="64" rx="8" style="fill:var(--panel-2)" />
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Sie sind älter geworden —</text><text x="28" y="243" class="k-meta" data-max="319" style="fill:var(--fg)">der Filter wurde enger</text>
+<rect x="16" y="274" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="302" class="k-strong" data-max="150">Radius</text>
+<text x="359" y="302" class="k-meta" text-anchor="end" data-max="273.4">Schema, keine Karte</text>
+<g data-kit="field" transform="translate(16,318)" data-max="311">
   <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <g><text x="16" y="28" class="k-body" style="fill:var(--muted)">Stadtteil oder Stadt</text></g>
   </g>
@@ -490,26 +539,26 @@
 <circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3" />
 <circle cx="187.5" cy="450" r="4" style="fill:var(--fg)" />
 <circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
-<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
-<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">Dutzende</text>
-<g data-kit="button-secondary" transform="translate(16,428)">
-  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+<text x="187.5" y="458" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
+<text x="187.5" y="486" class="k-meta" text-anchor="middle" data-max="160">Dutzende</text>
+<g data-kit="button-secondary" transform="translate(16,448)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
 </g>
-<g data-kit="button-secondary" transform="translate(315,428)">
-  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+<g data-kit="button-secondary" transform="translate(315,448)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
 </g>
-<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athen · ungefähr</text>
-<rect x="16" y="584" width="343" height="1" style="fill:var(--border)" />
-<text x="16" y="612" class="k-strong" data-max="343">Modus</text>
-<g data-kit="segments" transform="translate(16,628)">
+<text x="187.5" y="582" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athen · ungefähr</text>
+<rect x="16" y="604" width="343" height="1" style="fill:var(--border)" />
+<text x="16" y="632" class="k-strong" data-max="343">Modus</text>
+<g data-kit="segments" transform="translate(16,648)">
   <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">allein</text></g>
   <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">Gesellschaft</text></g>
   <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">Party</text></g>
 </g>
-<g data-kit="tabbar" transform="translate(0,748)">
+<g data-kit="tabbar" transform="translate(0,768)">
   
   <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
   <rect width="375" height="64" style="fill:var(--bg)" />
@@ -523,7 +572,7 @@
 <g transform="translate(894,1030)" class="k-dark" data-frame="filters.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c12"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c12)"><rect width="375" height="812" style="fill:var(--bg)" />
 <g data-kit="header-screen" transform="translate(0,0)" data-max="290">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <g><text x="16" y="35" class="k-title">Զտիչներ</text></g>
+  <g><text x="16" y="35" class="k-title k-head">Զտիչներ</text></g>
   <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="icon-button" transform="translate(315,6)">
@@ -560,11 +609,11 @@
 <text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 կմ</text>
 <text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">տասնյակներ</text>
 <g data-kit="button-secondary" transform="translate(16,428)">
-  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
 </g>
 <g data-kit="button-secondary" transform="translate(315,428)">
-  <rect x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
 </g>
 <text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Կոլոնակի, Աթենք · մոտավոր</text>
@@ -589,15 +638,17 @@
 </g></g>
 <g transform="translate(48,1930)" class="k-dark" data-frame="end.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c20"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c20)"><rect width="375" height="812" style="fill:var(--bg)" />
 <g data-kit="card-phrase" transform="translate(16,-40)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
   <text x="16" y="36" class="k-title">Anyone at the fountain tonight?</text>
   <g><text x="16" y="64" class="k-title">I'll bring a speaker.</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-violet)" />
 </g>
   <g><g><g data-kit="chip" transform="translate(16,110)">
-  <rect width="64" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <rect class="k-chipr" width="64" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">party</text>
 </g></g>
   <g data-kit="like" transform="translate(233,100)">
@@ -611,10 +662,12 @@
 </g></g></g>
 </g>
 <g data-kit="card-phrase" transform="translate(16,132)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
   <text x="16" y="36" class="k-title">Anyone got a type-c charger</text>
   <g><text x="16" y="64" class="k-title">for an hour?</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--muted)" />
 </g>
@@ -632,7 +685,7 @@
 
 <rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)" />
 <g data-kit="chip-outline" transform="translate(32,317)">
-  <rect x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">offer</text>
 </g>
 <text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
@@ -650,7 +703,7 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
 <g data-kit="button-secondary" transform="translate(16,514)">
-  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">show more</text>
 </g>
 <text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">dozens more messages in other languages</text>
@@ -659,7 +712,7 @@
 <text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">show</text>
 <g data-kit="header-feed" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <text x="16" y="35" class="k-title">Kolonaki · dozens nearby</text>
+  <text x="16" y="35" class="k-title k-head">Kolonaki · dozens nearby</text>
   <g data-kit="icon-button" transform="translate(315,6)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
@@ -692,15 +745,17 @@
 </g></g>
 <g transform="translate(471,1930)" class="k-dark" data-frame="end.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c21"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c21)"><rect width="375" height="812" style="fill:var(--bg)" />
 <g data-kit="card-phrase" transform="translate(16,-40)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
   <text x="16" y="36" class="k-title">Ist heute Abend jemand am Brunnen?</text>
   <g><text x="16" y="64" class="k-title">Ich bringe eine Box mit.</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-violet)" />
 </g>
   <g><g><g data-kit="chip" transform="translate(16,110)">
-  <rect width="66" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <rect class="k-chipr" width="66" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="33" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">Party</text>
 </g></g>
   <g data-kit="like" transform="translate(233,100)">
@@ -714,10 +769,12 @@
 </g></g></g>
 </g>
 <g data-kit="card-phrase" transform="translate(16,132)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
-  <text x="16" y="36" class="k-title">Hat jemand ein Type-C-Ladegerät</text>
-  <g><text x="16" y="64" class="k-title">für eine Stunde?</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Hat jemand ein Type-C-</text>
+  <g><text x="16" y="64" class="k-title">Ladegerät für eine Stunde?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--muted)" />
 </g>
@@ -735,7 +792,7 @@
 
 <rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)" />
 <g data-kit="chip-outline" transform="translate(32,317)">
-  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">Angebot</text>
 </g>
 <text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
@@ -753,7 +810,7 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
 <g data-kit="button-secondary" transform="translate(16,514)">
-  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">mehr anzeigen</text>
 </g>
 <text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">Dutzende weitere Nachrichten in anderen Sprachen</text>
@@ -762,7 +819,7 @@
 <text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">anzeigen</text>
 <g data-kit="header-feed" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <text x="16" y="35" class="k-title">Kolonaki · Dutzende nebenan</text>
+  <text x="16" y="35" class="k-title k-head">Kolonaki · Dutzende nebenan</text>
   <g data-kit="icon-button" transform="translate(315,6)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
@@ -795,15 +852,17 @@
 </g></g>
 <g transform="translate(894,1930)" class="k-dark" data-frame="end.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)" /><clipPath id="c22"><rect width="375" height="812" rx="23" /></clipPath><g clip-path="url(#c22)"><rect width="375" height="812" style="fill:var(--bg)" />
 <g data-kit="card-phrase" transform="translate(16,-40)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
   <text x="16" y="36" class="k-title">Երեկոյան շատրվանի մոտ որևէ մեկը</text>
   <g><text x="16" y="64" class="k-title">կլինի՞։ Բարձրախոս կբերեմ։</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-violet)" />
 </g>
   <g><g><g data-kit="chip" transform="translate(16,110)">
-  <rect width="82" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
+  <rect class="k-chipr" width="82" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">խնջույք</text>
 </g></g>
   <g data-kit="like" transform="translate(233,100)">
@@ -817,10 +876,12 @@
 </g></g></g>
 </g>
 <g data-kit="card-phrase" transform="translate(16,132)">
-  <rect width="343" height="160" rx="13" style="fill:var(--panel)" />
-  <text x="16" y="36" class="k-title">Որևէ մեկը type-c լիցքավորիչ ունի՞</text>
-  <g><text x="16" y="64" class="k-title">մեկ ժամով։</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Որևէ մեկը type-c</text>
+  <g><text x="16" y="64" class="k-title">լիցքավորիչ ունի՞ մեկ ժամով։</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--muted)" />
 </g>
@@ -838,7 +899,7 @@
 
 <rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)" />
 <g data-kit="chip-outline" transform="translate(32,317)">
-  <rect x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="81" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">առաջարկ</text>
 </g>
 <text x="343" y="334" class="k-strong" text-anchor="end" data-max="80">−10 %</text>
@@ -856,7 +917,7 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
 <g data-kit="button-secondary" transform="translate(16,514)">
-  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">ցույց տալ ևս</text>
 </g>
 <text x="187.5" y="576" class="k-meta" text-anchor="middle" data-max="343">տասնյակ այլ հաղորդագրություններ այլ լեզուներով</text>
@@ -865,7 +926,7 @@
 <text x="187.5" y="607" class="k-meta-strong" text-anchor="middle" data-max="343" style="fill:var(--accent-text)">ցույց տալ</text>
 <g data-kit="header-feed" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
-  <text x="16" y="35" class="k-title">Կոլոնակի · մոտ տասնյակներ</text>
+  <text x="16" y="35" class="k-title k-head">Կոլոնակի · մոտ տասնյակներ</text>
   <g data-kit="icon-button" transform="translate(315,6)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
@@ -932,12 +993,12 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
 </g>
 <g data-kit="quote-like" transform="translate(16,250)">
-  <rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <g><rect width="343" height="58" rx="13" style="fill:var(--panel)" />
   <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
   <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
   <text x="46" y="26" class="k-body">“embankment, by nine, company”</text>
-  <text x="46" y="46" class="k-meta">liked</text>
-</g>
+  <text x="46" y="46" class="k-meta">liked</text></g>
+  </g>
 <g data-kit="bubble-theirs" transform="translate(16,318)">
   <g><rect width="248.0" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">and that one was mine too</text></g>
   </g>
@@ -990,11 +1051,11 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="158" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect width="174" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">Stille · eine Stunde</text>
-  <g data-kit="icon-chevron-down" transform="translate(120,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <g data-kit="icon-chevron-down" transform="translate(136,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
-  <g data-kit="countdown" transform="translate(186,83)">
+  <g data-kit="countdown" transform="translate(202,83)">
   <text x="0" y="0" class="k-mono" style="fill:var(--muted)">noch 52 Min.</text>
 </g>
   <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">Beenden</text></g>
@@ -1008,36 +1069,37 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
 </g>
 <g data-kit="quote-like" transform="translate(16,250)">
-  <rect width="343" height="58" rx="13" style="fill:var(--panel)" />
-  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
-  <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
-  <text x="46" y="26" class="k-body">„Promenade, gegen neun, Gesellschaft“</text>
-  <text x="46" y="46" class="k-meta">geliked</text>
+  <g><rect width="343" height="78" rx="13" style="fill:var(--panel)" />
+  <rect x="0" y="12" width="3" height="54" rx="1.5" style="fill:var(--accent)" />
+  <g data-kit="icon-heart" transform="translate(4,17)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <text x="46" y="26" class="k-body">„Promenade, gegen neun,</text>
+  <text x="46" y="46" class="k-body">Gesellschaft“</text>
+  <text x="46" y="66" class="k-meta">geliked</text></g>
 </g>
-<g data-kit="bubble-theirs" transform="translate(16,318)">
+<g data-kit="bubble-theirs" transform="translate(16,338)">
   <g><rect width="239.0" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">und das war auch von mir</text></g>
   </g>
-<g data-kit="icon-button" transform="translate(259,316)">
+<g data-kit="icon-button" transform="translate(259,336)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--muted)" /><circle cx="22" cy="22" r="2" style="fill:var(--muted)" /><circle cx="29" cy="22" r="2" style="fill:var(--muted)" /></g>
 </g>
-<g data-kit="system-line" transform="translate(16,384)">
+<g data-kit="system-line" transform="translate(16,404)">
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">Anja hat einen Stein auf e4 gelegt</text>
 </g>
-<g data-kit="bubble-mine" transform="translate(16,398)">
+<g data-kit="bubble-mine" transform="translate(16,418)">
   <g><rect x="238.4" width="104.6" height="40" rx="13" style="fill:var(--panel-2)" /><text x="252.4" y="25.5" class="k-body">guter Zug</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
   </g>
-<g data-kit="bubble-mine" transform="translate(16,462)">
+<g data-kit="bubble-mine" transform="translate(16,482)">
   <g><rect x="95" width="248.0" height="40" rx="13" style="fill:var(--panel-2)" /><text x="109" y="25.5" class="k-body">aber ich gewinne trotzdem</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--err)">nicht gesendet · erneut</text></g>
   </g>
-<rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
-<g data-kit="lifespan" transform="translate(16,742)">
+<rect x="0" y="760" width="375" height="1" style="fill:var(--border)" />
+<g data-kit="lifespan" transform="translate(16,762)">
   <rect width="343" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
-<g data-kit="message-input" transform="translate(16,754)">
+<g data-kit="message-input" transform="translate(16,774)">
   <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><text x="16" y="28" class="k-body">kommst du?</text></g>
   <g><rect x="103.6" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
@@ -1084,12 +1146,12 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--ok)">✓</text></g>
 </g>
 <g data-kit="quote-like" transform="translate(16,250)">
-  <rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <g><rect width="343" height="58" rx="13" style="fill:var(--panel)" />
   <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
   <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
   <text x="46" y="26" class="k-body">«առափնյա, ինը, ընկերություն»</text>
-  <text x="46" y="46" class="k-meta">հավանել են</text>
-</g>
+  <text x="46" y="46" class="k-meta">հավանել են</text></g>
+  </g>
 <g data-kit="bubble-theirs" transform="translate(16,318)">
   <g><rect width="149.4" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">և դա էլ իմն էր</text></g>
   </g>
@@ -1170,11 +1232,11 @@
   <g><circle cx="327" cy="22" r="4" style="fill:var(--accent)" /></g>
 </g>
 <g data-kit="card-tombstone" transform="translate(16,592)">
-  <rect width="343" height="140" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="140" rx="13" style="fill:var(--panel)" />
   <text x="171.5" y="40" text-anchor="middle" class="k-title">The conversation ended</text>
   <text x="171.5" y="66" text-anchor="middle" class="k-meta">There is nothing here any more.</text>
   <g data-kit="button-pill" transform="translate(111.5,80)">
-  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="120" height="44" rx="22" style="fill:var(--fg)" />
   <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Close</text>
 </g>
 </g>
@@ -1202,11 +1264,11 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="158" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect width="174" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">Stille · eine Stunde</text>
-  <g data-kit="icon-chevron-down" transform="translate(120,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <g data-kit="icon-chevron-down" transform="translate(136,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
-  <g data-kit="countdown" transform="translate(186,83)">
+  <g data-kit="countdown" transform="translate(202,83)">
   <text x="0" y="0" class="k-mono" style="fill:var(--muted)">noch 52 Min.</text>
 </g>
   <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">Beenden</text></g>
@@ -1230,11 +1292,11 @@
   <g><circle cx="327" cy="22" r="4" style="fill:var(--accent)" /></g>
 </g>
 <g data-kit="card-tombstone" transform="translate(16,592)">
-  <rect width="343" height="140" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="140" rx="13" style="fill:var(--panel)" />
   <text x="171.5" y="40" text-anchor="middle" class="k-title">Das Gespräch ist beendet</text>
   <text x="171.5" y="66" text-anchor="middle" class="k-meta">Hier ist nichts mehr.</text>
   <g data-kit="button-pill" transform="translate(111.5,80)">
-  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="120" height="44" rx="22" style="fill:var(--fg)" />
   <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Schließen</text>
 </g>
 </g>
@@ -1290,11 +1352,11 @@
   <g><circle cx="327" cy="22" r="4" style="fill:var(--accent)" /></g>
 </g>
 <g data-kit="card-tombstone" transform="translate(16,592)">
-  <rect width="343" height="140" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="343" height="140" rx="13" style="fill:var(--panel)" />
   <text x="171.5" y="40" text-anchor="middle" class="k-title">Զրույցն ավարտվեց</text>
   <text x="171.5" y="66" text-anchor="middle" class="k-meta">Այստեղ այլևս ոչինչ չկա։</text>
   <g data-kit="button-pill" transform="translate(111.5,80)">
-  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="120" height="44" rx="22" style="fill:var(--fg)" />
   <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Փակել</text>
 </g>
 </g>

@@ -18,11 +18,11 @@
 <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин" data-score="1:0"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
-<use href="kit/components.svg#quote-like" x="32" y="257" data-w="311" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
+<use href="kit/components.svg#quote-like" x="16" y="257" data-w="343" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 <use href="kit/components.svg#system-line" x="16" y="387" data-text="Аня положила фишку на e4"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="401" data-w="118" data-text="ход хороший"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="401" data-w="130" data-text="ход хороший"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="468" data-w="210" data-text="но я всё равно выиграю" data-mark="не отправлено · повторить" data-markc="var(--err)"/>
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
 <use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
@@ -41,7 +41,7 @@
 <g class="k-fade">
 <use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
-<use href="kit/components.svg#quote-like" x="32" y="257" data-w="311" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
+<use href="kit/components.svg#quote-like" x="16" y="257" data-w="343" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
@@ -158,8 +158,7 @@
 <text x="116" y="83" text-anchor="middle" class="k-meta">2 км</text>
 <rect x="0" y="96" width="330" height="1" style="fill:var(--border)"/>
 <use href="kit/components.svg#card-phrase" x="16" y="112" data-w="298" data-l1="кто на набережную" data-l2="к девяти?" data-chip="компания" data-chipw="88" data-c="var(--cat-amber)" data-f="190" data-time="" data-likes=""/>
-<use href="kit/components.svg#card-phrase" x="16" y="284" data-w="298" data-l1="ищу четвёртого в домино" data-l2="" data-chip="" data-c="var(--muted)" data-f="60" data-time="" data-likes=""/>
-<text x="32" y="399" class="k-meta">один</text>
+<use href="kit/components.svg#card-phrase" x="16" y="284" data-w="298" data-l1="ищу четвёртого в домино" data-l2="" data-chip="" data-c="var(--muted)" data-f="60" data-time="" data-likes="" data-word="один"/>
 <use href="kit/components.svg#card-phrase" x="16" y="456" data-w="298" data-l1="скамейка, термос," data-l2="без планов" data-chip="туса" data-chipw="56" data-c="var(--cat-violet)" data-f="110" data-time="" data-likes=""/>
 <g transform="translate(330,0)">
 <text x="16" y="34" class="k-title">Беседы</text>
@@ -190,7 +189,7 @@
 <use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 <use href="kit/components.svg#system-line" x="28.5" y="387" data-text="Аня положила фишку на e4"/>
-<use href="kit/components.svg#bubble-mine" x="41" y="401" data-w="118" data-text="ход хороший"/>
+<use href="kit/components.svg#bubble-mine" x="41" y="401" data-w="130" data-text="ход хороший"/>
 <use href="kit/components.svg#bubble-mine" x="41" y="468" data-w="210" data-text="но я всё равно выиграю" data-mark="не отправлено · повторить" data-markc="var(--err)"/>
 <rect x="0" y="740" width="400" height="1" style="fill:var(--border)"/>
 <use href="kit/components.svg#lifespan" x="16" y="742" data-w="368" data-f="320" data-c="var(--accent)"/>

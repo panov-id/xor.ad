@@ -236,8 +236,7 @@
     <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
     <use href="kit/components.svg#header-feed" x="0" y="0" data-title="sosed"/>
     <use href="kit/components.svg#card-phrase" x="16" y="64"/>
-    <use href="kit/components.svg#card-phrase" x="16" y="236" data-l1="Есть у кого зарядка" data-l2="type-c на час?" data-chip="" data-c="var(--muted)" data-f="150" data-time="" data-likes="0"/>
-    <text x="32" y="351" class="k-meta">один</text>
+    <use href="kit/components.svg#card-phrase" x="16" y="236" data-l1="Есть у кого зарядка" data-l2="type-c на час?" data-chip="" data-c="var(--muted)" data-f="150" data-time="" data-likes="0" data-word="один"/>
     <use href="kit/components.svg#card-phrase" x="16" y="408" data-l1="Вечером у фонтана кто-нибудь" data-l2="будет? Принесу колонку." data-chip="туса" data-chipw="56" data-c="var(--cat-violet)" data-f="90" data-time="" data-likes="2"/>
     <use href="kit/components.svg#tabbar" x="0" y="748" data-a1="1" data-dot="1"/>
     <rect x="0" y="0" width="375" height="812" style="fill:var(--scrim);fill-opacity:0.55"/>
@@ -297,9 +296,9 @@
     <circle cx="22" cy="691" r="2.5" style="fill:var(--muted)"/>
     <text x="34" y="696" class="k-meta" style="fill:var(--fg)">решение и его причина — на этом устройстве,</text>
     <text x="34" y="714" class="k-meta" style="fill:var(--fg)">а если оставить почту, то и на почту</text>
-    <rect x="0" y="748" width="375" height="64" style="fill:var(--bg)"/>
-    <rect x="0" y="748" width="375" height="1" style="fill:var(--border)"/>
-    <use href="kit/components.svg#button-primary" x="16" y="758" data-label="пожаловаться"/>
+    <rect x="0" y="728" width="375" height="84" style="fill:var(--bg)"/>
+    <rect x="0" y="728" width="375" height="1" style="fill:var(--border)"/>
+    <use href="kit/components.svg#button-primary" x="16" y="740" data-label="пожаловаться"/>
   </g></g>
 <text x="471" y="2890" class="capb">05 · галочка отмечена: имя, почта,</text>
 <text x="471" y="2908" class="capb">добросовестность, строка §5.1, три обещания</text>
@@ -307,8 +306,7 @@
     <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
     <use href="kit/components.svg#header-feed" x="0" y="0" data-title="sosed"/>
     <use href="kit/components.svg#card-phrase" x="16" y="64"/>
-    <use href="kit/components.svg#card-phrase" x="16" y="236" data-l1="Есть у кого зарядка" data-l2="type-c на час?" data-chip="" data-c="var(--muted)" data-f="150" data-time="" data-likes="0"/>
-    <text x="32" y="351" class="k-meta">один</text>
+    <use href="kit/components.svg#card-phrase" x="16" y="236" data-l1="Есть у кого зарядка" data-l2="type-c на час?" data-chip="" data-c="var(--muted)" data-f="150" data-time="" data-likes="0" data-word="один"/>
     <use href="kit/components.svg#card-phrase" x="16" y="408" data-l1="Вечером у фонтана кто-нибудь" data-l2="будет? Принесу колонку." data-chip="туса" data-chipw="56" data-c="var(--cat-violet)" data-f="90" data-time="" data-likes="2"/>
     <use href="kit/components.svg#tabbar" x="0" y="748" data-a1="1" data-dot="1"/>
     <rect x="0" y="0" width="375" height="812" style="fill:var(--scrim);fill-opacity:0.55"/>

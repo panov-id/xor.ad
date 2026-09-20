@@ -10,20 +10,20 @@
 <rect width="1317" height="4650" style="fill:#ece4d8"/>
 <g transform="translate(48,130)" class="k-dark" data-frame="feed.EN"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c00"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c00)"><rect width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#bar-at-table" x="0" y="56" data-text="you are at a table" data-action="return"/>
-<use href="kit/components.svg#card-phrase" x="16" y="108" data-h="160" data-l1="Anyone going to the embankment" data-l2="tonight? I'll bring a thermos." data-l3="" data-chip="company" data-chipw="80" data-time=""/>
-<rect x="16.5" y="276.5" width="342" height="97" rx="13" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" stroke-dasharray="5 4"/>
-<text x="32" y="310" class="k-title" data-max="311" style="fill:var(--muted)">Looking for someone to play</text>
-<text x="32" y="336" class="k-title" data-max="311" style="fill:var(--muted)">Go with.</text>
-<text x="32" y="362" class="k-meta" data-max="72">checking…</text>
-<use href="kit/components.svg#countdown" x="140" y="362" data-text="40 min left"/>
-<text x="343" y="362" class="k-meta" text-anchor="end" data-max="100">alone</text>
-<use href="kit/components.svg#card-offer" x="16" y="382" data-chip="offer" data-chipw="64" data-venue="Kolos Bakery" data-discount="−20 %" data-text="Second croissant at half price." data-t1="conditions: when ordering two or more" data-t2="discount until 30 September, 18:00" data-cta="Save"/>
-<use href="kit/components.svg#card-table" x="16" y="602" data-chip="table" data-chipw="64" data-game="hangman" data-name="Friday one" data-who="2 playing, 3 watching" data-likes="5" data-cta="sit down" data-ctaw="104"/>
+<use href="kit/components.svg#card-phrase" x="16" y="108" data-h="188" data-l1="Anyone going to the" data-l2="embankment tonight? I'll" data-l3="bring a thermos." data-chip="company" data-chipw="80" data-time=""/>
+<rect x="16.5" y="304.5" width="342" height="97" rx="13" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" stroke-dasharray="5 4"/>
+<text x="32" y="338" class="k-title" data-max="311" style="fill:var(--muted)">Looking for someone to play</text>
+<text x="32" y="364" class="k-title" data-max="311" style="fill:var(--muted)">Go with.</text>
+<text x="32" y="390" class="k-meta" data-max="72">checking…</text>
+<use href="kit/components.svg#countdown" x="140" y="390" data-text="40 min left"/>
+<text x="343" y="390" class="k-meta" text-anchor="end" data-max="100">alone</text>
+<use href="kit/components.svg#card-offer" x="16" y="410" data-chip="offer" data-chipw="64" data-venue="Kolos Bakery" data-discount="−20 %" data-text="Second croissant at half price." data-t1="conditions: when ordering two or more" data-t2="discount until 30 September, 18:00" data-cta="Save"/>
+<use href="kit/components.svg#card-table" x="16" y="630" data-chip="table" data-chipw="64" data-game="hangman" data-name="Friday one" data-who="2 playing, 3 watching" data-likes="5" data-cta="sit down" data-ctaw="104"/>
 <!-- «farther than you asked»: a phrase card with a distance line above it; no symbol carries that line -->
-<rect x="16" y="778" width="343" height="160" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="806" class="k-meta" data-max="311">farther than you asked</text>
-<text x="32" y="834" class="k-body" data-max="311">Board games in the park.</text>
-<use href="kit/components.svg#chip" x="32" y="854" data-w="64" data-label="party" data-c="var(--cat-violet)"/>
+<rect x="16" y="806" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="834" class="k-meta" data-max="311">farther than you asked</text>
+<text x="32" y="862" class="k-body" data-max="311">Board games in the park.</text>
+<use href="kit/components.svg#chip" x="32" y="882" data-w="64" data-label="party" data-c="var(--cat-violet)"/>
 <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
 <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Conversations" data-l3="Me"/>
@@ -98,25 +98,25 @@
 <use href="kit/components.svg#slider-range" x="24" y="114" data-a="86" data-b="327" data-la="" data-lb=""/>
 <text x="16" y="176" class="k-meta" data-max="343">jahrweise, ohne Zahlen</text>
 <text x="359" y="176" class="k-meta" text-anchor="end" data-max="158.51999999999998">ohne Obergrenze</text>
-<rect x="16" y="196" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
-<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Sie sind älter geworden — der Filter wurde enger</text>
-<rect x="16" y="254" width="343" height="1" style="fill:var(--border)"/>
-<text x="16" y="282" class="k-strong" data-max="150">Radius</text>
-<text x="359" y="282" class="k-meta" text-anchor="end" data-max="273.4">Schema, keine Karte</text>
-<use href="kit/components.svg#field" x="16" y="298" data-w="343" data-placeholder="Stadtteil oder Stadt" data-max="311"/>
+<rect x="16" y="196" width="343" height="64" rx="8" style="fill:var(--panel-2)"/>
+<text x="28" y="223" class="k-meta" data-max="319" style="fill:var(--fg)">Sie sind älter geworden —</text><text x="28" y="243" class="k-meta" data-max="319" style="fill:var(--fg)">der Filter wurde enger</text>
+<rect x="16" y="274" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="302" class="k-strong" data-max="150">Radius</text>
+<text x="359" y="302" class="k-meta" text-anchor="end" data-max="273.4">Schema, keine Karte</text>
+<use href="kit/components.svg#field" x="16" y="318" data-w="343" data-placeholder="Stadtteil oder Stadt" data-max="311"/>
 <circle cx="187.5" cy="450" r="88" style="fill:var(--panel);stroke:var(--accent);stroke-width:2"/>
 <circle cx="187.5" cy="450" r="30.8" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:3 3"/>
 <circle cx="187.5" cy="450" r="4" style="fill:var(--fg)"/>
 <circle cx="275.5" cy="450" r="14" style="fill:var(--fg);stroke:var(--bg);stroke-width:2"/>
-<text x="187.5" y="438" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
-<text x="187.5" y="466" class="k-meta" text-anchor="middle" data-max="160">Dutzende</text>
-<use href="kit/components.svg#button-secondary" x="16" y="428" data-w="44" data-label="−"/>
-<use href="kit/components.svg#button-secondary" x="315" y="428" data-w="44" data-label="+"/>
-<text x="187.5" y="562" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athen · ungefähr</text>
-<rect x="16" y="584" width="343" height="1" style="fill:var(--border)"/>
-<text x="16" y="612" class="k-strong" data-max="343">Modus</text>
-<use href="kit/components.svg#segments" x="16" y="628" data-l1="allein" data-l2="Gesellschaft" data-l3="Party" data-s1="" data-s2="1"/>
-<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
+<text x="187.5" y="458" class="k-display" text-anchor="middle" data-max="160" style="font-weight:600">3 km</text>
+<text x="187.5" y="486" class="k-meta" text-anchor="middle" data-max="160">Dutzende</text>
+<use href="kit/components.svg#button-secondary" x="16" y="448" data-w="44" data-label="−"/>
+<use href="kit/components.svg#button-secondary" x="315" y="448" data-w="44" data-label="+"/>
+<text x="187.5" y="582" class="k-meta" text-anchor="middle" data-max="343" style="fill:var(--fg)">Kolonaki, Athen · ungefähr</text>
+<rect x="16" y="604" width="343" height="1" style="fill:var(--border)"/>
+<text x="16" y="632" class="k-strong" data-max="343">Modus</text>
+<use href="kit/components.svg#segments" x="16" y="648" data-l1="allein" data-l2="Gesellschaft" data-l3="Party" data-s1="" data-s2="1"/>
+<use href="kit/components.svg#tabbar" x="0" y="768" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
 </g></g>
 <g transform="translate(894,1030)" class="k-dark" data-frame="filters.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c12"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c12)"><rect width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#header-screen" x="0" y="0" data-title="Զտիչներ" data-back="" data-max="290"/>
@@ -176,7 +176,7 @@
 </g></g>
 <g transform="translate(471,1930)" class="k-dark" data-frame="end.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c21"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c21)"><rect width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Ist heute Abend jemand am Brunnen?" data-l2="Ich bringe eine Box mit." data-chip="Party" data-chipw="66" data-c="var(--cat-violet)" data-likes="2" data-time=""/>
-<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Hat jemand ein Type-C-Ladegerät" data-l2="für eine Stunde?" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
+<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Hat jemand ein Type-C-" data-l2="Ladegerät für eine Stunde?" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
 <!-- a phrase without a category says «alone» in the chip's place; the symbol has no such slot -->
 <text x="32" y="247" class="k-meta" data-max="200">allein</text>
 <!-- a private offer: no venue, no save pill, «private» with like and «…»; card-offer always draws the pill -->
@@ -202,7 +202,7 @@
 </g></g>
 <g transform="translate(894,1930)" class="k-dark" data-frame="end.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c22"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c22)"><rect width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Երեկոյան շատրվանի մոտ որևէ մեկը" data-l2="կլինի՞։ Բարձրախոս կբերեմ։" data-chip="խնջույք" data-chipw="82" data-c="var(--cat-violet)" data-likes="2" data-time=""/>
-<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Որևէ մեկը type-c լիցքավորիչ ունի՞" data-l2="մեկ ժամով։" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
+<use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Որևէ մեկը type-c" data-l2="լիցքավորիչ ունի՞ մեկ ժամով։" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
 <!-- a phrase without a category says «alone» in the chip's place; the symbol has no such slot -->
 <text x="32" y="247" class="k-meta" data-max="200">մենակ</text>
 <!-- a private offer: no venue, no save pill, «private» with like and «…»; card-offer always draws the pill -->
@@ -241,18 +241,18 @@
 <use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-value="coming out?" data-placeholder="" data-caret="112.6" data-counter="9/256"/>
 </g></g>
 <g transform="translate(471,2830)" class="k-dark" data-frame="chatA.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c31"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c31)"><rect width="375" height="812" style="fill:var(--bg)"/>
-<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anja, 24" data-namew="88" data-score="1:0" data-silence="Stille · eine Stunde" data-silencew="158" data-time="noch 52 Min." data-end="Beenden"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anja, 24" data-namew="88" data-score="1:0" data-silence="Stille · eine Stunde" data-silencew="174" data-time="noch 52 Min." data-end="Beenden"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="116" data-w="203.2" data-text="also, zur Promenade?"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="164" data-w="167.4" data-text="neun passt." data-text2="die Bank am Pier" data-markc="var(--ok)"/>
-<use href="kit/components.svg#quote-like" x="16" y="250" data-w="343" data-text="„Promenade, gegen neun, Gesellschaft“" data-by="geliked"/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="318" data-w="239.0" data-text="und das war auch von mir"/>
-<use href="kit/components.svg#icon-button" x="259" y="316" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
-<use href="kit/components.svg#system-line" x="16" y="384" data-text="Anja hat einen Stein auf e4 gelegt"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="398" data-w="104.6" data-text="guter Zug" data-markc="var(--ok)"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="462" data-w="248.0" data-text="aber ich gewinne trotzdem" data-mark="nicht gesendet · erneut" data-markc="var(--err)"/>
-<rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
-<use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="298" data-c="var(--accent)"/>
-<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-value="kommst du?" data-placeholder="" data-caret="103.6" data-counter="9/256"/>
+<use href="kit/components.svg#quote-like" x="16" y="250" data-w="343" data-text="„Promenade, gegen neun," data-text2="Gesellschaft“" data-by="geliked"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="338" data-w="239.0" data-text="und das war auch von mir"/>
+<use href="kit/components.svg#icon-button" x="259" y="336" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#system-line" x="16" y="404" data-text="Anja hat einen Stein auf e4 gelegt"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="418" data-w="104.6" data-text="guter Zug" data-markc="var(--ok)"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="482" data-w="248.0" data-text="aber ich gewinne trotzdem" data-mark="nicht gesendet · erneut" data-markc="var(--err)"/>
+<rect x="0" y="760" width="375" height="1" style="fill:var(--border)"/>
+<use href="kit/components.svg#lifespan" x="16" y="762" data-w="343" data-f="298" data-c="var(--accent)"/>
+<use href="kit/components.svg#message-input" x="16" y="774" data-w="343" data-value="kommst du?" data-placeholder="" data-caret="103.6" data-counter="9/256"/>
 </g></g>
 <g transform="translate(894,2830)" class="k-dark" data-frame="chatA.HY"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c32"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c32)"><rect width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Անի, 24" data-namew="78" data-score="1:0" data-silence="լռություն · մեկ ժամ" data-silencew="158" data-time="մնաց 52 րոպե" data-end="ավարտել"/>
@@ -278,7 +278,7 @@
 <use href="kit/components.svg#field-closed" x="16" y="754" data-w="343" data-text=""/>
 </g></g>
 <g transform="translate(471,3730)" class="k-dark" data-frame="chatX.DE"><rect x="-1" y="-1" width="377" height="814" rx="24" class="phone" style="fill:var(--bg)"/><clipPath id="c41"><rect width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c41)"><rect width="375" height="812" style="fill:var(--bg)"/>
-<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anja, 24" data-namew="88" data-score="1:0" data-silence="Stille · eine Stunde" data-silencew="158" data-time="noch 52 Min." data-end="Beenden"/>
+<use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anja, 24" data-namew="88" data-score="1:0" data-silence="Stille · eine Stunde" data-silencew="174" data-time="noch 52 Min." data-end="Beenden"/>
 <use href="kit/components.svg#bar-connection" x="0" y="104" data-text="Verbindung wird wiederhergestellt…"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="239.0" data-text="und das war auch von mir"/>
 <use href="kit/components.svg#row-chat" x="16" y="216" data-name="Anja, 24" data-line="und das war auch von mir" data-time="52 Min." data-wait="wartet auf Ihre Antwort" data-dot="1" data-sel="1"/>

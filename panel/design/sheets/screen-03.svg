@@ -106,9 +106,7 @@
 <g transform="translate(1740,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1740"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#card-phrase" x="16" y="-40" data-l1="Вечером у фонтана кто-нибудь" data-l2="будет? Принесу колонку." data-chip="туса" data-chipw="56" data-c="var(--cat-violet)" data-likes="2"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Есть у кого зарядка type-c на час?" data-l2="" data-chip="" data-c="var(--muted)" data-time="" data-likes="0"/>
-  <!-- a phrase without a category says «один» in the chip's place; the symbol has no such slot -->
-  <text x="32" y="247" class="k-meta">один</text>
+  <use href="kit/components.svg#card-phrase" x="16" y="132" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-time="" data-likes="0" data-word="один"/>
   <!-- a private offer: no venue, the text on two lines, «частник», like and «…»; card-offer draws a venue and «сохранить» -->
   <rect x="16" y="304" width="343" height="198" rx="13" style="fill:var(--panel)"/>
   <use href="kit/components.svg#chip-outline" x="32" y="317"/>

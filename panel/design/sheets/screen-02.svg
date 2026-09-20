@@ -181,7 +181,7 @@
 <rect width="375" height="812" style="fill:var(--bg);fill-opacity:0.7"/>
 <rect x="0" y="96" width="375" height="716" rx="24" style="fill:var(--panel)"/>
 <rect x="167.5" y="104" width="40" height="4" rx="2" style="fill:var(--border-control)"/>
-<text x="24" y="146" class="k-title">Пользовательское соглашение</text>
+<text x="41" y="146" class="k-title">Пользовательское соглашение</text>
 <use href="kit/components.svg#icon-button" x="321" y="116" data-icon="icon-close" data-name="закрыть"/>
 <text x="24" y="192" class="k-meta">этот документ существует только на английском</text>
 <rect x="0" y="208" width="375" height="1" style="fill:var(--border)"/>

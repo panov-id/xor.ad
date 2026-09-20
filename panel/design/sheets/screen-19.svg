@@ -262,15 +262,15 @@
 <use href="kit/components.svg#system-line" x="16" y="426" data-text="Аня приставила к шестёрке"/>
 </g>
 <g>
-<rect x="16" y="438" width="206.60000000000002" height="106" rx="13" style="fill:var(--panel)"/>
+<rect x="16" y="438" width="222" height="106" rx="13" style="fill:var(--panel)"/>
 <text x="28" y="458" class="k-meta" style="fill:var(--muted)">Миша</text>
-<rect x="148.60000000000002" y="444" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
-<text x="179.60000000000002" y="458" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
+<rect x="164" y="444" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
+<text x="195" y="458" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
 <text x="28" y="480" class="k-body">возьмите на следующую,</text>
 <text x="28" y="502" class="k-body">играю нормально</text>
-<rect x="28" y="514" width="182.60000000000002" height="24" rx="8" style="fill:var(--panel-2)"/>
-<text x="119.30000000000001" y="530" class="k-mono" text-anchor="middle" style="fill:var(--muted)">отказать · сначала почему</text>
-<use href="kit/components.svg#icon-button" x="226.6" y="500" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<rect x="28" y="514" width="215" height="24" rx="8" style="fill:var(--panel-2)"/>
+<text x="135.5" y="530" class="k-mono" text-anchor="middle" style="fill:var(--muted)">отказать · сначала почему</text>
+<use href="kit/components.svg#icon-button" x="242" y="500" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <g>
 <rect x="227.1" y="552" width="131.9" height="56" rx="13" style="fill:var(--panel-2)"/>
@@ -1071,7 +1071,7 @@
 <text x="187.5" y="248.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">играющему рука внизу</text>
 <rect x="16" y="322" width="343" height="88" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
 <text x="187.5" y="364.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">ход · срок 5:00 · кнопки играющего · 88</text>
-<text x="187.5" y="386.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">зрителю здесь только строка хода, кнопок нет</text>
+<text x="187.5" y="386.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">зрителю — только строка хода, без кнопок</text>
 <rect x="16" y="414" width="343" height="262" rx="13" stroke-dasharray="6 4" style="fill:var(--panel);stroke:var(--accent);stroke-width:1"/>
 <text x="187.5" y="543.0" class="k-strong" text-anchor="middle" style="fill:var(--fg)">реплики и ходы · прокрутка · ≈256</text>
 <text x="187.5" y="565.0" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">с момента посадки; ≈ 4 строки; заявки и</text>
@@ -1118,15 +1118,15 @@
 <use href="kit/components.svg#icon-button" x="226.6" y="245" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <g>
-<rect x="16" y="297" width="206.60000000000002" height="106" rx="13" style="fill:var(--panel)"/>
+<rect x="16" y="297" width="222" height="106" rx="13" style="fill:var(--panel)"/>
 <text x="28" y="317" class="k-meta" style="fill:var(--muted)">Миша</text>
-<rect x="148.60000000000002" y="303" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
-<text x="179.60000000000002" y="317" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
+<rect x="164" y="303" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
+<text x="195" y="317" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
 <text x="28" y="339" class="k-body">возьмите на следующую,</text>
 <text x="28" y="361" class="k-body">играю нормально</text>
-<rect x="28" y="373" width="182.60000000000002" height="24" rx="8" style="fill:var(--panel-2)"/>
-<text x="119.30000000000001" y="389" class="k-mono" text-anchor="middle" style="fill:var(--muted)">отказать · сначала почему</text>
-<use href="kit/components.svg#icon-button" x="226.6" y="359" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<rect x="28" y="373" width="215" height="24" rx="8" style="fill:var(--panel-2)"/>
+<text x="135.5" y="389" class="k-mono" text-anchor="middle" style="fill:var(--muted)">отказать · сначала почему</text>
+<use href="kit/components.svg#icon-button" x="242" y="359" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <g>
 <use href="kit/components.svg#bubble-theirs" x="16" y="427" data-w="239.8" data-name="Аня" data-text="берём, если Олег не против"/>
@@ -1168,13 +1168,13 @@
 <use href="kit/components.svg#icon-button" x="226.6" y="193" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <g>
-<rect x="16" y="245" width="206.60000000000002" height="78" rx="13" style="fill:var(--panel)"/>
+<rect x="16" y="245" width="222" height="78" rx="13" style="fill:var(--panel)"/>
 <text x="28" y="265" class="k-meta" style="fill:var(--muted)">Миша</text>
 <rect x="148.60000000000002" y="251" width="62" height="20" rx="8" style="fill:none;stroke:var(--accent);stroke-width:1"/>
 <text x="179.60000000000002" y="265" class="k-mono" text-anchor="middle" style="fill:var(--accent-text)">заявка</text>
 <text x="28" y="287" class="k-body">возьмите на следующую,</text>
 <text x="28" y="309" class="k-body">играю нормально</text>
-<use href="kit/components.svg#icon-button" x="226.6" y="279" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
+<use href="kit/components.svg#icon-button" x="242" y="279" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <g>
 <use href="kit/components.svg#bubble-theirs" x="16" y="347" data-w="239.8" data-name="Аня" data-text="берём, если Олег не против"/>

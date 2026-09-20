@@ -450,7 +450,7 @@
 <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
 <rect x="16" y="72" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="106" class="k-title">Есть у кого зарядка type-c на час?</text>
+<text x="32" y="106" class="k-title">Есть у кого зарядка type-c</text><text x="32" y="134" class="k-title">на час?</text>
 <text x="32" y="162" class="k-meta">один</text>
 <use href="kit/components.svg#like" x="232" y="134" data-count="0" data-c="var(--muted)" data-f="none"/>
 <use href="kit/components.svg#icon-button" x="299" y="134" data-icon="icon-more" data-name="ещё"/>

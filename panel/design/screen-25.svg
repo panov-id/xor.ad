@@ -11,8 +11,14 @@
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
     @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
       src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
-    @font-face { font-family: "JetBrains Mono"; font-weight: 400;
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2500-257F, U+2700-27BF;
       src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx3cwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
     text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
     .k-dark {
       --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
@@ -38,6 +44,42 @@
     /* Н2: the last quarter of a phrase's life */
     .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
     .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    /* storefront characters — night brief 2026-09-20, docs/reviews/NIGHT_2026-09-20_design.md. A frame adds b-sosed or
+       b-neighbro to its theme class; without one nothing below applies and the kit draws as before. */
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlSHYjedg.woff2) format("woff2"); }
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYg.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0bkXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0aUXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0akXa.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/xn7gYHE41ni1AdIRggOxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/xn7gYHE41ni1AdIRggSxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/xn7gYHE41ni1AdIRggexSg.woff2) format("woff2"); }
+    .k-sig { display: none; }
+    /* sosed.place — the courtyard in the evening: a poster on the entrance door. Dense, flat, square, 1 px border */
+    .b-sosed text { font-family: "Golos Text", system-ui, sans-serif; }
+    .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
+    .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
+    .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-ctl-shadow { display: none; }
+    .b-sosed .k-life { display: none; }
+    .b-sosed .k-sig-tag { display: inline; }
+    /* neighbro.place — the promenade at noon: light, airy, rounded, no borders, a soft lift */
+    .b-neighbro text { font-family: "Manrope", system-ui, sans-serif; }
+    .b-neighbro .k-head { font-family: "Commissioner", "Manrope", sans-serif; font-weight: 800; }
+    .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
+    .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
+    .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-ctl-shadow { display: none; }
+    .b-neighbro .k-life { display: none; }
+    .b-neighbro .k-sig-edge { display: inline; }
     .cap  { font-size: 16px; font-weight: 600; fill: #f0e7dc; }
     .capm { font-size: 14px; font-weight: 400; fill: #ab9d88; }
     .sheet { font-size: 26px; font-weight: 600; fill: #f0e7dc; }
@@ -57,7 +99,7 @@
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
   <g><text x="40" y="34" class="k-mono">Я</text></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Мои лайки</text>
   </g>
   <g data-kit="row-undo" transform="translate(24,68)">
   <rect width="327" height="44" rx="8" style="fill:var(--panel-2)" />
@@ -89,7 +131,7 @@
 </g>
   <text x="40" y="384" class="k-mono">один · предложение поговорить</text>
   <g data-kit="button-pill" transform="translate(40,396)">
-  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="200" height="44" rx="22" style="fill:var(--fg)" />
   <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
 </g>
   <g data-kit="like" transform="translate(263,396)">
@@ -101,13 +143,13 @@
   <rect x="24" y="468" width="327" height="176" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(39,485)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(58,481)">
-  <rect width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <rect class="k-chipr" width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
   <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
 </g>
   <text x="40" y="526" class="k-strong">Пятничный</text>
   <text x="40" y="550" class="k-body" style="fill:var(--muted)">виселица · играют 2, смотрят 4</text>
   <g data-kit="button-pill" transform="translate(40,566)">
-  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="120" height="44" rx="22" style="fill:var(--fg)" />
   <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
 </g>
   <g data-kit="like" transform="translate(263,566)">
@@ -119,14 +161,14 @@
   
   <rect x="24" y="656" width="327" height="176" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(40,669)">
-  <rect x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="68" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер частника</text>
 </g>
   <text x="40" y="714" class="k-body">Отдаю два табурета, забирать сегодня.</text>
   <text x="40" y="738" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
   <text x="40" y="762" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
   <g data-kit="button-pill" transform="translate(40,780)">
-  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="200" height="44" rx="22" style="fill:var(--fg)" />
   <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
 </g>
   <g data-kit="like" transform="translate(263,780)">
@@ -134,7 +176,7 @@
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   </g>
   <g data-kit="button-secondary" transform="translate(24,844)">
-  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">показать ещё</text>
 </g>
 </g></g>
@@ -151,12 +193,12 @@
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
   <g><text x="40" y="34" class="k-mono">Я</text></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Мои лайки</text>
   </g>
   <text x="24" y="330" class="k-body">Лайкните фразу или стол в ленте — они</text>
   <text x="24" y="354" class="k-body">соберутся здесь.</text>
   <g data-kit="button-secondary" transform="translate(24,402)">
-  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">В ленту</text>
 </g>
 </g></g>
@@ -173,10 +215,10 @@
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
   <g><text x="40" y="34" class="k-mono">Я</text></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Мои лайки</text>
   </g>
   <g data-kit="card-skeleton" transform="translate(24,68)">
-  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="327" height="160" rx="13" style="fill:var(--panel)" />
   <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
@@ -184,7 +226,7 @@
   <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
 </g>
   <g data-kit="card-skeleton" transform="translate(24,240)">
-  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="327" height="160" rx="13" style="fill:var(--panel)" />
   <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
@@ -192,7 +234,7 @@
   <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
 </g>
   <g data-kit="card-skeleton" transform="translate(24,412)">
-  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="327" height="160" rx="13" style="fill:var(--panel)" />
   <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
@@ -200,7 +242,7 @@
   <rect x="16" y="134" width="120" height="10" rx="5" style="fill:var(--panel-2)" />
 </g>
   <g data-kit="card-skeleton" transform="translate(24,584)">
-  <rect width="327" height="160" rx="13" style="fill:var(--panel)" />
+  <rect class="k-card" width="327" height="160" rx="13" style="fill:var(--panel)" />
   <rect x="16" y="22" width="279" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="50" width="180" height="14" rx="7" style="fill:var(--panel-2)" />
   <rect x="16" y="80" width="295" height="3" rx="1.5" style="fill:var(--panel-2)" />
@@ -220,17 +262,17 @@
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
   <g><text x="40" y="34" class="k-mono">Я</text></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Мои лайки</text>
   </g>
   <g data-kit="card-error" transform="translate(24,64)">
-  <rect width="327" height="152" rx="13" style="fill:var(--panel-2)" />
+  <rect class="k-card" width="327" height="152" rx="13" style="fill:var(--panel-2)" />
   <circle cx="24" cy="28" r="8" style="fill:var(--err)" />
   <text x="24" y="32.5" text-anchor="middle" class="k-mono" style="fill:var(--bg);font-weight:600">!</text>
   <text x="42" y="34" class="k-strong">Нет связи</text>
   <text x="16" y="62" class="k-meta" style="fill:var(--fg)">Похоже, интернет пропал. Набранное</text>
   <g><text x="16" y="82" class="k-meta" style="fill:var(--fg)">на месте, лента — та, что успела прийти.</text></g>
   <g data-kit="button-secondary" transform="translate(16,92)">
-  <rect x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="294" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="147.5" y="27.5" text-anchor="middle" class="k-strong">повторить</text>
 </g>
 </g>
@@ -264,7 +306,7 @@
 </g>
   <text x="40" y="542" class="k-mono">один · предложение поговорить</text>
   <g data-kit="button-pill" transform="translate(40,554)">
-  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="200" height="44" rx="22" style="fill:var(--fg)" />
   <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
 </g>
   <g data-kit="like" transform="translate(263,554)">
@@ -276,13 +318,13 @@
   <rect x="24" y="626" width="327" height="176" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(39,643)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(58,639)">
-  <rect width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <rect class="k-chipr" width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
   <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
 </g>
   <text x="40" y="684" class="k-strong">Пятничный</text>
   <text x="40" y="708" class="k-body" style="fill:var(--muted)">виселица · играют 2, смотрят 4</text>
   <g data-kit="button-pill" transform="translate(40,724)">
-  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="120" height="44" rx="22" style="fill:var(--fg)" />
   <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
 </g>
   <g data-kit="like" transform="translate(263,724)">
@@ -294,14 +336,14 @@
   
   <rect x="24" y="814" width="327" height="176" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(40,827)">
-  <rect x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="68" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер частника</text>
 </g>
   <text x="40" y="872" class="k-body">Отдаю два табурета, забирать сегодня.</text>
   <text x="40" y="896" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
   <text x="40" y="920" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
   <g data-kit="button-pill" transform="translate(40,938)">
-  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="200" height="44" rx="22" style="fill:var(--fg)" />
   <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
 </g>
   <g data-kit="like" transform="translate(263,938)">
@@ -322,7 +364,7 @@
   <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g></g>
   <g><text x="40" y="34" class="k-mono">Я</text></g>
-  <text x="187.5" y="35" text-anchor="middle" class="k-title">Мои лайки</text>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Мои лайки</text>
   </g>
   <g data-kit="row-undo" transform="translate(24,68)">
   <rect width="327" height="44" rx="8" style="fill:var(--panel-2)" />
@@ -350,13 +392,13 @@
   <rect x="24" y="270" width="327" height="176" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(39,287)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(58,283)">
-  <rect width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <rect class="k-chipr" width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
   <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
 </g>
   <text x="40" y="328" class="k-strong">Пятничный</text>
   <text x="40" y="352" class="k-body" style="fill:var(--muted)">виселица · играют 2, смотрят 4</text>
   <g data-kit="button-pill" transform="translate(40,368)">
-  <rect width="120" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="120" height="44" rx="22" style="fill:var(--fg)" />
   <text x="60" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
 </g>
   <g data-kit="like" transform="translate(263,368)">
@@ -368,14 +410,14 @@
   
   <rect x="24" y="458" width="327" height="184" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(40,471)">
-  <rect x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <rect class="k-chipr" x="0.5" y="0.5" width="135" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="68" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер частника</text>
 </g>
   <text x="40" y="516" class="k-body">Отдаю два табурета, забирать сегодня.</text>
   <text x="40" y="540" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
   <text x="40" y="564" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
   <g data-kit="button-pill" transform="translate(40,582)">
-  <rect width="200" height="44" rx="22" style="fill:var(--fg)" />
+  <rect class="k-pill" width="200" height="44" rx="22" style="fill:var(--fg)" />
   <text x="100" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">к предложению</text>
 </g>
   <g data-kit="like" transform="translate(263,582)">
@@ -383,7 +425,7 @@
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
   </g>
   <g data-kit="button-secondary" transform="translate(24,654)">
-  <rect x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="326" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="163.5" y="27.5" text-anchor="middle" class="k-strong">показать ещё</text>
 </g>
 </g></g>

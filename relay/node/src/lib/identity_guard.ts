@@ -13,6 +13,8 @@
 // able to move anything, including a counter.
 
 import { query } from "./db.ts";
+
+const A_DAY_MS = 24 * 60 * 60 * 1000;
 import { json } from "./http.ts";
 import {
   PROTOCOL_MAJOR,
@@ -38,6 +40,7 @@ interface SessionRow {
   identity_id: string;
   sign_public_key: string;
   frozen_at: Date | null;
+  last_seen_at: Date;
   stepped_away_until: Date | null;
   signup_completed_at: Date | null;
   closed_at: Date | null;
@@ -93,7 +96,7 @@ export async function callerOf(
   if (!sessionId || !/^[0-9a-fA-F-]{36}$/.test(sessionId)) return unauthorized();
 
   const rows = await query<SessionRow>(
-    `SELECT s.id AS session_id, s.identity, s.sign_public_key, s.frozen_at,
+    `SELECT s.id AS session_id, s.identity, s.sign_public_key, s.frozen_at, s.last_seen_at,
             i.id AS identity_id, i.stepped_away_until, i.signup_completed_at, i.closed_at
        FROM sessions s JOIN identities i ON i.id = s.identity
       WHERE s.id = $1`,
@@ -122,6 +125,28 @@ export async function callerOf(
     // membership check at all". Same wording as an unknown session, for the same
     // reason — screen 2 promises there is no identity yet.
     return unauthorized();
+  }
+
+  // The only writer of `last_seen_at`, and the identity sweeper is why it has to
+  // exist: the year of disuse is counted from this column
+  // (lib/identity_sweeper.ts), so with nobody writing it the year ran from the
+  // session's creation instead. A person using the product daily would have
+  // been closed on the anniversary of their registration — recovery columns
+  // emptied, share burned, paper code useless. Found by the data lens of the
+  // review panel on 2026-09-20, in a sweeper written the same night: the column
+  // had been dormant and harmless until something started reading it.
+  //
+  // Written at most once a day, which the DDL promises in its own comment, and
+  // decided here rather than in SQL: the row is already in hand, so the common
+  // case costs no statement at all rather than an UPDATE that matches nothing.
+  //
+  // Awaited, though it is bookkeeping. Letting it run loose would mean a write
+  // outliving the request that started it, which is a connection nobody is
+  // waiting on and an error nobody reads — and once a day per session is not a
+  // cost worth that. `query` swallows its own failure, so a database that
+  // cannot take the write refuses nothing here.
+  if (row.last_seen_at.getTime() < Date.now() - A_DAY_MS) {
+    await query(`UPDATE sessions SET last_seen_at = now() WHERE id = $1`, [row.session_id]);
   }
 
   const away = row.stepped_away_until;

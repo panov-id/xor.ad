@@ -25,7 +25,7 @@
 // has to outlive the moment it is closed, or there is nothing left to answer it
 // with.
 
-import { queryOrThrow } from "./db.ts";
+import { queryOrThrow, transaction } from "./db.ts";
 import { log } from "./log.ts";
 
 // docs/facts/limits.tsv, by name. Written as numbers here and as intervals in
@@ -50,7 +50,19 @@ export interface SweepResult {
 // its sessions; each of the others joins this statement in the step that creates
 // its table, and the spec paragraph is the checklist for doing so.
 async function closeIdentities(): Promise<number> {
-  const rows = await queryOrThrow<{ count: string }>(
+  // In a transaction, and the reason is the notification rather than the
+  // writes: freezing a session has to announce itself on `session_frozen`
+  // (lib/sessions.ts), or a tab whose socket is already open keeps receiving
+  // until the TCP connection drops. The statement below froze sessions in a CTE
+  // and said nothing — exactly the defect the comment on freezeSession() warns
+  // about, written by the same hand two hours earlier and found by the
+  // operations lens of the review panel on 2026-09-20.
+  //
+  // The freezing stays inside the one statement, because it has to be atomic
+  // with the closing; what moves out is the announcing, which Postgres holds
+  // until COMMIT anyway and therefore cannot outrun the write.
+  return await transaction(async (run) => {
+  const rows = await run<{ count: string; frozen: string[] }>(
     `WITH stale AS (
        SELECT i.id FROM identities i
         WHERE i.closed_at IS NULL
@@ -74,9 +86,15 @@ async function closeIdentities(): Promise<number> {
      ), faces AS (
        DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM shut) RETURNING identity
      )
-     SELECT count(*)::text AS count FROM shut`,
+     SELECT (SELECT count(*) FROM shut)::text AS count,
+            coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen`,
   );
-  return Number(rows[0]?.count ?? 0);
+  const closed = Number(rows[0]?.count ?? 0);
+  for (const sessionId of rows[0]?.frozen ?? []) {
+    await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
+  }
+  return closed;
+  });
 }
 
 // One pass. Returns what it did, so the caller can log a line only when there is

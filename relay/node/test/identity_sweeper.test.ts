@@ -151,6 +151,46 @@ Deno.test("a quiet pass says nothing and changes nothing", async () => {
   assertEquals((await identityRow(live.identityId)).closed_at, null);
 });
 
+// Closing a session is a freeze, and every freeze has to announce itself —
+// otherwise a tab with an open socket goes on receiving until the TCP
+// connection drops. The sweeper used to freeze inside a CTE and say nothing;
+// found by the operations lens of the review panel, 2026-09-20.
+//
+// The driver cannot receive notifications (open-work G14), so the arrival is
+// proved by the throw it makes on the next query — the same positive control
+// test/session_freeze.test.ts uses, and its comment explains why.
+Deno.test("closing an inactive identity announces the freeze", async () => {
+  const { Client } = await import("jsr:@db/postgres@0.19");
+  const gone = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 1 });
+  const listener = new Client(Deno.env.get("DATABASE_URL")!);
+  await listener.connect();
+  await listener.queryObject("LISTEN session_frozen");
+
+  const quiet = await listener.queryObject("SELECT 1").then(() => true).catch(() => false);
+  assert(quiet, "something was announced before the sweeper ran");
+
+  await sweeper.sweepIdentities();
+
+  let announced = false;
+  try {
+    await listener.queryObject("SELECT 1");
+  } catch (error) {
+    assert(
+      /Unexpected simple query message: A/.test(String(error)),
+      `the listening connection failed for another reason: ${error}`,
+    );
+    announced = true;
+  }
+  assert(announced, "the sweeper froze a session without announcing it");
+
+  const [session] = await database.queryOrThrow<{ frozen_reason: string | null }>(
+    `SELECT frozen_reason FROM sessions WHERE id = $1`,
+    [gone.sessionId],
+  );
+  assertEquals(session.frozen_reason, "closed");
+  await listener.end();
+});
+
 // The cases above place their rows relative to the sweeper's own constants, so
 // they measure behaviour and cannot measure the numbers: change a constant and
 // both sides of every one of them moves together. docs/facts/limits.tsv is the

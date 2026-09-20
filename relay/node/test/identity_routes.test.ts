@@ -284,6 +284,50 @@ Deno.test("the profile answers a finished registration and refuses an unsigned r
   assertEquals(bare.status, 401);
 });
 
+Deno.test("a signed request marks the session as seen, at most once a day", async () => {
+  // The identity sweeper counts a year of disuse from `sessions.last_seen_at`,
+  // and until 2026-09-20 nothing wrote that column: the year ran from the
+  // session's creation, so somebody using the product every day would have been
+  // closed on the anniversary of their registration. Found by the data lens of
+  // the review panel; this is the case that would have caught it.
+  const { answer, pair } = await register();
+  const created = answer.body as { session_id: string };
+  await signedCall(pair.privateKey, created.session_id, "POST", "/recovery/confirm", {
+    recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
+  });
+
+  const seen = async () =>
+    (await database.queryOrThrow<{ last_seen_at: Date }>(
+      `SELECT last_seen_at FROM sessions WHERE id = $1`,
+      [created.session_id],
+    ))[0].last_seen_at;
+
+  // Old enough to be worth writing: a day is the promised floor, so the row is
+  // aged past it rather than the test waiting one out.
+  await database.queryOrThrow(
+    `UPDATE sessions SET last_seen_at = now() - interval '2 days' WHERE id = $1`,
+    [created.session_id],
+  );
+  const stale = await seen();
+
+  const me = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(me.status, 200);
+  const fresh = await seen();
+  assert(
+    fresh.getTime() > stale.getTime(),
+    "a signed request did not mark the session as seen",
+  );
+
+  // And not again on the next request: the column is written at most once a
+  // day, so a read does not turn into a write on every call.
+  await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(
+    (await seen()).getTime(),
+    fresh.getTime(),
+    "the second request wrote last_seen_at again within the same day",
+  );
+});
+
 Deno.test("another device's signature does not open this session", async () => {
   const { answer } = await register();
   const created = answer.body as { session_id: string };
@@ -580,6 +624,47 @@ async function registered(pin: Uint8Array = AUTH) {
   return { created, pair, lookupId, wrapped, share };
 }
 
+Deno.test("the node stores a hash of the paper code's half, not the half itself", async () => {
+  // A read-only copy of `identities` must not be a set of keys. Until
+  // 2026-09-20 the column held exactly what the device presents, so a dump was
+  // one POST away from taking over every identity on the node — found by the
+  // security lens of the review panel. The PIN never worked that way, and this
+  // is the same rule applied to the other half.
+  const { created, lookupId, wrapped } = await registered();
+
+  const [row] = await database.queryOrThrow<{ recovery_auth_hash: string }>(
+    `SELECT recovery_auth_hash FROM identities WHERE id = $1`,
+    [created.identity_id],
+  );
+  assert(
+    row.recovery_auth_hash !== lookupId,
+    "the presented half of the paper code is stored verbatim",
+  );
+  assertEquals(row.recovery_auth_hash, await auth.sha256hex(new TextEncoder().encode(lookupId)));
+
+  // What the dump holds does not work as a code: presenting the stored value
+  // finds nothing, because the node hashes what it is given.
+  const withStolen = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: row.recovery_auth_hash,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(withStolen.status, 404, "the stored value worked as a paper code");
+
+  // And the real half still raises the identity.
+  const honest = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(honest.status, 200);
+  assertEquals((honest.body as { recovery_wrapped_key: string }).recovery_wrapped_key, wrapped);
+});
+
 Deno.test("the paper code raises the identity on a clean device", async () => {
   const { created, pair, lookupId, wrapped } = await registered();
   const fresh = await device();
@@ -804,6 +889,28 @@ Deno.test("a code that matches nothing says one thing and touches nothing", asyn
   assertEquals(after[0].frozen_at, before[0].frozen_at);
 });
 
+Deno.test("a bare lookup_id cannot tell a hit from a miss", async () => {
+  // The refusal must not be an oracle. With the key checks below the search, a
+  // request carrying nothing but a lookup_id got 404 for a wrong code and 400
+  // for a right one — a free, silent confirmation of a photographed code, while
+  // the real path costs the owner their session and their share. Found by the
+  // security lens of the review panel, 2026-09-20.
+  const { lookupId } = await registered();
+
+  const hit = await call("POST", "/recovery/claim", { body: { lookup_id: lookupId } });
+  const miss = await call("POST", "/recovery/claim", { body: { lookup_id: crypto.randomUUID() } });
+  assertEquals(
+    hit.status,
+    miss.status,
+    "a right code and a wrong one are told apart by the status of a bare request",
+  );
+  assertEquals(
+    (hit.body as { error: { code: string } }).error.code,
+    (miss.body as { error: { code: string } }).error.code,
+    "a right code and a wrong one are told apart by the error code",
+  );
+});
+
 Deno.test("an unfinished registration cannot be raised by its own code", async () => {
   // No POST /recovery/confirm: the code was shown and never written down, so
   // `recovery_wrapped_key` is NULL and there is nothing to hand over. §8.2 says
@@ -826,11 +933,22 @@ Deno.test("fifty wrong codes across the node pause the route for everyone", asyn
   // Under the threshold the route is still answering. Each call comes from an
   // address of its own: the per-address ceiling is a different mechanism and
   // must not be what this case measures.
+  //
+  // Every miss carries real keys, because a request without them is refused
+  // before the lookup (that refusal is what keeps a bare request from being an
+  // oracle) and therefore is not a miss at all. One key pair for all fifty: a
+  // fresh P-256 pair per call would make this case a benchmark of WebCrypto.
+  const guesser = await device();
+  const wrapPub = auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91)));
+  const guess = () =>
+    call("POST", "/recovery/claim", {
+      body: { lookup_id: crypto.randomUUID(), sign_pub: guesser.signPub, wrap_pub: wrapPub },
+    });
   for (let i = 0; i < misses.SHARED_MISS_MAX - 1; i++) {
-    const answer = await call("POST", "/recovery/claim", { body: { lookup_id: "no-such-code" } });
+    const answer = await guess();
     assertEquals(answer.status, 404, `the route paused after ${i + 1} misses`);
   }
-  const last = await call("POST", "/recovery/claim", { body: { lookup_id: "no-such-code" } });
+  const last = await guess();
   assertEquals(last.status, 404, "the fiftieth miss was not answered as a miss");
 
   // And now a real code waits too. The price is named in §8.2: while the brake

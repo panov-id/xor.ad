@@ -142,7 +142,7 @@ async function createIdentity(req: Request): Promise<Response> {
     await run(
       `INSERT INTO identities (id, name, age, identity_public_key, recovery_auth_hash)
        VALUES ($1, $2, $3, $4, $5)`,
-      [identityId, name, body.age, body.sign_pub, body.recovery_lookup_id],
+      [identityId, name, body.age, body.sign_pub, await recoveryHash(body.recovery_lookup_id as string)],
     );
     await run(
       `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
@@ -339,11 +339,34 @@ async function claimRecovery(req: Request): Promise<Response> {
   if (!body) return refuse("invalid_body", "the body is not json", 400);
   if (!isText(body.lookup_id, 512)) return refuse("invalid_body", "lookup_id is missing", 400);
 
+  // The clean device's keys are checked **before** the lookup, and the order is
+  // the security property rather than tidiness. With the check below the
+  // search, a caller could send a bare `lookup_id` and read the answer off the
+  // refusal: a miss came back 404 from the search, a hit came back 400 about
+  // the missing sign_pub — and the hit cost nothing at all, because the freeze,
+  // the burn and the shared miss counter all live past the point where it
+  // stopped. Confirming a code you have photographed was therefore cheaper than
+  // using it, and invisible to its owner. Found by the security lens of the
+  // review panel, 2026-09-20.
+  //
+  // A request signed by its own session needs no keys: that device already has
+  // them, and `caller` is how the node knows.
+  const label = typeof body.label === "string" ? body.label.slice(0, 200) : null;
+  const sessionId = crypto.randomUUID();
+  if (!caller) {
+    if (!isText(body.sign_pub, 1024) || !await importSignPublicKey(body.sign_pub)) {
+      return refuse("invalid_body", "sign_pub is not a base64url SPKI P-256 key", 400);
+    }
+    if (!isText(body.wrap_pub, 1024) || !base64urlToBytes(body.wrap_pub)) {
+      return refuse("invalid_body", "wrap_pub is not base64url", 400);
+    }
+  }
+
   const found = await query<{ id: string; recovery_wrapped_key: Uint8Array | null }>(
     `SELECT id, recovery_wrapped_key FROM identities
       WHERE recovery_auth_hash = $1 AND closed_at IS NULL
         AND signup_completed_at IS NOT NULL`,
-    [body.lookup_id],
+    [await recoveryHash(body.lookup_id)],
   );
   if (found === null) return refuse("unavailable", "the node cannot answer right now", 503);
   const identity = found[0];
@@ -398,17 +421,6 @@ async function claimRecovery(req: Request): Promise<Response> {
     return answer;
   }
 
-  // A clean device brings the keys it was born with, and they are checked the
-  // way registration checks them — by importing, not by measuring.
-  if (!isText(body.sign_pub, 1024) || !await importSignPublicKey(body.sign_pub)) {
-    return refuse("invalid_body", "sign_pub is not a base64url SPKI P-256 key", 400);
-  }
-  if (!isText(body.wrap_pub, 1024) || !base64urlToBytes(body.wrap_pub)) {
-    return refuse("invalid_body", "wrap_pub is not base64url", 400);
-  }
-  const label = typeof body.label === "string" ? body.label.slice(0, 200) : null;
-  const sessionId = crypto.randomUUID();
-
   const answer = await transaction<Response>(async (run) => {
     // Every live session of this identity goes quiet before the new one is
     // written, or the partial unique index refuses the insert. `transfer` rather
@@ -431,7 +443,7 @@ async function claimRecovery(req: Request): Promise<Response> {
     await run(
       `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
        VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, identity.id, body.sign_pub, body.wrap_pub, label],
+      [sessionId, identity.id, body.sign_pub as string, body.wrap_pub as string, label],
     );
     // No share is written here: the device has no PIN yet, and POST /vault/init
     // is the route that takes one — against the grant left below.
@@ -462,6 +474,28 @@ interface VaultRow {
   attempts_left: number;
   next_attempt_at: Date | null;
   locked_at: Date | null;
+}
+
+// The stored half of the paper code is a hash of what the device presents, not
+// the thing itself — the column is called `recovery_auth_hash` and db/022 says
+// "hash of half the paper code", and until 2026-09-20 the node stored the
+// presented value verbatim and compared it verbatim.
+//
+// What that cost, and why it is the same rule as the PIN one line below: a
+// read-only copy of `identities` — a backup, an injection, a contractor, a
+// seizure, the class the canon names — carried the bearer for every identity on
+// the node. Anyone holding it could call POST /recovery/claim, take a live
+// session, freeze the owner's device and burn their share, and the owner's way
+// back is a piece of paper they may not have. The long key stays wrapped under
+// the other half, so the old conversations do not open; everything else does.
+// The PIN never had this hole: the device sends `auth` and the node stores
+// sha256 of it (below), which is exactly why a dump is useless against a PIN.
+//
+// Found by the security lens of the review panel, 2026-09-20. The device sends
+// the same `lookup_id` as before — this is not a protocol change, and the
+// canon's own wording is what the code now does.
+async function recoveryHash(lookupId: string): Promise<string> {
+  return await sha256hex(new TextEncoder().encode(lookupId));
 }
 
 // Constant time over the hex, because a comparison that returns early tells the

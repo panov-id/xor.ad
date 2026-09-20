@@ -875,7 +875,9 @@
 </g>
 </g>
   <g data-kit="empty-state" transform="translate(16,220)">
-  <g data-kit="icon-nav-feed" transform="translate(149.5,0)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g>
+  <g data-kit="icon-quiet" transform="translate(149.5,0)">
+  <path d="M9 27 H35 M12 18 H32 M16 18 V27 M28 18 V27 M13 27 V34 M31 27 V34" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" />
+</g>
   <text x="171.5" y="88" text-anchor="middle" class="k-display">Во дворе тихо</text>
   <text x="171.5" y="120" text-anchor="middle" class="k-body" style="fill:var(--muted)">Никто ещё ничего не сказал.</text>
   <g><text x="171.5" y="144" text-anchor="middle" class="k-body" style="fill:var(--muted)">Скажите первым — вас услышат.</text></g>
@@ -916,7 +918,9 @@
 </g>
 </g>
   <g data-kit="empty-state" transform="translate(16,220)">
-  <g data-kit="icon-nav-feed" transform="translate(149.5,0)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g>
+  <g data-kit="icon-quiet" transform="translate(149.5,0)">
+  <path d="M9 27 H35 M12 18 H32 M16 18 V27 M28 18 V27 M13 27 V34 M31 27 V34" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" />
+</g>
   <text x="171.5" y="88" text-anchor="middle" class="k-display">The street is quiet</text>
   <text x="171.5" y="120" text-anchor="middle" class="k-body" style="fill:var(--muted)">Nobody has said anything yet.</text>
   <g><text x="171.5" y="144" text-anchor="middle" class="k-body" style="fill:var(--muted)">Say the first thing — they will hear.</text></g>

@@ -182,7 +182,7 @@
 <g transform="translate(48,5892)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c12"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c12)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · пока тихо"/>
-  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="Во дворе тихо" data-l1="Никто ещё ничего не сказал." data-l2="Скажите первым — вас услышат." data-action="В ленту"/>
+  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-quiet" data-title="Во дворе тихо" data-l1="Никто ещё ничего не сказал." data-l2="Скажите первым — вас услышат." data-action="В ленту"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
 </g></g>
@@ -192,7 +192,7 @@
 <g transform="translate(471,5892)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c13"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c13)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · quiet so far"/>
-  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="The street is quiet" data-l1="Nobody has said anything yet." data-l2="Say the first thing — they will hear." data-action="To the feed"/>
+  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-quiet" data-title="The street is quiet" data-l1="Nobody has said anything yet." data-l2="Say the first thing — they will hear." data-action="To the feed"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
 </g></g>

@@ -18,6 +18,9 @@
 <symbol id="icon-filter" data-p-c="var(--fg)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
 <symbol id="icon-more" data-p-c="var(--fg)"><circle cx="15" cy="22" r="2" style="fill:{c}"/><circle cx="22" cy="22" r="2" style="fill:{c}"/><circle cx="29" cy="22" r="2" style="fill:{c}"/></symbol>
 <symbol id="icon-heart" data-p-c="var(--muted)" data-p-f="none"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:{f};stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
+<symbol id="icon-quiet" data-p-c="var(--muted)"><!-- an empty bench: the yard is quiet, and it is not the chats icon -->
+  <path d="M9 27 H35 M12 18 H32 M16 18 V27 M28 18 V27 M13 27 V34 M31 27 V34" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round"/>
+</symbol>
 <symbol id="icon-house" data-p-c="var(--accent)"><path d="M14 26 L22 19 L30 26 L30 33 L14 33 Z" style="fill:none;stroke:{c};stroke-width:2;stroke-linejoin:round"/></symbol>
 <symbol id="icon-game" data-p-c="var(--fg)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:{c};stroke-width:2"/><circle cx="17.5" cy="17.5" r="1.8" style="fill:{c}"/><circle cx="26.5" cy="17.5" r="1.8" style="fill:{c}"/><circle cx="22" cy="22" r="1.8" style="fill:{c}"/><circle cx="17.5" cy="26.5" r="1.8" style="fill:{c}"/><circle cx="26.5" cy="26.5" r="1.8" style="fill:{c}"/></symbol>
 <symbol id="icon-send" data-p-c="var(--accent-ink)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:{c};stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/></symbol>

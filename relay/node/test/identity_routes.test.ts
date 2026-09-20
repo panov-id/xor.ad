@@ -700,6 +700,85 @@ Deno.test("the paper code reopens the device the tenth PIN mistake closed", asyn
   assertEquals(after.locked_at, null);
 });
 
+Deno.test("the paper code raises an identity that has no live session left", async () => {
+  // §14 asks for this one twice over, and the second half is the one the canon
+  // had to correct: "when no live sessions remain" contradicted itself, because
+  // there is nothing to freeze then. This is that half — the browser was
+  // cleared, so the identity's only session was already frozen and nothing at
+  // all is live when the code arrives.
+  const { created, lookupId, wrapped } = await registered();
+  await database.queryOrThrow(
+    `UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`,
+    [created.session_id],
+  );
+
+  const raised = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(raised.status, 200, "a dead identity could not be raised");
+  const answer = raised.body as { session_id: string; recovery_wrapped_key: string };
+  assertEquals(answer.recovery_wrapped_key, wrapped);
+
+  // And the new session is live: the partial unique index would have refused it
+  // if the frozen one had been left in the way.
+  const [fresh] = await database.queryOrThrow<{ frozen_at: Date | null }>(
+    `SELECT frozen_at FROM sessions WHERE id = $1`,
+    [answer.session_id],
+  );
+  assertEquals(fresh.frozen_at, null);
+});
+
+Deno.test("a device left behind cannot open its history even with the right PIN", async () => {
+  // Test map 4.7 and §14: the disk is not wiped and the files are still there,
+  // but the move burned the node's half, so the old device opens nothing —
+  // proved with the PIN that used to work, not by reading the column.
+  const pin = crypto.getRandomValues(new Uint8Array(32));
+  const { created, pair, lookupId } = await registered(pin);
+
+  // It worked before the move.
+  const before = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(pin),
+  );
+  assertEquals(before.status, 200, "the PIN did not work before the move");
+
+  const moved = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  const raised = moved.body as { session_id: string };
+
+  // Unfreeze the abandoned device by hand: being refused by the guard is a
+  // different refusal, and the one under test is the burned share. This is the
+  // strongest form of the claim — even a device that somehow speaks again gets
+  // nothing back.
+  //
+  // The new session has to go quiet first. One live session per identity is
+  // held by a partial unique index rather than by code, and it refuses the
+  // second — which is how this test first failed, and is itself the thing test
+  // map 4.1 asks for.
+  await database.queryOrThrow(
+    `UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`,
+    [raised.session_id],
+  );
+  await database.queryOrThrow(
+    `UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`,
+    [created.session_id],
+  );
+  await clearDelay(created.session_id);
+  const after = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(pin),
+  );
+  assertEquals(after.status, 404, "the abandoned device still had a share to collect");
+  assertEquals((after.body as { error: { code: string } }).error.code, "not_found");
+});
+
 Deno.test("a code that matches nothing says one thing and touches nothing", async () => {
   const { created } = await registered();
   const before = await database.queryOrThrow<{ frozen_at: Date | null }>(

@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 227 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN |
+| `relay/node/test` | 242 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **237** | **about chat and feed — 0; about the request signature — 12, about step 1's routes against a live Postgres — 18 (2026-09-20)** |
+| **Total** | **252** | **about chat and feed — 0; about the request signature — 12, about step 1 against a live Postgres — 33: routes 25, freezing 3, the sweeper 5 (2026-09-20, overnight)** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
@@ -66,27 +66,27 @@ through three different wrappers and cannot be counted by eye.
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
-| 2.1 | An unsigned request does not pass | a bare `curl` at a guarded route → refused | nothing to check |
+| 2.1 | An unsigned request does not pass | a bare `curl` at a guarded route → refused | **held** — "the profile answers a finished registration and refuses an unsigned request" (`identity_routes.test.ts`) |
 | 2.2 | A signature outside the ±5 minute window is not accepted | client clock moved 6 minutes → refused | nothing to check |
-| 2.3 | The signature covers method, path, sha256 of the body and time | one byte of the body changed under the same signature → refused | nothing to check |
-| 2.4 | A frozen session is accepted **nowhere**, delivery subscription included — except a new support request when frozen by the PIN limit (`frozen_reason = pin_limit`, 2026-09-14, §8.2) | `frozen_at` set → both REST and WS refuse | nothing to check |
+| 2.3 | The signature covers method, path, sha256 of the body and time | one byte of the body changed under the same signature → refused | **partly** — a stranger's key is refused ("another device's signature does not open this session", `identity_routes.test.ts`); a changed body byte under the same signature is not covered |
+| 2.4 | A frozen session is accepted **nowhere**, delivery subscription included — except a new support request when frozen by the PIN limit (`frozen_reason = pin_limit`, 2026-09-14, §8.2) | `frozen_at` set → both REST and WS refuse | **partly** — REST: "the tenth miss closes entry and leaves the share intact" (`identity_routes.test.ts`); the WS half has nothing to check, there are no sockets (G14, G15) |
 | 2.5 | ECDSA P-256 works in engines without Ed25519 | `scripts/check-webcrypto-support.sh` across three engines | **have** |
 
 ## 3. The PIN, the node's share and the vault key (step 1)
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
-| 3.1 | The node checks the PIN, not the device | no share is handed out before the `auth` half is verified | nothing to check |
+| 3.1 | The node checks the PIN, not the device | no share is handed out before the `auth` half is verified | **held** — "the right PIN hands over the share and resets the counter" and "a wrong PIN spends one try and says how many are left" (`identity_routes.test.ts`) |
 | 3.2 | **Ten wrong PINs lock access until the paper code, the share kept** (§8.2, 2026-09-14; "burn the share, the database opens with nothing" [retired]) | ten misses → the right PIN refused ("locked"); the paper code on the same device → the old PIN opens the base | nothing to check |
-| 3.3 | The counter resets only on a correct PIN | nine misses, one hit, nine more → the share survives | nothing to check |
+| 3.3 | The counter resets only on a correct PIN | nine misses, one hit, nine more → the share survives | **held** — "the right PIN hands over the share and resets the counter" (`identity_routes.test.ts`) |
 | 3.3a | **The tenth mistake freezes the session with the reason `pin_limit`** (§8.2, 2026-09-14) | ten misses → a signed `POST /feed` from that session is refused; live and pending phrases, queued table lines, matches and `chat_games` taken down, table seats free; one support request a day is accepted, a second is not, the list of earlier ones is not; a session frozen by a move — refused; the recovery handle accepts the paper code and issues a new share | nothing to check |
-| 3.3b | **The PIN delay grows after the fifth attempt** (§8.2, 2026-09-14) | five misses → a sixth attempt before 30 seconds is refused and `attempts_left` does not drop; ninth miss → a tenth before 4 hours is refused | nothing to check |
+| 3.3b | **The PIN delay grows after the fifth attempt** (§8.2, 2026-09-14) | five misses → a sixth attempt before 30 seconds is refused and `attempts_left` does not drop; ninth miss → a tenth before 4 hours is refused | **held** — "the delay starts after the fifth miss, and waiting is not a way to test a PIN" (`identity_routes.test.ts`) |
 | 3.3c | **A PIN attempt is atomic, a correct PIN clears the wait** (§8.2, 2026-09-14) | three parallel attempts after the wait → the counter drops once; a correct PIN during the wait is refused, after it — counter 10, no wait | nothing to check |
 | 3.4 | The `local` half never leaves the device | intercept the registration traffic: only `auth` in the body | nothing to check |
-| 3.5 | A share belongs to a device, not to an identity | another live session of the same identity cannot reach it | nothing to check |
+| 3.5 | A share belongs to a device, not to an identity | another live session of the same identity cannot reach it | **held** — "another session's share cannot be reached from this one" (`identity_routes.test.ts`) |
 | 3.6 | The warning appears with three attempts left | the seventh miss → a warning flag in the response | nothing to check |
-| 3.7 | **`POST /vault/init` only against a one-time first-PIN grant** (review panel 2026-09-19) | a signing key without the grant → 409 `unauthorized`; after an approved transfer → accepted, a repeat → 409 | nothing to check |
-| 3.8 | **A wrong PIN answers `attempts_left`, the tenth `pin_locked`** (2026-09-19) | three misses → `attempts_left` 7; the tenth → code `pin_locked` | nothing to check |
+| 3.7 | **`POST /vault/init` only against a one-time first-PIN grant** (review panel 2026-09-19) | a signing key without the grant → 409 `unauthorized`; after an approved transfer → accepted, a repeat → 409 | **held** — "the first PIN needs a grant, spends it, and works only once" (`identity_routes.test.ts`); the grant is left by `POST /recovery/claim`, the transfer route is still absent (G15) |
+| 3.8 | **A wrong PIN answers `attempts_left`, the tenth `pin_locked`** (2026-09-19) | three misses → `attempts_left` 7; the tenth → code `pin_locked` | **held** — "a wrong PIN spends one try…" and "the tenth miss closes entry…" (`identity_routes.test.ts`) |
 
 ## 4. Moving an identity to another device (step 1)
 
@@ -98,7 +98,7 @@ through three different wrappers and cannot be counted by eye.
 | 4.4 | **Claim misses are limited as recovery's, per address and across the node** (§8.2, 2026-09-15) | 50 claims with wrong codes in an hour from different addresses → the 51st is refused for everyone for 15 minutes; a mistyped code gets "the code did not fit or has expired" | nothing to check |
 | 4.5 | The node sees a `lookup_id` and two opaque envelopes | node log and table contents: no long key | nothing to check |
 | 4.6 | The old device freezes at the same moment | `frozen_at` set before the new one is answered | nothing to check |
-| 4.7 | The old device's disk is not wiped, but its share is burned | move the identity back → its own PIN does not open the old device's history: the move burned its share (`chat_EN.md` §8.2; edited 2026-09-15: this said "opens the whole history" [retired]) | nothing to check |
+| 4.7 | The old device's disk is not wiped, but its share is burned | move the identity back → its own PIN does not open the old device's history: the move burned its share (`chat_EN.md` §8.2; edited 2026-09-15: this said "opens the whole history" [retired]) | **held, through recovery** — "a device left behind cannot open its history even with the right PIN" (`identity_routes.test.ts`): the move there is by paper code, the voluntary transfer waits on G15 |
 | 4.8 | The move works across faces: code shown in `depth`, typed in the web, and back (§14) | a pair of clients, both directions | nothing to check |
 | 4.8a | **`depth` does not start without its wrapper** (`depth-client_EN.md` §2.1, 2026-09-14) | the image without `DEPTH_WRAPPED=1` → refuses and says why; through the wrapper → starts, `docker inspect` gives `LogConfig.Type = none` | nothing to check |
 | 4.9 | **No link and no QR: no separate page exists for the pairing** | there is no route for an invitation; the node accepts only a `lookup_id` | nothing to check |
@@ -109,13 +109,13 @@ through three different wrappers and cannot be counted by eye.
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
-| 5.1 | **The code raises the identity on a clean device** (§14) | browser wiped → code → the same identity | nothing to check |
-| 5.2 | **And when a live session exists** — it is frozen (§14) | recovery with a live device → `frozen_at` on the old one | nothing to check |
-| 5.3 | The previous code is dead after recovery | reuse → refused | nothing to check |
-| 5.4 | Recovery issues a new paper code | the response carries a new code exactly once | nothing to check |
+| 5.1 | **The code raises the identity on a clean device** (§14) | browser wiped → code → the same identity | **held** — "the paper code raises an identity that has no live session left" (`identity_routes.test.ts`) |
+| 5.2 | **And when a live session exists** — it is frozen (§14) | recovery with a live device → `frozen_at` on the old one | **held** — "the paper code raises the identity on a clean device" (`identity_routes.test.ts`) |
+| 5.3 | **The previous code stays good until the new one is confirmed** (§8.2, 2026-09-10) | reuse right after a raise → 200 again | **held** — "the paper code raises the identity on a clean device" (`identity_routes.test.ts`). [retired] This used to read "the previous code is dead after recovery → reuse → refused": the moment of its death moved to the confirmation of the new code, or a break between unwrapping the key and copying sixteen characters leaves an identity with no insurance at all |
+| 5.4 | The new paper code is born **on the device**; the node never sees it | after a raise the device sends the derivatives of a new code and the old one goes out in the same transaction (`POST /recovery/reissue`) | nothing to check — the reissue route does not exist. [retired] This used to read "the response carries a new code exactly once": the node never sees a code (§8.2, 2026-08-28) and cannot hand one back |
 | 5.5 | The node cannot unwrap the long key itself | only the wrapped key is stored; the second half of the code unwraps it | nothing to check |
 | 5.6 | Attempts are counted by the endpoint, not by the identity row | misses from one address on different codes → the shared counter grows | nothing to check |
-| 5.6a | **The shared miss counter: 50 an hour per node, a 15-minute pause** (2026-09-08) | 50 wrong paper codes in an hour from different addresses → the 51st attempt is refused for everyone for 15 minutes; after 15 minutes recovery accepts again | nothing to check |
+| 5.6a | **The shared miss counter: 50 an hour per node, a 15-minute pause** (2026-09-08) | 50 wrong paper codes in an hour from different addresses → the 51st attempt is refused for everyone for 15 minutes; after 15 minutes recovery accepts again | **held** — "fifty wrong codes across the node pause the route for everyone" (`identity_routes.test.ts`) |
 | 5.7 | Alphabet and parameters: 16 Crockford base32 characters, salt `xor.ad/recovery/v1`, 80 bits | a vector: the same code → the same `lookup_id` | nothing to check |
 | 5.8 | Recovered chats stay silent until the key is re-issued | a message into an old chat → `error`, not silence | nothing to check |
 

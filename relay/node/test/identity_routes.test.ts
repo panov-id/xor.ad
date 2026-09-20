@@ -418,6 +418,22 @@ Deno.test("the tenth miss closes entry and leaves the share intact", async () =>
   assertEquals(row.attempts_left, 0);
   assert(row.locked_at, "the tenth miss did not close entry");
 
+  // And the session is frozen in the same breath: leaving the PIN closed while
+  // the tab keeps its signing key would let whoever holds the tab go on acting
+  // as this person until the paper code.
+  const [session] = await database.queryOrThrow<
+    { frozen_at: Date | null; frozen_reason: string | null }
+  >(
+    `SELECT frozen_at, frozen_reason FROM sessions WHERE id = $1`,
+    [created.session_id],
+  );
+  assert(session.frozen_at, "the tenth miss did not freeze the session");
+  assertEquals(session.frozen_reason, "pin_limit");
+
+  // A frozen session is refused everywhere, not only at the vault.
+  const profile = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(profile.status, 401);
+
   // The share is whole: ten mistakes stop entry, they do not erase a history —
   // a stolen signing key must not be able to do that from afar.
   const [vault] = await database.queryOrThrow<{ share_enc: Uint8Array | null }>(
@@ -426,13 +442,13 @@ Deno.test("the tenth miss closes entry and leaves the share intact", async () =>
   );
   assert(vault.share_enc, "the share was burned");
 
-  // And the right PIN does not open it any more.
+  // And the right PIN does not open it any more — refused by the guard now,
+  // before the vault is even reached, because the session itself is frozen.
   await clearDelay(created.session_id);
   const correct = await signedCall(
     pair.privateKey, created.session_id, "POST", "/vault/share", proof(AUTH),
   );
-  assertEquals(correct.status, 409);
-  assertEquals((correct.body as { error: { code: string } }).error.code, "pin_locked");
+  assertEquals(correct.status, 401);
 });
 
 Deno.test("another session's share cannot be reached from this one", async () => {
@@ -497,7 +513,15 @@ Deno.test("the first PIN needs a grant, spends it, and works only once", async (
   assertEquals(old.status, 409);
 });
 
-Deno.test("a first PIN clears a lock left by the previous device's misses", async () => {
+// What the way out of a lock will look like once POST /recovery/claim exists:
+// the paper code raises the identity on a session of its own and leaves a
+// first-PIN grant. The route is not built yet, so the two things it will do —
+// a live session and the grant — are done here by hand, and the case holds what
+// happens after: the first PIN takes over the device's share and clears the lock
+// the misses left. Without the unfreeze this cannot be reached at all, which is
+// itself the finding: after ten misses the old session is over, not merely
+// locked out of its vault.
+Deno.test("a first PIN takes over a share whose session was locked out", async () => {
   const { answer, pair } = await registerWithPin();
   const created = answer.body as { identity_id: string; session_id: string };
   const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
@@ -510,6 +534,10 @@ Deno.test("a first PIN clears a lock left by the previous device's misses", asyn
   await database.queryOrThrow(
     `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
     [created.identity_id],
+  );
+  await database.queryOrThrow(
+    `UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`,
+    [created.session_id],
   );
   const freshAuth = crypto.getRandomValues(new Uint8Array(32));
   const set = await signedCall(pair.privateKey, created.session_id, "POST", "/vault/init", {

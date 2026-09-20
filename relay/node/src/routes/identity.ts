@@ -338,6 +338,20 @@ async function vaultShare(req: Request): Promise<Response> {
         [caller.sessionId],
       );
       const left = row.attempts_left - 1;
+      if (left === 0) {
+        // The same transaction freezes the session, and §8.2 is explicit about
+        // why (2026-09-14, SEC3/SEC-A): refusing the three irreversible actions
+        // is not enough, because an unlocked tab holds the signing key in memory
+        // — whoever holds the tab would go on publishing, writing in
+        // conversations, complaining and asking support in this person's name,
+        // all the way until the paper code. Closing the PIN alone leaves exactly
+        // that open, so the two are one write or they are a hole.
+        await run(
+          `UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit'
+            WHERE id = $1 AND frozen_at IS NULL`,
+          [caller.sessionId],
+        );
+      }
       inc("relay_vault_share_total", { result: left === 0 ? "locked" : "wrong" });
       return refuse(
         left === 0 ? "pin_locked" : "unauthorized",

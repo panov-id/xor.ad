@@ -395,7 +395,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-identitycreate"><code>IdentityCreate</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Личность и её первая сессия. `session_id` здесь потому, что им подписан каждый следующий запрос регистрации — узел отдавал его с первого дня, а описан он с 20.09.2026.</td><td><code>object</code></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>422</code></td><td>Младше 13 — code too_young, и только он. У экрана 2 есть строка ровно под это, а от общего invalid_body клиент её не отличит.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-vault-share">
@@ -406,7 +406,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-vaultshare"><code>VaultShare</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Доля.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>У этой сессии доли нет: её не было или переезд личности её сжёг (§8.2). Одна формулировка на оба случая — брошенному устройству незачем знать, какой из них.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Половина ключа хранилища, которая у узла.</td><td><code>object</code></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-sessions-invite">
@@ -475,18 +475,18 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-recoveryconfirm"><code>RecoveryConfirm</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Завершено.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Завершено.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-recovery-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-built">построено</span></div>
 <p><strong>Поднять личность бумажным кодом</strong></p>
 <p>Две тропы, различаются подписью: без подписи — чистое устройство, рождается новая сессия, а живая замирает как перенос; подпись собственной сессии устройства — в том числе замороженной, единственное исключение §8.2 — снимает заморозку и возвращает счётчик ПИНа к десяти. Обе оставляют право «первый ПИН». Прежний бумажный код действует до подтверждения нового; смена — POST /recovery/reissue.</p>
-<h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
-<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-recoveryclaim"><code>RecoveryClaim</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Поднята; возвращается обёрнутый ключ.</td><td><code>object</code></td></tr><tr><td><code>404</code></td><td>Код не подошёл — одна формулировка на все причины.</td><td></td></tr><tr><td><code>429</code></td><td>Слишком много попыток с адреса или общая пауза узла.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Поднята; возвращается обёрнутый долгий ключ и сессия, которая его понесёт. На чистом устройстве сессия новая; на подписанном запросе самого устройства — та же, что была.</td><td><code>object</code></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>Код не подошёл — одна формулировка на все причины.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>409</code></td><td>Устройство, которое спросило, сейчас поднять нельзя — его собственную сессию не удалось открыть заново. Свой статус, а не общий Conflict: ни с телом, ни с кодом ничего не так.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td>Слишком много попыток с адреса или общая пауза узла.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>503</code></td><td></td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="get-legal-manifest">
@@ -513,7 +513,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>name, name_pending, age, фильтры, языки, stepped_away_until (экран 10).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Профиль.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Профиль.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="patch-identities-me">
@@ -552,7 +552,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>Права «первый ПИН» на этой личности нет либо оно уже израсходовано — code unauthorized. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается (20.09.2026).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>Права «первый ПИН» на этой личности нет либо оно уже израсходовано — code unauthorized. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается (20.09.2026).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-sessions--lookup-id--approve">

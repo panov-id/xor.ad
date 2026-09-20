@@ -194,6 +194,24 @@ Deno.test("under 13 is refused by its own code, and nothing is written", async (
   assertEquals(await countIdentities(), before);
 });
 
+Deno.test("an age past the column's range is a bad field, not a broken node", async () => {
+  // There is no product ceiling on age (2026-08-28) and this is not one: the
+  // column is an `integer`, and a number past its range failed the whole
+  // registration with `22003`, which the catch turned into 503 "the node cannot
+  // write right now" and a storage-failure metric. Anybody could report the
+  // node as broken by typing a long number (review panel 2026-09-20, data lens).
+  const before = await countIdentities();
+  const huge = await register({ age: 3_000_000_000 });
+  assertEquals(huge.answer.status, 400);
+  assertEquals((huge.answer.body as { error: { code: string } }).error.code, "invalid_body");
+  assertEquals(await countIdentities(), before, "a refused age still wrote a row");
+
+  // And the neighbouring value is still fine: this is the type's edge, not a
+  // judgement about people.
+  const old = await register({ age: 120 });
+  assertEquals(old.answer.status, 200, "a plausible old age was refused");
+});
+
 Deno.test("a key the node cannot import is refused before anything is written", async () => {
   const before = await countIdentities();
   const { answer } = await register({ sign_pub: auth.bytesToBase64url(new Uint8Array(65)) });

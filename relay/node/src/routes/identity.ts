@@ -53,6 +53,14 @@ const NAME_MAX_GRAPHEMES = 24;
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const countGraphemes = (text: string): number => [...graphemes.segment(text)].length;
 const MIN_AGE = 13;
+// No product ceiling on age — decided 2026-08-28, and the DDL says the same.
+// This is the *type's* ceiling: the column is an `integer`, and a number past
+// its range made the whole registration transaction fail with `22003`, which
+// the catch below turned into 503 "the node cannot write right now". So a
+// number anybody can type reported the node as broken and grew the metric for
+// storage failures (review panel 2026-09-20, data lens). 200 is far past any
+// person and far short of the type.
+const MAX_AGE = 200;
 // The share is 32 random bytes (§8.2). Anything else is not a share.
 const SHARE_BYTES = 32;
 
@@ -118,6 +126,9 @@ async function createIdentity(req: Request): Promise<Response> {
   }
   // Its own code, not invalid_body: screen 2 has a line for this and only this,
   // and a client cannot tell them apart from a shared code.
+  if (body.age > MAX_AGE) {
+    return refuse("invalid_body", "age is not a number a person has", 400);
+  }
   if (body.age < MIN_AGE) {
     inc("relay_identities_total", { result: "too_young" });
     return refuse("too_young", "this place is for 13 and over", 422);
@@ -173,7 +184,15 @@ async function createIdentity(req: Request): Promise<Response> {
       [sessionId, body.auth_hash, sealed],
     );
     return true;
-  }).catch(() => false);
+  }).catch((error) => {
+    // Logged, not swallowed. The three transaction catches on this file used to
+    // answer 503 and say nothing anywhere — so a failure that repeats on every
+    // call (a constraint changed by a migration, say) left the metric
+    // `storage_failed` growing and no way at all to learn what failed (review
+    // panel 2026-09-20, operations lens).
+    log("error", "registration failed to write", { error: String(error) });
+    return false;
+  });
 
   if (!done) {
     inc("relay_identities_total", { result: "storage_failed" });
@@ -581,6 +600,10 @@ async function vaultShare(req: Request): Promise<Response> {
     // correct PIN is refused here too — otherwise waiting out the delay would
     // itself be a way to test one.
     if (row.locked_at) {
+      // No Retry-After: there is no time to give. Entry is closed until a piece
+      // of paper is found, and a header promising a moment to come back would
+      // be a lie in seconds (RFC 9110 asks for a date or a delay, and neither
+      // exists here). The wording carries the answer instead.
       return refuse("pin_locked", "entry is closed until the paper code", 409, {
         attempts_left: 0,
       });
@@ -653,7 +676,11 @@ async function vaultShare(req: Request): Promise<Response> {
     );
     inc("relay_vault_share_total", { result: "given" });
     return json({ share: bytesToBase64url(share) }, 200, sunsetHeader());
-  }).catch(() => refuse("unavailable", "the node cannot answer right now", 503));
+  }).catch((error) => {
+    log("error", "vault share failed", { error: String(error) });
+    inc("relay_vault_share_total", { result: "storage_failed" });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  });
 
   return answer;
 }
@@ -718,7 +745,11 @@ async function vaultInit(req: Request): Promise<Response> {
     );
     inc("relay_vault_init_total", { result: "set" });
     return new Response(null, { status: 204, headers: sunsetHeader() });
-  }).catch(() => refuse("unavailable", "the node cannot write right now", 503));
+  }).catch((error) => {
+    log("error", "first PIN failed to write", { error: String(error) });
+    inc("relay_vault_init_total", { result: "storage_failed" });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
 
   return answer;
 }

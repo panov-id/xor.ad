@@ -766,8 +766,14 @@ components:
       x-description-ru: Предел частоты — code rate_limited, Retry-After в секундах (протокол §6).
       headers: {Retry-After: {schema: {type: integer}, description: Seconds to wait., x-description-ru: Сколько секунд ждать.}}
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+    Unavailable:
+      description: "The node cannot answer right now — code unavailable (protocol §6). Its own status, not a 409 and not a 500: the request was well formed and may succeed later, and a client that retries on 503 and gives up on 409 must be able to tell them apart. Added 2026-09-20 after the review panel found five built routes answering it and no operation describing it."
+      x-description-ru: "Узел сейчас не может ответить — code unavailable (протокол §6). Собственный статус, не 409 и не 500: запрос составлен верно и позже может пройти, а клиент, который на 503 повторяет и на 409 сдаётся, должен их различать. Заведён 20.09.2026 по панели ревью: пять построенных маршрутов им отвечали, и ни одна операция его не описывала."
+      headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     BadVersion:
       description: Unsupported protocol version — code protocol_version_unsupported, the update command in message (protocol §3, §6).
+      headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
       x-description-ru: Неподдерживаемая версия протокола — code protocol_version_unsupported, команда обновления в message (протокол §3, §6).
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     NonceReused:
@@ -1306,8 +1312,26 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/IdentityCreate"}}}}
       responses:
-        "200": {description: identity_id, x-description-ru: identity_id}
-        "429": {description: Address limit., x-description-ru: Предел адреса.}
+        "200":
+          description: "The identity and its first session. `session_id` is here because every following request of registration is signed by it — it was answered from the first day and described from 2026-09-20."
+          x-description-ru: "Личность и её первая сессия. `session_id` здесь потому, что им подписан каждый следующий запрос регистрации — узел отдавал его с первого дня, а описан он с 20.09.2026."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [identity_id, session_id]
+                properties:
+                  identity_id: {type: string, format: uuid}
+                  session_id: {type: string, format: uuid}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "422":
+          description: "Under 13 — code too_young, and only that. Screen 2 has a line for this and nothing else, and a client cannot tell it from a shared invalid_body."
+          x-description-ru: "Младше 13 — code too_young, и только он. У экрана 2 есть строка ровно под это, а от общего invalid_body клиент её не отличит."
+          content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /vault/share:
     post:
       tags: [identity]
@@ -1327,8 +1351,23 @@ paths:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
+        "404":
+          description: "This session has no share to hand back: it never had one, or a move of the identity burned it (§8.2). One wording for both — a device that was left behind must not learn which."
+          x-description-ru: "У этой сессии доли нет: её не было или переезд личности её сжёг (§8.2). Одна формулировка на оба случая — брошенному устройству незачем знать, какой из них."
+          content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The share., x-description-ru: Доля.}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200":
+          description: "The node's half of the vault key."
+          x-description-ru: "Половина ключа хранилища, которая у узла."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [share]
+                properties:
+                  share: {type: string, description: "32 bytes, base64url.", x-description-ru: "32 байта, base64url."}
   /sessions/invite:
     post:
       tags: [identity]
@@ -1459,7 +1498,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/Conflict"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "204": {description: Finished., x-description-ru: Завершено.}
   /recovery/claim:
     post:
@@ -1481,14 +1520,40 @@ paths:
         устройства — в том числе замороженной, единственное исключение §8.2 — снимает
         заморозку и возвращает счётчик ПИНа к десяти. Обе оставляют право «первый ПИН».
         Прежний бумажный код действует до подтверждения нового; смена — POST /recovery/reissue.
-      security: [{publishableKey: []}]
+      # Two security entries mean "either" in OpenAPI, and that is exactly the
+      # route: a clean device sends nothing but the code, the device that is
+      # already known signs the request. The line used to say `publishableKey`
+      # alone, which was wrong twice over — the node never reads x-api-key here,
+      # and the signed path was not expressible at all (review panel
+      # 2026-09-20, consistency and protocols lenses). An empty requirement is
+      # deliberate: the paper code is what authorizes this call, and a
+      # publishable key proves nothing about who is calling — it is public by
+      # design, and the node treats it as a name, not a credential.
+      security: [{}, {identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryClaim"}}}}
       responses:
-        "200": {description: Raised; the wrapped key comes back., x-description-ru: Поднята; возвращается обёрнутый ключ., content: {application/json: {schema: {type: object, properties: {identity_id: {type: string}, session_id: {type: string}, recovery_wrapped_key: {type: string}}}}}}
-        "404": {description: "That code does not match — one wording for every reason.", x-description-ru: "Код не подошёл — одна формулировка на все причины."}
-        "429": {description: "Too many attempts from this address, or the node-wide pause.", x-description-ru: "Слишком много попыток с адреса или общая пауза узла."}
+        "200":
+          description: "Raised; the wrapped long key comes back, with the session that will carry it. On a clean device the session is new; on the device's own signed request it is the one that was already there."
+          x-description-ru: "Поднята; возвращается обёрнутый долгий ключ и сессия, которая его понесёт. На чистом устройстве сессия новая; на подписанном запросе самого устройства — та же, что была."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [identity_id, session_id, recovery_wrapped_key]
+                properties:
+                  identity_id: {type: string, format: uuid}
+                  session_id: {type: string, format: uuid}
+                  recovery_wrapped_key: {type: string, description: "base64url; the node stores it and cannot open it.", x-description-ru: "base64url; узел его хранит и открыть не может."}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "404": {description: "That code does not match — one wording for every reason.", x-description-ru: "Код не подошёл — одна формулировка на все причины.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "409": {description: "The device that asked cannot be raised right now — its own session could not be reopened. Its own status rather than the shared Conflict: nothing about the body or the code was wrong.", x-description-ru: "Устройство, которое спросило, сейчас поднять нельзя — его собственную сессию не удалось открыть заново. Свой статус, а не общий Conflict: ни с телом, ни с кодом ничего не так.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "429": {description: "Too many attempts from this address, or the node-wide pause.", x-description-ru: "Слишком много попыток с адреса или общая пауза узла.", headers: {Retry-After: {schema: {type: integer}}}, content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /legal/manifest:
     get:
       tags: [identity]
@@ -2514,7 +2579,7 @@ paths:
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: The profile., x-description-ru: Профиль., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
     patch:
       tags: [identity]
@@ -2920,7 +2985,8 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultInit"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {description: "No first-PIN grant on this identity, or it was already spent — code unauthorized. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it (2026-09-20).", x-description-ru: "Права «первый ПИН» на этой личности нет либо оно уже израсходовано — code unauthorized. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается (20.09.2026).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}
   /sessions/{lookup_id}/approve:

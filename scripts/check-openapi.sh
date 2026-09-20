@@ -194,8 +194,19 @@ for (method, path), op in sorted(ops.items()):
 # Схема безопасности при этом умеет назвать один заголовок из трёх, поэтому
 # x-identity-session и x-identity-time объявлены параметрами: клиент, собранный
 # по контракту без них, получал бы 401 на каждом запросе.
+#
+# **Подпись бывает необязательной, и тогда правило другое — заведено 20.09.2026.**
+# Пустое требование `{}` рядом с `identitySignature` означает в OpenAPI «или без
+# ничего»: такой маршрут принимает и неподписанный запрос, а подпись решает не
+# «пустят ли», а «кто спрашивает». У `POST /recovery/claim` это ровно так —
+# авторизует бумажный код, а подпись отличает своё устройство от чистого, —
+# и 401 он не отдаёт никогда: негодная подпись там означает «не это устройство»,
+# а не отказ. Требовать от него описания 401 значит требовать неправды.
 for (method, path), op in sorted(ops.items()):
-    if not any("identitySignature" in entry for entry in op.get("security") or []):
+    security = op.get("security") or []
+    if not any("identitySignature" in entry for entry in security):
+        continue
+    if any(entry == {} for entry in security):
         continue
     name = f"{method} {path}"
     if "401" not in (op.get("responses") or {}):

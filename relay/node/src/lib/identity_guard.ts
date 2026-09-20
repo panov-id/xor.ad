@@ -5,12 +5,26 @@
 // Each of those is one question, and each has exactly one right answer, so they
 // live here rather than at the top of nineteen handlers.
 //
-// The order is deliberate and is the security property: version, then shape of
-// the headers, then the window, then the signature, and only then the state of
-// the identity. A body is never read, a row is never written and no counter is
-// spent before the signature verifies — the nonce table says the same thing in
-// its own comment, and the reason is the same: an unsigned request must not be
-// able to move anything, including a counter.
+// The order is deliberate and is the security property, and it is written here
+// exactly because a comment that describes an order becomes the specification
+// somebody codes against.
+//
+// Version, then the shape of the headers, then the row of the session, then the
+// signature, then the state of the identity. The row has to come before the
+// signature and cannot be moved: the public key to verify against is *in* that
+// row, so there is nothing to check without reading it first. What the order
+// does promise is the part that matters — **nothing is written and no counter
+// is spent before the signature verifies**, and a body is read only to hash it
+// for that verification. The nonce table says the same in its own comment, for
+// the same reason: an unsigned request must not be able to move anything,
+// including a counter.
+//
+// [retired] This used to read "the window, then the signature, and only then
+// the state of the identity", which the code has never done — a frozen or
+// closed session is refused before the signature is checked, because that is
+// the same read. Found by the protocols lens of the review panel, 2026-09-20:
+// the code was right and the comment was wrong, which is the more dangerous
+// way round.
 
 import { query } from "./db.ts";
 

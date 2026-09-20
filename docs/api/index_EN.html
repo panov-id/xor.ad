@@ -395,7 +395,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-identitycreate"><code>IdentityCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The identity and its first session. `session_id` is here because every following request of registration is signed by it — it was answered from the first day and described from 2026-09-20.</td><td><code>object</code></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>422</code></td><td>Under 13 — code too_young, and only that. Screen 2 has a line for this and nothing else, and a client cannot tell it from a shared invalid_body.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-vault-share">
@@ -406,7 +406,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-vaultshare"><code>VaultShare</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The share.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>This session has no share to hand back: it never had one, or a move of the identity burned it (§8.2). One wording for both — a device that was left behind must not learn which.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The node&#x27;s half of the vault key.</td><td><code>object</code></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-sessions-invite">
@@ -475,18 +475,18 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryconfirm"><code>RecoveryConfirm</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Finished.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Finished.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-recovery-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-built">built</span></div>
 <p><strong>Raise an identity with the paper code</strong></p>
 <p>Two paths, told apart by the signature: unsigned is a clean device and a new session is born while the live one is frozen as a transfer; signed by the device&#x27;s own session — frozen included, the one exception of §8.2 — lifts the freeze and returns the PIN counter to ten. Both leave the first-PIN grant. The old paper code stays good until the new one is confirmed; rotation is POST /recovery/reissue.</p>
-<h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
-<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryclaim"><code>RecoveryClaim</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised; the wrapped key comes back.</td><td><code>object</code></td></tr><tr><td><code>404</code></td><td>That code does not match — one wording for every reason.</td><td></td></tr><tr><td><code>429</code></td><td>Too many attempts from this address, or the node-wide pause.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised; the wrapped long key comes back, with the session that will carry it. On a clean device the session is new; on the device&#x27;s own signed request it is the one that was already there.</td><td><code>object</code></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>That code does not match — one wording for every reason.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>409</code></td><td>The device that asked cannot be raised right now — its own session could not be reopened. Its own status rather than the shared Conflict: nothing about the body or the code was wrong.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td>Too many attempts from this address, or the node-wide pause.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>503</code></td><td></td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="get-legal-manifest">
@@ -513,7 +513,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>name, name_pending, age, filters, languages, stepped_away_until (screen 10).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The profile.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The profile.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="patch-identities-me">
@@ -552,7 +552,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>No first-PIN grant on this identity, or it was already spent — code unauthorized. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it (2026-09-20).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>No first-PIN grant on this identity, or it was already spent — code unauthorized. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it (2026-09-20).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-sessions--lookup-id--approve">

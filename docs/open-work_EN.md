@@ -1371,6 +1371,28 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       Not done: links to `CLIENT_TERMS.md` from both storefronts' READMEs and from
       the image's description in the registry — those go up on the day the image is
       published.
+
+- [ ] **G14. The node's Postgres driver cannot receive `NOTIFY` — measured
+      2026-09-20.** `@db/postgres@0.19.5` does not ignore a notification, it
+      **throws** on one: a connection Postgres has sent an `A`
+      (NotificationResponse) message answers the very next query with
+      `Unexpected simple query message: A`
+      (`connection/connection.ts:765`). Probed against a throwaway Postgres in
+      Docker and pinned by `relay/node/test/session_freeze.test.ts`, where that
+      throw serves as the positive control that the notification arrived.
+
+      **Why it matters.** The `LISTEN`/`NOTIFY` bus is the chat's whole
+      transport (chat spec §8.1, §8.6) and the second half of §8.2: freezing a
+      session has to tear down its sockets, or the tab goes on receiving and
+      keeps its signing key. The writing side exists —
+      `relay/node/src/lib/sessions.ts` emits `pg_notify('session_frozen', <id>)`
+      in the same transaction that sets `frozen_at`. There is no listener, and
+      on this driver there cannot be one.
+
+      **A fork, not a task:** change the driver (`postgres.js`, or `pg` through
+      the Node compatibility layer), hold a connection outside the driver, or
+      take a different bus. The choice shapes all of step 5, so it is not made
+      in passing — decide before the chat's first line.
 ## M. Found in August — not deferred, in hand
 
 Items J13–J21 and D8 physically sat inside "G. Deliberately deferred" and were

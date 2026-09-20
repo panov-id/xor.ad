@@ -75,6 +75,16 @@ docker run --rm --network "$network" \
   deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts "$@"
 
 echo
+echo "== session freeze suite (chat spec §8.2: the row and the notification)"
+# Its own file for its own reason: it opens raw LISTENing connections, and the
+# driver throws when one is handed a notification — a fact this suite asserts on
+# purpose and no other suite should have to survive by accident.
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/session_freeze.test.ts "$@"
+
+echo
 echo "== identity routes suite (chat spec §13 step 1)"
 # A file of its own, not a section of database.test.ts: that suite sets its own
 # brands and secret before the first import, and config captures the environment

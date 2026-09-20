@@ -24,6 +24,7 @@ import {
 } from "../lib/identity_auth.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
+import { freezeSession } from "../lib/sessions.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { IDENTITY_CREATE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
@@ -346,11 +347,10 @@ async function vaultShare(req: Request): Promise<Response> {
         // conversations, complaining and asking support in this person's name,
         // all the way until the paper code. Closing the PIN alone leaves exactly
         // that open, so the two are one write or they are a hole.
-        await run(
-          `UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit'
-            WHERE id = $1 AND frozen_at IS NULL`,
-          [caller.sessionId],
-        );
+        //
+        // Freezing carries its own notification; lib/sessions.ts says why that
+        // is not optional and why it is not written inline here.
+        await freezeSession(run, caller.sessionId, "pin_limit");
       }
       inc("relay_vault_share_total", { result: left === 0 ? "locked" : "wrong" });
       return refuse(

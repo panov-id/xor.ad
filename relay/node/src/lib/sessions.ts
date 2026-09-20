@@ -27,6 +27,8 @@
 // receiving. A caller that freezes a session by hand is the defect this
 // function exists to make hard to write.
 
+import { inc } from "./metrics.ts";
+
 export type FreezeReason = "transfer" | "closed" | "pin_limit";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
@@ -53,6 +55,10 @@ export async function freezeSession(
   // hand is string concatenation into SQL, on an identifier that arrives in a
   // header.
   await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
+  // Counted here rather than at each caller: a freeze is a freeze whoever asks
+  // for it, and the reason is the label that tells a spike of stolen-key
+  // lockouts (`pin_limit`) from a wave of closures.
+  inc("relay_sessions_frozen_total", { reason });
   return true;
 }
 
@@ -75,9 +81,14 @@ export async function freezeSession(
 export async function burnShare(run: Run, sessionId: string): Promise<void> {
   // The column pair is written together or not at all — the table's own CHECK
   // says so, and a burn that wrote only one of them would be refused outright.
-  await run(
+  const burned = await run<{ session: string }>(
     `UPDATE vault_shares SET share_enc = NULL, burned_at = now()
-      WHERE session = $1 AND share_enc IS NOT NULL`,
+      WHERE session = $1 AND share_enc IS NOT NULL
+      RETURNING session`,
     [sessionId],
   );
+  // Only a burn that happened is counted. Burning what is already burned is
+  // ordinary — a move of an identity touches every session it has — and
+  // counting it would make the number describe the sweep rather than the loss.
+  if (burned.length > 0) inc("relay_vault_shares_burned_total");
 }

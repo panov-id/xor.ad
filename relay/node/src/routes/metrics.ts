@@ -1,4 +1,5 @@
 import { render } from "../lib/metrics.ts";
+import { collectQueueMetrics } from "../lib/queue_metrics.ts";
 import { config } from "../config.ts";
 import { json } from "../lib/http.ts";
 import { inc } from "../lib/metrics.ts";
@@ -19,7 +20,7 @@ import { inc } from "../lib/metrics.ts";
 // With no token set the endpoint is 404 for everybody. Nothing scrapes it today,
 // so closed is the honest default — and 404 rather than 401, because a 401 tells
 // a guesser the path was right.
-export function metrics(req: Request): Response {
+export async function metrics(req: Request): Promise<Response> {
   // Refusals are counted, because main.ts leaves /metrics out of the request log
   // and the request counter entirely — that exclusion was written for the
   // successful scrape, and it meant a million guesses at the token left no line
@@ -37,6 +38,11 @@ export function metrics(req: Request): Response {
     return json({ error: "not found" }, 404);
   }
   inc("relay_metrics_auth_total", { result: "served" });
+  // The queue's gauges are read from the table here, on the scrape, rather than
+  // kept in this process: the queue belongs to every node in the pool, and a
+  // number held in one of them would describe that one. See lib/queue_metrics.ts
+  // for what goes silently wrong without them.
+  await collectQueueMetrics();
   return new Response(render(), {
     headers: {
       "content-type": "text/plain; version=0.0.4; charset=utf-8",

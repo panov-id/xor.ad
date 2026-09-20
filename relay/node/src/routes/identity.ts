@@ -29,7 +29,7 @@ import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts
 import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS } from "../lib/rate_limit.ts";
-import { inc } from "../lib/metrics.ts";
+import { inc, setGauge } from "../lib/metrics.ts";
 
 // §8.2 and docs/facts/limits.tsv (`name.length`, enforced by: the node): the
 // limit is **24 graphemes**, and the node is named as what holds it.
@@ -209,10 +209,17 @@ async function readProfile(req: Request): Promise<Response> {
        FROM identities WHERE id = $1`,
     [caller.identityId],
   );
-  if (rows === null) return refuse("unavailable", "the node cannot answer right now", 503);
+  if (rows === null) {
+    // Counted, because a route that goes quiet during a database failure looks
+    // on a graph exactly like a route nobody is calling (review panel
+    // 2026-09-20, operations lens).
+    inc("relay_profile_total", { result: "unavailable" });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  }
   const row = rows[0];
   if (!row) return refuse("unauthorized", "the request is not signed by a live session", 401);
 
+  inc("relay_profile_total", { result: "served" });
   // Only what step 1 can honestly answer. quota, phrases and table belong to the
   // feed and the tables, and neither exists yet — a zero there would be a number
   // the node made up, which is worse than a field the client knows is missing.
@@ -262,7 +269,10 @@ async function confirmRecovery(req: Request): Promise<Response> {
       RETURNING id`,
     [caller.identityId, wrapped],
   );
-  if (spent === null) return refuse("unavailable", "the node cannot write right now", 503);
+  if (spent === null) {
+    inc("relay_identities_total", { result: "unavailable" });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  }
   if (spent.length === 0) {
     inc("relay_identities_total", { result: "already_confirmed" });
     return refuse("refused", "this registration is already finished", 409);
@@ -323,6 +333,7 @@ async function claimRecovery(req: Request): Promise<Response> {
   // The node-wide brake first, then the address, then the body: a paused route
   // does no lookup, which is the point of it (lib/recovery_misses.ts).
   const paused = pausedFor();
+  setGauge("relay_recovery_pause_seconds_left", paused);
   if (paused > 0) {
     inc("relay_recovery_claim_total", { result: "paused" });
     return refuse("rate_limited", "codes are not being accepted right now", 429, {}, {
@@ -387,7 +398,10 @@ async function claimRecovery(req: Request): Promise<Response> {
         AND signup_completed_at IS NOT NULL`,
     [await recoveryHash(body.lookup_id)],
   );
-  if (found === null) return refuse("unavailable", "the node cannot answer right now", 503);
+  if (found === null) {
+    inc("relay_recovery_claim_total", { result: "unavailable" });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  }
   const identity = found[0];
   if (!identity || !identity.recovery_wrapped_key) {
     // One wording for "no such code", "the identity is closed" and "that
@@ -397,6 +411,10 @@ async function claimRecovery(req: Request): Promise<Response> {
       log("warn", "recovery codes paused: the shared miss threshold was reached", {
         threshold: SHARED_MISS_MAX,
       });
+      // The moment the brake came on, as a number. Without it an attack that
+      // ends before morning leaves one log line and nothing on any graph —
+      // `result: "paused"` below only grows while somebody keeps knocking.
+      inc("relay_recovery_claim_total", { result: "pause_started" });
     }
     inc("relay_recovery_claim_total", { result: "no_match" });
     return refuse("not_found", "that code does not match", 404);

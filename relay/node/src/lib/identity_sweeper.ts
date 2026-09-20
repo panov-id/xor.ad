@@ -27,6 +27,7 @@
 
 import { queryOrThrow, transaction } from "./db.ts";
 import { log } from "./log.ts";
+import { inc, setGauge } from "./metrics.ts";
 
 // docs/facts/limits.tsv, by name. Written as numbers here and as intervals in
 // SQL below, so a change is one edit in one file.
@@ -132,6 +133,19 @@ export async function sweepIdentities(): Promise<SweepResult> {
     closed,
     deleted: Number(deleted[0]?.count ?? 0),
   };
+  // Three counters rather than one, because the three deadlines fail
+  // differently: a signup sweep that stops means registrations are finishing
+  // that should not, a closing sweep that jumps means a year's worth of people
+  // went quiet at once, and a deletion sweep that stays at zero while closures
+  // grow means the thirty days are not running. One number would hide all three.
+  inc("relay_identity_sweeper_total", { deadline: "unfinished_signup" }, result.unfinished);
+  inc("relay_identity_sweeper_total", { deadline: "inactive_closed" }, result.closed);
+  inc("relay_identity_sweeper_total", { deadline: "deleted" }, result.deleted);
+  // When the sweeper last finished a pass. The counters above say what it did;
+  // this says that it ran at all, which is the thing that goes silently wrong —
+  // a job that exhausts its attempts becomes a tombstone and never re-arms
+  // (lib/queue_metrics.ts).
+  setGauge("relay_identity_sweeper_last_pass_seconds", Math.round(Date.now() / 1000));
   if (result.unfinished || result.closed || result.deleted) {
     log("info", "swept identities", { ...result });
   }

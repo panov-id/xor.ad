@@ -59,9 +59,28 @@ CREATE TABLE identities (
   -- back early writes now(); a passed deadline is cleared by the session's next
   -- request.
   stepped_away_until   timestamptz,
+  -- NULL = the registration never reached the paper code. §8.2 says such an
+  -- identity "passes no membership check at all" and is swept after an hour
+  -- (signup.unfinished.ttl), and until 2026-09-20 nothing carried that mark:
+  -- recovery_auth_hash used to be the accidental one, and since 2026-09-19
+  -- recovery_lookup_id arrives in IdentityCreate, so the row is born with it
+  -- filled. Membership is signup_completed_at IS NOT NULL AND closed_at IS NULL.
+  signup_completed_at  timestamptz,
+  -- The one-time right to set a first PIN without the old one, left by an
+  -- approved transfer or a recovery claim and spent by POST /vault/init in the
+  -- same statement that reads it. Without a carrier the route had no way to tell
+  -- a legitimate first PIN from a stolen signing key rewriting auth_hash and
+  -- burning the owner's share — the canon promised the refusal and named nothing
+  -- to refuse by (2026-09-20, review panel, security lens).
+  first_pin_grant_at   timestamptz,
   created_at           timestamptz NOT NULL DEFAULT now(),
   closed_at            timestamptz      -- NULL = live
 );
+
+-- The sweeper of unfinished signups selects by age among the unfinished only;
+-- without the partial index it reads every identity on the node once an hour.
+CREATE INDEX identities_unfinished_signup ON identities (created_at)
+  WHERE signup_completed_at IS NULL;
 
 -- The public recovery route finds an identity by this hash. Without the index
 -- every miss is a full scan, and misses are what that route mostly gets.

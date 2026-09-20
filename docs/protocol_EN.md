@@ -81,6 +81,12 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   subprotocol `xor.p1` on the socket (§6, §4.4). **The sunset date is announced by the response
   header `x-protocol-sunset: <unix time>`** on every answer of the node from the day it is set (the value is the environment variable `PROTOCOL_SUNSET_AT`, empty — no header; OPS-6) — so
   "in advance" reaches the terminal image `depth` too, which has no other channel (2026-09-16, OPS-15).
+  **Where the contract names the header — settled 2026-09-20 after the review panel:** the node
+  sends it on every answer, while `openapi.yaml` names it on the common refusal and on the three
+  answers a client reads on the way in — `GET /legal/manifest`, `GET /identities/me`, `GET /feed`.
+  Before this it stood on the refusal alone, so `depth` learned the sunset date only by being
+  refused — exactly the case the header exists for. Carried out by `sunsetHeader()` in
+  `relay/node/src/lib/identity_auth.ts`, from the variable `PROTOCOL_SUNSET_AT`.
 
 ## 4. Routes
 
@@ -100,7 +106,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 | `POST /recovery/claim` | raising an identity from the paper code | **spec** (agreed 2026-09-17) (§8.2, §13) |
 | `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy — `required` for all three since 2026-09-15 | **spec** (agreed 2026-09-17) (2026-08-29) |
 | `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **spec** (agreed 2026-09-17) (2026-08-29) |
-| `POST /vault/init` | set the first PIN on a new device after a transfer or a recovery: `{auth_hash, share}`; the old PIN is not needed, but only against a one-time first-PIN grant after an approved transfer or a recovery, otherwise 409 (screen 13; 2026-09-19). **The `nonce` field was dropped on 2026-09-20:** §2 above gives the mechanism to seven routes and this is not one of them, and a required field with no mechanism is decoration. What makes this call one-time is the grant itself: the call consumes it | **spec** |
+| `POST /vault/init` | set the first PIN on a new device after a transfer or a recovery: `{auth_hash, share}`; the old PIN is not needed, but only against a one-time first-PIN grant after an approved transfer or a recovery, otherwise 409 (screen 13; 2026-09-19). **The `nonce` field was dropped on 2026-09-20:** §2 above gives the mechanism to seven routes and this is not one of them, and a required field with no mechanism is decoration. What makes this call one-time is the grant itself: the node spends it with the same statement that reads it — `UPDATE identities SET first_pin_grant_at = NULL WHERE id = :me AND first_pin_grant_at IS NOT NULL RETURNING id` — and an empty result is a 409 `unauthorized`. The grant's carrier is the column `identities.first_pin_grant_at`, added 2026-09-20 after the review panel: before it there was nothing to refuse by | **spec** |
 | `POST /sessions/:lookup_id/approve` | the old device confirms the transfer, "it's me", once the four characters matched; only a session of the identity that issued the invite, once, within its 120 seconds (screen 13; 2026-09-19) | **spec** |
 | `POST /sessions/:lookup_id/reject` | the old device refuses, "doesn't match"; the code dies (screen 13; 2026-09-19) | **spec** |
 
@@ -201,7 +207,7 @@ or takes a live identity for a dead one.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` absent — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §6, `statement_of_reasons`); added 2026-09-16, LAW-1 | **spec** (proposed 2026-09-16, agreed 2026-09-17) (`dsa/SPEC_EN.md` §6) |
+| `GET /statements` | your own Article 17 statements without the notifier's identity, fields as in `statement_of_reasons` of the DSA spec: `{id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at, appeal}` (`until` absent — indefinite; `ground_kind` is `legal` or `contractual`); the first delivery sets `delivered_at` (LAW-1 of pass 3) — shown on the next entry with this identity, kept a year (`dsa/SPEC_EN.md` §7, the entity `statement_of_reasons` in §8, the retention in §9; corrected from §6 on 2026-09-20 — that section is the reply to the notifier under Art. 16(5), not the statement to the author); added 2026-09-16, LAW-1 | **spec** (proposed 2026-09-16, agreed 2026-09-17) (`dsa/SPEC_EN.md` §7) |
 | `POST /report/decision` | the decision on a notice by the device's receipt code, the code in the body; not signed by an identity; "no such receipt" and "not decided yet" get the same answer — status 200, the body byte for byte, `Cache-Control: no-store`, one minimum response time for both branches; the per-address limit lives in memory and is not logged — **spec** (proposed 2026-09-15, agreed 2026-09-17) (final panel, SEC-9) | **spec** (agreed 2026-09-17) (`dsa/SPEC_EN.md` §6) |
 
 ### 4.6. Tables (chat spec §6.1, screen 19)

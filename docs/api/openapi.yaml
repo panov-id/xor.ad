@@ -672,8 +672,8 @@ components:
         ids: {type: array, items: {type: string, format: uuid}}
     Statement:
       type: object
-      description: An Article 17 statement of reasons to its addressee, without the notifier's identity (dsa/SPEC §6).
-      x-description-ru: Мотивировка по ст. 17 её адресату, без личности заявителя (dsa/SPEC §6).
+      description: An Article 17 statement of reasons to its addressee, without the notifier's identity (dsa/SPEC §7, the entity in §8; corrected from §6 on 2026-09-20 — §6 is the reply to the notifier under Art. 16(5)).
+      x-description-ru: Мотивировка по ст. 17 её адресату, без личности заявителя (dsa/SPEC §7, сущность в §8; 20.09.2026 исправлено с §6 — §6 это ответ заявителю по ст. 16(5)).
       properties:
         id: {type: string, format: uuid}
         restriction: {type: string, enum: [removed, hidden, offer_taken_down, access_restricted]}
@@ -1439,7 +1439,7 @@ paths:
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
-        "200": {description: The manifest., x-description-ru: Манифест., content: {application/json: {schema: {type: object, properties: {documents: {type: array, items: {type: object, properties: {document: {type: string}, revision_date: {type: string, format: date}, revision_sha256: {type: string}, lang: {type: string}}}}}}}}}
+        "200": {description: The manifest., x-description-ru: Манифест., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {type: object, properties: {documents: {type: array, items: {type: object, properties: {document: {type: string}, revision_date: {type: string, format: date}, revision_sha256: {type: string}, lang: {type: string}}}}}}}}}
   /legal/accept:
     post:
       tags: [identity]
@@ -1496,7 +1496,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: A page of feed items and the next cursor., x-description-ru: Страница карточек ленты и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
+        "200": {description: A page of feed items and the next cursor., x-description-ru: Страница карточек ленты и следующий курсор., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
   /likes:
     get:
       tags: [feed]
@@ -2418,7 +2418,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The profile., x-description-ru: Профиль., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
+        "200": {description: The profile., x-description-ru: Профиль., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
     patch:
       tags: [identity]
       summary: "Edit the profile"
@@ -2508,8 +2508,8 @@ paths:
       x-summary-ru: "Свои мотивировки по ст. 17"
       x-status: spec
       security: [{identitySignature: []}]
-      description: "Without the notifier's identity; shown on the next entry with this identity, kept a year (dsa/SPEC §6; LAW-1, 2026-09-16). The first delivery sets delivered_at (proof of delivery, Art. 17)."
-      x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §6; LAW-1, 16.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17)."
+      description: "Without the notifier's identity; shown on the next entry with this identity, kept a year (dsa/SPEC §7, retention in §9; LAW-1, 2026-09-16; the section corrected from §6 on 2026-09-20). The first delivery sets delivered_at (proof of delivery, Art. 17)."
+      x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §7, срок хранения в §9; LAW-1, 16.09.2026; раздел исправлен с §6 20.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -2817,6 +2817,7 @@ paths:
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "409": {description: "No first-PIN grant on this identity, or it was already spent — code unauthorized. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it (2026-09-20).", x-description-ru: "Права «первый ПИН» на этой личности нет либо оно уже израсходовано — code unauthorized. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается (20.09.2026).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}
   /sessions/{lookup_id}/approve:
     post:
@@ -2835,6 +2836,7 @@ paths:
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "404": {description: "The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.", x-description-ru: "Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}
   /sessions/{lookup_id}/reject:
     post:
@@ -2853,4 +2855,5 @@ paths:
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "404": {description: "The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.", x-description-ru: "Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}

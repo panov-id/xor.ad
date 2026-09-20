@@ -6,6 +6,9 @@
 //     overlapping it horizontally) is centred on the button or starts at its left edge, ±3 px.
 // The button is its own rect, not the +3,+3 shadow under the primary (a first version measured the shadow).
 // Only kit buttons are seen: a button drawn inline carries no data-kit. Run through check-design-spacing.sh.
+// Also measured: app-kit.svg, where a family's --bg panel stands in for the phone. Not measured: a button past the
+// phone's edge or under a painted cover, a block's bottom past the phone's edge, the sheet's own labels (class cap…).
+// A sheet with no kit buttons stays green but is named in a «!» line: green there means «not measured».
 import { chromium } from "@playwright/test";
 import { createServer } from "node:http";
 import { readFile, readdir } from "node:fs/promises";
@@ -27,10 +30,10 @@ const server = createServer(async (q, r) => {
 });
 await new Promise((d) => server.listen(PORT, "127.0.0.1", d));
 const only = process.env.ONLY || "";
-const files = (await readdir(DESIGN)).filter((n) => /^screen-.*\.svg$/.test(n)).filter((n) => !only || basename(n, ".svg") === only);
+const files = (await readdir(DESIGN)).filter((n) => /^(screen-.*|app-kit)\.svg$/.test(n)).filter((n) => !only || basename(n, ".svg") === only);
 if (!files.length) { console.error("листов нет — мерить нечего"); process.exit(3); }
 const browser = await chromium.launch();
-let problems = 0, buttons = 0;
+let problems = 0, buttons = 0; const empty = [];
 for (const file of files) {
   const src = await readFile(join(DESIGN, file), "utf-8");
   const width = Number(/width="(\d+)"/.exec(src)[1]), height = Number(/height="(\d+)"/.exec(src)[1]);
@@ -39,14 +42,21 @@ for (const file of files) {
   await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(200);
   const found = await page.evaluate(() => {
     const out = { n: 0, issues: [] }; const R = (e) => e.getBoundingClientRect();
-    const frameOf = (e) => { for (let g = e.parentElement; g && g.tagName !== "svg"; g = g.parentElement) { const r = g.querySelector(":scope > rect"); if (/^translate/.test(g.getAttribute("transform") || "") && r && [375, 377].includes(+r.getAttribute("width")) && [812, 814].includes(+r.getAttribute("height"))) return g; } return null; };
+    const frameOf = (e) => { for (let g = e.parentElement; g && g.tagName !== "svg"; g = g.parentElement) { const r = g.querySelector(":scope > rect"); if (/^translate/.test(g.getAttribute("transform") || "") && r && [375, 377].includes(+r.getAttribute("width")) && [812, 814].includes(+r.getAttribute("height"))) return g; }
+      // the kit sheet has no phones: a family's panel — a group whose first rect is the --bg ground — stands in for the frame
+      for (let g = e.parentElement; g && g.tagName !== "svg"; g = g.parentElement) { const r = g.querySelector(":scope > rect"); if (r && /--bg\b/.test(r.getAttribute("style") || "") && +r.getAttribute("width") >= 300) return g; }
+      return null; };
     const filled = (e) => { const s = getComputedStyle(e); return s.fill !== "none" && +s.fillOpacity > 0.5 && +s.opacity > 0.3; };
     const btns = [...document.querySelectorAll('g[data-kit^="button-"]')].filter((g) => !/send|text/.test(g.dataset.kit))
       .map((g) => ({ g, k: g.dataset.kit, f: frameOf(g), b: R(g.querySelector('rect:not([data-hit]):not([style*="--shadow"])')) }))
-      .filter((x) => x.f && x.b.height >= 40 && x.b.height <= 60);
+      .filter((x) => x.f && x.b.height >= 40 && x.b.height <= 60)
+      // a button under a sheet, a scrim, the composer or the tab bar is not seen, so nothing to centre
+      // a button past the phone's edge is clipped away: nothing is seen, nothing to measure
+      .filter((x) => { const fb = R(x.f.querySelector(":scope > rect")), cx = x.b.left + x.b.width / 2, cy = x.b.top + x.b.height / 2; return cx > fb.left && cx < fb.right && cy > fb.top && cy < fb.bottom; })
+      .filter((x) => { const st = document.elementsFromPoint(x.b.left + x.b.width / 2, x.b.top + x.b.height / 2); const own = st.findIndex((e) => x.g.contains(e)); const cover = st.findIndex((e) => !x.g.contains(e) && !["text", "tspan", "svg", "g"].includes(e.tagName) && !e.hasAttribute("data-hit") && filled(e)); return own < 0 || cover < 0 || own < cover; })
     out.n = btns.length;
-    const texts = [...document.querySelectorAll("text")].filter((t) => !t.closest('g[data-kit="composer-float"]')).map((t) => ({ t, f: frameOf(t), b: R(t) })).filter((x) => x.b.width > 0 && x.f);
-    const rects = [...document.querySelectorAll("rect")].filter((r) => filled(r) && !r.closest('g[data-kit^="button-"]') && frameOf(r))
+    const texts = [...document.querySelectorAll("text")].filter((t) => !t.closest('g[data-kit="composer-float"]') && !/^(cap|capb|capm|sheet|sheetm|sheet-title)$/.test(t.getAttribute("class") || "")).map((t) => ({ t, f: frameOf(t), b: R(t) })).filter((x) => x.b.width > 0 && x.f);
+    const rects = [...document.querySelectorAll("rect")].filter((r) => filled(r) && !r.closest('g[data-kit^="button-"]') && frameOf(r) && frameOf(r).querySelector(":scope > rect") !== r)
       .map((r) => ({ r, f: frameOf(r), b: R(r) })).filter((x) => x.b.width >= 60 && x.b.height >= 50 && !(x.b.width >= 370 && x.b.height >= 600));
     for (const x of btns) {
       const fb = R(x.f.querySelector(":scope > rect")); const at = `кадр ${Math.round(fb.left)},${Math.round(fb.top)} · ${x.k} «${(x.g.textContent || "").trim().slice(0, 24)}» (${Math.round(x.b.left - fb.left)},${Math.round(x.b.top - fb.top)})`;
@@ -62,7 +72,8 @@ for (const file of files) {
         .sort((a, c) => a.b.width * a.b.height - c.b.width * c.b.height)[0];
       if (box) {
         const bottom = box.b.bottom - x.b.bottom, side = Math.min(x.b.left - box.b.left, box.b.right - x.b.right);
-        if (bottom < 15.5 && box.b.bottom < fb.bottom - 1) out.issues.push(`${at}: до низа блока ${bottom.toFixed(0)} px, нужно 16`);
+        // a block running past the phone's edge continues off-screen (a scrolled card): its bottom is not seen
+        if (bottom < 15.5 && box.b.bottom <= fb.bottom + 0.5) out.issues.push(`${at}: до низа блока ${bottom.toFixed(0)} px, нужно 16`);
         if (side < 11.5) out.issues.push(`${at}: до бока блока ${side.toFixed(0)} px, нужно 12`);
       }
     }
@@ -70,9 +81,12 @@ for (const file of files) {
   });
   await page.close();
   const unique = [...new Set(found.issues)]; problems += unique.length; buttons += found.n;
-  console.log(`  ${unique.length ? "✗" : "✓"} ${file.padEnd(26)} кнопок ${found.n}${unique.length ? `, дефектов ${unique.length}` : ""}`);
+  if (!found.n) empty.push(file);
+  console.log(`  ${unique.length ? "✗" : found.n ? "✓" : "!"} ${file.padEnd(26)} кнопок ${found.n}${unique.length ? `, дефектов ${unique.length}` : ""}`);
   for (const l of unique) console.log(`      ${l}`);
 }
 await browser.close(); server.close();
+// a sheet with no kit buttons is not wrong, but green there means «not measured», so it is said aloud
+for (const f of empty) console.log(`! ${f}: кнопок кита нет — отступы на этом листе не мерились`);
 console.log(problems ? `✗ листов: ${files.length}, кнопок: ${buttons} — дефектов отступа: ${problems}` : `листов: ${files.length}, кнопок: ${buttons} — подписи под кнопками по центру, до краёв блока не меньше 16/12`);
 process.exit(problems ? 1 : 0);

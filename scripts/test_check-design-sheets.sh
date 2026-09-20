@@ -78,6 +78,27 @@ restore
 expect 0 "опустилось placeholders" "мера опустилась — зелёный с подсказкой снизить базу"
 DESIGN_DIR="$work/design" DESIGN_BASELINE="$base" bash "$gate" --write-baseline >/dev/null
 
+# a terminal sheet has its own grid gate and its own scale: the ratchet leaves it alone
+printf '%s\n' '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100"><g class="term" data-cw="9" data-ch="20" data-pad="16"><rect x="0" y="0" width="100" height="40" rx="9" style="fill:#0d0b0a"/><text x="16" y="31" style="font-size: 15px">проба</text></g></svg>' > "$work/design/screen-term.svg"
+expect 0 "ни одна мера не выросла" "терминальный лист не меряется храповиком — зелёный"
+rm "$work/design/screen-term.svg"
+restore
+
+# the generated palette block: skipped when it matches kit/schemes.css, counted when a hand edited it
+mkdir -p "$work/design/kit"
+printf '%s\n' '    .k-probe { --accent: #0f6f86; --fg: #14201e; }' > "$work/design/kit/schemes.css"
+python3 - "$work/design/screen-03.svg" "$work/design/kit/schemes.css" <<'PY'
+import sys, pathlib
+sheet, schemes = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+t = sheet.read_text(encoding='utf-8')
+sheet.write_text(t.replace('<style>', '<style>\n' + schemes.read_text(encoding='utf-8').rstrip(), 1), encoding='utf-8')
+PY
+expect 0 "ни одна мера не выросла" "блок палитр, совпадающий с schemes.css — не считается"
+sed -i 's|--accent: #0f6f86|--accent: #0f6f87|' "$work/design/screen-03.svg"
+expect 1 "colours_off_token" "блок палитр, поправленный рукой — считается, красный"
+rm -rf "$work/design/kit"
+restore
+
 # no sheets at all
 rm "$work/design"/*.svg
 expect 3 "мерить нечего" "пустой каталог — код 3, как у остальных ворот"

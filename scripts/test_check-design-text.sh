@@ -52,6 +52,16 @@ sed -i '0,/<text x="187.5" y="34" text-anchor="middle" class="k-title">Мои л
 expect 0 "ни одна не выходит за кадр" "текст под карточкой скрыт — зелёный"
 restore
 
+# a line that runs past its own card, inside the frame (the review panel of 2026-09-19)
+sed -i 's|>Мои лайки</text>|>Мои лайки</text><rect x="16" y="120" width="200" height="60" rx="13" style="fill:#262019"/><text x="32" y="156" style="font-size:16px;fill:#f0e7dc">эта строка длиннее своей карточки</text>|' "$sheet"
+expect 1 "у края своего блока" "строка шире своей карточки — красный с числом"
+restore
+
+# a line on an icon of the kit
+sed -i 's|>Мои лайки</text>|>Мои лайки</text><g data-kit="icon-close" transform="translate(100,200)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:#f0e7dc;stroke-width:2"/></g><text x="90" y="226" style="font-size:16px;fill:#f0e7dc">поверх крестика</text>|' "$sheet"
+expect 1 "лежит на иконке" "строка на иконке кита — красный"
+restore
+
 # no sheets at all
 rm "$work/design"/*.svg
 expect 3 "мерить нечего" "пустой каталог — код 3, как у остальных ворот"

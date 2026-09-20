@@ -95,6 +95,7 @@ run check-screens-mirror       bash "$here/check-screens-mirror.sh"
 run check-design-sheets        bash "$here/check-design-sheets.sh"
 run check-design-text          bash "$here/check-design-text.sh"
 run check-design-spacing       bash "$here/check-design-spacing.sh"
+run check-design-grid           bash "$here/check-design-grid.sh"
 run check-design-palettes      python3 "$here/design-palettes.py" --check
 run check-design-build         python3 "$here/build-design-sheets.py" --check
 run test-design-build          bash "$here/test_build-design-sheets.sh"
@@ -122,6 +123,7 @@ if [ "$with_tests" = 1 ]; then
   run test-design-palettes          bash "$here/test_design-palettes.sh"
   run_in_docker test_check-design-text    "$here/test_check-design-text.sh"
   run_in_docker test_check-design-spacing "$here/test_check-design-spacing.sh"
+  run_in_docker test_check-design-grid "$here/test_check-design-grid.sh"
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
   run test_check-facts-open     bash "$here/test_check-facts-open.sh"

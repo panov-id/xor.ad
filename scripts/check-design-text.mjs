@@ -81,6 +81,14 @@ for (const file of files) {
       const f = isFrame(g);
       if (!f) continue;
       out.frames++;
+      // Blocks and glyphs of this frame, measured once (review panel of 2026-09-19: text that runs
+      // to its card's edge or onto an icon was found only by eye, five times in one day).
+      const R = (e) => e.getBoundingClientRect();
+      const painted = (e) => { const cs = getComputedStyle(e); const fill = cs.fill !== "none" && +cs.fillOpacity > 0.3; const stroke = cs.stroke !== "none" && parseFloat(cs.strokeWidth) > 0; return (fill || stroke) && +cs.opacity > 0.3; };
+      const blocks = [...g.querySelectorAll("rect")].filter((r) => !r.hasAttribute("data-hit") && painted(r))
+        .map((r) => ({ r, b: R(r) })).filter((x) => x.b.width >= 24 && x.b.height >= 16 && x.b.height < 600 && !(x.b.width >= 370 && x.b.height >= 600));
+      const glyphs = [...g.querySelectorAll('g[data-kit^="icon-"]')].filter((k) => !/^icon-button/.test(k.dataset.kit))
+        .map((k) => ({ k, b: R(k) })).filter((x) => x.b.width > 0);
       for (const t of g.querySelectorAll("text")) {
         const b = t.getBoundingClientRect();
         if (b.width === 0) continue;
@@ -120,6 +128,37 @@ for (const file of files) {
             break;
           }
         }
+        // inside its block: the smallest painted rect holding the line's centre keeps 4 px on both sides
+        // the block seen right under the line: the first painted rect below it in the paint stack
+        // (not the smallest by area — a pill of a card under the composer is smaller than the composer)
+        const stackBelow = document.elementsFromPoint(cx, cy);
+        const homeEl = stackBelow.slice(stackBelow.findIndex(isSelf) + 1).find((e) => e.tagName === "rect" && blocks.some((x) => x.r === e));
+        const home = homeEl ? blocks.find((x) => x.r === homeEl) : null;
+        if (home && home.b.width < f.w - 2) {
+          const inL = b.left - home.b.left, inR = home.b.right - b.right;
+          if (Math.min(inL, inR) < 3.5) out.issues.push(`кадр ${f.id}: «${label}» у края своего блока — слева ${inL.toFixed(0)}, справа ${inR.toFixed(0)} px, нужно 4 (блок ${(home.b.left - f.x).toFixed(0)},${(home.b.top - f.y).toFixed(0)} ${home.b.width.toFixed(0)}×${home.b.height.toFixed(0)})`);
+        }
+        // not on an icon of the kit
+        // a glyph counts only while nothing of another component lies over its centre (a sheet or a dialog hides it)
+        // A stroked icon is hollow: one probe at its centre falls through to whatever lies under it, and the
+        // collision goes unseen (found 2026-09-20 by eye — an uppercase header ran under the filter icon).
+        // So sample nine points of the glyph and call it visible unless something opaque of another component covers it.
+        const visibleGlyph = (x) => {
+          const own = x.k.parentElement && x.k.parentElement.closest('g[data-kit]:not([data-kit^="icon-"])');
+          for (let i = 1; i <= 3; i++) for (let j = 1; j <= 3; j++) {
+            const px = x.b.left + (x.b.width * i) / 4, py = x.b.top + (x.b.height * j) / 4;
+            const st = document.elementsFromPoint(px, py);
+            if (!st.length) continue;
+            const blocker = st.find((e) => !x.k.contains(e) && e !== t && !t.contains(e) && e.tagName !== "text" && e.tagName !== "tspan"
+              && !(own && own.contains(e) && e.tagName === "g"));
+            const glyphAt = st.find((e) => x.k.contains(e));
+            if (glyphAt && (!blocker || st.indexOf(glyphAt) < st.indexOf(blocker))) return true;
+            if (!blocker) return true;   // nothing of another component lies here: the cell belongs to the glyph
+          }
+          return false;
+        };
+        const hit = glyphs.find((x) => !x.k.contains(t) && Math.min(b.right, x.b.right) - Math.max(b.left, x.b.left) > 1 && Math.min(b.bottom, x.b.bottom) - Math.max(b.top, x.b.top) > 1 && visibleGlyph(x));
+        if (hit) out.issues.push(`кадр ${f.id}: «${label}» лежит на иконке ${hit.k.dataset.kit} (${(hit.b.left - f.x).toFixed(0)},${(hit.b.top - f.y).toFixed(0)})`);
       }
     }
     return out;

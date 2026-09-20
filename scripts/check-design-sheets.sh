@@ -47,6 +47,9 @@ TOKENS = {
 counts = {k: 0 for k in ('sizes_off_scale', 'strokes_off_scale', 'radii_off_scale',
                          'colours_off_token', 'placeholders', 'accent_text', 'small_bordered_controls')}
 detail = {k: {} for k in counts}
+SCHEMES = (design / 'kit' / 'schemes.css').read_text(encoding='utf-8').rstrip() if (design / 'kit' / 'schemes.css').exists() else ''
+
+
 def bump(key, sheet, what):
     counts[key] += 1; d = detail[key]; d[what] = d.get(what, 0) + 1
 import xml.etree.ElementTree as ET
@@ -58,6 +61,9 @@ for f in sheets:
     # lost its lower rows for two hours this way. So the parse comes first.
     try: ET.fromstring(t)
     except ET.ParseError as e: broken.append(f'{f.name}: {e}')
+    # A terminal sheet lives on a character grid, not on the product's type scale and radius set:
+    # its own gate is check-design-grid.sh. Counting it here would report the cell size as a defect.
+    if 'data-cw=' in t and re.search(r'class="[^"]*\bterm\b', t): continue
     style = re.search(r'<style>(.*?)</style>', t, re.S)
     css = style.group(1) if style else ''
     cls_fill = {}
@@ -79,7 +85,11 @@ for f in sheets:
         if hv is not None and (abs(2 * r - hv) < 0.01 or hv <= 16): continue   # a pill (--r-pill) or an icon, not a component
         if wv is not None and abs(2 * r - wv) < 0.01: continue                 # a pill by width: the console's 3×20 rib
         if r not in RADII: bump('radii_off_scale', f.name, rx.group(1))
-    for m in re.finditer(r'(?<![\w(])#[0-9a-fA-F]{6}\b|(?<![\w(])#[0-9a-fA-F]{3}\b', t):   # url(#c17) is an id, not a colour
+    # The generated palette block is guarded by design-palettes.py (contrast bars) and its hexes are not the
+    # sheet's own: skip it — but only when it matches kit/schemes.css byte for byte, so a hand-edited block still counts.
+    tc = t
+    if SCHEMES and SCHEMES in tc: tc = tc.replace(SCHEMES, '')
+    for m in re.finditer(r'(?<![\w(])#[0-9a-fA-F]{6}\b|(?<![\w(])#[0-9a-fA-F]{3}\b', tc):   # url(#c17) is an id, not a colour
         c = m.group(0).lower()
         if c not in TOKENS: bump('colours_off_token', f.name, c)
     for mark in ('текст не задан', 'text not set', 'Text nicht festgelegt', 'տեքստը սահմանված չէ'):   # the i18n sheet speaks four languages

@@ -68,6 +68,8 @@
     .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
     .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
     .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-bub { rx: 8px; }
+    .b-sosed .k-bub { rx: 8px; }
     .b-sosed .k-ctl-shadow { display: none; }
     .b-sosed .k-life { display: none; }
     .b-sosed .k-sig-tag { display: inline; }
@@ -77,6 +79,8 @@
     .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
     .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
     .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-bub { rx: 20px; }
+    .b-neighbro .k-bub { rx: 20px; }
     .b-neighbro .k-ctl-shadow { display: none; }
     .b-neighbro .k-life { display: none; }
     .b-neighbro .k-sig-edge { display: inline; }
@@ -187,17 +191,17 @@
 <text x="48" y="764" class="sheet-title">3 · Поля — заливка --panel, рамка --border-control, rx 8</text>
 <g class="k-dark"><rect x="48" y="784" width="1544" height="520" rx="13" style="fill:var(--bg)" /><g data-kit="field" transform="translate(72,808)">
   <g><text x="0" y="-10" class="k-meta">Имя стола</text></g>
-  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <g><text x="16" y="28" class="k-body" style="fill:var(--muted)">например, «Виселица у фонтана»</text></g>
   <g><text x="331" y="27" text-anchor="end" class="k-mono">0/40</text></g>
 </g><text x="72" y="872" class="cap">пусто + счётчик</text><g data-kit="field-focus" transform="translate(455,808)">
   <g data-kit="field" transform="translate(0,0)">
   <g><text x="0" y="-10" class="k-meta">Имя стола</text></g>
-  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <g><text x="16" y="28" class="k-body">Виселица</text></g>
   <g><text x="331" y="27" text-anchor="end" class="k-mono">8/40</text></g>
 </g>
-  <rect x="-3" y="-3" width="349" height="50" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2" />
+  <rect class="k-ctl" x="-3" y="-3" width="349" height="50" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2" />
 </g><text x="455" y="872" class="cap">фокус</text><g data-kit="field-error" transform="translate(838,808)">
   <g><text x="0" y="-10" class="k-meta">Код</text></g>
   <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--err);stroke-width:1" />
@@ -207,7 +211,7 @@
   <rect x="0.5" y="0.5" width="342" height="43" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <text x="16" y="28" class="k-body" style="fill:var(--muted)">беседа закончилась</text>
 </g><text x="1221" y="872" class="cap">закрыто</text><g data-kit="message-input" transform="translate(72,940)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
   <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
@@ -215,7 +219,7 @@
 </g></g>
   </g>
   </g><text x="72" y="1004" class="cap">реплика, пусто</text><g data-kit="message-input" transform="translate(455,940)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g />
   <g><text x="16" y="28" class="k-body">Иду!</text></g>
   <g><g><g data-kit="button-send-typing" transform="translate(299,0)">
@@ -258,7 +262,7 @@
   <g><rect x="0.5" y="0.5" width="326" height="47" rx="8" stroke-dasharray="4 3" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" /></g>
   <text x="163.5" y="30" text-anchor="middle" class="k-mono" style="font-size:16px;fill:var(--fg);letter-spacing:1px">____ ____ ____ ____</text>
 </g><text x="72" y="1280" class="cap">код закрыт</text><g data-kit="message-input" transform="translate(439,1212)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g />
   <g><text x="16" y="28" class="k-body">выходишь?</text></g>
   <g><rect x="96" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
@@ -297,11 +301,11 @@
   <text x="40" y="64" text-anchor="middle" class="k-meta">25</text>
   <text x="240" y="64" text-anchor="middle" class="k-meta">45</text>
 </g><text x="1221" y="1494" class="cap">возраст</text><g data-kit="select-pill" transform="translate(72,1536)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g><text x="72" y="1600" class="cap">выбор-пилюля</text><g data-kit="select-pill" transform="translate(259,1536)">
-  <rect width="80" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="80" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">ru ×</text>
   <g data-kit="icon-chevron-down" transform="translate(42,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g><text x="259" y="1600" class="cap">язык ленты</text><g data-kit="swatch" transform="translate(379,1536)">
@@ -528,9 +532,9 @@
   <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">В ленту</text>
 </g></g>
 </g><text x="72" y="3062" class="cap">пустое</text><g data-kit="bubble-theirs" transform="translate(455,2830)">
-  <g><rect width="220" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">Привет! Я у входа.</text></g>
+  <g><rect class="k-bub" width="220" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">Привет! Я у входа.</text></g>
   </g><text x="455" y="2890" class="cap">реплика их</text><g data-kit="bubble-mine" transform="translate(838,2830)">
-  <g><rect x="143" width="200" height="40" rx="13" style="fill:var(--panel-2)" /><text x="157" y="25.5" class="k-body">Иду, пять минут.</text>
+  <g><rect class="k-bub" x="143" width="200" height="40" rx="13" style="fill:var(--panel-2)" /><text x="157" y="25.5" class="k-body">Иду, пять минут.</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
   </g><text x="838" y="2914" class="cap">реплика моя</text><g data-kit="system-line" transform="translate(1221,2830)">
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">Аня положила фишку на e4</text>
@@ -623,7 +627,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>

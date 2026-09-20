@@ -68,6 +68,8 @@
     .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
     .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
     .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-bub { rx: 8px; }
+    .b-sosed .k-bub { rx: 8px; }
     .b-sosed .k-ctl-shadow { display: none; }
     .b-sosed .k-life { display: none; }
     .b-sosed .k-sig-tag { display: inline; }
@@ -77,6 +79,8 @@
     .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
     .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
     .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-bub { rx: 20px; }
+    .b-neighbro .k-bub { rx: 20px; }
     .b-neighbro .k-ctl-shadow { display: none; }
     .b-neighbro .k-life { display: none; }
     .b-neighbro .k-sig-edge { display: inline; }
@@ -179,7 +183,7 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,354)">
-  <g><rect x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
+  <g><rect class="k-bub" x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
   </g>
 <text x="359" y="412" text-anchor="end" class="k-mono">в очереди · уйдут, когда Аня согласится</text>
@@ -188,7 +192,7 @@
   <rect width="330" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
@@ -1014,7 +1018,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -1046,7 +1050,7 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,381)">
-  <g><rect x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
+  <g><rect class="k-bub" x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
   </g>
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
@@ -1055,7 +1059,7 @@
   <rect width="343" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
@@ -1078,7 +1082,7 @@
   <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="field" transform="translate(16,72)">
-  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
   <g><text x="16" y="28" class="k-body">21</text></g>
   </g>
 <text x="16" y="140" class="k-meta">Внутри своей полосы возраст правится свободно</text>

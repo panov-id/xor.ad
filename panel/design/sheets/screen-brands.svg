@@ -78,7 +78,7 @@
 <g transform="translate(48,2044)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c4"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c4)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-center" x="0" y="0" data-title="Предложение" data-back="Беседы" data-arrow="1"/>
-  <use href="kit/components.svg#card-match" x="16" y="72" data-name="Аня, 31" data-l1="Кто идёт на набережную?" data-chip="компания" data-chipw="88"/>
+  <use href="kit/components.svg#card-match" x="16" y="72" data-name="Аня, 31" data-l1="Кто идёт на набережную?" data-chip="компания" data-chipw="88" data-note="ответа пока нет"/>
   <use href="kit/components.svg#card-hint" x="16" y="248" data-h="160" data-l1="Беседа не проверяется. Её не читает" data-l2="никто — ни мы, ни фильтр." data-l3="Переписка шифруется на устройствах." data-cta="понятно"/>
   <use href="kit/components.svg#button-primary" x="16" y="440" data-label="Поговорить"/>
   <use href="kit/components.svg#button-secondary" x="16" y="496" data-label="Не сейчас"/>
@@ -90,7 +90,7 @@
 <g transform="translate(471,2044)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c5"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c5)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-center" x="0" y="0" data-title="An offer" data-back="Chats" data-arrow="1"/>
-  <use href="kit/components.svg#card-match" x="16" y="72" data-name="Anna, 31" data-l1="Who is going to the promenade?" data-chip="company" data-chipw="76"/>
+  <use href="kit/components.svg#card-match" x="16" y="72" data-name="Anna, 31" data-l1="Who is going to the promenade?" data-chip="company" data-chipw="76" data-note="no answer yet"/>
   <use href="kit/components.svg#card-hint" x="16" y="248" data-h="160" data-l1="This chat is not checked. Nobody reads" data-l2="it — not us, not a filter." data-l3="Messages are encrypted on the devices." data-cta="got it"/>
   <use href="kit/components.svg#button-primary" x="16" y="440" data-label="Talk"/>
   <use href="kit/components.svg#button-secondary" x="16" y="496" data-label="Not now"/>
@@ -101,7 +101,7 @@
 <rect x="47" y="3005" width="377" height="814" rx="24" class="rim"/>
 <g transform="translate(48,3006)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c6"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c6)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
-  <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 31" data-namew="73" data-time="остаток 52 мин"/>
+  <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 31" data-namew="73" data-time="остаток 52 мин" data-end="закончить" data-silence="молчание · час" data-silencew="147"/>
   <use href="kit/components.svg#bubble-theirs" x="16" y="128" data-w="240" data-text="привет! я у второго входа" data-name="Аня"/>
   <use href="kit/components.svg#bubble-mine" x="16" y="228" data-w="210" data-text="отлично, буду завтра"/>
   <use href="kit/components.svg#system-line" x="0" y="312" data-text="предложена игра: точки и клетки"/>
@@ -113,7 +113,7 @@
 <rect x="470" y="3005" width="377" height="814" rx="24" class="rim"/>
 <g transform="translate(471,3006)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c7"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c7)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
-  <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anna, 31" data-namew="78" data-time="52 min left"/>
+  <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anna, 31" data-namew="78" data-time="52 min left" data-end="end it" data-silence="silence · an hour" data-silencew="150"/>
   <use href="kit/components.svg#bubble-theirs" x="16" y="128" data-w="232" data-text="hey! I am at the second door" data-name="Anna"/>
   <use href="kit/components.svg#bubble-mine" x="16" y="228" data-w="230" data-text="great, I will be there"/>
   <use href="kit/components.svg#system-line" x="0" y="312" data-text="a game was offered: dots and boxes"/>
@@ -125,7 +125,7 @@
 <rect x="47" y="3967" width="377" height="814" rx="24" class="rim"/>
 <g transform="translate(48,3968)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c8"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c8)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
-  <use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chip="домино" data-chipw="72" data-likes="12" data-who="играют 2 · смотрят 3"/>
+  <use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chip="домино" data-chipw="72" data-likes="12" data-who="играют 2 · смотрят 3" data-leave="встать"/>
   <use href="kit/components.svg#system-line" x="0" y="120" data-text="за столом шифрования нет"/>
   <use href="kit/components.svg#bubble-theirs" x="16" y="160" data-w="220" data-text="ну вот, опять шестёрка" data-name="Олег"/>
   <use href="kit/components.svg#bubble-mine" x="16" y="252" data-w="190" data-text="ход"/>
@@ -137,7 +137,7 @@
 <rect x="470" y="3967" width="377" height="814" rx="24" class="rim"/>
 <g transform="translate(471,3968)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c9"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c9)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
-  <use href="kit/components.svg#header-table" x="0" y="0" data-name="table by the bakery" data-chip="dominoes" data-chipw="82" data-likes="12" data-who="2 playing · 3 watching"/>
+  <use href="kit/components.svg#header-table" x="0" y="0" data-name="table by the bakery" data-chip="dominoes" data-chipw="82" data-likes="12" data-who="2 playing · 3 watching" data-leave="leave"/>
   <use href="kit/components.svg#system-line" x="0" y="120" data-text="no encryption at a table"/>
   <use href="kit/components.svg#bubble-theirs" x="16" y="160" data-w="212" data-text="here we go, a six again" data-name="Oleg"/>
   <use href="kit/components.svg#bubble-mine" x="16" y="252" data-w="200" data-text="my move"/>
@@ -182,7 +182,7 @@
 <g transform="translate(48,5892)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c12"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c12)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · пока тихо"/>
-  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="Во дворе тихо" data-l1="Никто ещё ничего не сказал." data-l2="Скажите первым — вас услышат."/>
+  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="Во дворе тихо" data-l1="Никто ещё ничего не сказал." data-l2="Скажите первым — вас услышат." data-action="В ленту"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
 </g></g>
@@ -192,7 +192,7 @@
 <g transform="translate(471,5892)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c13"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c13)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · quiet so far"/>
-  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="The street is quiet" data-l1="Nobody has said anything yet." data-l2="Say the first thing — they will hear."/>
+  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="The street is quiet" data-l1="Nobody has said anything yet." data-l2="Say the first thing — they will hear." data-action="To the feed"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
 </g></g>
@@ -220,7 +220,7 @@
   <use href="kit/components.svg#row-setting" x="16" y="88" data-label="Name" data-value="Zhenya"/>
   <use href="kit/components.svg#row-setting" x="16" y="144" data-label="Age" data-value="38"/>
   <use href="kit/components.svg#row-setting" x="16" y="200" data-label="Languages" data-value="ru · el"/>
-  <use href="kit/components.svg#row-setting" x="16" y="256" data-label="Appearance" data-value="terra"/>
+  <use href="kit/components.svg#row-setting" x="16" y="256" data-label="Appearance" data-value="sea"/>
   <use href="kit/components.svg#row-setting" x="16" y="312" data-label="My likes" data-value="4"/>
   <use href="kit/components.svg#row-setting" x="16" y="368" data-label="Hidden" data-value="3"/>
   <use href="kit/components.svg#button-secondary" x="16" y="448" data-label="Step away"/>

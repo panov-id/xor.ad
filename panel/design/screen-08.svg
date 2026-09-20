@@ -68,6 +68,8 @@
     .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
     .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
     .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-bub { rx: 8px; }
+    .b-sosed .k-bub { rx: 8px; }
     .b-sosed .k-ctl-shadow { display: none; }
     .b-sosed .k-life { display: none; }
     .b-sosed .k-sig-tag { display: inline; }
@@ -77,6 +79,8 @@
     .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
     .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
     .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-bub { rx: 20px; }
+    .b-neighbro .k-bub { rx: 20px; }
     .b-neighbro .k-ctl-shadow { display: none; }
     .b-neighbro .k-life { display: none; }
     .b-neighbro .k-sig-edge { display: inline; }
@@ -110,7 +114,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -121,7 +125,7 @@
   <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,120)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(16,168)">
   <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">в девять подходит.</text><text x="181" y="48" class="k-body">скамейка у пирса</text>
@@ -135,7 +139,7 @@
   <text x="46" y="46" class="k-meta">лайкнули</text></g>
   </g>
 <g data-kit="bubble-theirs" transform="translate(16,323)">
-  <g><rect width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
+  <g><rect class="k-bub" width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
   </g>
 <g data-kit="icon-button" transform="translate(204,321)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
@@ -145,11 +149,11 @@
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">Аня положила фишку на e4</text>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,401)">
-  <g><rect x="213" width="130" height="40" rx="13" style="fill:var(--panel-2)" /><text x="227" y="25.5" class="k-body">ход хороший</text>
+  <g><rect class="k-bub" x="213" width="130" height="40" rx="13" style="fill:var(--panel-2)" /><text x="227" y="25.5" class="k-body">ход хороший</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(16,468)">
-  <g><rect x="133" width="210" height="40" rx="13" style="fill:var(--panel-2)" /><text x="147" y="25.5" class="k-body">но я всё равно выиграю</text>
+  <g><rect class="k-bub" x="133" width="210" height="40" rx="13" style="fill:var(--panel-2)" /><text x="147" y="25.5" class="k-body">но я всё равно выиграю</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--err)">не отправлено · повторить</text></g>
   </g>
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
@@ -158,7 +162,7 @@
   <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g />
   <g><text x="16" y="28" class="k-body">выходишь?</text></g>
   <g><rect x="105.3" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
@@ -194,7 +198,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -206,7 +210,7 @@
 </g>
 <g class="k-fade">
 <g data-kit="bubble-theirs" transform="translate(16,120)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(16,168)">
   <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">в девять подходит.</text><text x="181" y="48" class="k-body">скамейка у пирса</text>
@@ -220,7 +224,7 @@
   <text x="46" y="46" class="k-meta">лайкнули</text></g>
   </g>
 <g data-kit="bubble-theirs" transform="translate(16,323)">
-  <g><rect width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
+  <g><rect class="k-bub" width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
   </g>
 <g data-kit="icon-button" transform="translate(204,321)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
@@ -233,7 +237,7 @@
   <rect width="72" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
@@ -267,7 +271,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -278,14 +282,14 @@
   <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,120)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(16,168)">
   <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">в девять подходит.</text><text x="181" y="48" class="k-body">скамейка у пирса</text>
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,257)">
-  <g><rect width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
+  <g><rect class="k-bub" width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
   </g>
 <g data-kit="card-tombstone" transform="translate(16,584)">
   <rect class="k-card" width="343" height="140" rx="13" style="fill:var(--panel)" />
@@ -326,7 +330,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -342,21 +346,21 @@
   <text x="34" y="21" class="k-meta" style="fill:var(--fg)">Переподключаемся…</text>
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,152)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(16,200)">
   <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">в девять подходит.</text><text x="181" y="48" class="k-body">скамейка у пирса</text>
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,289)">
-  <g><rect width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
+  <g><rect class="k-bub" width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
   </g>
 <g data-kit="icon-button" transform="translate(204,287)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--muted)" /><circle cx="22" cy="22" r="2" style="fill:var(--muted)" /><circle cx="29" cy="22" r="2" style="fill:var(--muted)" /></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,337)">
-  <g><rect x="245" width="98" height="40" rx="13" style="fill:var(--panel-2)" /><text x="259" y="25.5" class="k-body">иду</text>
+  <g><rect class="k-bub" x="245" width="98" height="40" rx="13" style="fill:var(--panel-2)" /><text x="259" y="25.5" class="k-body">иду</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
   </g>
 <rect x="0" y="716" width="375" height="1" style="fill:var(--border)" />
@@ -367,7 +371,7 @@
   <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g />
   <g><text x="16" y="28" class="k-body">выходишь?</text></g>
   <g><rect x="105.3" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
@@ -402,7 +406,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -420,7 +424,7 @@
   <rect width="343" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
@@ -454,7 +458,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -474,7 +478,7 @@
   <rect width="298" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
@@ -508,7 +512,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -526,7 +530,7 @@
 <rect x="199" y="382" width="160" height="40" rx="13" style="fill:var(--panel-2)" />
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><rect x="299" width="44" height="44" rx="8" style="fill:var(--panel-2)" /><g data-kit="icon-send" transform="translate(299,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g></g>
 </g>
 </g></g>
@@ -674,7 +678,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
 <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -684,7 +688,7 @@
 <text x="384" y="83" text-anchor="end" class="k-meta-strong">закончить</text>
 <rect x="0" y="103" width="400" height="1" style="fill:var(--border)" />
 <g data-kit="bubble-theirs" transform="translate(16,120)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(41,168)">
   <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">в девять подходит.</text><text x="181" y="48" class="k-body">скамейка у пирса</text>
@@ -698,7 +702,7 @@
   <text x="46" y="46" class="k-meta">лайкнули</text></g>
   </g>
 <g data-kit="bubble-theirs" transform="translate(16,323)">
-  <g><rect width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
+  <g><rect class="k-bub" width="184" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
   </g>
 <g data-kit="icon-button" transform="translate(204,321)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
@@ -708,11 +712,11 @@
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">Аня положила фишку на e4</text>
 </g>
 <g data-kit="bubble-mine" transform="translate(41,401)">
-  <g><rect x="213" width="130" height="40" rx="13" style="fill:var(--panel-2)" /><text x="227" y="25.5" class="k-body">ход хороший</text>
+  <g><rect class="k-bub" x="213" width="130" height="40" rx="13" style="fill:var(--panel-2)" /><text x="227" y="25.5" class="k-body">ход хороший</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(41,468)">
-  <g><rect x="133" width="210" height="40" rx="13" style="fill:var(--panel-2)" /><text x="147" y="25.5" class="k-body">но я всё равно выиграю</text>
+  <g><rect class="k-bub" x="133" width="210" height="40" rx="13" style="fill:var(--panel-2)" /><text x="147" y="25.5" class="k-body">но я всё равно выиграю</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--err)">не отправлено · повторить</text></g>
   </g>
 <rect x="0" y="740" width="400" height="1" style="fill:var(--border)" />
@@ -721,7 +725,7 @@
   <rect width="320" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="312" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="312" height="44" rx="8" style="fill:var(--panel-2)" />
   <g />
   <g><text x="16" y="28" class="k-body">выходишь?</text></g>
   <g><rect x="105.3" y="12" width="2" height="20" style="fill:var(--accent-text)" /></g>
@@ -772,7 +776,7 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,354)">
-  <g><rect x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
+  <g><rect class="k-bub" x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
   </g>
 </g>
@@ -815,7 +819,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -847,7 +851,7 @@
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,362)">
-  <g><rect x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
+  <g><rect class="k-bub" x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
   </g>
 <g data-kit="lifespan" transform="translate(16,742)">
@@ -855,7 +859,7 @@
   <rect width="343" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
@@ -890,7 +894,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -901,7 +905,7 @@
   <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,120)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">так на набережную?</text></g>
   </g>
 <g data-kit="bubble-mine" transform="translate(16,168)">
   <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">в девять подходит.</text><text x="181" y="48" class="k-body">скамейка у пирса</text>
@@ -952,7 +956,7 @@
   <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(16,56)">
-  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="147" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">молчание · час</text>
   <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
@@ -963,17 +967,17 @@
   <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
 </g>
 <g data-kit="bubble-theirs" transform="translate(16,120)">
-  <g><rect width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">домино у меня есть</text></g>
+  <g><rect class="k-bub" width="176" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">домино у меня есть</text></g>
   </g>
 <g data-kit="system-line" transform="translate(16,188)">
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">собеседник изменил возраст · 39</text>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,204)">
-  <g><rect x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
+  <g><rect class="k-bub" x="197" width="146" height="40" rx="13" style="fill:var(--panel-2)" /><text x="211" y="25.5" class="k-body">возьму термос</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
   </g>
 <g data-kit="bubble-theirs" transform="translate(16,271)">
-  <g><rect width="222" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
+  <g><rect class="k-bub" width="222" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">и это тоже моё было</text></g>
   </g>
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)" />
 <g data-kit="lifespan" transform="translate(16,742)">
@@ -981,7 +985,7 @@
   <rect width="343" height="3" rx="1.5" style="fill:var(--accent)" />
 </g>
 <g data-kit="message-input" transform="translate(16,754)">
-  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
   <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
   <g><text x="275" y="27" text-anchor="end" class="k-mono">0/256</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">

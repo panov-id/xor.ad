@@ -92,7 +92,7 @@
 <!-- a field: panel with a 1 px border-control rim, rx 8, 16 px text; label above in meta -->
 <symbol id="field" data-p-w="343" data-p-h="44" data-p-label="" data-p-value="" data-p-placeholder="" data-p-counter="">
   <g data-if="label"><text x="0" y="-10" class="k-meta">{label}</text></g>
-  <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/>
+  <rect class="k-ctl" x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1"/>
   <g data-if="value"><text x="16" y="28" class="k-body">{value}</text></g>
   <g data-if="placeholder"><text x="16" y="28" class="k-body" style="fill:var(--muted)">{placeholder}</text></g>
   <g data-if="counter"><text x="{w-12}" y="27" text-anchor="end" class="k-mono">{counter}</text></g>
@@ -100,7 +100,7 @@
 <!-- focus: the same field plus one ring 2 px accent-text, 2 px outside -->
 <symbol id="field-focus" data-p-w="343" data-p-h="44" data-p-label="" data-p-value="" data-p-counter="">
   <use href="components.svg#field" data-w="{w}" data-h="{h}" data-label="{label}" data-value="{value}" data-counter="{counter}"/>
-  <rect x="-3" y="-3" width="{w+6}" height="{h+6}" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2"/>
+  <rect class="k-ctl" x="-3" y="-3" width="{w+6}" height="{h+6}" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2"/>
 </symbol>
 <!-- error: rim in err and the reason under it in words; what was typed stays -->
 <symbol id="field-error" data-p-w="343" data-p-h="44" data-p-label="" data-p-value="" data-p-error="не подошло">
@@ -116,7 +116,7 @@
 </symbol>
 <!-- the message row of a conversation: a field on panel-2 without rim, and the send button -->
 <symbol id="message-input" data-p-w="343" data-p-value="" data-p-placeholder="написать" data-p-counter="" data-p-caret="" data-p-state="">
-  <rect width="{w-56}" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <rect class="k-ctl" width="{w-56}" height="44" rx="8" style="fill:var(--panel-2)"/>
   <g data-if="placeholder"><g data-if="!value"><text x="16" y="28" class="k-body" style="fill:var(--muted)">{placeholder}</text></g></g>
   <g data-if="value"><text x="16" y="28" class="k-body">{value}</text></g>
   <g data-if="caret"><rect x="{caret}" y="12" width="2" height="20" style="fill:var(--accent-text)"/></g>
@@ -213,7 +213,7 @@
 </symbol>
 <!-- a pill that opens a choice: «молчание · час», «ru ×» -->
 <symbol id="select-pill" data-p-w="147" data-p-label="молчание · час">
-  <rect width="{w}" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <rect class="k-ctl" width="{w}" height="44" rx="8" style="fill:var(--panel-2)"/>
   <text x="12" y="27" class="k-meta-strong">{label}</text>
   <use href="components.svg#icon-chevron-down" x="{w-38}"/>
 </symbol>
@@ -380,12 +380,12 @@
 </symbol>
 <!-- a chat bubble: theirs panel on the left, mine panel-2 on the right; no rim -->
 <symbol id="bubble-theirs" data-p-w="220" data-p-text="Привет! Я у входа." data-p-text2="" data-p-name="">
-  <g data-if="!text2"><rect width="{w}" height="40" rx="13" style="fill:var(--panel)"/><text x="14" y="25.5" class="k-body">{text}</text></g>
+  <g data-if="!text2"><rect class="k-bub" width="{w}" height="40" rx="13" style="fill:var(--panel)"/><text x="14" y="25.5" class="k-body">{text}</text></g>
   <g data-if="text2"><rect width="{w}" height="62" rx="13" style="fill:var(--panel)"/><text x="14" y="26" class="k-body">{text}</text><text x="14" y="48" class="k-body">{text2}</text></g>
   <g data-if="name"><text x="14" y="-6" class="k-meta">{name}</text></g>
 </symbol>
 <symbol id="bubble-mine" data-p-w="200" data-p-text="Иду, пять минут." data-p-text2="" data-p-mark="✓" data-p-markc="var(--muted)">
-  <g data-if="!text2"><rect x="{343-w}" width="{w}" height="40" rx="13" style="fill:var(--panel-2)"/><text x="{343-w+14}" y="25.5" class="k-body">{text}</text>
+  <g data-if="!text2"><rect class="k-bub" x="{343-w}" width="{w}" height="40" rx="13" style="fill:var(--panel-2)"/><text x="{343-w+14}" y="25.5" class="k-body">{text}</text>
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:{markc}">{mark}</text></g>
   <g data-if="text2"><rect x="{343-w}" width="{w}" height="62" rx="13" style="fill:var(--panel-2)"/><text x="{343-w+14}" y="26" class="k-body">{text}</text><text x="{343-w+14}" y="48" class="k-body">{text2}</text>
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:{markc}">{mark}</text></g>

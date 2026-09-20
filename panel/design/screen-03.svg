@@ -68,6 +68,8 @@
     .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
     .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
     .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-bub { rx: 8px; }
+    .b-sosed .k-bub { rx: 8px; }
     .b-sosed .k-ctl-shadow { display: none; }
     .b-sosed .k-life { display: none; }
     .b-sosed .k-sig-tag { display: inline; }
@@ -77,6 +79,8 @@
     .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
     .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
     .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-bub { rx: 20px; }
+    .b-neighbro .k-bub { rx: 20px; }
     .b-neighbro .k-ctl-shadow { display: none; }
     .b-neighbro .k-life { display: none; }
     .b-neighbro .k-sig-edge { display: inline; }
@@ -225,12 +229,12 @@
   <text x="16" y="80" class="k-strong">языки</text>
   <text x="359" y="80" text-anchor="end" class="k-meta">чьи сообщения показывать</text>
   <g data-kit="select-pill" transform="translate(16,88)">
-  <rect width="80" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="80" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">ru ×</text>
   <g data-kit="icon-chevron-down" transform="translate(42,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
   <g data-kit="select-pill" transform="translate(104,88)">
-  <rect width="80" height="44" rx="8" style="fill:var(--panel-2)" />
+  <rect class="k-ctl" width="80" height="44" rx="8" style="fill:var(--panel-2)" />
   <text x="12" y="27" class="k-meta-strong">en ×</text>
   <g data-kit="icon-chevron-down" transform="translate(42,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>

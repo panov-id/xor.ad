@@ -406,8 +406,11 @@ sub-pixel placement nor seven type steps. It has a cell.
 
 - **A 9×20 px cell.** JetBrains Mono at 15 px advances exactly 9 px per glyph — that is where the
   size comes from.
-- **ASCII only.** `─ ♥ ● ○ ▋ → ← … — › ‹ ⊞ ₪ ✓` are ambiguous-width: a terminal with
-  `ambiguous=wide` gives them two cells and the whole column to their right slides.
+- **The drawing is ASCII, the width is the terminal's `wcwidth`** (corrected 2026-09-20: this first
+  said "ASCII only", and by UAX #11 Cyrillic itself is ambiguous — a Russian client cannot avoid it,
+  3242 letters against 43 other ambiguous glyphs in the spec's examples). Structure — rules, markers,
+  the cursor — is drawn in ASCII so that its width does not depend on the font's coverage too:
+  `─ ♥ ● ○ ▋ → ← … — › ‹ ⊞ ₪ ✓` are substituted from another file in half the terminal fonts.
   `scripts/check-design-grid.sh` catches them.
 - **The cursor is a cell, not a glyph.** A printed block would copy into the buffer, and a screen
   reader would call it "left five eighths block".

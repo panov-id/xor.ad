@@ -86,3 +86,10 @@ Nothing was committed or pushed (the owner's standing rule). Proposed split, for
 
 ### 03:30 · Each character in its second theme
 The brand sheet gained a row: sosed on paper (`k-light b-sosed`) and neighbro at night (`k-neighbro-sea b-neighbro`). Both signatures survive the swap — the 1 px border carries sosed on a light ground, the line of light carries neighbro on a dark one — and the ratchet did not grow. 20 frames, 324 captions, 22 buttons, all gates green.
+
+### 07:40 · Owner's three decisions on depth, and a correction to my own rule
+1. **The colours belong to the terminal.** The client paints no background, prints in the default foreground (`SGR 39`), takes accents from the terminal's 16 colours, and reads dark or light from `OSC 11` with a `--theme` override. Written into `depth-client_{RU,EN}` §4. The price is named: the product's terracotta is not recognisable in a terminal.
+2. **`border-control` stays at 3.53 on the light ground.** The 3.0 bar is the one for graphics and control outlines (WCAG 1.4.11), and a rule meets it. Recomputed by me: 3.53 light, 4.10 dark.
+3. **The §4 examples are redrawn in ASCII** — 30 blocks, both languages, by the same mapping the sheet uses; the slider's handle became `|` (it is not a radio), the device block's column was re-aligned and one key row split, and the box-drawing of the storage tree became `+`/`|`. Measured after: no line over 80 columns, no wide glyph left.
+
+**🔴 And a correction to what I wrote at 04:20.** The rule «печатаем только знаки однозначной ширины» is wrong as stated: by UAX #11 **Cyrillic itself is East-Asian-Width A**. Counted, not assumed: the Russian spec's examples hold 3242 Cyrillic letters against 43 other ambiguous glyphs. A Russian client cannot avoid the class, so the rule has two halves instead: the client measures column widths with the same `wcwidth` and the same `ambiguous` mode as the terminal, and the *structure* — rules, markers, cursor — is ASCII so its width does not also depend on the font's coverage. The specs and the design system now say this; the gate is unchanged, since what it actually enforces is the second half.

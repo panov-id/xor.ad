@@ -20,10 +20,17 @@ open_witness="$work/каким-был-open.tsv"
 schema_witness="$work/каким-был-schema.tsv"
 cp "$root/docs/facts/open.tsv" "$open_witness" || { echo "не снялся open.tsv" >&2; exit 2; }
 cp "$root/docs/facts/schema.tsv" "$schema_witness" || { echo "не снялся schema.tsv" >&2; exit 2; }
+# All four registries are substituted, not two: the script defaults the others to the repository's
+# own files, and `--write` in this probe rewrote docs/facts/decisions.tsv and noise-numbers.tsv
+# for real (found 2026-09-20 — the working tree showed them changed after a clean check-all).
+noise_witness="$work/каким-был-noise.tsv"
+decisions_witness="$work/каким-был-decisions.tsv"
+cp "$root/docs/facts/noise-numbers.tsv" "$noise_witness" || { echo "не снялся noise-numbers.tsv" >&2; exit 2; }
+cp "$root/docs/facts/decisions.tsv" "$decisions_witness" || { echo "не снялся decisions.tsv" >&2; exit 2; }
 
-open="$work/open.tsv"; schema="$work/schema.tsv"
-reset() { cp "$open_witness" "$open"; cp "$schema_witness" "$schema"; }
-run() { FACTS_OPEN="$open" FACTS_SCHEMA="$schema" python3 "$tool" "$@" 2>&1; }
+open="$work/open.tsv"; schema="$work/schema.tsv"; noise="$work/noise-numbers.tsv"; decisions="$work/decisions.tsv"
+reset() { cp "$open_witness" "$open"; cp "$schema_witness" "$schema"; cp "$noise_witness" "$noise"; cp "$decisions_witness" "$decisions"; }
+run() { FACTS_OPEN="$open" FACTS_SCHEMA="$schema" FACTS_NOISE="$noise" FACTS_DECISIONS="$decisions" python3 "$tool" "$@" 2>&1; }
 
 failures=0; number=0
 expect() {  # expect <код> <подстрока> <описание> [аргументы скрипта...]
@@ -72,7 +79,7 @@ before=$(grep -c . "$open")
 run --write >/dev/null
 after=$(grep -c . "$open")
 number=$((number + 1))
-if [ "$before" = "$after" ] && FACTS_OPEN="$open" FACTS_SCHEMA="$schema" python3 "$tool" | grep -q 'переадресовывать нечего'; then
+if [ "$before" = "$after" ] && FACTS_OPEN="$open" FACTS_SCHEMA="$schema" FACTS_NOISE="$noise" FACTS_DECISIONS="$decisions" python3 "$tool" | grep -q 'переадресовывать нечего'; then
   printf '  ✓ --write чинит и не теряет строк (%s строк до и после)\n' "$before"
 else
   failures=$((failures + 1)); printf '  ✗ --write чинит и не теряет строк (%s → %s)\n' "$before" "$after"

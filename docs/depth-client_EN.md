@@ -74,7 +74,7 @@ is **by digest**: tags move, digests do not.
 ```
 docker run --rm -it --log-driver none -e DEPTH_WRAPPED=1 \
   -v depth-identity:/data \
-  ghcr.io/panov-id/depth@sha256:…
+  ghcr.io/panov-id/depth@sha256:...
 ```
 
 **`--log-driver none` is mandatory — added 2026-09-14** after the review panel (S16).
@@ -109,9 +109,9 @@ identity's state lives there and nowhere else.
 
 ```
 /data
-├── identity.age      keys, encrypted with the vault key (PIN + node share)
-├── accepted.json     the accepted terms revision and its date
-└── prefs.json        interface language and closed hints (2026-09-17)
++-- identity.age      keys, encrypted with the vault key (PIN + node share)
++-- accepted.json     the accepted terms revision and its date
++-- prefs.json        interface language and closed hints (2026-09-17)
 ```
 
 Mode is `0600`. If it is wider the client **refuses to start**, rather than
@@ -171,14 +171,14 @@ $ depth
 
   Operator.
 
-  ─────────────────────────────────────────────
+  ---------------------------------------------
    there is no identity on this device.
 
    depth new      create one
    depth move     move an identity here from the
                   device it is on now
    depth restore  raise an identity with the paper code
-  ─────────────────────────────────────────────
+  ---------------------------------------------
 ```
 
 ### 2.5. The key inside the image
@@ -255,7 +255,7 @@ this:
 
       RTQ4 - 8FMK - 2PZN - XW9D
 
-  type the second and fourth groups back: ›
+  type the second and fourth groups back: >
 ```
 
 ### 3.2. `depth move`
@@ -265,11 +265,11 @@ it **moves** it: alive here, frozen there.
 
 ```
 $ depth move
-  this device's PIN:  › ******
+  this device's PIN:  > ******
   the code from the device the identity is on now:
-  › K7Q-M3F-2X9
+  > K7Q-M3F-2X9
 
-  check   Q7MX      — show it on the previous device
+  check   Q7MX      -- show it on the previous device
 ```
 
 Nine characters, Crockford base32 without `I`, `L`, `O`, `U`. Case does not
@@ -295,7 +295,7 @@ The other side, when this terminal is the one showing the code:
 ```
   a device is asking to take the identity
 
-  check           Q7MX   — does it match the new device's screen?
+  check           Q7MX   -- does it match the new device's screen?
   called itself   Chrome, Android
   when            just now
 
@@ -309,10 +309,11 @@ The other side, when this terminal is the one showing the code:
 ```
   this device
 
-   ●  depth, this terminal          identity here since 9 August
-      last activity                 now
+   (*)  depth, this terminal        identity here since 9 August
+        last activity               now
 
-  [enter] show a code to move it    [p] extend — a new code, the old one fades    [q] back
+  [enter] show a code to move it    [q] back
+  [p] extend -- a new code, the old one fades
 ```
 
 There is no list of other devices, because there are none: one live session.
@@ -365,11 +366,27 @@ at all, and an identity could not be closed at all.
 
 ## 4. Screens
 
-**Only unambiguous-width glyphs are printed — 2026-09-20, after the review panel over the mock-up.**
-`─ ♥ ● ○ ▋ → ← … — › ‹ ⊞ ₪ ✓` are East-Asian-Width "ambiguous" (UAX #11): a terminal with
-`ambiguous=wide` (the default in East Asian locales, a switch in iTerm2, PuTTY, mintty) gives them
-two cells, and the whole column to their right slides — the alignment of `♥ 3   14:22` falls apart.
-So the client prints ASCII: `-` for a rule, `(*)` and `( )` for a radio, `*` only for "new", `>` for
+**The colours belong to the terminal, not to us — 2026-09-20, the owner's decision.** The
+client paints no background at all: text is printed in the default foreground (`SGR 39`) and
+accents come from the terminal's 16 colours, not from the product's palette. Dark ground or
+light is read through `OSC 11` with `COLORFGBG` as the fallback, and can be named by hand with
+`--theme`. The reason is measured: our `#f0e7dc` on someone's solarized-light gives 1.13:1 —
+the text disappears unless the client repaints the whole background, and under tmux or in the
+scrollback that does not always work. The price is named: the product's terracotta is not
+recognisable in a terminal, everyone has their own scheme, and that is right — the terminal
+belongs to the person, not to us.
+
+**The drawing is ASCII, and the width is measured by the same `wcwidth` the terminal uses —
+2026-09-20, after the review panel over the mock-up and the correction of the same day.** This was
+first written as "only unambiguous-width glyphs are printed", and that is wrong: by UAX #11
+**Cyrillic itself is "ambiguous"**, and a Russian client cannot avoid it (the Russian examples hold 3242 Cyrillic letters against 43 other ambiguous ones). So the rule has two halves.
+First: **a column's width is measured by the rule the terminal measures it with** — the client uses
+`wcwidth` with a pinned table and the `ambiguous` mode taken from the environment, never "one code
+point, one cell". Where `ambiguous=wide` (the default in East Asian locales, a switch in iTerm2,
+PuTTY, mintty), Cyrillic and `·` double as well, and the columns line up only if we count the same.
+Second: **structure — rules, markers, the cursor — is drawn in ASCII**, because its width must not
+depend on the font's coverage as well: `─ ♥ ● ○ ▋ → ← … — › ‹ ⊞ ₪ ✓` are substituted from another
+file in half the terminal fonts and arrive at another width. So the client prints: `-` for a rule, `(*)` and `( )` for a radio, `*` only for "new", `>` for
 the prompt, `+` for the like counter, `#` for a table, `%` for an offer, `ok` for an accepted line.
 **The cursor is drawn by the terminal itself** — a printed block would land in the clipboard and a
 screen reader would call it "left five eighths block". The mock-up
@@ -389,11 +406,11 @@ $ depth
 
   Operator.
 
-  ─────────────────────────────────────────────
+  ---------------------------------------------
    signal              dozens in range
    broadcast depth     800 m
    depth of field      your band
-  ─────────────────────────────────────────────
+  ---------------------------------------------
 
   [d] depth   [f] field   [/] speak   [q] hardline
 ```
@@ -433,15 +450,15 @@ already have them:
 ```
   broadcast depth
 
-  latitude    › 41.6458▋
-  longitude   › 41.6417
-  radius      › 800
+  latitude    > 41.6458_
+  longitude   > 41.6417
+  radius      > 800
 
-  ─────────────────────────────────────────────
+  ---------------------------------------------
   coordinates come from any map application:
-  long-press a point — "copy coordinates".
+  long-press a point -- "copy coordinates".
 
-  you choose the area, not your location —
+  you choose the area, not your location --
   they are not the same thing.
 ```
 
@@ -466,10 +483,10 @@ same field as the web:
 ```
   broadcast depth
 
-  place       › Kolonaki▋
-  radius      › 800
+  place       > Kolonaki_
+  radius      > 800
 
-  ─────────────────────────────────────────────
+  ---------------------------------------------
   the list of districts and cities arrived with the area
   and is searched right here: no request leaves the client.
 ```
@@ -479,10 +496,10 @@ same field as the web:
 ```
   depth of field
 
-  name     › Zhenya▋
-  age      › 38
+  name     > Zhenya_
+  age      > 38
 
-  filter   ‹ ──────●─────────────── ›   36 — no upper limit
+  filter   < ------|----------------- >   36 -- no upper limit
            by the year, inside your band
 ```
 
@@ -505,8 +522,8 @@ the mechanics). They were missing, and the terminal was showing a feed the web n
 longer shows:
 
 ```
-  languages  ● ru   ● el   ○ en   ○ fr      12 more in other languages
-  mode       ● alone   ● company   ○ party
+  languages  (*) ru   (*) el   ( ) en   ( ) fr      12 more in other languages
+  mode       (*) alone   (*) company   ( ) party
 ```
 
 - **Up to three languages**, taken from the locale by default. The line "N more in
@@ -524,18 +541,18 @@ longer shows:
 ```
   signal                                     dozens in range
 
-  › does anyone know if the bakery on the corner
-    opens on sunday                        ♥ 3   14:22
+  > does anyone know if the bakery on the corner
+    opens on sunday                        + 3   14:22
 
-  ⊞ table · "dominoes after work" · dominoes
-    2 playing · 1 watching                 ♥ 1   14:19
+  # table · "dominoes after work" · dominoes
+    2 playing · 1 watching                 + 1   14:19
     [l] like  [enter] sit down
 
-  ₪ offer · −20% · the bakery on the corner
-    code CORNER20, until sunday            ♥ 1   14:04
+  % offer · −20% · the bakery on the corner
+    code CORNER20, until sunday            + 1   14:04
 
-  › two chairs to give away, pick up, yard of no. 14
-                                           ♥ 0   13:58
+  > two chairs to give away, pick up, yard of no. 14
+                                           + 0   13:58
 
   [j/k] scroll  [l] like  [L] liked  [/] speak  [h] hide
   [b] block  [r] report  [tab] chats  [enter] full screen
@@ -588,15 +605,15 @@ terminal every irritation had to be taken to a moderator.
 whole width — one card, no neighbours:
 
 ```
-  ────────────────────────────────────────────────────────
+  --------------------------------------------------------
 
      does anyone know if the bakery on the corner
      opens on sunday
 
-     alone · ♥ 3 · disappearing soon
+     alone · + 3 · disappearing soon
 
-  ────────────────────────────────────────────────────────
-  [→] like  [←] hide  [Space/j/k] page  [esc] back
+  --------------------------------------------------------
+  [->] like  [<-] hide  [Space/j/k] page  [esc] back
 ```
 
 - **Every card of the feed is paged** — phrases, offers, tables — in feed order; your own
@@ -623,12 +640,12 @@ whole width — one card, no neighbours:
 ```
   speak
 
-  › two chairs to give away, pick up, yard of no. 14▋
+  > two chairs to give away, pick up, yard of no. 14_
 
-  ────────────────────────────────────────────  48 / 128
+  --------------------------------------------  48 / 128
 
-  mode             ● alone   ○ company   ○ party
-  discount         ○ no      ● yes   −20%, until sunday
+  mode             (*) alone   ( ) company   ( ) party
+  discount         ( ) no      (*) yes   −20%, until sunday
 
   [s] put up a table instead of a phrase
 ```
@@ -646,15 +663,15 @@ up a table (4.9):
 ```
   table
 
-  game     ● dominoes   ○ draughts   ○ chess
-  name     › dominoes after work▋                  19 / 24
-  area     › 300 m
+  game     (*) dominoes   ( ) draughts   ( ) chess
+  name     > dominoes after work_                  19 / 24
+  area     > 300 m
 
   the name is optional. it is published text and is checked
   by the same queue as a phrase: the table enters the feed
   at once, unnamed, and the name appears after the verdict.
 
-  [enter] put up — you will sit down at it and get up from the previous one
+  [enter] put up -- you will sit down at it and get up from the previous one
 ```
 
 **A table's name — an optional field of up to 24 graphemes, the owner's decision of
@@ -681,12 +698,12 @@ although `tab` led exactly there.
 ```
   chats            [1] offers (2)   [2] conversations
 
-  ● Anya · "great, see you tomorrow" · 0:47
+  (*) Anya · "great, see you tomorrow" · 0:47
     waiting for your reply
 
     Kostya · "ok, until saturday" · 3:12
 
-    Masha · "…" · ended
+    Masha · "..." · ended
 ```
 
 - **The counter is on offers only** — how many are waiting for your reply. Conversations
@@ -709,16 +726,16 @@ although `tab` led exactly there.
   offers
 
    Anya, 34 · company
-   ─────────────────────────────────────────
+   -----------------------------------------
    hers   "looking for someone to run to the sea"   1:48 left
    yours  "two chairs to give away"                 2:10 left
 
    the chat is not checked. nobody reads what you
-   write here — not us, not a filter. the conversation is
+   write here -- not us, not a filter. the conversation is
    encrypted on your devices: the node carries it but
    cannot read it. a game is the exception: the node
    sees the moves and the board.
-   if someone behaves badly — block them and
+   if someone behaves badly -- block them and
    report in your own words.
 
    [enter] talk   [n] not now
@@ -744,18 +761,18 @@ although `tab` led exactly there.
 ### 4.7. Chat
 
 ```
-  ────────────────────────────────────────────────────────
+  --------------------------------------------------------
    Anya, 34                 fades after 1h of YOUR silence
-  ────────────────────────────────────────────────────────
+  --------------------------------------------------------
 
    Anya  hi! I'm usually at the second entrance at 7   14:22
 
-   you   great, see you tomorrow                       14:23  ✓
+   you   great, see you tomorrow                       14:23  ok
 
-   ──  a game was proposed: dots and boxes  ──
+   --  a game was proposed: dots and boxes  --
 
-  ────────────────────────────────────────────────────────
-  › ▋                                            0 / 256
+  --------------------------------------------------------
+  > _                                            0 / 256
 ```
 
 - **256 characters** is the chat limit and it **comes from the server**
@@ -840,18 +857,18 @@ shows you something you cannot enter irritates exactly as much as a face that
 shows you nothing.
 
 ```
-  ────────────────────────────────────────────────────────
+  --------------------------------------------------------
    table · "dominoes after work" · dominoes   fades after 1h of shared silence
    seated  you · Anya · Kostya
-  ────────────────────────────────────────────────────────
+  --------------------------------------------------------
 
    [7|3] [3|3] [3|5]                    your hand
                                         [1|4] [2|2] [6|6]
    Anya    dibs on going first           14:19
    Kostya  fine                          14:20
 
-  ────────────────────────────────────────────────────────
-  › ▋                                            0 / 128
+  --------------------------------------------------------
+  > _                                            0 / 128
   [hjkl] choose  [enter] move  [/] say  [esc] get up
 ```
 
@@ -903,17 +920,17 @@ would be nowhere to take the like back.
 ```
   liked                                        newest on top
 
-  ♥ does anyone know if the bakery on the corner
-    opens on sunday                        ♥ 4   liked 14:31
+  + does anyone know if the bakery on the corner
+    opens on sunday                        + 4   liked 14:31
 
-  ⊞ table · "dominoes after work" · dominoes
-    2 playing · 1 watching                 ♥ 2
+  # table · "dominoes after work" · dominoes
+    2 playing · 1 watching                 + 2
     [enter] sit down
 
-  ● "looking for someone to run to the sea"
+  (*) "looking for someone to run to the sea"
     offer to talk · [enter] to the offer
 
-  — 30 more · [enter] show —
+  -- 30 more · [enter] show --
   [l] take back  [j/k] scroll  [esc] back
 ```
 
@@ -1030,11 +1047,11 @@ A terminal is the native environment for text games, and the board draws more
 simply here than in the web:
 
 ```
-   ·───·───·   ·       game: dots and boxes
-   │you│   │           your turn
-   ·───·   ·   ·
-   │   │anya
-   ·   ·───·   ·
+   ·---·---·   ·       game: dots and boxes
+   |you|   |           your turn
+   ·---·   ·   ·
+   |   |anya
+   ·   ·---·   ·
 
   [hjkl] pick an edge   [enter] move   [esc] leave
   [u] put it back   [r] play again
@@ -1192,7 +1209,7 @@ such a contract.
       memory  iterations    ms      offline search of a million PINs
        16 MB           2    21       5.9 h on one core
        32 MB           3    70      19.4 h
-       64 MB           3   144      39.9 h      ← taken
+       64 MB           3   144      39.9 h      <- taken
       128 MB           3   308      85.5 h
       256 MB           3   693     192.6 h
   ```

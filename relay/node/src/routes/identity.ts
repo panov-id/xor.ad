@@ -15,9 +15,15 @@ import { query, transaction } from "../lib/db.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll } from "../lib/rate_limit.ts";
 import { findPublishableKey } from "../lib/api_key.ts";
-import { importSignPublicKey, base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
+import {
+  base64urlToBytes,
+  bytesToBase64url,
+  importSignPublicKey,
+  sha256hex,
+  sunsetHeader,
+} from "../lib/identity_auth.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { configured, sealShare } from "../lib/vault_share.ts";
+import { configured, openShare, sealShare } from "../lib/vault_share.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { IDENTITY_CREATE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
@@ -244,6 +250,130 @@ async function confirmRecovery(req: Request): Promise<Response> {
   return new Response(null, { status: 204, headers: sunsetHeader() });
 }
 
+
+interface ShareBody {
+  auth?: unknown;
+}
+
+interface VaultRow {
+  auth_hash: string;
+  share_enc: Uint8Array | null;
+  attempts_left: number;
+  next_attempt_at: Date | null;
+  locked_at: Date | null;
+}
+
+// Constant time over the hex, because a comparison that returns early tells the
+// caller how many leading characters were right, and a million PINs is few
+// enough that the leak is worth something.
+function sameHash(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let difference = 0;
+  for (let i = 0; i < a.length; i++) difference |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return difference === 0;
+}
+
+// POST /vault/share — the node's half of the vault key, against a proof of the PIN.
+//
+// This is the place §8.2 warns about by name: hand the share out without the
+// proof and one theft turns into a million offline guesses. So the proof comes
+// first, the counter is the node's, and the whole attempt is one transaction
+// under SELECT … FOR UPDATE — without the lock two parallel tries walked past
+// the counter together.
+//
+// It runs on an unfinished registration on purpose. The exchange happens at step
+// 2, before the paper code is shown (storefront repository sosed.place,
+// docs/02-name-screen_RU.md:55,78), so refusing it until the signup is finished
+// would make finishing it impossible.
+async function vaultShare(req: Request): Promise<Response> {
+  const caller = await callerOf(req, { allowUnfinishedSignup: true });
+  if (caller instanceof Response) return caller;
+
+  const body = await readJson<ShareBody>(req);
+  if (!body) return refuse("invalid_body", "the body is not json", 400);
+  const auth = isText(body.auth, 512) ? base64urlToBytes(body.auth) : null;
+  if (!auth || auth.length === 0) return refuse("invalid_body", "auth must be base64url", 400);
+  // The stored value is a hash of this, never this: a dump that carried the proof
+  // itself would be a dump that can open every vault it describes (SEC-1).
+  const presented = await sha256hex(auth);
+
+  const answer = await transaction<Response>(async (run) => {
+    const [row] = await run<VaultRow>(
+      `SELECT auth_hash, share_enc, attempts_left, next_attempt_at, locked_at
+         FROM vault_shares WHERE session = $1 FOR UPDATE`,
+      [caller.sessionId],
+    );
+    if (!row) return refuse("not_found", "this session has no share", 404);
+
+    // Locked and too-early are answered before the hash is looked at, and a
+    // correct PIN is refused here too — otherwise waiting out the delay would
+    // itself be a way to test one.
+    if (row.locked_at) {
+      return refuse("pin_locked", "entry is closed until the paper code", 409, {
+        attempts_left: 0,
+      });
+    }
+    const early = row.next_attempt_at && row.next_attempt_at.getTime() > Date.now();
+    if (early) {
+      const seconds = Math.ceil((row.next_attempt_at!.getTime() - Date.now()) / 1000);
+      return refuse("rate_limited", "too soon after the last attempt", 429, {
+        attempts_left: row.attempts_left,
+      }, { "retry-after": String(seconds) });
+    }
+
+    if (!sameHash(presented, row.auth_hash)) {
+      // The delays of §8.2, by their own numbers: the sixth attempt waits 30
+      // seconds, the tenth four hours, and the tenth miss closes entry without
+      // burning the share — a stolen signing key must not be able to erase
+      // somebody's history from afar.
+      await run(
+        `UPDATE vault_shares
+            SET attempts_left   = attempts_left - 1,
+                next_attempt_at = now() + CASE attempts_left - 1
+                    WHEN 5 THEN interval '30 seconds' WHEN 4 THEN interval '2 minutes'
+                    WHEN 3 THEN interval '10 minutes' WHEN 2 THEN interval '1 hour'
+                    WHEN 1 THEN interval '4 hours' ELSE interval '0' END,
+                locked_at       = CASE WHEN attempts_left - 1 = 0 THEN now() END
+          WHERE session = $1`,
+        [caller.sessionId],
+      );
+      const left = row.attempts_left - 1;
+      inc("relay_vault_share_total", { result: left === 0 ? "locked" : "wrong" });
+      return refuse(
+        left === 0 ? "pin_locked" : "unauthorized",
+        left === 0 ? "entry is closed until the paper code" : "that PIN does not match",
+        409,
+        { attempts_left: Math.max(left, 0) },
+      );
+    }
+
+    if (!row.share_enc) {
+      // Burned: the device was transferred away. The share is gone by design and
+      // there is nothing here to hand back.
+      return refuse("not_found", "this session has no share", 404);
+    }
+    const share = await openShare(row.share_enc);
+    if (!share) {
+      // The row is there and the node cannot open it — a wrong or rotated
+      // sealing key. Never "your PIN was wrong": the PIN was right.
+      inc("relay_vault_share_total", { result: "unsealable" });
+      return refuse("unavailable", "the node cannot open this share right now", 503);
+    }
+
+    await run(
+      `UPDATE vault_shares
+          SET attempts_left = 10, next_attempt_at = NULL, last_used_at = now()
+        WHERE session = $1`,
+      [caller.sessionId],
+    );
+    inc("relay_vault_share_total", { result: "given" });
+    return json({ share: bytesToBase64url(share) }, 200, sunsetHeader());
+  }).catch(() => refuse("unavailable", "the node cannot answer right now", 503));
+
+  return answer;
+}
+
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
 route("POST", "/recovery/confirm", (c) => confirmRecovery(c.req));
+route("POST", "/vault/share", (c) => vaultShare(c.req));

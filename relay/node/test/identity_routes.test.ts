@@ -20,6 +20,13 @@ Deno.env.set("STORAGE_DIR", storageDir);
 Deno.env.set("SESSION_SECRET", "identity-routes-secret");
 Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
+// The per-address ceiling on registrations is 10 an hour, and this suite makes
+// more than that: without a way to say which address a request came from, the
+// eleventh case would fail on the limit and look like a broken route. It cost an
+// afternoon to find once. With the token set, x-client-ip is believed, so each
+// case can register from an address of its own — and one case below uses a
+// single address on purpose, to hold the ceiling itself.
+Deno.env.set("ORIGIN_TOKEN", "identity-routes-origin-token");
 // A key of its own rather than the live one: the share sealed under it is read
 // back in this file, so the suite has to know the key it was sealed with.
 Deno.env.set("VAULT_SHARE_KEY", "identity-routes-vault-key");
@@ -63,10 +70,15 @@ function newShare(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
 }
 
+let addresses = 0;
+// A fresh address per call unless the case names one: the limiter counts by
+// address, and cases must not spend each other's allowance.
+const nextAddress = () => `198.51.100.${++addresses % 250}`;
+
 async function call(
   method: string,
   path: string,
-  init: { body?: unknown; headers?: Record<string, string> } = {},
+  init: { body?: unknown; headers?: Record<string, string>; address?: string } = {},
 ): Promise<{ status: number; body: unknown; headers: Headers }> {
   const url = new URL(`https://relay.test${path}`);
   const found = match(method, url.pathname);
@@ -77,6 +89,8 @@ async function call(
       method,
       headers: {
         "x-protocol-version": String(auth.PROTOCOL_MAJOR),
+        "x-origin-token": "identity-routes-origin-token",
+        "x-client-ip": init.address ?? nextAddress(),
         ...(raw === undefined ? {} : { "content-type": "application/json" }),
         ...(init.headers ?? {}),
       },
@@ -117,10 +131,11 @@ async function signedCall(
   });
 }
 
-async function register(overrides: Record<string, unknown> = {}) {
+async function register(overrides: Record<string, unknown> = {}, address?: string) {
   const { pair, signPub } = await device();
   const share = newShare();
   const answer = await call("POST", "/identities", {
+    address,
     headers: { "x-api-key": KEY_ID },
     body: {
       sign_pub: signPub,
@@ -286,6 +301,164 @@ Deno.test("an unsupported protocol version is refused before the signature is re
     (answer.body as { error: { code: string } }).error.code,
     "protocol_version_unsupported",
   );
+});
+
+
+// The proof of the PIN: auth is what the device derives and sends, auth_hash is
+// the sha256 of it that the node stored at registration.
+const AUTH = crypto.getRandomValues(new Uint8Array(32));
+
+async function registerWithPin(auth: Uint8Array = AUTH) {
+  const authHash = await (await import("../src/lib/identity_auth.ts")).sha256hex(auth);
+  return await register({ auth_hash: authHash });
+}
+
+function proof(auth: Uint8Array) {
+  return { auth: auth.length ? authBase64(auth) : "" };
+}
+const authBase64 = (bytes: Uint8Array) => auth.bytesToBase64url(bytes);
+
+// How many tries are left, straight from the row — the answer's own number is
+// what is under test, so it cannot also be the witness.
+async function attemptsLeft(sessionId: string) {
+  const [row] = await database.queryOrThrow<
+    { attempts_left: number; locked_at: Date | null; next_attempt_at: Date | null }
+  >(
+    `SELECT attempts_left, locked_at, next_attempt_at FROM vault_shares WHERE session = $1`,
+    [sessionId],
+  );
+  return row;
+}
+
+// The delay is the node's and is written into the row; waiting it out in a test
+// would cost four hours, so it is cleared explicitly where a later try is the
+// point of the case.
+async function clearDelay(sessionId: string) {
+  await database.queryOrThrow(
+    `UPDATE vault_shares SET next_attempt_at = NULL WHERE session = $1`,
+    [sessionId],
+  );
+}
+
+Deno.test("the right PIN hands over the share and resets the counter", async () => {
+  const { answer, pair, share } = await registerWithPin();
+  const created = answer.body as { session_id: string };
+  // Spend one try first, so the reset is visible rather than assumed.
+  await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", {
+    auth: authBase64(crypto.getRandomValues(new Uint8Array(32))),
+  });
+  await clearDelay(created.session_id);
+
+  const given = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(AUTH),
+  );
+  assertEquals(given.status, 200);
+  assertEquals((given.body as { share: string }).share, authBase64(share));
+  const row = await attemptsLeft(created.session_id);
+  assertEquals(row.attempts_left, 10);
+  assertEquals(row.next_attempt_at, null);
+});
+
+Deno.test("a wrong PIN spends one try and says how many are left", async () => {
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { session_id: string };
+  const refused = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share",
+    { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) },
+  );
+  assertEquals(refused.status, 409);
+  const error = (refused.body as { error: { code: string; attempts_left: number } }).error;
+  assertEquals(error.code, "unauthorized");
+  assertEquals(error.attempts_left, 9);
+  assertEquals((await attemptsLeft(created.session_id)).attempts_left, 9);
+});
+
+Deno.test("the delay starts after the fifth miss, and waiting is not a way to test a PIN", async () => {
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { session_id: string };
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+
+  for (let i = 0; i < 5; i++) {
+    await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+    await clearDelay(created.session_id);
+  }
+  // Five gone, none of them delayed.
+  assertEquals((await attemptsLeft(created.session_id)).attempts_left, 5);
+
+  // The sixth miss arms the wait.
+  await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+  const armed = await attemptsLeft(created.session_id);
+  assertEquals(armed.attempts_left, 4);
+  assert(armed.next_attempt_at, "the sixth miss did not arm a delay");
+
+  // Too soon: refused, and the counter is not spent — the right PIN too.
+  const early = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(AUTH),
+  );
+  assertEquals(early.status, 429);
+  assert(early.headers.get("retry-after"), "no retry-after on an early attempt");
+  assertEquals((await attemptsLeft(created.session_id)).attempts_left, 4);
+});
+
+Deno.test("the tenth miss closes entry and leaves the share intact", async () => {
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { session_id: string };
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+
+  let last;
+  for (let i = 0; i < 10; i++) {
+    last = await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+    await clearDelay(created.session_id);
+  }
+  const error = (last!.body as { error: { code: string; attempts_left: number } }).error;
+  assertEquals(error.code, "pin_locked");
+  assertEquals(error.attempts_left, 0);
+
+  const row = await attemptsLeft(created.session_id);
+  assertEquals(row.attempts_left, 0);
+  assert(row.locked_at, "the tenth miss did not close entry");
+
+  // The share is whole: ten mistakes stop entry, they do not erase a history —
+  // a stolen signing key must not be able to do that from afar.
+  const [vault] = await database.queryOrThrow<{ share_enc: Uint8Array | null }>(
+    `SELECT share_enc FROM vault_shares WHERE session = $1`,
+    [created.session_id],
+  );
+  assert(vault.share_enc, "the share was burned");
+
+  // And the right PIN does not open it any more.
+  await clearDelay(created.session_id);
+  const correct = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(AUTH),
+  );
+  assertEquals(correct.status, 409);
+  assertEquals((correct.body as { error: { code: string } }).error.code, "pin_locked");
+});
+
+Deno.test("another session's share cannot be reached from this one", async () => {
+  const mine = await registerWithPin();
+  const theirs = await registerWithPin();
+  const myId = (mine.answer.body as { session_id: string }).session_id;
+  const theirId = (theirs.answer.body as { session_id: string }).session_id;
+  assert(myId !== theirId);
+  // My key against their session: the guard reads their public key and refuses.
+  const attempt = await signedCall(mine.pair.privateKey, theirId, "POST", "/vault/share", proof(AUTH));
+  assertEquals(attempt.status, 401);
+});
+
+Deno.test("the eleventh registration from one address is refused", async () => {
+  const address = "203.0.113.7";
+  for (let i = 0; i < 10; i++) {
+    const { answer } = await register({}, address);
+    assertEquals(answer.status, 200, `registration ${i + 1} was refused`);
+  }
+  const eleventh = await register({}, address);
+  assertEquals(eleventh.answer.status, 429);
+  assertEquals(
+    (eleventh.answer.body as { error: { code: string } }).error.code,
+    "rate_limited",
+  );
+  assert(eleventh.answer.headers.get("retry-after"), "no retry-after on the refusal");
 });
 
 async function countIdentities(): Promise<number> {

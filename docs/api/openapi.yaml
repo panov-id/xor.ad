@@ -410,8 +410,8 @@ components:
         wrap_pub: {type: string, description: "base64url of the SPKI export of the wrapping key (§8.13); the same envelope SessionsClaim carries on a transfer.", x-description-ru: "base64url выгрузки SPKI ключа заворачивания (§8.13); тот же конверт, что несёт SessionsClaim при переносе."}
         name: {type: string}
         age: {type: integer, minimum: 13}
-        auth_hash: {type: string}
-        share: {type: string}
+        auth_hash: {type: string, description: "sha256 of the auth bytes, lower-case hex — what the node stores and compares against, never auth itself (2026-09-17, SEC-1). The hash is named here because two clients have to agree on it; sha256 rather than a stretching one, because auth is already 32 bytes of Argon2id output and stretching a high-entropy value buys nothing (2026-09-20, while the route was built).", x-description-ru: "sha256 байтов auth, строчный hex — то, что узел хранит и с чем сверяет, но никогда не сам auth (17.09.2026, SEC-1). Хэш назван здесь, потому что о нём обязаны договориться два клиента; sha256, а не растягивающий, потому что auth и так 32 байта вывода Argon2id, и растягивать высокоэнтропийное значение нечем (20.09.2026, при постройке маршрута)."}
+        share: {type: string, description: "The node's half of the vault key: 32 random bytes, base64url. Stored sealed under the node's own key and handed back only against a proof of the PIN.", x-description-ru: "Половина ключа хранилища, принадлежащая узлу: 32 случайных байта, base64url. Хранится запечатанной ключом узла и отдаётся только против доказательства ПИНа."}
         label: {type: string, description: "What the device calls itself, \"Chrome, Android\"; optional.", x-description-ru: "Как устройство себя называет, «Chrome, Android»; необязательно."}
         recovery_lookup_id: {type: string}
     VaultInit:
@@ -1304,7 +1304,8 @@ paths:
       tags: [identity]
       summary: Exchange a PIN proof for the node's share of the vault key
       x-summary-ru: Обменять доказательство ПИНа на долю ключа хранилища
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}

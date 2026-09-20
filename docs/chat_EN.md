@@ -1218,8 +1218,11 @@ Six digits are a million combinations, and on their own they are not protection:
 device  material = Argon2id(pin, device salt, 64 MB, t=3)
         auth  = material[0..32]   ─► goes to the node
         local = material[32..64]  ─► goes NOWHERE
-node    compares the hash of auth; match ─► hands over the share, resets the counter
-                                  no    ─► counter minus one
+node    compares sha256(auth) with vault_shares.auth_hash — a constant-time
+        comparison, since an early exit would report the length of the
+        matching prefix (2026-09-20, while POST /vault/share was built)
+        match ─► hands over the share, resets the counter
+           no ─► one off the counter
 device  vault key = HKDF(local ‖ share)
 ```
 

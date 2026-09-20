@@ -28,7 +28,14 @@ only honest way to write this document without breaking it.
 - **Transport:** HTTPS for requests, WebSocket for delivery. The socket is needed
   only by chats and tables; the feed, likes and matches live on requests.
 - **Format:** JSON bodies, UTF-8. There is no binary protocol and none is planned.
-- **Time:** unix seconds, UTC. There are no time zones anywhere in the protocol.
+- **Time:** unix seconds, UTC. There are no time zones anywhere in the protocol. In the
+  contract that is `{type: integer, format: unix-seconds}` — a format name of our own,
+  which OpenAPI 3.1 allows. **Settled 2026-09-20 after the review panel:** before it, 21
+  fields stood in `format: date-time` and exactly one in seconds, so a single screen handed
+  the client two representations of time at once. The edit stops where the protocol does:
+  the venue cabinet's six fields (`/adv/*`, cookie `__Host-adv`) stay in ISO on purpose —
+  that is a browser surface for a person, and the protocol does not describe it. Held by
+  `scripts/unix-time-in-contract.py` and a rule in `scripts/check-openapi.sh`.
 - **Not one user identifier leaves the node** (§8.11): only things have uuids — a phrase,
   a chat, a match, a table, a proposal, a block and a hidden item — and none reduces to a
   person (refined 2026-09-16; this said "exactly two kinds of uuid" [retired]).

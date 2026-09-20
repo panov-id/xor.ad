@@ -316,7 +316,7 @@ components:
         turn: {type: integer}
         score: {type: object}
         over: {type: boolean, description: "The game ended; the score is final (screens 18 D, 19 C).", x-description-ru: "Партия окончена; счёт итоговый (экраны 18 D, 19 C)."}
-        expires_at: {type: string, format: date-time}
+        expires_at: {type: integer, format: unix-seconds}
         pending: {type: object, description: 'The open proposal or the running confirmation: {kind, id, class, set, answers, until}; survives a restart (OPS-12).', x-description-ru: 'Открытое предложение или идущий отсчёт: {kind, id, class, set, answers, until}; переживает перезапуск (OPS-12).'}
     TableLine:
       type: object
@@ -326,7 +326,7 @@ components:
         kind: {type: string, enum: [line, application, refusal, sticker, move, congratulation]}
         text: {type: string}
         sticker: {type: string}
-        created_at: {type: string, format: date-time}
+        created_at: {type: integer, format: unix-seconds}
     TableLineCreate:
       type: object
       description: A line, an application or a refusal go through the moderation queue (202); a sticker from our catalogue does not (200). Chat spec §6.1.
@@ -398,7 +398,7 @@ components:
         phrase: {type: object, properties: {text: {type: string}, mode: {type: string}}}
         waiting_for_you: {type: boolean}
         unread: {type: boolean}
-        chat_expires_at: {type: string, format: date-time}
+        chat_expires_at: {type: integer, format: unix-seconds}
         state: {type: string, enum: [pending, open, ended]}
     IdentityCreate:
       type: object
@@ -453,7 +453,7 @@ components:
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         discount_value: {type: string, maxLength: 32, description: "Private offer only: «−10 %», «1+1».", x-description-ru: "Только у оффера частника: «−10 %», «1+1»."}
         conditions: {type: string, maxLength: 128, description: "Private offer only; empty means no limits and no refusal (offers/SPEC_EN.md §3.1).", x-description-ru: "Только у оффера частника; пусто — без ограничений и отказать нельзя (offers/SPEC_RU.md §3.1)."}
-        discount_until: {type: string, format: date-time, description: "Private offer only; not further than 90 days.", x-description-ru: "Только у оффера частника; не дальше 90 дней."}
+        discount_until: {type: integer, format: unix-seconds, description: "Private offer only; not further than 90 days.", x-description-ru: "Только у оффера частника; не дальше 90 дней."}
     OfferCard:
       type: object
       description: The commercial part of a feed card (FeedItem.offer). A venue offer carries venue_name, a promo code and a redirect; a private author's offer only discount, conditions and until (offers/SPEC_EN.md §3, §7).
@@ -462,7 +462,7 @@ components:
         venue_name: {type: string, description: "Venue offers only.", x-description-ru: "Только у заведения."}
         discount_value: {type: string}
         conditions: {type: string, maxLength: 128}
-        discount_until: {type: string, format: date-time}
+        discount_until: {type: integer, format: unix-seconds}
         promo_code: {type: string, description: "Venue offers only; copied on the device, never counted.", x-description-ru: "Только у заведения; копируется на устройстве, не считается."}
         redirect: {type: string, description: "Venue offers only: <storefront domain>/o/<code>; the external address is never shown.", x-description-ru: "Только у заведения: <домен витрины>/o/<код>; внешний адрес не показывается."}
         redirect_disabled: {type: boolean}
@@ -579,12 +579,12 @@ components:
       type: object
       properties:
         public_no: {type: string}
-        created_at: {type: string, format: date-time}
+        created_at: {type: integer, format: unix-seconds}
         body: {type: string, description: "What the person wrote — the list shows it (screen 14 A).", x-description-ru: "Что человек написал — список его показывает (экран 14 A)."}
         answer: {type: string}
-        answered_at: {type: string, format: date-time}
+        answered_at: {type: integer, format: unix-seconds}
         answer_seen: {type: boolean}
-        read_at: {type: string, format: date-time, description: "When the answer was read (screen 14 H).", x-description-ru: "Когда ответ прочитан (экран 14 H)."}
+        read_at: {type: integer, format: unix-seconds, description: "When the answer was read (screen 14 H).", x-description-ru: "Когда ответ прочитан (экран 14 H)."}
     Profile:
       type: object
       properties:
@@ -595,13 +595,13 @@ components:
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
         filter_modes: {type: array, items: {type: string}, description: "Which modes the feed shows (screen 3 filters); empty is all.", x-description-ru: "Какие режимы показывает лента (фильтры экрана 3); пусто — все."}
-        quota: {type: object, description: "Live phrases against the ceiling and when the next slot frees (screens 4, 9, 10).", x-description-ru: "Живые фразы против потолка и когда освободится следующее место (экраны 4, 9, 10).", properties: {used: {type: integer}, of: {type: integer}, next_at: {type: string, format: date-time}}}
-        stepped_away_until: {type: string, format: date-time}
+        quota: {type: object, description: "Live phrases against the ceiling and when the next slot frees (screens 4, 9, 10).", x-description-ru: "Живые фразы против потолка и когда освободится следующее место (экраны 4, 9, 10).", properties: {used: {type: integer}, of: {type: integer}, next_at: {type: integer, format: unix-seconds}}}
+        stepped_away_until: {type: integer, format: unix-seconds}
         phrases:
           type: array
           description: Your own live phrases with their timers (screens 9 and 10).
           x-description-ru: Свои живые фразы с таймерами (экраны 9 и 10).
-          items: {type: object, properties: {id: {type: string, format: uuid}, expires_at: {type: string, format: date-time}}}
+          items: {type: object, properties: {id: {type: string, format: uuid}, expires_at: {type: integer, format: unix-seconds}}}
         table:
           type: object
           description: Your own seat, if any.
@@ -677,12 +677,12 @@ components:
       properties:
         id: {type: string, format: uuid}
         restriction: {type: string, enum: [removed, hidden, offer_taken_down, access_restricted]}
-        until: {type: string, format: date-time, description: End of the restriction; absent — indefinite (Art. 17(3)(a)). Not yet a column of the built dsa_statements table (item dsa.statements.until.unbuilt)., x-description-ru: Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). В построенной таблице dsa_statements колонки ещё нет (пункт dsa.statements.until.unbuilt).}
+        until: {type: integer, format: unix-seconds, description: End of the restriction; absent — indefinite (Art. 17(3)(a)). Not yet a column of the built dsa_statements table (item dsa.statements.until.unbuilt)., x-description-ru: Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). В построенной таблице dsa_statements колонки ещё нет (пункт dsa.statements.until.unbuilt).}
         facts: {type: string}
         ground_kind: {type: string, enum: [legal, contractual]}
         ground_text: {type: string}
         automated_used: {type: boolean}
-        created_at: {type: string, format: date-time}
+        created_at: {type: integer, format: unix-seconds}
         appeal: {type: string}
     RecoveryReissue:
       type: object
@@ -2233,7 +2233,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, since: {type: string, format: date-time}}}}}}}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, since: {type: integer, format: unix-seconds}}}}}}}
   /blocks/{id}:
     delete:
       tags: [safety]
@@ -2327,7 +2327,7 @@ paths:
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Until when., x-description-ru: До когда., content: {application/json: {schema: {type: object, properties: {until: {type: string, format: date-time}}}}}}
+        "200": {description: Until when., x-description-ru: До когда., content: {application/json: {schema: {type: object, properties: {until: {type: integer, format: unix-seconds}}}}}}
     delete:
       tags: [safety]
       summary: "Come back early"

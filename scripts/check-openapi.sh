@@ -153,6 +153,39 @@ for source in sources:
 for method, path in sorted(built_pairs - code_pairs):
     problems.append(f"спецификация: {method} {path} помечен built, а в main.ts и routes/*.ts такого маршрута нет")
 
+# Время: протокол §1 знает одно представление — unix-секунды, UTC, «часовых поясов
+# в протоколе нет нигде». 20.09.2026 в контракте стояло 21 поле format: date-time
+# против одного в секундах. Кабинет заведения протоколом не описан, и его шесть
+# полей остаются в ISO — поэтому правило знает границу поимённо.
+cabinet = {"Venue", "OfferCreate", "AdvOffer"}
+schemas = (spec.get("components", {}).get("schemas") or {})
+
+def iso_fields(node, where):
+    if isinstance(node, dict):
+        if node.get("format") == "date-time":
+            yield where
+        for key, value in node.items():
+            yield from iso_fields(value, f"{where}.{key}" if key != "properties" else where)
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            yield from iso_fields(value, f"{where}[{index}]")
+
+for name, schema in schemas.items():
+    if name in cabinet:
+        continue
+    for where in iso_fields(schema, name):
+        problems.append(
+            f"время: {where} стоит в format: date-time, а протокол §1 знает только unix-секунды "
+            "— scripts/unix-time-in-contract.py переводит"
+        )
+for (method, path), op in sorted(ops.items()):
+    if path.startswith("/adv/"):
+        continue
+    for where in iso_fields(op, f"{method} {path}"):
+        problems.append(
+            f"время: {where} стоит в format: date-time, а протокол §1 знает только unix-секунды"
+        )
+
 # Подписанные операции: 401 и три заголовка §2.
 #
 # 20.09.2026 панель насчитала 69 операций с identitySignature и ноль описанных

@@ -1,7 +1,10 @@
 # Local stand — vжух: `docker compose up` and everything's here.
-#   node    http://localhost:62080   the API (fs storage, mail -> Mailpit)
-#   Mailpit http://localhost:62025   catches welcome emails
-#   Dozzle  http://localhost:62090   live container logs in the browser
+#   node         http://localhost:62080   the API (fs storage, mail -> Mailpit)
+#   Mailpit      http://localhost:62025   catches welcome emails — and alerts
+#   Dozzle       http://localhost:62090   live container logs in the browser
+#   Prometheus   http://localhost:62091   scrapes the node, evaluates the alerts
+#   Grafana      http://localhost:62092   dashboards, provisioned from files
+#   Alertmanager http://localhost:62093   routes a firing alert into Mailpit
 # Waitlist objects land in ./data/waitlist/local/*.json so you can eyeball them.
 name: edge-node-local
 services:
@@ -33,6 +36,9 @@ services:
       # can be exercised on the stand; magic links land on the panel dev server.
       SESSION_SECRET: local-panel-secret
       PANEL_URL: http://localhost:62173
+      # Without it /metrics is 404 to everybody, including Prometheus beside it
+      # (routes/metrics.ts says why that is the honest default).
+      METRICS_TOKEN: local-metrics-token
     volumes:
       - ./data:/data
     ports: ["62080:8080"]           # 8080 on the host is the xor.ad gateway
@@ -86,3 +92,64 @@ services:
     restart: unless-stopped
     volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
     ports: ["62090:8080"]
+
+  # Everything below is the stand's eyes. It is in the compose file rather than
+  # in a person's browser on purpose: a dashboard that exists only where it was
+  # clicked together is a dashboard nobody else has.
+  prometheus:
+    # a stand's worth of series, fifteen days of them
+    mem_limit: 512m
+    cpus: 0.5
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    depends_on:
+      node:
+        condition: service_started
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+      # Without it every "Source" link in an alert letter points at the
+      # container's own hostname, which no browser on this machine can open —
+      # found by reading a letter that had actually been delivered (2026-09-20).
+      - --web.external-url=http://localhost:62091
+    ports: ["62091:9090"]
+
+  grafana:
+    mem_limit: 512m
+    cpus: 0.5
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_started
+    environment:
+      # A stand, not a server: anonymous read is what makes "open the link and
+      # look" true. Nothing here is reachable from outside the machine.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["62092:3000"]
+
+  alertmanager:
+    mem_limit: 256m
+    cpus: 0.25
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    depends_on:
+      mailpit:
+        condition: service_started
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      # Same reason as Prometheus above: the letter carries links, and a link
+      # into a container hostname is a link nobody can follow.
+      - --web.external-url=http://localhost:62093
+    ports: ["62093:9093"]

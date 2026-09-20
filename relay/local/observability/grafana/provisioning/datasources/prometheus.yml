@@ -1,0 +1,11 @@
+# The datasource, as a file. Grafana on this stand has nothing clicked into it:
+# everything it knows is in this directory and in the repository.
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: PROM
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

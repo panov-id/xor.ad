@@ -18,6 +18,7 @@ import { query, queryOrThrow, transaction } from "../lib/db.ts";
 import { recordAuditEvent } from "../lib/audit.ts";
 import { sendNoticeDecision, sendStatementOfReasons } from "../lib/mailer.ts";
 import { log } from "../lib/log.ts";
+import { inc } from "../lib/metrics.ts";
 
 interface NoticeRow {
   id: string;
@@ -307,6 +308,10 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
         : json({ error: "already decided" }, 409);
     }
     statementId = claimed.id;
+    // Counted so that "the queue is not empty" can be told from "the queue is
+    // not being worked": the first is ordinary, the second has a regulatory
+    // clock on it. The gauge lives in lib/queue_metrics.ts.
+    inc("relay_dsa_decisions_total", { decision });
 
     // Delivery is attempted, and the row records whether it happened. A
     // statement written and never delivered discharges nothing, so the two are

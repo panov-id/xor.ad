@@ -45,6 +45,7 @@ interface DepthRow {
 let seen = new Set<string>();
 
 export async function collectQueueMetrics(): Promise<void> {
+  await collectDsaQueue();
   const rows = await query<DepthRow>(
     `SELECT kind,
             count(*) FILTER (
@@ -89,7 +90,43 @@ export async function collectQueueMetrics(): Promise<void> {
   seen = present;
 }
 
+// The queue with a legal clock on it, rather than an operational one.
+//
+// Article 16 notices wait for a person, and the only thing that says whether
+// anybody is working through them is the count of undecided ones next to the
+// rate of decisions. Both were missing, and an alert on "the queue is not being
+// worked" had nothing to stand on — it was written against two metric names
+// that did not exist, which is how this got noticed (2026-09-20).
+async function collectDsaQueue(): Promise<void> {
+  const rows = await query<{ brand: string; open: string; oldest_seconds: string | null }>(
+    `SELECT coalesce(brand, 'unattributed') AS brand,
+            count(*)::text AS open,
+            EXTRACT(EPOCH FROM (now() - min(created_at)))::text AS oldest_seconds
+       FROM dsa_notices WHERE decided_at IS NULL GROUP BY 1`,
+  );
+  if (rows === null) return;
+  const present = new Set<string>();
+  for (const row of rows) {
+    present.add(row.brand);
+    setGauge("relay_dsa_queue_open", Number(row.open), { brand: row.brand });
+    setGauge(
+      "relay_dsa_queue_oldest_seconds",
+      Math.max(0, Math.round(Number(row.oldest_seconds ?? 0))),
+      { brand: row.brand },
+    );
+  }
+  for (const brand of seenBrands) {
+    if (present.has(brand)) continue;
+    clearGauge("relay_dsa_queue_open", { brand });
+    clearGauge("relay_dsa_queue_oldest_seconds", { brand });
+  }
+  seenBrands = present;
+}
+
+let seenBrands = new Set<string>();
+
 // Tests only: the set of kinds outlives a suite otherwise.
 export function forget(): void {
   seen = new Set<string>();
+  seenBrands = new Set<string>();
 }

@@ -1,0 +1,112 @@
+# Alerts, and for each one the sentence it is trying to make true.
+#
+# Every rule here answers a failure that was invisible before the numbers under
+# it existed — most of them named by the review panel of 2026-09-20. Rules that
+# would fire on an idle stand are written so that they do not: an alert nobody
+# can act on at three in the morning teaches people to ignore the channel.
+groups:
+  - name: relay-identity
+    rules:
+      # The queue is how the node keeps the promises nobody watches. A chain
+      # dies when a job exhausts its attempts and leaves a tombstone, because
+      # enqueueOnce will not replace one — so "a tombstone and nothing standing"
+      # is not a warning, it is the work having stopped for good.
+      - alert: JobChainDead
+        expr: relay_jobs_tombstones > 0 and relay_jobs_standing == 0
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Очередь {{ $labels.kind }} встала: есть надгробие и нет стоячей задачи"
+          description: "Задача выработала попытки и не перевзвелась. Сама она не вернётся — enqueueOnce надгробие не заменяет."
+
+      # Overdue by an hour means nothing is claiming jobs: the worker loop is
+      # gone, the lease is stuck, or every node is down. The number is an hour
+      # because the shortest chain re-arms hourly.
+      - alert: JobsOverdue
+        expr: relay_jobs_oldest_due_seconds > 3600
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Задача {{ $labels.kind }} просрочена больше часа"
+          description: "Никто не берёт задачи: воркер не крутится, аренда застряла, или узлов нет."
+
+      # The sweeper is the only thing enforcing three deadlines an identity has
+      # (§8.2). Silence here is not calm — it is a promise nobody is keeping.
+      # Two halves, and the second is the one that matters. "Last pass was long
+      # ago" only fires once there has been a pass; a sweeper that never ran at
+      # all publishes no series, and a rule written on the metric alone stays
+      # silent in exactly the worst case — measured on the stand 2026-09-20,
+      # where the rule sat inactive while the sweeper had never run. `absent()`
+      # is guarded by the node's own uptime so that a node three minutes old is
+      # not reported for work that is due hourly.
+      - alert: IdentitySweeperSilent
+        expr: >-
+          (time() - relay_identity_sweeper_last_pass_seconds > 10800)
+          or (absent(relay_identity_sweeper_last_pass_seconds) and on() (relay_process_uptime_seconds > 10800))
+        for: 15m
+        labels: { severity: critical }
+        annotations:
+          summary: "Уборщик личностей молчит больше трёх часов"
+          description: "Проход должен быть раз в час. Три срока §8.2 сейчас не исполняются: брошенные регистрации, год бездействия, тридцать дней после закрытия."
+
+      # A burst of wrong PINs is somebody working through a stolen signing key
+      # or an unlocked tab. Ten in five minutes is far above a person mistyping.
+      - alert: PinMissBurst
+        expr: sum(rate(relay_vault_share_total{result="wrong"}[5m])) * 300 > 10
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Всплеск неверных ПИНов: {{ $value | printf \"%.0f\" }} за пять минут"
+          description: "Похоже на перебор с украденным ключом подписи. Десятая ошибка закрывает вход до бумажного кода и замораживает сессию."
+
+      # Freezes by pin_limit are people being locked out. A wave of them is
+      # either an attack or a defect in the counter — both worth waking for.
+      - alert: SessionFreezeBurst
+        expr: sum(rate(relay_sessions_frozen_total{reason="pin_limit"}[15m])) * 900 > 5
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Заморозок по лимиту ПИНа: {{ $value | printf \"%.0f\" }} за пятнадцать минут"
+          description: "Либо атака на чужие вкладки, либо дефект счётчика попыток. Каждая такая заморозка — человек без входа до бумажного кода."
+
+      # The shared brake on paper codes. It coming on at all is an event: it
+      # means fifty wrong codes in an hour, and while it is on a genuine code
+      # waits too — the price the spec names out loud.
+      - alert: RecoveryBrakeOn
+        expr: relay_recovery_pause_seconds_left > 0
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Приём бумажных кодов на паузе"
+          description: "Пятьдесят промахов за час. Пока пауза держится, честный код тоже не принимается."
+
+      # Anything the node answers 5xx to. The label comes from main.ts's own
+      # request counter, so this covers every route rather than the ones
+      # somebody remembered to instrument.
+      - alert: ServerErrors
+        expr: sum(rate(relay_requests_total{status=~"5.."}[5m])) > 0.1
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Узел отвечает пятисотыми"
+          description: "Больше шести ошибок в минуту. Смотреть журнал узла: чаще всего это база."
+
+      # Mail is how the product answers people under Article 16 and how the
+      # panel lets anyone in at all. A node that cannot send is a node that
+      # looks healthy and quietly stops answering obligations.
+      - alert: MailFailing
+        expr: sum(rate(relay_mail_total{result!="sent"}[15m])) > 0
+        for: 10m
+        labels: { severity: critical }
+        annotations:
+          summary: "Почта не уходит"
+          description: "Подтверждения по ст. 16 и ссылки для входа в панель не доставляются."
+
+      # The DSA queue has a legal clock on it, not an operational one.
+      - alert: DsaQueueStuck
+        expr: sum(relay_dsa_queue_open) > 0 and sum(rate(relay_dsa_decisions_total[6h])) == 0
+        for: 1h
+        labels: { severity: warning }
+        annotations:
+          summary: "Очередь ст. 16 не разбирается"
+          description: "Есть незакрытые уведомления и ни одного решения за шесть часов. Сроки ответа — регуляторные. Возраст самого старого — relay_dsa_queue_oldest_seconds."

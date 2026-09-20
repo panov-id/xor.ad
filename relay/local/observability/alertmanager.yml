@@ -1,0 +1,34 @@
+# Where an alert goes on the local stand: into Mailpit, like every other letter
+# the stand sends. Nothing leaves the machine.
+#
+# On a real box this file is the one place that changes — the routes below stay,
+# the receiver's smarthost becomes the relay's own sender. That is deliberate:
+# an operator should be able to read where alerts go without reading a chart.
+global:
+  smtp_smarthost: "mailpit:1025"
+  smtp_from: "relay-alerts@xor.ad.local"
+  smtp_require_tls: false
+
+route:
+  receiver: operator-mail
+  group_by: ["alertname", "kind"]
+  # Short on a stand so a person watching can see the letter arrive; on a real
+  # box these are minutes, not seconds.
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+  routes:
+    # Critical alerts are not batched with the rest: waiting five minutes to
+    # group "the sweeper is dead" with anything else buys nothing.
+    - matchers: ['severity="critical"']
+      receiver: operator-mail
+      group_wait: 5s
+      repeat_interval: 30m
+
+receivers:
+  - name: operator-mail
+    email_configs:
+      - to: "operator@xor.ad.local"
+        send_resolved: true
+        headers:
+          Subject: '{{ .Status | toUpper }} {{ .CommonLabels.alertname }} — узел relay'

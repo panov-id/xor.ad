@@ -1224,10 +1224,12 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
       `max_message_length` = **256** stays the counter in the client. The feed
       stays at **128**; that is a different limit and the two should not be merged.
-      **Nothing can close it yet, and it was re-measured 2026-09-04:** on
-      `api.relay.panov.id` `GET /chat` still answers **501** "chat relay not
-      enabled on this node yet", there is no feed route (**404**), `/health` is
-      200. Nothing changed in ten days.
+      **Nothing can close it yet, and it was re-measured 2026-09-20** by the
+      `check-message-limits.sh` gate, which asks the live node itself: `GET
+      /chat` on `api.relay.panov.id` still answers **501**, and the gate exits
+      **4**, "measurement deferred". The arithmetic holds meanwhile: 256
+      characters → 1404 bytes on the wire against a ceiling of 2048, 45% spare.
+      Nothing has changed since 2026-09-04, and nothing could — the chat is step 5.
       **The unblocking condition is now stated by machine —
       `scripts/check-message-limits.sh` (filed 2026-09-04).** The gate asks the
       node itself and holds two things the limits registry did not. First: 256 and
@@ -1833,15 +1835,28 @@ mistaken for a loss.
       and the spec itself says to run it on the day the queue appears) and that
       queue's throughput (§8.3). The bench is ready — `relay/moderation-bench`.
 
-- [ ] **J19. The identity model has been rewritten in the spec and does not exist
-      in code.** Decided 2026-08-10: one live session per identity, a mandatory
+- [ ] **J19. The identity model: the spec was rewritten, the code is built, the
+      transfer is what remains.** Decided 2026-08-10: one live session per identity, a mandatory
       paper recovery code, a mandatory six-digit PIN, and half the vault key held
       by the node (`chat_EN.md` §8.2).
 
-      Not a line of it is built — `identities` and `sessions` are not in the
-      database either, the chat still lives entirely in the spec. This item exists
-      not as a task for tomorrow but so that the gap between "the spec describes
-      it" and "there is no code" is written down.
+      **Built 2026-09-19 and 2026-09-20, and the item is rewritten around what
+      is left.** [retired] This used to read "not a line of it is built —
+      `identities` and `sessions` are not in the database either": since
+      migration `022_identity_and_sessions.sql` and the night of 2026-09-20 the
+      node carries the schema, six routes (`POST /identities`,
+      `GET /identities/me`, `POST /recovery/confirm`, `POST /recovery/claim`,
+      `POST /vault/share`, `POST /vault/init`), the freezing of a session with
+      its notification, the burning of a share on a move, a sweeper for three
+      deadlines, and 46 cases against a live Postgres.
+
+      **What of the list below is still not built:** the device transfer as a
+      whole (blocked by the fork in G15 — neither side has a way to learn the
+      outcome), the chat key re-issue, and the transfer confirmation screen with
+      its context. The rest of the list is done and checked; §14's acceptance for
+      step 1 is broken out row by row in `docs/test-map_EN.md`, and what the
+      review panel found in this code is in
+      `docs/reviews/PANEL_2026-09-20_step1-identity.md`.
 
       **What will have to be built when its turn comes:**
 

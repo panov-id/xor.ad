@@ -388,7 +388,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-identity">identity</h2>
 <p>Личность и сессия, профиль, перевыпуск бумажного кода (протокол §4.1, §4.11, §4.12). Не построено.</p>
 <section class="op" id="post-identities">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-built">построено</span></div>
 <p><strong>Завести личность</strong></p>
 <p>Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано. Не больше 10 в час и 30 в сутки по адресу (15.09.2026).</p>
 <h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
@@ -396,6 +396,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-identitycreate"><code>IdentityCreate</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-vault-share">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-spec">спека</span></div>
@@ -466,7 +467,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-recovery-confirm">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/confirm</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/confirm</code><span class="chip s-built">построено</span></div>
 <p><strong>Бумажный код записан — завершить регистрацию</strong></p>
 <p>Третий запрос второго шага, и он же его закрывает (экран 2). Пока он не пришёл, личность не проходит ни одной проверки членства, а через час её снимает уборщик; больше пометку нести нечему — все прочие вызовы регистрации случаются до показа кода. Его груз — единственное, чего восстановлению недостаёт: долгий ключ под второй половиной кода. Один раз, собственной сессией личности; второй вызов отвечает 409 — пометка ставится через UPDATE … WHERE signup_completed_at IS NULL RETURNING, так что снятую уборщиком строку нельзя тихо оживить. Заведён 20.09.2026 кворумом двух линз ревью: колонка signup_completed_at существовала, а заполнять её было нечем, и identities.recovery_wrapped_key не писала ни одна операция.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -474,6 +475,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-recoveryconfirm"><code>RecoveryConfirm</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Завершено.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-recovery-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-spec">спека</span></div>
@@ -503,12 +505,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Записано.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-me">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-built">построено</span></div>
 <p><strong>Свой профиль</strong></p>
 <p>name, name_pending, age, фильтры, языки, stepped_away_until (экран 10).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Профиль.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="patch-identities-me">
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/identities/me</code><span class="chip s-spec">спека</span></div>

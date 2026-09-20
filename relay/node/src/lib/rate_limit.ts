@@ -128,6 +128,16 @@ export const SIGN_IN_MAILBOX_LIMITS: Limit[] = [
 //
 // Generous: a client legitimately walks pages and polls. It is a ceiling against
 // a flood, not a quota — the quota is the thing that prices ordinary use.
+// Registering an identity: 10 an hour and 30 a day per address (2026-09-15,
+// SEC-9, `identities.create.*`). Lower than any other public route on purpose —
+// an identity is three rows and a sealed share, and a script that mints them all
+// day is the shape the limit exists for. Behind carrier-grade NAT thirty a day is
+// still several households on one address.
+export const IDENTITY_CREATE_LIMITS: Limit[] = [
+  { name: "identities", max: 10, windowMs: HOUR },
+  { name: "identities-day", max: 30, windowMs: DAY },
+];
+
 export const V1_LIMITS: Limit[] = [
   { name: "v1", max: 1200, windowMs: HOUR },
   { name: "v1-day", max: 20000, windowMs: DAY },

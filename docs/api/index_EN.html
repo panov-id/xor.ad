@@ -388,7 +388,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-identity">identity</h2>
 <p>Identity and session, the profile, reissuing the paper code (protocol §4.1, §4.11, §4.12). Not built.</p>
 <section class="op" id="post-identities">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/identities</code><span class="chip s-built">built</span></div>
 <p><strong>Create an identity</strong></p>
 <p>The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
@@ -396,6 +396,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-identitycreate"><code>IdentityCreate</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>identity_id</td><td></td></tr><tr><td><code>429</code></td><td>Address limit.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-vault-share">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-spec">spec</span></div>
@@ -466,7 +467,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-recovery-confirm">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/confirm</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/confirm</code><span class="chip s-built">built</span></div>
 <p><strong>The paper code is written down — finish the registration</strong></p>
 <p>The third request of step 2, and the one that ends it (screen 2). Until it arrives the identity passes no membership check and an hour later the sweeper takes it; nothing else can carry the mark, because every other call of registration happens before the code is shown. Its cargo is the only thing recovery is missing: the long key wrapped under the code&#x27;s other half. Once, by the identity&#x27;s own session; a second call answers 409 — the mark is set with UPDATE … WHERE signup_completed_at IS NULL RETURNING, so a row the sweeper already took cannot be silently revived. Added 2026-09-20 by quorum of two review lenses: the column signup_completed_at existed with nothing to fill it, and identities.recovery_wrapped_key was written by no operation at all.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -474,6 +475,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryconfirm"><code>RecoveryConfirm</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Finished.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-recovery-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-spec">spec</span></div>
@@ -503,12 +505,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Recorded.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-me">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-built">built</span></div>
 <p><strong>Your own profile</strong></p>
 <p>name, name_pending, age, filters, languages, stepped_away_until (screen 10).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The profile.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="patch-identities-me">
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/identities/me</code><span class="chip s-spec">spec</span></div>

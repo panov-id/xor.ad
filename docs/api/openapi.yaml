@@ -1288,7 +1288,8 @@ paths:
       tags: [identity]
       summary: Create an identity
       x-summary-ru: Завести личность
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{publishableKey: []}]
       description: The public half of the key, a name and an age; the node returns identity_id (chat canon §8.2). The body is not spelled out in the canon. At most 10 per hour and 30 per day per address (2026-09-15).
       x-description-ru: Публичная половина ключа, имя и возраст; узел отдаёт identity_id (канон чата §8.2). Тело в каноне поле за полем не описано. Не больше 10 в час и 30 в сутки по адресу (15.09.2026).
@@ -1434,7 +1435,8 @@ paths:
       tags: [identity]
       summary: "The paper code is written down — finish the registration"
       x-summary-ru: "Бумажный код записан — завершить регистрацию"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
       description: "The third request of step 2, and the one that ends it (screen 2). Until it arrives the identity passes no membership check and an hour later the sweeper takes it; nothing else can carry the mark, because every other call of registration happens before the code is shown. Its cargo is the only thing recovery is missing: the long key wrapped under the code's other half. Once, by the identity's own session; a second call answers 409 — the mark is set with UPDATE … WHERE signup_completed_at IS NULL RETURNING, so a row the sweeper already took cannot be silently revived. Added 2026-09-20 by quorum of two review lenses: the column signup_completed_at existed with nothing to fill it, and identities.recovery_wrapped_key was written by no operation at all."
       x-description-ru: "Третий запрос второго шага, и он же его закрывает (экран 2). Пока он не пришёл, личность не проходит ни одной проверки членства, а через час её снимает уборщик; больше пометку нести нечему — все прочие вызовы регистрации случаются до показа кода. Его груз — единственное, чего восстановлению недостаёт: долгий ключ под второй половиной кода. Один раз, собственной сессией личности; второй вызов отвечает 409 — пометка ставится через UPDATE … WHERE signup_completed_at IS NULL RETURNING, так что снятую уборщиком строку нельзя тихо оживить. Заведён 20.09.2026 кворумом двух линз ревью: колонка signup_completed_at существовала, а заполнять её было нечем, и identities.recovery_wrapped_key не писала ни одна операция."
@@ -2474,7 +2476,8 @@ paths:
       tags: [identity]
       summary: "Your own profile"
       x-summary-ru: "Свой профиль"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
       description: "name, name_pending, age, filters, languages, stepped_away_until (screen 10)."
       x-description-ru: "name, name_pending, age, фильтры, языки, stepped_away_until (экран 10)."

@@ -31,7 +31,7 @@ docker run --rm \
   -w /node \
   "$image" \
   deno test --allow-env --allow-read --allow-write \
-  --ignore=test/tenancy.test.ts,test/database.test.ts "$@"
+  --ignore=test/tenancy.test.ts,test/database.test.ts,test/identity_routes.test.ts "$@"
 
 # The tenancy test rewrites BRANDS/SESSION_SECRET for the whole process (config
 # is captured at import), so it runs in one of its own rather than leaking into

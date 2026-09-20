@@ -73,3 +73,14 @@ docker run --rm --network "$network" \
   -e DATABASE_URL="$database_url" \
   -v "$root/relay/node":/node -w /node "$image" \
   deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts "$@"
+
+echo
+echo "== identity routes suite (chat spec §13 step 1)"
+# A file of its own, not a section of database.test.ts: that suite sets its own
+# brands and secret before the first import, and config captures the environment
+# once. Two sets of environment variables in one process is how the suites used
+# to leak into each other.
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/identity_routes.test.ts "$@"

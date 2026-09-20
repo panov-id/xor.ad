@@ -309,6 +309,35 @@ Deno.test("the paper code finishes the registration, and only once", async () =>
   assertEquals(second.status, 409);
 });
 
+Deno.test("nothing this node answers may be stored by a cache", async () => {
+  // Measured on the live edge on 2026-09-20: it answers `cache-control: public,
+  // max-age=0` when the origin says nothing — `public` being exactly the word
+  // that lets a shared cache keep a response carrying somebody's vault share.
+  // The origin says it now, and this holds the saying.
+  const { answer, pair } = await register();
+  const created = answer.body as { session_id: string };
+  assertEquals(answer.headers.get("cache-control"), "no-store");
+
+  const vary = answer.headers.get("vary") ?? "";
+  assert(vary.includes("x-identity-session"), `vary was "${vary}"`);
+
+  // The refusals too: a 401 body is small, but a cache that keeps one hands the
+  // next caller somebody else's refusal for the same path.
+  const bare = await call("GET", "/identities/me", {
+    headers: { "x-identity-session": created.session_id },
+  });
+  assertEquals(bare.status, 401);
+  assertEquals(bare.headers.get("cache-control"), "no-store");
+
+  // And the one that actually carries a secret.
+  await signedCall(pair.privateKey, created.session_id, "POST", "/recovery/confirm", {
+    recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
+  });
+  const me = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(me.status, 200);
+  assertEquals(me.headers.get("cache-control"), "no-store");
+});
+
 Deno.test("the profile answers a finished registration and refuses an unsigned request", async () => {
   const { answer, pair } = await register();
   const created = answer.body as { session_id: string };

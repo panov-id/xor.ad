@@ -203,6 +203,25 @@ for (method, path), op in sorted(ops.items()):
             f"{name}: подписана, а ответа 401 не описывает — "
             "scripts/add-signed-operation-refs.py дописывает"
         )
+    # §6: во время отлучки отвечают только три маршрута, всё остальное подписанное
+    # даёт 409 stepped_away. Три исключения названы поимённо здесь, а не выведены.
+    if (method, path) not in {("DELETE", "/away"), ("GET", "/identities/me"), ("POST", "/identities/close")}:
+        if "409" not in (op.get("responses") or {}):
+            problems.append(
+                f"{name}: подписана и не исключение §6, а ответа 409 не описывает — "
+                "в отлучке клиент получит неописанный статус"
+            )
+        else:
+            # Тело обязано допускать ApiError: без него код stepped_away невыразим,
+            # и 409 описан как что угодно, только не то, что придёт в отлучке.
+            shape = op["responses"]["409"]
+            ref = re.match(r"#/components/responses/(\w+)$", (shape or {}).get("$ref", "") or "")
+            if ref:
+                shape = (spec.get("components", {}).get("responses") or {}).get(ref.group(1), {})
+            if "ApiError" not in json.dumps(shape, ensure_ascii=False):
+                problems.append(
+                    f"{name}: её 409 не допускает ApiError — код stepped_away в нём невыразим"
+                )
     declared = json.dumps(op.get("parameters") or [], ensure_ascii=False)
     for parameter in ("IdentitySession", "IdentityTime", "ProtocolVersion"):
         if f"components/parameters/{parameter}" not in declared:

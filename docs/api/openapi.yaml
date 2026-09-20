@@ -728,6 +728,11 @@ components:
       description: Unix time when the current major protocol version stops being served; present on every answer once the date is set (protocol §3, decided 2026-09-16).
       x-description-ru: Unix-время, когда текущая мажорная версия протокола перестанет обслуживаться; на каждом ответе с момента назначения даты (протокол §3, решено 16.09.2026).
   responses:
+    Conflict:
+      description: "A refusal of state, told apart by error.code (protocol §6). During a time away every signed request except DELETE /away, GET /identities/me and POST /identities/close answers stepped_away; re-acceptance arrives without an error.code; a reused nonce is invalid_body; the rest are the operation's own codes. Attached to every signed operation on 2026-09-20 — before that only six described it, and a client written from the contract met an undescribed status on most screens during a time away."
+      x-description-ru: "Отказ состояния, различается по error.code (протокол §6). Во время отлучки все подписанные запросы, кроме DELETE /away, GET /identities/me и POST /identities/close, отвечают stepped_away; повторное принятие приходит без error.code; повтор nonce — invalid_body; остальное — собственные коды операции. Подключён ко всем подписанным операциям 20.09.2026: до того его описывали шесть, и клиент, написанный по контракту, в отлучке получал неописанный статус на большинстве экранов."
+      headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+      content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/ApiError"}, {$ref: "#/components/schemas/LegalReacceptance"}]}}}
     Unauthorized:
       description: "The signature of protocol §2 is missing, malformed, outside the ±5 minute window, or not the session's — code unauthorized. Named on every signed operation since 2026-09-20: before that the closed list of §6 held the code and no route answered it, so the commonest refusal of the signed API went undescribed."
       x-description-ru: "Подписи протокола §2 нет, она не той формы, вне окна ±5 минут либо не этой сессии — code unauthorized. Стоит у каждой подписанной операции с 20.09.2026: до того закрытый список §6 держал код, а отвечал им ни один маршрут, то есть самый частый отказ подписанного API описан не был."
@@ -751,10 +756,6 @@ components:
       description: The same nonce on another route, or a malformed nonce — code invalid_body (protocol §2). On POST /blocks this 409 answers the nonce only, never the target of the block.
       x-description-ru: Тот же nonce на другом маршруте или nonce не той формы — code invalid_body (протокол §2). У POST /blocks этот 409 отвечает только на nonce, никогда — на цель блокировки.
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
-    Reaccept:
-      description: Re-acceptance required (protocol §6).
-      x-description-ru: Нужно принять документы заново (протокол §6).
-      content: {application/json: {schema: {$ref: "#/components/schemas/LegalReacceptance"}}}
 
 paths:
   /health:
@@ -1303,6 +1304,7 @@ paths:
       x-description-ru: Десять неверных попыток закрывают вход до бумажного кода; доля цела.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultShare"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1322,6 +1324,7 @@ paths:
       x-description-ru: Девять символов, две минуты, одно применение; требует доказательства ПИНа.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsInvite"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1380,6 +1383,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The appearance., x-description-ru: Оформление., content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
@@ -1397,6 +1401,7 @@ paths:
       x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1455,6 +1460,7 @@ paths:
       x-description-ru: Документ, дата, хэш; по строке на каждое.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/LegalAccept"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1493,6 +1499,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1512,6 +1519,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1529,6 +1537,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1547,6 +1556,7 @@ paths:
       description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.
       x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1581,6 +1591,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1604,7 +1615,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Consent recorded., x-description-ru: Согласие записано.}
-        "409": {description: Re-acceptance required., x-description-ru: Нужно принять документы заново., content: {application/json: {schema: {$ref: "#/components/schemas/LegalReacceptance"}}}}
+        "409": {$ref: "#/components/responses/Conflict"}
   /inbox:
     get:
       tags: [chat]
@@ -1618,6 +1629,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1637,6 +1649,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1656,6 +1669,7 @@ paths:
       x-description-ru: Только при подтверждённом чтении базы — 503, а не пустой список, иначе стёрлась бы локальная история.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAlive"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1674,6 +1688,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1693,6 +1708,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ChatSpan"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1732,6 +1748,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1772,6 +1789,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1811,6 +1829,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1830,6 +1849,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "404": {$ref: "#/components/responses/ApiError"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -1856,7 +1876,7 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Queued., x-description-ru: В очереди.}
         "200": {description: Sticker placed., x-description-ru: Стикер поставлен.}
-        "409": {$ref: "#/components/responses/Reaccept"}
+        "409": {$ref: "#/components/responses/Conflict"}
   /tables/{id}/moves:
     post:
       tags: [tables]
@@ -1893,6 +1913,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1935,6 +1956,7 @@ paths:
         - {name: pid, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1954,6 +1976,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1974,6 +1997,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Seat"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1994,6 +2018,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Seat"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2033,6 +2058,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2052,6 +2078,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2072,6 +2099,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2117,7 +2145,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Queued., x-description-ru: В очереди.}
-        "409": {$ref: "#/components/responses/Reaccept"}
+        "409": {$ref: "#/components/responses/Conflict"}
   /chats/{id}/game/confirm:
     post:
       tags: [chat]
@@ -2133,6 +2161,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2153,6 +2182,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Proposal"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2174,6 +2204,7 @@ paths:
         - {name: pid, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2193,6 +2224,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2230,6 +2262,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2249,6 +2282,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2268,6 +2302,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/HideTarget"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2285,6 +2320,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2304,6 +2340,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2378,6 +2415,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2397,6 +2435,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: "no", in: path, required: true, schema: {type: string}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2497,6 +2536,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Received"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "204": {description: Done., x-description-ru: Сделано.}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2515,6 +2555,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Statement"}}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2565,6 +2606,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2584,6 +2626,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferComplaintCreate"}}}}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
@@ -2780,6 +2823,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2797,6 +2841,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2834,6 +2879,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "404": {description: "The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.", x-description-ru: "Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
@@ -2853,6 +2899,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "404": {description: "The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.", x-description-ru: "Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Дать каждой подписанной операции её 401 и три заголовка подписи.
+"""Дать каждой подписанной операции её 401, 409 и три заголовка подписи.
 
     scripts/add-signed-operation-refs.py [--check]
 
@@ -9,7 +9,10 @@
 по контракту, не знает, что ловить на самом частом отказе подписанного API. И
 собранный по контракту клиент шлёт `x-identity-sign` без `x-identity-session` и
 `x-identity-time`: схема безопасности называет один заголовок из трёх, остальные
-два лежат прозой в описании и в машинный вид не попадают вовсе.
+два лежат прозой в описании и в машинный вид не попадают вовсе. Третье: §6 обещает 409
+`stepped_away` на любом подписанном запросе, кроме трёх названных, а описывали его
+шесть операций — клиент, написанный по контракту, в отлучке встречал неописанный
+статус на большинстве экранов.
 
 Правка механическая и потому скриптом: `$ref` на общий ответ и на два параметра
 ставится там, где его нет, отступами файла, не трогая ничего другого. Порядок
@@ -27,6 +30,10 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPEC = ROOT / "docs/api/openapi.yaml"
 
 UNAUTHORIZED = '"401": {$ref: "#/components/responses/Unauthorized"}'
+CONFLICT = '"409": {$ref: "#/components/responses/Conflict"}'
+# Протокол §6 называет три исключения поимённо: во время отлучки только они
+# продолжают отвечать. Всё остальное подписанное обязано описывать 409.
+AWAY_EXEMPT = {("delete", "/away"), ("get", "/identities/me"), ("post", "/identities/close")}
 SESSION = '{$ref: "#/components/parameters/IdentitySession"}'
 TIME = '{$ref: "#/components/parameters/IdentityTime"}'
 VERSION = '#/components/parameters/ProtocolVersion'
@@ -74,7 +81,7 @@ def main():
     signed = signed_operations(spec)
     lines = text.splitlines(keepends=True)
 
-    missing_response, missing_headers = [], []
+    missing_response, missing_headers, missing_conflict = [], [], []
     inserts = []  # (номер строки, что вставить) — применяются снизу вверх
     for method, path, start, end in walk(lines):
         if (method, path) not in signed:
@@ -90,6 +97,14 @@ def main():
                     inserts.append((number + 1, f"{indent}{UNAUTHORIZED}\n"))
                     break
 
+        if '"409"' not in body and (method, path) not in AWAY_EXEMPT:
+            missing_conflict.append(name)
+            for number in range(start, end):
+                if lines[number].strip() == "responses:":
+                    indent = " " * (len(lines[number]) - len(lines[number].lstrip()) + 2)
+                    inserts.append((number + 1, f"{indent}{CONFLICT}\n"))
+                    break
+
         if SESSION not in body:
             missing_headers.append(name)
             for number in range(start, end):
@@ -101,9 +116,11 @@ def main():
     if check:
         for name in missing_response:
             print(f"  ✗ {name}: подписана, а ответа 401 не описывает")
+        for name in missing_conflict:
+            print(f"  ✗ {name}: подписана и не исключение §6, а ответа 409 не описывает")
         for name in missing_headers:
             print(f"  ✗ {name}: подписана, а заголовков x-identity-session и x-identity-time не объявляет")
-        total = len(missing_response) + len(missing_headers)
+        total = len(missing_response) + len(missing_conflict) + len(missing_headers)
         print(f"\nподписанных операций: {len(signed)} — неполных: {total}")
         return 1 if total else 0
 
@@ -112,7 +129,7 @@ def main():
     SPEC.write_text("".join(lines), encoding="utf-8")
     print(
         f"подписанных операций: {len(signed)}; дописано: 401 — {len(missing_response)}, "
-        f"заголовков — {len(missing_headers)}"
+        f"409 — {len(missing_conflict)}, заголовков — {len(missing_headers)}"
     )
     return 0
 

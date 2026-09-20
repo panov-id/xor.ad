@@ -75,6 +75,17 @@ docker run --rm --network "$network" \
   deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts "$@"
 
 echo
+echo "== identity sweeper suite (chat spec §8.2: the three deadlines)"
+# The repository root, not just the node: one case reads docs/facts/limits.tsv,
+# because the deadlines belong to the registry and a test that took them from
+# the same module as the code could not catch a wrong one. Read-only — a suite
+# that deletes rows has no business writing files.
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root":/repo:ro -w /repo/relay/node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/identity_sweeper.test.ts "$@"
+
+echo
 echo "== session freeze suite (chat spec §8.2: the row and the notification)"
 # Its own file for its own reason: it opens raw LISTENing connections, and the
 # driver throws when one is handed a notification — a fact this suite asserts on

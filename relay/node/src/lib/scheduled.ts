@@ -19,6 +19,7 @@ import { prunePageviews } from "../../tools/prune_pageviews.ts";
 import { pruneObjects } from "../../tools/prune_objects.ts";
 import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
+import { sweepIdentities } from "./identity_sweeper.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
 // Everything else the policy promises a window for. Page views keep their own job
@@ -41,6 +42,11 @@ export const PRUNE_MAGIC = "prune_magic_links";
 // Jobs that gave up. Kept as evidence, but not for ever: nothing removed them,
 // and the standing-job index deliberately ignores them, so one kind could hold
 // any number. Found by a review lens, 2026-09-08.
+// The three deadlines of an identity (§8.2): an abandoned signup after an hour,
+// a year without a session, and thirty days after closing. `identity.sweeper` is
+// the name docs/facts/limits.tsv gives as their enforcer, and until 2026-09-20
+// the name pointed at nothing at all.
+export const SWEEP_IDENTITIES = "sweep_identities";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -53,6 +59,7 @@ const IDEMPOTENCY_BATCH = 5000;
 const IDEMPOTENCY_BATCHES = 5000;
 const A_DAY_MS = 24 * 60 * 60 * 1000;
 const A_MINUTE_MS = 60 * 1000;
+const A_HOUR_MS = 60 * A_MINUTE_MS;
 
 export function registerScheduledJobs(): void {
   handle(PRUNE_OBJECTS, async (payload) => {
@@ -118,6 +125,14 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_DAY_MS);
   });
 
+  handle(SWEEP_IDENTITIES, async () => {
+    // Hourly, not daily: the shortest of the three deadlines is an hour, and a
+    // once-a-night pass would hold abandoned signups for a day at worst — rows
+    // that §8.2 says pass no membership check and exist only to be swept.
+    await sweepIdentities();
+    return new Date(Date.now() + A_HOUR_MS);
+  });
+
   handle(PRUNE_MAGIC, async () => {
     const result = await pruneMagicLinks();
     // Come straight back while there is more, rather than leaving the rest for
@@ -145,4 +160,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_IDEMPOTENCY, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_MAGIC, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
+  await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
 }

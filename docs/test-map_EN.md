@@ -450,6 +450,18 @@ the spec, not from whatever turned out to be convenient to check.
 | 24.9 | `/o/{code}/go`: `no-store`, `no-referrer`, previews not counted, an unknown code — 404 (§6.2, 2026-09-19) | response headers; `HEAD` does not change `redirect_hits` | nothing to check |
 | 24.10 | A published offer is never edited; "show again" is a new one with `repeated_from` (§3.1, §8) | no edit of a published one; a repeat → a new row | nothing to check |
 
+## 25. Place QR (screen 26, protocol §4.2, 2026-09-19)
+
+| # | What must be true | What proves it | State |
+|---|---|---|---|
+| 25.1 | Making a QR sends no request to the node | the browser's network log on "make QR", "share", "save as picture" → empty | nothing to check |
+| 25.2 | Fragment parsing is strict; a broken one — the ordinary feed without a sheet; the cell's node equals `grid_round_lat/lon` | an input table: `#p=17472.4457&s=2`, `s=0`, `s=6`, `p=abc`, `p=1.5e9.1`, latitude beyond ±90°, negative indices; the rebuilt node against `grid_round_*` (`chat_EN.md` §8.3) | nothing to check |
+| 25.2a | The QR never reaches a server: the storefront and CDN logs hold no `p`/`s`; a poster link `?p=&w=&l=` keeps its own rules | open a QR → the storefront request has no fragment; a poster → a line over the feed, not a sheet | nothing to check |
+| 25.3 | An opened QR never moves the point by itself, does not change the view radius, offers no point beyond 25 km; the fragment is removed whatever the outcome | open a QR → the point is unchanged; "put it here" → the point at the cell's centre, the radius unchanged; a cell 30 km away → no "put it here"; after the sheet → the address has no `#` | nothing to check |
+| 25.4 | The zone of a phrase at a QR point: by default the larger of the QR's step and 300 m | a 1 km QR → 1 km; a 100 m QR → 300 m; move the point → the usual rules | nothing to check |
+| 25.5 | The node cannot tell a phrase came by a QR: the `POST /feed` body has the same keys as any phrase | compare the body's keys with a phrase without a QR → equal; no `place`/`qr` field in `openapi.yaml` | nothing to check |
+| 25.6 | One cell and step give one link, whoever makes it | two profiles, one point and step → the link strings are equal | nothing to check |
+
 ## Read together with
 
 - [`chat_EN.md`](chat_EN.md) — the spec: §13 build order, §14 acceptance criteria.

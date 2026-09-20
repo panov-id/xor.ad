@@ -122,6 +122,8 @@ identity.
 Each card in `items` of the feed answer (`{items, next}`, §6) carries `{kind, id, text, mode, lat, lon, area_radius, like_count, created_at}`; `kind` is `phrase` or `table`, and a table carries `{game, playing, watching}` instead of `text`. **Tables travel outside the cursor:** the random quarter (§6.1) is given only on the first page, when `after` is empty — a table has no `visible_at`, and the cursor cannot position it (2026-09-16, DATA-23). A phrase carries `{id, text, mode, lat, lon, area_radius, like_count,
 created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not a point**, and nothing about the author. `lat`/`lon` are **rounded to a grid node stepped by `area_radius`** (the formula is in `chat_EN.md` §8.3); the exact ones never leave and stay only for computing the overlap.
 
+**A place QR is not an operation (screen 26, owner's decision of 2026-09-19).** The link `<storefront>/#p=<cell>&s=<step>` is parsed on the device from the fragment, which never goes to a server: `p` is the indices of a node of the same grid as `lat`/`lon` above, `s` is the `area_radius` step from 1 (100 m) to 5 (10 km); a poster link `?p=&w=&l=` is a separate path. The node knows nothing about the QR: making one is no request, opening one is no request, and a phrase at a QR point goes by an ordinary `POST /feed` with the same `lat`, `lon`, `area_radius`. There is no "by QR" field in the contract on purpose: it would link the phrases of one QR to one another; for the same reason the zone default of such a phrase is no narrower than 300 m.
+
 ### 4.3. Like, match, chat (steps 3–6)
 
 | Route | What it does | Origin |

@@ -1,0 +1,473 @@
+<!-- Built by scripts/build-design-sheets.py from panel/design/sheets/screen-26-place-qr.svg — edit the source, not this file. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="3009" height="1020" viewBox="0 0 3009 1020">
+<title>Экран 26 — QR места · 375×812</title>
+<style>
+/* kit tokens — panel/design/kit/tokens.css, inserted by scripts/build-design-sheets.py.
+       Values: docs/design-system-app_RU.md, «Токены», «Поверхности», «Огонёк». A frame
+       picks its theme with class k-dark or k-light on its group; kit symbols read only var(). */
+    /* Golos in two subsets: without the Cyrillic one, every Russian line falls back to another face
+       (found 2026-09-19 by a rebuild hand on sheet 17: Latin rendered visibly bolder than Cyrillic) */
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2500-257F, U+2700-27BF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx3cwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    .k-dark {
+      --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
+      --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; --ok: #9ecb7a; --err: #ef7a6a;
+      --cat-amber: #e2a33b; --cat-teal: #3fb59a; --cat-violet: #b48cf2; --scrim: #000000; --shadow: #3a2e20;
+    }
+    .k-light {
+      --bg: #ece4d8; --panel: #fdfaf4; --panel-2: #e6dbc9; --border: #221a12; --border-control: #857562;
+      --fg: #1c140d; --muted: #6b5f4c; --muted-2: #857562; --on-fg-muted: #ab9d88;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; --ok: #4b712c; --err: #a3311f;
+      --cat-amber: #7a4a00; --cat-teal: #146b58; --cat-violet: #5b36a8; --scrim: #000000; --shadow: #857562;
+    }
+    /* --on-fg-muted: quiet text on an --fg ground (the composer): 5.10 dark, 6.85 light — the light --muted-2 gives 4.08 there */
+    /* the seven steps of «Типографика» */
+    .k-display { font-size: 26px; font-weight: 400; fill: var(--fg); }
+    .k-title { font-size: 20px; font-weight: 600; fill: var(--fg); }
+    .k-body { font-size: 16px; font-weight: 400; fill: var(--fg); }
+    .k-strong { font-size: 16px; font-weight: 600; fill: var(--fg); }
+    .k-meta-strong { font-size: 14px; font-weight: 600; fill: var(--fg); }
+    .k-meta { font-size: 14px; font-weight: 400; fill: var(--muted); }
+    .k-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted); }
+    /* Н2: the last quarter of a phrase's life */
+    .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
+    .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    /* storefront characters — night brief 2026-09-20, docs/reviews/NIGHT_2026-09-20_design.md. A frame adds b-sosed or
+       b-neighbro to its theme class; without one nothing below applies and the kit draws as before. */
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlSHYjedg.woff2) format("woff2"); }
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYg.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0bkXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0aUXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0akXa.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/xn7gYHE41ni1AdIRggOxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/xn7gYHE41ni1AdIRggSxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/xn7gYHE41ni1AdIRggexSg.woff2) format("woff2"); }
+    .k-sig { display: none; }
+    /* sosed.place — the courtyard in the evening: a poster on the entrance door. Dense, flat, square, 1 px border */
+    .b-sosed text { font-family: "Golos Text", system-ui, sans-serif; }
+    .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
+    .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
+    .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-ctl-shadow { display: none; }
+    .b-sosed .k-life { display: none; }
+    .b-sosed .k-sig-tag { display: inline; }
+    /* neighbro.place — the promenade at noon: light, airy, rounded, no borders, a soft lift */
+    .b-neighbro text { font-family: "Manrope", system-ui, sans-serif; }
+    .b-neighbro .k-head { font-family: "Commissioner", "Manrope", sans-serif; font-weight: 800; }
+    .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
+    .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
+    .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-ctl-shadow { display: none; }
+    .b-neighbro .k-life { display: none; }
+    .b-neighbro .k-sig-edge { display: inline; }
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="3009" height="1020" style="fill:#ece4d8" />
+<text x="48" y="52" class="sheet-title">Экран 26 — QR места · 375×812</text>
+<text x="48" y="78" class="cap">sosed.place/docs/26-place-qr_RU.md · ссылка #p=&lt;клетка&gt;&amp;s=&lt;ступень&gt; во фрагменте — на сервер не уходит · узор QR — заглушка, не код</text>
+
+
+<rect x="47" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c0"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c0)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><text x="16" y="35" class="k-title k-head">Фильтры</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-close" transform="translate(0,0)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <text x="16" y="84" class="k-strong">радиус</text>
+  <text x="359" y="84" text-anchor="end" class="k-meta">схема, не карта</text>
+  <rect x="16" y="96" width="343" height="44" rx="8" style="fill:var(--panel)" />
+  <text x="32" y="123" class="k-meta">район или город</text>
+  <g data-kit="radius-handle" transform="translate(16,152)">
+  <circle cx="171.5" cy="100" r="88" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2" />
+  <circle cx="171.5" cy="100" r="4" style="fill:var(--fg)" />
+  <circle cx="259.5" cy="100" r="10" style="fill:var(--fg);stroke:var(--bg);stroke-width:2" />
+  <g data-kit="button-secondary" transform="translate(0,212)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">−</text>
+</g>
+  <text x="171.5" y="241" text-anchor="middle" class="k-meta">рядом · десятки</text>
+  <g data-kit="button-secondary" transform="translate(299,212)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="43" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="22" y="27.5" text-anchor="middle" class="k-strong">+</text>
+</g>
+</g>
+  <text x="187.5" y="432" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · поставлено рукой</text>
+  <rect x="16" y="452" width="343" height="1" style="fill:var(--border)" />
+  <g data-kit="row-setting" transform="translate(16,460)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">QR этого места</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">для других</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="536" class="k-meta">точка и ступень уходят в картинку,</text>
+  <text x="16" y="556" class="k-meta">на узел — ничего</text>
+  <rect x="16" y="576" width="343" height="1" style="fill:var(--border)" />
+  <text x="16" y="602" class="k-strong">режим</text>
+  <g data-kit="segments" transform="translate(16,612)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">один</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">компания</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">туса</text></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="966" class="capb">26 · 1 · вход: панель фильтров ленты,</text>
+<text x="48" y="984" class="capb">строка «QR этого места» под схемой радиуса</text>
+
+
+<rect x="470" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c1"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c1)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title k-head">QR места</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">QR ставит точку тому, кто его отсканирует.</text>
+  <text x="16" y="104" class="k-meta" style="fill:var(--fg)">Узел о нём не узнает.</text>
+  <g data-kit="field" transform="translate(16,124)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Плака, Афины</text></g>
+  </g>
+  <circle cx="187.5" cy="268" r="52" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2" />
+  <circle cx="187.5" cy="268" r="4" style="fill:var(--fg)" />
+  <text x="187.5" y="392" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · 1 км</text>
+  <text x="16" y="428" class="k-meta">ступень</text>
+  <g data-kit="zone-steps" transform="translate(16,438)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="137.8" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">дом</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">улица</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">район</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">город</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">шире</text>
+</g>
+  
+  <g data-kit="button-primary" transform="translate(16,684)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">сделать QR</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="966" class="capb">26 · 2 · сделать QR: точка из фильтра,</text>
+<text x="471" y="984" class="capb">ступень по умолчанию — район, 1 км</text>
+
+
+<rect x="893" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(894,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c2"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c2)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title k-head">QR места</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">QR ставит точку тому, кто его отсканирует.</text>
+  <text x="16" y="104" class="k-meta" style="fill:var(--fg)">Узел о нём не узнает.</text>
+  <g data-kit="field" transform="translate(16,124)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Плака, Афины</text></g>
+  </g>
+  <circle cx="187.5" cy="268" r="18" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2" />
+  <circle cx="187.5" cy="268" r="4" style="fill:var(--fg)" />
+  <text x="187.5" y="392" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · 100 м</text>
+  <text x="16" y="428" class="k-meta">ступень</text>
+  <g data-kit="zone-steps" transform="translate(16,438)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="3" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">дом</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">улица</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">район</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">город</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">шире</text>
+</g>
+  <rect x="16" y="494" width="343" height="64" rx="8" style="fill:var(--panel-2)" />
+  <text x="28" y="521" class="k-meta" style="fill:var(--fg)">по такому QR любой, кто его отсканирует,</text>
+  <text x="28" y="541" class="k-meta" style="fill:var(--fg)">увидит это место с точностью до двора</text>
+  <g data-kit="button-primary" transform="translate(16,684)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">сделать QR</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="894" y="966" class="capb">26 · 3 · ступень «дом», 100 м: строка о цене,</text>
+<text x="894" y="984" class="capb">не запрет (решение 19.09.2026)</text>
+
+
+<rect x="1316" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(1317,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c3"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c3)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title k-head">QR места</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <rect x="46.5" y="88" width="282" height="282" rx="13" style="fill:var(--fg)" />
+  <path d="M132.5 104.0h10.0v10.0h-10.0z M152.5 104.0h10.0v10.0h-10.0z M192.5 104.0h10.0v10.0h-10.0z M212.5 104.0h10.0v10.0h-10.0z M232.5 104.0h10.0v10.0h-10.0z M142.5 114.0h10.0v10.0h-10.0z M182.5 114.0h10.0v10.0h-10.0z M202.5 114.0h10.0v10.0h-10.0z M212.5 114.0h10.0v10.0h-10.0z M222.5 114.0h10.0v10.0h-10.0z M132.5 124.0h10.0v10.0h-10.0z M142.5 124.0h10.0v10.0h-10.0z M162.5 124.0h10.0v10.0h-10.0z M182.5 124.0h10.0v10.0h-10.0z M212.5 124.0h10.0v10.0h-10.0z M232.5 124.0h10.0v10.0h-10.0z M142.5 134.0h10.0v10.0h-10.0z M152.5 134.0h10.0v10.0h-10.0z M162.5 134.0h10.0v10.0h-10.0z M192.5 134.0h10.0v10.0h-10.0z M202.5 134.0h10.0v10.0h-10.0z M222.5 134.0h10.0v10.0h-10.0z M132.5 144.0h10.0v10.0h-10.0z M162.5 144.0h10.0v10.0h-10.0z M172.5 144.0h10.0v10.0h-10.0z M202.5 144.0h10.0v10.0h-10.0z M222.5 144.0h10.0v10.0h-10.0z M232.5 144.0h10.0v10.0h-10.0z M152.5 154.0h10.0v10.0h-10.0z M162.5 154.0h10.0v10.0h-10.0z M172.5 154.0h10.0v10.0h-10.0z M192.5 154.0h10.0v10.0h-10.0z M202.5 154.0h10.0v10.0h-10.0z M212.5 154.0h10.0v10.0h-10.0z M222.5 154.0h10.0v10.0h-10.0z M232.5 154.0h10.0v10.0h-10.0z M132.5 164.0h10.0v10.0h-10.0z M162.5 164.0h10.0v10.0h-10.0z M172.5 164.0h10.0v10.0h-10.0z M182.5 164.0h10.0v10.0h-10.0z M202.5 164.0h10.0v10.0h-10.0z M222.5 164.0h10.0v10.0h-10.0z M82.5 174.0h10.0v10.0h-10.0z M112.5 174.0h10.0v10.0h-10.0z M122.5 174.0h10.0v10.0h-10.0z M142.5 174.0h10.0v10.0h-10.0z M152.5 174.0h10.0v10.0h-10.0z M162.5 174.0h10.0v10.0h-10.0z M182.5 174.0h10.0v10.0h-10.0z M212.5 174.0h10.0v10.0h-10.0z M222.5 174.0h10.0v10.0h-10.0z M282.5 174.0h10.0v10.0h-10.0z M292.5 174.0h10.0v10.0h-10.0z M62.5 184.0h10.0v10.0h-10.0z M72.5 184.0h10.0v10.0h-10.0z M152.5 184.0h10.0v10.0h-10.0z M202.5 184.0h10.0v10.0h-10.0z M222.5 184.0h10.0v10.0h-10.0z M252.5 184.0h10.0v10.0h-10.0z M282.5 184.0h10.0v10.0h-10.0z M292.5 184.0h10.0v10.0h-10.0z M82.5 194.0h10.0v10.0h-10.0z M102.5 194.0h10.0v10.0h-10.0z M112.5 194.0h10.0v10.0h-10.0z M122.5 194.0h10.0v10.0h-10.0z M132.5 194.0h10.0v10.0h-10.0z M142.5 194.0h10.0v10.0h-10.0z M162.5 194.0h10.0v10.0h-10.0z M182.5 194.0h10.0v10.0h-10.0z M202.5 194.0h10.0v10.0h-10.0z M212.5 194.0h10.0v10.0h-10.0z M232.5 194.0h10.0v10.0h-10.0z M242.5 194.0h10.0v10.0h-10.0z M252.5 194.0h10.0v10.0h-10.0z M262.5 194.0h10.0v10.0h-10.0z M272.5 194.0h10.0v10.0h-10.0z M282.5 194.0h10.0v10.0h-10.0z M292.5 194.0h10.0v10.0h-10.0z M72.5 204.0h10.0v10.0h-10.0z M102.5 204.0h10.0v10.0h-10.0z M112.5 204.0h10.0v10.0h-10.0z M122.5 204.0h10.0v10.0h-10.0z M142.5 204.0h10.0v10.0h-10.0z M152.5 204.0h10.0v10.0h-10.0z M162.5 204.0h10.0v10.0h-10.0z M172.5 204.0h10.0v10.0h-10.0z M202.5 204.0h10.0v10.0h-10.0z M212.5 204.0h10.0v10.0h-10.0z M222.5 204.0h10.0v10.0h-10.0z M232.5 204.0h10.0v10.0h-10.0z M242.5 204.0h10.0v10.0h-10.0z M262.5 204.0h10.0v10.0h-10.0z M292.5 204.0h10.0v10.0h-10.0z M302.5 204.0h10.0v10.0h-10.0z M62.5 214.0h10.0v10.0h-10.0z M72.5 214.0h10.0v10.0h-10.0z M92.5 214.0h10.0v10.0h-10.0z M152.5 214.0h10.0v10.0h-10.0z M162.5 214.0h10.0v10.0h-10.0z M182.5 214.0h10.0v10.0h-10.0z M192.5 214.0h10.0v10.0h-10.0z M212.5 214.0h10.0v10.0h-10.0z M222.5 214.0h10.0v10.0h-10.0z M232.5 214.0h10.0v10.0h-10.0z M302.5 214.0h10.0v10.0h-10.0z M62.5 224.0h10.0v10.0h-10.0z M72.5 224.0h10.0v10.0h-10.0z M82.5 224.0h10.0v10.0h-10.0z M112.5 224.0h10.0v10.0h-10.0z M152.5 224.0h10.0v10.0h-10.0z M162.5 224.0h10.0v10.0h-10.0z M182.5 224.0h10.0v10.0h-10.0z M202.5 224.0h10.0v10.0h-10.0z M232.5 224.0h10.0v10.0h-10.0z M252.5 224.0h10.0v10.0h-10.0z M262.5 224.0h10.0v10.0h-10.0z M272.5 224.0h10.0v10.0h-10.0z M82.5 234.0h10.0v10.0h-10.0z M92.5 234.0h10.0v10.0h-10.0z M102.5 234.0h10.0v10.0h-10.0z M122.5 234.0h10.0v10.0h-10.0z M142.5 234.0h10.0v10.0h-10.0z M182.5 234.0h10.0v10.0h-10.0z M212.5 234.0h10.0v10.0h-10.0z M222.5 234.0h10.0v10.0h-10.0z M232.5 234.0h10.0v10.0h-10.0z M242.5 234.0h10.0v10.0h-10.0z M252.5 234.0h10.0v10.0h-10.0z M262.5 234.0h10.0v10.0h-10.0z M272.5 234.0h10.0v10.0h-10.0z M282.5 234.0h10.0v10.0h-10.0z M82.5 244.0h10.0v10.0h-10.0z M102.5 244.0h10.0v10.0h-10.0z M112.5 244.0h10.0v10.0h-10.0z M122.5 244.0h10.0v10.0h-10.0z M132.5 244.0h10.0v10.0h-10.0z M152.5 244.0h10.0v10.0h-10.0z M172.5 244.0h10.0v10.0h-10.0z M192.5 244.0h10.0v10.0h-10.0z M202.5 244.0h10.0v10.0h-10.0z M222.5 244.0h10.0v10.0h-10.0z M232.5 244.0h10.0v10.0h-10.0z M262.5 244.0h10.0v10.0h-10.0z M282.5 244.0h10.0v10.0h-10.0z M292.5 244.0h10.0v10.0h-10.0z M152.5 254.0h10.0v10.0h-10.0z M182.5 254.0h10.0v10.0h-10.0z M192.5 254.0h10.0v10.0h-10.0z M212.5 254.0h10.0v10.0h-10.0z M222.5 254.0h10.0v10.0h-10.0z M242.5 254.0h10.0v10.0h-10.0z M252.5 254.0h10.0v10.0h-10.0z M262.5 254.0h10.0v10.0h-10.0z M292.5 254.0h10.0v10.0h-10.0z M62.5 264.0h10.0v10.0h-10.0z M132.5 264.0h10.0v10.0h-10.0z M162.5 264.0h10.0v10.0h-10.0z M182.5 264.0h10.0v10.0h-10.0z M192.5 264.0h10.0v10.0h-10.0z M202.5 264.0h10.0v10.0h-10.0z M212.5 264.0h10.0v10.0h-10.0z M242.5 264.0h10.0v10.0h-10.0z M252.5 264.0h10.0v10.0h-10.0z M292.5 264.0h10.0v10.0h-10.0z M92.5 274.0h10.0v10.0h-10.0z M102.5 274.0h10.0v10.0h-10.0z M112.5 274.0h10.0v10.0h-10.0z M122.5 274.0h10.0v10.0h-10.0z M132.5 274.0h10.0v10.0h-10.0z M142.5 274.0h10.0v10.0h-10.0z M172.5 274.0h10.0v10.0h-10.0z M182.5 274.0h10.0v10.0h-10.0z M232.5 274.0h10.0v10.0h-10.0z M242.5 274.0h10.0v10.0h-10.0z M252.5 274.0h10.0v10.0h-10.0z M272.5 274.0h10.0v10.0h-10.0z M282.5 274.0h10.0v10.0h-10.0z M142.5 284.0h10.0v10.0h-10.0z M192.5 284.0h10.0v10.0h-10.0z M222.5 284.0h10.0v10.0h-10.0z M232.5 284.0h10.0v10.0h-10.0z M242.5 284.0h10.0v10.0h-10.0z M262.5 284.0h10.0v10.0h-10.0z M272.5 284.0h10.0v10.0h-10.0z M282.5 284.0h10.0v10.0h-10.0z M152.5 294.0h10.0v10.0h-10.0z M172.5 294.0h10.0v10.0h-10.0z M182.5 294.0h10.0v10.0h-10.0z M192.5 294.0h10.0v10.0h-10.0z M202.5 294.0h10.0v10.0h-10.0z M222.5 294.0h10.0v10.0h-10.0z M262.5 294.0h10.0v10.0h-10.0z M272.5 294.0h10.0v10.0h-10.0z M292.5 294.0h10.0v10.0h-10.0z M302.5 294.0h10.0v10.0h-10.0z M132.5 304.0h10.0v10.0h-10.0z M152.5 304.0h10.0v10.0h-10.0z M202.5 304.0h10.0v10.0h-10.0z M212.5 304.0h10.0v10.0h-10.0z M222.5 304.0h10.0v10.0h-10.0z M232.5 304.0h10.0v10.0h-10.0z M252.5 304.0h10.0v10.0h-10.0z M282.5 304.0h10.0v10.0h-10.0z M292.5 304.0h10.0v10.0h-10.0z M302.5 304.0h10.0v10.0h-10.0z M132.5 314.0h10.0v10.0h-10.0z M142.5 314.0h10.0v10.0h-10.0z M152.5 314.0h10.0v10.0h-10.0z M162.5 314.0h10.0v10.0h-10.0z M172.5 314.0h10.0v10.0h-10.0z M182.5 314.0h10.0v10.0h-10.0z M192.5 314.0h10.0v10.0h-10.0z M202.5 314.0h10.0v10.0h-10.0z M212.5 314.0h10.0v10.0h-10.0z M252.5 314.0h10.0v10.0h-10.0z M282.5 314.0h10.0v10.0h-10.0z M292.5 314.0h10.0v10.0h-10.0z M172.5 324.0h10.0v10.0h-10.0z M182.5 324.0h10.0v10.0h-10.0z M192.5 324.0h10.0v10.0h-10.0z M262.5 324.0h10.0v10.0h-10.0z M272.5 324.0h10.0v10.0h-10.0z M282.5 324.0h10.0v10.0h-10.0z M142.5 334.0h10.0v10.0h-10.0z M162.5 334.0h10.0v10.0h-10.0z M182.5 334.0h10.0v10.0h-10.0z M222.5 334.0h10.0v10.0h-10.0z M232.5 334.0h10.0v10.0h-10.0z M242.5 334.0h10.0v10.0h-10.0z M252.5 334.0h10.0v10.0h-10.0z M282.5 334.0h10.0v10.0h-10.0z M292.5 334.0h10.0v10.0h-10.0z M302.5 334.0h10.0v10.0h-10.0z M162.5 344.0h10.0v10.0h-10.0z M172.5 344.0h10.0v10.0h-10.0z M232.5 344.0h10.0v10.0h-10.0z M262.5 344.0h10.0v10.0h-10.0z M272.5 344.0h10.0v10.0h-10.0z M292.5 344.0h10.0v10.0h-10.0z" style="fill:var(--bg)" />
+  <rect x="62.5" y="104.0" width="70.0" height="70.0" style="fill:var(--bg)" />
+  <rect x="72.5" y="114.0" width="50.0" height="50.0" style="fill:var(--fg)" />
+  <rect x="82.5" y="124.0" width="30.0" height="30.0" style="fill:var(--bg)" />
+  <rect x="242.5" y="104.0" width="70.0" height="70.0" style="fill:var(--bg)" />
+  <rect x="252.5" y="114.0" width="50.0" height="50.0" style="fill:var(--fg)" />
+  <rect x="262.5" y="124.0" width="30.0" height="30.0" style="fill:var(--bg)" />
+  <rect x="62.5" y="284.0" width="70.0" height="70.0" style="fill:var(--bg)" />
+  <rect x="72.5" y="294.0" width="50.0" height="50.0" style="fill:var(--fg)" />
+  <rect x="82.5" y="304.0" width="30.0" height="30.0" style="fill:var(--bg)" />
+  <text x="187.5" y="410" text-anchor="middle" class="k-title">Плака, Афины</text>
+  <text x="187.5" y="436" text-anchor="middle" class="k-meta">зона 1 км · фразы встанут сюда</text>
+  <text x="187.5" y="476" text-anchor="middle" class="k-meta">картинка живёт только здесь:</text>
+  <text x="187.5" y="496" text-anchor="middle" class="k-meta">закрыли экран — её нет нигде</text>
+  <g data-kit="button-primary" transform="translate(16,628)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">поделиться</text>
+</g>
+  <g data-kit="button-secondary" transform="translate(16,684)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">сохранить картинкой</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="1317" y="966" class="capb">26 · 4 · готовый QR: место и ступень,</text>
+<text x="1317" y="984" class="capb">«поделиться» — системное меню устройства</text>
+
+
+<rect x="1739" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(1740,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c4"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c4)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Колонаки · рядом десятки</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Кто-нибудь идёт на набережную</text>
+  <g><text x="16" y="64" class="k-title">вечером? Возьму термос.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="sheet-text" transform="translate(0,512)">
+  <rect x="0" y="-512" width="375" height="512" style="fill:var(--scrim);fill-opacity:0.55" />
+  <rect width="375" height="300" rx="24" style="fill:var(--panel)" />
+  <rect x="0" y="260" width="375" height="40" style="fill:var(--panel)" />
+  <text x="16" y="44" class="k-title">QR места: Плака, Афины · 1 км</text>
+  <text x="16" y="74" class="k-meta" style="fill:var(--fg)">Поставить точку ленты сюда?</text>
+  <g><text x="16" y="94" class="k-meta" style="fill:var(--fg)">Радиус просмотра останется прежним.</text></g>
+  <g data-kit="button-primary" transform="translate(16,180)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">поставить</text>
+</g>
+  <g data-kit="button-secondary" transform="translate(16,236)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">не сейчас</text>
+</g>
+</g>
+</g></g>
+<text x="1740" y="966" class="capb">26 · 5 · открыли QR, уже внутри: лист над лентой,</text>
+<text x="1740" y="984" class="capb">точка сама не двигается</text>
+
+
+<rect x="2162" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(2163,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c5"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c5)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <text x="16" y="36" class="k-title">Сказать</text>
+  <g data-kit="tabs" transform="translate(16,52)">
+  <rect x="0" y="0" width="56" height="44" rx="8" data-hit="44" style="fill:none" />
+  <rect x="64" y="0" width="48" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g><text x="28" y="27" text-anchor="middle" class="k-meta-strong">фраза</text><rect x="0" y="41" width="56" height="3" style="fill:var(--accent)" /></g>
+  <g><text x="88" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--muted)">стол</text></g>
+  <rect x="-16" y="44" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="120" class="k-meta">фраза</text>
+  <text x="359" y="120" class="k-mono" text-anchor="end">осталось 104</text>
+  <g data-kit="field" transform="translate(16,128)">
+  <rect x="0.5" y="0.5" width="342" height="95" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Кто на рынок к десяти?</text></g>
+  </g>
+  <text x="28" y="212" class="k-mono">ссылки вырезаются</text>
+  <text x="16" y="244" class="k-meta">режим</text>
+  <g data-kit="segments" transform="translate(16,252)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">один</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">компания</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">туса</text></g>
+</g>
+  <text x="16" y="320" class="k-meta">зона</text>
+  <rect x="16" y="328" width="343" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="28" y="355" class="k-meta" style="fill:var(--fg)">фраза встанет в: Плака, Афины · 1 км · по QR</text>
+  <g data-kit="zone-steps" transform="translate(16,384)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="137.8" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">дом</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">улица</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">район</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">город</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">шире</text>
+</g>
+  <text x="16" y="452" class="k-meta">зона по QR — большая из ступени QR и 300 м;</text>
+  <text x="16" y="472" class="k-meta">подвинете точку — обычные правила</text>
+  <rect x="0" y="668" width="375" height="1" style="fill:var(--border)" />
+  <text x="16" y="712" class="k-meta" style="fill:var(--fg)">свободно 3 из 4</text>
+  <g data-kit="button-primary" transform="translate(175,688)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="184" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="184" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="92" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Сказать</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="2163" y="966" class="capb">26 · 6 · композер: фраза встаёт в точку QR,</text>
+<text x="2163" y="984" class="capb">зона — большая из ступени QR и 300 м</text>
+
+
+<rect x="2585" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(2586,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c6"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c6)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="24" y="34" class="k-title">Кто вы</text>
+  <text x="351" y="34" text-anchor="end" class="k-mono">1 / 2</text>
+  <rect x="24" y="68" width="327" height="112" rx="13" style="fill:var(--panel-2)" />
+  <text x="40" y="98" class="k-meta" style="fill:var(--fg)">точка по QR: Плака, Афины · 1 км</text>
+  <g data-kit="button-pill" transform="translate(40,116)">
+  <rect class="k-pill" width="112" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="56" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">принять</text>
+</g>
+  <g data-kit="button-text" transform="translate(168,116)">
+  <rect width="160" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">поправить на схеме</text>
+</g>
+  <g data-kit="field-focus" transform="translate(24,228)">
+  <g data-kit="field" transform="translate(0,0)">
+  <g><text x="0" y="-10" class="k-meta">Как вас называть</text></g>
+  <rect x="0.5" y="0.5" width="326" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  </g>
+  <rect x="-3" y="-3" width="333" height="50" rx="8" style="fill:none;stroke:var(--accent-text);stroke-width:2" />
+</g>
+  <text x="351" y="294" text-anchor="end" class="k-mono">осталось 24</text>
+  <g data-kit="field" transform="translate(24,316)">
+  <g><text x="0" y="-10" class="k-meta">возраст</text></g>
+  <rect x="0.5" y="0.5" width="111" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  </g>
+  <text x="148" y="344" class="k-body" style="fill:var(--muted)">сюда с 13 лет</text>
+  <g data-kit="checkbox" transform="translate(24,376)">
+  <rect width="327" height="44" rx="8" data-hit="44" style="fill:none" />
+  <rect x="0.5" y="10.5" width="23" height="23" rx="4" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <text x="36" y="27" class="k-body">принимаю соглашение,</text>
+</g>
+  <text x="60" y="423" class="k-body">политику и правила</text>
+  <rect x="24" y="444" width="327" height="1" style="fill:var(--border)" />
+  <g data-kit="button-primary-disabled" transform="translate(24,732)">
+  <rect class="k-ctl" width="327" height="44" rx="13" style="fill:var(--panel-2)" />
+  <text x="163.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--muted)">дальше</text>
+  <g><text x="163.5" y="66" text-anchor="middle" class="k-meta">дальше — после согласия</text></g>
+</g>
+</g></g>
+<text x="2586" y="966" class="capb">26 · 7 · новый человек: шаг 1 экрана 2,</text>
+<text x="2586" y="984" class="capb">строка как у афиши, ступень из ссылки</text>
+</svg>

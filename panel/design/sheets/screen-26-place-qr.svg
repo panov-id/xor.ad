@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3009" height="1020" viewBox="0 0 3009 1020">
+<title>Экран 26 — QR места · 375×812</title>
+<style>
+/* kit:tokens */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="3009" height="1020" style="fill:#ece4d8"/>
+<text x="48" y="52" class="sheet-title">Экран 26 — QR места · 375×812</text>
+<text x="48" y="78" class="cap">sosed.place/docs/26-place-qr_RU.md · ссылка #p=&lt;клетка&gt;&amp;s=&lt;ступень&gt; во фрагменте — на сервер не уходит · узор QR — заглушка, не код</text>
+
+<!-- 1 -->
+<rect x="47" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c0"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c0)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="Фильтры" data-back=""/>
+  <use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-close" data-name="закрыть"/>
+  <text x="16" y="84" class="k-strong">радиус</text>
+  <text x="359" y="84" text-anchor="end" class="k-meta">схема, не карта</text>
+  <rect x="16" y="96" width="343" height="44" rx="8" style="fill:var(--panel)"/>
+  <text x="32" y="123" class="k-meta">район или город</text>
+  <use href="kit/components.svg#radius-handle" x="16" y="152" data-word="десятки"/>
+  <text x="187.5" y="432" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · поставлено рукой</text>
+  <rect x="16" y="452" width="343" height="1" style="fill:var(--border)"/>
+  <use href="kit/components.svg#row-setting" x="16" y="460" data-label="QR этого места" data-value="для других"/>
+  <text x="16" y="536" class="k-meta">точка и ступень уходят в картинку,</text>
+  <text x="16" y="556" class="k-meta">на узел — ничего</text>
+  <rect x="16" y="576" width="343" height="1" style="fill:var(--border)"/>
+  <text x="16" y="602" class="k-strong">режим</text>
+  <use href="kit/components.svg#segments" x="16" y="612" data-l1="один" data-l2="компания" data-l3="туса" data-s1="" data-s2="1"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="48" y="966" class="capb">26 · 1 · вход: панель фильтров ленты,</text>
+<text x="48" y="984" class="capb">строка «QR этого места» под схемой радиуса</text>
+
+<!-- 2 -->
+<rect x="470" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c1)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="QR места" data-back="1"/>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">QR ставит точку тому, кто его отсканирует.</text>
+  <text x="16" y="104" class="k-meta" style="fill:var(--fg)">Узел о нём не узнает.</text>
+  <use href="kit/components.svg#field" x="16" y="124" data-value="Плака, Афины"/>
+  <circle cx="187.5" cy="268" r="52" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2"/>
+  <circle cx="187.5" cy="268" r="4" style="fill:var(--fg)"/>
+  <text x="187.5" y="392" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · 1 км</text>
+  <text x="16" y="428" class="k-meta">ступень</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="438" data-sel="3"/>
+  
+  <use href="kit/components.svg#button-primary" x="16" y="684" data-label="сделать QR"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="471" y="966" class="capb">26 · 2 · сделать QR: точка из фильтра,</text>
+<text x="471" y="984" class="capb">ступень по умолчанию — район, 1 км</text>
+
+<!-- 3 -->
+<rect x="893" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(894,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c2"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c2)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="QR места" data-back="1"/>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">QR ставит точку тому, кто его отсканирует.</text>
+  <text x="16" y="104" class="k-meta" style="fill:var(--fg)">Узел о нём не узнает.</text>
+  <use href="kit/components.svg#field" x="16" y="124" data-value="Плака, Афины"/>
+  <circle cx="187.5" cy="268" r="18" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2"/>
+  <circle cx="187.5" cy="268" r="4" style="fill:var(--fg)"/>
+  <text x="187.5" y="392" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · 100 м</text>
+  <text x="16" y="428" class="k-meta">ступень</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="438" data-sel="1"/>
+  <rect x="16" y="494" width="343" height="64" rx="8" style="fill:var(--panel-2)"/>
+  <text x="28" y="521" class="k-meta" style="fill:var(--fg)">по такому QR любой, кто его отсканирует,</text>
+  <text x="28" y="541" class="k-meta" style="fill:var(--fg)">увидит это место с точностью до двора</text>
+  <use href="kit/components.svg#button-primary" x="16" y="684" data-label="сделать QR"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="894" y="966" class="capb">26 · 3 · ступень «дом», 100 м: строка о цене,</text>
+<text x="894" y="984" class="capb">не запрет (решение 19.09.2026)</text>
+
+<!-- 4 -->
+<rect x="1316" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(1317,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c3"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c3)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="QR места" data-back="1"/>
+  <rect x="46.5" y="88" width="282" height="282" rx="13" style="fill:var(--fg)"/>
+  <path d="M132.5 104.0h10.0v10.0h-10.0z M152.5 104.0h10.0v10.0h-10.0z M192.5 104.0h10.0v10.0h-10.0z M212.5 104.0h10.0v10.0h-10.0z M232.5 104.0h10.0v10.0h-10.0z M142.5 114.0h10.0v10.0h-10.0z M182.5 114.0h10.0v10.0h-10.0z M202.5 114.0h10.0v10.0h-10.0z M212.5 114.0h10.0v10.0h-10.0z M222.5 114.0h10.0v10.0h-10.0z M132.5 124.0h10.0v10.0h-10.0z M142.5 124.0h10.0v10.0h-10.0z M162.5 124.0h10.0v10.0h-10.0z M182.5 124.0h10.0v10.0h-10.0z M212.5 124.0h10.0v10.0h-10.0z M232.5 124.0h10.0v10.0h-10.0z M142.5 134.0h10.0v10.0h-10.0z M152.5 134.0h10.0v10.0h-10.0z M162.5 134.0h10.0v10.0h-10.0z M192.5 134.0h10.0v10.0h-10.0z M202.5 134.0h10.0v10.0h-10.0z M222.5 134.0h10.0v10.0h-10.0z M132.5 144.0h10.0v10.0h-10.0z M162.5 144.0h10.0v10.0h-10.0z M172.5 144.0h10.0v10.0h-10.0z M202.5 144.0h10.0v10.0h-10.0z M222.5 144.0h10.0v10.0h-10.0z M232.5 144.0h10.0v10.0h-10.0z M152.5 154.0h10.0v10.0h-10.0z M162.5 154.0h10.0v10.0h-10.0z M172.5 154.0h10.0v10.0h-10.0z M192.5 154.0h10.0v10.0h-10.0z M202.5 154.0h10.0v10.0h-10.0z M212.5 154.0h10.0v10.0h-10.0z M222.5 154.0h10.0v10.0h-10.0z M232.5 154.0h10.0v10.0h-10.0z M132.5 164.0h10.0v10.0h-10.0z M162.5 164.0h10.0v10.0h-10.0z M172.5 164.0h10.0v10.0h-10.0z M182.5 164.0h10.0v10.0h-10.0z M202.5 164.0h10.0v10.0h-10.0z M222.5 164.0h10.0v10.0h-10.0z M82.5 174.0h10.0v10.0h-10.0z M112.5 174.0h10.0v10.0h-10.0z M122.5 174.0h10.0v10.0h-10.0z M142.5 174.0h10.0v10.0h-10.0z M152.5 174.0h10.0v10.0h-10.0z M162.5 174.0h10.0v10.0h-10.0z M182.5 174.0h10.0v10.0h-10.0z M212.5 174.0h10.0v10.0h-10.0z M222.5 174.0h10.0v10.0h-10.0z M282.5 174.0h10.0v10.0h-10.0z M292.5 174.0h10.0v10.0h-10.0z M62.5 184.0h10.0v10.0h-10.0z M72.5 184.0h10.0v10.0h-10.0z M152.5 184.0h10.0v10.0h-10.0z M202.5 184.0h10.0v10.0h-10.0z M222.5 184.0h10.0v10.0h-10.0z M252.5 184.0h10.0v10.0h-10.0z M282.5 184.0h10.0v10.0h-10.0z M292.5 184.0h10.0v10.0h-10.0z M82.5 194.0h10.0v10.0h-10.0z M102.5 194.0h10.0v10.0h-10.0z M112.5 194.0h10.0v10.0h-10.0z M122.5 194.0h10.0v10.0h-10.0z M132.5 194.0h10.0v10.0h-10.0z M142.5 194.0h10.0v10.0h-10.0z M162.5 194.0h10.0v10.0h-10.0z M182.5 194.0h10.0v10.0h-10.0z M202.5 194.0h10.0v10.0h-10.0z M212.5 194.0h10.0v10.0h-10.0z M232.5 194.0h10.0v10.0h-10.0z M242.5 194.0h10.0v10.0h-10.0z M252.5 194.0h10.0v10.0h-10.0z M262.5 194.0h10.0v10.0h-10.0z M272.5 194.0h10.0v10.0h-10.0z M282.5 194.0h10.0v10.0h-10.0z M292.5 194.0h10.0v10.0h-10.0z M72.5 204.0h10.0v10.0h-10.0z M102.5 204.0h10.0v10.0h-10.0z M112.5 204.0h10.0v10.0h-10.0z M122.5 204.0h10.0v10.0h-10.0z M142.5 204.0h10.0v10.0h-10.0z M152.5 204.0h10.0v10.0h-10.0z M162.5 204.0h10.0v10.0h-10.0z M172.5 204.0h10.0v10.0h-10.0z M202.5 204.0h10.0v10.0h-10.0z M212.5 204.0h10.0v10.0h-10.0z M222.5 204.0h10.0v10.0h-10.0z M232.5 204.0h10.0v10.0h-10.0z M242.5 204.0h10.0v10.0h-10.0z M262.5 204.0h10.0v10.0h-10.0z M292.5 204.0h10.0v10.0h-10.0z M302.5 204.0h10.0v10.0h-10.0z M62.5 214.0h10.0v10.0h-10.0z M72.5 214.0h10.0v10.0h-10.0z M92.5 214.0h10.0v10.0h-10.0z M152.5 214.0h10.0v10.0h-10.0z M162.5 214.0h10.0v10.0h-10.0z M182.5 214.0h10.0v10.0h-10.0z M192.5 214.0h10.0v10.0h-10.0z M212.5 214.0h10.0v10.0h-10.0z M222.5 214.0h10.0v10.0h-10.0z M232.5 214.0h10.0v10.0h-10.0z M302.5 214.0h10.0v10.0h-10.0z M62.5 224.0h10.0v10.0h-10.0z M72.5 224.0h10.0v10.0h-10.0z M82.5 224.0h10.0v10.0h-10.0z M112.5 224.0h10.0v10.0h-10.0z M152.5 224.0h10.0v10.0h-10.0z M162.5 224.0h10.0v10.0h-10.0z M182.5 224.0h10.0v10.0h-10.0z M202.5 224.0h10.0v10.0h-10.0z M232.5 224.0h10.0v10.0h-10.0z M252.5 224.0h10.0v10.0h-10.0z M262.5 224.0h10.0v10.0h-10.0z M272.5 224.0h10.0v10.0h-10.0z M82.5 234.0h10.0v10.0h-10.0z M92.5 234.0h10.0v10.0h-10.0z M102.5 234.0h10.0v10.0h-10.0z M122.5 234.0h10.0v10.0h-10.0z M142.5 234.0h10.0v10.0h-10.0z M182.5 234.0h10.0v10.0h-10.0z M212.5 234.0h10.0v10.0h-10.0z M222.5 234.0h10.0v10.0h-10.0z M232.5 234.0h10.0v10.0h-10.0z M242.5 234.0h10.0v10.0h-10.0z M252.5 234.0h10.0v10.0h-10.0z M262.5 234.0h10.0v10.0h-10.0z M272.5 234.0h10.0v10.0h-10.0z M282.5 234.0h10.0v10.0h-10.0z M82.5 244.0h10.0v10.0h-10.0z M102.5 244.0h10.0v10.0h-10.0z M112.5 244.0h10.0v10.0h-10.0z M122.5 244.0h10.0v10.0h-10.0z M132.5 244.0h10.0v10.0h-10.0z M152.5 244.0h10.0v10.0h-10.0z M172.5 244.0h10.0v10.0h-10.0z M192.5 244.0h10.0v10.0h-10.0z M202.5 244.0h10.0v10.0h-10.0z M222.5 244.0h10.0v10.0h-10.0z M232.5 244.0h10.0v10.0h-10.0z M262.5 244.0h10.0v10.0h-10.0z M282.5 244.0h10.0v10.0h-10.0z M292.5 244.0h10.0v10.0h-10.0z M152.5 254.0h10.0v10.0h-10.0z M182.5 254.0h10.0v10.0h-10.0z M192.5 254.0h10.0v10.0h-10.0z M212.5 254.0h10.0v10.0h-10.0z M222.5 254.0h10.0v10.0h-10.0z M242.5 254.0h10.0v10.0h-10.0z M252.5 254.0h10.0v10.0h-10.0z M262.5 254.0h10.0v10.0h-10.0z M292.5 254.0h10.0v10.0h-10.0z M62.5 264.0h10.0v10.0h-10.0z M132.5 264.0h10.0v10.0h-10.0z M162.5 264.0h10.0v10.0h-10.0z M182.5 264.0h10.0v10.0h-10.0z M192.5 264.0h10.0v10.0h-10.0z M202.5 264.0h10.0v10.0h-10.0z M212.5 264.0h10.0v10.0h-10.0z M242.5 264.0h10.0v10.0h-10.0z M252.5 264.0h10.0v10.0h-10.0z M292.5 264.0h10.0v10.0h-10.0z M92.5 274.0h10.0v10.0h-10.0z M102.5 274.0h10.0v10.0h-10.0z M112.5 274.0h10.0v10.0h-10.0z M122.5 274.0h10.0v10.0h-10.0z M132.5 274.0h10.0v10.0h-10.0z M142.5 274.0h10.0v10.0h-10.0z M172.5 274.0h10.0v10.0h-10.0z M182.5 274.0h10.0v10.0h-10.0z M232.5 274.0h10.0v10.0h-10.0z M242.5 274.0h10.0v10.0h-10.0z M252.5 274.0h10.0v10.0h-10.0z M272.5 274.0h10.0v10.0h-10.0z M282.5 274.0h10.0v10.0h-10.0z M142.5 284.0h10.0v10.0h-10.0z M192.5 284.0h10.0v10.0h-10.0z M222.5 284.0h10.0v10.0h-10.0z M232.5 284.0h10.0v10.0h-10.0z M242.5 284.0h10.0v10.0h-10.0z M262.5 284.0h10.0v10.0h-10.0z M272.5 284.0h10.0v10.0h-10.0z M282.5 284.0h10.0v10.0h-10.0z M152.5 294.0h10.0v10.0h-10.0z M172.5 294.0h10.0v10.0h-10.0z M182.5 294.0h10.0v10.0h-10.0z M192.5 294.0h10.0v10.0h-10.0z M202.5 294.0h10.0v10.0h-10.0z M222.5 294.0h10.0v10.0h-10.0z M262.5 294.0h10.0v10.0h-10.0z M272.5 294.0h10.0v10.0h-10.0z M292.5 294.0h10.0v10.0h-10.0z M302.5 294.0h10.0v10.0h-10.0z M132.5 304.0h10.0v10.0h-10.0z M152.5 304.0h10.0v10.0h-10.0z M202.5 304.0h10.0v10.0h-10.0z M212.5 304.0h10.0v10.0h-10.0z M222.5 304.0h10.0v10.0h-10.0z M232.5 304.0h10.0v10.0h-10.0z M252.5 304.0h10.0v10.0h-10.0z M282.5 304.0h10.0v10.0h-10.0z M292.5 304.0h10.0v10.0h-10.0z M302.5 304.0h10.0v10.0h-10.0z M132.5 314.0h10.0v10.0h-10.0z M142.5 314.0h10.0v10.0h-10.0z M152.5 314.0h10.0v10.0h-10.0z M162.5 314.0h10.0v10.0h-10.0z M172.5 314.0h10.0v10.0h-10.0z M182.5 314.0h10.0v10.0h-10.0z M192.5 314.0h10.0v10.0h-10.0z M202.5 314.0h10.0v10.0h-10.0z M212.5 314.0h10.0v10.0h-10.0z M252.5 314.0h10.0v10.0h-10.0z M282.5 314.0h10.0v10.0h-10.0z M292.5 314.0h10.0v10.0h-10.0z M172.5 324.0h10.0v10.0h-10.0z M182.5 324.0h10.0v10.0h-10.0z M192.5 324.0h10.0v10.0h-10.0z M262.5 324.0h10.0v10.0h-10.0z M272.5 324.0h10.0v10.0h-10.0z M282.5 324.0h10.0v10.0h-10.0z M142.5 334.0h10.0v10.0h-10.0z M162.5 334.0h10.0v10.0h-10.0z M182.5 334.0h10.0v10.0h-10.0z M222.5 334.0h10.0v10.0h-10.0z M232.5 334.0h10.0v10.0h-10.0z M242.5 334.0h10.0v10.0h-10.0z M252.5 334.0h10.0v10.0h-10.0z M282.5 334.0h10.0v10.0h-10.0z M292.5 334.0h10.0v10.0h-10.0z M302.5 334.0h10.0v10.0h-10.0z M162.5 344.0h10.0v10.0h-10.0z M172.5 344.0h10.0v10.0h-10.0z M232.5 344.0h10.0v10.0h-10.0z M262.5 344.0h10.0v10.0h-10.0z M272.5 344.0h10.0v10.0h-10.0z M292.5 344.0h10.0v10.0h-10.0z" style="fill:var(--bg)"/>
+  <rect x="62.5" y="104.0" width="70.0" height="70.0" style="fill:var(--bg)"/>
+  <rect x="72.5" y="114.0" width="50.0" height="50.0" style="fill:var(--fg)"/>
+  <rect x="82.5" y="124.0" width="30.0" height="30.0" style="fill:var(--bg)"/>
+  <rect x="242.5" y="104.0" width="70.0" height="70.0" style="fill:var(--bg)"/>
+  <rect x="252.5" y="114.0" width="50.0" height="50.0" style="fill:var(--fg)"/>
+  <rect x="262.5" y="124.0" width="30.0" height="30.0" style="fill:var(--bg)"/>
+  <rect x="62.5" y="284.0" width="70.0" height="70.0" style="fill:var(--bg)"/>
+  <rect x="72.5" y="294.0" width="50.0" height="50.0" style="fill:var(--fg)"/>
+  <rect x="82.5" y="304.0" width="30.0" height="30.0" style="fill:var(--bg)"/>
+  <text x="187.5" y="410" text-anchor="middle" class="k-title">Плака, Афины</text>
+  <text x="187.5" y="436" text-anchor="middle" class="k-meta">зона 1 км · фразы встанут сюда</text>
+  <text x="187.5" y="476" text-anchor="middle" class="k-meta">картинка живёт только здесь:</text>
+  <text x="187.5" y="496" text-anchor="middle" class="k-meta">закрыли экран — её нет нигде</text>
+  <use href="kit/components.svg#button-primary" x="16" y="628" data-label="поделиться"/>
+  <use href="kit/components.svg#button-secondary" x="16" y="684" data-label="сохранить картинкой"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
+</g></g>
+<text x="1317" y="966" class="capb">26 · 4 · готовый QR: место и ступень,</text>
+<text x="1317" y="984" class="capb">«поделиться» — системное меню устройства</text>
+
+<!-- 5 -->
+<rect x="1739" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(1740,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c4"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c4)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос."/>
+  <use href="kit/components.svg#sheet-text" x="0" y="512" data-h="300" data-title="QR места: Плака, Афины · 1 км" data-l1="Поставить точку ленты сюда?" data-l2="Радиус просмотра останется прежним." data-yes="поставить" data-no="не сейчас"/>
+</g></g>
+<text x="1740" y="966" class="capb">26 · 5 · открыли QR, уже внутри: лист над лентой,</text>
+<text x="1740" y="984" class="capb">точка сама не двигается</text>
+
+<!-- 6 -->
+<rect x="2162" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(2163,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c5"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c5)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <text x="16" y="36" class="k-title">Сказать</text>
+  <use href="kit/components.svg#tabs" x="16" y="52" data-l1="фраза" data-l2="стол" data-w1="56" data-w2="48" data-a1="1" data-a2=""/>
+  <text x="16" y="120" class="k-meta">фраза</text>
+  <text x="359" y="120" class="k-mono" text-anchor="end">осталось 104</text>
+  <use href="kit/components.svg#field" x="16" y="128" data-h="96" data-value="Кто на рынок к десяти?"/>
+  <text x="28" y="212" class="k-mono">ссылки вырезаются</text>
+  <text x="16" y="244" class="k-meta">режим</text>
+  <use href="kit/components.svg#segments" x="16" y="252" data-l1="один" data-l2="компания" data-l3="туса" data-s1="" data-s2="1"/>
+  <text x="16" y="320" class="k-meta">зона</text>
+  <rect x="16" y="328" width="343" height="44" rx="8" style="fill:var(--panel-2)"/>
+  <text x="28" y="355" class="k-meta" style="fill:var(--fg)">фраза встанет в: Плака, Афины · 1 км · по QR</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="384" data-sel="3"/>
+  <text x="16" y="452" class="k-meta">зона по QR — большая из ступени QR и 300 м;</text>
+  <text x="16" y="472" class="k-meta">подвинете точку — обычные правила</text>
+  <rect x="0" y="668" width="375" height="1" style="fill:var(--border)"/>
+  <text x="16" y="712" class="k-meta" style="fill:var(--fg)">свободно 3 из 4</text>
+  <use href="kit/components.svg#button-primary" x="175" y="688" data-w="184" data-label="Сказать"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a1="1" data-dot="1"/>
+</g></g>
+<text x="2163" y="966" class="capb">26 · 6 · композер: фраза встаёт в точку QR,</text>
+<text x="2163" y="984" class="capb">зона — большая из ступени QR и 300 м</text>
+
+<!-- 7 -->
+<rect x="2585" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(2586,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c6"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c6)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <rect width="375" height="56" style="fill:var(--bg)"/>
+  <text x="24" y="34" class="k-title">Кто вы</text>
+  <text x="351" y="34" text-anchor="end" class="k-mono">1 / 2</text>
+  <rect x="24" y="68" width="327" height="112" rx="13" style="fill:var(--panel-2)"/>
+  <text x="40" y="98" class="k-meta" style="fill:var(--fg)">точка по QR: Плака, Афины · 1 км</text>
+  <use href="kit/components.svg#button-pill" x="40" y="116" data-w="112" data-label="принять"/>
+  <use href="kit/components.svg#button-text" x="168" y="116" data-w="160" data-label="поправить на схеме"/>
+  <use href="kit/components.svg#field-focus" x="24" y="228" data-w="327" data-label="Как вас называть"/>
+  <text x="351" y="294" text-anchor="end" class="k-mono">осталось 24</text>
+  <use href="kit/components.svg#field" x="24" y="316" data-w="112" data-label="возраст" data-value=""/>
+  <text x="148" y="344" class="k-body" style="fill:var(--muted)">сюда с 13 лет</text>
+  <use href="kit/components.svg#checkbox" x="24" y="376" data-w="327" data-label="принимаю соглашение,"/>
+  <text x="60" y="423" class="k-body">политику и правила</text>
+  <rect x="24" y="444" width="327" height="1" style="fill:var(--border)"/>
+  <use href="kit/components.svg#button-primary-disabled" x="24" y="732" data-w="327" data-label="дальше" data-reason="дальше — после согласия"/>
+</g></g>
+<text x="2586" y="966" class="capb">26 · 7 · новый человек: шаг 1 экрана 2,</text>
+<text x="2586" y="984" class="capb">строка как у афиши, ступень из ссылки</text>
+</svg>

@@ -617,6 +617,20 @@ Deno.test("the paper code raises the identity on a clean device", async () => {
   const stale = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
   assertEquals(stale.status, 401);
 
+  // The share of the device left behind is burned, not merely unreachable.
+  // §8.2 (2026-09-11): freezing stops the node from accepting the old device's
+  // signature, and nothing more — the old phone went on opening its own history
+  // with its own PIN, while the person who typed sixteen characters believed
+  // they had shut the door.
+  const [burned] = await database.queryOrThrow<
+    { share_enc: Uint8Array | null; burned_at: Date | null }
+  >(
+    `SELECT share_enc, burned_at FROM vault_shares WHERE session = $1`,
+    [created.session_id],
+  );
+  assertEquals(burned.share_enc, null, "the lost device's share was left intact");
+  assert(burned.burned_at, "the share is gone but the burn was not recorded");
+
   // The new device has no PIN yet, so it is left the one-time right to set one.
   const [identity] = await database.queryOrThrow<{ first_pin_grant_at: Date | null }>(
     `SELECT first_pin_grant_at FROM identities WHERE id = $1`,
@@ -664,6 +678,16 @@ Deno.test("the paper code reopens the device the tenth PIN mistake closed", asyn
     [created.session_id],
   );
   assertEquals(session.frozen_at, null, "the session is still frozen");
+
+  // The counter-case to the burn above: a lock is not a move. The tenth mistake
+  // keeps the share (§8.2, 2026-09-14) precisely so that a stolen signing key
+  // cannot erase a history from afar, and raising the same device must not do
+  // what the lock refused to do.
+  const [kept] = await database.queryOrThrow<{ share_enc: Uint8Array | null }>(
+    `SELECT share_enc FROM vault_shares WHERE session = $1`,
+    [created.session_id],
+  );
+  assert(kept.share_enc, "raising the same device burned its share");
 
   // The promise of §8.2 in full: the old PIN opens this device's history again.
   await clearDelay(created.session_id);

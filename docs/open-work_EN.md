@@ -1393,6 +1393,38 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       the Node compatibility layer), hold a connection outside the driver, or
       take a different bus. The choice shapes all of step 5, so it is not made
       in passing — decide before the chat's first line.
+
+- [ ] **G15. The device transfer cannot be finished: neither side has a way to
+      learn the outcome — found 2026-09-20 while writing the routes.** The
+      contract (`protocol_EN.md` §4.1) names four routes — `POST
+      /sessions/invite`, `POST /sessions/claim`, `POST
+      /sessions/:lookup_id/approve` and `/reject` — and none by which a device
+      asks what happened.
+
+      It has to be asked twice. **The old device** needs to learn that a claim
+      arrived: it is the one that shows the four check characters and asks the
+      person "is this me". **The new one** needs to learn that the person pressed
+      yes, and to collect the reply envelope with the long key. Repeating `POST
+      /sessions/claim` cannot serve as the poll, by the decision of 2026-09-15: a
+      second claim on the same invitation **cancels the transfer on both sides**,
+      so polling with it equals cancelling.
+
+      A socket was evidently assumed (§8.1). There are no sockets: their bus runs
+      into G14, and the relay itself is a stub answering 501
+      (`relay/node/src/chat/relay.ts`).
+
+      **A fork, not a task.** Either a route of its own for the state of an
+      invitation (which then has to be added to the contract as the fifty-eighth
+      name), or the transfer waits for step 5 along with the sockets, or `POST
+      /sessions/claim` becomes idempotent and cancellation moves to a second
+      **different** envelope. The choice changes the contract and screen 13 both,
+      so it is not made in passing.
+
+      Done the same night and independent of the fork: **a move burns the old
+      device's share** (§8.2, 2026-09-11) — `burnShare()` in
+      `relay/node/src/lib/sessions.ts`, called by the clean-device path of `POST
+      /recovery/claim`. Without it a frozen phone went on opening its own history
+      with its own PIN.
 ## M. Found in August — not deferred, in hand
 
 Items J13–J21 and D8 physically sat inside "G. Deliberately deferred" and were

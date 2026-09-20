@@ -24,7 +24,7 @@ import {
 } from "../lib/identity_auth.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
-import { freezeSession } from "../lib/sessions.ts";
+import { burnShare, freezeSession } from "../lib/sessions.ts";
 import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts";
 import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
@@ -418,7 +418,15 @@ async function claimRecovery(req: Request): Promise<Response> {
       `SELECT id FROM sessions WHERE identity = $1 AND frozen_at IS NULL`,
       [identity.id],
     );
-    for (const session of live) await freezeSession(run, session.id, "transfer");
+    // Frozen *and* burned: §8.2 (2026-09-11) makes any move of an identity burn
+    // the old device's share, recovery and voluntary transfer alike. Freezing
+    // alone left the lost phone decrypting its own history with its own PIN,
+    // which is the opposite of what the person typing sixteen characters
+    // believes they are doing.
+    for (const session of live) {
+      await freezeSession(run, session.id, "transfer");
+      await burnShare(run, session.id);
+    }
 
     await run(
       `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)

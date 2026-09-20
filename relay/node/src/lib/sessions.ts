@@ -55,3 +55,29 @@ export async function freezeSession(
   await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
   return true;
 }
+
+// Burning the device's half of the vault key. §8.2, 2026-09-11: **any move of an
+// identity burns the old device's share** — a recovery by paper code and a
+// voluntary transfer alike.
+//
+// It is deliberately not part of freezeSession(), even though every move also
+// freezes. Freezing and burning answer different questions, and the tenth PIN
+// mistake is the proof: it freezes and must **not** burn (§8.2, 2026-09-14),
+// because a stolen signing key would otherwise erase somebody's history from
+// afar. So the caller that knows the identity has moved says so.
+//
+// What it closes when it is called, and what stayed open without it: frozen_at
+// only stops the network half — the node stops accepting the old device's
+// signature. The local half lived on, because vault_shares hangs off a session
+// that is marked rather than deleted, so the old phone went on decrypting
+// everything it had accumulated with its own PIN. Somebody who lost a device and
+// raised the identity from paper believed they had shut the door.
+export async function burnShare(run: Run, sessionId: string): Promise<void> {
+  // The column pair is written together or not at all — the table's own CHECK
+  // says so, and a burn that wrote only one of them would be refused outright.
+  await run(
+    `UPDATE vault_shares SET share_enc = NULL, burned_at = now()
+      WHERE session = $1 AND share_enc IS NOT NULL`,
+    [sessionId],
+  );
+}

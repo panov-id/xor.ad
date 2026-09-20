@@ -1,0 +1,130 @@
+// What every identity-signed route does before it does anything of its own.
+//
+// Protocol §2 gives the signature, §3 the version, §6 the shape of a refusal and
+// the list of three routes that keep answering while somebody is stepped away.
+// Each of those is one question, and each has exactly one right answer, so they
+// live here rather than at the top of nineteen handlers.
+//
+// The order is deliberate and is the security property: version, then shape of
+// the headers, then the window, then the signature, and only then the state of
+// the identity. A body is never read, a row is never written and no counter is
+// spent before the signature verifies — the nonce table says the same thing in
+// its own comment, and the reason is the same: an unsigned request must not be
+// able to move anything, including a counter.
+
+import { query } from "./db.ts";
+import { json } from "./http.ts";
+import {
+  PROTOCOL_MAJOR,
+  protocolVersion,
+  sunsetHeader,
+  verifySignedRequest,
+  versionSupported,
+} from "./identity_auth.ts";
+
+export interface Caller {
+  sessionId: string;
+  identityId: string;
+  brand: string | null;
+  steppedAwayUntil: Date | null;
+  signupCompletedAt: Date | null;
+}
+
+interface SessionRow {
+  session_id: string;
+  identity_id: string;
+  sign_public_key: string;
+  frozen_at: Date | null;
+  stepped_away_until: Date | null;
+  signup_completed_at: Date | null;
+  closed_at: Date | null;
+}
+
+// The common refusal of protocol §6. `reason` only ever carries a moderation
+// wording; everything else says what happened in `code` and nothing more.
+export function refuse(
+  code: string,
+  message: string,
+  status: number,
+  extra: Record<string, unknown> = {},
+  headers: Record<string, string> = {},
+): Response {
+  return json({ error: { code, message, ...extra } }, status, {
+    ...sunsetHeader(),
+    ...headers,
+  });
+}
+
+export const unauthorized = (): Response =>
+  // One wording for a missing signature, a malformed one, a stale one and one
+  // made by another key. Telling them apart tells a guesser which part they got
+  // right, and none of the four is a state the honest client can be in.
+  refuse("unauthorized", "the request is not signed by a live session", 401);
+
+// The three routes protocol §6 keeps answering during a time away, by name. A
+// route that wants the exemption says so; it is not derived from the method.
+export interface GuardOptions {
+  allowSteppedAway?: boolean;
+  allowUnfinishedSignup?: boolean;
+}
+
+export async function callerOf(
+  req: Request,
+  options: GuardOptions = {},
+): Promise<Caller | Response> {
+  const version = protocolVersion(req);
+  if (!versionSupported(version)) {
+    return refuse(
+      "protocol_version_unsupported",
+      `this node serves protocol ${PROTOCOL_MAJOR}; update the client`,
+      400,
+    );
+  }
+
+  const sessionId = req.headers.get("x-identity-session");
+  if (!sessionId || !/^[0-9a-fA-F-]{36}$/.test(sessionId)) return unauthorized();
+
+  const rows = await query<SessionRow>(
+    `SELECT s.id AS session_id, s.identity, s.sign_public_key, s.frozen_at,
+            i.id AS identity_id, i.stepped_away_until, i.signup_completed_at, i.closed_at
+       FROM sessions s JOIN identities i ON i.id = s.identity
+      WHERE s.id = $1`,
+    [sessionId],
+  );
+  if (rows === null) return refuse("unavailable", "the node cannot answer right now", 503);
+  const row = rows[0];
+  // A frozen session, a closed identity and an unknown session are one answer:
+  // whichever it is, this signature is not a live session's, and saying which
+  // would report on somebody else's account to whoever holds a stolen key.
+  if (!row || row.frozen_at || row.closed_at) return unauthorized();
+
+  const verdict = await verifySignedRequest(req, {
+    method: req.method,
+    url: req.url,
+    body: new Uint8Array(await req.clone().arrayBuffer()),
+    signPublicKey: row.sign_public_key,
+  });
+  if (typeof verdict === "string") return unauthorized();
+
+  if (!options.allowUnfinishedSignup && !row.signup_completed_at) {
+    // Chat spec §8.2: until the paper code is confirmed the identity "passes no
+    // membership check at all". Same wording as an unknown session, for the same
+    // reason — screen 2 promises there is no identity yet.
+    return unauthorized();
+  }
+
+  const away = row.stepped_away_until;
+  if (!options.allowSteppedAway && away && away.getTime() > Date.now()) {
+    return refuse("stepped_away", "you are away until the time you chose", 409, {
+      until: Math.floor(away.getTime() / 1000),
+    });
+  }
+
+  return {
+    sessionId: row.session_id,
+    identityId: row.identity_id,
+    brand: null,
+    steppedAwayUntil: away,
+    signupCompletedAt: row.signup_completed_at,
+  };
+}

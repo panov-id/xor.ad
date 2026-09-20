@@ -99,6 +99,14 @@ function read() {
     // does not confirm the route exists.
     metricsToken: env("METRICS_TOKEN").trim(),
 
+    // The node's half of every vault key is sealed with this before it is stored
+    // (lib/vault_share.ts, chat spec §8.2). It lives in the environment and never
+    // in a table on purpose: a key carried by the dump seals nothing, and the
+    // whole point is that a dump plus one copied browser profile must not be
+    // enough to try a million PINs offline. Unset means the node refuses to store
+    // a share at all rather than storing it in the clear.
+    vaultShareKey: env("VAULT_SHARE_KEY"),
+
     // Protocol §3: the unix time when the current major version stops being
     // served. Unset until a sunset is actually announced — and unset is the
     // meaningful state, not a placeholder: the header goes out on every answer

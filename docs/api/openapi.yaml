@@ -402,15 +402,17 @@ components:
         state: {type: string, enum: [pending, open, ended]}
     IdentityCreate:
       type: object
-      required: [sign_pub, name, age, auth_hash, share, recovery_lookup_id]
-      description: "Everything registration sends at once (screen 2): the key, a name and an age, the PIN's auth_hash with the node's share, and the paper code's lookup_id. Under 13 — too_young."
-      x-description-ru: "Всё, что регистрация шлёт разом (экран 2): ключ, имя и возраст, auth_hash ПИН с долей узла и lookup_id бумажного кода. Младше 13 — too_young."
+      required: [sign_pub, wrap_pub, name, age, auth_hash, share, recovery_lookup_id]
+      description: "Everything registration sends at once (screen 2): both public keys of the device, a name and an age, the PIN's auth_hash with the node's share, and the paper code's lookup_id with the long key wrapped under its other half. Under 13 — too_young. wrap_pub was added on 2026-09-20 while the route was being built: sessions.wrap_public_key is NOT NULL, so no session could have been written without it. The key wrapped under the paper code does not travel here — it is the cargo of POST /recovery/confirm, and handing it over is what confirming the code means."
+      x-description-ru: "Всё, что регистрация шлёт разом (экран 2): обе публичные половины ключей устройства, имя и возраст, auth_hash ПИН с долей узла, lookup_id бумажного кода и долгий ключ, завёрнутый под его вторую половину. Младше 13 — too_young. wrap_pub добавлен 20.09.2026 при постройке маршрута: sessions.wrap_public_key объявлена NOT NULL, то есть без него сессию записать было нельзя. Ключ, завёрнутый бумажным кодом, здесь не едет — это груз POST /recovery/confirm, и сдача его и есть подтверждение кода."
       properties:
-        sign_pub: {type: string}
+        sign_pub: {type: string, description: "base64url of the SPKI export, ECDSA P-256 (protocol §2).", x-description-ru: "base64url выгрузки SPKI, ECDSA P-256 (протокол §2)."}
+        wrap_pub: {type: string, description: "base64url of the SPKI export of the wrapping key (§8.13); the same envelope SessionsClaim carries on a transfer.", x-description-ru: "base64url выгрузки SPKI ключа заворачивания (§8.13); тот же конверт, что несёт SessionsClaim при переносе."}
         name: {type: string}
         age: {type: integer, minimum: 13}
         auth_hash: {type: string}
         share: {type: string}
+        label: {type: string, description: "What the device calls itself, \"Chrome, Android\"; optional.", x-description-ru: "Как устройство себя называет, «Chrome, Android»; необязательно."}
         recovery_lookup_id: {type: string}
     VaultInit:
       type: object
@@ -418,6 +420,13 @@ components:
       properties:
         auth_hash: {type: string}
         share: {type: string}
+    RecoveryConfirm:
+      type: object
+      required: [recovery_wrapped_key]
+      description: "The long key wrapped under the paper code's other half. The node stores it and never opens it; the code itself it never sees at all (chat spec §8.2). Handing this over is what finishes a registration."
+      x-description-ru: "Долгий ключ под второй половиной бумажного кода. Узел его хранит и никогда не открывает; самого кода он не видит вовсе (спека чата §8.2). Сдача этого груза и завершает регистрацию."
+      properties:
+        recovery_wrapped_key: {type: string}
     RecoveryClaim:
       type: object
       required: [lookup_id]
@@ -1420,6 +1429,26 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
         "200": {description: Claimed., x-description-ru: Принято.}
+  /recovery/confirm:
+    post:
+      tags: [identity]
+      summary: "The paper code is written down — finish the registration"
+      x-summary-ru: "Бумажный код записан — завершить регистрацию"
+      x-status: spec
+      security: [{identitySignature: []}]
+      description: "The third request of step 2, and the one that ends it (screen 2). Until it arrives the identity passes no membership check and an hour later the sweeper takes it; nothing else can carry the mark, because every other call of registration happens before the code is shown. Its cargo is the only thing recovery is missing: the long key wrapped under the code's other half. Once, by the identity's own session; a second call answers 409 — the mark is set with UPDATE … WHERE signup_completed_at IS NULL RETURNING, so a row the sweeper already took cannot be silently revived. Added 2026-09-20 by quorum of two review lenses: the column signup_completed_at existed with nothing to fill it, and identities.recovery_wrapped_key was written by no operation at all."
+      x-description-ru: "Третий запрос второго шага, и он же его закрывает (экран 2). Пока он не пришёл, личность не проходит ни одной проверки членства, а через час её снимает уборщик; больше пометку нести нечему — все прочие вызовы регистрации случаются до показа кода. Его груз — единственное, чего восстановлению недостаёт: долгий ключ под второй половиной кода. Один раз, собственной сессией личности; второй вызов отвечает 409 — пометка ставится через UPDATE … WHERE signup_completed_at IS NULL RETURNING, так что снятую уборщиком строку нельзя тихо оживить. Заведён 20.09.2026 кворумом двух линз ревью: колонка signup_completed_at существовала, а заполнять её было нечем, и identities.recovery_wrapped_key не писала ни одна операция."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryConfirm"}}}}
+      responses:
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Finished., x-description-ru: Завершено.}
   /recovery/claim:
     post:
       tags: [identity]

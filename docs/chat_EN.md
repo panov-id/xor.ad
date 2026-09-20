@@ -1238,10 +1238,17 @@ the share — and then both halves of the key sit on it at registration time, an
 offline-search argument below stops working exactly when it is needed.
 
 As it stands now: until the code is confirmed the identity is marked unfinished and
-**passes no membership check at all** — no feed, no match, no chat. A daily
-`prune_unfinished_signups` job beside `prune_magic_links`
-(`relay/node/src/lib/scheduled.ts`) removes such rows by cascade from `identities`
-after 1 hour (`signup.unfinished.ttl` in `docs/facts/limits.tsv`). An hour is not
+**passes no membership check at all** — no feed, no match, no chat. **The mark is
+set by `POST /recovery/confirm`** (protocol §4.1, added 2026-09-20): it hands the
+node `recovery_wrapped_key`, and handing that cargo over is what confirming the code
+means. Nothing earlier can carry the mark — every other call of registration happens
+before the code is shown. An **hourly** `prune_unfinished_signups` job beside
+`prune_magic_links` (`relay/node/src/lib/scheduled.ts`) removes unmarked rows by
+cascade from `identities` after 1 hour (`signup.unfinished.ttl` in
+`docs/facts/limits.tsv`). Hourly rather than daily — corrected 2026-09-20 by the
+security lens: a daily pass against an hour-long deadline meant the draft row lived
+in the database for up to 24 hours instead of one, so one limit was declared and
+another enforced. An hour is not
 an instant: somebody who went looking for pen and paper has to be able to come back
 and finish writing the code down.
 

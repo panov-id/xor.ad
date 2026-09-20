@@ -35,10 +35,44 @@ export const UNFINISHED_SIGNUP_HOURS = 1; // signup.unfinished.ttl
 export const INACTIVE_DAYS = 365; // identity.inactive.retention
 export const DELETION_DELAY_DAYS = 30; // identity.deletion.delay
 
+// How many rows one pass takes at a time, and how many bites it takes before
+// leaving the rest for the next hour.
+//
+// Copied in shape from the idempotency prune in lib/scheduled.ts, and for the
+// reason written there: the first pass on a table that has grown without a
+// ceiling is the largest delete it will ever do, and one statement doing it
+// holds a row lock per row, bloats the table, and outlives the ten-minute lease
+// — so a second node claims the job while the first is still working. An
+// abandoned-signup sweep is exactly that shape: every registration that never
+// reached the paper code is a row here, and a flood of them is one request each.
+//
+// Each batch commits on its own, so an interruption keeps the work already
+// done. The ceiling on batches means a pass ends in minutes rather than running
+// for an hour on the first night; what is left waits an hour, which is the
+// right trade for rows that are already past their deadline.
+export const BATCH = 2000;
+const MAX_BATCHES = 500;
+
 export interface SweepResult {
   unfinished: number;
   closed: number;
   deleted: number;
+}
+
+// Runs one statement over and over until it stops finding work, or until the
+// ceiling. The statement is expected to carry its own LIMIT and to answer with
+// the number of rows it took.
+async function inBatches(statement: string): Promise<number> {
+  let total = 0;
+  for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const rows = await queryOrThrow<{ count: string }>(statement);
+    const took = Number(rows[0]?.count ?? 0);
+    total += took;
+    // Short of a full batch means the work ran out; asking again would cost a
+    // statement to learn nothing.
+    if (took < BATCH) break;
+  }
+  return total;
 }
 
 // Closing does to an identity what screen 12's "start again" does, and §8.2
@@ -59,42 +93,71 @@ async function closeIdentities(): Promise<number> {
   // about, written by the same hand two hours earlier and found by the
   // operations lens of the review panel on 2026-09-20.
   //
-  // The freezing stays inside the one statement, because it has to be atomic
-  // with the closing; what moves out is the announcing, which Postgres holds
-  // until COMMIT anyway and therefore cannot outrun the write.
+  // **Two statements, not one, and that is the fix for a race the data lens
+  // found in the same panel.** Closing used to do everything in a single pass
+  // over identities that were still open, which meant anything created while
+  // that pass ran was missed for good: a `POST /vault/init` committing a share
+  // a moment after the sweeper's snapshot left a closed identity with a live,
+  // unburned share, and the sweeper never came back because its own condition
+  // is `closed_at IS NULL`.
+  //
+  // So the transition is one statement and the consequences are another. The
+  // second one works on **every** closed identity that still has something
+  // undone, which makes it idempotent and self-healing: whatever a race leaves
+  // behind is picked up on the next pass an hour later, rather than surviving
+  // until the row is deleted thirty days on. It does not remove the race — two
+  // writers still need a lock for that, and that is written up as a task — it
+  // stops the race from being permanent.
   return await transaction(async (run) => {
-  const rows = await run<{ count: string; frozen: string[] }>(
-    `WITH stale AS (
-       SELECT i.id FROM identities i
-        WHERE i.closed_at IS NULL
-          AND NOT EXISTS (
-            SELECT 1 FROM sessions s
-             WHERE s.identity = i.id
-               AND s.last_seen_at > now() - interval '${INACTIVE_DAYS} days'
-          )
-     ), shut AS (
-       UPDATE identities SET closed_at = now(),
+    const shut = await run<{ id: string }>(
+      `UPDATE identities SET closed_at = now(),
               recovery_auth_hash = NULL, recovery_wrapped_key = NULL,
               first_pin_grant_at = NULL
-        WHERE id IN (SELECT id FROM stale) RETURNING id
-     ), frozen AS (
-       UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed'
-        WHERE identity IN (SELECT id FROM shut) AND frozen_at IS NULL RETURNING id
-     ), burned AS (
-       UPDATE vault_shares SET share_enc = NULL, burned_at = now()
-        WHERE session IN (SELECT id FROM sessions WHERE identity IN (SELECT id FROM shut))
-          AND share_enc IS NOT NULL RETURNING session
-     ), faces AS (
-       DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM shut) RETURNING identity
-     )
-     SELECT (SELECT count(*) FROM shut)::text AS count,
-            coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen`,
-  );
-  const closed = Number(rows[0]?.count ?? 0);
-  for (const sessionId of rows[0]?.frozen ?? []) {
-    await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
-  }
-  return closed;
+        WHERE closed_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM sessions s
+             WHERE s.identity = identities.id
+               AND s.last_seen_at > now() - interval '${INACTIVE_DAYS} days'
+          )
+        RETURNING id`,
+    );
+
+    // Everything closing owes, over every closed identity — the ones just shut
+    // above and any left half-done by an earlier pass.
+    //
+    // `burned` filters by identity and **must not** filter by `frozen_at`.
+    // Data-modifying CTEs share one snapshot and cannot see one another's
+    // writes (PostgreSQL 16 §7.8.2, checked in a container on 2026-09-20), so
+    // `WHERE session IN (SELECT id FROM frozen)` or `AND frozen_at IS NOT NULL`
+    // would silently stop burning anything at all: the first loses the sessions
+    // that were already frozen, the second sees the old snapshot where none of
+    // them are. Neither would fail. The statement would run, return the same
+    // count, and the tests would stay green while shares quietly survived.
+    const rows = await run<{ frozen: string[] }>(
+      `WITH closed AS (
+         SELECT id FROM identities WHERE closed_at IS NOT NULL
+       ), frozen AS (
+         UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed'
+          WHERE identity IN (SELECT id FROM closed) AND frozen_at IS NULL
+          RETURNING id
+       ), burned AS (
+         UPDATE vault_shares SET share_enc = NULL, burned_at = now()
+          WHERE session IN (
+                  SELECT id FROM sessions WHERE identity IN (SELECT id FROM closed)
+                )
+            AND share_enc IS NOT NULL
+          RETURNING session
+       ), faces AS (
+         DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM closed)
+         RETURNING identity
+       )
+       SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen`,
+    );
+
+    for (const sessionId of rows[0]?.frozen ?? []) {
+      await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
+    }
+    return shut.length;
   });
 }
 
@@ -104,35 +167,39 @@ export async function sweepIdentities(): Promise<SweepResult> {
   // An identity that never finished its registration is swept whole rather than
   // closed: there is nothing to keep. It has no paper code, so no notice can be
   // attached to it and nothing has to outlive it.
-  const unfinished = await queryOrThrow<{ count: string }>(
-    `WITH gone AS (
-       DELETE FROM identities
+  const unfinished = await inBatches(
+    `WITH doomed AS (
+       SELECT id FROM identities
         WHERE signup_completed_at IS NULL
           AND created_at < now() - interval '${UNFINISHED_SIGNUP_HOURS} hours'
-        RETURNING 1
+        LIMIT ${BATCH}
+     ), gone AS (
+       DELETE FROM identities WHERE id IN (SELECT id FROM doomed) RETURNING 1
      )
      SELECT count(*)::text AS count FROM gone`,
   );
 
+  // No index serves this one, and that is deliberate: its condition matches
+  // nearly every row, so an index over it would be read more slowly than the
+  // table (db/023 says the same from the other side). The two passes that are
+  // selective — the catch-up and the deletion — use `identities_closed`.
   const closed = await closeIdentities();
 
   // And the last step, thirty days after closing. The cascades carry sessions,
   // shares, appearance and acceptances with the row.
-  const deleted = await queryOrThrow<{ count: string }>(
-    `WITH gone AS (
-       DELETE FROM identities
+  const deleted = await inBatches(
+    `WITH doomed AS (
+       SELECT id FROM identities
         WHERE closed_at IS NOT NULL
           AND closed_at < now() - interval '${DELETION_DELAY_DAYS} days'
-        RETURNING 1
+        LIMIT ${BATCH}
+     ), gone AS (
+       DELETE FROM identities WHERE id IN (SELECT id FROM doomed) RETURNING 1
      )
      SELECT count(*)::text AS count FROM gone`,
   );
 
-  const result = {
-    unfinished: Number(unfinished[0]?.count ?? 0),
-    closed,
-    deleted: Number(deleted[0]?.count ?? 0),
-  };
+  const result = { unfinished, closed, deleted };
   // Three counters rather than one, because the three deadlines fail
   // differently: a signup sweep that stops means registrations are finishing
   // that should not, a closing sweep that jumps means a year's worth of people

@@ -114,6 +114,43 @@ Deno.test("a year without a session closes the identity the way starting again d
   );
 });
 
+Deno.test("a closure left half-done is finished on the next pass", async () => {
+  // The race the data lens of the review panel described: a share committed a
+  // moment after the sweeper's snapshot belongs to an identity the same pass is
+  // closing, so it is never seen — and the sweeper used to work only on
+  // identities that were still open, so it never came back. The row then kept a
+  // usable share until the identity was deleted thirty days later.
+  //
+  // Arranged here by doing what the race does: close the identity, then give it
+  // a live session with a fresh share, the way POST /recovery/claim and
+  // POST /vault/init would have.
+  const stray = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 1 });
+  await sweeper.sweepIdentities();
+  assert((await identityRow(stray.identityId)).closed_at, "the identity was not closed");
+
+  await database.queryOrThrow(
+    `UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`,
+    [stray.sessionId],
+  );
+  await database.queryOrThrow(
+    `INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, 'hash', $2)
+     ON CONFLICT (session) DO UPDATE SET share_enc = EXCLUDED.share_enc, burned_at = NULL`,
+    [stray.sessionId, new Uint8Array([7, 7, 7])],
+  );
+  await sweeper.sweepIdentities();
+
+  const [session] = await database.queryOrThrow<{ frozen_reason: string | null }>(
+    `SELECT frozen_reason FROM sessions WHERE id = $1`,
+    [stray.sessionId],
+  );
+  assertEquals(session.frozen_reason, "closed", "the late session stayed live on a closed identity");
+  const [share] = await database.queryOrThrow<{ share_enc: Uint8Array | null }>(
+    `SELECT share_enc FROM vault_shares WHERE session = $1`,
+    [stray.sessionId],
+  );
+  assertEquals(share.share_enc, null, "the late share was never burned");
+});
+
 Deno.test("a closed identity is deleted thirty days later, not before", async () => {
   const recent = await identity();
   const old = await identity();
@@ -141,6 +178,38 @@ Deno.test("a closed identity is deleted thirty days later, not before", async ()
     0,
     "the session outlived the identity it belonged to",
   );
+});
+
+Deno.test("a sweep bigger than one batch still takes everything", async () => {
+  // The batching is not a detail of style: a single statement deleting the
+  // whole backlog holds a row lock per row and outlives the queue's ten-minute
+  // lease, so another node claims the job while the first is still working
+  // (lib/scheduled.ts carries the same argument for the idempotency prune).
+  //
+  // What that leaves to test is the loop's own arithmetic: it must come back
+  // for more while a batch comes back full, and stop as soon as one does not.
+  // The batch size is read from the module so this case measures the loop
+  // rather than a number copied into a test.
+  const overOneBatch = sweeper.BATCH + 3;
+  const ids: string[] = [];
+  for (let i = 0; i < overOneBatch; i++) ids.push(crypto.randomUUID());
+  // One statement to make them: a thousand round trips would make this case a
+  // benchmark of the driver.
+  await database.queryOrThrow(
+    `INSERT INTO identities (id, name, age, identity_public_key, created_at)
+     SELECT unnest($1::uuid[]), 'batch-probe', 30, 'not-a-real-key', now() - interval '2 days'`,
+    [ids],
+  );
+
+  const result = await sweeper.sweepIdentities();
+  assert(
+    result.unfinished >= overOneBatch,
+    `the sweep took ${result.unfinished} of ${overOneBatch} abandoned signups`,
+  );
+  const [left] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM identities WHERE name = 'batch-probe'`,
+  );
+  assertEquals(Number(left.n), 0, "rows past their deadline survived the sweep");
 });
 
 Deno.test("a quiet pass says nothing and changes nothing", async () => {

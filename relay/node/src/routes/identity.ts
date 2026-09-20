@@ -31,9 +31,27 @@ import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identi
 import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 
-// §8.2: 24 graphemes is what a person is shown; the node counts bytes, because
-// that is the thing it can enforce, and 400 is the ceiling the DDL states.
+// §8.2 and docs/facts/limits.tsv (`name.length`, enforced by: the node): the
+// limit is **24 graphemes**, and the node is named as what holds it.
+//
+// It used to count bytes only, with the comment "that is the thing it can
+// enforce" — which was not true: Intl.Segmenter counts graphemes, and without
+// it a name of a hundred visible characters passed, because a hundred of them
+// fit in 400 bytes. The registry promised a limit nobody applied (review panel
+// 2026-09-20, consistency lens).
+//
+// Both ceilings stay. The byte one is the DDL's (`octet_length(name) <= 400`)
+// and stops a name that is short in graphemes and enormous in bytes; the
+// grapheme one is the product's, and it is what a person is shown.
 const NAME_MAX_BYTES = 400;
+const NAME_MAX_GRAPHEMES = 24;
+
+// A grapheme is what a person calls a character: a family emoji, a letter with
+// a combining accent, a flag. `Intl.Segmenter` is the only thing in the runtime
+// that counts them, and counting code points instead would refuse names that
+// look short and pass names that look long.
+const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+const countGraphemes = (text: string): number => [...graphemes.segment(text)].length;
 const MIN_AGE = 13;
 // The share is 32 random bytes (§8.2). Anything else is not a share.
 const SHARE_BYTES = 32;
@@ -108,7 +126,8 @@ async function createIdentity(req: Request): Promise<Response> {
   const name = body.name;
   if (
     typeof name !== "string" || name.length < 1 ||
-    new TextEncoder().encode(name).length > NAME_MAX_BYTES
+    new TextEncoder().encode(name).length > NAME_MAX_BYTES ||
+    countGraphemes(name) > NAME_MAX_GRAPHEMES
   ) {
     return refuse("invalid_body", "the name is missing or too long", 400);
   }

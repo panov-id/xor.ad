@@ -66,7 +66,7 @@ async function device() {
   return { pair, signPub: auth.bytesToBase64url(spki) };
 }
 
-function newShare(): Uint8Array {
+function newShareBytes(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
 }
 
@@ -133,7 +133,7 @@ async function signedCall(
 
 async function register(overrides: Record<string, unknown> = {}, address?: string) {
   const { pair, signPub } = await device();
-  const share = newShare();
+  const share = newShareBytes();
   const lookupId = crypto.randomUUID();
   const answer = await call("POST", "/identities", {
     address,
@@ -199,6 +199,34 @@ Deno.test("a key the node cannot import is refused before anything is written", 
   const { answer } = await register({ sign_pub: auth.bytesToBase64url(new Uint8Array(65)) });
   assertEquals(answer.status, 400);
   assertEquals(await countIdentities(), before);
+});
+
+Deno.test("a name is measured in graphemes, the way a person sees it", async () => {
+  // docs/facts/limits.tsv names the node as what holds `name.length` = 24
+  // graphemes; it counted bytes only, so a hundred visible characters passed
+  // (review panel 2026-09-20, consistency lens).
+  const before = await countIdentities();
+
+  // A flag is one grapheme and two code points — eight bytes, so twenty-four of
+  // them stay inside the DDL's 400 and the count is the only thing deciding.
+  //
+  // A heavier grapheme would not: twenty-four family emoji are 432 bytes, and
+  // the byte ceiling refuses them before the grapheme one is consulted. That is
+  // a real conflict between the product's limit and the schema's, and it is
+  // recorded in open-work rather than papered over here.
+  const flag = "\u{1F1E6}\u{1F1E9}";
+  const twentyFour = await register({ name: flag.repeat(24) });
+  assertEquals(twentyFour.answer.status, 200, "24 graphemes were refused");
+
+  const twentyFive = await register({ name: flag.repeat(25) });
+  assertEquals(twentyFive.answer.status, 400, "25 graphemes were accepted");
+
+  // And the plain case the old check let through: a hundred ordinary letters
+  // is 100 bytes, well under the DDL's 400, and far over the product's 24.
+  const hundred = await register({ name: "a".repeat(100) });
+  assertEquals(hundred.answer.status, 400, "a hundred letters passed as a name");
+
+  assertEquals(await countIdentities(), before + 1, "a refused name still wrote a row");
 });
 
 Deno.test("a share of the wrong length is refused", async () => {
@@ -507,6 +535,57 @@ Deno.test("another session's share cannot be reached from this one", async () =>
   assertEquals(attempt.status, 401);
 });
 
+
+Deno.test("two sessions of one identity hold two different shares", async () => {
+  // Test map 3.5 — "a share belongs to a device, not to an identity" — was
+  // marked as held by the case above it, which uses two *different* identities
+  // and therefore proves the guard, not this. Caught by the consistency lens of
+  // the review panel, 2026-09-20. This is the case the row actually asks for:
+  // one identity, two of its own sessions, and no way for the second to reach
+  // what belongs to the first.
+  const pin = crypto.getRandomValues(new Uint8Array(32));
+  const { created, pair, lookupId } = await registered(pin);
+
+  // The device moves: the old session keeps its row, the new one arrives with
+  // no share at all and sets its own PIN through the grant recovery left.
+  const fresh = await device();
+  const raised = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: fresh.signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  const second = (raised.body as { session_id: string }).session_id;
+  const newPin = crypto.getRandomValues(new Uint8Array(32));
+  const newShare = newShareBytes();
+  const set = await signedCall(fresh.pair.privateKey, second, "POST", "/vault/init", {
+    auth_hash: await auth.sha256hex(newPin),
+    share: authBase64(newShare),
+  });
+  assertEquals(set.status, 204);
+
+  // The new device's PIN returns the new device's share — not the old one's,
+  // which the move burned, and not some property of the identity.
+  await clearDelay(second);
+  const handed = await signedCall(fresh.pair.privateKey, second, "POST", "/vault/share", proof(newPin));
+  assertEquals(handed.status, 200);
+  assertEquals((handed.body as { share: string }).share, authBase64(newShare));
+
+  // And the old device's PIN, which is a different PIN, is not what opens it:
+  // the row is keyed by session, so the first device's proof means nothing to
+  // the second one's row.
+  await clearDelay(second);
+  const crossed = await signedCall(fresh.pair.privateKey, second, "POST", "/vault/share", proof(pin));
+  assertEquals(crossed.status, 409, "the other device's PIN opened this device's share");
+
+  // The rows are two, and they are not the same row.
+  const shares = await database.queryOrThrow<{ session: string }>(
+    `SELECT session FROM vault_shares WHERE session IN ($1, $2)`,
+    [created.session_id, second],
+  );
+  assertEquals(shares.length, 2, "one identity's two devices share one row");
+});
 
 Deno.test("the first PIN needs a grant, spends it, and works only once", async () => {
   const { answer, pair } = await registerWithPin();

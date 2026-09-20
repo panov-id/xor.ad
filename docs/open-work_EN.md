@@ -1425,6 +1425,76 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       `relay/node/src/lib/sessions.ts`, called by the clean-device path of `POST
       /recovery/claim`. Without it a frozen phone went on opening its own history
       with its own PIN.
+
+- [ ] **G16. The first-PIN grant never expires — review panel 2026-09-20,
+      security lens.** `relay/node/src/routes/identity.ts` spends the grant on
+      `first_pin_grant_at IS NOT NULL` and nobody reads the age of the mark,
+      though the column is a `timestamptz`.
+
+      The scenario, **VERIFIED** by reading the code: somebody recovers with the
+      paper code in January and never reaches `POST /vault/init` — on the
+      same-device path that is the ordinary outcome, the old PIN still works.
+      Six months later the session's signing key is stolen; whoever holds it
+      calls `/vault/init`, sets a PIN without knowing the old one and overwrites
+      the owner's share. Exactly what the comment above that route promises to
+      prevent.
+
+      **The fork is the term.** An hour closes the hole and breaks "recovered on
+      the night bus, will set a PIN in the morning"; a day is comfortable and
+      leaves the window open for a day. The number is the product's to name, as
+      a row in `docs/facts/limits.tsv` next to `signup.unfinished.ttl`; the code
+      change is one condition in one statement.
+
+- [ ] **G17. The vault sealing key is derived by a single SHA-256, and nothing
+      states any requirement for it — review panel 2026-09-20, protocols lens.**
+      `VAULT_SHARE_KEY` comes from the environment and becomes an AES-GCM key
+      through one `SHA-256` (`relay/node/src/lib/vault_share.ts`). **VERIFIED**
+      by grep: neither the master, nor the wizard, nor the deploy scripts
+      generate that value — it is set by hand, and `configured()` accepts any
+      non-empty byte.
+
+      The price: if the variable holds a phrase rather than 32 bytes of
+      randomness, a search against a dump costs one SHA-256 per guess, and every
+      share on the node opens offline.
+
+      **The fork.** Refusing to start on a short key fixes it for good and can
+      take down a live node on deploy; HKDF (RFC 5869) with a salt and `info`
+      gives domain separation and the same determinism but does not save a weak
+      phrase; having the wizard generate the key addresses the cause rather than
+      the symptom and means a pass over every environment. The owner's call.
+
+- [ ] **G18. The request signature covers neither the node nor the query string
+      — review panel 2026-09-20, protocols lens.** What is signed is
+      `method\npath\nsha256(body)\ntime`, and `path` is the `pathname`, without
+      host and without query (`relay/node/src/lib/identity_auth.ts`).
+      **VERIFIED** by reading.
+
+      Two consequences. A signed request is accepted by **any** node of the pool
+      where that session lives — nothing in the signature says it was addressed
+      to api.sosed. And the signed cursor `?after` of `GET /feed` and
+      `GET /inbox` is outside the signature, so inside the ±5 minute window it
+      can be changed. §2 of the protocol argues only about nonces and about
+      leaving query out; about binding to a node it says nothing at all — so
+      this is a gap, not a named trade.
+
+      **The fork:** adding `authority` and a normalised query to the signed
+      string (RFC 9421 as the reference) is a breaking protocol change touching
+      every face at once; leaving it is a price that belongs written into §2.
+      Decide before a second face and a second node share one environment.
+
+- [ ] **G19. Twenty-four graphemes of name are unreachable for heavy emoji —
+      found by a test, 2026-09-20.** Since tonight the node counts graphemes
+      (`Intl.Segmenter`), as `docs/facts/limits.tsv` promises (`name.length`,
+      enforced by the node). But the schema carries `octet_length(name) <= 400`,
+      and 24 family emoji (`👨‍👩‍👧`) are 432 bytes: the byte ceiling refuses
+      before the grapheme one is consulted. **VERIFIED**: the case "a name is
+      measured in graphemes" was written with those and went red at 400.
+
+      So "24 graphemes" holds for letters, flags and most emoji and fails for
+      composed ones. The fork is cheap but is the product's: raise the byte
+      ceiling to 24 × 4 × 5 = 480 (a migration, one line), or state the limit
+      honestly — "24 graphemes, and no longer than 400 bytes" — in the registry
+      and on the screen.
 ## M. Found in August — not deferred, in hand
 
 Items J13–J21 and D8 physically sat inside "G. Deliberately deferred" and were

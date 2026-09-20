@@ -172,7 +172,7 @@ buttons and the floating composer; radius 13 stays. The rules:
 | Categories | a 24 px pill chip, the category colour at 10 % (the fresh-eye panel of 2026-09-19: at 16 % the text fell under 4.5 on its own tint), the offer and expired chips as a 1 px outline without a fill (terra reaches 5.10 only on the bare panel), text 14/600 in that colour: company `--cat-amber` #e2a33b, offer `--accent-text` #e0714f, table `--cat-teal` #3fb59a, party `--cat-violet` #b48cf2, "alone" — `--muted` without a chip | on `--panel` 7.32 / 5.10 / 6.36 / 6.12 |
 | Light theme | the same roles as dark pairs: amber #7a4a00, teal #146b58, violet #5b36a8 | on the light `--bg` 7.18 / 6.16 / 7.94 |
 | The phrase in the feed | 20/600 (`--fs-title`), under it a 3 px lifespan bar in the category colour on a `--border-control` track; the time left as a number only on your own phrase; on someone else's — the bar and, in the last quarter, the words "soon gone", so the bar is not the only carrier (N2) and another person's time left is never a number (screen 23, decided 2026-09-15, restored by the owner on 2026-09-19 after the audit against the contract: `FeedItem` carries no lifetime) | — |
-| The feed header | "Kolonaki · dozens nearby" instead of the logo: the place from the area and the density band of `/feed/density` — "nobody here yet", "few people nearby", "dozens", "hundreds"; no exact number (owner's decision of 2026-09-19: the `/feed/density` contract gives no exact number, or density would be profiled) | — |
+| The feed header | "Kolonaki · dozens nearby" instead of the logo: the place from the area and the density band of `/feed/density` — "nobody here yet", "few people nearby", "dozens", "hundreds"; no exact number (owner's decision of 2026-09-19: the `/feed/density` contract gives no exact number, or density would be profiled). **A long place name is truncated with an ellipsis and never runs under the filter icon** (2026-09-20: on the stress frame "Alexandroupoli" ran under the icon; caught by `scripts/check-design-text.sh`) | — |
 | Secondary buttons on a card | a 44 pill rx 22, fill `--fg`, ink `--bg` ("save", "sit down") | 16.06 |
 | The composer | a floating 52 pill rx 26 in `--fg` over the feed with a 36 `--accent` send circle — the frame's one filled accent button (N7 unchanged); the feed scrolls under the composer, the 64 bottom inset applies only at the end of the results (owner's decision of 2026-09-19: a card that meets the composer is not dropped for the inset) | — |
 | The tab bar | three items: Feed · Conversations · Me (there were four; "Say" moved into the composer) | — |
@@ -362,6 +362,58 @@ table header, a centred header, an accent pill, a chosen row, an error card, a s
 text, an empty state without an action, a choice row, time in words. After the symbols
 were rewritten, the 14 sheets matched the previous render pixel for pixel. The kit's
 share of each sheet is counted by `scripts/design-kit-share.py`.
+
+## Storefront characters
+
+One mechanic, one kit, two recognisable faces — the night brief of 2026-09-20 at the owner's
+request ("interesting and hard to confuse"). The decisions were taken by a quorum of three
+independent authors; the raw briefs and the votes are in `docs/reviews/NIGHT_2026-09-20_design.md`.
+The storefronts' screens are mirrored word for word (`scripts/check-screens-mirror.sh`), so the
+character is carried by ground, rhythm, shape and typeface, not by wording.
+
+**A storefront is a class on the frame, beside the theme:** `b-sosed` or `b-neighbro`. Without one
+the kit draws exactly as before — verified pixel for pixel on sheets 03 and 19, before and after.
+
+| | sosed.place | neighbro.place |
+|---|---|---|
+| default ground | dark (`k-dark`) | light (`k-neighbro-sea-light`) |
+| accent | terracotta `#bd4b2a` | sea `#0f6f86`, the landing's gold second |
+| headings | Oswald 700, uppercase | Commissioner 800 |
+| body | Golos Text | Manrope |
+| shape | radius 4, a 1 px border, no shadow | radii 24 and 999, no borders, a soft shadow |
+| signature | a tag in the card's top corner | a line of light along the top edge |
+
+**Shape belongs to the storefront because `rx` comes from CSS.** Measured in the container (night
+log, 23:45): `rx: var(--r)` overrides the attribute geometrically — the corner goes from square to
+round in the pixels too. So no second kit is needed: the symbols keep their literal `rx` as the
+fallback (which the ratchet still counts) and the storefront classes override it. The kit's parts
+carry `k-card`, `k-ctl`, `k-pill`, `k-chipr` and `k-head` for this.
+
+**The lifespan tag shows a number only on your own phrase.** On someone else's it stays empty until
+the last hour and then speaks a word — the rule of 2026-09-15 outranks a storefront's signature. It
+draws only when it has something to say.
+
+**The price is named.** Gold on a white ground does not reach 4.5 as text, and
+`scripts/design-palettes.py` darkens it to `#8f722e` by itself; there are now 18 schemes, 96 pairs,
+none below the bar. The comparison sheet is `panel/design/sheets/screen-brands.svg`: eight screens
+in both characters.
+
+## The terminal: a grid instead of a scale
+
+The platform's third face is `depth` (`docs/depth-client_EN.md`). Its sheet lives by its own rules,
+and that is not an exception to the design system but a different system: a terminal has neither
+sub-pixel placement nor seven type steps. It has a cell.
+
+- **A 9×20 px cell.** JetBrains Mono at 15 px advances exactly 9 px per glyph — that is where the
+  size comes from.
+- **ASCII only.** `─ ♥ ● ○ ▋ → ← … — › ‹ ⊞ ₪ ✓` are ambiguous-width: a terminal with
+  `ambiguous=wide` gives them two cells and the whole column to their right slides.
+  `scripts/check-design-grid.sh` catches them.
+- **The cursor is a cell, not a glyph.** A printed block would copy into the buffer, and a screen
+  reader would call it "left five eighths block".
+- **The colours belong to the terminal.** The client does not repaint the ground; the sheet shows both.
+- The grid gate checks: the start on a column, the baseline on a row, and a declared width equal to
+  the cells claimed. The ratchet does not measure terminal sheets — their scale is their own.
 
 ## Component vocabulary
 

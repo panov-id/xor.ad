@@ -365,6 +365,18 @@ at all, and an identity could not be closed at all.
 
 ## 4. Screens
 
+**Only unambiguous-width glyphs are printed — 2026-09-20, after the review panel over the mock-up.**
+`─ ♥ ● ○ ▋ → ← … — › ‹ ⊞ ₪ ✓` are East-Asian-Width "ambiguous" (UAX #11): a terminal with
+`ambiguous=wide` (the default in East Asian locales, a switch in iTerm2, PuTTY, mintty) gives them
+two cells, and the whole column to their right slides — the alignment of `♥ 3   14:22` falls apart.
+So the client prints ASCII: `-` for a rule, `(*)` and `( )` for a radio, `*` only for "new", `>` for
+the prompt, `+` for the like counter, `#` for a table, `%` for an offer, `ok` for an accepted line.
+**The cursor is drawn by the terminal itself** — a printed block would land in the clipboard and a
+screen reader would call it "left five eighths block". The mock-up
+`panel/design/sheets/screen-depth-term.svg` is built by this rule and is held by
+`scripts/check-design-grid.sh`. The examples below in §4 are still drawn with the old glyphs:
+changing them is a separate decision for the owner.
+
 The same flow as the web (§13 of the spec and `chat-flows_EN.md`, flow 1): splash
 → name and age → PIN → paper code → area → feed → matches → chat (edit of
 2026-08-26: the code returned to registration).
@@ -613,9 +625,9 @@ whole width — one card, no neighbours:
 
   › two chairs to give away, pick up, yard of no. 14▋
 
-  ────────────────────────────────────────────  50 / 128
+  ────────────────────────────────────────────  48 / 128
 
-  how many of us   ● alone   ○ two of us   ○ a group
+  mode             ● alone   ○ company   ○ party
   discount         ○ no      ● yes   −20%, until sunday
 
   [s] put up a table instead of a phrase

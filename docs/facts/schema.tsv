@@ -38,7 +38,7 @@
 # не может, а перезапуск узла бывает при каждом выкате. Здесь стояло «вдвоём
 # партия остаётся в памяти узла и в базу не пишется — поэтому таблиц две».
 table	declared_in	migration	layer
-advertisers	docs/offers/SPEC_RU.md:214	-	product
+advertisers	docs/offers/SPEC_RU.md:216	-	product
 api_keys	-	relay/node/db/001_control_state.sql	control
 blocks	docs/chat_RU.md:2321	-	product
 brands	-	relay/node/db/001_control_state.sql	control
@@ -59,8 +59,8 @@ legal_acceptances	docs/chat_RU.md:817	-	product
 likes	docs/chat_RU.md:1897	-	product
 match_participants	docs/chat_RU.md:1995	-	product
 matches	docs/chat_RU.md:1987	-	product
-offers	docs/offers/SPEC_RU.md:308	-	product
-offer_link_reports	docs/offers/SPEC_RU.md:696	-	product
+offers	docs/offers/SPEC_RU.md:310	-	product
+offer_link_reports	docs/offers/SPEC_RU.md:698	-	product
 pageview_daily	-	relay/node/db/001_control_state.sql	control
 pending_deliveries	docs/chat_RU.md:2275	-	product
 quota_counters	-	relay/node/db/001_control_state.sql	control
@@ -73,7 +73,7 @@ table_seats	docs/chat_RU.md:340	-	product
 tables	docs/chat_RU.md:320	-	product
 table_likes	docs/chat_RU.md:1905	-	product
 vault_shares	docs/chat_RU.md:1231	-	product
-venues	docs/offers/SPEC_RU.md:245	-	product
+venues	docs/offers/SPEC_RU.md:247	-	product
 support_requests	docs/chat_RU.md:2807	-	product
 identity_appearance	docs/chat_RU.md:801	-	product
 nonces	docs/chat_RU.md:1033	-	product

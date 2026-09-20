@@ -37,10 +37,10 @@ value	unit	kind	why	example
 10	KB	measurement	встречено в: `landing/legal/`, and that is where the real texts sit (privacy 10 KB, terms	xor.ad/docs/open-work_EN.md:1253
 10	MB	measurement	встречено в: to one region/node, single-writer, ≤100 GB, 10 MB/s, NO managed backups or	xor.ad/docs/backend-portable-bunny_EN.md:75
 10	s	prose.figure	встречено в: Batched every 10 seconds, like quotas: a page view is a request a visitor	xor.ad/docs/open-work_EN.md:410
-11	min	sample.data	встречено в: | 13.1 | **У каждого свой срок, и он считается от своего последнего сообщения** | Петя 10 мин, К	xor.ad/docs/test-map_RU.md:252
-128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:1184
+11	min	sample.data	встречено в: | 13.1 | **У каждого свой срок, и он считается от своего последнего сообщения** | Петя 10 мин, К	xor.ad/docs/test-map_RU.md:256
+128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:1196
 15	KB	measurement	встречено в: 15 KB). The item described a state that was gone by the time it was re-read.	xor.ad/docs/open-work_EN.md:1254
-16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:1181
+16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:1193
 180	KB	measurement	встречено в: now has `rel="preload"`. Image weight is moderate (the hero, at 180 KB, is the	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:203
 1	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:361
 1	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
@@ -49,7 +49,7 @@ value	unit	kind	why	example
 20	s	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
 236	KB	measurement	встречено в: 236 KB. No keys and no secrets are in them, but publishing the design of an	xor.ad/docs/open-work_EN.md:872
 24	chars	prose.figure	поле июльского прототипа в символах; действующий предел — name.length в графемах, см. open.tsv: app.july.prototype	xor.ad/docs/app-prototype-spec_EN.md:49
-256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:1185
+256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:1197
 25	graphemes	sample.data	вход теста: на графему длиннее предела имени	xor.ad/docs/test-map_EN.md:56
 26	KB	measurement	встречено в: (26 KB) in sosed — one file each, their own unicode-range only, added as	xor.ad/docs/open-work_EN.md:316
 2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:775
@@ -57,7 +57,7 @@ value	unit	kind	why	example
 2	min	sample.data	встречено в: Note over A,B: the code expired after 2 minutes, no move happened	xor.ad/docs/chat-flows_EN.md:144
 300	s	measurement	срок кеша html на краю сети: параметр раздачи, не обязательство перед человеком	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:184
 30	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
-32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:1182
+32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:1194
 32	min	sample.data	встречено в: alive -- "yes" --> rate{"64 likes<br/>in 32 minutes?"}	xor.ad/docs/chat-flows_EN.md:329
 3	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:361
 3	min	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
@@ -98,3 +98,6 @@ value	unit	kind	why	example
 5	km	prose.figure	круг просмотра по умолчанию для приблизительной точки; предел записан в limits.tsv как area.approx.default 5000 метров, покрытие сопоставляет единицу буквально — как у 3 km	sosed.place/docs/00-mechanics_EN.md:430
 4	min	sample.data	пример строки полосы «ваш ход · 4 мин» в тексте кворума стола 18.09.2026; предел хода задаётся table.move.timeout	sosed.place/docs/19-table_EN.md:35
 41	min	sample.data	пример остатка отлучки «до 15:02 · осталось 41 мин» на кадре 20C; срок задают away.span.*	sosed.place/docs/20-step-away_EN.md:37
+92	chars	prose.figure	число символов кита (<symbol>), а не длина строки — слово «символ» двусмысленно	xor.ad/docs/design-system-app_RU.md:291
+11	chars	prose.figure	сколько символов кита (<symbol>) добавила вторая версия кита, а не длина строки	xor.ad/docs/design-system-app_RU.md:344
+30	km	sample.data	вход теста: клетка QR дальше порога 25 км	xor.ad/docs/test-map_EN.md:460

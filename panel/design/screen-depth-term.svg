@@ -1,0 +1,686 @@
+<!-- Built by scripts/build-design-sheets.py from panel/design/sheets/screen-depth-term.svg — edit the source, not this file. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="4240" viewBox="0 0 1720 4240">
+<title>depth — экраны терминального клиента · 84 колонки</title>
+<style>
+/* kit tokens — panel/design/kit/tokens.css, inserted by scripts/build-design-sheets.py.
+       Values: docs/design-system-app_RU.md, «Токены», «Поверхности», «Огонёк». A frame
+       picks its theme with class k-dark or k-light on its group; kit symbols read only var(). */
+    /* Golos in two subsets: without the Cyrillic one, every Russian line falls back to another face
+       (found 2026-09-19 by a rebuild hand on sheet 17: Latin rendered visibly bolder than Cyrillic) */
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2500-257F, U+2700-27BF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx3cwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    .k-dark {
+      --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
+      --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; --ok: #9ecb7a; --err: #ef7a6a;
+      --cat-amber: #e2a33b; --cat-teal: #3fb59a; --cat-violet: #b48cf2; --scrim: #000000; --shadow: #3a2e20;
+    }
+    .k-light {
+      --bg: #ece4d8; --panel: #fdfaf4; --panel-2: #e6dbc9; --border: #221a12; --border-control: #857562;
+      --fg: #1c140d; --muted: #6b5f4c; --muted-2: #857562; --on-fg-muted: #ab9d88;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; --ok: #4b712c; --err: #a3311f;
+      --cat-amber: #7a4a00; --cat-teal: #146b58; --cat-violet: #5b36a8; --scrim: #000000; --shadow: #857562;
+    }
+    /* --on-fg-muted: quiet text on an --fg ground (the composer): 5.10 dark, 6.85 light — the light --muted-2 gives 4.08 there */
+    /* the seven steps of «Типографика» */
+    .k-display { font-size: 26px; font-weight: 400; fill: var(--fg); }
+    .k-title { font-size: 20px; font-weight: 600; fill: var(--fg); }
+    .k-body { font-size: 16px; font-weight: 400; fill: var(--fg); }
+    .k-strong { font-size: 16px; font-weight: 600; fill: var(--fg); }
+    .k-meta-strong { font-size: 14px; font-weight: 600; fill: var(--fg); }
+    .k-meta { font-size: 14px; font-weight: 400; fill: var(--muted); }
+    .k-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted); }
+    /* Н2: the last quarter of a phrase's life */
+    .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
+    .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    /* storefront characters — night brief 2026-09-20, docs/reviews/NIGHT_2026-09-20_design.md. A frame adds b-sosed or
+       b-neighbro to its theme class; without one nothing below applies and the kit draws as before. */
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlSHYjedg.woff2) format("woff2"); }
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYg.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0bkXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0aUXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0akXa.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/xn7gYHE41ni1AdIRggOxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/xn7gYHE41ni1AdIRggSxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/xn7gYHE41ni1AdIRggexSg.woff2) format("woff2"); }
+    .k-sig { display: none; }
+    /* sosed.place — the courtyard in the evening: a poster on the entrance door. Dense, flat, square, 1 px border */
+    .b-sosed text { font-family: "Golos Text", system-ui, sans-serif; }
+    .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
+    .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
+    .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-ctl-shadow { display: none; }
+    .b-sosed .k-life { display: none; }
+    .b-sosed .k-sig-tag { display: inline; }
+    /* neighbro.place — the promenade at noon: light, airy, rounded, no borders, a soft lift */
+    .b-neighbro text { font-family: "Manrope", system-ui, sans-serif; }
+    .b-neighbro .k-head { font-family: "Commissioner", "Manrope", sans-serif; font-weight: 800; }
+    .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
+    .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
+    .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-ctl-shadow { display: none; }
+    .b-neighbro .k-life { display: none; }
+    .b-neighbro .k-sig-edge { display: inline; }
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+    .term text { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 15px; letter-spacing: 0; }
+    .term .tf { fill: var(--fg); }
+    .term .tm { fill: var(--muted); }
+    .term .ta { fill: var(--accent-text); }
+    .term .tk { fill: var(--cat-teal); }
+    .term .td { fill: var(--border-control); }
+    .term .cur { fill: var(--accent); }
+</style>
+<rect width="1720" height="4240" style="fill:#ece4d8" />
+<text x="48" y="52" class="sheet-title">depth — экраны терминального клиента · 84 колонки</text>
+<text x="48" y="96" class="cap">цвета — терминала, а не наши: тёмные и светлые кадры показывают обе земли, курсор рисует терминал · ночной бриф 2026-09-20</text>
+<text x="48" y="78" class="cap">docs/depth-client_RU.md §4 · JetBrains Mono 15px, клетка 9×20 · только ASCII: знак неоднозначной ширины в чужом терминале занял бы две клетки</text>
+
+<rect x="47" y="119" width="790" height="294" rx="9" class="rim" />
+<g transform="translate(48,120)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="292" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tm" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">$ </text>
+  <text x="34" y="31" class="tf" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">depth</text>
+  <text x="16" y="71" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  Operator.</text>
+  <text x="34" y="111" class="td" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------------------------------------</text>
+  <text x="16" y="131" class="tf" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   signal              </text>
+  <text x="223" y="131" class="tm" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">десятки в радиусе</text>
+  <text x="16" y="151" class="tf" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   broadcast depth     </text>
+  <text x="223" y="151" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">800 m</text>
+  <text x="16" y="171" class="tf" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   depth of field      </text>
+  <text x="223" y="171" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ваша полоса</text>
+  <text x="34" y="191" class="td" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------------------------------------</text>
+  <text x="34" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[d]</text>
+  <text x="61" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> depth   </text>
+  <text x="142" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[f]</text>
+  <text x="169" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> field   </text>
+  <text x="250" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[/]</text>
+  <text x="277" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> speak   </text>
+  <text x="358" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[q]</text>
+  <text x="385" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> hardline</text>
+</g>
+<text x="48" y="440" class="capb">depth · заставка (§4.1)</text>
+<text x="48" y="458" class="cap">Operator. первой строкой; числа -- ступенью, не счётом</text>
+
+<rect x="883" y="119" width="790" height="334" rx="9" class="rim" />
+<g transform="translate(884,120)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="332" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  broadcast depth</text>
+  <text x="16" y="71" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  latitude    </text>
+  <text x="142" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="151" y="71" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 41.6458</text>
+  <rect x="223" y="58" width="9" height="15" class="cur" />
+  <text x="16" y="91" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  longitude   </text>
+  <text x="142" y="91" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="151" y="91" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 41.6417</text>
+  <text x="16" y="111" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  radius      </text>
+  <text x="142" y="111" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="151" y="111" class="tf" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 800</text>
+  <text x="34" y="151" class="td" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------------------------------------</text>
+  <text x="34" y="171" class="tm" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve">координаты берутся из любого картографического</text>
+  <text x="34" y="191" class="tm" textLength="450" lengthAdjust="spacingAndGlyphs" xml:space="preserve">приложения: долгое нажатие на точку -- 'копировать</text>
+  <text x="34" y="211" class="tm" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">координаты'.</text>
+  <text x="34" y="251" class="tm" textLength="441" lengthAdjust="spacingAndGlyphs" xml:space="preserve">область выбираете вы, а не ваше местоположение --</text>
+  <text x="34" y="271" class="tm" textLength="171" lengthAdjust="spacingAndGlyphs" xml:space="preserve">это не то же самое.</text>
+</g>
+<text x="884" y="480" class="capb">broadcast depth · координаты (§4.2)</text>
+<text x="884" y="498" class="cap">карты нет; область выбираете вы, а не ваше местоположение</text>
+
+<rect x="47" y="515" width="790" height="274" rx="9" class="rim" />
+<g transform="translate(48,516)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="272" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  broadcast depth</text>
+  <text x="16" y="71" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  место       </text>
+  <text x="142" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="151" y="71" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> Колонаки</text>
+  <rect x="232" y="58" width="9" height="15" class="cur" />
+  <text x="16" y="91" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  radius      </text>
+  <text x="142" y="91" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="151" y="91" class="tf" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 800</text>
+  <text x="34" y="131" class="td" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------------------------------------</text>
+  <text x="34" y="151" class="tm" textLength="441" lengthAdjust="spacingAndGlyphs" xml:space="preserve">список районов и городов пришёл вместе с областью</text>
+  <text x="34" y="171" class="tm" textLength="459" lengthAdjust="spacingAndGlyphs" xml:space="preserve">и ищется здесь же: наружу не уходит ни один запрос.</text>
+</g>
+<text x="48" y="816" class="capb">broadcast depth · место словами (§4.2)</text>
+<text x="48" y="834" class="cap">список районов ищется на устройстве: наружу не уходит ни один запрос</text>
+
+<rect x="883" y="555" width="790" height="274" rx="9" class="rim" />
+<g transform="translate(884,556)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="272" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  depth of field</text>
+  <text x="16" y="71" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  имя      </text>
+  <text x="115" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="124" y="71" class="tf" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> Женя</text>
+  <rect x="169" y="58" width="9" height="15" class="cur" />
+  <text x="16" y="91" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  возраст  </text>
+  <text x="115" y="91" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="124" y="91" class="tf" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 38</text>
+  <text x="16" y="131" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  фильтр   </text>
+  <text x="115" y="131" class="tk" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&lt;</text>
+  <text x="133" y="131" class="td" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">------</text>
+  <text x="187" y="131" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*</text>
+  <text x="196" y="131" class="td" textLength="135" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------</text>
+  <text x="340" y="131" class="tk" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="376" y="131" class="tm" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">36 -- без ограничения</text>
+  <text x="115" y="151" class="tm" textLength="252" lengthAdjust="spacingAndGlyphs" xml:space="preserve">по году, внутри вашей полосы</text>
+  <text x="16" y="191" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  языки    </text>
+  <text x="115" y="191" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="142" y="191" class="tf" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ru  </text>
+  <text x="187" y="191" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="214" y="191" class="tf" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> el  </text>
+  <text x="259" y="191" class="tm" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">( ) en  ( ) fr</text>
+  <text x="448" y="191" class="tm" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ещё 12 на других языках</text>
+  <text x="16" y="211" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  режим    </text>
+  <text x="115" y="211" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="142" y="211" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> один  </text>
+  <text x="205" y="211" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="232" y="211" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> компания  </text>
+  <text x="331" y="211" class="tm" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">( ) туса</text>
+</g>
+<text x="884" y="856" class="capb">depth of field · имя, возраст, фильтры (§4.3)</text>
+<text x="884" y="874" class="cap">упоры полосы числом не подписаны; языки и режим -- здесь же</text>
+
+<rect x="47" y="891" width="790" height="414" rx="9" class="rim" />
+<g transform="translate(48,892)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="412" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="378" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  signal                                  </text>
+  <text x="394" y="31" class="tm" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">десятки в радиусе</text>
+  <text x="34" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="43" y="71" class="tf" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> кто-нибудь знает, работает ли пекарня на углу</text>
+  <text x="16" y="91" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    в воскресенье                          </text>
+  <text x="403" y="91" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 3   14:22</text>
+  <text x="34" y="131" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">#</text>
+  <text x="43" y="131" class="tf" textLength="342" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> стол · 'домино после работы' · домино</text>
+  <text x="16" y="151" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    играют 2 · смотрят 1                   </text>
+  <text x="403" y="151" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 1   14:19</text>
+  <text x="52" y="171" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[l]</text>
+  <text x="79" y="171" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> like  </text>
+  <text x="142" y="171" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="205" y="171" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> подсесть</text>
+  <text x="34" y="211" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">%</text>
+  <text x="43" y="211" class="tf" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> оффер · -20% · пекарня на углу</text>
+  <text x="16" y="231" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    промокод CORNER20, до воскресенья      </text>
+  <text x="403" y="231" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 1   14:04</text>
+  <text x="34" y="271" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="43" y="271" class="tf" textLength="369" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> отдам два стула, самовывоз, двор дома 14</text>
+  <text x="403" y="291" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 0   13:58</text>
+  <text x="34" y="331" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[j/k]</text>
+  <text x="79" y="331" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> листать  </text>
+  <text x="169" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[l]</text>
+  <text x="196" y="331" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> like  </text>
+  <text x="259" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[L]</text>
+  <text x="286" y="331" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> liked  </text>
+  <text x="358" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[/]</text>
+  <text x="385" y="331" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> speak  </text>
+  <text x="457" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[h]</text>
+  <text x="484" y="331" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> скрыть</text>
+  <text x="34" y="351" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[b]</text>
+  <text x="61" y="351" class="tf" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> заблокировать  </text>
+  <text x="205" y="351" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[r]</text>
+  <text x="232" y="351" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> report  </text>
+  <text x="313" y="351" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[tab]</text>
+  <text x="358" y="351" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> chats  </text>
+  <text x="430" y="351" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="493" y="351" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> во весь экран</text>
+</g>
+<text x="48" y="1332" class="capb">signal · лента (§4.4)</text>
+<text x="48" y="1350" class="cap">три сущности одним потоком; автор не показывается никак</text>
+
+<rect x="883" y="931" width="790" height="274" rx="9" class="rim" />
+<g transform="translate(884,932)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="272" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="34" y="31" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="16" y="71" class="tf" textLength="450" lengthAdjust="spacingAndGlyphs" xml:space="preserve">     кто-нибудь знает, работает ли пекарня на углу</text>
+  <text x="16" y="91" class="tf" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">     в воскресенье</text>
+  <text x="61" y="131" class="tm" textLength="243" lengthAdjust="spacingAndGlyphs" xml:space="preserve">один · + 3 · скоро исчезнет</text>
+  <text x="34" y="171" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="34" y="191" class="ta" textLength="477" lengthAdjust="spacingAndGlyphs" xml:space="preserve">вправо -- лайк, влево -- скрыть; скрытое вернёте в me</text>
+  <text x="520" y="191" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="592" y="191" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">понятно</text>
+  <text x="34" y="211" class="tk" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[-&gt;]</text>
+  <text x="70" y="211" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> like  </text>
+  <text x="133" y="211" class="tk" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[&lt;-]</text>
+  <text x="169" y="211" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> скрыть  </text>
+  <text x="250" y="211" class="tk" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[Space/j/k]</text>
+  <text x="349" y="211" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> листать  </text>
+  <text x="439" y="211" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="484" y="211" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> назад</text>
+</g>
+<text x="884" y="1232" class="capb">signal · карточка во весь экран (§4.4.1)</text>
+<text x="884" y="1250" class="cap">первое &lt;-/-&gt; не срабатывает, а объясняет; чужой срок -- словом</text>
+
+<rect x="883" y="1307" width="790" height="334" rx="9" class="rim" />
+<g transform="translate(884,1308)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="332" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  speak</text>
+  <text x="34" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="43" y="71" class="tf" textLength="369" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> отдам два стула, самовывоз, двор дома 14</text>
+  <rect x="412" y="58" width="9" height="15" class="cur" />
+  <text x="34" y="111" class="td" textLength="396" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------</text>
+  <text x="448" y="111" class="tm" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">40 / 128</text>
+  <text x="16" y="151" class="tf" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  режим         </text>
+  <text x="160" y="151" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="187" y="151" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> один  </text>
+  <text x="250" y="151" class="tm" textLength="198" lengthAdjust="spacingAndGlyphs" xml:space="preserve">( ) компания  ( ) туса</text>
+  <text x="16" y="171" class="tf" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  скидка        </text>
+  <text x="160" y="171" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">( ) нет</text>
+  <text x="232" y="171" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="259" y="171" class="tf" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> да  </text>
+  <text x="304" y="171" class="tm" textLength="180" lengthAdjust="spacingAndGlyphs" xml:space="preserve">-20%, до воскресенья</text>
+  <text x="34" y="211" class="tm" textLength="432" lengthAdjust="spacingAndGlyphs" xml:space="preserve">фраза уйдёт в очередь: в чужой ленте её ещё нет,</text>
+  <text x="34" y="231" class="tm" textLength="369" lengthAdjust="spacingAndGlyphs" xml:space="preserve">у вас она стоит с пометкой 'проверяется'.</text>
+  <text x="34" y="271" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[s]</text>
+  <text x="61" y="271" class="tf" textLength="270" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> поставить стол вместо фразы  </text>
+  <text x="331" y="271" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="376" y="271" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> назад</text>
+</g>
+<text x="884" y="1668" class="capb">speak · публикация (§4.5)</text>
+<text x="884" y="1686" class="cap">128 символов; заполненная скидка делает фразу оффером частника</text>
+
+<rect x="47" y="1407" width="790" height="294" rx="9" class="rim" />
+<g transform="translate(48,1408)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="292" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  table</text>
+  <text x="16" y="71" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  игра     </text>
+  <text x="115" y="71" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(*)</text>
+  <text x="142" y="71" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> домино  </text>
+  <text x="223" y="71" class="tm" textLength="198" lengthAdjust="spacingAndGlyphs" xml:space="preserve">( ) шашки  ( ) шахматы</text>
+  <text x="16" y="91" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  имя      </text>
+  <text x="115" y="91" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="124" y="91" class="tf" textLength="180" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> домино после работы</text>
+  <rect x="304" y="78" width="9" height="15" class="cur" />
+  <text x="475" y="91" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">19 / 24</text>
+  <text x="16" y="111" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  зона     </text>
+  <text x="115" y="111" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="124" y="111" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 300 m</text>
+  <text x="34" y="151" class="tm" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">имя необязательно. оно публикуемый текст и проверяется</text>
+  <text x="34" y="171" class="tm" textLength="495" lengthAdjust="spacingAndGlyphs" xml:space="preserve">той же очередью, что фраза: стол встанет в ленту сразу,</text>
+  <text x="34" y="191" class="tm" textLength="378" lengthAdjust="spacingAndGlyphs" xml:space="preserve">безымянным, а имя появится после вердикта.</text>
+  <text x="34" y="231" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="97" y="231" class="tf" textLength="531" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> поставить -- вы сядете за него и встанете из-за прежнего  </text>
+  <text x="628" y="231" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="673" y="231" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> назад</text>
+</g>
+<text x="48" y="1728" class="capb">table · поставить стол (§4.5)</text>
+<text x="48" y="1746" class="cap">имя необязательно и проверяется той же очередью</text>
+
+<rect x="883" y="1743" width="790" height="274" rx="9" class="rim" />
+<g transform="translate(884,1744)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="272" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="171" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  chats            </text>
+  <text x="187" y="31" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[1]</text>
+  <text x="214" y="31" class="tf" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> предложения </text>
+  <text x="331" y="31" class="ta" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">(2)</text>
+  <text x="385" y="31" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[2]</text>
+  <text x="412" y="31" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> беседы</text>
+  <text x="34" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*</text>
+  <text x="43" y="71" class="tf" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> Аня · 'отлично, буду завтра' · </text>
+  <text x="331" y="71" class="tm" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">0:47</text>
+  <text x="52" y="91" class="tm" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ждёт вашего ответа</text>
+  <text x="16" y="131" class="tf" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    Костя · 'ок, до субботы' · </text>
+  <text x="295" y="131" class="tm" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">3:12</text>
+  <text x="52" y="171" class="tm" textLength="234" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Маша · '...' · закончилась</text>
+  <text x="34" y="211" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="97" y="211" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> открыть  </text>
+  <text x="187" y="211" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[tab]</text>
+  <text x="232" y="211" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> signal  </text>
+  <text x="313" y="211" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="358" y="211" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> назад</text>
+</g>
+<text x="884" y="2044" class="capb">chats · беседы и предложения (§4.6)</text>
+<text x="884" y="2062" class="cap">счётчик только на предложениях; * гаснет при открытии</text>
+
+<rect x="47" y="1803" width="790" height="374" rx="9" class="rim" />
+<g transform="translate(48,1804)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="372" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  предложения</text>
+  <text x="16" y="71" class="tf" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   Аня, 34 · </text>
+  <text x="133" y="71" class="tm" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve">компания</text>
+  <text x="43" y="91" class="td" textLength="369" lengthAdjust="spacingAndGlyphs" xml:space="preserve">-----------------------------------------</text>
+  <text x="43" y="111" class="tm" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">её</text>
+  <text x="61" y="111" class="tf" textLength="360" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   'ищу с кем добежать до моря утром'   </text>
+  <text x="421" y="111" class="tm" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">осталось 1:48</text>
+  <text x="43" y="131" class="tm" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ваша</text>
+  <text x="79" y="131" class="tf" textLength="351" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 'отдам два стула'                     </text>
+  <text x="430" y="131" class="tm" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">осталось 2:10</text>
+  <text x="43" y="171" class="tm" textLength="441" lengthAdjust="spacingAndGlyphs" xml:space="preserve">чат не проверяется. никто не читает, что вы здесь</text>
+  <text x="43" y="191" class="tm" textLength="459" lengthAdjust="spacingAndGlyphs" xml:space="preserve">пишете, -- ни мы, ни фильтр. переписка шифруется на</text>
+  <text x="43" y="211" class="tm" textLength="450" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ваших устройствах: узел переносит её, но прочитать</text>
+  <text x="43" y="231" class="tm" textLength="486" lengthAdjust="spacingAndGlyphs" xml:space="preserve">не может. игра -- исключение: ходы и доску узел видит.</text>
+  <text x="43" y="251" class="tm" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">если человек ведёт себя плохо -- заблокируйте и</text>
+  <text x="43" y="271" class="tm" textLength="243" lengthAdjust="spacingAndGlyphs" xml:space="preserve">пожалуйтесь своими словами.</text>
+  <text x="43" y="311" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="106" y="311" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> поговорить   </text>
+  <text x="232" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[n]</text>
+  <text x="259" y="311" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> не сейчас</text>
+</g>
+<text x="48" y="2204" class="capb">chats · предложение (§4.6)</text>
+<text x="48" y="2222" class="cap">имя и возраст -- первое место, где человек становится кем-то</text>
+
+<rect x="883" y="2119" width="790" height="374" rx="9" class="rim" />
+<g transform="translate(884,2120)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="372" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="34" y="31" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="16" y="51" class="tf" textLength="270" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   Аня, 34                    </text>
+  <text x="286" y="51" class="tm" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">гаснет после 1ч ВАШЕГО молчания</text>
+  <text x="34" y="71" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="43" y="111" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Аня</text>
+  <text x="70" y="111" class="tf" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   привет! я обычно в 7 у второго входа        </text>
+  <text x="493" y="111" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">14:22</text>
+  <text x="43" y="151" class="tm" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">вы</text>
+  <text x="61" y="151" class="tf" textLength="432" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    отлично, буду завтра                        </text>
+  <text x="493" y="151" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">14:23</text>
+  <text x="556" y="151" class="ta" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ok</text>
+  <text x="43" y="191" class="td" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--</text>
+  <text x="79" y="191" class="tm" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">предложена игра: точки и клетки</text>
+  <text x="376" y="191" class="td" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--</text>
+  <text x="43" y="231" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Аня</text>
+  <text x="97" y="231" class="tm" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[машет рукой]</text>
+  <text x="34" y="271" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="34" y="291" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <rect x="52" y="278" width="9" height="15" class="cur" />
+  <text x="457" y="291" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">0 / 256</text>
+  <text x="34" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[t]</text>
+  <text x="61" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> срок  </text>
+  <text x="124" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[g]</text>
+  <text x="151" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> игра  </text>
+  <text x="214" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[a]</text>
+  <text x="241" y="311" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> отойти  </text>
+  <text x="322" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[x]</text>
+  <text x="349" y="311" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> закрыть  </text>
+  <text x="439" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[b]</text>
+  <text x="466" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> блок  </text>
+  <text x="529" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[r]</text>
+  <text x="556" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> report</text>
+</g>
+<text x="884" y="2520" class="capb">чат (§4.7)</text>
+<text x="884" y="2538" class="cap">свой срок в шапке; ok -- узел принял и отвечает за доставку</text>
+
+<rect x="47" y="2279" width="790" height="394" rx="9" class="rim" />
+<g transform="translate(48,2280)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="392" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="34" y="31" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="16" y="51" class="tf" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   стол · 'домино после работы' · домино     </text>
+  <text x="421" y="51" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 2</text>
+  <text x="43" y="71" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">сидят</text>
+  <text x="88" y="71" class="tf" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  вы · Аня · Костя              </text>
+  <text x="376" y="71" class="tm" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">гаснет после 1ч общего молчания</text>
+  <text x="34" y="91" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="43" y="131" class="ta" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[7|3] [3|3] [3|5]</text>
+  <text x="376" y="131" class="tm" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ваша рука</text>
+  <text x="376" y="151" class="ta" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[1|4] [2|2] [6|6]</text>
+  <text x="43" y="191" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Аня</text>
+  <text x="70" y="191" class="tf" textLength="315" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    чур я хожу первой              </text>
+  <text x="385" y="191" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">14:19</text>
+  <text x="43" y="211" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Костя</text>
+  <text x="88" y="211" class="tf" textLength="297" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  ок                             </text>
+  <text x="385" y="211" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">14:20</text>
+  <text x="43" y="251" class="tm" textLength="441" lengthAdjust="spacingAndGlyphs" xml:space="preserve">за столом шифрования нет: узел видит речь и доску</text>
+  <text x="34" y="291" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="34" y="311" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <rect x="52" y="298" width="9" height="15" class="cur" />
+  <text x="457" y="311" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">0 / 128</text>
+  <text x="34" y="331" class="tk" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[hjkl]</text>
+  <text x="88" y="331" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> выбрать  </text>
+  <text x="178" y="331" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="241" y="331" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> ход  </text>
+  <text x="295" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[/]</text>
+  <text x="322" y="331" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> сказать  </text>
+  <text x="412" y="331" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="457" y="331" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> встать</text>
+</g>
+<text x="48" y="2700" class="capb">table · стол (§4.9)</text>
+<text x="48" y="2718" class="cap">за столом шифрования нет, и это сказано на экране</text>
+
+<rect x="883" y="2595" width="790" height="354" rx="9" class="rim" />
+<g transform="translate(884,2596)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="352" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  liked                                        </text>
+  <text x="439" y="31" class="tm" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">новые сверху</text>
+  <text x="34" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+</text>
+  <text x="43" y="71" class="tf" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> кто-нибудь знает, работает ли пекарня на углу</text>
+  <text x="16" y="91" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    в воскресенье                          </text>
+  <text x="403" y="91" class="tm" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 4   лайк 14:31</text>
+  <text x="34" y="131" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">#</text>
+  <text x="43" y="131" class="tf" textLength="342" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> стол · 'домино после работы' · домино</text>
+  <text x="16" y="151" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    играют 2 · смотрят 1                   </text>
+  <text x="403" y="151" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 2</text>
+  <text x="52" y="171" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="115" y="171" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> сесть</text>
+  <text x="34" y="211" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">*</text>
+  <text x="43" y="211" class="tf" textLength="315" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> 'ищу с кем добежать до моря утром'</text>
+  <text x="52" y="231" class="tm" textLength="198" lengthAdjust="spacingAndGlyphs" xml:space="preserve">предложение поговорить</text>
+  <text x="250" y="231" class="tf" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> · </text>
+  <text x="277" y="231" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="340" y="231" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> к предложению</text>
+  <text x="34" y="271" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">-- ещё 30 ·</text>
+  <text x="142" y="271" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="214" y="271" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">показать --</text>
+  <text x="34" y="291" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[l]</text>
+  <text x="61" y="291" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> снять  </text>
+  <text x="133" y="291" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[j/k]</text>
+  <text x="178" y="291" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> листать  </text>
+  <text x="268" y="291" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="313" y="291" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> назад</text>
+</g>
+<text x="884" y="2976" class="capb">liked · лайкнутое (§4.10)</text>
+<text x="884" y="2994" class="cap">лайкнутого в ленте нет: снять лайк идут сюда</text>
+
+<rect x="47" y="2775" width="790" height="474" rx="9" class="rim" />
+<g transform="translate(48,2776)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="472" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="36" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  me</text>
+  <text x="16" y="71" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   имя         Женя                 </text>
+  <text x="340" y="71" class="tm" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">меняется на чистом счету</text>
+  <text x="16" y="91" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   возраст     38                   </text>
+  <text x="340" y="91" class="tm" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">собеседники увидят смену</text>
+  <text x="16" y="111" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   языки       ru · el              </text>
+  <text x="340" y="111" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[f]</text>
+  <text x="16" y="131" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   язык надписей                    </text>
+  <text x="340" y="131" class="tm" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ru</text>
+  <text x="16" y="151" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   оформление                       </text>
+  <text x="340" y="151" class="tm" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve">depth appearance</text>
+  <text x="16" y="171" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   срок молчания по умолчанию       </text>
+  <text x="340" y="171" class="tm" textLength="189" lengthAdjust="spacingAndGlyphs" xml:space="preserve">1 ч · для новых бесед</text>
+  <text x="16" y="191" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   зона и режим по умолчанию        </text>
+  <text x="340" y="191" class="tm" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">300 m · один</text>
+  <text x="16" y="211" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   лайкнутое                        </text>
+  <text x="340" y="211" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[L]</text>
+  <text x="16" y="231" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   скрытое                          </text>
+  <text x="340" y="231" class="tm" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">3</text>
+  <text x="16" y="251" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   заблокировано                    </text>
+  <text x="340" y="251" class="tm" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve">1 · снять</text>
+  <text x="16" y="271" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   подсказки                        </text>
+  <text x="340" y="271" class="tm" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve">показать снова</text>
+  <text x="16" y="291" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   отойти                           </text>
+  <text x="340" y="291" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[a]</text>
+  <text x="16" y="311" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   поддержка                        </text>
+  <text x="340" y="311" class="tm" textLength="162" lengthAdjust="spacingAndGlyphs" xml:space="preserve">обращения и ответы</text>
+  <text x="16" y="331" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   что происходило                  </text>
+  <text x="340" y="331" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">консоль</text>
+  <text x="16" y="351" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   это устройство                   </text>
+  <text x="340" y="351" class="tm" textLength="108" lengthAdjust="spacingAndGlyphs" xml:space="preserve">depth device</text>
+  <text x="16" y="371" class="tf" textLength="324" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   ПИН · бумажный код · заново      </text>
+  <text x="340" y="371" class="tm" textLength="243" lengthAdjust="spacingAndGlyphs" xml:space="preserve">depth pin · reissue · reset</text>
+  <text x="34" y="411" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[j/k]</text>
+  <text x="79" y="411" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> листать  </text>
+  <text x="169" y="411" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="232" y="411" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> открыть  </text>
+  <text x="322" y="411" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[esc]</text>
+  <text x="367" y="411" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> назад  </text>
+  <text x="439" y="411" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[q]</text>
+  <text x="466" y="411" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> hardline</text>
+</g>
+<text x="48" y="3276" class="capb">me · я (§4.11)</text>
+<text x="48" y="3294" class="cap">список; смена возраста уходит во все открытые беседы</text>
+
+<rect x="883" y="3051" width="430" height="274" rx="9" class="rim" />
+<g transform="translate(884,3052)" class="k-dark term" data-cw="9" data-ch="20" data-pad="16"><rect width="428" height="272" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="428" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="288" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  signal                        </text>
+  <text x="304" y="31" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">десятки</text>
+  <text x="34" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="43" y="71" class="tf" textLength="243" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> кто-нибудь знает, работает</text>
+  <text x="16" y="91" class="tf" textLength="216" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    ли пекарня на углу в</text>
+  <text x="16" y="111" class="tf" textLength="225" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    воскресенье          </text>
+  <text x="241" y="111" class="tm" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 3  14:22</text>
+  <text x="34" y="151" class="tm" textLength="261" lengthAdjust="spacingAndGlyphs" xml:space="preserve">окно уже 80 колонок -- строки</text>
+  <text x="34" y="171" class="tm" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">переносятся, ничего не теряется</text>
+  <text x="34" y="211" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[j/k]</text>
+  <text x="79" y="211" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> листать  </text>
+  <text x="169" y="211" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[/]</text>
+  <text x="196" y="211" class="tf" textLength="54" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> speak</text>
+</g>
+<text x="884" y="3352" class="capb">узкий терминал (§4)</text>
+<text x="884" y="3370" class="cap">окно в 44 колонки: предупреждение, а не поломка; перенос по словам</text>
+
+<rect x="47" y="3351" width="790" height="294" rx="9" class="rim" />
+<g transform="translate(48,3352)" class="k-light term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="292" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tm" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">$ </text>
+  <text x="34" y="31" class="tf" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">depth</text>
+  <text x="16" y="71" class="tf" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  Operator.</text>
+  <text x="34" y="111" class="td" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------------------------------------</text>
+  <text x="16" y="131" class="tf" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   signal              </text>
+  <text x="223" y="131" class="tm" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">десятки в радиусе</text>
+  <text x="16" y="151" class="tf" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   broadcast depth     </text>
+  <text x="223" y="151" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">800 m</text>
+  <text x="16" y="171" class="tf" textLength="207" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   depth of field      </text>
+  <text x="223" y="171" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ваша полоса</text>
+  <text x="34" y="191" class="td" textLength="405" lengthAdjust="spacingAndGlyphs" xml:space="preserve">---------------------------------------------</text>
+  <text x="34" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[d]</text>
+  <text x="61" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> depth   </text>
+  <text x="142" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[f]</text>
+  <text x="169" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> field   </text>
+  <text x="250" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[/]</text>
+  <text x="277" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> speak   </text>
+  <text x="358" y="231" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[q]</text>
+  <text x="385" y="231" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> hardline</text>
+</g>
+<text x="48" y="3672" class="capb">depth · заставка (§4.1) · светлый терминал</text>
+<text x="48" y="3690" class="cap">Operator. первой строкой; числа -- ступенью, не счётом</text>
+
+<rect x="883" y="3427" width="790" height="414" rx="9" class="rim" />
+<g transform="translate(884,3428)" class="k-light term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="412" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="16" y="31" class="tf" textLength="378" lengthAdjust="spacingAndGlyphs" xml:space="preserve">  signal                                  </text>
+  <text x="394" y="31" class="tm" textLength="153" lengthAdjust="spacingAndGlyphs" xml:space="preserve">десятки в радиусе</text>
+  <text x="34" y="71" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="43" y="71" class="tf" textLength="414" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> кто-нибудь знает, работает ли пекарня на углу</text>
+  <text x="16" y="91" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    в воскресенье                          </text>
+  <text x="403" y="91" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 3   14:22</text>
+  <text x="34" y="131" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">#</text>
+  <text x="43" y="131" class="tf" textLength="342" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> стол · 'домино после работы' · домино</text>
+  <text x="16" y="151" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    играют 2 · смотрят 1                   </text>
+  <text x="403" y="151" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 1   14:19</text>
+  <text x="52" y="171" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[l]</text>
+  <text x="79" y="171" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> like  </text>
+  <text x="142" y="171" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="205" y="171" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> подсесть</text>
+  <text x="34" y="211" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">%</text>
+  <text x="43" y="211" class="tf" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> оффер · -20% · пекарня на углу</text>
+  <text x="16" y="231" class="tf" textLength="387" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    промокод CORNER20, до воскресенья      </text>
+  <text x="403" y="231" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 1   14:04</text>
+  <text x="34" y="271" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <text x="43" y="271" class="tf" textLength="369" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> отдам два стула, самовывоз, двор дома 14</text>
+  <text x="403" y="291" class="tm" textLength="99" lengthAdjust="spacingAndGlyphs" xml:space="preserve">+ 0   13:58</text>
+  <text x="34" y="331" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[j/k]</text>
+  <text x="79" y="331" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> листать  </text>
+  <text x="169" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[l]</text>
+  <text x="196" y="331" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> like  </text>
+  <text x="259" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[L]</text>
+  <text x="286" y="331" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> liked  </text>
+  <text x="358" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[/]</text>
+  <text x="385" y="331" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> speak  </text>
+  <text x="457" y="331" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[h]</text>
+  <text x="484" y="331" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> скрыть</text>
+  <text x="34" y="351" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[b]</text>
+  <text x="61" y="351" class="tf" textLength="144" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> заблокировать  </text>
+  <text x="205" y="351" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[r]</text>
+  <text x="232" y="351" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> report  </text>
+  <text x="313" y="351" class="tk" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[tab]</text>
+  <text x="358" y="351" class="tf" textLength="72" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> chats  </text>
+  <text x="430" y="351" class="tk" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[enter]</text>
+  <text x="493" y="351" class="tf" textLength="126" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> во весь экран</text>
+</g>
+<text x="884" y="3868" class="capb">signal · лента (§4.4) · светлый терминал</text>
+<text x="884" y="3886" class="cap">три сущности одним потоком; автор не показывается никак</text>
+
+<rect x="47" y="3747" width="790" height="374" rx="9" class="rim" />
+<g transform="translate(48,3748)" class="k-light term" data-cw="9" data-ch="20" data-pad="16"><rect width="788" height="372" rx="8" style="fill:var(--bg)" />
+  <rect x="0" y="0" width="788" height="8" rx="8" style="fill:var(--panel)" />
+  
+  <text x="34" y="31" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="16" y="51" class="tf" textLength="270" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   Аня, 34                    </text>
+  <text x="286" y="51" class="tm" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">гаснет после 1ч ВАШЕГО молчания</text>
+  <text x="34" y="71" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="43" y="111" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Аня</text>
+  <text x="70" y="111" class="tf" textLength="423" lengthAdjust="spacingAndGlyphs" xml:space="preserve">   привет! я обычно в 7 у второго входа        </text>
+  <text x="493" y="111" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">14:22</text>
+  <text x="43" y="151" class="tm" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">вы</text>
+  <text x="61" y="151" class="tf" textLength="432" lengthAdjust="spacingAndGlyphs" xml:space="preserve">    отлично, буду завтра                        </text>
+  <text x="493" y="151" class="tm" textLength="45" lengthAdjust="spacingAndGlyphs" xml:space="preserve">14:23</text>
+  <text x="556" y="151" class="ta" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">ok</text>
+  <text x="43" y="191" class="td" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--</text>
+  <text x="79" y="191" class="tm" textLength="279" lengthAdjust="spacingAndGlyphs" xml:space="preserve">предложена игра: точки и клетки</text>
+  <text x="376" y="191" class="td" textLength="18" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--</text>
+  <text x="43" y="231" class="tm" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">Аня</text>
+  <text x="97" y="231" class="tm" textLength="117" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[машет рукой]</text>
+  <text x="34" y="271" class="td" textLength="504" lengthAdjust="spacingAndGlyphs" xml:space="preserve">--------------------------------------------------------</text>
+  <text x="34" y="291" class="ta" textLength="9" lengthAdjust="spacingAndGlyphs" xml:space="preserve">&gt;</text>
+  <rect x="52" y="278" width="9" height="15" class="cur" />
+  <text x="457" y="291" class="tm" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve">0 / 256</text>
+  <text x="34" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[t]</text>
+  <text x="61" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> срок  </text>
+  <text x="124" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[g]</text>
+  <text x="151" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> игра  </text>
+  <text x="214" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[a]</text>
+  <text x="241" y="311" class="tf" textLength="81" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> отойти  </text>
+  <text x="322" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[x]</text>
+  <text x="349" y="311" class="tf" textLength="90" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> закрыть  </text>
+  <text x="439" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[b]</text>
+  <text x="466" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> блок  </text>
+  <text x="529" y="311" class="tk" textLength="27" lengthAdjust="spacingAndGlyphs" xml:space="preserve">[r]</text>
+  <text x="556" y="311" class="tf" textLength="63" lengthAdjust="spacingAndGlyphs" xml:space="preserve"> report</text>
+</g>
+<text x="48" y="4148" class="capb">чат (§4.7) · светлый терминал</text>
+<text x="48" y="4166" class="cap">свой срок в шапке; ok -- узел принял и отвечает за доставку</text>
+</svg>

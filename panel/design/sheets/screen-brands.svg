@@ -1,0 +1,278 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="894" height="9740" viewBox="0 0 894 9740">
+<title>Характеры витрин — sosed.place и neighbro.place · 375×812</title>
+<style>
+/* kit:tokens */
+/* kit:schemes */
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="894" height="9740" style="fill:#ece4d8"/>
+<text x="48" y="52" class="sheet-title">Характеры витрин — sosed.place и neighbro.place · 375×812</text>
+<text x="48" y="78" class="cap">одна механика, один кит: слева b-sosed на тёмной земле, справа b-neighbro на светлой · ночной бриф 2026-09-20</text>
+
+<rect x="47" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,120)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c0"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c0)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос." data-chip="компания" data-chipw="88" data-likes="3" data-f="207" data-tag="скоро" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="один"/>
+  <use href="kit/components.svg#card-table" x="16" y="416" data-name="стол у пекарни" data-game="домино" data-who="играют 2, смотрят 1" data-chip="стол" data-chipw="56" data-likes="2" data-cta="сесть" data-ctaw="104"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="966" class="capb">03 · лента · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="119" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,120)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c1)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Anyone going to the promenade" data-l2="tonight? I will bring a thermos." data-chip="company" data-chipw="76" data-likes="3" data-f="207" data-tag="soon" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="alone"/>
+  <use href="kit/components.svg#card-table" x="16" y="416" data-name="table by the bakery" data-game="dominoes" data-who="2 playing, 1 watching" data-chip="table" data-chipw="52" data-likes="2" data-cta="sit down" data-ctaw="112"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="966" class="capb">03 · лента · neighbro.place · светлая, море</text>
+
+<rect x="47" y="1081" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,1082)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c2"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c2)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <text x="16" y="36" class="k-title k-head">Сказать</text>
+  <use href="kit/components.svg#tabs" x="16" y="52" data-l1="фраза" data-l2="стол" data-w1="56" data-w2="48" data-a1="1" data-a2=""/>
+  <text x="16" y="120" class="k-meta">фраза</text>
+  <text x="359" y="120" class="k-mono" text-anchor="end">осталось 91</text>
+  <use href="kit/components.svg#field" x="16" y="128" data-h="96" data-value="Отдаю два табурета, забирать сегодня."/>
+  <text x="16" y="256" class="k-meta">режим</text>
+  <use href="kit/components.svg#segments" x="16" y="264" data-l1="один" data-l2="компания" data-l3="туса" data-s1="" data-s2="1"/>
+  <text x="16" y="332" class="k-meta">зона</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="340" data-sel="2" data-l1="дом" data-l2="улица" data-l3="район" data-l4="город" data-l5="шире"/>
+  <use href="kit/components.svg#field" x="16" y="404" data-value="Колонаки, Афины"/>
+  <text x="16" y="500" class="k-meta" style="fill:var(--fg)">свободно 2 из 4</text>
+  <use href="kit/components.svg#button-primary" x="16" y="528" data-label="Сказать"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a1="1" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="1928" class="capb">04 · композер · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="1081" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,1082)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c3"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c3)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <text x="16" y="36" class="k-title k-head">Speak</text>
+  <use href="kit/components.svg#tabs" x="16" y="52" data-l1="phrase" data-l2="table" data-w1="62" data-w2="48" data-a1="1" data-a2=""/>
+  <text x="16" y="120" class="k-meta">phrase</text>
+  <text x="359" y="120" class="k-mono" text-anchor="end">91 left</text>
+  <use href="kit/components.svg#field" x="16" y="128" data-h="96" data-value="Two stools to give away, pick up today."/>
+  <text x="16" y="256" class="k-meta">mode</text>
+  <use href="kit/components.svg#segments" x="16" y="264" data-l1="alone" data-l2="company" data-l3="party" data-s1="" data-s2="1"/>
+  <text x="16" y="332" class="k-meta">zone</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="340" data-sel="2" data-l1="house" data-l2="street" data-l3="district" data-l4="city" data-l5="wider"/>
+  <use href="kit/components.svg#field" x="16" y="404" data-value="Kolonaki, Athens"/>
+  <text x="16" y="500" class="k-meta" style="fill:var(--fg)">2 of 4 free</text>
+  <use href="kit/components.svg#button-primary" x="16" y="528" data-label="Speak"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a1="1" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="1928" class="capb">04 · композер · neighbro.place · светлая, море</text>
+
+<rect x="47" y="2043" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,2044)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c4"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c4)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-center" x="0" y="0" data-title="Предложение" data-back="Беседы" data-arrow="1"/>
+  <use href="kit/components.svg#card-match" x="16" y="72" data-name="Аня, 31" data-l1="Кто идёт на набережную?" data-chip="компания" data-chipw="88"/>
+  <use href="kit/components.svg#card-hint" x="16" y="248" data-h="160" data-l1="Беседа не проверяется. Её не читает" data-l2="никто — ни мы, ни фильтр." data-l3="Переписка шифруется на устройствах." data-cta="понятно"/>
+  <use href="kit/components.svg#button-primary" x="16" y="440" data-label="Поговорить"/>
+  <use href="kit/components.svg#button-secondary" x="16" y="496" data-label="Не сейчас"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a2="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="2890" class="capb">06 · предложение · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="2043" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,2044)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c5"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c5)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-center" x="0" y="0" data-title="An offer" data-back="Chats" data-arrow="1"/>
+  <use href="kit/components.svg#card-match" x="16" y="72" data-name="Anna, 31" data-l1="Who is going to the promenade?" data-chip="company" data-chipw="76"/>
+  <use href="kit/components.svg#card-hint" x="16" y="248" data-h="160" data-l1="This chat is not checked. Nobody reads" data-l2="it — not us, not a filter." data-l3="Messages are encrypted on the devices." data-cta="got it"/>
+  <use href="kit/components.svg#button-primary" x="16" y="440" data-label="Talk"/>
+  <use href="kit/components.svg#button-secondary" x="16" y="496" data-label="Not now"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a2="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="2890" class="capb">06 · предложение · neighbro.place · светлая, море</text>
+
+<rect x="47" y="3005" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,3006)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c6"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c6)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 31" data-namew="73" data-time="остаток 52 мин"/>
+  <use href="kit/components.svg#bubble-theirs" x="16" y="128" data-w="240" data-text="привет! я у второго входа" data-name="Аня"/>
+  <use href="kit/components.svg#bubble-mine" x="16" y="228" data-w="210" data-text="отлично, буду завтра"/>
+  <use href="kit/components.svg#system-line" x="0" y="312" data-text="предложена игра: точки и клетки"/>
+  <use href="kit/components.svg#bubble-theirs" x="16" y="352" data-w="200" data-text="давай в семь" data-name="Аня"/>
+  <use href="kit/components.svg#message-input" x="16" y="700" data-placeholder="написать" data-counter="0 / 256"/>
+</g></g>
+<text x="48" y="3852" class="capb">08 · беседа · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="3005" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,3006)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c7"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c7)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Anna, 31" data-namew="78" data-time="52 min left"/>
+  <use href="kit/components.svg#bubble-theirs" x="16" y="128" data-w="232" data-text="hey! I am at the second door" data-name="Anna"/>
+  <use href="kit/components.svg#bubble-mine" x="16" y="228" data-w="230" data-text="great, I will be there"/>
+  <use href="kit/components.svg#system-line" x="0" y="312" data-text="a game was offered: dots and boxes"/>
+  <use href="kit/components.svg#bubble-theirs" x="16" y="352" data-w="196" data-text="let us say seven" data-name="Anna"/>
+  <use href="kit/components.svg#message-input" x="16" y="700" data-placeholder="write" data-counter="0 / 256"/>
+</g></g>
+<text x="471" y="3852" class="capb">08 · беседа · neighbro.place · светлая, море</text>
+
+<rect x="47" y="3967" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,3968)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c8"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c8)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-table" x="0" y="0" data-name="стол у пекарни" data-chip="домино" data-chipw="72" data-likes="12" data-who="играют 2 · смотрят 3"/>
+  <use href="kit/components.svg#system-line" x="0" y="120" data-text="за столом шифрования нет"/>
+  <use href="kit/components.svg#bubble-theirs" x="16" y="160" data-w="220" data-text="ну вот, опять шестёрка" data-name="Олег"/>
+  <use href="kit/components.svg#bubble-mine" x="16" y="252" data-w="190" data-text="ход"/>
+  <use href="kit/components.svg#quote-like" x="16" y="340" data-text="«стол у пекарни, к семи»" data-by="лайкнули"/>
+  <use href="kit/components.svg#message-input" x="16" y="700" data-placeholder="сказать за столом" data-counter="0 / 128"/>
+</g></g>
+<text x="48" y="4814" class="capb">19 · стол · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="3967" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,3968)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c9"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c9)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-table" x="0" y="0" data-name="table by the bakery" data-chip="dominoes" data-chipw="82" data-likes="12" data-who="2 playing · 3 watching"/>
+  <use href="kit/components.svg#system-line" x="0" y="120" data-text="no encryption at a table"/>
+  <use href="kit/components.svg#bubble-theirs" x="16" y="160" data-w="212" data-text="here we go, a six again" data-name="Oleg"/>
+  <use href="kit/components.svg#bubble-mine" x="16" y="252" data-w="200" data-text="my move"/>
+  <use href="kit/components.svg#quote-like" x="16" y="340" data-text="“table by the bakery, at seven”" data-by="liked"/>
+  <use href="kit/components.svg#message-input" x="16" y="700" data-placeholder="say at the table" data-counter="0 / 128"/>
+</g></g>
+<text x="471" y="4814" class="capb">19 · стол · neighbro.place · светлая, море</text>
+
+<rect x="47" y="4929" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,4930)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c10"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c10)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="QR места" data-back="1"/>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">QR ставит точку тому, кто его отсканирует.</text>
+  <use href="kit/components.svg#field" x="16" y="108" data-value="Плака, Афины"/>
+  <circle cx="187.5" cy="252" r="52" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2"/>
+  <circle cx="187.5" cy="252" r="4" style="fill:var(--fg)"/>
+  <text x="187.5" y="372" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · 1 км</text>
+  <text x="16" y="412" class="k-meta">ступень</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="420" data-sel="3" data-l1="дом" data-l2="улица" data-l3="район" data-l4="город" data-l5="шире"/>
+  <use href="kit/components.svg#button-primary" x="16" y="684" data-label="сделать QR"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="5776" class="capb">26 · QR места · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="4929" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,4930)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c11"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c11)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-screen" x="0" y="0" data-title="Place QR" data-back="1"/>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">A QR sets the point for whoever scans it.</text>
+  <use href="kit/components.svg#field" x="16" y="108" data-value="Plaka, Athens"/>
+  <circle cx="187.5" cy="252" r="52" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2"/>
+  <circle cx="187.5" cy="252" r="4" style="fill:var(--fg)"/>
+  <text x="187.5" y="372" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Plaka, Athens · 1 km</text>
+  <text x="16" y="412" class="k-meta">step</text>
+  <use href="kit/components.svg#zone-steps" x="16" y="420" data-sel="3" data-l1="house" data-l2="street" data-l3="district" data-l4="city" data-l5="wider"/>
+  <use href="kit/components.svg#button-primary" x="16" y="684" data-label="make QR"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="5776" class="capb">26 · QR места · neighbro.place · светлая, море</text>
+
+<rect x="47" y="5891" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,5892)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c12"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c12)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · пока тихо"/>
+  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="Во дворе тихо" data-l1="Никто ещё ничего не сказал." data-l2="Скажите первым — вас услышат."/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="6738" class="capb">11 · пусто · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="5891" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,5892)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c13"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c13)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · quiet so far"/>
+  <use href="kit/components.svg#empty-state" x="16" y="220" data-icon="icon-nav-feed" data-title="The street is quiet" data-l1="Nobody has said anything yet." data-l2="Say the first thing — they will hear."/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="6738" class="capb">11 · пусто · neighbro.place · светлая, море</text>
+
+<rect x="47" y="6853" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,6854)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c14"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c14)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-center" x="0" y="0" data-title="Я" data-back="" data-right=""/>
+  <use href="kit/components.svg#row-setting" x="16" y="88" data-label="Имя" data-value="Женя"/>
+  <use href="kit/components.svg#row-setting" x="16" y="144" data-label="Возраст" data-value="38"/>
+  <use href="kit/components.svg#row-setting" x="16" y="200" data-label="Языки" data-value="ru · el"/>
+  <use href="kit/components.svg#row-setting" x="16" y="256" data-label="Оформление" data-value="терра"/>
+  <use href="kit/components.svg#row-setting" x="16" y="312" data-label="Мои лайки" data-value="4"/>
+  <use href="kit/components.svg#row-setting" x="16" y="368" data-label="Скрытое" data-value="3"/>
+  <use href="kit/components.svg#button-secondary" x="16" y="448" data-label="Отойти"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a3="1" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="7700" class="capb">10 · я · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="6853" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,6854)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c15"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c15)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-center" x="0" y="0" data-title="Me" data-back="" data-right=""/>
+  <use href="kit/components.svg#row-setting" x="16" y="88" data-label="Name" data-value="Zhenya"/>
+  <use href="kit/components.svg#row-setting" x="16" y="144" data-label="Age" data-value="38"/>
+  <use href="kit/components.svg#row-setting" x="16" y="200" data-label="Languages" data-value="ru · el"/>
+  <use href="kit/components.svg#row-setting" x="16" y="256" data-label="Appearance" data-value="terra"/>
+  <use href="kit/components.svg#row-setting" x="16" y="312" data-label="My likes" data-value="4"/>
+  <use href="kit/components.svg#row-setting" x="16" y="368" data-label="Hidden" data-value="3"/>
+  <use href="kit/components.svg#button-secondary" x="16" y="448" data-label="Step away"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-a3="1" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="7700" class="capb">10 · я · neighbro.place · светлая, море</text>
+
+<rect x="47" y="7815" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,7816)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c16"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c16)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Александруполис · рядом…"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос" data-l3="и плед в придачу." data-chip="компания" data-chipw="88" data-likes="3" data-f="207"/>
+  <use href="kit/components.svg#card-offer" x="16" y="284" data-chip="оффер" data-chipw="64" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе двух и более" data-t2="скидка до 30 сентября, 18:00" data-cta="сохранить" data-ctaw="140"/>
+  <use href="kit/components.svg#card-hint" x="16" y="512" data-h="136" data-l1="Вам стало больше лет —" data-l2="фильтр сузился сам." data-cta="понятно"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="8662" class="capb">03 · длинные строки · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="7815" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,7816)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c17"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c17)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Alexandroupoli · dozens…"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Geht heute Abend jemand an die" data-l2="Strandpromenade? Ich bringe" data-l3="eine Thermoskanne mit." data-chip="Gesellschaft" data-chipw="104" data-likes="3" data-f="207"/>
+  <use href="kit/components.svg#card-offer" x="16" y="284" data-chip="Angebot" data-chipw="76" data-venue="Bäckerei „Kolos“" data-discount="−20 %" data-text="Zweites Croissant zum halben Preis." data-t1="Bedingungen: ab zwei Stück" data-t2="Rabatt bis 30. September, 18:00" data-cta="Speichern" data-ctaw="128"/>
+  <use href="kit/components.svg#card-hint" x="16" y="512" data-h="136" data-l1="Sie sind älter geworden —" data-l2="der Filter wurde enger." data-cta="verstanden"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="den Nachbarn sagen…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
+</g></g>
+<text x="471" y="8662" class="capb">03 · длинные строки · neighbro.place · светлая, море</text>
+
+<rect x="47" y="8777" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(48,8778)" class="k-light b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c18"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c18)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос." data-chip="компания" data-chipw="88" data-likes="3" data-f="207" data-tag="скоро" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="один"/>
+  <use href="kit/components.svg#card-table" x="16" y="416" data-name="стол у пекарни" data-game="домино" data-who="играют 2, смотрят 1" data-chip="стол" data-chipw="56" data-likes="2" data-cta="сесть" data-ctaw="104"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
+</g></g>
+<text x="48" y="9624" class="capb">03 · вторая тема · sosed.place · светлая земля</text>
+
+<rect x="470" y="8777" width="377" height="814" rx="24" class="rim"/>
+<g transform="translate(471,8778)" class="k-neighbro-sea b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c19"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c19)">
+  <rect width="375" height="812" style="fill:var(--bg)"/>
+  <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Anyone going to the promenade" data-l2="tonight? I will bring a thermos." data-chip="company" data-chipw="76" data-likes="3" data-f="207" data-tag="soon" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="alone"/>
+  <use href="kit/components.svg#card-table" x="16" y="416" data-name="table by the bakery" data-game="dominoes" data-who="2 playing, 1 watching" data-chip="table" data-chipw="52" data-likes="2" data-cta="sit down" data-ctaw="112"/>
+  <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
+  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
+</g></g>
+<text x="471" y="9624" class="capb">03 · вторая тема · neighbro.place · ночь</text>
+</svg>

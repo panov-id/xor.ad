@@ -1,0 +1,1459 @@
+<!-- Built by scripts/build-design-sheets.py from panel/design/sheets/screen-brands.svg — edit the source, not this file. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="894" height="9740" viewBox="0 0 894 9740">
+<title>Характеры витрин — sosed.place и neighbro.place · 375×812</title>
+<style>
+/* kit tokens — panel/design/kit/tokens.css, inserted by scripts/build-design-sheets.py.
+       Values: docs/design-system-app_RU.md, «Токены», «Поверхности», «Огонёк». A frame
+       picks its theme with class k-dark or k-light on its group; kit symbols read only var(). */
+    /* Golos in two subsets: without the Cyrillic one, every Russian line falls back to another face
+       (found 2026-09-19 by a rebuild hand on sheet 17: Latin rendered visibly bolder than Cyrillic) */
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2700-27BF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcExN8hA.woff2) format("woff2"); }
+    @font-face { font-family: "Golos Text"; font-weight: 400 600; unicode-range: U+0400-04FF;
+      src: url(/fonts/q5uCsoe9Lv5t7Meb31EcEx58hLxR.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2500-257F, U+2700-27BF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx3cwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwhsk.woff2) format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
+    text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    .k-dark {
+      --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
+      --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; --ok: #9ecb7a; --err: #ef7a6a;
+      --cat-amber: #e2a33b; --cat-teal: #3fb59a; --cat-violet: #b48cf2; --scrim: #000000; --shadow: #3a2e20;
+    }
+    .k-light {
+      --bg: #ece4d8; --panel: #fdfaf4; --panel-2: #e6dbc9; --border: #221a12; --border-control: #857562;
+      --fg: #1c140d; --muted: #6b5f4c; --muted-2: #857562; --on-fg-muted: #ab9d88;
+      --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; --ok: #4b712c; --err: #a3311f;
+      --cat-amber: #7a4a00; --cat-teal: #146b58; --cat-violet: #5b36a8; --scrim: #000000; --shadow: #857562;
+    }
+    /* --on-fg-muted: quiet text on an --fg ground (the composer): 5.10 dark, 6.85 light — the light --muted-2 gives 4.08 there */
+    /* the seven steps of «Типографика» */
+    .k-display { font-size: 26px; font-weight: 400; fill: var(--fg); }
+    .k-title { font-size: 20px; font-weight: 600; fill: var(--fg); }
+    .k-body { font-size: 16px; font-weight: 400; fill: var(--fg); }
+    .k-strong { font-size: 16px; font-weight: 600; fill: var(--fg); }
+    .k-meta-strong { font-size: 14px; font-weight: 600; fill: var(--fg); }
+    .k-meta { font-size: 14px; font-weight: 400; fill: var(--muted); }
+    .k-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: var(--muted); }
+    /* Н2: the last quarter of a phrase's life */
+    .k-fade rect, .k-fade path, .k-fade circle { opacity: .55; }
+    .k-fade text.k-title, .k-fade text.k-body, .k-fade text.k-display { opacity: .65; }
+    /* storefront characters — night brief 2026-09-20, docs/reviews/NIGHT_2026-09-20_design.md. A frame adds b-sosed or
+       b-neighbro to its theme class; without one nothing below applies and the kit draws as before. */
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlSHYjedg.woff2) format("woff2"); }
+    @font-face { font-family: "Oswald"; font-weight: 600 700; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYg.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0bkXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0aUXaexs.woff2) format("woff2"); }
+    @font-face { font-family: "Commissioner"; font-weight: 700 800; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/tDbw2o2WnlgI0FNDgduEk4jAhwgumbU1SVfU5BD8OuRL8OstC6KOhgvBYWSFJ-Mgdrgiju6fF8m0akXa.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      src: url(/fonts/xn7gYHE41ni1AdIRggOxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+      src: url(/fonts/xn7gYHE41ni1AdIRggSxSuXd.woff2) format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 400 600; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      src: url(/fonts/xn7gYHE41ni1AdIRggexSg.woff2) format("woff2"); }
+    .k-sig { display: none; }
+    /* sosed.place — the courtyard in the evening: a poster on the entrance door. Dense, flat, square, 1 px border */
+    .b-sosed text { font-family: "Golos Text", system-ui, sans-serif; }
+    .b-sosed .k-head { font-family: "Oswald", "Golos Text", sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; }
+    .b-sosed .k-card { rx: 4px; stroke: var(--border); stroke-width: 1px; }
+    .b-sosed .k-ctl, .b-sosed .k-pill, .b-sosed .k-chipr { rx: 4px; }
+    .b-sosed .k-ctl-shadow { display: none; }
+    .b-sosed .k-life { display: none; }
+    .b-sosed .k-sig-tag { display: inline; }
+    /* neighbro.place — the promenade at noon: light, airy, rounded, no borders, a soft lift */
+    .b-neighbro text { font-family: "Manrope", system-ui, sans-serif; }
+    .b-neighbro .k-head { font-family: "Commissioner", "Manrope", sans-serif; font-weight: 800; }
+    .b-neighbro .k-card { rx: 24px; filter: drop-shadow(0 2px 6px rgb(20 32 30 / .10)); }
+    .b-neighbro .k-ctl, .b-neighbro .k-pill, .b-neighbro .k-chipr { rx: 22px; }
+    .b-neighbro .k-chipr { rx: 12px; }
+    .b-neighbro .k-ctl-shadow { display: none; }
+    .b-neighbro .k-life { display: none; }
+    .b-neighbro .k-sig-edge { display: inline; }
+    /* kit schemes — built by scripts/design-palettes.py; edit the script, not this file.
+       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-neighbro-sea or k-neighbro-sea-light; k-rasta or k-rasta-light. */
+    .k-dark.k-acc-terra { --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #e0714f; }
+    .k-light.k-acc-terra { --accent: #bd4b2a; --accent-ink: #fff6f0; --accent-text: #983c22; }
+    .k-dark.k-acc-amber { --accent: #d68a1f; --accent-ink: #1a1509; --accent-text: #d68a1f; }
+    .k-light.k-acc-amber { --accent: #d68a1f; --accent-ink: #1a1509; --accent-text: #8e5c15; }
+    .k-dark.k-acc-turquoise { --accent: #1fa99a; --accent-ink: #1a1509; --accent-text: #1fa99a; }
+    .k-light.k-acc-turquoise { --accent: #1fa99a; --accent-ink: #1a1509; --accent-text: #157369; }
+    .k-dark.k-acc-azure { --accent: #336eb2; --accent-ink: #fff6f0; --accent-text: #528bcd; }
+    .k-light.k-acc-azure { --accent: #336eb2; --accent-ink: #fff6f0; --accent-text: #3068a8; }
+    .k-dark.k-acc-violet { --accent: #8550c5; --accent-ink: #fff6f0; --accent-text: #9e74d1; }
+    .k-light.k-acc-violet { --accent: #8550c5; --accent-ink: #fff6f0; --accent-text: #814ac3; }
+    .k-dark.k-acc-carmine { --accent: #cc2f27; --accent-ink: #fff6f0; --accent-text: #df5f59; }
+    .k-light.k-acc-carmine { --accent: #cc2f27; --accent-ink: #fff6f0; --accent-text: #c12d25; }
+    .k-neighbro { --bg: #0c0b09; --panel: #24211a; --panel-2: #2e2a21; --border: #3a331f; --border-control: #796a41; --fg: #ede8dd; --muted: #989082; --muted-2: #928979; --accent: #c6a24e; --ok: #9ecb7a; --err: #ff8a80; --scrim: #000000; --shadow: #3a331f; --on-fg-muted: #5f5a4e; --accent-text: #c6a24e; --accent-ink: #1a1509; --cat-amber: #c6a24e; --cat-teal: #1fb39a; --cat-violet: #a66fe8; }
+    .k-neighbro-light { --bg: #e9e6dd; --panel: #f4f1e8; --panel-2: #ded9cc; --border: #1e1b14; --border-control: #857a62; --fg: #181510; --muted: #5f5a4e; --muted-2: #5c5749; --accent: #c6a24e; --ok: #4b712c; --err: #a3311f; --scrim: #000000; --shadow: #857a62; --on-fg-muted: #b0a894; --accent-text: #7c6228; --accent-ink: #1a1509; --cat-amber: #735b25; --cat-teal: #126a5c; --cat-violet: #793fbe; }
+    .k-neighbro-sea-light { --bg: #f3f1ea; --panel: #ffffff; --panel-2: #e6ebe8; --border: #c9d1ce; --border-control: #7d8b88; --fg: #14201e; --muted: #56625f; --muted-2: #6b7774; --accent: #0f6f86; --ok: #2f6b3a; --err: #a3311f; --scrim: #000000; --shadow: #14201e; --on-fg-muted: #93a5a1; --accent-text: #0f6f86; --accent-ink: #fff6f0; --cat-amber: #8f722e; --cat-teal: #0f6f86; --cat-violet: #6b4fb3; }
+    .k-neighbro-sea { --bg: #0b1416; --panel: #132024; --panel-2: #1c2d31; --border: #23383d; --border-control: #5f7a80; --fg: #e7efec; --muted: #93a5a1; --muted-2: #6f8480; --accent: #4fb3c9; --ok: #9ecb7a; --err: #ff8a80; --scrim: #000000; --shadow: #000000; --on-fg-muted: #56625f; --accent-text: #4fb3c9; --accent-ink: #1a1509; --cat-amber: #c6a24e; --cat-teal: #4fb3c9; --cat-violet: #b48cf2; }
+    .k-rasta { --bg: #0b0a06; --panel: #221f14; --panel-2: #2c281a; --border: #3a3420; --border-control: #7a6d3e; --fg: #f5eed6; --muted: #a39a7a; --muted-2: #6e6647; --accent: #d7261e; --ok: #3fbf5f; --err: #ff7a6e; --scrim: #000000; --shadow: #1f6b35; --on-fg-muted: #6e6647; --accent-text: #e6554e; --accent-ink: #fff6f0; --cat-amber: #f2b705; --cat-teal: #2e9e4f; --cat-violet: #e35951; }
+    .k-rasta-light { --bg: #f3ecd2; --panel: #fffaea; --panel-2: #ece2c2; --border: #1c1a10; --border-control: #8a7b45; --fg: #15130b; --muted: #5e5636; --muted-2: #8a7b45; --accent: #b81c15; --ok: #1f6b35; --err: #a3211a; --scrim: #000000; --shadow: #1f6b35; --on-fg-muted: #b8ad84; --accent-text: #b81c15; --accent-ink: #fff6f0; --cat-amber: #8a6400; --cat-teal: #1f6b35; --cat-violet: #a3211a; }
+    .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #6b5f4c; letter-spacing: 0.4px; }
+    .capb { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; fill: #1c140d; letter-spacing: 0.4px; }
+    .sheet-title { font-size: 20px; font-weight: 600; fill: #1c140d; }
+    .rim { fill: none; stroke: #1c140d; stroke-width: 2; }
+</style>
+<rect width="894" height="9740" style="fill:#ece4d8" />
+<text x="48" y="52" class="sheet-title">Характеры витрин — sosed.place и neighbro.place · 375×812</text>
+<text x="48" y="78" class="cap">одна механика, один кит: слева b-sosed на тёмной земле, справа b-neighbro на светлой · ночной бриф 2026-09-20</text>
+
+<rect x="47" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,120)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c0"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c0)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Колонаки · рядом десятки</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <g class="k-sig k-sig-tag"><rect x="267" y="0" width="76" height="26" style="fill:var(--panel-2)" /><text x="305" y="18" text-anchor="middle" class="k-mono" style="fill:var(--accent-text)">скоро</text></g>
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Кто-нибудь идёт на набережную</text>
+  <g><text x="16" y="64" class="k-title">вечером? Возьму термос.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,244)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="96" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Есть у кого зарядка type-c</text>
+  <g><text x="16" y="64" class="k-title">на час?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="96" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g><text x="16" y="128" class="k-meta">один</text></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-table" transform="translate(16,416)">
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect class="k-chipr" width="56" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="28" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
+</g>
+  <text x="104" y="33" class="k-meta">· домино</text>
+  <text x="16" y="68" class="k-strong">стол у пекарни</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">играют 2, смотрят 1</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect class="k-pill" width="104" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="52" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">сказать соседям…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="966" class="capb">03 · лента · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="119" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,120)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c1"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c1)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Kolonaki · dozens nearby</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <g class="k-sig k-sig-tag"><rect x="267" y="0" width="76" height="26" style="fill:var(--panel-2)" /><text x="305" y="18" text-anchor="middle" class="k-mono" style="fill:var(--accent-text)">soon</text></g>
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Anyone going to the promenade</text>
+  <g><text x="16" y="64" class="k-title">tonight? I will bring a thermos.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect class="k-chipr" width="76" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="38" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">company</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,244)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="96" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Anyone got a type-c charger</text>
+  <g><text x="16" y="64" class="k-title">for an hour?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="96" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g><text x="16" y="128" class="k-meta">alone</text></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-table" transform="translate(16,416)">
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect class="k-chipr" width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">table</text>
+</g>
+  <text x="100" y="33" class="k-meta">· dominoes</text>
+  <text x="16" y="68" class="k-strong">table by the bakery</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">2 playing, 1 watching</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect class="k-pill" width="112" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="56" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">sit down</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">say to your neighbours…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Chats</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="966" class="capb">03 · лента · neighbro.place · светлая, море</text>
+
+<rect x="47" y="1081" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,1082)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c2"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c2)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <text x="16" y="36" class="k-title k-head">Сказать</text>
+  <g data-kit="tabs" transform="translate(16,52)">
+  <rect x="0" y="0" width="56" height="44" rx="8" data-hit="44" style="fill:none" />
+  <rect x="64" y="0" width="48" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g><text x="28" y="27" text-anchor="middle" class="k-meta-strong">фраза</text><rect x="0" y="41" width="56" height="3" style="fill:var(--accent)" /></g>
+  <g><text x="88" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--muted)">стол</text></g>
+  <rect x="-16" y="44" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="120" class="k-meta">фраза</text>
+  <text x="359" y="120" class="k-mono" text-anchor="end">осталось 91</text>
+  <g data-kit="field" transform="translate(16,128)">
+  <rect x="0.5" y="0.5" width="342" height="95" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Отдаю два табурета, забирать сегодня.</text></g>
+  </g>
+  <text x="16" y="256" class="k-meta">режим</text>
+  <g data-kit="segments" transform="translate(16,264)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">один</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">компания</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">туса</text></g>
+</g>
+  <text x="16" y="332" class="k-meta">зона</text>
+  <g data-kit="zone-steps" transform="translate(16,340)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="70.4" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">дом</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">улица</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">район</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">город</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">шире</text>
+</g>
+  <g data-kit="field" transform="translate(16,404)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Колонаки, Афины</text></g>
+  </g>
+  <text x="16" y="500" class="k-meta" style="fill:var(--fg)">свободно 2 из 4</text>
+  <g data-kit="button-primary" transform="translate(16,528)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Сказать</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="1928" class="capb">04 · композер · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="1081" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,1082)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c3"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c3)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <text x="16" y="36" class="k-title k-head">Speak</text>
+  <g data-kit="tabs" transform="translate(16,52)">
+  <rect x="0" y="0" width="62" height="44" rx="8" data-hit="44" style="fill:none" />
+  <rect x="70" y="0" width="48" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g><text x="31" y="27" text-anchor="middle" class="k-meta-strong">phrase</text><rect x="0" y="41" width="62" height="3" style="fill:var(--accent)" /></g>
+  <g><text x="94" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--muted)">table</text></g>
+  <rect x="-16" y="44" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="120" class="k-meta">phrase</text>
+  <text x="359" y="120" class="k-mono" text-anchor="end">91 left</text>
+  <g data-kit="field" transform="translate(16,128)">
+  <rect x="0.5" y="0.5" width="342" height="95" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Two stools to give away, pick up today.</text></g>
+  </g>
+  <text x="16" y="256" class="k-meta">mode</text>
+  <g data-kit="segments" transform="translate(16,264)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g><text x="59.2" y="27" text-anchor="middle" class="k-meta">alone</text></g>
+  <g><rect x="115.33" y="3" width="112.33" height="38" rx="8" style="fill:var(--fg)" /><text x="171.5" y="27" text-anchor="middle" class="k-meta-strong" style="fill:var(--bg)">company</text></g>
+  <g><text x="283.8" y="27" text-anchor="middle" class="k-meta">party</text></g>
+</g>
+  <text x="16" y="332" class="k-meta">zone</text>
+  <g data-kit="zone-steps" transform="translate(16,340)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="70.4" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">house</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">street</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">district</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">city</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">wider</text>
+</g>
+  <g data-kit="field" transform="translate(16,404)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Kolonaki, Athens</text></g>
+  </g>
+  <text x="16" y="500" class="k-meta" style="fill:var(--fg)">2 of 4 free</text>
+  <g data-kit="button-primary" transform="translate(16,528)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Speak</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Chats</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="1928" class="capb">04 · композер · neighbro.place · светлая, море</text>
+
+<rect x="47" y="2043" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,2044)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c4"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c4)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Беседы</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Предложение</text>
+  </g>
+  <g data-kit="card-match" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel-2)" />
+  <text x="16" y="36" class="k-title">Аня, 31</text>
+  <g data-kit="chip" transform="translate(16,52)">
+  <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
+</g>
+  <text x="16" y="108" class="k-title">Кто идёт на набережную?</text>
+  <g data-kit="lifespan" transform="translate(16,122)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <text x="16" y="146" class="k-meta">ответа пока нет</text>
+</g>
+  <g data-kit="card-hint" transform="translate(16,248)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel-2)" />
+  <rect width="4" height="160" rx="2" style="fill:var(--accent)" />
+  <text x="20" y="34" class="k-body">Беседа не проверяется. Её не читает</text>
+  <g><text x="20" y="58" class="k-body">никто — ни мы, ни фильтр.</text></g>
+  <g><text x="20" y="82" class="k-body">Переписка шифруется на устройствах.</text></g>
+  <g data-kit="button-secondary" transform="translate(20,100)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="139" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong">понятно</text>
+</g>
+</g>
+  <g data-kit="button-primary" transform="translate(16,440)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Поговорить</text>
+</g>
+  <g data-kit="button-secondary" transform="translate(16,496)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">Не сейчас</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta-strong">Беседы</text><rect x="171.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  </g>
+</g></g>
+<text x="48" y="2890" class="capb">06 · предложение · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="2043" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,2044)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c5"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c5)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <g><text x="40" y="34" class="k-mono">Chats</text></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">An offer</text>
+  </g>
+  <g data-kit="card-match" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel-2)" />
+  <text x="16" y="36" class="k-title">Anna, 31</text>
+  <g data-kit="chip" transform="translate(16,52)">
+  <rect class="k-chipr" width="76" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="38" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">company</text>
+</g>
+  <text x="16" y="108" class="k-title">Who is going to the promenade?</text>
+  <g data-kit="lifespan" transform="translate(16,122)">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <text x="16" y="146" class="k-meta">ответа пока нет</text>
+</g>
+  <g data-kit="card-hint" transform="translate(16,248)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel-2)" />
+  <rect width="4" height="160" rx="2" style="fill:var(--accent)" />
+  <text x="20" y="34" class="k-body">This chat is not checked. Nobody reads</text>
+  <g><text x="20" y="58" class="k-body">it — not us, not a filter.</text></g>
+  <g><text x="20" y="82" class="k-body">Messages are encrypted on the devices.</text></g>
+  <g data-kit="button-secondary" transform="translate(20,100)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="139" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong">got it</text>
+</g>
+</g>
+  <g data-kit="button-primary" transform="translate(16,440)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Talk</text>
+</g>
+  <g data-kit="button-secondary" transform="translate(16,496)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">Not now</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta-strong">Chats</text><rect x="171.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  </g>
+</g></g>
+<text x="471" y="2890" class="capb">06 · предложение · neighbro.place · светлая, море</text>
+
+<rect x="47" y="3005" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,3006)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c6"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c6)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Аня, 31</text>
+  <g data-kit="key-badge" transform="translate(129,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">молчание · час</text>
+  <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(175,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">остаток 52 мин</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">закончить</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="bubble-theirs" transform="translate(16,128)">
+  <g><rect width="240" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">привет! я у второго входа</text></g>
+  <g><text x="14" y="-6" class="k-meta">Аня</text></g>
+</g>
+  <g data-kit="bubble-mine" transform="translate(16,228)">
+  <g><rect x="133" width="210" height="40" rx="13" style="fill:var(--panel-2)" /><text x="147" y="25.5" class="k-body">отлично, буду завтра</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
+  </g>
+  <g data-kit="system-line" transform="translate(0,312)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">предложена игра: точки и клетки</text>
+</g>
+  <g data-kit="bubble-theirs" transform="translate(16,352)">
+  <g><rect width="200" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">давай в семь</text></g>
+  <g><text x="14" y="-6" class="k-meta">Аня</text></g>
+</g>
+  <g data-kit="message-input" transform="translate(16,700)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">написать</text></g></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0 / 256</text></g>
+  <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  </g>
+  </g>
+</g></g>
+<text x="48" y="3852" class="capb">08 · беседа · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="3005" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,3006)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c7"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c7)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-chat" transform="translate(0,0)">
+  <rect width="375" height="104" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="35" class="k-title">Anna, 31</text>
+  <g data-kit="key-badge" transform="translate(134,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-key" transform="translate(0,0)"><circle cx="17" cy="22" r="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M21 22 L31 22 M27 22 L27 26 M30 22 L30 26" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g>
+</g>
+  <g data-kit="icon-button-filled" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g data-kit="icon-game" transform="translate(0,0)"><rect x="12" y="12" width="20" height="20" rx="4" style="fill:none;stroke:var(--fg);stroke-width:2" /><circle cx="17.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="17.5" r="1.8" style="fill:var(--fg)" /><circle cx="22" cy="22" r="1.8" style="fill:var(--fg)" /><circle cx="17.5" cy="26.5" r="1.8" style="fill:var(--fg)" /><circle cx="26.5" cy="26.5" r="1.8" style="fill:var(--fg)" /></g>
+</g>
+  <g data-kit="select-pill" transform="translate(16,56)">
+  <rect width="147" height="44" rx="8" style="fill:var(--panel-2)" />
+  <text x="12" y="27" class="k-meta-strong">молчание · час</text>
+  <g data-kit="icon-chevron-down" transform="translate(109,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="countdown" transform="translate(175,83)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">52 min left</text>
+</g>
+  <g><text x="359" y="83" text-anchor="end" class="k-meta-strong">закончить</text></g>
+  <rect x="0" y="103" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="bubble-theirs" transform="translate(16,128)">
+  <g><rect width="232" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">hey! I am at the second door</text></g>
+  <g><text x="14" y="-6" class="k-meta">Anna</text></g>
+</g>
+  <g data-kit="bubble-mine" transform="translate(16,228)">
+  <g><rect x="113" width="230" height="40" rx="13" style="fill:var(--panel-2)" /><text x="127" y="25.5" class="k-body">great, I will be there</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
+  </g>
+  <g data-kit="system-line" transform="translate(0,312)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">a game was offered: dots and boxes</text>
+</g>
+  <g data-kit="bubble-theirs" transform="translate(16,352)">
+  <g><rect width="196" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">let us say seven</text></g>
+  <g><text x="14" y="-6" class="k-meta">Anna</text></g>
+</g>
+  <g data-kit="message-input" transform="translate(16,700)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">write</text></g></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0 / 256</text></g>
+  <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  </g>
+  </g>
+</g></g>
+<text x="471" y="3852" class="capb">08 · беседа · neighbro.place · светлая, море</text>
+
+<rect x="47" y="3967" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,3968)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c8"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c8)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-table" transform="translate(0,0)">
+  <rect width="375" height="96" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="26" class="k-title k-head">стол у пекарни</text>
+  <g data-kit="chip" transform="translate(52,34)">
+  <rect class="k-chipr" width="72" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="36" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">домино</text>
+</g>
+  <g data-kit="like" transform="translate(289,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">12</text></g>
+</g>
+  <text x="16" y="82" class="k-meta" style="fill:var(--fg)">играют 2 · смотрят 3</text>
+  <g><rect x="303" y="52" width="56" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="359" y="82" text-anchor="end" class="k-meta-strong">встать</text></g>
+  <rect x="0" y="95" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="system-line" transform="translate(0,120)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">за столом шифрования нет</text>
+</g>
+  <g data-kit="bubble-theirs" transform="translate(16,160)">
+  <g><rect width="220" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">ну вот, опять шестёрка</text></g>
+  <g><text x="14" y="-6" class="k-meta">Олег</text></g>
+</g>
+  <g data-kit="bubble-mine" transform="translate(16,252)">
+  <g><rect x="153" width="190" height="40" rx="13" style="fill:var(--panel-2)" /><text x="167" y="25.5" class="k-body">ход</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
+  </g>
+  <g data-kit="quote-like" transform="translate(16,340)">
+  <g><rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
+  <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <text x="46" y="26" class="k-body">«стол у пекарни, к семи»</text>
+  <text x="46" y="46" class="k-meta">лайкнули</text></g>
+  </g>
+  <g data-kit="message-input" transform="translate(16,700)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">сказать за столом</text></g></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0 / 128</text></g>
+  <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  </g>
+  </g>
+</g></g>
+<text x="48" y="4814" class="capb">19 · стол · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="3967" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,3968)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c9"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c9)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-table" transform="translate(0,0)">
+  <rect width="375" height="96" style="fill:var(--bg)" />
+  <g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <text x="52" y="26" class="k-title k-head">table by the bakery</text>
+  <g data-kit="chip" transform="translate(52,34)">
+  <rect class="k-chipr" width="82" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="41" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">dominoes</text>
+</g>
+  <g data-kit="like" transform="translate(289,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">12</text></g>
+</g>
+  <text x="16" y="82" class="k-meta" style="fill:var(--fg)">2 playing · 3 watching</text>
+  <g><rect x="303" y="52" width="56" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="359" y="82" text-anchor="end" class="k-meta-strong">встать</text></g>
+  <rect x="0" y="95" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="system-line" transform="translate(0,120)">
+  <text x="171.5" y="0" text-anchor="middle" class="k-meta">no encryption at a table</text>
+</g>
+  <g data-kit="bubble-theirs" transform="translate(16,160)">
+  <g><rect width="212" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">here we go, a six again</text></g>
+  <g><text x="14" y="-6" class="k-meta">Oleg</text></g>
+</g>
+  <g data-kit="bubble-mine" transform="translate(16,252)">
+  <g><rect x="143" width="200" height="40" rx="13" style="fill:var(--panel-2)" /><text x="157" y="25.5" class="k-body">my move</text>
+  <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
+  </g>
+  <g data-kit="quote-like" transform="translate(16,340)">
+  <g><rect width="343" height="58" rx="13" style="fill:var(--panel)" />
+  <rect x="0" y="12" width="3" height="34" rx="1.5" style="fill:var(--accent)" />
+  <g data-kit="icon-heart" transform="translate(4,7)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+  <text x="46" y="26" class="k-body">“table by the bakery, at seven”</text>
+  <text x="46" y="46" class="k-meta">liked</text></g>
+  </g>
+  <g data-kit="message-input" transform="translate(16,700)">
+  <rect width="287" height="44" rx="8" style="fill:var(--panel-2)" />
+  <g><g><text x="16" y="28" class="k-body" style="fill:var(--muted)">say at the table</text></g></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0 / 128</text></g>
+  <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
+  <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  </g>
+  </g>
+</g></g>
+<text x="471" y="4814" class="capb">19 · стол · neighbro.place · светлая, море</text>
+
+<rect x="47" y="4929" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,4930)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c10"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c10)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title k-head">QR места</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">QR ставит точку тому, кто его отсканирует.</text>
+  <g data-kit="field" transform="translate(16,108)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Плака, Афины</text></g>
+  </g>
+  <circle cx="187.5" cy="252" r="52" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2" />
+  <circle cx="187.5" cy="252" r="4" style="fill:var(--fg)" />
+  <text x="187.5" y="372" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Плака, Афины · 1 км</text>
+  <text x="16" y="412" class="k-meta">ступень</text>
+  <g data-kit="zone-steps" transform="translate(16,420)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="137.8" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">дом</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">улица</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">район</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">город</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">шире</text>
+</g>
+  <g data-kit="button-primary" transform="translate(16,684)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">сделать QR</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="5776" class="capb">26 · QR места · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="4929" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,4930)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c11"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c11)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g><text x="52" y="35" class="k-title k-head">Place QR</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+  <text x="16" y="84" class="k-meta" style="fill:var(--fg)">A QR sets the point for whoever scans it.</text>
+  <g data-kit="field" transform="translate(16,108)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:var(--panel);stroke:var(--border-control);stroke-width:1" />
+  <g><text x="16" y="28" class="k-body">Plaka, Athens</text></g>
+  </g>
+  <circle cx="187.5" cy="252" r="52" style="fill:var(--accent);fill-opacity:0.08;stroke:var(--accent);stroke-width:2" />
+  <circle cx="187.5" cy="252" r="4" style="fill:var(--fg)" />
+  <text x="187.5" y="372" text-anchor="middle" class="k-meta" style="fill:var(--fg)">Plaka, Athens · 1 km</text>
+  <text x="16" y="412" class="k-meta">step</text>
+  <g data-kit="zone-steps" transform="translate(16,420)">
+  <rect x="0.5" y="0.5" width="342" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <rect x="137.8" y="3" width="67.4" height="38" rx="8" style="fill:var(--panel-2)" />
+  <text x="36.7" y="27" text-anchor="middle" class="k-meta">house</text>
+  <text x="104.1" y="27" text-anchor="middle" class="k-meta">street</text>
+  <text x="171.5" y="27" text-anchor="middle" class="k-meta">district</text>
+  <text x="238.9" y="27" text-anchor="middle" class="k-meta">city</text>
+  <text x="306.3" y="27" text-anchor="middle" class="k-meta">wider</text>
+</g>
+  <g data-kit="button-primary" transform="translate(16,684)">
+  <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
+  <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">make QR</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Chats</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="5776" class="capb">26 · QR места · neighbro.place · светлая, море</text>
+
+<rect x="47" y="5891" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,5892)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c12"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c12)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Колонаки · пока тихо</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="empty-state" transform="translate(16,220)">
+  <g data-kit="icon-nav-feed" transform="translate(149.5,0)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g>
+  <text x="171.5" y="88" text-anchor="middle" class="k-display">Во дворе тихо</text>
+  <text x="171.5" y="120" text-anchor="middle" class="k-body" style="fill:var(--muted)">Никто ещё ничего не сказал.</text>
+  <g><text x="171.5" y="144" text-anchor="middle" class="k-body" style="fill:var(--muted)">Скажите первым — вас услышат.</text></g>
+  <g><g data-kit="button-secondary" transform="translate(0,168)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">В ленту</text>
+</g></g>
+</g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">сказать соседям…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  </g>
+</g></g>
+<text x="48" y="6738" class="capb">11 · пусто · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="5891" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,5892)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c13"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c13)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Kolonaki · quiet so far</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="empty-state" transform="translate(16,220)">
+  <g data-kit="icon-nav-feed" transform="translate(149.5,0)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g>
+  <text x="171.5" y="88" text-anchor="middle" class="k-display">The street is quiet</text>
+  <text x="171.5" y="120" text-anchor="middle" class="k-body" style="fill:var(--muted)">Nobody has said anything yet.</text>
+  <g><text x="171.5" y="144" text-anchor="middle" class="k-body" style="fill:var(--muted)">Say the first thing — they will hear.</text></g>
+  <g><g data-kit="button-secondary" transform="translate(0,168)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">В ленту</text>
+</g></g>
+</g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">say to your neighbours…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Chats</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  </g>
+</g></g>
+<text x="471" y="6738" class="capb">11 · пусто · neighbro.place · светлая, море</text>
+
+<rect x="47" y="6853" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,6854)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c14"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c14)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Я</text>
+  </g>
+  <g data-kit="row-setting" transform="translate(16,88)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Имя</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">Женя</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,144)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Возраст</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">38</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,200)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Языки</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">ru · el</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,256)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Оформление</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">терра</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,312)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Мои лайки</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">4</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,368)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Скрытое</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">3</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="button-secondary" transform="translate(16,448)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">Отойти</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta-strong">Я</text><rect x="296.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="7700" class="capb">10 · я · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="6853" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,6854)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c15"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c15)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-center" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><g data-kit="icon-button" transform="translate(4,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-back" transform="translate(0,0)"><path d="M26 14 L18 22 L26 30" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g></g>
+  <text x="187.5" y="35" text-anchor="middle" class="k-title k-head">Me</text>
+  </g>
+  <g data-kit="row-setting" transform="translate(16,88)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Name</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">Zhenya</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,144)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Age</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">38</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,200)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Languages</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">ru · el</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,256)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Appearance</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">terra</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,312)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">My likes</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">4</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="row-setting" transform="translate(16,368)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Hidden</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">3</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+  <g data-kit="button-secondary" transform="translate(16,448)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="342" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="171.5" y="27.5" text-anchor="middle" class="k-strong">Step away</text>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Chats</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta-strong">Me</text><rect x="296.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="7700" class="capb">10 · я · neighbro.place · светлая, море</text>
+
+<rect x="47" y="7815" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,7816)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c16"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c16)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Александруполис · рядом…</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="188" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Кто-нибудь идёт на набережную</text>
+  <g><text x="16" y="64" class="k-title">вечером? Возьму термос</text></g>
+  <g><text x="16" y="92" class="k-title">и плед в придачу.</text></g>
+  <g data-kit="lifespan" transform="translate(16,108)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,138)">
+  <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,128)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,128)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-offer" transform="translate(16,284)">
+  <rect class="k-card" width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(16,16)">
+  <rect class="k-chipr" x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер</text>
+</g>
+  <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
+  <g><text x="16" y="68" class="k-strong">Пекарня «Колос»</text></g>
+  <text x="16" y="94" class="k-body">Второй круассан за полцены.</text>
+  <text x="16" y="120" class="k-meta">условия: при заказе двух и более</text>
+  <g><text x="16" y="142" class="k-meta">скидка до 30 сентября, 18:00</text></g>
+  <g data-kit="button-pill" transform="translate(16,152)">
+  <rect class="k-pill" width="140" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сохранить</text>
+</g>
+  <g data-kit="icon-button" transform="translate(291,152)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+</g>
+  <g data-kit="card-hint" transform="translate(16,512)">
+  <rect class="k-card" width="343" height="136" rx="13" style="fill:var(--panel-2)" />
+  <rect width="4" height="136" rx="2" style="fill:var(--accent)" />
+  <text x="20" y="34" class="k-body">Вам стало больше лет —</text>
+  <g><text x="20" y="58" class="k-body">фильтр сузился сам.</text></g>
+  <g data-kit="button-secondary" transform="translate(20,76)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="139" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong">понятно</text>
+</g>
+</g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">сказать соседям…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="8662" class="capb">03 · длинные строки · sosed.place · тёмная, terra</text>
+
+<rect x="470" y="7815" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,7816)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c17"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c17)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Alexandroupoli · dozens…</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="188" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Geht heute Abend jemand an die</text>
+  <g><text x="16" y="64" class="k-title">Strandpromenade? Ich bringe</text></g>
+  <g><text x="16" y="92" class="k-title">eine Thermoskanne mit.</text></g>
+  <g data-kit="lifespan" transform="translate(16,108)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,138)">
+  <rect class="k-chipr" width="104" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="52" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">Gesellschaft</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,128)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,128)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-offer" transform="translate(16,284)">
+  <rect class="k-card" width="343" height="212" rx="13" style="fill:var(--panel)" />
+  <g data-kit="chip-outline" transform="translate(16,16)">
+  <rect class="k-chipr" x="0.5" y="0.5" width="75" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="38" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">Angebot</text>
+</g>
+  <text x="327" y="33" text-anchor="end" class="k-strong">−20 %</text>
+  <g><text x="16" y="68" class="k-strong">Bäckerei „Kolos“</text></g>
+  <text x="16" y="94" class="k-body">Zweites Croissant zum halben Preis.</text>
+  <text x="16" y="120" class="k-meta">Bedingungen: ab zwei Stück</text>
+  <g><text x="16" y="142" class="k-meta">Rabatt bis 30. September, 18:00</text></g>
+  <g data-kit="button-pill" transform="translate(16,152)">
+  <rect class="k-pill" width="128" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="64" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">Speichern</text>
+</g>
+  <g data-kit="icon-button" transform="translate(291,152)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+</g>
+  <g data-kit="card-hint" transform="translate(16,512)">
+  <rect class="k-card" width="343" height="136" rx="13" style="fill:var(--panel-2)" />
+  <rect width="4" height="136" rx="2" style="fill:var(--accent)" />
+  <text x="20" y="34" class="k-body">Sie sind älter geworden —</text>
+  <g><text x="20" y="58" class="k-body">der Filter wurde enger.</text></g>
+  <g data-kit="button-secondary" transform="translate(20,76)">
+  <rect class="k-ctl" x="0.5" y="0.5" width="139" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="70" y="27.5" text-anchor="middle" class="k-strong">verstanden</text>
+</g>
+</g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">den Nachbarn sagen…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Gespräche</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Ich</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="8662" class="capb">03 · длинные строки · neighbro.place · светлая, море</text>
+
+<rect x="47" y="8777" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(48,8778)" class="k-light b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c18"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c18)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Колонаки · рядом десятки</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <g class="k-sig k-sig-tag"><rect x="267" y="0" width="76" height="26" style="fill:var(--panel-2)" /><text x="305" y="18" text-anchor="middle" class="k-mono" style="fill:var(--accent-text)">скоро</text></g>
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Кто-нибудь идёт на набережную</text>
+  <g><text x="16" y="64" class="k-title">вечером? Возьму термос.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,244)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="96" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Есть у кого зарядка type-c</text>
+  <g><text x="16" y="64" class="k-title">на час?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="96" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g><text x="16" y="128" class="k-meta">один</text></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-table" transform="translate(16,416)">
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect class="k-chipr" width="56" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="28" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">стол</text>
+</g>
+  <text x="104" y="33" class="k-meta">· домино</text>
+  <text x="16" y="68" class="k-strong">стол у пекарни</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">играют 2, смотрят 1</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect class="k-pill" width="104" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="52" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">сесть</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">сказать соседям…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Лента</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Я</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="48" y="9624" class="capb">03 · вторая тема · sosed.place · светлая земля</text>
+
+<rect x="470" y="8777" width="377" height="814" rx="24" class="rim" />
+<g transform="translate(471,8778)" class="k-neighbro-sea b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)" /><clipPath id="c19"><rect x="0" y="0" width="375" height="812" rx="24" /></clipPath><g clip-path="url(#c19)">
+  <rect width="375" height="812" style="fill:var(--bg)" />
+  <g data-kit="header-feed" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <text x="16" y="35" class="k-title k-head">Kolonaki · dozens nearby</text>
+  <g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,72)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <g class="k-sig k-sig-tag"><rect x="267" y="0" width="76" height="26" style="fill:var(--panel-2)" /><text x="305" y="18" text-anchor="middle" class="k-mono" style="fill:var(--accent-text)">soon</text></g>
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Anyone going to the promenade</text>
+  <g><text x="16" y="64" class="k-title">tonight? I will bring a thermos.</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
+</g>
+  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <rect class="k-chipr" width="76" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
+  <text x="38" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">company</text>
+</g></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">3</text></g>
+</g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-phrase" transform="translate(16,244)">
+  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  
+  <rect class="k-sig k-sig-edge" x="16" y="0" width="96" height="3" style="fill:var(--accent)" />
+  <text x="16" y="36" class="k-title">Anyone got a type-c charger</text>
+  <g><text x="16" y="64" class="k-title">for an hour?</text></g>
+  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
+  <rect width="96" height="3" rx="1.5" style="fill:var(--muted)" />
+</g>
+  <g><g><text x="16" y="128" class="k-meta">alone</text></g>
+  <g data-kit="like" transform="translate(233,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g></g></g>
+</g>
+  <g data-kit="card-table" transform="translate(16,416)">
+  <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
+  <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
+  <g data-kit="chip" transform="translate(38,16)">
+  <rect class="k-chipr" width="52" height="24" rx="12" style="fill:var(--cat-teal);fill-opacity:0.10" />
+  <text x="26" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-teal)">table</text>
+</g>
+  <text x="100" y="33" class="k-meta">· dominoes</text>
+  <text x="16" y="68" class="k-strong">table by the bakery</text>
+  <text x="16" y="94" class="k-meta" style="fill:var(--fg)">2 playing, 1 watching</text>
+  <g data-kit="button-pill" transform="translate(16,108)">
+  <rect class="k-pill" width="112" height="44" rx="22" style="fill:var(--fg)" />
+  <text x="56" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--bg)">sit down</text>
+</g>
+  <g data-kit="like" transform="translate(233,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">2</text></g>
+</g>
+  <g data-kit="icon-button" transform="translate(291,108)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
+</g>
+  </g>
+  <g data-kit="composer-float" transform="translate(24,684)">
+  <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
+  <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
+  <text x="20" y="31.5" class="k-body" style="fill:var(--on-fg-muted)">say to your neighbours…</text>
+  <rect x="279" y="4" width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <circle cx="301" cy="26" r="18" style="fill:var(--accent)" />
+  <g data-kit="icon-send" transform="translate(279,4)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+</g>
+  <g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta-strong">Feed</text><rect x="46.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Chats</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--muted);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta">Me</text></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+<text x="471" y="9624" class="capb">03 · вторая тема · neighbro.place · ночь</text>
+</svg>

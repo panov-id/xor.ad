@@ -138,6 +138,15 @@ export const IDENTITY_CREATE_LIMITS: Limit[] = [
   { name: "identities-day", max: 30, windowMs: DAY },
 ];
 
+// Recovery by paper code, per address. The node-wide brake of §8.2 is a
+// different mechanism and lives in lib/recovery_misses.ts; this is the ordinary
+// public-route ceiling. Ten an hour is generous for a person copying sixteen
+// characters off a piece of paper and thin for anything else.
+export const RECOVERY_CLAIM_LIMITS: Limit[] = [
+  { name: "recovery-claim", max: 10, windowMs: HOUR },
+  { name: "recovery-claim-day", max: 30, windowMs: DAY },
+];
+
 export const V1_LIMITS: Limit[] = [
   { name: "v1", max: 1200, windowMs: HOUR },
   { name: "v1-day", max: 20000, windowMs: DAY },

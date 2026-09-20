@@ -25,8 +25,10 @@ import {
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
 import { freezeSession } from "../lib/sessions.ts";
+import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts";
+import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
-import { IDENTITY_CREATE_LIMITS } from "../lib/rate_limit.ts";
+import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 
 // §8.2: 24 graphemes is what a person is shown; the node counts bytes, because
@@ -252,6 +254,196 @@ async function confirmRecovery(req: Request): Promise<Response> {
 }
 
 
+interface ClaimBody {
+  lookup_id?: unknown;
+  sign_pub?: unknown;
+  wrap_pub?: unknown;
+  label?: unknown;
+}
+
+// POST /recovery/claim — the paper code raises the identity again (§8.2, §13).
+//
+// It is the only way back. There is no password and no mailbox, the node never
+// saw the code, and the one live session is gone with the device — so this route
+// is the whole of "I lost my phone" and the whole of "the tenth PIN mistake
+// closed me out".
+//
+// Two devices ask for it and they need different things, and the canon tells
+// them apart rather than the body doing it:
+//
+//   a clean device  — unsigned, carries its fresh keys. A new session is born,
+//                     the old one is frozen (one live session per identity), and
+//                     the device gets the wrapped long key to unwrap with the
+//                     other half of the code.
+//   the same device — signed by its own session, **even a frozen one**: §8.2
+//                     names recovery as the one exception to "a frozen session
+//                     is refused everywhere", because otherwise the tenth PIN
+//                     mistake would have no way out at all. The session is
+//                     unfrozen and the PIN counter goes back to ten, so the old
+//                     PIN opens this device's history again.
+//
+// Both leave a first-PIN grant: on a clean device there is no old PIN to prove,
+// and on the old one the PIN may be exactly what was forgotten (§8.2 —
+// "забыт ПИН — задаётся новый с новой долей").
+//
+// What it does NOT do: kill the old paper code. §8.2 moved that to the moment
+// the **new** code is confirmed (2026-09-10), because the gap between unwrapping
+// the key and writing sixteen characters down is a gap in which a person would
+// otherwise hold an identity no code can raise. Rotation is POST
+// /recovery/reissue, and the device proves the code it has just used.
+async function claimRecovery(req: Request): Promise<Response> {
+  const version = protocolVersion(req);
+  if (!versionSupported(version)) {
+    return refuse(
+      "protocol_version_unsupported",
+      `this node serves protocol ${PROTOCOL_MAJOR}; update the client`,
+      400,
+    );
+  }
+
+  // The node-wide brake first, then the address, then the body: a paused route
+  // does no lookup, which is the point of it (lib/recovery_misses.ts).
+  const paused = pausedFor();
+  if (paused > 0) {
+    inc("relay_recovery_claim_total", { result: "paused" });
+    return refuse("rate_limited", "codes are not being accepted right now", 429, {}, {
+      "retry-after": String(paused),
+    });
+  }
+  const verdict = checkAll(RECOVERY_CLAIM_LIMITS, clientAddress(req).ip);
+  if (!verdict.allowed) {
+    inc("relay_recovery_claim_total", { result: "address_limited" });
+    return refuse("rate_limited", "too many attempts from this address", 429, {}, {
+      "retry-after": String(verdict.retryAfterSeconds),
+    });
+  }
+
+  // The signature is read before the body, and the order is not cosmetic: the
+  // guard verifies over a clone of the body, and a body already consumed here
+  // leaves it with nothing to check — "Body is unusable", which is how this was
+  // found. lib/identity_guard.ts states the same rule at the top of the file.
+  //
+  // A signature only decides *which* device is asking. The paper code is what
+  // authorizes the call, on both paths — which is why an unusable signature is
+  // not a refusal here, it simply means "not this device".
+  const signed = req.headers.get("x-identity-session")
+    ? await callerOf(req, {
+      allowFrozen: true,
+      allowSteppedAway: true,
+      allowUnfinishedSignup: true,
+    })
+    : null;
+  const caller = signed instanceof Response ? null : signed;
+
+  const body = await readJson<ClaimBody>(req);
+  if (!body) return refuse("invalid_body", "the body is not json", 400);
+  if (!isText(body.lookup_id, 512)) return refuse("invalid_body", "lookup_id is missing", 400);
+
+  const found = await query<{ id: string; recovery_wrapped_key: Uint8Array | null }>(
+    `SELECT id, recovery_wrapped_key FROM identities
+      WHERE recovery_auth_hash = $1 AND closed_at IS NULL
+        AND signup_completed_at IS NOT NULL`,
+    [body.lookup_id],
+  );
+  if (found === null) return refuse("unavailable", "the node cannot answer right now", 503);
+  const identity = found[0];
+  if (!identity || !identity.recovery_wrapped_key) {
+    // One wording for "no such code", "the identity is closed" and "that
+    // registration never finished". Telling them apart would answer questions
+    // about other people's identities to anyone typing codes.
+    if (countMiss()) {
+      log("warn", "recovery codes paused: the shared miss threshold was reached", {
+        threshold: SHARED_MISS_MAX,
+      });
+    }
+    inc("relay_recovery_claim_total", { result: "no_match" });
+    return refuse("not_found", "that code does not match", 404);
+  }
+
+  const sameDevice = caller !== null && caller.identityId === identity.id;
+  const wrapped = bytesToBase64url(identity.recovery_wrapped_key);
+
+  if (sameDevice) {
+    const answer = await transaction<Response>(async (run) => {
+      // Unfreezing can collide with the partial unique index if a live session
+      // has appeared in the meantime — one live session per identity is held by
+      // the index, not by this code, and that is on purpose.
+      await run(
+        `UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL
+          WHERE id = $1 AND identity = $2`,
+        [caller!.sessionId, identity.id],
+      );
+      // Back to ten, and the lock lifted: §8.2 says the old PIN opens this
+      // device's history again, and a counter left at zero would refuse it.
+      await run(
+        `UPDATE vault_shares
+            SET attempts_left = 10, next_attempt_at = NULL, locked_at = NULL
+          WHERE session = $1`,
+        [caller!.sessionId],
+      );
+      await run(
+        `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
+        [identity.id],
+      );
+      inc("relay_recovery_claim_total", { result: "same_device" });
+      return json({
+        identity_id: identity.id,
+        session_id: caller!.sessionId,
+        recovery_wrapped_key: wrapped,
+      }, 200, sunsetHeader());
+    }).catch((error) => {
+      log("error", "recovery claim failed on the same device", { error: String(error) });
+      return refuse("refused", "this device cannot be raised right now", 409);
+    });
+    return answer;
+  }
+
+  // A clean device brings the keys it was born with, and they are checked the
+  // way registration checks them — by importing, not by measuring.
+  if (!isText(body.sign_pub, 1024) || !await importSignPublicKey(body.sign_pub)) {
+    return refuse("invalid_body", "sign_pub is not a base64url SPKI P-256 key", 400);
+  }
+  if (!isText(body.wrap_pub, 1024) || !base64urlToBytes(body.wrap_pub)) {
+    return refuse("invalid_body", "wrap_pub is not base64url", 400);
+  }
+  const label = typeof body.label === "string" ? body.label.slice(0, 200) : null;
+  const sessionId = crypto.randomUUID();
+
+  const answer = await transaction<Response>(async (run) => {
+    // Every live session of this identity goes quiet before the new one is
+    // written, or the partial unique index refuses the insert. `transfer` rather
+    // than a reason of its own: §8.2 gives the support exception to `pin_limit`
+    // alone, and the device this freezes is the lost one.
+    const live = await run<{ id: string }>(
+      `SELECT id FROM sessions WHERE identity = $1 AND frozen_at IS NULL`,
+      [identity.id],
+    );
+    for (const session of live) await freezeSession(run, session.id, "transfer");
+
+    await run(
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [sessionId, identity.id, body.sign_pub, body.wrap_pub, label],
+    );
+    // No share is written here: the device has no PIN yet, and POST /vault/init
+    // is the route that takes one — against the grant left below.
+    await run(
+      `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
+      [identity.id],
+    );
+    inc("relay_recovery_claim_total", { result: "new_device" });
+    return json({
+      identity_id: identity.id,
+      session_id: sessionId,
+      recovery_wrapped_key: wrapped,
+    }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "recovery claim failed on a new device", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return answer;
+}
+
 interface ShareBody {
   auth?: unknown;
 }
@@ -454,6 +646,7 @@ async function vaultInit(req: Request): Promise<Response> {
 
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
+route("POST", "/recovery/claim", (c) => claimRecovery(c.req));
 route("POST", "/recovery/confirm", (c) => confirmRecovery(c.req));
 route("POST", "/vault/share", (c) => vaultShare(c.req));
 route("POST", "/vault/init", (c) => vaultInit(c.req));

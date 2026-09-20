@@ -479,13 +479,15 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="post-recovery-claim">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-built">built</span></div>
 <p><strong>Raise an identity with the paper code</strong></p>
+<p>Two paths, told apart by the signature: unsigned is a clean device and a new session is born while the live one is frozen as a transfer; signed by the device&#x27;s own session — frozen included, the one exception of §8.2 — lifts the freeze and returns the PIN counter to ten. Both leave the first-PIN grant. The old paper code stays good until the new one is confirmed; rotation is POST /recovery/reissue.</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryclaim"><code>RecoveryClaim</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised; the wrapped key comes back.</td><td><code>object</code></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Raised; the wrapped key comes back.</td><td><code>object</code></td></tr><tr><td><code>404</code></td><td>That code does not match — one wording for every reason.</td><td></td></tr><tr><td><code>429</code></td><td>Too many attempts from this address, or the node-wide pause.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="get-legal-manifest">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-spec">spec</span></div>
@@ -1266,7 +1268,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>The long key wrapped under the paper code&#x27;s other half. The node stores it and never opens it; the code itself it never sees at all (chat spec §8.2). Handing this over is what finishes a registration.</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>recovery_wrapped_key</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-recoveryclaim"><div class="op-head"><code class="path">RecoveryClaim</code></div>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<p>A clean device also sends sign_pub and wrap_pub; the device that is already known sends the signature headers instead and nothing else.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>sign_pub</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>wrap_pub</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>label</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-legalaccept"><div class="op-head"><code class="path">LegalAccept</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>document</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>revision_sha256</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-appearance"><div class="op-head"><code class="path">Appearance</code></div>

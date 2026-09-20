@@ -430,8 +430,17 @@ components:
     RecoveryClaim:
       type: object
       required: [lookup_id]
+      description: >-
+        A clean device also sends sign_pub and wrap_pub; the device that is
+        already known sends the signature headers instead and nothing else.
+      x-description-ru: >-
+        Чистое устройство шлёт ещё sign_pub и wrap_pub; уже известное вместо
+        этого подписывает запрос и больше ничего не шлёт.
       properties:
         lookup_id: {type: string}
+        sign_pub: {type: string}
+        wrap_pub: {type: string}
+        label: {type: string}
     LegalAccept:
       type: object
       required: [document, revision_sha256]
@@ -1457,13 +1466,29 @@ paths:
       tags: [identity]
       summary: Raise an identity with the paper code
       x-summary-ru: Поднять личность бумажным кодом
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
+      description: >-
+        Two paths, told apart by the signature: unsigned is a clean device and a
+        new session is born while the live one is frozen as a transfer; signed by
+        the device's own session — frozen included, the one exception of §8.2 —
+        lifts the freeze and returns the PIN counter to ten. Both leave the
+        first-PIN grant. The old paper code stays good until the new one is
+        confirmed; rotation is POST /recovery/reissue.
+      x-description-ru: >-
+        Две тропы, различаются подписью: без подписи — чистое устройство, рождается
+        новая сессия, а живая замирает как перенос; подпись собственной сессии
+        устройства — в том числе замороженной, единственное исключение §8.2 — снимает
+        заморозку и возвращает счётчик ПИНа к десяти. Обе оставляют право «первый ПИН».
+        Прежний бумажный код действует до подтверждения нового; смена — POST /recovery/reissue.
       security: [{publishableKey: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryClaim"}}}}
       responses:
-        "200": {description: Raised; the wrapped key comes back., x-description-ru: Поднята; возвращается обёрнутый ключ., content: {application/json: {schema: {type: object, properties: {wrapped_key: {type: string}}}}}}
+        "200": {description: Raised; the wrapped key comes back., x-description-ru: Поднята; возвращается обёрнутый ключ., content: {application/json: {schema: {type: object, properties: {identity_id: {type: string}, session_id: {type: string}, recovery_wrapped_key: {type: string}}}}}}
+        "404": {description: "That code does not match — one wording for every reason.", x-description-ru: "Код не подошёл — одна формулировка на все причины."}
+        "429": {description: "Too many attempts from this address, or the node-wide pause.", x-description-ru: "Слишком много попыток с адреса или общая пауза узла."}
   /legal/manifest:
     get:
       tags: [identity]

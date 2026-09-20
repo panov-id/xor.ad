@@ -134,6 +134,7 @@ async function signedCall(
 async function register(overrides: Record<string, unknown> = {}, address?: string) {
   const { pair, signPub } = await device();
   const share = newShare();
+  const lookupId = crypto.randomUUID();
   const answer = await call("POST", "/identities", {
     address,
     headers: { "x-api-key": KEY_ID },
@@ -144,11 +145,11 @@ async function register(overrides: Record<string, unknown> = {}, address?: strin
       age: 30,
       auth_hash: "hash-of-the-auth-half",
       share: auth.bytesToBase64url(share),
-      recovery_lookup_id: crypto.randomUUID(),
+      recovery_lookup_id: lookupId,
       ...overrides,
     },
   });
-  return { answer, pair, share };
+  return { answer, pair, share, lookupId };
 }
 
 Deno.test("a registration writes the identity, its session and its share at once", async () => {
@@ -513,17 +514,13 @@ Deno.test("the first PIN needs a grant, spends it, and works only once", async (
   assertEquals(old.status, 409);
 });
 
-// What the way out of a lock will look like once POST /recovery/claim exists:
-// the paper code raises the identity on a session of its own and leaves a
-// first-PIN grant. The route is not built yet, so the two things it will do —
-// a live session and the grant — are done here by hand, and the case holds what
-// happens after: the first PIN takes over the device's share and clears the lock
-// the misses left. Without the unfreeze this cannot be reached at all, which is
-// itself the finding: after ten misses the old session is over, not merely
-// locked out of its vault.
+// Forgot the PIN as well as losing the device: the paper code reopens the
+// session, and the first PIN then takes the share over with a new one. The two
+// UPDATEs that used to stand in for POST /recovery/claim here are gone — the
+// route exists, and a test that arranges its own preconditions by hand proves
+// only that the SQL beneath it works.
 Deno.test("a first PIN takes over a share whose session was locked out", async () => {
-  const { answer, pair } = await registerWithPin();
-  const created = answer.body as { identity_id: string; session_id: string };
+  const { created, pair, lookupId: lookup_id } = await registered();
   const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
   for (let i = 0; i < 10; i++) {
     await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
@@ -531,14 +528,11 @@ Deno.test("a first PIN takes over a share whose session was locked out", async (
   }
   assert((await attemptsLeft(created.session_id)).locked_at, "entry was not closed");
 
-  await database.queryOrThrow(
-    `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
-    [created.identity_id],
+  const raised = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/recovery/claim", { lookup_id },
   );
-  await database.queryOrThrow(
-    `UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`,
-    [created.session_id],
-  );
+  assertEquals(raised.status, 200, "the paper code did not reopen the device");
+
   const freshAuth = crypto.getRandomValues(new Uint8Array(32));
   const set = await signedCall(pair.privateKey, created.session_id, "POST", "/vault/init", {
     auth_hash: await auth.sha256hex(freshAuth),
@@ -565,6 +559,200 @@ Deno.test("the eleventh registration from one address is refused", async () => {
     "rate_limited",
   );
   assert(eleventh.answer.headers.get("retry-after"), "no retry-after on the refusal");
+});
+
+// ---------------------------------------------------------------------------
+// POST /recovery/claim — the way back, and the only one there is.
+
+const misses = await import("../src/lib/recovery_misses.ts");
+
+// A finished registration: the paper code has been written down, which is what
+// makes the identity raisable at all.
+async function registered(pin: Uint8Array = AUTH) {
+  const { answer, pair, lookupId, share } = await registerWithPin(pin);
+  const created = answer.body as { identity_id: string; session_id: string };
+  const wrapped = auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48)));
+  const confirmed = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/recovery/confirm",
+    { recovery_wrapped_key: wrapped },
+  );
+  assertEquals(confirmed.status, 204, "the registration was not finished");
+  return { created, pair, lookupId, wrapped, share };
+}
+
+Deno.test("the paper code raises the identity on a clean device", async () => {
+  const { created, pair, lookupId, wrapped } = await registered();
+  const fresh = await device();
+
+  const raised = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: fresh.signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+      label: "a clean phone",
+    },
+  });
+  assertEquals(raised.status, 200);
+  const answer = raised.body as {
+    identity_id: string;
+    session_id: string;
+    recovery_wrapped_key: string;
+  };
+  assertEquals(answer.identity_id, created.identity_id);
+  // The wrapped long key comes back untouched: the node stores it and cannot
+  // open it, so handing it over is the whole of what it can do here.
+  assertEquals(answer.recovery_wrapped_key, wrapped);
+  assert(answer.session_id !== created.session_id, "the old session was handed back");
+
+  // One live session per identity: the lost device is frozen, and the reason is
+  // `transfer` — the support exception of §8.2 belongs to `pin_limit` alone.
+  const [old] = await database.queryOrThrow<{ frozen_at: Date | null; frozen_reason: string }>(
+    `SELECT frozen_at, frozen_reason FROM sessions WHERE id = $1`,
+    [created.session_id],
+  );
+  assert(old.frozen_at, "the old session is still live");
+  assertEquals(old.frozen_reason, "transfer");
+
+  // And it is refused everywhere, immediately.
+  const stale = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(stale.status, 401);
+
+  // The new device has no PIN yet, so it is left the one-time right to set one.
+  const [identity] = await database.queryOrThrow<{ first_pin_grant_at: Date | null }>(
+    `SELECT first_pin_grant_at FROM identities WHERE id = $1`,
+    [created.identity_id],
+  );
+  assert(identity.first_pin_grant_at, "no first-PIN grant was left for the new device");
+
+  // The old paper code is still good: §8.2 moved its death to the moment the
+  // *new* code is confirmed, so that nobody is left holding an identity no code
+  // can raise.
+  const again = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(again.status, 200);
+});
+
+Deno.test("the paper code reopens the device the tenth PIN mistake closed", async () => {
+  const pin = crypto.getRandomValues(new Uint8Array(32));
+  const { created, pair, lookupId } = await registered(pin);
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+  for (let i = 0; i < 10; i++) {
+    await clearDelay(created.session_id);
+    await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+  }
+  const locked = await attemptsLeft(created.session_id);
+  assertEquals(locked.attempts_left, 0);
+  assert(locked.locked_at, "the tenth miss did not close entry");
+
+  // Signed by the frozen session itself: §8.2 names recovery as the one
+  // exception to "a frozen session is refused everywhere", and without it the
+  // tenth mistake would have no way out at all.
+  const raised = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/recovery/claim", { lookup_id: lookupId },
+  );
+  assertEquals(raised.status, 200);
+  const answer = raised.body as { session_id: string };
+  assertEquals(answer.session_id, created.session_id, "the same device was given a new session");
+
+  const [session] = await database.queryOrThrow<{ frozen_at: Date | null }>(
+    `SELECT frozen_at FROM sessions WHERE id = $1`,
+    [created.session_id],
+  );
+  assertEquals(session.frozen_at, null, "the session is still frozen");
+
+  // The promise of §8.2 in full: the old PIN opens this device's history again.
+  await clearDelay(created.session_id);
+  const opened = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/vault/share", proof(pin),
+  );
+  assertEquals(opened.status, 200);
+  const after = await attemptsLeft(created.session_id);
+  assertEquals(after.attempts_left, 10);
+  assertEquals(after.locked_at, null);
+});
+
+Deno.test("a code that matches nothing says one thing and touches nothing", async () => {
+  const { created } = await registered();
+  const before = await database.queryOrThrow<{ frozen_at: Date | null }>(
+    `SELECT frozen_at FROM sessions WHERE identity = $1`,
+    [created.identity_id],
+  );
+
+  const missed = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: crypto.randomUUID(),
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(missed.status, 404);
+  assertEquals((missed.body as { error: { code: string } }).error.code, "not_found");
+
+  const after = await database.queryOrThrow<{ frozen_at: Date | null }>(
+    `SELECT frozen_at FROM sessions WHERE identity = $1`,
+    [created.identity_id],
+  );
+  assertEquals(after.length, before.length, "a miss changed the sessions of an identity");
+  assertEquals(after[0].frozen_at, before[0].frozen_at);
+});
+
+Deno.test("an unfinished registration cannot be raised by its own code", async () => {
+  // No POST /recovery/confirm: the code was shown and never written down, so
+  // `recovery_wrapped_key` is NULL and there is nothing to hand over. §8.2 says
+  // such an identity passes no membership check at all.
+  const { lookupId } = await registerWithPin();
+  const missed = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(missed.status, 404);
+});
+
+Deno.test("fifty wrong codes across the node pause the route for everyone", async () => {
+  misses.reset();
+  const { lookupId } = await registered();
+
+  // Under the threshold the route is still answering. Each call comes from an
+  // address of its own: the per-address ceiling is a different mechanism and
+  // must not be what this case measures.
+  for (let i = 0; i < misses.SHARED_MISS_MAX - 1; i++) {
+    const answer = await call("POST", "/recovery/claim", { body: { lookup_id: "no-such-code" } });
+    assertEquals(answer.status, 404, `the route paused after ${i + 1} misses`);
+  }
+  const last = await call("POST", "/recovery/claim", { body: { lookup_id: "no-such-code" } });
+  assertEquals(last.status, 404, "the fiftieth miss was not answered as a miss");
+
+  // And now a real code waits too. The price is named in §8.2: while the brake
+  // is on, somebody holding a genuine paper code is refused as well.
+  const honest = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(honest.status, 429);
+  assertEquals((honest.body as { error: { code: string } }).error.code, "rate_limited");
+  const retry = Number(honest.headers.get("retry-after"));
+  assert(retry > 0 && retry <= 15 * 60, `retry-after was ${retry}, not the fifteen-minute pause`);
+
+  misses.reset();
+  const afterPause = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: (await device()).signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(afterPause.status, 200, "the route did not come back after the pause");
 });
 
 async function countIdentities(): Promise<number> {

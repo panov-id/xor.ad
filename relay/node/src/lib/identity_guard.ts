@@ -28,6 +28,9 @@ export interface Caller {
   brand: string | null;
   steppedAwayUntil: Date | null;
   signupCompletedAt: Date | null;
+  // Only ever set for a route that asked for `allowFrozen`; everywhere else a
+  // frozen session never becomes a Caller at all.
+  frozenAt: Date | null;
 }
 
 interface SessionRow {
@@ -66,6 +69,11 @@ export const unauthorized = (): Response =>
 export interface GuardOptions {
   allowSteppedAway?: boolean;
   allowUnfinishedSignup?: boolean;
+  // §8.2 gives one exception to "a frozen session is refused everywhere", and
+  // it is the way out: recovery by paper code on the very device the tenth PIN
+  // mistake closed. Nothing else may pass this, because everything else is what
+  // freezing exists to stop.
+  allowFrozen?: boolean;
 }
 
 export async function callerOf(
@@ -95,8 +103,11 @@ export async function callerOf(
   const row = rows[0];
   // A frozen session, a closed identity and an unknown session are one answer:
   // whichever it is, this signature is not a live session's, and saying which
-  // would report on somebody else's account to whoever holds a stolen key.
-  if (!row || row.frozen_at || row.closed_at) return unauthorized();
+  // would report on somebody else's account to whoever holds a stolen key. The
+  // exception is the route that undoes a freeze — and it is one line lower, not
+  // folded in here, so that a reader sees the rule before the exception.
+  if (!row || row.closed_at) return unauthorized();
+  if (row.frozen_at && !options.allowFrozen) return unauthorized();
 
   const verdict = await verifySignedRequest(req, {
     method: req.method,
@@ -126,5 +137,6 @@ export async function callerOf(
     brand: null,
     steppedAwayUntil: away,
     signupCompletedAt: row.signup_completed_at,
+    frozenAt: row.frozen_at,
   };
 }

@@ -85,6 +85,16 @@ full(".k-neighbro-light", "neighbro·light", {"bg": "#e9e6dd", "panel": "#f4f1e8
      "border-control": "#857a62", "fg": "#181510", "muted": "#5f5a4e", "muted-2": "#5c5749", "accent": "#c6a24e",
      "ok": "#4b712c", "err": "#a3311f", "scrim": "#000000", "shadow": "#857a62", "on-fg-muted": "#b0a894"},
      {"cat-amber": "#735b25", "cat-teal": "#126a5c", "cat-violet": "#793fbe"})
+# 2a · neighbro.place, night brief 2026-09-20 (docs/reviews/NIGHT_2026-09-20_design.md): sea blue acts, the landing's
+# gold stays as the second accent (cat-amber) — light is the default theme, dark the evening one
+full(".k-neighbro-sea-light", "neighbro-sea·light", {"bg": "#f3f1ea", "panel": "#ffffff", "panel-2": "#e6ebe8", "border": "#c9d1ce",
+     "border-control": "#7d8b88", "fg": "#14201e", "muted": "#56625f", "muted-2": "#6b7774", "accent": "#0f6f86",
+     "ok": "#2f6b3a", "err": "#a3311f", "scrim": "#000000", "shadow": "#14201e", "on-fg-muted": "#93a5a1"},
+     {"cat-amber": "#c6a24e", "cat-teal": "#0f6f86", "cat-violet": "#6b4fb3"})
+full(".k-neighbro-sea", "neighbro-sea·dark", {"bg": "#0b1416", "panel": "#132024", "panel-2": "#1c2d31", "border": "#23383d",
+     "border-control": "#5f7a80", "fg": "#e7efec", "muted": "#93a5a1", "muted-2": "#6f8480", "accent": "#4fb3c9",
+     "ok": "#9ecb7a", "err": "#ff8a80", "scrim": "#000000", "shadow": "#000000", "on-fg-muted": "#56625f"},
+     {"cat-amber": "#c6a24e", "cat-teal": "#4fb3c9", "cat-violet": "#b48cf2"})
 # 3 · rasta: red for action, gold and green for categories, on a warm black and a warm paper
 full(".k-rasta", "rasta·dark", {"bg": "#0b0a06", "panel": "#221f14", "panel-2": "#2c281a", "border": "#3a3420",
      "border-control": "#7a6d3e", "fg": "#f5eed6", "muted": "#a39a7a", "muted-2": "#6e6647", "accent": "#d7261e",
@@ -96,7 +106,7 @@ full(".k-rasta-light", "rasta·light", {"bg": "#f3ecd2", "panel": "#fffaea", "pa
      {"cat-amber": "#8a6400", "cat-teal": "#1f6b35", "cat-violet": "#a3211a"})
 
 text = ("    /* kit schemes — built by scripts/design-palettes.py; edit the script, not this file.\n"
-        "       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-rasta or k-rasta-light. */\n"
+        "       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-neighbro-sea or k-neighbro-sea-light; k-rasta or k-rasta-light. */\n"
         + "\n".join("    " + c for c in css) + "\n")
 bad = [r for r in rows if r[4] < r[5] - 1e-9]
 if "--check" in sys.argv:

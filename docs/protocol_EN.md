@@ -100,7 +100,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 | `POST /recovery/claim` | raising an identity from the paper code | **spec** (agreed 2026-09-17) (§8.2, §13) |
 | `GET /legal/manifest` | the three documents' revisions: date, substance `sha256`, re-acceptance policy — `required` for all three since 2026-09-15 | **spec** (agreed 2026-09-17) (2026-08-29) |
 | `POST /legal/accept` | records an acceptance: document, date, hash; one row each | **spec** (agreed 2026-09-17) (2026-08-29) |
-| `POST /vault/init` | set the first PIN on a new device after a transfer or a recovery: `{auth_hash, share, nonce}`; the old PIN is not needed, but only against a one-time first-PIN grant after an approved transfer or a recovery, otherwise 409 (screen 13; 2026-09-19) | **spec** |
+| `POST /vault/init` | set the first PIN on a new device after a transfer or a recovery: `{auth_hash, share}`; the old PIN is not needed, but only against a one-time first-PIN grant after an approved transfer or a recovery, otherwise 409 (screen 13; 2026-09-19). **The `nonce` field was dropped on 2026-09-20:** §2 above gives the mechanism to seven routes and this is not one of them, and a required field with no mechanism is decoration. What makes this call one-time is the grant itself: the call consumes it | **spec** |
 | `POST /sessions/:lookup_id/approve` | the old device confirms the transfer, "it's me", once the four characters matched; only a session of the identity that issued the invite, once, within its 120 seconds (screen 13; 2026-09-19) | **spec** |
 | `POST /sessions/:lookup_id/reject` | the old device refuses, "doesn't match"; the code dies (screen 13; 2026-09-19) | **spec** |
 

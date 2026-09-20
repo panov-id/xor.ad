@@ -31,7 +31,7 @@ export OPENAPI_ROOT="$root"
 [ -f "$OPENAPI_SPEC" ] || { echo "нет спецификации: $OPENAPI_SPEC" >&2; exit 2; }
 
 python3 - <<'PY'
-import os, pathlib, re, sys
+import json, os, pathlib, re, sys
 import yaml
 
 root = pathlib.Path(os.environ["OPENAPI_ROOT"])
@@ -59,8 +59,13 @@ def _mapping(loader, node):
         key = loader.construct_object(k)
         if key in seen:
             problems.append(f"дубль ключа «{key}» в строке {k.start_mark.line + 1}")
-        if isinstance(key, str) and (key.endswith(")." ) or key.endswith("true.") or key.endswith("false.")):
-            problems.append(f"порванное flow-описание: ключ «{key}» в строке {k.start_mark.line + 1} — возьмите текст в кавычки")
+        # Первая версия правила знала три хвоста — «).», «true.», «false.» — и мимо
+        # неё 20.09.2026 прошли 33 порванных описания: хвост кончается обычным словом
+        # с точкой, русским чаще, чем английским. Имён полей с точкой на конце в
+        # OpenAPI не бывает, поэтому правило теперь по точке, а не по словарю; кавычка
+        # на конце — след разреза уже закавыченного описания.
+        if isinstance(key, str) and key.rstrip("\"'").endswith("."):
+            problems.append(f"порванное flow-описание: ключ «{key}» в строке {k.start_mark.line + 1} — возьмите текст в кавычки (scripts/fix-openapi-flow-descriptions.py чинит)")
         seen.add(key)
     return loader.construct_mapping(node)
 _Dups.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _mapping)
@@ -147,6 +152,88 @@ for source in sources:
             problems.append(f"{source.name}: маршрут {key[0]} {key[1]} построен, а в спецификации built его нет")
 for method, path in sorted(built_pairs - code_pairs):
     problems.append(f"спецификация: {method} {path} помечен built, а в main.ts и routes/*.ts такого маршрута нет")
+
+# Подписанные операции: 401 и три заголовка §2.
+#
+# 20.09.2026 панель насчитала 69 операций с identitySignature и ноль описанных
+# ответов 401 — самый частый отказ подписанного API в контракте отсутствовал, а
+# код unauthorized из закрытого списка §6 не соответствовал ни одному маршруту.
+# Схема безопасности при этом умеет назвать один заголовок из трёх, поэтому
+# x-identity-session и x-identity-time объявлены параметрами: клиент, собранный
+# по контракту без них, получал бы 401 на каждом запросе.
+for (method, path), op in sorted(ops.items()):
+    if not any("identitySignature" in entry for entry in op.get("security") or []):
+        continue
+    name = f"{method} {path}"
+    if "401" not in (op.get("responses") or {}):
+        problems.append(
+            f"{name}: подписана, а ответа 401 не описывает — "
+            "scripts/add-signed-operation-refs.py дописывает"
+        )
+    declared = json.dumps(op.get("parameters") or [], ensure_ascii=False)
+    for parameter in ("IdentitySession", "IdentityTime", "ProtocolVersion"):
+        if f"components/parameters/{parameter}" not in declared:
+            problems.append(f"{name}: подписана, а параметра {parameter} не объявляет")
+
+# Одноразовые действия: три источника, которые обязаны говорить одно.
+#
+#   протокол §2     список маршрутов, несущих nonce
+#   CHECK route     те же маршруты в DDL таблицы nonces (миграция шага 1)
+#   тела в yaml     схемы, требующие поле nonce
+#
+# 20.09.2026 они разъехались молча: поле стояло у двенадцати схем при семи
+# разрешённых маршрутах, и у POST /identities — маршрута без сессии — строку в
+# таблицу с session_id NOT NULL положить было нельзя в принципе. Ни одни ворота
+# этого не видели: слова «nonce» в них не было вовсе. Сверка идёт по кругу:
+# схема с nonce → операции, которые её принимают → маршрут → §2 и CHECK.
+migration = root / "relay/node/db/022_identity_and_sessions.sql"
+if migration.is_file():
+    body = migration.read_text(encoding="utf-8")
+    check = re.search(r"route\s+text NOT NULL CHECK \(route IN \((.*?)\)\)", body, re.S)
+    ddl_routes = set(re.findall(r"'((?:GET|POST|PUT|PATCH|DELETE) /[^']*)'", check.group(1))) if check else set()
+
+    nonce_schemas = {
+        name for name, schema in (spec.get("components", {}).get("schemas") or {}).items()
+        if name != "Nonce" and "nonce" in (schema or {}).get("properties", {})
+    }
+    nonce_routes = set()
+    for (method, path), op in ops.items():
+        ref = json.dumps((op.get("requestBody") or {}), ensure_ascii=False)
+        for name in nonce_schemas:
+            if f'"#/components/schemas/{name}"' in ref:
+                nonce_routes.add(f"{method} {path}")
+
+    # Список §2 переносится по строкам, поэтому читается абзацем, а не построчно:
+    # построчный вариант терял POST /support и POST /recovery/reissue — они стоят
+    # на строке, где слова «nonce» нет (замерено 20.09.2026).
+    section = pathlib.Path(os.environ["OPENAPI_PROTOCOL_RU"]).read_text(encoding="utf-8")
+    section = section.split("## 2.", 1)[-1].split("## 3.", 1)[0]
+    flat = " ".join(section.split())
+    protocol_routes = set()
+    marker = flat.find("несут в теле поле")
+    if marker > 0:
+        protocol_routes = {
+            f"{m} {p}"
+            for m, p in re.findall(r"`(GET|POST|PUT|PATCH|DELETE) (/[^`\s]*)`", flat[:marker][-500:])
+        }
+    else:
+        problems.append("protocol_RU.md §2: не нашёл фразы «несут в теле поле» — список одноразовых маршрутов не читается")
+
+    if not ddl_routes:
+        problems.append("миграция шага 1: CHECK на nonces.route не читается — сверять одноразовость не с чем")
+    for route in sorted(nonce_routes - ddl_routes):
+        problems.append(
+            f"одноразовость: {route} требует nonce в теле, а в CHECK nonces.route его нет — "
+            "запись пары упадёт на ограничении"
+        )
+    for route in sorted(ddl_routes - nonce_routes):
+        problems.append(
+            f"одноразовость: {route} стоит в CHECK nonces.route, а ни одно тело контракта nonce не требует"
+        )
+    for route in sorted(ddl_routes - protocol_routes):
+        problems.append(
+            f"одноразовость: {route} стоит в CHECK nonces.route, а §2 protocol_RU.md его не называет"
+        )
 
 for line in problems:
     print(f"  ✗ {line}")

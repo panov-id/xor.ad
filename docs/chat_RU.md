@@ -785,6 +785,9 @@ CREATE TABLE identities (
   name_pending     text CHECK ((name_state = 'pending') = (name_pending IS NOT NULL)),  -- имя, ждущее вердикта: прежнее действует до него (16.09.2026, DATA-22)
   languages        text[] NOT NULL DEFAULT '{}' CHECK (cardinality(languages) <= 3),  -- языки ленты, до трёх; на узле, потому что фильтр выдачи считает узел (16.09.2026, DATA-22)
   -- stepped_away_at [retired 14.09.2026]: метка «отошёл» живёт на участнике беседы (chat_participants.away_marked, §8.6)
+  filter_age_min   integer,             -- зажимается в band(age) на записи; любое целое внутри полосы (17.09.2026; внесены в CREATE 20.09.2026)
+  filter_age_max   integer,             -- так же; порядок пары держит CHECK ниже, зажим — узел
+  CHECK (filter_age_min IS NULL OR filter_age_max IS NULL OR filter_age_min <= filter_age_max),
   stepped_away_until timestamptz,       -- конец отлучки; до него продукта для человека нет; досрочный возврат — now(), прошедший срок обнуляется первым запросом сессии
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = действующая
@@ -802,8 +805,8 @@ CREATE TABLE identity_appearance (
   identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   brand     text NOT NULL,         -- лицо из API-ключа, как feed_messages.brand
   theme     text CHECK (theme IN ('light', 'dark', 'system')),      -- NULL = умолчание витрины
-  contrast  text CHECK (contrast IN ('normal', 'raised', 'max')),
-  accent    text CHECK (accent IN ('terra', 'amber', 'gold', 'crimson', 'teal', 'azure', 'violet')),
+  contrast  text CHECK (contrast IN ('normal', 'raised', 'maximum')),  -- три ступени экрана 22 поимённо (20.09.2026: стояло 'max', а доступность и контракт API зовут её 'maximum')
+  accent    text CHECK (accent IN ('terra', 'amber', 'turquoise', 'azure', 'violet', 'carmine')),  -- шесть акцентов собранного кита (20.09.2026: 'gold', 'crimson' и 'teal' — имена токенов категорий --cat-*, а не акцентов)
   PRIMARY KEY (identity, brand)
 );
 ```
@@ -1025,7 +1028,8 @@ CREATE TABLE sessions (
   frozen_reason   text CHECK (frozen_reason IN ('transfer', 'closed', 'pin_limit')),  -- причина заморозки; исключения положены только pin_limit (14.09.2026)
   CONSTRAINT sessions_frozen_pair CHECK ((frozen_at IS NULL) = (frozen_reason IS NULL))  -- 15.09.2026, финальная панель
 );
-CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
+CREATE UNIQUE INDEX sessions_one_live ON sessions (identity) WHERE frozen_at IS NULL;  -- имя дано 20.09.2026: безымянный индекс отказывает в переносе сообщением, которое человек не прочтёт
+CREATE INDEX sessions_identity ON sessions (identity);  -- все сессии личности, включая замороженные: частичный индекс выше не годится ни каскаду настоящего DELETE, ни списку устройств (20.09.2026)
 
 -- Одноразовые действия: пара (сессия, nonce) с первым ответом, десять минут (`nonce.ttl`),
 -- общая для пула. Заведено 16.09.2026 (протокол §2, OPS-1/SEC-17), DDL — 17.09.2026 (проход 4).
@@ -1035,7 +1039,7 @@ CREATE TABLE nonces (
   nonce        bytea NOT NULL CHECK (octet_length(nonce) = 16),
   route        text NOT NULL CHECK (route IN ('POST /tables', 'POST /away', 'POST /support', 'POST /recovery/reissue', 'POST /identities/close', 'POST /vault/pin', 'POST /blocks')),  -- семь маршрутов §2 протокола поимённо: восьмой заставит править DDL (17.09.2026, DATA-7)
   status       smallint NOT NULL CHECK (status BETWEEN 200 AND 299 OR status = 409),  -- хранятся только 2xx и 409 состояния; 400/401/429 не записываются (SEC-4)
-  response     jsonb NOT NULL CHECK (pg_column_size(response) <= 1024),  -- только тело первого ответа, без заголовков; тело 204 — 'null'::jsonb (DATA-8)
+  response     jsonb NOT NULL CHECK (octet_length(response::text) <= 1024),  -- 20.09.2026: стояло pg_column_size — она STABLE, а не IMMUTABLE, и меряет сжатое представление: тело в 3009 байт отвергается на вставке и читается из таблицы как 59 (замерено на PostgreSQL 16.13), то есть потолок нельзя перепроверить тем же выражением, которым он записан  -- только тело первого ответа, без заголовков; тело 204 — 'null'::jsonb (DATA-8)
   created_at   timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (session_id, nonce)
 );
@@ -1425,11 +1429,19 @@ AND me.age BETWEEN band_low(other.age) AND band_high(other.age)
 
 **Что видит человек — в экранах витрин:** ручка не идёт за полосу молча, у взрослого правый край подписан «без ограничения», а сдвиг полосы после дня рождения объявляется одной строкой.
 
+Обе колонки стоят в объявлении `identities` выше (§8.2). **Отдельного `ALTER` не
+будет — решено 20.09.2026:** прежнего состояния этой таблицы не существовало ни
+одного дня, первая её миграция уехала уже с ними, и `ALTER` в спеке дал бы
+следующему пишущему миграцию ошибку «column already exists». Порядок пары держит
+сама база:
+
 ```sql
-ALTER TABLE identities
-  ADD COLUMN filter_age_min integer,   -- зажимается в band(age) на записи; любое целое внутри полосы (17.09.2026)
-  ADD COLUMN filter_age_max integer;   -- так же; min <= max, иначе узел отказывает filter_out_of_band
+CHECK (filter_age_min IS NULL OR filter_age_max IS NULL OR filter_age_min <= filter_age_max)
 ```
+
+`band(age)` в `CHECK` невыразима — она зависит от возраста, — и зажим остаётся за
+узлом. Перевёрнутая пара без этой строки показывала бы пустую ленту без единого
+сообщения об ошибке.
 
 Проверка возраста — самодекларация, никакой верификации нет. Полосы отделяют подростков от взрослых настолько, насколько это вообще возможно без документов, и это надо понимать как есть.
 

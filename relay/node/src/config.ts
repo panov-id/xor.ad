@@ -99,6 +99,17 @@ function read() {
     // does not confirm the route exists.
     metricsToken: env("METRICS_TOKEN").trim(),
 
+    // Protocol §3: the unix time when the current major version stops being
+    // served. Unset until a sunset is actually announced — and unset is the
+    // meaningful state, not a placeholder: the header goes out on every answer
+    // once it is set, and a node that always sent one would be announcing an
+    // end date it does not have. A value that is not a positive integer is
+    // treated as unset rather than as zero, which would mean "already sunset".
+    protocolSunsetAt: (() => {
+      const raw = env("PROTOCOL_SUNSET_AT").trim();
+      return /^[0-9]{1,15}$/.test(raw) && Number(raw) > 0 ? Number(raw) : null;
+    })(),
+
     allowedOrigins: env("ALLOWED_ORIGINS")
       .split(",").map((s) => s.trim()).filter(Boolean),
 

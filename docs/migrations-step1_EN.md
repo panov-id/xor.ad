@@ -6,6 +6,17 @@
 > 2026-09-14), while this document describes step 1's three tables and assigns the
 > feed, likes, the pair and blocks to "steps 2–7". The order and the checks below
 > still hold for the tables described here; take the set itself from the chat spec.
+>
+> **Done on 2026-09-20 — and not the way this document says.** Step 1 went out as a
+> single migration, `relay/node/db/022_identity_and_sessions.sql`, carrying six
+> tables: `identities`, `identity_appearance`, `legal_acceptances`, `sessions`,
+> `nonces`, `vault_shares`. Three things in this document are retired: the numbering
+> `011`/`015`–`017` (taken up to `021`, so step 1 got `022`), the "three files, not
+> one" split, and the count "thirteen files in `db/`, not one product table" — there
+> are 19 files and six product tables. The argument for splitting was settled by
+> measurement: all six share one fate — a cascade from `identities` — and separate
+> files do not separate it, they hide it. The rule "the file reads as the schema"
+> below was **not** retired and is being followed.
 
 The chat spec (`chat_EN.md` §8.2) describes step 1's three tables in three
 different sections, interleaved with the reasoning. Here they are gathered in the

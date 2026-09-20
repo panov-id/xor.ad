@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 197 | storefronts, panel, tenancy, DSA, keys, limits |
+| `relay/node/test` | 209 | storefronts, panel, tenancy, DSA, keys, limits, request signature |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **207** | **about chat and feed — 0** |
+| **Total** | **219** | **about chat and feed — 0; about the request signature — 12 (2026-09-20)** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
@@ -407,11 +407,16 @@ through three different wrappers and cannot be counted by eye.
 
 ## What can be checked today
 
-Exactly two rows: **2.5** (the WebCrypto measurement — done,
-`scripts/check-webcrypto-support.sh`) and, indirectly, **the whole rest of the
-list** — through `chat_stub.test.ts` guarding the `501`. Everything else waits for
-its §13 step, and that is a state rather than an excuse: there is no `identities`
-in the database, `/feed` answers 404 and `/chat` answers 501.
+**The first table arrived on 2026-09-20** — migration
+`relay/node/db/022_identity_and_sessions.sql` put `identities`, `sessions`,
+`vault_shares`, `nonces`, `legal_acceptances` and `identity_appearance` in the
+database (measured: `scripts/check-facts-schema.sh` sees 15 tables against 9 before
+it). Row **1.1** is therefore no longer "nothing to check": a `SELECT` across every
+column of `identities` can now be run. Beyond it, **2.5** is checkable (the WebCrypto
+measurement — done, `scripts/check-webcrypto-support.sh`) and, indirectly, **the whole
+rest of the list** — through `chat_stub.test.ts` guarding the `501`. Everything else
+waits for its §13 step, and that is a state rather than an excuse: there are no
+product routes yet, `/feed` answers 404 and `/chat` answers 501.
 
 That is exactly why the map comes before the code. When the first table appears
 there will be nothing to argue about: the list is already written and derived from

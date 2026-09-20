@@ -793,6 +793,9 @@ CREATE TABLE identities (
   name_pending     text CHECK ((name_state = 'pending') = (name_pending IS NOT NULL)),  -- the name awaiting the verdict: the previous one stays in force until then (2026-09-16, DATA-22)
   languages        text[] NOT NULL DEFAULT '{}' CHECK (cardinality(languages) <= 3),  -- feed languages, up to three; on the node because the node applies the feed filter (2026-09-16, DATA-22)
   -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
+  filter_age_min   integer,             -- clamped into band(age) on write; any integer inside the band (2026-09-17; moved into CREATE on 2026-09-20)
+  filter_age_max   integer,             -- the same; the pair's order is held by the CHECK below, the clamp by the node
+  CHECK (filter_age_min IS NULL OR filter_age_max IS NULL OR filter_age_min <= filter_age_max),
   stepped_away_until timestamptz,       -- end of the step-away; until then the product does not exist for the person; early return — now(), a past span is cleared by the session's first request
   created_at       timestamptz NOT NULL DEFAULT now(),
   closed_at        timestamptz          -- NULL = live
@@ -810,8 +813,8 @@ CREATE TABLE identity_appearance (
   identity  uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
   brand     text NOT NULL,         -- the face from the API key, as feed_messages.brand
   theme     text CHECK (theme IN ('light', 'dark', 'system')),      -- NULL = the storefront default
-  contrast  text CHECK (contrast IN ('normal', 'raised', 'max')),
-  accent    text CHECK (accent IN ('terra', 'amber', 'gold', 'crimson', 'teal', 'azure', 'violet')),
+  contrast  text CHECK (contrast IN ('normal', 'raised', 'maximum')),  -- screen 22's three steps by name (2026-09-20: was 'max', while accessibility and the API canon both say 'maximum')
+  accent    text CHECK (accent IN ('terra', 'amber', 'turquoise', 'azure', 'violet', 'carmine')),  -- the six accents of the built kit (2026-09-20: 'gold', 'crimson' and 'teal' are names of the category tokens --cat-*, not accents)
   PRIMARY KEY (identity, brand)
 );
 ```
@@ -1038,7 +1041,8 @@ CREATE TABLE sessions (
   frozen_reason   text CHECK (frozen_reason IN ('transfer', 'closed', 'pin_limit')),  -- why it froze; exceptions apply to pin_limit only (2026-09-14)
   CONSTRAINT sessions_frozen_pair CHECK ((frozen_at IS NULL) = (frozen_reason IS NULL))  -- 2026-09-15, final panel
 );
-CREATE UNIQUE INDEX ON sessions (identity) WHERE frozen_at IS NULL;
+CREATE UNIQUE INDEX sessions_one_live ON sessions (identity) WHERE frozen_at IS NULL;  -- named 2026-09-20: an anonymous index refuses a transfer with a message no person can read
+CREATE INDEX sessions_identity ON sessions (identity);  -- every session of an identity, frozen ones included: the partial index above serves neither a real DELETE's cascade nor the list of devices (2026-09-20)
 
 -- One-shot actions: the pair (session, nonce) with the first answer, ten minutes (`nonce.ttl`),
 -- shared by the pool. Introduced 2026-09-16 (protocol §2, OPS-1/SEC-17), DDL on 2026-09-17 (pass 4).
@@ -1048,7 +1052,7 @@ CREATE TABLE nonces (
   nonce        bytea NOT NULL CHECK (octet_length(nonce) = 16),
   route        text NOT NULL CHECK (route IN ('POST /tables', 'POST /away', 'POST /support', 'POST /recovery/reissue', 'POST /identities/close', 'POST /vault/pin', 'POST /blocks')),  -- the seven routes of protocol §2 by name: an eighth forces a DDL edit (2026-09-17, DATA-7)
   status       smallint NOT NULL CHECK (status BETWEEN 200 AND 299 OR status = 409),  -- only 2xx and state 409s are kept; 400/401/429 are not written (SEC-4)
-  response     jsonb NOT NULL CHECK (pg_column_size(response) <= 1024),  -- the body of the first answer only, no headers; a 204 body is 'null'::jsonb (DATA-8)
+  response     jsonb NOT NULL CHECK (octet_length(response::text) <= 1024),  -- 2026-09-20: was pg_column_size, which is STABLE rather than IMMUTABLE and measures the compressed form: a 3009-byte body is refused on insert and reads back from the table as 59 (measured on PostgreSQL 16.13), so the ceiling cannot be re-checked by the expression that states it  -- the body of the first answer only, no headers; a 204 body is 'null'::jsonb (DATA-8)
   created_at   timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (session_id, nonce)
 );
@@ -1445,11 +1449,19 @@ On top of the band sits a **user filter**, clamped to it: narrower than your ban
 
 **What a person sees is in the storefront screens:** the handle does not pass the band, an adult's right end is labelled "no limit", and a band shifted by a birthday is announced in one line.
 
+Both columns stand in the declaration of `identities` above (§8.2). **There will be no
+separate `ALTER` — decided 2026-09-20:** no earlier state of this table ever
+existed for a single day, its first migration already carried them, and an `ALTER`
+in the spec would hand the next person writing a migration a "column already
+exists". The pair's own order is held by the database:
+
 ```sql
-ALTER TABLE identities
-  ADD COLUMN filter_age_min integer,   -- clamped into band(age) on write; any integer inside the band (2026-09-17)
-  ADD COLUMN filter_age_max integer;   -- the same; min <= max, the node refuses otherwise with filter_out_of_band
+CHECK (filter_age_min IS NULL OR filter_age_max IS NULL OR filter_age_min <= filter_age_max)
 ```
+
+`band(age)` cannot be expressed in a `CHECK` — it depends on the age — so the
+clamp stays with the node. Without this line a reversed pair would show an empty
+feed with no error at all.
 
 Age is self-declared, with no verification whatsoever. The bands separate teenagers from adults as far as that is possible without documents, and that limit should be understood plainly.
 

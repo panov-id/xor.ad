@@ -166,14 +166,14 @@ components:
         page_url: {type: string, maxLength: 300}
         user_agent: {type: string, maxLength: 300}
         source: {type: string, maxLength: 120}
-        extra: {type: object, description: Flat, at most 12 keys.}
+        extra: {type: object, description: "Flat, at most 12 keys."}
     Pageview:
       type: object
       properties:
         path: {type: string, maxLength: 200}
         lang: {type: string, maxLength: 8}
         referrer: {type: string, description: Only the host of an http(s) referrer is kept.}
-        viewport: {type: number, description: Reduced to mobile, tablet or desktop.}
+        viewport: {type: number, description: "Reduced to mobile, tablet or desktop."}
         first_in_tab: {type: boolean}
         source: {type: string, maxLength: 120}
     Notice:
@@ -182,7 +182,7 @@ components:
       x-description-ru: Уведомление по ст. 16 DSA.
       required: [target_kind, reason_text, bona_fide]
       properties:
-        receipt_hash: {type: string, pattern: '^[0-9a-f]{64}$', description: SHA-256 of the receipt code born on the device (dsa/SPEC §6); proposed 2026-09-16, LAW-2 of pass 3 — not accepted by report.ts yet., x-description-ru: SHA-256 кода квитанции, рождённого на устройстве (dsa/SPEC §6); предложено 16.09.2026, LAW-2 прохода 3 — report.ts его ещё не принимает.}
+        receipt_hash: {type: string, pattern: '^[0-9a-f]{64}$', description: "SHA-256 of the receipt code born on the device (dsa/SPEC §6); proposed 2026-09-16, LAW-2 of pass 3 — not accepted by report.ts yet.", x-description-ru: "SHA-256 кода квитанции, рождённого на устройстве (dsa/SPEC §6); предложено 16.09.2026, LAW-2 прохода 3 — report.ts его ещё не принимает."}
         target_kind: {type: string, enum: [feed_message, offer, table_line, chat, other]}
         reason_text: {type: string, maxLength: 4000}
         bona_fide: {type: boolean, const: true}
@@ -374,7 +374,7 @@ components:
       type: object
       required: [word]
       properties:
-        word: {type: string, description: The hangman word; goes through the same queue as a phrase., x-description-ru: Слово виселицы; идёт через ту же очередь, что и фраза.}
+        word: {type: string, description: The hangman word; goes through the same queue as a phrase., x-description-ru: "Слово виселицы; идёт через ту же очередь, что и фраза."}
     BlockTarget:
       type: object
       description: Exactly one of feed, chat, or table+seat (chat spec §8.9). The answer is 204 whatever happens — not an oracle.
@@ -402,11 +402,10 @@ components:
         state: {type: string, enum: [pending, open, ended]}
     IdentityCreate:
       type: object
-      required: [sign_pub, name, age, auth_hash, share, recovery_lookup_id, nonce]
+      required: [sign_pub, name, age, auth_hash, share, recovery_lookup_id]
       description: "Everything registration sends at once (screen 2): the key, a name and an age, the PIN's auth_hash with the node's share, and the paper code's lookup_id. Under 13 — too_young."
       x-description-ru: "Всё, что регистрация шлёт разом (экран 2): ключ, имя и возраст, auth_hash ПИН с долей узла и lookup_id бумажного кода. Младше 13 — too_young."
       properties:
-        nonce: {$ref: "#/components/schemas/Nonce"}
         sign_pub: {type: string}
         name: {type: string}
         age: {type: integer, minimum: 13}
@@ -415,9 +414,8 @@ components:
         recovery_lookup_id: {type: string}
     VaultInit:
       type: object
-      required: [auth_hash, share, nonce]
+      required: [auth_hash, share]
       properties:
-        nonce: {$ref: "#/components/schemas/Nonce"}
         auth_hash: {type: string}
         share: {type: string}
     RecoveryClaim:
@@ -427,9 +425,8 @@ components:
         lookup_id: {type: string}
     LegalAccept:
       type: object
-      required: [document, revision_sha256, nonce]
+      required: [document, revision_sha256]
       properties:
-        nonce: {$ref: "#/components/schemas/Nonce"}
         document: {type: string}
         revision_sha256: {type: string}
     Appearance:
@@ -445,11 +442,10 @@ components:
         span: {type: integer, enum: [10, 30, 60, 260]}
     PhraseCreate:
       type: object
-      required: [text, mode, lat, lon, area_radius, nonce]
+      required: [text, mode, lat, lon, area_radius]
       description: What the composer sends (screen 4). A private author's offer is a phrase with discount_value and conditions (chat spec §8.3); a link and a promo code are not fields here at all (offers/SPEC_EN.md §6.1).
       x-description-ru: Что отправляет форма фразы (экран 4). Оффер частника — фраза с discount_value и conditions (спека чата §8.3); ссылки и промокода здесь нет вовсе (offers/SPEC_RU.md §6.1).
       properties:
-        nonce: {$ref: "#/components/schemas/Nonce"}
         text: {type: string, maxLength: 128}
         mode: {type: string}
         lat: {type: number}
@@ -477,9 +473,8 @@ components:
         disabled: {type: boolean}
     OfferComplaintCreate:
       type: object
-      required: [notifier_email, nonce]
+      required: [notifier_email]
       properties:
-        nonce: {$ref: "#/components/schemas/Nonce"}
         notifier_email: {type: string, format: email, description: "Required — the only way to answer (offers/SPEC_EN.md §10.2).", x-description-ru: "Обязательно — единственный способ ответить (offers/SPEC_RU.md §10.2)."}
         text: {type: string, maxLength: 1000}
     AdvertiserSignup:
@@ -594,7 +589,7 @@ components:
       type: object
       properties:
         name: {type: string}
-        name_pending: {type: string, description: A name awaiting the queue's verdict., x-description-ru: Имя, ждущее вердикта очереди.}
+        name_pending: {type: string, description: A name awaiting the queue's verdict., x-description-ru: "Имя, ждущее вердикта очереди."}
         age: {type: integer}
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
@@ -645,7 +640,7 @@ components:
       properties:
         nonce: {$ref: "#/components/schemas/Nonce"}
         current_auth: {$ref: "#/components/schemas/Auth"}
-        next_auth_hash: {type: string, description: The hash the node will store for the new PIN., x-description-ru: Хэш, который узел сохранит для нового ПИНа.}
+        next_auth_hash: {type: string, description: The hash the node will store for the new PIN., x-description-ru: "Хэш, который узел сохранит для нового ПИНа."}
         next_share: {type: string}
     IdentityClose:
       type: object
@@ -662,7 +657,7 @@ components:
       required: [local_id, ciphertext]
       properties:
         local_id: {type: string}
-        ciphertext: {type: string, description: base64url, at most max_ciphertext_bytes., x-description-ru: base64url, не больше max_ciphertext_bytes.}
+        ciphertext: {type: string, description: "base64url, at most max_ciphertext_bytes.", x-description-ru: "base64url, не больше max_ciphertext_bytes."}
     MessageAck:
       type: object
       required: [local_id]
@@ -699,6 +694,20 @@ components:
         current: {type: object, required: [lookup_id], properties: {lookup_id: {type: string}}}
         next: {type: object, required: [lookup_id, wrapped_key], properties: {lookup_id: {type: string}, wrapped_key: {type: string}}}
   parameters:
+    IdentitySession:
+      name: x-identity-session
+      in: header
+      required: true
+      schema: {type: string, format: uuid}
+      description: "The live session the signature belongs to (protocol §2). Declared here rather than left in prose: a security scheme can name only one header, and a client generated from a contract that named only x-identity-sign got a 401 on every request (2026-09-20)."
+      x-description-ru: "Живая сессия, которой принадлежит подпись (протокол §2). Объявлен здесь, а не оставлен прозой: схема безопасности умеет назвать только один заголовок, и клиент, собранный по контракту, знавшему один x-identity-sign, получал 401 на каждом запросе (20.09.2026)."
+    IdentityTime:
+      name: x-identity-time
+      in: header
+      required: true
+      schema: {type: integer}
+      description: "Unix seconds, the same value as the fourth line of the signed string; a ±5 minute window (protocol §2)."
+      x-description-ru: "Unix-секунды, то же значение, что в четвёртой строке подписываемого текста; окно ±5 минут (протокол §2)."
     ProtocolVersion:
       name: x-protocol-version
       in: header
@@ -719,6 +728,11 @@ components:
       description: Unix time when the current major protocol version stops being served; present on every answer once the date is set (protocol §3, decided 2026-09-16).
       x-description-ru: Unix-время, когда текущая мажорная версия протокола перестанет обслуживаться; на каждом ответе с момента назначения даты (протокол §3, решено 16.09.2026).
   responses:
+    Unauthorized:
+      description: "The signature of protocol §2 is missing, malformed, outside the ±5 minute window, or not the session's — code unauthorized. Named on every signed operation since 2026-09-20: before that the closed list of §6 held the code and no route answered it, so the commonest refusal of the signed API went undescribed."
+      x-description-ru: "Подписи протокола §2 нет, она не той формы, вне окна ±5 минут либо не этой сессии — code unauthorized. Стоит у каждой подписанной операции с 20.09.2026: до того закрытый список §6 держал код, а отвечал им ни один маршрут, то есть самый частый отказ подписанного API описан не был."
+      headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     ApiError:
       description: A refusal in the common shape {error:{code,message,reason?}} (protocol §6). Every answer of the node may carry x-protocol-sunset (components.headers.ProtocolSunset, protocol §3).
       x-description-ru: Отказ в общей форме {error:{code,message,reason?}} (протокол §6). На любом ответе узла может быть x-protocol-sunset (components.headers.ProtocolSunset, протокол §3).
@@ -775,7 +789,7 @@ paths:
       security: [{metricsToken: []}]
       responses:
         "200": {description: text/plain; version=0.0.4, x-description-ru: text/plain; version=0.0.4}
-        "404": {description: No token or a wrong one — not 401, so the path is not confirmed., x-description-ru: Нет токена или не тот — не 401, чтобы путь не подтверждался.}
+        "404": {description: "No token or a wrong one — not 401, so the path is not confirmed.", x-description-ru: "Нет токена или не тот — не 401, чтобы путь не подтверждался."}
   /chat:
     get:
       tags: [node]
@@ -798,7 +812,7 @@ paths:
       x-description-ru: Предел 20 в час и 60 в сутки по адресу; ключ необязателен, если не REQUIRE_API_KEY=true.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/WaitlistLead"}}}}
       responses:
-        "200": {description: Stored, a duplicate, or storage off., x-description-ru: Сохранено, дубль или хранилище выключено., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
+        "200": {description: "Stored, a duplicate, or storage off.", x-description-ru: "Сохранено, дубль или хранилище выключено.", content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
         "202": {description: Bot trap filled., x-description-ru: Заполнена ловушка для ботов.}
         "401": {description: Missing or invalid key., x-description-ru: Нет ключа или ключ неверен., content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
         "403": {description: Origin not allowed for this key., x-description-ru: Источник не разрешён для ключа.}
@@ -839,7 +853,7 @@ paths:
       x-description-ru: Предел 10 в час и 40 в сутки по адресу; ключ только называет бренд и уведомление не отклоняет.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/Notice"}}}}
       responses:
-        "202": {description: Accepted with an id., x-description-ru: Принято, с номером.}
+        "202": {description: Accepted with an id., x-description-ru: "Принято, с номером."}
         "422": {description: invalid body or a required field missing, x-description-ru: неверное тело или нет обязательного поля}
         "429": {description: Address limit., x-description-ru: Предел адреса.}
         "503": {description: could not store the notice, x-description-ru: не удалось сохранить уведомление}
@@ -856,7 +870,7 @@ paths:
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
-        "200": {description: The same answer for an unknown receipt and an undecided notice; the decision once there is one., x-description-ru: Один ответ на неизвестную квитанцию и нерешённое уведомление; решение, когда оно есть.}
+        "200": {description: The same answer for an unknown receipt and an undecided notice; the decision once there is one., x-description-ru: "Один ответ на неизвестную квитанцию и нерешённое уведомление; решение, когда оно есть."}
   /csp-report:
     post:
       tags: [intake]
@@ -866,7 +880,7 @@ paths:
       x-source: relay/node/src/main.ts
       security: []
       responses:
-        "204": {description: No body, even over the limit., x-description-ru: Без тела, даже сверх предела.}
+        "204": {description: "No body, even over the limit.", x-description-ru: "Без тела, даже сверх предела."}
   /v1/waitlist:
     post:
       tags: [v1]
@@ -882,7 +896,7 @@ paths:
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/WaitlistLead"}}}}
       responses:
         "200": {description: Stored., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Ok"}}}}
-        "401": {description: No secret key, or unknown or revoked., x-description-ru: Нет секретного ключа или он неизвестен или отозван., content: {application/json: {schema: {$ref: "#/components/schemas/V1Error"}}}}
+        "401": {description: "No secret key, or unknown or revoked.", x-description-ru: Нет секретного ключа или он неизвестен или отозван., content: {application/json: {schema: {$ref: "#/components/schemas/V1Error"}}}}
         "403": {description: Key not scoped., x-description-ru: У ключа нет скоупа.}
         "409": {description: unknown_brand, x-description-ru: unknown_brand}
         "422": {description: invalid_body, x-description-ru: invalid_body}
@@ -966,7 +980,7 @@ paths:
       x-source: relay/node/src/routes/admin.ts
       security: [{panelSession: []}]
       responses:
-        "200": {description: Email, role, brand and permissions., x-description-ru: Почта, роль, бренд и пермишены.}
+        "200": {description: "Email, role, brand and permissions.", x-description-ru: "Почта, роль, бренд и пермишены."}
         "401": {description: unauthorized, x-description-ru: не авторизован}
   /admin/waitlist:
     get:
@@ -1001,7 +1015,7 @@ paths:
         - {name: before, in: query, schema: {type: string}}
         - {name: brand, in: query, schema: {type: string}}
       responses:
-        "200": {description: Rows, totals and 32 time buckets., x-description-ru: Строки, итоги и 32 корзины по времени.}
+        "200": {description: "Rows, totals and 32 time buckets.", x-description-ru: "Строки, итоги и 32 корзины по времени."}
         "403": {description: forbidden, x-description-ru: запрещено}
   /admin/logs-pageviews:
     get:
@@ -1082,7 +1096,7 @@ paths:
         "200": {description: The key with its quotas., x-description-ru: Ключ с квотами.}
         "403": {description: A tenant., x-description-ru: Арендатор.}
         "404": {description: not found, x-description-ru: не найден}
-        "422": {description: Exactly one quota field, a positive number or null., x-description-ru: Ровно одно поле квоты, положительное число или null.}
+        "422": {description: "Exactly one quota field, a positive number or null.", x-description-ru: "Ровно одно поле квоты, положительное число или null."}
   /admin/secret-keys/{id}/quota:
     patch:
       <<: *quota
@@ -1224,7 +1238,7 @@ paths:
       parameters:
         - {name: state, in: query, schema: {type: string, enum: [all]}}
       responses:
-        "200": {description: At most 200, oldest first., x-description-ru: Не больше 200, старые первыми.}
+        "200": {description: "At most 200, oldest first.", x-description-ru: "Не больше 200, старые первыми."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/dsa-notices/{id}/escalate:
     post:
@@ -1254,7 +1268,7 @@ paths:
       parameters:
         - {name: id, in: path, required: true, schema: {type: string}}
       responses:
-        "200": {description: Decided, with a statement id when upheld., x-description-ru: Решено, с номером мотивировки при удовлетворении.}
+        "200": {description: "Decided, with a statement id when upheld.", x-description-ru: "Решено, с номером мотивировки при удовлетворении."}
         "404": {description: no such notice, x-description-ru: нет такого уведомления}
         "409": {description: already decided, x-description-ru: уже решено}
         "422": {description: invalid decision fields, x-description-ru: неверные поля решения}
@@ -1283,10 +1297,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: Ten wrong attempts lock access until the paper code; the share is kept.
       x-description-ru: Десять неверных попыток закрывают вход до бумажного кода; доля цела.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultShare"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The share., x-description-ru: Доля.}
@@ -1299,10 +1316,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: Nine characters, two minutes, one use; requires a PIN proof.
       x-description-ru: Девять символов, две минуты, одно применение; требует доказательства ПИНа.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsInvite"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Invitation stored., x-description-ru: Приглашение записано.}
@@ -1315,10 +1335,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: The old PIN, a new auth_hash, a reissued share.
       x-description-ru: Старый ПИН, новый auth_hash, перевыпуск доли.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PinChange"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1332,10 +1355,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: With a PIN proof; appearance rows are deleted in the same transaction.
       x-description-ru: С доказательством ПИНа; строки оформления удаляются той же транзакцией.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/IdentityClose"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1351,7 +1377,10 @@ paths:
       x-description-ru: "Выбор, хранящийся на узле (экран 22); копия на устройстве рисует первый кадр."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The appearance., x-description-ru: Оформление., content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
     put:
@@ -1362,10 +1391,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: One row per face named by the API key — theme, contrast step, an accent from that face's set.
       x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Saved., x-description-ru: Сохранено.}
@@ -1417,10 +1449,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: Document, date, hash; one row each.
       x-description-ru: Документ, дата, хэш; по строке на каждое.
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/LegalAccept"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Recorded., x-description-ru: Записано.}
@@ -1433,10 +1468,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PhraseCreate"}}}}
       description: Answers 202 at once; visible_at stays empty until the queue's verdict.
       x-description-ru: Отвечает 202 сразу; visible_at пуст до вердикта очереди.
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Accepted into the queue., x-description-ru: Принято в очередь.}
@@ -1451,8 +1489,11 @@ paths:
       x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче нет — оно в GET /likes (17.09.2026).
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: A page of feed items and the next cursor., x-description-ru: Страница карточек ленты и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
@@ -1467,8 +1508,11 @@ paths:
       x-description-ru: "Карточки той же формы, что в GET /feed: фразы и офферы частников со state (liked | matched) и столы; курсором after (протокол §4.3; экран 25; решение владельца 17.09.2026, утверждено 17.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: A page of liked cards and the next cursor., x-description-ru: Страница лайкнутых карточек и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
@@ -1481,11 +1525,14 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Taken down; the slot is freed, not the hourly ceiling., x-description-ru: Снята; слот освобождён, часовой потолок — нет.}
+        "200": {description: "Taken down; the slot is freed, not the hourly ceiling.", x-description-ru: "Снята; слот освобождён, часовой потолок — нет."}
   /feed/density:
     get:
       tags: [feed]
@@ -1495,9 +1542,12 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.
       x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "The band: few is below the floor of 5 (feed.nearby.floor)", x-description-ru: "Ступень: few — ниже порога 5 (feed.nearby.floor)", content: {application/json: {schema: {type: object, properties: {band: {type: string, enum: [nobody, few, tens, hundreds]}}}}}}
@@ -1510,8 +1560,11 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
@@ -1524,11 +1577,14 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Taken back, or state spent once a match exists., x-description-ru: Снят или state spent, если мэтч уже есть., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
+        "200": {description: "Taken back, or state spent once a match exists.", x-description-ru: "Снят или state spent, если мэтч уже есть.", content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
   /matches/{id}/consent:
     post:
       tags: [chat]
@@ -1540,8 +1596,11 @@ paths:
       x-description-ru: Чат открывается, когда согласились оба.
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Consent recorded., x-description-ru: Согласие записано.}
@@ -1555,8 +1614,11 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: A page — a count only on offers; next cursor (protocol §6)., x-description-ru: Страница — счётчик только на предложениях; следующий курсор (протокол §6)., content: {application/json: {schema: {type: object, properties: {items: {type: array, items: {$ref: "#/components/schemas/InboxItem"}}, next: {type: string}}}}}}
@@ -1571,8 +1633,11 @@ paths:
       x-description-ru: Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The ticket., x-description-ru: Билет.}
@@ -1585,10 +1650,13 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       description: Only on a confirmed database read — 503 rather than an empty list, or local history would be wiped.
       x-description-ru: Только при подтверждённом чтении базы — 503, а не пустой список, иначе стёрлась бы локальная история.
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAlive"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The live ids., x-description-ru: Живые id., content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAliveResult"}}}}
@@ -1602,8 +1670,11 @@ paths:
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Closed., x-description-ru: Закрыта.}
@@ -1617,9 +1688,12 @@ paths:
       x-description-ru: 10, 30 или 60 минут либо «пока говорим» (260 минут).
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ChatSpan"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Saved., x-description-ru: Сохранено.}
@@ -1634,8 +1708,11 @@ paths:
       x-description-ru: "Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/TableCreate"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "201": {description: The table id., x-description-ru: id стола., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
@@ -1651,8 +1728,11 @@ paths:
       x-description-ru: "Доска, {playing, watching}, реплики с момента своей посадки, своё место; рука своя, рубашки чужих (спека чата §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The table., x-description-ru: Стол., content: {application/json: {schema: {$ref: "#/components/schemas/TableView"}}}}
@@ -1668,8 +1748,11 @@ paths:
       x-description-ru: "Закладка с публичным счётчиком, ни мэтча, ни предложения; стол уходит из ленты этого человека в GET /likes (спека чата §6.1; решение владельца 17.09.2026, утверждено 17.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: state liked; a repeat answers the same., x-description-ru: state liked; повтор отвечает тем же., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
@@ -1685,8 +1768,11 @@ paths:
       x-description-ru: "like_count уменьшается, стол возвращается в ленту (спека чата §6.1, 17.09.2026, утверждено 17.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Taken back., x-description-ru: Снят.}
@@ -1702,8 +1788,11 @@ paths:
       x-description-ru: "Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1718,8 +1807,11 @@ paths:
       x-description-ru: "Вернуться — тем же POST; история заново с посадки (спека чата §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1734,8 +1826,11 @@ paths:
       x-description-ru: "Как у беседы (протокол §4.4): билет едет в Sec-WebSocket-Protocol рядом с субпротоколом xor.p1."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "404": {$ref: "#/components/responses/ApiError"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1751,9 +1846,12 @@ paths:
       x-description-ru: "line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/TableLineCreate"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Queued., x-description-ru: В очереди.}
@@ -1770,9 +1868,12 @@ paths:
       x-description-ru: "В терминах класса доски; отказы not_your_turn, illegal_move с причиной движка; три паса подряд — в зрители (table.move.window, table.pass.limit)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Move"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
@@ -1788,8 +1889,11 @@ paths:
       x-description-ru: "В окне table.confirm.window (30 с); не подтвердился — зритель (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1804,9 +1908,12 @@ paths:
       x-description-ru: "Откат срабатывает при согласии всех играющих и ровно на один снимок (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Proposal"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {description: pending_exists — an open proposal is already there; refused — a spectator cannot propose., x-description-ru: pending_exists — открытое предложение уже есть; refused — зритель предлагать не может., content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1822,10 +1929,13 @@ paths:
       x-description-ru: "accept / decline / counter — встречное называет другой класс и набор (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {name: pid, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1840,8 +1950,11 @@ paths:
       x-description-ru: "Одностороннее объявление; результат не записывается (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1856,9 +1969,12 @@ paths:
       x-description-ru: "Появляется репликой за столом; движок победителя не называет (спека чата §6, экран 19)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Seat"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1873,9 +1989,12 @@ paths:
       x-description-ru: "Узел считает большинство сидящих; следа не остаётся; высаженный может вернуться (спека чата §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Seat"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1890,9 +2009,12 @@ paths:
       x-description-ru: "Собеседнику уходит кадр proposal (спека чата §6, экран 18)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/GameOffer"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1907,8 +2029,11 @@ paths:
       x-description-ru: "Позиция, чей ход и счёт из кеша партии; без реплик и чужой руки (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The board., x-description-ru: Доска., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
@@ -1923,8 +2048,11 @@ paths:
       x-description-ru: "Смерть беседы уносит партию каскадом и без этого (chat_games ON DELETE CASCADE)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1939,9 +2067,12 @@ paths:
       x-description-ru: "accept открывает доску у обоих; decline — беседа словами; counter называет другую доску (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -1956,9 +2087,12 @@ paths:
       x-description-ru: "По классу: клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse} — тасует и бросает узел. Ход двигает свой срок беседы (спека чата §6, §8.6). Объявляется нешифрованной системной строкой."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Move"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
@@ -1974,9 +2108,12 @@ paths:
       x-description-ru: "202 — та же очередь, что у фразы; отказ — «загадайте другое» и счётчик паузы (спека чата §6 «виселица»)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Word"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Queued., x-description-ru: В очереди.}
@@ -1992,8 +2129,11 @@ paths:
       x-description-ru: "В окне table.confirm.window; счётчика «N из 2» вдвоём нет (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2008,9 +2148,12 @@ paths:
       x-description-ru: "Откат срабатывает при согласии обоих (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Proposal"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "201": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
@@ -2025,10 +2168,13 @@ paths:
       x-description-ru: "accept / decline / counter (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {name: pid, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProposalAnswer"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2043,8 +2189,11 @@ paths:
       x-description-ru: "Одностороннее объявление (спека чата §6)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2059,12 +2208,15 @@ paths:
       x-description-ru: "По фразе, беседе или месту; 204 всегда, повтор — тоже: ответ не оракул. Мэтч гаснет, общий чат закрывается, фразы скрыты обоим (спека чата §8.9)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/BlockTarget"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done, and the same answer on a repeat., x-description-ru: Сделано; повтор отвечает тем же.}
+        "204": {description: "Done, and the same answer on a repeat.", x-description-ru: Сделано; повтор отвечает тем же.}
     get:
       tags: [safety]
       summary: "Your own blocks"
@@ -2075,7 +2227,10 @@ paths:
       x-description-ru: "{id, since} — без личностей; экран 10 показывает список и снятие (решено 16.09.2026, протокол §4.8)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, since: {type: string, format: date-time}}}}}}}
@@ -2090,8 +2245,11 @@ paths:
       x-description-ru: "Состав видимых столов пересчитается при следующем входе в ленту (спека чата §8.9, §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2106,8 +2264,11 @@ paths:
       x-description-ru: "200 с id для возврата; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/HideTarget"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Hidden; the id for bringing it back., x-description-ru: Скрыто; id для возврата., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
@@ -2121,7 +2282,10 @@ paths:
       x-description-ru: "Для экрана 10; недолог по построению. Поля {id, kind, text} названы в протоколе §4.8 (16.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, text: {type: string}, kind: {type: string, enum: [feed, line]}}}}}}}
@@ -2136,8 +2300,11 @@ paths:
       x-description-ru: "Экран 5."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2152,8 +2319,11 @@ paths:
       x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками и поставленные лайки (likes, table_likes; 18.09.2026), гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Away"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2168,7 +2338,10 @@ paths:
       x-description-ru: "stepped_away_until = now(); метка у собеседника снимается первой репликой, не этим запросом (спека чата §8.2)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2183,8 +2356,11 @@ paths:
       x-description-ru: "{body, email?}; 201 {public_no} — 10 знаков Crockford base32 сразу. Четвёртое за сутки — 429 с адресом поддержки витрины в message (support.requests.day, support.frozen.day)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SupportCreate"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2199,7 +2375,10 @@ paths:
       x-description-ru: "По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/SupportRequest"}}}}}
@@ -2214,8 +2393,11 @@ paths:
       x-description-ru: "answer_seen = true (схема support_requests)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: "no", in: path, required: true, schema: {type: string}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2230,7 +2412,10 @@ paths:
       x-description-ru: "name, name_pending, age, фильтры, языки, stepped_away_until (экран 10)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The profile., x-description-ru: Профиль., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
@@ -2244,8 +2429,11 @@ paths:
       x-description-ru: "Любое подмножество. Имя уходит в очередь модерации (202, вердикт кадром name_verdict); отказы name_frozen, paused, age_step_down, filter_out_of_band (спека чата §8.2, §8.3)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProfilePatch"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Saved., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
@@ -2262,8 +2450,11 @@ paths:
       x-description-ru: "Доказательство текущего кода и производные нового; новый действует и прежний гаснет одной транзакцией. Промах идёт в те же счётчики, что у /recovery/claim (recovery.miss.shared, recovery.miss.pause)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryReissue"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
@@ -2279,9 +2470,12 @@ paths:
       x-description-ru: "Кладётся в pending_deliveries, двигает last_activity_at, отдаётся второму сразу или при подключении; не смог — {local_id, error} (спека чата §8.8; SEC-8)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Message"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "202": {description: Accepted., x-description-ru: Принято., content: {application/json: {schema: {$ref: "#/components/schemas/MessageAck"}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "404": {$ref: "#/components/responses/ApiError"}
@@ -2298,9 +2492,12 @@ paths:
       x-description-ru: "Узел удаляет доставленное из pending_deliveries (спека чата §8.8)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Received"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "204": {description: Done., x-description-ru: Сделано.}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2315,7 +2512,10 @@ paths:
       x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §6; LAW-1, 16.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Statement"}}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2362,7 +2562,10 @@ paths:
       parameters:
         - {name: code, in: path, required: true, schema: {type: string, minLength: 10}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
   /offers/{id}/complaints:
@@ -2377,8 +2580,11 @@ paths:
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferComplaintCreate"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
         "422": {description: "No e-mail: the only way to answer — the form names this reason", x-description-ru: "Нет почты: единственного способа ответить — форма называет эту причину"}
@@ -2571,7 +2777,10 @@ paths:
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
     delete:
@@ -2585,7 +2794,10 @@ paths:
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
   /vault/init:
@@ -2599,8 +2811,11 @@ paths:
       x-description-ru: "После переноса или восстановления: новое устройство регистрирует свой auth_hash и долю; прежний ПИН не нужен (экран 13). Только по одноразовому праву «первый ПИН», которое оставляет на личности одобренный перенос или восстановление; вызов его расходует; без права — 409 unauthorized, так что один ключ подписи ПИН не подменяет (канон чата: смена ПИН требует прежний)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultInit"}}}}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
   /sessions/{lookup_id}/approve:
@@ -2615,7 +2830,10 @@ paths:
       parameters:
         - {name: lookup_id, in: path, required: true, schema: {type: string}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
   /sessions/{lookup_id}/reject:
@@ -2630,6 +2848,9 @@ paths:
       parameters:
         - {name: lookup_id, in: path, required: true, schema: {type: string}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}

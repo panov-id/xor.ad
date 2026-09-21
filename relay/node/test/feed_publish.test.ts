@@ -37,6 +37,7 @@ await import("../src/routes/likes.ts");
 await import("../src/routes/matches.ts");
 await import("../src/routes/chats.ts");
 await import("../src/routes/inbox.ts");
+await import("../src/routes/blocks.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -2097,5 +2098,61 @@ Deno.test({
 
     const stranger = await author();
     assertEquals((await inbox(stranger)).items.length, 0, "a stranger's inbox is not empty");
+  },
+});
+
+// ── Blocks (§8.9) ──────────────────────────────────────────────────────────────
+const nonce = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)));
+const blockedBy = async (who: string) =>
+  (await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM blocks WHERE blocker_identity = $1`, [who]))[0].n;
+
+Deno.test({
+  name: "blocking by a conversation ends it for both, hides the match, and answers 204 to anything",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const { a, b, chat } = await openChat();
+    const block = (who: typeof a, body: unknown) => signedCall(who.pair.privateKey, who.session_id, "POST", "/blocks", body);
+    const done = await block(a, { chat, nonce: nonce() });
+    assertEquals(done.status, 204, JSON.stringify(done.body));
+    assertEquals(await blockedBy(a.identity_id), 1, "the block was not written");
+    assertEquals(await goneOf(chat), 2, "the shared conversation did not end for both");
+    // Not an oracle: a stranger's chat, a chat that never was — the same 204, nothing written.
+    const stranger = await author();
+    assertEquals((await block(stranger, { chat, nonce: nonce() })).status, 204);
+    assertEquals((await block(stranger, { chat: crypto.randomUUID(), nonce: nonce() })).status, 204);
+    assertEquals(await blockedBy(stranger.identity_id), 0, "a stranger blocked through someone else's chat");
+    void b;
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a replayed block does not come back after it was lifted",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Why POST /blocks carries a nonce (protocol §2): without it a captured
+    // request, replayed inside the window, would restore a block its owner took off.
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const b = await author();
+    const phraseId = await seedPhrase(b.identity_id, "фраза Б");
+    const body = { feed: phraseId, nonce: nonce() };
+    const call = () => signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", body);
+    assertEquals((await call()).status, 204);
+    const list = await matchCall(a, "GET", "/blocks");
+    const mine = list.body as Array<{ id: string; since: number }>;
+    assertEquals(mine.length, 1, JSON.stringify(list.body));
+    assert(!JSON.stringify(mine).includes(b.identity_id), "the list leads back to the blocked identity");
+    assertEquals((await matchCall(a, "DELETE", `/blocks/${mine[0].id}`)).status, 204);
+    assertEquals(await blockedBy(a.identity_id), 0, "the block was not lifted");
+    assertEquals((await call()).status, 204, "a replay answered differently");
+    assertEquals(await blockedBy(a.identity_id), 0, "a replayed request restored a lifted block");
+    assertEquals((await matchCall(b, "DELETE", `/blocks/${mine[0].id}`)).status, 204, "someone else's id answered differently");
+    reset();
   },
 });

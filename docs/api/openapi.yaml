@@ -2444,7 +2444,8 @@ paths:
       tags: [safety]
       summary: "Block a person"
       x-summary-ru: "Заблокировать человека"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/blocks.ts
       security: [{identitySignature: []}]
       description: "By a phrase, a conversation or a seat; 204 always, a repeat too — the answer is not an oracle. The match dies, the shared chat closes, phrases are hidden from both (chat spec §8.9)."
       x-description-ru: "По фразе, беседе или месту; 204 всегда, повтор — тоже: ответ не оракул. Мэтч гаснет, общий чат закрывается, фразы скрыты обоим (спека чата §8.9)."
@@ -2463,7 +2464,8 @@ paths:
       tags: [safety]
       summary: "Your own blocks"
       x-summary-ru: "Свои блокировки"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/blocks.ts
       security: [{identitySignature: []}]
       description: "{id, since} — no identities; screen 10 shows the list and lifting (decided 2026-09-16, protocol §4.8)."
       x-description-ru: "{id, since} — без личностей; экран 10 показывает список и снятие (решено 16.09.2026, протокол §4.8)."
@@ -2482,7 +2484,8 @@ paths:
       tags: [safety]
       summary: "Lift a block"
       x-summary-ru: "Снять блокировку"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/blocks.ts
       security: [{identitySignature: []}]
       description: "The set of visible tables is recomputed on the next entry into the feed (chat spec §8.9, §6.1)."
       x-description-ru: "Состав видимых столов пересчитается при следующем входе в ленту (спека чата §8.9, §6.1)."

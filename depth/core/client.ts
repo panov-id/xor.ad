@@ -190,6 +190,17 @@ export class Client {
     return this.#call("POST", `/chats/${chatId}/received`, { ids });
   }
 
+  // POST /blocks — by what one can see: a phrase or a conversation, never an
+  // identity. 204 whatever happened; the nonce keeps a replay from restoring a
+  // block that was lifted (protocol §2, §4.8).
+  blockByChat(chatId: string): Promise<Answer> {
+    return this.#call("POST", "/blocks", { chat: chatId, nonce: base64url(random(16)) });
+  }
+
+  blockByPhrase(phraseId: string): Promise<Answer> {
+    return this.#call("POST", "/blocks", { feed: phraseId, nonce: base64url(random(16)) });
+  }
+
   // GET /inbox — offers to talk and conversations in one answer (§8.12).
   async inbox(): Promise<Array<Record<string, unknown>>> {
     const answer = await this.#call<{ items: Array<Record<string, unknown>> }>("GET", "/inbox");

@@ -162,3 +162,24 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "blocking closes the other one's room at once, 4003",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // §8.9: a block ends the shared conversation for both — not on the blocked
+    // one's next request, but now (step 5 panel, task 5).
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await room.protocol();
+      assertEquals((await a.blockByChat(chatId)).status, 204);
+      assertEquals(await room.closedWithin(), 4003, "the blocked one's room stayed open (0 = still open after 5 s)");
+    } finally {
+      await sql.end();
+    }
+  },
+});

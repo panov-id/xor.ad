@@ -114,7 +114,7 @@ core without drawing, against a live node (since 2026-09-21).
 | 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo (2026-09-21); `agreed` opens no chat until step 5, the ephemeral key is step 6 | [~] core: consent and "not now" |
 | 5. Chat: transport | [~] `db/031`: `chats`, `chat_participants`, `chat_starters`; both consenting opens the chat and answers its `chat_id`; `db/032` `pending_deliveries`, sending a ciphertext (202 with no signal of presence) and confirming receipt (2026-09-21); a queue ceiling of 200 pushing out the oldest in silence and a sweep of rows past 260 minutes; `db/033` tickets and the `GET /chat` socket: what waits on connecting, what is new through `NOTIFY`, two `depth` terminals exchange a ciphertext; the end of a conversation — `DELETE /chats/:id`, one's own term, the `sweep_chats` job, the room closes 4003 (2026-09-21); the term's `PATCH`, `POST /chats/alive`, `GET /inbox` (matches and conversations; no `offer_interest`, no second page); missing — 1001 | [ ] |
 | 6. Encryption | [ ] | [ ] |
-| 7. Blocks, hiding, sweeping | [ ] | [ ] |
+| 7. Blocks, hiding, sweeping | [~] `POST`/`GET`/`DELETE /blocks` (2026-09-21): by a phrase or a conversation, 204 with no oracle, a `nonce` against replay, the match goes and the conversation ends for both with the room closed 4003; sweepers of matches, the queue and conversations; missing — `/hidden`, blocking by a seat at a table | [ ] |
 | 8. Notifications and games | [ ] | [ ] |
 | 9. Web face | — | [ ] prototype exists, app does not |
 

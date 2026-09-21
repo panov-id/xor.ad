@@ -1189,3 +1189,51 @@ async function countIdentities(): Promise<number> {
   const [row] = await database.queryOrThrow<{ n: bigint }>(`SELECT count(*) AS n FROM identities`);
   return Number(row.n);
 }
+
+Deno.test("a signed caller cannot tell a real paper code from a wrong one", async () => {
+  // The oracle the review panel found on 2026-09-21, and the shape of it is
+  // worth keeping: the 2026-09-20 fix moved the key check above the lookup but
+  // hung it on `!caller`, so the exemption meant for the code's owner covered
+  // every signed caller. One identity's live session, another identity's
+  // lookup_id, no keys in the body, and the two answers came back different —
+  // 404 for a code that matches nothing, 503 for a code that matches, because
+  // the hit walked on into the insert and died on a NOT NULL column with the
+  // miss counter never touched.
+  const victim = await registered();
+  const attacker = await registered();
+
+  const onARealCode = await signedCall(
+    attacker.pair.privateKey,
+    attacker.created.session_id,
+    "POST",
+    "/recovery/claim",
+    { lookup_id: victim.lookupId },
+  );
+  const onGarbage = await signedCall(
+    attacker.pair.privateKey,
+    attacker.created.session_id,
+    "POST",
+    "/recovery/claim",
+    { lookup_id: "a-code-that-belongs-to-nobody" },
+  );
+
+  assertEquals(
+    onARealCode.status,
+    onGarbage.status,
+    "a real code and a wrong one answer differently to a signed caller",
+  );
+  assertEquals(onARealCode.status, 404);
+  assertEquals(
+    (onARealCode.body as { error: { code: string } }).error.code,
+    (onGarbage.body as { error: { code: string } }).error.code,
+    "the refusal codes differ, which is the same oracle in another field",
+  );
+
+  // And it costs what a miss costs. A probe that spends nothing can be run
+  // until it hits; the shared brake is the only thing that makes it expensive.
+  const [victimRow] = await database.queryOrThrow<{ closed_at: Date | null }>(
+    `SELECT closed_at FROM identities WHERE id = $1`,
+    [victim.created.identity_id],
+  );
+  assertEquals(victimRow.closed_at, null, "probing somebody's code disturbed their identity");
+});

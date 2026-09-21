@@ -431,9 +431,26 @@ async function claimRecovery(req: Request): Promise<Response> {
   //
   // A request signed by its own session needs no keys: that device already has
   // them, and `caller` is how the node knows.
+  //
+  // `caller` is not enough on its own, and that was the hole this exemption
+  // opened on 2026-09-20: it exempts *any* signed caller, not the owner. A
+  // caller with a live session of their own could send somebody else's
+  // `lookup_id` and no keys at all, skip this block, and read the answer off
+  // what came back — 404 for a miss, 503 for a hit, because the hit walked
+  // into the new-device branch and died on `sign_public_key NOT NULL` with the
+  // miss counter untouched. One bit, free, invisible to the code's owner: the
+  // same oracle as before, entered through the fix for it. Found by the
+  // security lens of the review panel, 2026-09-21.
+  //
+  // So keys are validated whenever they are offered, by anyone, and a signed
+  // request that offers none is a claim about one identity only — the caller's
+  // own. Whether that claim is true cannot be known before the lookup, so the
+  // answer for "not yours" is made identical to the answer for "no such code",
+  // miss counter included (below, at `sameDevice`).
   const label = typeof body.label === "string" ? body.label.slice(0, 200) : null;
   const sessionId = crypto.randomUUID();
-  if (!caller) {
+  const offersKeys = body.sign_pub !== undefined || body.wrap_pub !== undefined;
+  if (!caller || offersKeys) {
     if (!isText(body.sign_pub, 1024) || !await importSignPublicKey(body.sign_pub)) {
       return refuse("invalid_body", "sign_pub is not a base64url SPKI P-256 key", 400);
     }
@@ -471,6 +488,23 @@ async function claimRecovery(req: Request): Promise<Response> {
   }
 
   const sameDevice = caller !== null && caller.identityId === identity.id;
+
+  // The signed caller who brought no keys and hit somebody else's code. The
+  // code is right, and the answer says nothing about that: the same 404 and
+  // the same spent miss as a code that matches nothing. Anything else here —
+  // a 400 about the absent keys, a 503 from the insert that would follow — is
+  // the confirmation the attacker came for.
+  if (!sameDevice && !offersKeys) {
+    if (countMiss()) {
+      log("warn", "recovery codes paused: the shared miss threshold was reached", {
+        threshold: SHARED_MISS_MAX,
+      });
+      inc("relay_recovery_claim_total", { result: "pause_started" });
+    }
+    inc("relay_recovery_claim_total", { result: "no_match" });
+    return refuse("not_found", "that code does not match", 404);
+  }
+
   const wrapped = bytesToBase64url(identity.recovery_wrapped_key);
 
   if (sameDevice) {

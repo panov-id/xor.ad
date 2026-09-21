@@ -14,7 +14,7 @@ const databaseUrl = Deno.env.get("DEPTH_DATABASE_URL");
 
 async function person(name: string) {
   const c = new Client(node!, apiKey!);
-  await c.register({ name, age: 30 });
+  await c.register({ name, age: 30 }, { testOnly: true });
   await c.confirmPaperCode();
   return c;
 }

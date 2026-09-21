@@ -11,6 +11,16 @@ introduces no rule that is not already in the spec. Where the two disagree,
 
 ---
 
+> **Code status, 2026-09-21.** The core lives in `depth/core/` of this repository:
+> Deno and Web Crypto, no Ink and no DOM (§13 of the chat spec). It signs per §2,
+> registers with the paper code, reads the profile, sends a phrase, reads the
+> feed with its cursor, likes and takes a like back, consents and says "not
+> now"; checked against a live node (`scripts/run-depth-tests.sh`). **Not yet:**
+> drawing (Ink), the image, the volume and `identity.age` of §2 and §6 — keys live
+> in memory only. **Placeholders:** the PIN proof (Argon2id — its parameters are
+> not written down), the paper code's halves and the node's share that opens no
+> vault yet; registering with them takes the `testOnly` flag.
+
 ## 1. Why this face exists
 
 ### 1.1. What a terminal gives that the web cannot

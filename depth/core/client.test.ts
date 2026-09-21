@@ -15,7 +15,7 @@ Deno.test({
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
-    const me = await client.register({ name: "Женя", age: 30 });
+    const me = await client.register({ name: "Женя", age: 30 }, { testOnly: true });
     assert(me.identityId && me.sessionId, "registration did not return an identity and a session");
     await client.confirmPaperCode();
     const profile = await client.profile();
@@ -29,11 +29,21 @@ Deno.test({
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
-    await client.register({ name: "Аня", age: 28 });
+    await client.register({ name: "Аня", age: 28 }, { testOnly: true });
     await client.confirmPaperCode();
     const sent = await client.say({ text: "гуляю у реки, если кто рядом", mode: "alone", lat: 41.9, lon: 12.5, radius: 1000 });
     assertEquals(sent.status, 202, "a phrase was not accepted for checking");
     const feed = await client.feed({ lat: 41.9, lon: 12.5, radius: 1000 });
     assert(Array.isArray(feed.items), "the feed did not come back as a list");
   },
+});
+
+Deno.test("without testOnly the core refuses to register with placeholder secrets", async () => {
+  // depth-core panel, 2026-09-21: the PIN proof and the paper code are random
+  // stand-ins; a terminal built on this core as-is would register people who
+  // can never unlock or recover. Until the real ones exist, it takes a flag.
+  const client = new Client("http://nowhere.invalid", "key");
+  let refused = false;
+  try { await client.register({ name: "Женя", age: 30 }); } catch (e) { refused = String(e).includes("placeholder"); }
+  assert(refused, "the core registered with placeholders without being told they are acceptable");
 });

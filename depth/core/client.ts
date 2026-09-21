@@ -24,10 +24,18 @@ async function sha256hex(bytes: Uint8Array): Promise<string> {
 export interface Answer<T = unknown> {
   status: number;
   body: T;
+  // Seconds from Retry-After on 429 and 503 (protocol §6), when the node gave it.
+  retryAfter?: number;
 }
+
+// The five circles the contract allows (openapi.yaml PhraseCreate.area_radius).
+export type Radius = 100 | 300 | 1000 | 3000 | 10000;
 
 export class Client {
   #key: SigningKey | null = null;
+  // The private half of the wrapping pair. Kept, not dropped: anything sealed to
+  // wrap_pub must stay openable (depth-core panel, 2026-09-21).
+  #wrapPrivate: CryptoKey | null = null;
   #session = "";
   identityId = "";
 
@@ -46,14 +54,37 @@ export class Client {
     }
     const response = await fetch(url, { method, headers, body: body === undefined ? undefined : raw });
     const text = await response.text();
-    return { status: response.status, body: (text ? JSON.parse(text) : null) as T };
+    // A refusal that is not JSON — a proxy's HTML, a 502 — keeps its status and
+    // its text instead of throwing (depth-core panel, 2026-09-21).
+    let parsed: unknown = null;
+    if (text) {
+      try { parsed = JSON.parse(text); } catch { parsed = { raw: text }; }
+    }
+    const retry = Number(response.headers.get("retry-after"));
+    return {
+      status: response.status,
+      body: parsed as T,
+      ...(Number.isFinite(retry) && retry > 0 ? { retryAfter: retry } : {}),
+    };
   }
 
   // POST /identities — name and age, then the PIN's proof with the node's share,
   // then the paper code, all at once (§13 step 1: three steps, all required).
-  async register(who: { name: string; age: number }): Promise<{ identityId: string; sessionId: string }> {
+  //
+  // `testOnly` is required while the three secrets are placeholders: a terminal
+  // built on this core as it is would register people who can never unlock or
+  // recover (depth-core panel, 2026-09-21). The test scripts pass it; nothing
+  // else should until the PIN and the paper code are real.
+  async register(
+    who: { name: string; age: number },
+    opts: { testOnly?: boolean } = {},
+  ): Promise<{ identityId: string; sessionId: string }> {
+    if (!opts.testOnly) {
+      throw new Error("register: the PIN proof and the paper code are still placeholders; pass testOnly");
+    }
     this.#key = await generateSigningKey();
-    const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]) as CryptoKeyPair;
+    const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+    this.#wrapPrivate = wrap.privateKey;
     const answer = await this.#call<{ identity_id: string; session_id: string }>("POST", "/identities", {
       sign_pub: this.#key.publicSpki,
       wrap_pub: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", wrap.publicKey))),
@@ -85,15 +116,17 @@ export class Client {
   }
 
   // POST /feed — 202 means "being read", not "published" (§8.3).
-  say(phrase: { text: string; mode: string; lat: number; lon: number; radius: number }): Promise<Answer> {
+  say(phrase: { text: string; mode: string; lat: number; lon: number; radius: Radius }): Promise<Answer> {
     return this.#call("POST", "/feed", {
       text: phrase.text, mode: phrase.mode, lat: phrase.lat, lon: phrase.lon, area_radius: phrase.radius,
     });
   }
 
-  async feed(at: { lat: number; lon: number; radius: number }): Promise<{ items: unknown[]; next: string | null }> {
+  // `after` walks the cursor of protocol §6; an empty `next` is the end.
+  async feed(at: { lat: number; lon: number; radius: Radius; after?: string }): Promise<{ items: unknown[]; next?: string | null }> {
     const q = new URLSearchParams({ lat: String(at.lat), lon: String(at.lon), radius: String(at.radius) });
-    const answer = await this.#call<{ items: unknown[]; next: string | null }>("GET", `/feed?${q}`);
+    if (at.after) q.set("after", at.after);
+    const answer = await this.#call<{ items: unknown[]; next?: string | null }>("GET", `/feed?${q}`);
     if (answer.status !== 200) throw new Error(`feed refused: ${answer.status} ${JSON.stringify(answer.body)}`);
     return answer.body;
   }

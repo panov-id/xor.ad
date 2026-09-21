@@ -69,11 +69,19 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   the signature, and anything able to rewrite a request in flight could move it
   inside the window. Normalised: parameters sorted by name then by value and
   re-encoded by one encoder; a repeated parameter keeps both values; an empty
-  query signs as a bare path, so `/feed` and `/feed?` agree.
+  query signs as a bare path, so `/feed` and `/feed?` agree. **Made precise on
+  2026-09-21 after the depth-core panel:** the decoded pairs are sorted by UTF-16
+  code units, then each half is encoded with `encodeURIComponent` (RFC 3986 less
+  `!'()*`); the node and the depth core do this independently, and
+  `depth/core/sign.test.ts` checks them against each other on Cyrillic and on
+  `!'()*`. The `x-protocol-version` and `content-type` headers stay outside the
+  signature on purpose: the hash of the raw body is signed, and changing the
+  type does not change it.
 - **The major version stays 1.** The change breaks compatibility and there was
   nothing to break: measured on 2026-09-21, the signature is implemented by this
   node and its tests alone — there is no client in `sosed.place` or
-  `neighbro.place`, and `depth` is not written. A version exists so as not to
+  `neighbro.place`, and `depth` is not written (that evening the depth core
+  appeared — a second implementation, already on the new signature). A version exists so as not to
   diverge from whoever holds the previous protocol; nobody holds it.
 - **A window instead of a nonce** is a deliberate trade (§8.2): whoever intercepts
   a request can replay it within five minutes; a nonce would require shared memory

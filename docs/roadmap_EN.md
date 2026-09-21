@@ -24,7 +24,7 @@ more. The legal section keeps its number (§2): both storefronts'
 | Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
 | Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — consent without a chat |
 | Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
-| `depth` client (terminal, goes first) | ~12% | core `depth/core/` (2026-09-21): §2 signing, checked against the node's verifier; registration, profile, a phrase, the feed, a like, a match and consent between two terminals against a live node; no drawing (Ink) yet; the PIN's Argon2id and the paper code are placeholders |
+| `depth` client (terminal, goes first) | ~12% | core `depth/core/` (2026-09-21): §2 signing, checked against the node's verifier; registration, profile, a phrase, the feed, a like, a match and consent between two terminals against a live node; no drawing (Ink) yet; placeholders — the PIN's Argon2id, the paper code and the node's share that opens no vault yet; registering with them needs the `testOnly` flag |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
 
 The percentages are estimates: they are not weighted by hours, because steps
@@ -36,7 +36,7 @@ The percentages are estimates: they are not weighted by hours, because steps
   image `v2026.9.11-g8f89e7a`, brands `sosed` and `neighbro`. Measured
   2026-09-21.
 - [x] Storefronts `sosed.place` and `neighbro.place`, panel `xor.panov.id` —
-  200. Measured 2026-09-21. Production shipped 2026-07-27–28.
+  200. Measured 2026-09-21. Production shipped 2026-07-27–2026-07-28.
 - [x] Supabase left the path on 2026-07-22: state lives in our own Postgres
   beside the node, delivery through Bunny.
 - [ ] Dev and staging (box n1) — not measured: behind an IP allow-list.
@@ -103,13 +103,13 @@ The percentages are estimates: they are not weighted by hours, because steps
 ## 3. Product: build order (§13 of the chat spec)
 
 The terminal goes first; the web is the last step, over a protocol already
-proven. The server is built ahead of the client, so the client column is
-empty throughout.
+proven. The server is built ahead of the client; the client is the `depth/core/`
+core without drawing, against a live node (since 2026-09-21).
 
 | Step | Server (`xor.ad/relay/node`) | `depth` client |
 |---|---|---|
-| 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 closed 2026-09-21; not rolled out | [~] core: registration and the paper code against a live node, PIN and code are placeholders |
-| 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [ ] |
+| 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 closed 2026-09-21; not rolled out | [~] core: registration and the paper code against a live node; PIN, code and share are placeholders |
+| 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [~] core: a phrase and the feed with its cursor |
 | 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like` (2026-09-21): band, block, self-like without an oracle, a match on a mutual like; `DELETE` — a take-back until a match, else `spent`; a limit of 300 an hour; a sweep of expired matches every minute; missing — the offer's match (**blocked**: S7 needs the name queue, and the node has neither a "name checked" mark nor a queue — that is step 2's moderator), a two-connection race test | [~] core: like and take-back |
 | 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo (2026-09-21); `agreed` opens no chat until step 5, the ephemeral key is step 6 | [~] core: consent and "not now" |
 | 5. Chat: transport | [ ] `chat/relay.ts` answers 501; the `LISTEN`/`NOTIFY` bus works as of 2026-09-21 | [ ] |

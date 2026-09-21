@@ -32,7 +32,9 @@ async function sha256hex(bytes: Uint8Array): Promise<string> {
 }
 
 export async function generateSigningKey(): Promise<SigningKey> {
-  const pair = await crypto.subtle.generateKey(P256, true, ["sign", "verify"]) as CryptoKeyPair;
+  // Not extractable (depth-core panel, 2026-09-21): §2.3 rests on the key
+  // leaving only through the node. The public half exports regardless.
+  const pair = await crypto.subtle.generateKey(P256, false, ["sign", "verify"]) as CryptoKeyPair;
   const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
   return { privateKey: pair.privateKey, publicSpki: base64url(spki) };
 }

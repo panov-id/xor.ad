@@ -68,11 +68,17 @@ async function myStatements(req: Request): Promise<Response> {
   // shown discharges nothing (db/005 says the same from the other side). Only
   // the rows that had never been delivered are touched, so the column keeps
   // meaning "the first time the author could have read it".
+  // Only the rows this answer carried. The UPDATE used to be bounded by the
+  // recipient alone, so an author with more than a hundred statements had the
+  // hundred-and-first marked delivered without it ever being in a response —
+  // and, there being no cursor on this route, without any call that could ever
+  // show it. Under Art. 17 that is a record of delivery for something
+  // undelivered. Found by the protocols lens of the review panel, 2026-09-21.
   if (rows.length > 0) {
     await query(
       `UPDATE dsa_statements SET delivered_at = now()
-        WHERE recipient_identity = $1 AND delivered_at IS NULL`,
-      [caller.identityId],
+        WHERE id = ANY($1::uuid[]) AND delivered_at IS NULL`,
+      [rows.map((row) => row.id)],
     );
   }
 

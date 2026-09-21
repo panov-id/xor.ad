@@ -859,3 +859,36 @@ addEventListener("unload", () => {
 
   database.closePool();
 });
+
+Deno.test("a statement that was not shown is not recorded as delivered", async () => {
+  // The route answers with a hundred and has no cursor, so anything past the
+  // hundredth cannot be reached by any call at all. Until 2026-09-21 the
+  // delivery UPDATE was bounded by the recipient rather than by the rows that
+  // had just gone out, and it marked those unreachable statements delivered:
+  // a record under Art. 17 that the author was told, for something they were
+  // never shown and could not ask for. Found by the protocols lens of the
+  // review panel.
+  const me = await author();
+  const ids: string[] = [];
+  for (let i = 0; i < 101; i++) ids.push(await writeStatement(me.identity_id));
+  const oldest = ids[0];
+
+  const seen = await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements");
+  const items = (seen.body as { items: Array<{ id: string }> }).items;
+  assertEquals(items.length, 100, "the page size changed; this case assumes a hundred");
+  assertEquals(
+    items.find((item) => item.id === oldest),
+    undefined,
+    "the oldest statement was in the answer after all; the case is testing nothing",
+  );
+
+  const [row] = await database.queryOrThrow<{ delivered_at: Date | null }>(
+    `SELECT delivered_at FROM dsa_statements WHERE id = $1`,
+    [oldest],
+  );
+  assertEquals(
+    row.delivered_at,
+    null,
+    "a statement the author was never shown is recorded as delivered to them",
+  );
+});

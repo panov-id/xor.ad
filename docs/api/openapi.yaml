@@ -1702,7 +1702,8 @@ paths:
       tags: [feed]
       summary: Take down your own phrase
       x-summary-ru: Снять свою фразу
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/feed.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1720,12 +1721,16 @@ paths:
       tags: [feed]
       summary: The density band under the radius handle
       x-summary-ru: Ступень плотности под ручкой радиуса
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/feed.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
+        - {name: lat, in: query, required: true, schema: {type: number, minimum: -90, maximum: 90}}
+        - {name: lon, in: query, required: true, schema: {type: number, minimum: -180, maximum: 180}}
+        - {name: radius, in: query, required: true, schema: {type: integer, minimum: 100, maximum: 25000}, description: "The circle under the handle, the same shape GET /feed takes (named here 2026-09-21, with the route).", x-description-ru: "Круг под ручкой, той же формы, что берёт GET /feed (назван здесь 21.09.2026 вместе с ручкой)."}
       description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.
       x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.
       responses:

@@ -158,3 +158,26 @@ export async function sweepStaleQueue(): Promise<number> {
   }
   return swept;
 }
+
+// Phrases whose term ran out. They stop being delivered the moment
+// `expires_at` passes — the feed's query says so — but the row has to go too,
+// and §8.10 says what "gone" means: the text is deleted, the likes follow by
+// cascade, and what survives is a copy in other tables rather than the phrase.
+//
+// A separate sweeper from the queue's: that one is about a verdict that never
+// came, this one about a life that ended. They have different periods and
+// different meanings, and one job doing both would report one number for two
+// unrelated facts.
+export async function sweepExpiredPhrases(): Promise<number> {
+  const rows = await queryOrThrow<{ count: string }>(
+    `WITH gone AS (
+       DELETE FROM feed_messages
+        WHERE visible_at IS NOT NULL AND expires_at <= now()
+        RETURNING 1
+     )
+     SELECT count(*)::text AS count FROM gone`,
+  );
+  const swept = Number(rows[0]?.count ?? 0);
+  if (swept > 0) inc("relay_feed_verdict_total", { verdict: "expired" }, swept);
+  return swept;
+}

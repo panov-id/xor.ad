@@ -611,7 +611,151 @@ Deno.test("the cursor is a pair, and it does not drop a phrase published in the 
   }
 });
 
+
+// --- taking down, expiring, and the density handle ---------------------------
+
+Deno.test("taking a phrase down frees the slot but not the hour", async () => {
+  // §8.3 keeps these two apart deliberately: the live limit is a property of
+  // the table, the hourly one is moments in identity_stats — otherwise a
+  // take-down, or a step away, would reset the hour and the ceiling would mean
+  // nothing (2026-09-14).
+  const me = await author();
+  const ids: string[] = [];
+  for (let i = 0; i < limits.LIVE_MAX; i++) {
+    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `живая ${i}` }));
+    const { id } = sent.body as { id: string };
+    await verdict.publishPhrase(id);
+    ids.push(id);
+  }
+
+  const [before] = await database.queryOrThrow<{ published_at_recent: Date[] }>(
+    `SELECT published_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(before.published_at_recent.length, limits.PUBLISH_PER_HOUR);
+
+  const removed = await signedCall(me.pair.privateKey, me.session_id, "DELETE", `/feed/${ids[0]}`);
+  assertEquals(removed.status, 204, JSON.stringify(removed.body));
+
+  // The hour did not move.
+  const [after] = await database.queryOrThrow<{ published_at_recent: Date[] }>(
+    `SELECT published_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(
+    after.published_at_recent.length,
+    before.published_at_recent.length,
+    "a take-down erased the hour's moments",
+  );
+
+  // So the next send meets the hourly ceiling rather than the live one — the
+  // slot is free and the hour is not.
+  const next = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "взамен" }));
+  assertEquals(next.status, 429, JSON.stringify(next.body));
+  assertEquals((next.body as { error: { code: string } }).error.code, "rate_limited");
+});
+
+Deno.test("somebody else's phrase answers like one that never existed", async () => {
+  const mine = await author();
+  const theirs = await author();
+  const id = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, { text: "не твоя" });
+
+  const attempt = await signedCall(mine.pair.privateKey, mine.session_id, "DELETE", `/feed/${id}`);
+  assertEquals(attempt.status, 404);
+  const invented = await signedCall(mine.pair.privateKey, mine.session_id, "DELETE", `/feed/${crypto.randomUUID()}`);
+  assertEquals(
+    (attempt.body as { error: { code: string } }).error.code,
+    (invented.body as { error: { code: string } }).error.code,
+    "somebody else's phrase is told apart from one that does not exist",
+  );
+
+  // And it is still there.
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id])).length,
+    1,
+    "a stranger took somebody's phrase down",
+  );
+});
+
+Deno.test("a phrase past its term is swept, and a live one is left alone", async () => {
+  const me = await author();
+  const live = await livePhrase({ pair: me.pair.privateKey, session_id: me.session_id }, { text: "ещё живая" });
+  const old = await livePhrase({ pair: me.pair.privateKey, session_id: me.session_id }, { text: "отжила" });
+  await database.queryOrThrow(
+    `UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`,
+    [old],
+  );
+
+  const swept = await verdict.sweepExpiredPhrases();
+  assert(swept >= 1, "the expired phrase was not swept");
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [old])).length,
+    0,
+  );
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [live])).length,
+    1,
+    "a live phrase was swept with the expired ones",
+  );
+});
+
+Deno.test("density answers a step, and never the number", async () => {
+  const mine = await author();
+  const theirs = await author();
+  // A corner of the world to itself, so the count is this case's own.
+  const here = { lat: -20.0, lon: 30.0 };
+
+  const empty = await signedCall(
+    mine.pair.privateKey,
+    mine.session_id,
+    "GET",
+    `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`,
+  );
+  assertEquals(empty.status, 200, JSON.stringify(empty.body));
+  assertEquals((empty.body as { step: string }).step, "none");
+  assertEquals((empty.body as Record<string, unknown>).count, undefined, "the count left the node");
+
+  await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
+    text: "одна тут",
+    lat: here.lat,
+    lon: here.lon,
+  });
+  const few = await signedCall(
+    mine.pair.privateKey,
+    mine.session_id,
+    "GET",
+    `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`,
+  );
+  assertEquals((few.body as { step: string }).step, "few");
+});
+
+Deno.test("density counts what the feed would deliver, not what is in the circle", async () => {
+  // A handle that promised company and then showed an empty screen because the
+  // band cut it would be worse than no handle at all.
+  const teenager = await author(15);
+  const adult = await author(35);
+  const here = { lat: -25.0, lon: 35.0 };
+  await livePhrase({ pair: adult.pair.privateKey, session_id: adult.session_id }, {
+    text: "взрослая рядом",
+    lat: here.lat,
+    lon: here.lon,
+  });
+
+  const seen = await signedCall(
+    teenager.pair.privateKey,
+    teenager.session_id,
+    "GET",
+    `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`,
+  );
+  assertEquals(
+    (seen.body as { step: string }).step,
+    "none",
+    "the handle counted a phrase the band hides",
+  );
+});
+
 addEventListener("unload", () => {
+
 
   database.closePool();
 });

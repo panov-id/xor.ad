@@ -334,7 +334,124 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   }, 200, sunsetHeader());
 }
 
+
+// DELETE /feed/:id — taking your own phrase down.
+//
+// Two numbers part company here and §8.3 is explicit about why: **the live slot
+// frees at once, the hour's ceiling does not.** The four-live limit is a
+// property of the table, so deleting a row frees a slot immediately; the
+// four-an-hour limit is held by moments in `identity_stats`, which a deletion
+// does not touch — otherwise taking a phrase down, or a step away, would reset
+// the hour and the ceiling would mean nothing (2026-09-14).
+//
+// Only your own. Somebody else's phrase answers exactly as a phrase that never
+// existed: a distinguishable refusal would let a stranger probe which ids are
+// real.
+async function takeDown(req: Request, id: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!/^[0-9a-fA-F-]{36}$/.test(id)) {
+    return refuse("not_found", "no such phrase", 404);
+  }
+
+  const gone = await query<{ id: string }>(
+    `DELETE FROM feed_messages
+      WHERE id = $1 AND author_identity = $2
+      RETURNING id`,
+    [id, caller.identityId],
+  );
+  if (gone === null) return refuse("unavailable", "the node cannot write right now", 503);
+  if (gone.length === 0) {
+    inc("relay_feed_total", { result: "take_down_missed" });
+    return refuse("not_found", "no such phrase", 404);
+  }
+  inc("relay_feed_total", { result: "taken_down" });
+  return new Response(null, { status: 204, headers: sunsetHeader() });
+}
+
+// The steps a density answer comes in, and why it is steps (§8.3, 2026-08-26).
+//
+// The handle on screen 3 says how many live phrases are inside the circle, and
+// a number there would be a measuring instrument in a stranger's hands: drag
+// the radius, read the count, and the difference tells you about one person's
+// area. A step is enough to aim with and too coarse to triangulate.
+const DENSITY_STEPS: Array<{ upTo: number; step: string }> = [
+  { upTo: 0, step: "none" },
+  { upTo: 4, step: "few" },
+  { upTo: 14, step: "about_ten" },
+  { upTo: 99, step: "tens" },
+];
+export function densityStep(count: number): string {
+  for (const { upTo, step } of DENSITY_STEPS) if (count <= upTo) return step;
+  return "hundreds";
+}
+
+// GET /feed/density — the same circle and the same band as the feed, answered
+// as a step.
+//
+// It reads what the feed would deliver rather than everything in the circle: a
+// handle that promised company and then showed an empty screen because the band
+// cut it would be worse than no handle.
+async function density(req: Request, url: URL): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+
+  const lat = Number(url.searchParams.get("lat"));
+  const lon = Number(url.searchParams.get("lon"));
+  const radius = Number(url.searchParams.get("radius"));
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+    return refuse("invalid_body", "lat is missing or not a latitude", 400);
+  }
+  if (!Number.isFinite(lon) || lon < -180 || lon > 180) {
+    return refuse("invalid_body", "lon is missing or not a longitude", 400);
+  }
+  if (!Number.isFinite(radius) || radius < 100 || radius > RADIUS_CEILING) {
+    return refuse("invalid_body", `radius must be between 100 and ${RADIUS_CEILING} metres`, 400);
+  }
+
+  const [me] = await query<{ age: number; languages: string[] }>(
+    `SELECT age, languages FROM identities WHERE id = $1`,
+    [caller.identityId],
+  ) ?? [];
+  if (!me) return refuse("unavailable", "the node cannot answer right now", 503);
+
+  const mine = band(me.age);
+  const box = boundingBox({ lat, lon }, radius + 10000);
+  const counted = await query<{ n: string }>(
+    `SELECT count(*)::text AS n
+       FROM feed_messages f
+       JOIN identities a ON a.id = f.author_identity
+      WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
+        AND f.lat BETWEEN $1 AND $2 AND f.lon BETWEEN $3 AND $4
+        AND a.age >= $6 AND ($7::int IS NULL OR a.age <= $7)
+        AND (
+          CASE WHEN a.age <= 20 THEN $5::int BETWEEN greatest(13, a.age - 2) AND a.age + 2
+               ELSE $5::int >= least(21, a.age - 2)
+          END
+        )
+        AND ($8::text[] = '{}' OR f.lang = ANY($8))
+        AND sqrt(
+              pow((f.lat - $9) * 111320, 2) +
+              pow((f.lon - $10) * 111320 * cos(radians((f.lat + $9) / 2)), 2)
+            ) <= f.area_radius + $11`,
+    [
+      box.latMin, box.latMax, box.lonMin, box.lonMax,
+      me.age, mine.low, mine.high,
+      me.languages ?? [],
+      lat, lon, radius,
+    ],
+  );
+  if (counted === null) return refuse("unavailable", "the node cannot answer right now", 503);
+
+  inc("relay_feed_total", { result: "density" });
+  // The count itself never leaves. That is the whole decision.
+  return json({ step: densityStep(Number(counted[0]?.n ?? 0)) }, 200, sunsetHeader());
+}
+
+route("DELETE", "/feed/:id", (c) => takeDown(c.req, c.params.id));
+route("GET", "/feed/density", (c) => density(c.req, c.url));
+
 route("POST", "/feed", (c) => publish(c.req));
 route("GET", "/feed", (c) => deliver(c.req, c.url));
 
-export { deliver, PAGE_SIZE, publish, RADIUS_CEILING, TEXT_MAX_BYTES, TEXT_MAX_GRAPHEMES };
+export { deliver, density, PAGE_SIZE, publish, RADIUS_CEILING, takeDown, TEXT_MAX_BYTES, TEXT_MAX_GRAPHEMES };

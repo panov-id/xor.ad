@@ -20,7 +20,7 @@ import { pruneObjects } from "../../tools/prune_objects.ts";
 import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
-import { sweepStaleQueue } from "./feed_verdict.ts";
+import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
 // Everything else the policy promises a window for. Page views keep their own job
@@ -52,6 +52,11 @@ export const SWEEP_IDENTITIES = "sweep_identities";
 // such a row is deleted and does not count as queued — so the author's slot
 // frees and their pause does not grow because the node was slow.
 export const SWEEP_FEED_QUEUE = "sweep_feed_queue";
+// Phrases whose four hours and twenty minutes ran out. Separate from the queue
+// sweep above: that one is a verdict that never came, this one a life that
+// ended, and one job reporting both would report one number for two unrelated
+// facts.
+export const SWEEP_FEED_EXPIRED = "sweep_feed_expired";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -130,6 +135,15 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_DAY_MS);
   });
 
+  handle(SWEEP_FEED_EXPIRED, async () => {
+    // Every minute as well: the feed already stops delivering an expired phrase
+    // the moment its term passes, so this is about the table rather than about
+    // what people see — but a table that only shrinks once an hour is a table
+    // that holds text nobody may read for an hour.
+    await sweepExpiredPhrases();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
   handle(SWEEP_FEED_QUEUE, async () => {
     // Every minute, because the deadline it enforces is ten: a pass an hour
     // would make "ten minutes" mean "up to seventy".
@@ -174,4 +188,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
 }

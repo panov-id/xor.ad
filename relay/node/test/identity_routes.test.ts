@@ -185,6 +185,19 @@ Deno.test("a registration writes the identity, its session and its share at once
   );
   assertEquals(session.identity, created.identity_id);
 
+  // And the counters row, born with the identity rather than with the first
+  // like: every publication limit of §8.3 is a conditional UPDATE against it,
+  // and one against a missing row refuses silently for ever.
+  const [stats] = await database.queryOrThrow<
+    { published_at_recent: Date[]; rejected_at_recent: Date[] }
+  >(
+    `SELECT published_at_recent, rejected_at_recent FROM identity_stats WHERE identity = $1`,
+    [created.identity_id],
+  );
+  assert(stats, "a registration left no identity_stats row");
+  assertEquals(stats.published_at_recent, []);
+  assertEquals(stats.rejected_at_recent, []);
+
   // The share is sealed: the bytes in the column are not the bytes that arrived,
   // and only the node's key turns one into the other.
   const [vault] = await database.queryOrThrow<{ share_enc: Uint8Array }>(

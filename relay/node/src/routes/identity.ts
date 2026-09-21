@@ -209,6 +209,11 @@ async function createIdentity(req: Request): Promise<Response> {
       `INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, $2, $3)`,
       [sessionId, body.auth_hash, sealed],
     );
+    // The counters row is born here and not at the first like (§8.3): every
+    // publication limit is a conditional UPDATE against it, and a conditional
+    // UPDATE against a row that does not exist refuses silently — for ever, and
+    // without an error anywhere (experiment in postgres:16, 2026-09-14).
+    await run(`INSERT INTO identity_stats (identity) VALUES ($1)`, [identityId]);
     return true;
   }).catch((error) => {
     // Logged, not swallowed. The three transaction catches on this file used to

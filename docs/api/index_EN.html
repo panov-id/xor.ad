@@ -595,14 +595,15 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>A page of feed items and the next cursor.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 </section>
 <section class="op" id="post-feed">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-built">built</span></div>
 <p><strong>Publish a phrase</strong></p>
 <p>Answers 202 at once; visible_at stays empty until the queue&#x27;s verdict.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-phrasecreate"><code>PhraseCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Accepted into the queue.</td><td></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code) or stepped_away (ApiError); told apart by error.code (protocol §6).</td><td><code>object</code></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Accepted into the queue: `{id, state: &quot;checking&quot;}`. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it.</td><td><code>object</code></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code), stepped_away, or one of the two refusals of §8.3 that are not rate limits — `refused` with `checking` while your own phrase is still being read, and `refused` with `live` when four are already up. Told apart by error.code (protocol §6).</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <section class="op" id="get-likes">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/likes</code><span class="chip s-spec">spec</span></div>

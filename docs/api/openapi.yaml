@@ -1594,7 +1594,8 @@ paths:
       tags: [feed]
       summary: Publish a phrase
       x-summary-ru: Опубликовать фразу
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/feed.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1607,8 +1608,20 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "202": {description: Accepted into the queue., x-description-ru: Принято в очередь.}
-        "409": {description: Re-acceptance required (no error.code) or stepped_away (ApiError); told apart by error.code (protocol §6)., x-description-ru: Нужно принять заново (без error.code) либо stepped_away (ApiError); различаются по error.code (протокол §6)., content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "202":
+          description: "Accepted into the queue: `{id, state: \"checking\"}`. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it."
+          x-description-ru: "Принято в очередь: `{id, state: \"checking\"}`. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, state]
+                properties:
+                  id: {type: string, format: uuid}
+                  state: {type: string, enum: [checking]}
+        "409": {description: "Re-acceptance required (no error.code), stepped_away, or one of the two refusals of §8.3 that are not rate limits — `refused` with `checking` while your own phrase is still being read, and `refused` with `live` when four are already up. Told apart by error.code (protocol §6).", x-description-ru: "Нужно принять заново (без error.code), stepped_away, либо один из двух отказов §8.3, которые не про частоту — `refused` с `checking`, пока читается своя фраза, и `refused` с `live`, когда четыре уже стоят. Различаются по error.code (протокол §6).", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
     get:
       tags: [feed]
       summary: The feed by intersecting circles

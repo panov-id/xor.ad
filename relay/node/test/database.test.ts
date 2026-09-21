@@ -1171,6 +1171,43 @@ Deno.test({
 // feed_messages does not exist yet, and the day it does, this test stops
 // building and starts using it.
 
+// **The day the guard below was written for has arrived (2026-09-21).**
+//
+// These cases needed `feed_messages` before any migration had one, so they
+// built it and dropped it — safe until the product had a real table, at which
+// point a probe would have taken it and deleted it with every row in it. The
+// guard refused to carry on quietly, and it fired the moment db/025 landed.
+//
+// So they use the migrated table now, and clean up by deleting their own rows
+// rather than the surface. What is kept from the old arrangement is the reason
+// it existed: the columns are the ones SNAPSHOTTABLE asks for, and a wrong one
+// produces `lookup_failed` rather than a wrong answer.
+async function probePhrase(
+  brand: string,
+  text: string,
+  options: { published?: boolean } = {},
+): Promise<string> {
+  const { query } = await import("../src/lib/db.ts");
+  const id = crypto.randomUUID();
+  const published = options.published ?? true;
+  const written = await query(
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+        visible_at, expires_at)
+     VALUES ($1, $2, NULL, $3, 'alone', 'ru', 41.9, 12.5, 1000,
+             CASE WHEN $4 THEN now() END,
+             CASE WHEN $4 THEN now() + interval '4 hours 20 minutes' END)`,
+    [id, brand, text, published],
+  );
+  assert(written !== null, "the probe row could not be written");
+  return id;
+}
+
+async function forgetPhrases(ids: string[]): Promise<void> {
+  const { query } = await import("../src/lib/db.ts");
+  await query(`DELETE FROM feed_messages WHERE id = ANY($1::uuid[])`, [ids]);
+}
+
 // A probe surface, and the promise that it is ours.
 //
 // These suites build the product's tables to exercise branches that need them —
@@ -1210,40 +1247,10 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
 
-    await refuseIfSurfaceExists("feed_messages");
-    const built = await query(
-      // The columns are the ones SNAPSHOTTABLE asks for, not a plausible
-      // guess: the first version of this probe omitted created_at and
-      // author_identity, and the branch under test answered lookup_failed —
-      // which is what a wrong column is supposed to produce.
-      `CREATE TABLE feed_messages (
-         id uuid PRIMARY KEY,
-         brand text,
-         text text,
-         mode text,
-         created_at timestamptz DEFAULT now(),
-         visible_at timestamptz,
-         author_identity uuid
-       )`,
-      [],
-    );
-    assert(built !== null, "the probe surface could not be created");
-
-    const id = crypto.randomUUID();
-    await query(
-      `INSERT INTO feed_messages (id, brand, text, visible_at)
-       VALUES ($1, 'alpha', 'фраза из альфы', now())`,
-      [id],
-    );
-
+    const id = await probePhrase("alpha", "фраза из альфы");
     // Waiting in the moderation queue: public to nobody, so no notifier could
     // have seen it, so it is never copied — the boundary is time as well as face.
-    const unpublished = crypto.randomUUID();
-    await query(
-      `INSERT INTO feed_messages (id, brand, text, visible_at)
-       VALUES ($1, 'alpha', 'ещё не пропущена', NULL)`,
-      [unpublished],
-    );
+    const unpublished = await probePhrase("alpha", "ещё не пропущена", { published: false });
 
     try {
       const elsewhere = await captureTarget("feed_message", id, "beta");
@@ -1283,7 +1290,7 @@ Deno.test({
       assertEquals(missing.status, "target_gone");
       assertEquals(missing.reason, null);
     } finally {
-      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+      await forgetPhrases([id, unpublished]);
     }
   },
 });
@@ -1364,21 +1371,6 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { report } = await import("../src/routes/report.ts");
 
-    await refuseIfSurfaceExists("feed_messages");
-    const built = await query(
-      `CREATE TABLE feed_messages (
-         id uuid PRIMARY KEY,
-         brand text,
-         text text,
-         mode text,
-         created_at timestamptz DEFAULT now(),
-         visible_at timestamptz,
-         author_identity uuid
-       )`,
-      [],
-    );
-    assert(built !== null, "the probe surface could not be created");
-
     const filed = async (targetId: string, source: string) => {
       const response = await report(
         new Request("https://node.test/report", {
@@ -1405,18 +1397,8 @@ Deno.test({
       return rows[0];
     };
 
-    const theirs = crypto.randomUUID();
-    await query(
-      `INSERT INTO feed_messages (id, brand, text, visible_at)
-       VALUES ($1, 'beta', 'фраза, живущая под бетой', now())`,
-      [theirs],
-    );
-    const mine = crypto.randomUUID();
-    await query(
-      `INSERT INTO feed_messages (id, brand, text, visible_at)
-       VALUES ($1, 'alpha', 'своя фраза', now())`,
-      [mine],
-    );
+    const theirs = await probePhrase("beta", "фраза, живущая под бетой");
+    const mine = await probePhrase("alpha", "своя фраза");
 
     try {
       // Sent through alpha, about a row belonging to beta.
@@ -1442,7 +1424,7 @@ Deno.test({
       assertEquals(own.brand, "alpha", "a tenant still examines its own rows");
       assertEquals(own.received_via, "alpha");
     } finally {
-      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+      await forgetPhrases([theirs, mine]);
     }
   },
 });
@@ -1462,21 +1444,9 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { report } = await import("../src/routes/report.ts");
 
-    await refuseIfSurfaceExists("feed_messages");
-    const built = await query(
-      `CREATE TABLE feed_messages (
-         id uuid PRIMARY KEY,
-         brand text,
-         text text,
-         mode text,
-         created_at timestamptz DEFAULT now(),
-         visible_at timestamptz,
-         author_identity uuid
-       )`,
-      [],
-    );
-    assert(built !== null, "the probe surface could not be created");
-
+    // The surface exists for real since db/025; what this case needs from it is
+    // only that it is there, so that a malformed id reaches the id check rather
+    // than the "no such table" branch.
     try {
       const response = await report(
         new Request("https://node.test/report", {
@@ -1509,7 +1479,7 @@ Deno.test({
       assertEquals(rows[0].snapshot_state, "received");
       assertEquals(rows[0].target_id, null, "what was sent was never an identifier");
     } finally {
-      await query(`DROP TABLE IF EXISTS feed_messages`, []);
+      // Nothing of ours was written: a malformed id never reaches an insert.
     }
   },
 });

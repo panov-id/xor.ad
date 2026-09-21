@@ -595,14 +595,15 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница карточек ленты и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 </section>
 <section class="op" id="post-feed">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-built">построено</span></div>
 <p><strong>Опубликовать фразу</strong></p>
 <p>Отвечает 202 сразу; visible_at пуст до вердикта очереди.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-phrasecreate"><code>PhraseCreate</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принято в очередь.</td><td></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code) либо stepped_away (ApiError); различаются по error.code (протокол §6).</td><td><code>object</code></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принято в очередь: `{id, state: &quot;checking&quot;}`. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено.</td><td><code>object</code></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code), stepped_away, либо один из двух отказов §8.3, которые не про частоту — `refused` с `checking`, пока читается своя фраза, и `refused` с `live`, когда четыре уже стоят. Различаются по error.code (протокол §6).</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <section class="op" id="get-likes">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/likes</code><span class="chip s-spec">спека</span></div>

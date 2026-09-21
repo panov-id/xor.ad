@@ -1829,9 +1829,12 @@ they make it coarse enough to stop being worth the effort; only the absence of a
 counter would close the question, and its price is a blind handle.
 
 Hence two requirements: the answer is computed **on release**, one request per
-gesture, and the route carries **a rate limit of its own** — a hundred (100) requests in a
-row is not a person with a slider but a density profile being taken (`feed.density.burst` in
-`docs/facts/limits.tsv`, 2026-09-15).
+gesture, and the route carries **a rate limit of its own** — a hundred (100) requests an
+hour per identity is not a person with a slider but a density profile being taken
+(`feed.density.burst` in `docs/facts/limits.tsv`, 2026-09-15; the window is an hour by the
+owner's decision of 2026-09-21 — this said "in a row" while the node counted an hour, which
+are different things, and the hour was chosen because the handle is asked on release, so a
+hundred gestures an hour is ample room for a person).
 
 **A consequence worth knowing up front: a like across a widened radius often will
 not become a match.** Mutuality requires the other person to see your phrase in

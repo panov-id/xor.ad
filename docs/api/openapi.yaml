@@ -1744,8 +1744,8 @@ paths:
         - {name: lat, in: query, required: true, schema: {type: number, minimum: -90, maximum: 90}}
         - {name: lon, in: query, required: true, schema: {type: number, minimum: -180, maximum: 180}}
         - {name: radius, in: query, required: true, schema: {type: integer, minimum: 100, maximum: 25000}, description: "The circle under the handle, the same shape GET /feed takes (named here 2026-09-21, with the route).", x-description-ru: "Круг под ручкой, той же формы, что берёт GET /feed (назван здесь 21.09.2026 вместе с ручкой)."}
-      description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.
-      x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.
+      description: A band from "nobody here yet" to "hundreds", asked on release, never an exact number; a rate limit of its own — 100 requests an hour per identity (feed.density.burst); more is a density profile being taken, answered 429 with Retry-After.
+      x-description-ru: Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов в час по личности (feed.density.burst); больше это снятие профиля плотности, ответ 429 с Retry-After.
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}

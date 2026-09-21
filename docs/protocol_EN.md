@@ -383,7 +383,8 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | socket ticket lifetime | 30 seconds | the node |
 | messages in a chat | 60 a minute per identity | the node |
 | nonce lifetime | 10 minutes | the node |
-| density requests | 100 in a row is a density profile being taken | the node |
+| density requests | 100 an hour per identity — more is a density profile being taken | the node |
+| feed reads | 300 an hour per identity — a fan-out of identities computing an author's age gets expensive | the node |
 | queue throughput | ~20 phrases per minute, **not yet measured** | the node |
 | false-block budget | 7% — the moderation threshold is derived from it | the node's config |
 | report threshold | 5% of a phrase's possible audience | the node's config |

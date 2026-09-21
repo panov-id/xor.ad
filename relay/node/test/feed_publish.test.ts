@@ -1303,3 +1303,36 @@ Deno.test("the backfill in db/027 rounds exactly as quantise does", async () => 
   await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = ANY($1::uuid[])`, [ids]);
   assertEquals(differ, [], `the SQL backfill and quantise disagree on ${differ.length} of ${cases.length}`);
 });
+
+Deno.test("the density handle is limited per identity, a hundred an hour", async () => {
+  // The owner's decision of 2026-09-21: feed.density.burst is a hundred an
+  // hour per identity, a sliding window — not "a hundred in a row", which six
+  // places in the documents said while the node counted an hour. The handle is
+  // asked on release, so a hundred gestures an hour is ample for a person; the
+  // hundred-and-first is a profile being taken. Nothing tested the 429 at all
+  // until the second review panel noticed.
+  const { FEED_DENSITY_LIMITS, reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  assertEquals(FEED_DENSITY_LIMITS[0].windowMs, 60 * 60 * 1000, "the density window is not an hour");
+  const me = await author();
+  const neighbour = await author();
+  const ceiling = FEED_DENSITY_LIMITS[0].max;
+  const url = "/feed/density?lat=41.9&lon=12.5&radius=1000";
+
+  let refused: { status: number; headers: Headers } | null = null;
+  for (let i = 0; i < ceiling + 1; i++) {
+    const answer = await signedCall(me.pair.privateKey, me.session_id, "GET", url);
+    if (answer.status === 429) {
+      refused = answer;
+      assertEquals(i, ceiling, `the handle refused after ${i} questions, not after ${ceiling}`);
+      break;
+    }
+    assertEquals(answer.status, 200, `question ${i} was answered ${answer.status}`);
+  }
+  assert(refused, `${ceiling + 1} density questions from one identity were all answered`);
+  assert(refused!.headers.get("retry-after"), "the refusal did not say how long to wait");
+
+  const other = await signedCall(neighbour.pair.privateKey, neighbour.session_id, "GET", url);
+  assertEquals(other.status, 200, "one identity's questions closed the handle for another");
+  reset();
+});

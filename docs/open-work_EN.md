@@ -2214,3 +2214,51 @@ mistaken for a loss.
       the first real measurement is the next deploy. What could be checked
       locally was: the tree hash, its behaviour across history, its availability
       in a shallow clone, and that the YAML still parses.
+
+### P1. The age band gives away a teenager's exact age — open
+
+Review panel, 2026-09-21, security lens. The §8.3 band is symmetric: an author
+aged `a ≤ 20` is visible to a viewer aged `v` exactly when `|a − v| ≤ 2`
+(`relay/node/src/lib/feed_geo.ts:80-93`, and the same arithmetic in SQL at
+`relay/node/src/routes/feed.ts:251-259`). So the set of viewers who see a
+phrase is the interval `[a−2, a+2]`, and its midpoint is `a`. Five identities
+aged 13…22 — half of the hourly ceiling from one address
+(`relay/node/src/lib/rate_limit.ts:137-140`) — narrow the author's age to the
+year. The age is self-declared and checked against nothing
+(`relay/node/src/routes/identity.ts:137-148`).
+
+Not one field about the author's age leaves the node, and that is precisely the
+case where an absent field settles nothing: the delivery itself carries the
+signal.
+
+What to do about it is the owner's decision, not a one-line change:
+
+- add noise to the band so the boundary is not deterministic — at the price of
+  "who I can see" no longer being an exact promise;
+- or name the price in §8.3 as accepted, and close the fan-out with a
+  per-identity limit on `GET /feed` so that five identities cost more than one
+  hour;
+- or stop admitting teenagers to the band at all.
+
+Until it is decided, the trilateration fix (`db/027`) closes half of this: a
+phrase's centre can no longer be recovered, its author's age still can.
+
+### P2. The transfer window has no per-address limit — open
+
+Same panel. `POST /sessions/invite` now spends a PIN attempt through the shared
+counter (`relay/node/src/lib/pin_attempts.ts`), but the route has no limit of
+its own by address, unlike `POST /sessions/claim`
+(`relay/node/src/routes/transfer.ts:147`). There is no number for it in
+`docs/facts/limits.tsv`, and a number comes from the registry or is entered
+into it — never invented on the spot.
+
+### P3. Statements past the hundredth cannot be reached — open
+
+Review panel, 2026-09-21, protocols lens. `GET /statements` answers with a
+hundred rows and has no cursor, in the code
+(`relay/node/src/routes/statements.ts:53-60`) or in the contract
+(`docs/api/openapi.yaml:2723-2742`). Since 2026-09-21 the delivery mark is
+written only for the rows that went out, so there is no false record of
+delivery any more — but an author with a hundred and one statements will never
+see the hundred and first. Either an `after` cursor, as the feed has, or a
+written decision that a hundred is enough, with its reason.

@@ -2750,7 +2750,8 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Statement"}}}}}
+        "200": {description: "The statements addressed to this identity, newest first, at most a hundred, as {items}. There is no cursor yet: a statement past the hundredth cannot be reached (open-work P3), and delivery is recorded only for the ones returned. Corrected 2026-09-21 — this said a bare array, which a client generated from the contract could not read.", x-description-ru: "Мотивировки этой личности, новые первыми, не больше ста, в виде {items}. Курсора пока нет: мотивировка дальше сотой недостижима (open-work P3), а вручение отмечается только отданным. Исправлено 21.09.2026 — здесь стоял голый массив, который клиент, сгенерированный по контракту, прочитать не мог.", content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/Statement"}}}}}}}
+        "503": {description: "The node cannot answer right now; nothing was recorded as delivered.", x-description-ru: "Узел сейчас не может ответить; ничего не отмечено как врученное."}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
   /o/{code}:

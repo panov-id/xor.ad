@@ -402,7 +402,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-built">построено</span></div>
 <p><strong>Обменять доказательство ПИНа на долю ключа хранилища</strong></p>
 <p>Десять неверных попыток закрывают вход до бумажного кода; доля цела.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-vaultshare"><code>VaultShare</code></a></p>
@@ -413,18 +413,18 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/invite</code><span class="chip s-built">построено</span></div>
 <p><strong>Код переноса на другое устройство</strong></p>
 <p>Девять символов, две минуты, одно применение; требует доказательства ПИНа.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-sessionsinvite"><code>SessionsInvite</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Приглашение записано.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Приглашение записано. `expires_in` — сколько секунд оно живёт, по часам базы.</td><td><code>object</code></td></tr><tr><td><code>404</code></td><td>У этой сессии нет доли хранилища, значит нечем доказать ПИН.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/transfer.ts</code></p>
 </section>
 <section class="op" id="post-vault-pin">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-spec">спека</span></div>
 <p><strong>Сменить ПИН</strong></p>
 <p>Старый ПИН, новый auth_hash, перевыпуск доли.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-pinchange"><code>PinChange</code></a></p>
@@ -434,7 +434,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-spec">спека</span></div>
 <p><strong>Начать заново — закрыть личность</strong></p>
 <p>С доказательством ПИНа; строки оформления удаляются той же транзакцией.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-identityclose"><code>IdentityClose</code></a></p>
@@ -444,7 +444,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-spec">спека</span></div>
 <p><strong>Прочитать оформление</strong></p>
 <p>Выбор, хранящийся на узле (экран 22); копия на устройстве рисует первый кадр.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Оформление.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
 </section>
@@ -452,7 +452,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">спека</span></div>
 <p><strong>Оформление личности для этого лица</strong></p>
 <p>Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-appearance"><code>Appearance</code></a></p>
@@ -473,7 +473,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/confirm</code><span class="chip s-built">построено</span></div>
 <p><strong>Бумажный код записан — завершить регистрацию</strong></p>
 <p>Третий запрос второго шага, и он же его закрывает (экран 2). Пока он не пришёл, личность не проходит ни одной проверки членства, а через час её снимает уборщик; больше пометку нести нечему — все прочие вызовы регистрации случаются до показа кода. Его груз — единственное, чего восстановлению недостаёт: долгий ключ под второй половиной кода. Один раз, собственной сессией личности; второй вызов отвечает 409 — пометка ставится через UPDATE … WHERE signup_completed_at IS NULL RETURNING, так что снятую уборщиком строку нельзя тихо оживить. Заведён 20.09.2026 кворумом двух линз ревью: колонка signup_completed_at существовала, а заполнять её было нечем, и identities.recovery_wrapped_key не писала ни одна операция.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-recoveryconfirm"><code>RecoveryConfirm</code></a></p>
@@ -484,7 +484,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-built">построено</span></div>
 <p><strong>Поднять личность бумажным кодом</strong></p>
 <p>Две тропы, различаются подписью: без подписи — чистое устройство, рождается новая сессия, а живая замирает как перенос; подпись собственной сессии устройства — в том числе замороженной, единственное исключение §8.2 — снимает заморозку и возвращает счётчик ПИНа к десяти. Обе оставляют право «первый ПИН». Прежний бумажный код действует до подтверждения нового; смена — POST /recovery/reissue.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-recoveryclaim"><code>RecoveryClaim</code></a></p>
@@ -503,7 +503,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-spec">спека</span></div>
 <p><strong>Записать принятие</strong></p>
 <p>Документ, дата, хэш; по строке на каждое.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-legalaccept"><code>LegalAccept</code></a></p>
@@ -513,7 +513,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-built">построено</span></div>
 <p><strong>Свой профиль</strong></p>
 <p>name, name_pending, age, фильтры, языки, stepped_away_until (экран 10).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Профиль.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/identity.ts</code></p>
@@ -522,7 +522,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/identities/me</code><span class="chip s-spec">спека</span></div>
 <p><strong>Править профиль</strong></p>
 <p>Любое подмножество. Имя уходит в очередь модерации (202, вердикт кадром name_verdict); отказы name_frozen, paused, age_step_down, filter_out_of_band (спека чата §8.2, §8.3).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-profilepatch"><code>ProfilePatch</code></a></p>
@@ -532,7 +532,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/reissue</code><span class="chip s-spec">спека</span></div>
 <p><strong>Перевыпустить бумажный код</strong></p>
 <p>Доказательство текущего кода и производные нового; новый действует и прежний гаснет одной транзакцией. Промах идёт в те же счётчики, что у /recovery/claim (recovery.miss.shared, recovery.miss.pause).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-recoveryreissue"><code>RecoveryReissue</code></a></p>
@@ -542,7 +542,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-built">построено</span></div>
 <p><strong>Свои мотивировки по ст. 17</strong></p>
 <p>Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §7, срок хранения в §9; LAW-1, 16.09.2026; раздел исправлен с §6 20.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/statements.ts</code></p>
@@ -551,7 +551,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-built">построено</span></div>
 <p><strong>Завести первый ПИН на этом устройстве</strong></p>
 <p>После переноса или восстановления: новое устройство регистрирует свой auth_hash и долю; прежний ПИН не нужен (экран 13). Только по одноразовому праву «первый ПИН», которое оставляет на личности одобренный перенос или восстановление; вызов его расходует; без права — 409 unauthorized, так что один ключ подписи ПИН не подменяет (канон чата: смена ПИН требует прежний).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
@@ -562,7 +562,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/approve</code><span class="chip s-built">построено</span></div>
 <p><strong>Это я</strong></p>
 <p>Старое устройство подтверждает перенос, когда четыре знака совпали (экран 13). Только сессией той личности, что выдала приглашение, один раз, в пределах его 120 секунд; иначе not_found.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>lookup_id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/transfer.ts</code></p>
@@ -580,7 +580,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/reject</code><span class="chip s-built">построено</span></div>
 <p><strong>Не совпадает</strong></p>
 <p>Старое устройство отказывает; код гаснет (экран 13). Только сессией той личности, что выдала приглашение, один раз; иначе not_found.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>lookup_id</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/transfer.ts</code></p>
@@ -593,7 +593,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче нет — оно в GET /likes (17.09.2026).</p>
 <p>Круг зрителя приходит с запросом: `lat`, `lon` и `radius`. §8.3 ставит область куда угодно, без проверки местоположения и без разрешения на геолокацию, — хранить и проверять нечего; там же сказано, что радиус просмотра узел видит, потому что на нём построены GET /feed и GET /feed/density. Три параметра названы здесь 21.09.2026 вместе с ручкой: без них операция невызываема.</p>
 <p>Центр карточки — узел сетки, к которому округлил её собственный радиус, а не тот центр, с которым публиковали. Об авторе в карточке нет ничего.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -90, maximum: 90</span></td><td>да</td><td>Центр круга, на который смотрит зритель.</td></tr><tr><td><code>lon</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -180, maximum: 180</span></td><td>да</td><td></td></tr><tr><td><code>radius</code></td><td>query</td><td><code>integer</code> <span class="src">minimum: 100, maximum: 25000</span></td><td>да</td><td>Метры. В отличие от радиуса фразы ступеней не имеет — наружу он не публикуется и меткой быть не может (§8.3).</td></tr><tr><td><code>mode</code></td><td>query</td><td><code>string</code> <span class="src">enum: [&quot;alone&quot;, &quot;company&quot;, &quot;party&quot;]</span></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница карточек ленты и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/feed.ts</code></p>
@@ -602,7 +602,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-built">построено</span></div>
 <p><strong>Опубликовать фразу</strong></p>
 <p>Отвечает 202 сразу; visible_at пуст до вердикта очереди.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-phrasecreate"><code>PhraseCreate</code></a></p>
@@ -613,25 +613,25 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/likes</code><span class="chip s-spec">спека</span></div>
 <p><strong>Всё лайкнутое, что ещё живо</strong></p>
 <p>Карточки той же формы, что в GET /feed: фразы и офферы частников со state (liked | matched) и столы; курсором after (протокол §4.3; экран 25; решение владельца 17.09.2026, утверждено 17.09.2026).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница лайкнутых карточек и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-built">построено</span></div>
 <p><strong>Снять свою фразу</strong></p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Снята; слот освобождён, часовой потолок — нет.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Снята; слот освобождён, часовой потолок — нет. Тела нет.</td><td></td></tr><tr><td><code>404</code></td><td>Фразы с таким id у вас нет — один ответ и на чужую фразу, и на несуществующую.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <section class="op" id="get-feed-density">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-built">построено</span></div>
 <p><strong>Ступень плотности под ручкой радиуса</strong></p>
 <p>Ступень от «здесь пока никого» до «сотни», по отпусканию ручки, не точное число; свой предел частоты — 100 запросов подряд это снятие профиля плотности.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -90, maximum: 90</span></td><td>да</td><td></td></tr><tr><td><code>lon</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -180, maximum: 180</span></td><td>да</td><td></td></tr><tr><td><code>radius</code></td><td>query</td><td><code>integer</code> <span class="src">minimum: 100, maximum: 25000</span></td><td>да</td><td>Круг под ручкой, той же формы, что берёт GET /feed (назван здесь 21.09.2026 вместе с ручкой).</td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Ступень: few — ниже порога 5 (feed.nearby.floor)</td><td><code>object</code></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Ступень, как их называет чат §8.3: none, few (1-4), about_ten (5-14), tens (15-99), hundreds (100+). Поле называется `step`, не `band`, а само число наружу не уходит.</td><td><code>object</code></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <h2 id="tag-chat">chat</h2>
@@ -639,14 +639,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-feed--id--like">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">спека</span></div>
 <p><strong>Лайкнуть фразу или оффер</strong></p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked или matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code) либо stepped_away (ApiError).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id--like">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">спека</span></div>
 <p><strong>Снять лайк, пока нет мэтча</strong></p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Снят или state spent, если мэтч уже есть.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
 </section>
@@ -654,14 +654,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-spec">спека</span></div>
 <p><strong>Согласиться поговорить</strong></p>
 <p>Чат открывается, когда согласились оба.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Согласие записано.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-inbox">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/inbox</code><span class="chip s-spec">спека</span></div>
 <p><strong>Предложения и беседы одним ответом</strong></p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница — счётчик только на предложениях; следующий курсор (протокол §6).</td><td><code>object</code></td></tr></table></div>
 </section>
@@ -669,7 +669,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/ticket</code><span class="chip s-spec">спека</span></div>
 <p><strong>Одноразовый билет для сокета</strong></p>
 <p>Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Билет.</td><td></td></tr></table></div>
 </section>
@@ -677,7 +677,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-spec">спека</span></div>
 <p><strong>Какие чаты ещё живы</strong></p>
 <p>Только при подтверждённом чтении базы — 503, а не пустой список, иначе стёрлась бы локальная история.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-chatsalive"><code>ChatsAlive</code></a></p>
@@ -687,7 +687,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Своя ручка срока</strong></p>
 <p>10, 30 или 60 минут либо «пока говорим» (260 минут).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-chatspan"><code>ChatSpan</code></a></p>
@@ -696,7 +696,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="delete-chats--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Закрыть беседу руками, сразу у обоих</strong></p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
 </section>
@@ -704,7 +704,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>
 <p><strong>Партия после обрыва</strong></p>
 <p>Позиция, чей ход и счёт из кеша партии; без реплик и чужой руки (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Доска.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -712,7 +712,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>
 <p><strong>Предложить или сменить игру</strong></p>
 <p>Собеседнику уходит кадр proposal (спека чата §6, экран 18).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-gameoffer"><code>GameOffer</code></a></p>
@@ -722,7 +722,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>
 <p><strong>Закончить игру</strong></p>
 <p>Смерть беседы уносит партию каскадом и без этого (chat_games ON DELETE CASCADE).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -730,7 +730,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-spec">спека</span></div>
 <p><strong>Ответить на предложение игры</strong></p>
 <p>accept открывает доску у обоих; decline — беседа словами; counter называет другую доску (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
@@ -740,7 +740,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-spec">спека</span></div>
 <p><strong>Ход или пас</strong></p>
 <p>По классу: клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse} — тасует и бросает узел. Ход двигает свой срок беседы (спека чата §6, §8.6). Объявляется нешифрованной системной строкой.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
@@ -750,7 +750,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-spec">спека</span></div>
 <p><strong>Загадать слово виселицы</strong></p>
 <p>202 — та же очередь, что у фразы; отказ — «загадайте другое» и счётчик паузы (спека чата §6 «виселица»).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-word"><code>Word</code></a></p>
@@ -760,7 +760,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/confirm</code><span class="chip s-spec">спека</span></div>
 <p><strong>«Я здесь» на новую игру</strong></p>
 <p>В окне table.confirm.window; счётчика «N из 2» вдвоём нет (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -768,7 +768,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-spec">спека</span></div>
 <p><strong>Предложить: сыграть ещё, ничью, откат</strong></p>
 <p>Откат срабатывает при согласии обоих (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
@@ -778,7 +778,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Ответить на предложение</strong></p>
 <p>accept / decline / counter (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code>pid</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
@@ -788,7 +788,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-spec">спека</span></div>
 <p><strong>Сдаться</strong></p>
 <p>Одностороннее объявление (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -796,7 +796,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-spec">спека</span></div>
 <p><strong>Отправить шифротекст</strong></p>
 <p>Кладётся в pending_deliveries, двигает last_activity_at, отдаётся второму сразу или при подключении; не смог — {local_id, error} (спека чата §8.8; SEC-8).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-message"><code>Message</code></a></p>
@@ -806,7 +806,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/received</code><span class="chip s-spec">спека</span></div>
 <p><strong>Подтвердить получение</strong></p>
 <p>Узел удаляет доставленное из pending_deliveries (спека чата §8.8).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-received"><code>Received</code></a></p>
@@ -816,7 +816,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/decline</code><span class="chip s-spec">спека</span></div>
 <p><strong>Не сейчас</strong></p>
 <p>Отказаться от мэтча; записывается сразу, вернуть можно, пока живёт строка с отменой (экраны 6, 7).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -824,7 +824,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/matches/{id}/decline</code><span class="chip s-spec">спека</span></div>
 <p><strong>Вернуть отказ</strong></p>
 <p>Только в секунды строки с отменой.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -834,7 +834,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-spec">спека</span></div>
 <p><strong>Поставить стол</strong></p>
 <p>Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-tablecreate"><code>TableCreate</code></a></p>
@@ -844,7 +844,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/tables/{id}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Стол без скрытого</strong></p>
 <p>Доска, {playing, watching}, реплики с момента своей посадки, своё место; рука своя, рубашки чужих (спека чата §6.1).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Стол.</td><td><a href="#schema-tableview"><code>TableView</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -852,7 +852,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/like</code><span class="chip s-spec">спека</span></div>
 <p><strong>Лайкнуть стол, не садясь</strong></p>
 <p>Закладка с публичным счётчиком, ни мэтча, ни предложения; стол уходит из ленты этого человека в GET /likes (спека чата §6.1; решение владельца 17.09.2026, утверждено 17.09.2026).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>state liked; повтор отвечает тем же.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>stepped_away (ApiError).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
 </section>
@@ -860,7 +860,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/like</code><span class="chip s-spec">спека</span></div>
 <p><strong>Снять лайк стола</strong></p>
 <p>like_count уменьшается, стол возвращается в ленту (спека чата §6.1, 17.09.2026, утверждено 17.09.2026).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Снят.</td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -868,7 +868,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">спека</span></div>
 <p><strong>Подсесть</strong></p>
 <p>Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -876,7 +876,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">спека</span></div>
 <p><strong>Встать</strong></p>
 <p>Вернуться — тем же POST; история заново с посадки (спека чата §6.1).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -884,7 +884,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/ticket</code><span class="chip s-spec">спека</span></div>
 <p><strong>Одноразовый билет для сокета стола</strong></p>
 <p>Как у беседы (протокол §4.4): билет едет в Sec-WebSocket-Protocol рядом с субпротоколом xor.p1.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Билет.</td><td><code>object</code></td></tr></table></div>
 </section>
@@ -892,7 +892,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/lines</code><span class="chip s-spec">спека</span></div>
 <p><strong>Реплика, заявка, отказ или стикер</strong></p>
 <p>line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-tablelinecreate"><code>TableLineCreate</code></a></p>
@@ -902,7 +902,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/moves</code><span class="chip s-spec">спека</span></div>
 <p><strong>Ход или пас</strong></p>
 <p>В терминах класса доски; отказы not_your_turn, illegal_move с причиной движка; три паса подряд — в зрители (table.move.window, table.pass.limit).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
@@ -912,7 +912,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/confirm</code><span class="chip s-spec">спека</span></div>
 <p><strong>«Я здесь» на новую игру</strong></p>
 <p>В окне table.confirm.window (30 с); не подтвердился — зритель (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -920,7 +920,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals</code><span class="chip s-spec">спека</span></div>
 <p><strong>Предложить: сыграть ещё, ничью, откат</strong></p>
 <p>Откат срабатывает при согласии всех играющих и ровно на один снимок (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
@@ -930,7 +930,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals/{pid}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Ответить на предложение</strong></p>
 <p>accept / decline / counter — встречное называет другой класс и набор (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code>pid</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
@@ -940,7 +940,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/resign</code><span class="chip s-spec">спека</span></div>
 <p><strong>Сдаться</strong></p>
 <p>Одностороннее объявление; результат не записывается (спека чата §6).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -948,7 +948,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/congratulate</code><span class="chip s-spec">спека</span></div>
 <p><strong>Поздравить место</strong></p>
 <p>Появляется репликой за столом; движок победителя не называет (спека чата §6, экран 19).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-seat"><code>Seat</code></a></p>
@@ -958,7 +958,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/kick</code><span class="chip s-spec">спека</span></div>
 <p><strong>Голос за высадку места</strong></p>
 <p>Узел считает большинство сидящих; следа не остаётся; высаженный может вернуться (спека чата §6.1).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-seat"><code>Seat</code></a></p>
@@ -970,7 +970,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/blocks</code><span class="chip s-spec">спека</span></div>
 <p><strong>Свои блокировки</strong></p>
 <p>{id, since} — без личностей; экран 10 показывает список и снятие (решено 16.09.2026, протокол §4.8).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
 </section>
@@ -978,7 +978,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/blocks</code><span class="chip s-spec">спека</span></div>
 <p><strong>Заблокировать человека</strong></p>
 <p>По фразе, беседе или месту; 204 всегда, повтор — тоже: ответ не оракул. Мэтч гаснет, общий чат закрывается, фразы скрыты обоим (спека чата §8.9).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-blocktarget"><code>BlockTarget</code></a></p>
@@ -988,7 +988,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/blocks/{id}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Снять блокировку</strong></p>
 <p>Состав видимых столов пересчитается при следующем входе в ленту (спека чата §8.9, §6.1).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -996,7 +996,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/hidden</code><span class="chip s-spec">спека</span></div>
 <p><strong>Список скрытого</strong></p>
 <p>Для экрана 10; недолог по построению. Поля {id, kind, text} названы в протоколе §4.8 (16.09.2026).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
 </section>
@@ -1004,7 +1004,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/hidden</code><span class="chip s-spec">спека</span></div>
 <p><strong>Скрыть фразу или реплику у себя</strong></p>
 <p>200 с id для возврата; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-hidetarget"><code>HideTarget</code></a></p>
@@ -1014,7 +1014,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/hidden/{id}</code><span class="chip s-spec">спека</span></div>
 <p><strong>Вернуть скрытое</strong></p>
 <p>Экран 5.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -1022,7 +1022,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/away</code><span class="chip s-spec">спека</span></div>
 <p><strong>Отойти</strong></p>
 <p>span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками и поставленные лайки (likes, table_likes; 18.09.2026), гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}.</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-away"><code>Away</code></a></p>
@@ -1032,7 +1032,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/away</code><span class="chip s-spec">спека</span></div>
 <p><strong>Вернуться досрочно</strong></p>
 <p>stepped_away_until = now(); метка у собеседника снимается первой репликой, не этим запросом (спека чата §8.2).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -1058,7 +1058,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-spec">спека</span></div>
 <p><strong>Пожаловаться на ссылку оффера</strong></p>
 <p>Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу; незасчитанная идёт модератору с высоким приоритетом и ничего не гасит; COMPLAINT_MONTHLY_LIMIT не расходует (offers/SPEC_RU.md §10.1, таблица offer_link_reports).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -1066,7 +1066,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/offers/{id}/complaints</code><span class="chip s-spec">спека</span></div>
 <p><strong>Пожаловаться: скидку не дали</strong></p>
 <p>Приватна; почта обязательна; сверх месячного лимита принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер; засчитывается жалоба того, чья первая публикация старше суток и раньше дня выхода оффера, значение замораживается в момент жалобы (offers/SPEC_RU.md §3, §10, §10.2).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-offercomplaintcreate"><code>OfferComplaintCreate</code></a></p>
@@ -1173,7 +1173,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/support</code><span class="chip s-spec">спека</span></div>
 <p><strong>Свои обращения</strong></p>
 <p>По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-supportrequest"><code>SupportRequest</code></a>&gt;</td></tr></table></div>
 </section>
@@ -1181,7 +1181,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/support</code><span class="chip s-spec">спека</span></div>
 <p><strong>Обращение в поддержку</strong></p>
 <p>{body, email?}; 201 {public_no} — 10 знаков Crockford base32 сразу. Четвёртое за сутки — 429 с адресом поддержки витрины в message (support.requests.day, support.frozen.day).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-supportcreate"><code>SupportCreate</code></a></p>
@@ -1191,7 +1191,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/support/{no}/seen</code><span class="chip s-spec">спека</span></div>
 <p><strong>Погасить точку «ответ ждёт»</strong></p>
 <p>answer_seen = true (схема support_requests).</p>
-<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>no</code></td><td>path</td><td><code>string</code></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
@@ -1224,7 +1224,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
 <p>Карточка ленты — фраза либо стол только на первой странице (протокол §4.2; kind добавлен 16.09.2026, DATA-23). Карточка — круг, а не точка; lat и lon округлены до узла сетки с шагом area_radius (протокол §4.2).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;, &quot;offer&quot;]</span></td><td>нет</td><td>offer — оффер заведения (19.09.2026, offers/SPEC_RU.md §7); оффер частника остаётся фразой с заполненным offer.</td></tr><tr><td><code>offer</code></td><td><a href="#schema-offercard"><code>OfferCard</code></a></td><td>нет</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td>Только у стола и только после вердикта очереди (17.09.2026).</td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;]</span></td><td>нет</td><td>Только в GET /likes, у фразы и оффера частника (17.09.2026).</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).</td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;, &quot;offer&quot;]</span></td><td>нет</td><td>offer — оффер заведения (19.09.2026, offers/SPEC_RU.md §7); оффер частника остаётся фразой с заполненным offer.</td></tr><tr><td><code>offer</code></td><td><a href="#schema-offercard"><code>OfferCard</code></a></td><td>нет</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td>Только у стола.</td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td>Только у стола и только после вердикта очереди (17.09.2026).</td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;]</span></td><td>нет</td><td>Только в GET /likes, у фразы и оффера частника (17.09.2026).</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>нет</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code></td><td>нет</td><td>Ответ узла, а не клиента: по нему работает языковой фильтр ленты. До детектора §8.14 всякая фраза лежит как `und`, и `und` проходит любой фильтр (21.09.2026).</td></tr><tr><td><code>farther_than_asked</code></td><td><code>boolean</code></td><td>нет</td><td>Есть и равно true только когда радиус вырос, потому что запрошенный круг был пуст (протокол §4.2).</td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>нет</td><td>Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).</td></tr></table></div></section>
 <section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
@@ -1243,7 +1243,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>error</code></td><td><code>object</code></td><td>да</td><td></td></tr></table></div></section>
 <section class="op" id="schema-page"><div class="op-head"><code class="path">Page</code></div>
 <p>Страница строк и курсор следующей; пустой next — конец (протокол §6).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>items</code></td><td>array&lt;<code>object</code>&gt;</td><td>да</td><td></td></tr><tr><td><code>next</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>items</code></td><td>array&lt;<code>object</code>&gt;</td><td>да</td><td></td></tr><tr><td><code>next</code></td><td><code>string</code></td><td>да</td><td>Курсор следующей страницы, null в конце. Непрозрачен: возвращайте его в `after` и не разбирайте. Форма сменилась 21.09.2026 — теперь он несёт микросекунды, потому что курсор с точностью до миллисекунды терял строки, опубликованные в ту же миллисекунду, что и граница страницы.</td></tr></table></div></section>
 <section class="op" id="schema-feedpage"><div class="op-head"><code class="path">FeedPage</code></div>
 <p><code>object</code></p></section>
 <section class="op" id="schema-tablecreate"><div class="op-head"><code class="path">TableCreate</code></div>
@@ -1363,7 +1363,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>ids</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>да</td><td></td></tr></table></div></section>
 <section class="op" id="schema-statement"><div class="op-head"><code class="path">Statement</code></div>
 <p>Мотивировка по ст. 17 её адресату, без личности заявителя (dsa/SPEC §7, сущность в §8; 20.09.2026 исправлено с §6 — §6 это ответ заявителю по ст. 16(5)).</p>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>restriction</code></td><td><code>string</code> <span class="src">enum: [&quot;removed&quot;, &quot;hidden&quot;, &quot;offer_taken_down&quot;, &quot;access_restricted&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>until</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>нет</td><td>Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). В построенной таблице dsa_statements колонки ещё нет (пункт dsa.statements.until.unbuilt).</td></tr><tr><td><code>facts</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>ground_kind</code></td><td><code>string</code> <span class="src">enum: [&quot;legal&quot;, &quot;contractual&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>ground_text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>automated_used</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>appeal</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>restriction</code></td><td><code>string</code> <span class="src">enum: [&quot;removed&quot;, &quot;hidden&quot;, &quot;offer_taken_down&quot;, &quot;access_restricted&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>until</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>нет</td><td>Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). Колонка построена 21.09.2026 миграцией db/026.</td></tr><tr><td><code>facts</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>ground_kind</code></td><td><code>string</code> <span class="src">enum: [&quot;legal&quot;, &quot;contractual&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>ground_text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>automated_used</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>appeal</code></td><td><code>object</code></td><td>нет</td><td>Куда с этим идти дальше. `ours` называет наш собственный путь, пока внутренняя система по ст. 20 не построена; два других открыты всегда.</td></tr></table></div></section>
 <section class="op" id="schema-recoveryreissue"><div class="op-head"><code class="path">RecoveryReissue</code></div>
 <p>Доказательство текущего бумажного кода и производные нового, рождённого на устройстве (спека чата §8.2 «бумажный код»); одна транзакция.</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>да</td><td></td></tr><tr><td><code>current</code></td><td><code>object</code></td><td>да</td><td></td></tr><tr><td><code>next</code></td><td><code>object</code></td><td>да</td><td></td></tr></table></div></section>

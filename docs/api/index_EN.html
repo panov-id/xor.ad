@@ -402,7 +402,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/share</code><span class="chip s-built">built</span></div>
 <p><strong>Exchange a PIN proof for the node&#x27;s share of the vault key</strong></p>
 <p>Ten wrong attempts lock access until the paper code; the share is kept.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-vaultshare"><code>VaultShare</code></a></p>
@@ -413,18 +413,18 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/invite</code><span class="chip s-built">built</span></div>
 <p><strong>A transfer code for another device</strong></p>
 <p>Nine characters, two minutes, one use; requires a PIN proof.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-sessionsinvite"><code>SessionsInvite</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Invitation stored.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Invitation stored. `expires_in` is its life in seconds, from the database&#x27;s clock.</td><td><code>object</code></td></tr><tr><td><code>404</code></td><td>This session has no share of the vault, so there is no PIN to prove.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/transfer.ts</code></p>
 </section>
 <section class="op" id="post-vault-pin">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/pin</code><span class="chip s-spec">spec</span></div>
 <p><strong>Change the PIN</strong></p>
 <p>The old PIN, a new auth_hash, a reissued share.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-pinchange"><code>PinChange</code></a></p>
@@ -434,7 +434,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/identities/close</code><span class="chip s-spec">spec</span></div>
 <p><strong>Start over — close the identity</strong></p>
 <p>With a PIN proof; appearance rows are deleted in the same transaction.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-identityclose"><code>IdentityClose</code></a></p>
@@ -444,7 +444,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
 <p><strong>Read the appearance</strong></p>
 <p>The choice kept on the node (screen 22); the device copy draws the first frame.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The appearance.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
 </section>
@@ -452,7 +452,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
 <p><strong>The identity&#x27;s appearance for this face</strong></p>
 <p>One row per face named by the API key — theme, contrast step, an accent from that face&#x27;s set.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-appearance"><code>Appearance</code></a></p>
@@ -473,7 +473,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/confirm</code><span class="chip s-built">built</span></div>
 <p><strong>The paper code is written down — finish the registration</strong></p>
 <p>The third request of step 2, and the one that ends it (screen 2). Until it arrives the identity passes no membership check and an hour later the sweeper takes it; nothing else can carry the mark, because every other call of registration happens before the code is shown. Its cargo is the only thing recovery is missing: the long key wrapped under the code&#x27;s other half. Once, by the identity&#x27;s own session; a second call answers 409 — the mark is set with UPDATE … WHERE signup_completed_at IS NULL RETURNING, so a row the sweeper already took cannot be silently revived. Added 2026-09-20 by quorum of two review lenses: the column signup_completed_at existed with nothing to fill it, and identities.recovery_wrapped_key was written by no operation at all.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryconfirm"><code>RecoveryConfirm</code></a></p>
@@ -484,7 +484,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/claim</code><span class="chip s-built">built</span></div>
 <p><strong>Raise an identity with the paper code</strong></p>
 <p>Two paths, told apart by the signature: unsigned is a clean device and a new session is born while the live one is frozen as a transfer; signed by the device&#x27;s own session — frozen included, the one exception of §8.2 — lifts the freeze and returns the PIN counter to ten. Both leave the first-PIN grant. The old paper code stays good until the new one is confirmed; rotation is POST /recovery/reissue.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryclaim"><code>RecoveryClaim</code></a></p>
@@ -503,7 +503,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-spec">spec</span></div>
 <p><strong>Record an acceptance</strong></p>
 <p>Document, date, hash; one row each.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-legalaccept"><code>LegalAccept</code></a></p>
@@ -513,7 +513,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-built">built</span></div>
 <p><strong>Your own profile</strong></p>
 <p>name, name_pending, age, filters, languages, stepped_away_until (screen 10).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The profile.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
@@ -522,7 +522,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/identities/me</code><span class="chip s-spec">spec</span></div>
 <p><strong>Edit the profile</strong></p>
 <p>Any subset. A name goes to the moderation queue (202, verdict as a name_verdict frame); refusals name_frozen, paused, age_step_down, filter_out_of_band (chat spec §8.2, §8.3).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-profilepatch"><code>ProfilePatch</code></a></p>
@@ -532,7 +532,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/recovery/reissue</code><span class="chip s-spec">spec</span></div>
 <p><strong>Reissue the paper code</strong></p>
 <p>Proof of the current code and the derivatives of the new one; the new one works and the old one dies in one transaction. A miss counts where /recovery/claim misses count (recovery.miss.shared, recovery.miss.pause).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-recoveryreissue"><code>RecoveryReissue</code></a></p>
@@ -542,7 +542,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-built">built</span></div>
 <p><strong>Your own Article 17 statements</strong></p>
 <p>Without the notifier&#x27;s identity; shown on the next entry with this identity, kept a year (dsa/SPEC §7, retention in §9; LAW-1, 2026-09-16; the section corrected from §6 on 2026-09-20). The first delivery sets delivered_at (proof of delivery, Art. 17).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/statements.ts</code></p>
@@ -551,7 +551,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-built">built</span></div>
 <p><strong>Set the first PIN on this device</strong></p>
 <p>After a transfer or a recovery: the new device registers its auth_hash and share; the old PIN is not needed (screen 13). Only against a one-time first-PIN grant that an approved transfer or a recovery claim leaves on this identity; the call consumes it; without one — 409 unauthorized, so a signing key alone never replaces the PIN (chat canon: a PIN change needs the old PIN).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-vaultinit"><code>VaultInit</code></a></p>
@@ -562,7 +562,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/approve</code><span class="chip s-built">built</span></div>
 <p><strong>It&#x27;s me</strong></p>
 <p>The old device confirms the transfer after the four characters matched (screen 13). Only a session of the identity that issued the invite, once, within the invite&#x27;s 120 seconds; otherwise not_found.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/transfer.ts</code></p>
@@ -580,7 +580,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/{lookup_id}/reject</code><span class="chip s-built">built</span></div>
 <p><strong>Doesn&#x27;t match</strong></p>
 <p>The old device refuses; the code dies (screen 13). Only a session of the identity that issued the invite, once; otherwise not_found.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>lookup_id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/transfer.ts</code></p>
@@ -593,7 +593,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>With language, mode and age filters; 30 cards, then more by cursor (screen 3; protocol §6, decided 2026-09-16). What the viewer liked is not delivered — it is in GET /likes (2026-09-17).</p>
 <p>The viewer&#x27;s circle arrives with the request: `lat`, `lon` and `radius`. §8.3 puts the area anywhere, with no check of where the person is and no geolocation permission, so there is nothing to store and nothing to verify — and the same paragraph says the node sees the viewing radius, because GET /feed and GET /feed/density are built on it. The three parameters were named here on 2026-09-21, with the route: the operation could not be called without them.</p>
 <p>A card&#x27;s centre is the grid node its own radius rounds to, never the centre it was published with. Nothing about the author is in a card.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -90, maximum: 90</span></td><td>yes</td><td>The centre of the circle the viewer is looking at.</td></tr><tr><td><code>lon</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -180, maximum: 180</span></td><td>yes</td><td></td></tr><tr><td><code>radius</code></td><td>query</td><td><code>integer</code> <span class="src">minimum: 100, maximum: 25000</span></td><td>yes</td><td>Metres. Unlike a phrase&#x27;s radius this one is not stepped — it is never published, so it cannot be a mark (§8.3).</td></tr><tr><td><code>mode</code></td><td>query</td><td><code>string</code> <span class="src">enum: [&quot;alone&quot;, &quot;company&quot;, &quot;party&quot;]</span></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>A page of feed items and the next cursor.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/feed.ts</code></p>
@@ -602,7 +602,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/feed</code><span class="chip s-built">built</span></div>
 <p><strong>Publish a phrase</strong></p>
 <p>Answers 202 at once; visible_at stays empty until the queue&#x27;s verdict.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-phrasecreate"><code>PhraseCreate</code></a></p>
@@ -613,25 +613,25 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/likes</code><span class="chip s-spec">spec</span></div>
 <p><strong>Everything you liked that is still alive</strong></p>
 <p>Cards of the same shape as GET /feed: phrases and private authors&#x27; offers with state (liked | matched) and tables; by the after cursor (protocol §4.3; screen 25; the owner&#x27;s decision of 2026-09-17, agreed 2026-09-17).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>A page of liked cards and the next cursor.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-built">built</span></div>
 <p><strong>Take down your own phrase</strong></p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Taken down; the slot is freed, not the hourly ceiling.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Taken down; the slot is freed, not the hourly ceiling. No body.</td><td></td></tr><tr><td><code>404</code></td><td>No phrase of yours by that id — the same answer for somebody else&#x27;s phrase and for one that never existed.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <section class="op" id="get-feed-density">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/feed/density</code><span class="chip s-built">built</span></div>
 <p><strong>The density band under the radius handle</strong></p>
 <p>A band from &quot;nobody here yet&quot; to &quot;hundreds&quot;, asked on release, never an exact number; a rate limit of its own — 100 requests in a row is a density profile being taken.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -90, maximum: 90</span></td><td>yes</td><td></td></tr><tr><td><code>lon</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -180, maximum: 180</span></td><td>yes</td><td></td></tr><tr><td><code>radius</code></td><td>query</td><td><code>integer</code> <span class="src">minimum: 100, maximum: 25000</span></td><td>yes</td><td>The circle under the handle, the same shape GET /feed takes (named here 2026-09-21, with the route).</td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The band: few is below the floor of 5 (feed.nearby.floor)</td><td><code>object</code></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The step, as chat §8.3 names them: none, few (1-4), about_ten (5-14), tens (15-99), hundreds (100+). The field is `step`, not `band`, and the count itself never leaves.</td><td><code>object</code></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <h2 id="tag-chat">chat</h2>
@@ -639,14 +639,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-feed--id--like">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
 <p><strong>Like a phrase or an offer</strong></p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked or matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code) or stepped_away (ApiError).</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="delete-feed--id--like">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
 <p><strong>Take a like back until a match</strong></p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Taken back, or state spent once a match exists.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr></table></div>
 </section>
@@ -654,14 +654,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/consent</code><span class="chip s-spec">spec</span></div>
 <p><strong>Consent to talk</strong></p>
 <p>The chat opens when both have consented.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Consent recorded.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-inbox">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/inbox</code><span class="chip s-spec">spec</span></div>
 <p><strong>Offers and conversations in one answer</strong></p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>A page — a count only on offers; next cursor (protocol §6).</td><td><code>object</code></td></tr></table></div>
 </section>
@@ -669,7 +669,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/ticket</code><span class="chip s-spec">spec</span></div>
 <p><strong>A one-time ticket for the socket</strong></p>
 <p>The ticket goes in Sec-WebSocket-Protocol, not the query string (protocol §4.4).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The ticket.</td><td></td></tr></table></div>
 </section>
@@ -677,7 +677,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-spec">spec</span></div>
 <p><strong>Which chats are still alive</strong></p>
 <p>Only on a confirmed database read — 503 rather than an empty list, or local history would be wiped.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-chatsalive"><code>ChatsAlive</code></a></p>
@@ -687,7 +687,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own span handle</strong></p>
 <p>10, 30 or 60 minutes, or while we talk (260 minutes).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-chatspan"><code>ChatSpan</code></a></p>
@@ -696,7 +696,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="delete-chats--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Close a conversation by hand, for both</strong></p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
 </section>
@@ -704,7 +704,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
 <p><strong>The game after a drop</strong></p>
 <p>Position, whose turn and the score from the game cache; no lines, no one else&#x27;s hand (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The board.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -712,7 +712,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
 <p><strong>Propose or change the game</strong></p>
 <p>The other person gets a proposal frame (chat spec §6, screen 18).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-gameoffer"><code>GameOffer</code></a></p>
@@ -722,7 +722,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
 <p><strong>End the game</strong></p>
 <p>The conversation&#x27;s death takes the game with it by cascade anyway (chat_games ON DELETE CASCADE).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -730,7 +730,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-spec">spec</span></div>
 <p><strong>Answer the game offer</strong></p>
 <p>accept opens the board for both; decline keeps talking in words; counter names another board (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
@@ -740,7 +740,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-spec">spec</span></div>
 <p><strong>A move or a pass</strong></p>
 <p>By class: a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse} — the node shuffles and rolls. A move extends your own conversation span (chat spec §6, §8.6). Announced as an unencrypted system line.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
@@ -750,7 +750,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-spec">spec</span></div>
 <p><strong>Set the hangman word</strong></p>
 <p>202 — the same queue as a phrase; a refusal is &quot;pick another&quot; and feeds the pause counter (chat spec §6 &quot;hangman&quot;).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-word"><code>Word</code></a></p>
@@ -760,7 +760,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/confirm</code><span class="chip s-spec">spec</span></div>
 <p><strong>I&#x27;m here — for the new game</strong></p>
 <p>Inside table.confirm.window; there is no &quot;N of 2&quot; counter for two (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -768,7 +768,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-spec">spec</span></div>
 <p><strong>Propose: play again, a draw, an undo</strong></p>
 <p>The undo fires on both players&#x27; consent (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
@@ -778,7 +778,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Answer a proposal</strong></p>
 <p>accept / decline / counter (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>pid</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
@@ -788,7 +788,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-spec">spec</span></div>
 <p><strong>Resign</strong></p>
 <p>A one-sided announcement (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -796,7 +796,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-spec">spec</span></div>
 <p><strong>Send a ciphertext</strong></p>
 <p>Stored in pending_deliveries, last_activity_at moves, handed to the other at once or on connection; could not — {local_id, error} (chat spec §8.8; SEC-8).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-message"><code>Message</code></a></p>
@@ -806,7 +806,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/received</code><span class="chip s-spec">spec</span></div>
 <p><strong>Confirm receipt</strong></p>
 <p>The node deletes what was delivered from pending_deliveries (chat spec §8.8).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-received"><code>Received</code></a></p>
@@ -816,7 +816,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/matches/{id}/decline</code><span class="chip s-spec">spec</span></div>
 <p><strong>Not now</strong></p>
 <p>Decline a match; written at once, can be undone while the undo row lives (screens 6, 7).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -824,7 +824,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/matches/{id}/decline</code><span class="chip s-spec">spec</span></div>
 <p><strong>Undo the decline</strong></p>
 <p>Within the seconds of the undo row only.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -834,7 +834,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-spec">spec</span></div>
 <p><strong>Set a table</strong></p>
 <p>Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-tablecreate"><code>TableCreate</code></a></p>
@@ -844,7 +844,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/tables/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>The table minus what is hidden</strong></p>
 <p>The board, {playing, watching}, lines since your own seating, your seat; your own hand, the backs of others&#x27; (chat spec §6.1).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The table.</td><td><a href="#schema-tableview"><code>TableView</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -852,7 +852,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/like</code><span class="chip s-spec">spec</span></div>
 <p><strong>Like a table without sitting down</strong></p>
 <p>A bookmark with a public counter, neither a match nor an offer to talk; the table leaves this person&#x27;s feed for GET /likes (chat spec §6.1; the owner&#x27;s decision of 2026-09-17, agreed 2026-09-17).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>state liked; a repeat answers the same.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>stepped_away (ApiError).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
 </section>
@@ -860,7 +860,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/like</code><span class="chip s-spec">spec</span></div>
 <p><strong>Take a table like back</strong></p>
 <p>like_count goes down and the table returns to the feed (chat spec §6.1, 2026-09-17, agreed 2026-09-17).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Taken back.</td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -868,7 +868,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">spec</span></div>
 <p><strong>Sit down</strong></p>
 <p>Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere (chat spec §6.1).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
 </section>
@@ -876,7 +876,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">spec</span></div>
 <p><strong>Stand up</strong></p>
 <p>Coming back is the same POST; history starts afresh from the seating (chat spec §6.1).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -884,7 +884,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/ticket</code><span class="chip s-spec">spec</span></div>
 <p><strong>A one-time ticket for the table&#x27;s socket</strong></p>
 <p>As for a conversation (protocol §4.4): the ticket goes into Sec-WebSocket-Protocol next to the subprotocol xor.p1.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The ticket.</td><td><code>object</code></td></tr></table></div>
 </section>
@@ -892,7 +892,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/lines</code><span class="chip s-spec">spec</span></div>
 <p><strong>A line, an application, a refusal or a sticker</strong></p>
 <p>line/application/refusal — 202, published by the queue&#x27;s verdict; sticker — 200, no queue. One application per game; a refusal without text is not accepted (chat spec §6.1).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-tablelinecreate"><code>TableLineCreate</code></a></p>
@@ -902,7 +902,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/moves</code><span class="chip s-spec">spec</span></div>
 <p><strong>A move or a pass</strong></p>
 <p>In the board class&#x27;s terms; refusals not_your_turn, illegal_move with the engine&#x27;s reason; three passes in a row send you to the spectators (table.move.window, table.pass.limit).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
@@ -912,7 +912,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/confirm</code><span class="chip s-spec">spec</span></div>
 <p><strong>I&#x27;m here — for the new game</strong></p>
 <p>Inside table.confirm.window (30 s); not confirmed — a spectator (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -920,7 +920,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals</code><span class="chip s-spec">spec</span></div>
 <p><strong>Propose: play again, a draw, an undo</strong></p>
 <p>The undo fires on every player&#x27;s consent and steps back exactly one snapshot (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
@@ -930,7 +930,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals/{pid}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Answer a proposal</strong></p>
 <p>accept / decline / counter — a counter names another class and set (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>pid</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
@@ -940,7 +940,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/resign</code><span class="chip s-spec">spec</span></div>
 <p><strong>Resign</strong></p>
 <p>A one-sided announcement; no result is recorded (chat spec §6).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -948,7 +948,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/congratulate</code><span class="chip s-spec">spec</span></div>
 <p><strong>Congratulate a seat</strong></p>
 <p>Appears as a line at the table; the engine names no winner (chat spec §6, screen 19).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-seat"><code>Seat</code></a></p>
@@ -958,7 +958,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/kick</code><span class="chip s-spec">spec</span></div>
 <p><strong>A vote to remove a seat</strong></p>
 <p>The node counts the majority of those seated; no trace remains; the removed can come back (chat spec §6.1).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-seat"><code>Seat</code></a></p>
@@ -970,7 +970,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/blocks</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own blocks</strong></p>
 <p>{id, since} — no identities; screen 10 shows the list and lifting (decided 2026-09-16, protocol §4.8).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
 </section>
@@ -978,7 +978,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/blocks</code><span class="chip s-spec">spec</span></div>
 <p><strong>Block a person</strong></p>
 <p>By a phrase, a conversation or a seat; 204 always, a repeat too — the answer is not an oracle. The match dies, the shared chat closes, phrases are hidden from both (chat spec §8.9).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-blocktarget"><code>BlockTarget</code></a></p>
@@ -988,7 +988,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/blocks/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Lift a block</strong></p>
 <p>The set of visible tables is recomputed on the next entry into the feed (chat spec §8.9, §6.1).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -996,7 +996,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/hidden</code><span class="chip s-spec">spec</span></div>
 <p><strong>The hidden list</strong></p>
 <p>For screen 10; short by construction. Fields {id, kind, text} named in protocol §4.8 (2026-09-16).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<code>object</code>&gt;</td></tr></table></div>
 </section>
@@ -1004,7 +1004,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/hidden</code><span class="chip s-spec">spec</span></div>
 <p><strong>Hide a phrase or a line for yourself</strong></p>
 <p>200 with an id for bringing it back; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-hidetarget"><code>HideTarget</code></a></p>
@@ -1014,7 +1014,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/hidden/{id}</code><span class="chip s-spec">spec</span></div>
 <p><strong>Bring the hidden back</strong></p>
 <p>Screen 5.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -1022,7 +1022,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/away</code><span class="chip s-spec">spec</span></div>
 <p><strong>Step away</strong></p>
 <p>span short/hour/long (away.span.*). In one transaction the phrases go with their likes and so do the likes you gave (likes, table_likes; 2026-09-18), matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}.</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-away"><code>Away</code></a></p>
@@ -1032,7 +1032,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/away</code><span class="chip s-spec">spec</span></div>
 <p><strong>Come back early</strong></p>
 <p>stepped_away_until = now(); the mark at the other end is lifted by your first line, not by this request (chat spec §8.2).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -1058,7 +1058,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-spec">spec</span></div>
 <p><strong>Report the offer link</strong></p>
 <p>No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once; a report that does not count goes to the moderator with high priority and disables nothing; it never spends COMPLAINT_MONTHLY_LIMIT (offers/SPEC_EN.md §10.1, table offer_link_reports).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -1066,7 +1066,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/offers/{id}/complaints</code><span class="chip s-spec">spec</span></div>
 <p><strong>Complain that the discount was not given</strong></p>
 <p>Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer; a report counts only if the complainant&#x27;s first publication is older than a day and came before the offer&#x27;s day, frozen at the moment of the report (offers/SPEC_EN.md §3, §10, §10.2).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-offercomplaintcreate"><code>OfferComplaintCreate</code></a></p>
@@ -1173,7 +1173,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/support</code><span class="chip s-spec">spec</span></div>
 <p><strong>Your own requests</strong></p>
 <p>By number without a signature the node answers nothing; a frozen session sees no list (screen 14).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-supportrequest"><code>SupportRequest</code></a>&gt;</td></tr></table></div>
 </section>
@@ -1181,7 +1181,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/support</code><span class="chip s-spec">spec</span></div>
 <p><strong>A support request</strong></p>
 <p>{body, email?}; 201 {public_no} — 10 Crockford base32 characters at once. The fourth in a day — 429 with the storefront&#x27;s support address in message (support.requests.day, support.frozen.day).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-supportcreate"><code>SupportCreate</code></a></p>
@@ -1191,7 +1191,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/support/{no}/seen</code><span class="chip s-spec">spec</span></div>
 <p><strong>Clear the answer-waiting dot</strong></p>
 <p>answer_seen = true (schema support_requests).</p>
-<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
+<h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>no</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
@@ -1224,7 +1224,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>brand</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>scopes</code></td><td>array&lt;<code>string</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-feeditem"><div class="op-head"><code class="path">FeedItem</code></div>
 <p>A feed card — a phrase, or a table on the first page only (protocol §4.2; kind added 2026-09-16, DATA-23). A feed item is a circle, not a point; lat and lon rounded to the grid of area_radius (protocol §4.2).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;, &quot;offer&quot;]</span></td><td>no</td><td>offer — a venue&#x27;s offer (2026-09-19, offers/SPEC_EN.md §7); a private author&#x27;s offer stays a phrase with offer filled.</td></tr><tr><td><code>offer</code></td><td><a href="#schema-offercard"><code>OfferCard</code></a></td><td>no</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>no</td><td>Table only.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>no</td><td>Table only.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>no</td><td>Table only.</td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td>Table only, and only after the queue&#x27;s verdict (2026-09-17).</td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;]</span></td><td>no</td><td>Only in GET /likes, on a phrase or a private author&#x27;s offer (2026-09-17).</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>no</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>no</td><td>Unix seconds; carries visible_at, the moment the phrase passed the queue, not the moment it was submitted (chat canon §8.3, 2026-09-15).</td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;phrase&quot;, &quot;table&quot;, &quot;offer&quot;]</span></td><td>no</td><td>offer — a venue&#x27;s offer (2026-09-19, offers/SPEC_EN.md §7); a private author&#x27;s offer stays a phrase with offer filled.</td></tr><tr><td><code>offer</code></td><td><a href="#schema-offercard"><code>OfferCard</code></a></td><td>no</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>no</td><td>Table only.</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>no</td><td>Table only.</td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>no</td><td>Table only.</td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td>Table only, and only after the queue&#x27;s verdict (2026-09-17).</td></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;]</span></td><td>no</td><td>Only in GET /likes, on a phrase or a private author&#x27;s offer (2026-09-17).</td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>mode</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>no</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code> <span class="src">enum: [100, 300, 1000, 3000, 10000]</span></td><td>no</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>lang</code></td><td><code>string</code></td><td>no</td><td>The node&#x27;s answer, never the client&#x27;s: the feed&#x27;s language filter reads it. Every phrase is stored as `und` until the detector of chat §8.14 exists, and `und` passes every filter (2026-09-21).</td></tr><tr><td><code>farther_than_asked</code></td><td><code>boolean</code></td><td>no</td><td>Present and true only when the radius was grown because the circle asked for was empty (protocol §4.2).</td></tr><tr><td><code>created_at</code></td><td><code>integer</code></td><td>no</td><td>Unix seconds; carries visible_at, the moment the phrase passed the queue, not the moment it was submitted (chat canon §8.3, 2026-09-15).</td></tr></table></div></section>
 <section class="op" id="schema-likeresult"><div class="op-head"><code class="path">LikeResult</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>state</code></td><td><code>string</code> <span class="src">enum: [&quot;liked&quot;, &quot;matched&quot;, &quot;spent&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>match_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-sessionsinvite"><div class="op-head"><code class="path">SessionsInvite</code></div>
@@ -1243,7 +1243,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>error</code></td><td><code>object</code></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-page"><div class="op-head"><code class="path">Page</code></div>
 <p>A page of items and the cursor of the next one; an empty next is the end (protocol §6).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>items</code></td><td>array&lt;<code>object</code>&gt;</td><td>yes</td><td></td></tr><tr><td><code>next</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>items</code></td><td>array&lt;<code>object</code>&gt;</td><td>yes</td><td></td></tr><tr><td><code>next</code></td><td><code>string</code></td><td>yes</td><td>The cursor of the next page, null at the end. Opaque: pass it back as `after` and do not parse it. Its shape changed on 2026-09-21 — it carries microseconds now, because a cursor rounded to the millisecond dropped rows published inside the same millisecond as a page boundary.</td></tr></table></div></section>
 <section class="op" id="schema-feedpage"><div class="op-head"><code class="path">FeedPage</code></div>
 <p><code>object</code></p></section>
 <section class="op" id="schema-tablecreate"><div class="op-head"><code class="path">TableCreate</code></div>
@@ -1363,7 +1363,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>ids</code></td><td>array&lt;<code>string</code> <span class="src">format: &quot;uuid&quot;</span>&gt;</td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-statement"><div class="op-head"><code class="path">Statement</code></div>
 <p>An Article 17 statement of reasons to its addressee, without the notifier&#x27;s identity (dsa/SPEC §7, the entity in §8; corrected from §6 on 2026-09-20 — §6 is the reply to the notifier under Art. 16(5)).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>restriction</code></td><td><code>string</code> <span class="src">enum: [&quot;removed&quot;, &quot;hidden&quot;, &quot;offer_taken_down&quot;, &quot;access_restricted&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>until</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>no</td><td>End of the restriction; absent — indefinite (Art. 17(3)(a)). Not yet a column of the built dsa_statements table (item dsa.statements.until.unbuilt).</td></tr><tr><td><code>facts</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>ground_kind</code></td><td><code>string</code> <span class="src">enum: [&quot;legal&quot;, &quot;contractual&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>ground_text</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>automated_used</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>no</td><td></td></tr><tr><td><code>appeal</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>restriction</code></td><td><code>string</code> <span class="src">enum: [&quot;removed&quot;, &quot;hidden&quot;, &quot;offer_taken_down&quot;, &quot;access_restricted&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>until</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>no</td><td>End of the restriction; absent — indefinite (Art. 17(3)(a)). Built 2026-09-21 by db/026.</td></tr><tr><td><code>facts</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>ground_kind</code></td><td><code>string</code> <span class="src">enum: [&quot;legal&quot;, &quot;contractual&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>ground_text</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>automated_used</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>created_at</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>no</td><td></td></tr><tr><td><code>appeal</code></td><td><code>object</code></td><td>no</td><td>Where this can be taken further. `ours` names our own route while the internal system of Art. 20 is not built; the other two are always open.</td></tr></table></div></section>
 <section class="op" id="schema-recoveryreissue"><div class="op-head"><code class="path">RecoveryReissue</code></div>
 <p>Proof of the current paper code and the derivatives of the new one born on the device (chat spec §8.2 &quot;paper code&quot;); one transaction.</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>current</code></td><td><code>object</code></td><td>yes</td><td></td></tr><tr><td><code>next</code></td><td><code>object</code></td><td>yes</td><td></td></tr></table></div></section>

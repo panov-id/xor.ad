@@ -79,8 +79,8 @@ components:
       type: apiKey
       in: header
       name: x-identity-sign
-      description: 'Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window.'
-      x-description-ru: 'Подпись запроса (протокол §2): ECDSA P-256 над методом, путём, sha256 тела и unix-временем; вместе с x-identity-session и x-identity-time, окно ±5 минут.'
+      description: 'Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window. The authority and the query joined the signature on 2026-09-21; a client signing the older four lines is refused.'
+      x-description-ru: 'Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут. Хост и query вошли в подпись 21.09.2026; клиент, подписывающий прежние четыре строки, получает отказ.'
     advertiserSession:
       type: apiKey
       in: cookie
@@ -217,6 +217,8 @@ components:
         lon: {type: number}
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         like_count: {type: integer}
+        lang: {type: string, description: "The node's answer, never the client's: the feed's language filter reads it. Every phrase is stored as `und` until the detector of chat §8.14 exists, and `und` passes every filter (2026-09-21).", x-description-ru: "Ответ узла, а не клиента: по нему работает языковой фильтр ленты. До детектора §8.14 всякая фраза лежит как `und`, и `und` проходит любой фильтр (21.09.2026)."}
+        farther_than_asked: {type: boolean, description: "Present and true only when the radius was grown because the circle asked for was empty (protocol §4.2).", x-description-ru: "Есть и равно true только когда радиус вырос, потому что запрошенный круг был пуст (протокол §4.2)."}
         created_at: {type: integer, description: 'Unix seconds; carries visible_at, the moment the phrase passed the queue, not the moment it was submitted (chat canon §8.3, 2026-09-15).', x-description-ru: 'Unix-секунды; несёт visible_at — момент прохождения очереди, а не отправки (канон чата §8.3, 15.09.2026).'}
     LikeResult:
       type: object
@@ -270,11 +272,13 @@ components:
       required: [items, next]
       properties:
         items: {type: array, items: {type: object}}
-        next: {type: string}
+        next: {type: string, nullable: true, description: "The cursor of the next page, null at the end. Opaque: pass it back as `after` and do not parse it. Its shape changed on 2026-09-21 — it carries microseconds now, because a cursor rounded to the millisecond dropped rows published inside the same millisecond as a page boundary.", x-description-ru: "Курсор следующей страницы, null в конце. Непрозрачен: возвращайте его в `after` и не разбирайте. Форма сменилась 21.09.2026 — теперь он несёт микросекунды, потому что курсор с точностью до миллисекунды терял строки, опубликованные в ту же миллисекунду, что и граница страницы."}
     FeedPage:
       allOf:
         - {$ref: "#/components/schemas/Page"}
-        - properties: {items: {type: array, items: {$ref: "#/components/schemas/FeedItem"}}}
+        - properties:
+            items: {type: array, items: {$ref: "#/components/schemas/FeedItem"}}
+            radius_used: {type: integer, description: "Present only when the radius was grown past the one asked for, because the circle asked for was empty (protocol §4.2). The cards it brought carry farther_than_asked.", x-description-ru: "Есть только когда радиус вырос сверх запрошенного, потому что запрошенный круг был пуст (протокол §4.2). Принесённые им карточки несут farther_than_asked."}
     TableCreate:
       type: object
       description: Set a table (chat spec §6.1, schema tables). Field names proposed 2026-09-16.
@@ -695,13 +699,20 @@ components:
       properties:
         id: {type: string, format: uuid}
         restriction: {type: string, enum: [removed, hidden, offer_taken_down, access_restricted]}
-        until: {type: integer, format: unix-seconds, description: End of the restriction; absent — indefinite (Art. 17(3)(a)). Not yet a column of the built dsa_statements table (item dsa.statements.until.unbuilt)., x-description-ru: Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). В построенной таблице dsa_statements колонки ещё нет (пункт dsa.statements.until.unbuilt).}
+        until: {type: integer, format: unix-seconds, description: End of the restriction; absent — indefinite (Art. 17(3)(a)). Built 2026-09-21 by db/026., x-description-ru: Конец ограничения; отсутствует — бессрочно (ст. 17(3)(a)). Колонка построена 21.09.2026 миграцией db/026.}
         facts: {type: string}
         ground_kind: {type: string, enum: [legal, contractual]}
         ground_text: {type: string}
         automated_used: {type: boolean}
         created_at: {type: integer, format: unix-seconds}
-        appeal: {type: string}
+        appeal:
+          type: object
+          description: Where this can be taken further. `ours` names our own route while the internal system of Art. 20 is not built; the other two are always open.
+          x-description-ru: Куда с этим идти дальше. `ours` называет наш собственный путь, пока внутренняя система по ст. 20 не построена; два других открыты всегда.
+          properties:
+            ours: {type: string}
+            coordinator: {type: boolean}
+            court: {type: boolean}
     RecoveryReissue:
       type: object
       description: Proof of the current paper code and the derivatives of the new one born on the device (chat spec §8.2 "paper code"); one transaction.
@@ -724,8 +735,8 @@ components:
       in: header
       required: true
       schema: {type: integer}
-      description: "Unix seconds, the same value as the fourth line of the signed string; a ±5 minute window (protocol §2)."
-      x-description-ru: "Unix-секунды, то же значение, что в четвёртой строке подписываемого текста; окно ±5 минут (протокол §2)."
+      description: "Unix seconds, the same value as the fifth line of the signed string; a ±5 minute window (protocol §2)."
+      x-description-ru: "Unix-секунды, то же значение, что в пятой строке подписываемого текста; окно ±5 минут (протокол §2)."
     ProtocolVersion:
       name: x-protocol-version
       in: header
@@ -1388,7 +1399,8 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Invitation stored., x-description-ru: Приглашение записано.}
+        "200": {description: "Invitation stored. `expires_in` is its life in seconds, from the database's clock.", x-description-ru: "Приглашение записано. `expires_in` — сколько секунд оно живёт, по часам базы.", content: {application/json: {schema: {type: object, required: [expires_in], properties: {expires_in: {type: integer}}}}}}
+        "404": {description: "This session has no share of the vault, so there is no PIN to prove.", x-description-ru: "У этой сессии нет доли хранилища, значит нечем доказать ПИН."}
   /vault/pin:
     post:
       tags: [identity]
@@ -1715,7 +1727,8 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: "Taken down; the slot is freed, not the hourly ceiling.", x-description-ru: "Снята; слот освобождён, часовой потолок — нет."}
+        "204": {description: "Taken down; the slot is freed, not the hourly ceiling. No body.", x-description-ru: "Снята; слот освобождён, часовой потолок — нет. Тела нет."}
+        "404": {description: "No phrase of yours by that id — the same answer for somebody else's phrase and for one that never existed.", x-description-ru: "Фразы с таким id у вас нет — один ответ и на чужую фразу, и на несуществующую."}
   /feed/density:
     get:
       tags: [feed]
@@ -1738,7 +1751,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: "The band: few is below the floor of 5 (feed.nearby.floor)", x-description-ru: "Ступень: few — ниже порога 5 (feed.nearby.floor)", content: {application/json: {schema: {type: object, properties: {band: {type: string, enum: [nobody, few, tens, hundreds]}}}}}}
+        "200": {description: "The step, as chat §8.3 names them: none, few (1-4), about_ten (5-14), tens (15-99), hundreds (100+). The field is `step`, not `band`, and the count itself never leaves.", x-description-ru: "Ступень, как их называет чат §8.3: none, few (1-4), about_ten (5-14), tens (15-99), hundreds (100+). Поле называется `step`, не `band`, а само число наружу не уходит.", content: {application/json: {schema: {type: object, required: [step], properties: {step: {type: string, enum: [none, few, about_ten, tens, hundreds]}}}}}}
   /feed/{id}/like:
     post:
       tags: [chat]

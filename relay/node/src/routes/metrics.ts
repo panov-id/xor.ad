@@ -1,5 +1,5 @@
 import { render } from "../lib/metrics.ts";
-import { collectQueueMetrics } from "../lib/queue_metrics.ts";
+import { collectBrakeMetrics, collectQueueMetrics } from "../lib/queue_metrics.ts";
 import { config } from "../config.ts";
 import { json } from "../lib/http.ts";
 import { inc } from "../lib/metrics.ts";
@@ -43,6 +43,7 @@ export async function metrics(req: Request): Promise<Response> {
   // number held in one of them would describe that one. See lib/queue_metrics.ts
   // for what goes silently wrong without them.
   await collectQueueMetrics();
+  collectBrakeMetrics();
   return new Response(render(), {
     headers: {
       "content-type": "text/plain; version=0.0.4; charset=utf-8",

@@ -30,7 +30,7 @@ import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts
 import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS } from "../lib/rate_limit.ts";
-import { inc, setGauge } from "../lib/metrics.ts";
+import { inc } from "../lib/metrics.ts";
 
 // §8.2 and docs/facts/limits.tsv (`name.length`, enforced by: the node): the
 // limit is **24 graphemes**, and the node is named as what holds it.
@@ -383,8 +383,10 @@ async function claimRecovery(req: Request): Promise<Response> {
 
   // The node-wide brake first, then the address, then the body: a paused route
   // does no lookup, which is the point of it (lib/recovery_misses.ts).
+  // The gauge is written at scrape time (lib/queue_metrics.ts), not here: a
+  // number written only when somebody knocks stands still when nobody does,
+  // and an attack that ends at night leaves the alert firing until morning.
   const paused = pausedFor();
-  setGauge("relay_recovery_pause_seconds_left", paused);
   if (paused > 0) {
     inc("relay_recovery_claim_total", { result: "paused" });
     return refuse("rate_limited", "codes are not being accepted right now", 429, {}, {

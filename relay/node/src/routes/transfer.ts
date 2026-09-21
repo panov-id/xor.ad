@@ -33,7 +33,7 @@ import { base64urlToBytes, bytesToBase64url, importSignPublicKey, sha256hex, sun
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { TRANSFER } from "../lib/recovery_misses.ts";
 import { burnShare, freezeSession } from "../lib/sessions.ts";
-import { inc, setGauge } from "../lib/metrics.ts";
+import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 
 // `invite.lifetime` in docs/facts/limits.tsv: 120 seconds. Short because the
@@ -137,7 +137,6 @@ async function claimInvite(req: Request): Promise<Response> {
     return refuse("protocol_version_unsupported", `this node serves protocol ${PROTOCOL_MAJOR}; update the client`, 400);
   }
   const paused = TRANSFER.pausedFor();
-  setGauge("relay_transfer_pause_seconds_left", paused);
   if (paused > 0) {
     inc("relay_transfer_total", { result: "paused" });
     return refuse("rate_limited", "transfer codes are not being accepted right now", 429, {}, {

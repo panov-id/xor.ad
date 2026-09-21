@@ -284,3 +284,41 @@ Deno.test("the deadlines are the registry's numbers, not this file's", async () 
 addEventListener("unload", () => {
   database.closePool();
 });
+
+Deno.test("closing says so in the counters, by reason and by shares burned", async () => {
+  // The dashboard splits freezes by reason to tell a wave of closures from
+  // somebody attacking open tabs — and the series reason="closed" had never
+  // been written once, because this pass freezes in a CTE and never called
+  // what the routes call. Same for burned shares: zero on a night that burned
+  // a thousand. Found by the operations lens of the review panel, 2026-09-21.
+  const metrics = await import("../src/lib/metrics.ts");
+  const before = metrics.render();
+  const closedBefore = countOf(before, 'relay_sessions_frozen_total{reason="closed"}');
+  const burnedBefore = countOf(before, "relay_vault_shares_burned_total");
+
+  await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 1 });
+  await sweeper.sweepIdentities();
+
+  const after = metrics.render();
+  assert(
+    countOf(after, 'relay_sessions_frozen_total{reason="closed"}') > closedBefore,
+    'closing an identity did not move relay_sessions_frozen_total{reason="closed"}',
+  );
+  assert(
+    countOf(after, "relay_vault_shares_burned_total") > burnedBefore,
+    "burning a share on closure did not move relay_vault_shares_burned_total",
+  );
+});
+
+// The exposition format is text; a test that parses it is reading exactly what
+// Prometheus would read, which is the point of asking the node rather than the
+// variable behind it.
+function countOf(rendered: string, series: string): number {
+  for (const line of rendered.split("\n")) {
+    if (line.startsWith(series + " ") || line.startsWith(series + "{")) {
+      const value = Number(line.slice(line.lastIndexOf(" ") + 1));
+      if (Number.isFinite(value)) return value;
+    }
+  }
+  return 0;
+}

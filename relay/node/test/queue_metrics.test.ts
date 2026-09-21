@@ -127,3 +127,52 @@ Deno.test("a queue that drains stops reporting its old depth", async () => {
 addEventListener("unload", () => {
   database.closePool();
 });
+
+Deno.test("the brake gauges are read on the scrape, not when somebody knocks", async () => {
+  // They used to be written inside the route handler, which meant the number
+  // only moved when a request arrived. An attack that stopped at three in the
+  // morning left the last value standing: the brake let go fifteen minutes
+  // later and RecoveryBrakeOn kept firing until the first live request — that
+  // is, until morning. Found by the operations lens of the review panel,
+  // 2026-09-21.
+  const brakes = await import("../src/lib/recovery_misses.ts");
+  brakes.reset();
+
+  // Nobody has knocked at all, and the gauge still has to be the truth.
+  queue.collectBrakeMetrics();
+  assertEquals(
+    gaugeOf(metrics.render(), "relay_recovery_pause_seconds_left"),
+    0,
+    "an idle node did not publish a zero for the recovery brake",
+  );
+
+  // Fifty misses put the brake on for fifteen minutes.
+  for (let i = 0; i < 50; i++) brakes.countMiss();
+  queue.collectBrakeMetrics();
+  const on = gaugeOf(metrics.render(), "relay_recovery_pause_seconds_left");
+  assert(on > 0, `the brake was on and the gauge said ${on}`);
+
+  // And it falls to nought by itself, with nobody knocking: the scrape reads
+  // the clock rather than the last request.
+  queue.collectBrakeMetrics(Date.now() + 16 * 60 * 1000);
+  assertEquals(
+    gaugeOf(metrics.render(), "relay_recovery_pause_seconds_left"),
+    0,
+    "the gauge stayed up after the pause had expired, with no request to move it",
+  );
+  brakes.reset();
+});
+
+// Read out of the exposition text, which is what Prometheus reads. A gauge with
+// no labels still renders as `name value`, but the HELP and TYPE lines start
+// with the same name, so the line has to be matched rather than the substring:
+// the first attempt at this case parsed "# TYPE relay_..." and asserted on NaN.
+function gaugeOf(rendered: string, name: string): number {
+  for (const line of rendered.split("\n")) {
+    if (line.startsWith("#")) continue;
+    if (line.startsWith(name + " ") || line.startsWith(name + "{")) {
+      return Number(line.slice(line.lastIndexOf(" ") + 1));
+    }
+  }
+  return Number.NaN;
+}

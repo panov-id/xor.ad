@@ -30,6 +30,7 @@
 
 import { query } from "./db.ts";
 import { clearGauge, setGauge } from "./metrics.ts";
+import { RECOVERY, TRANSFER } from "./recovery_misses.ts";
 
 interface DepthRow {
   kind: string;
@@ -129,4 +130,25 @@ let seenBrands = new Set<string>();
 export function forget(): void {
   seen = new Set<string>();
   seenBrands = new Set<string>();
+}
+
+// The two shared brakes, read at scrape time for the same reason everything
+// else here is.
+//
+// They used to be written where they are consulted — inside the route handler
+// — which meant the gauge only moved when somebody knocked. An attack that
+// ended at three in the morning left the last value standing: the brake let go
+// fifteen minutes later and RecoveryBrakeOn went on firing until the first
+// live request, which is to say until morning. The mirror case is worse and
+// quieter: a brake that came on with nobody else knocking is a number nobody
+// updates, so the graph says "paused" for hours after it was not.
+//
+// Unlike the queue gauges above, these are properties of *this process* — the
+// counters live in memory (lib/shared_misses.ts), so on a pool of N nodes the
+// real threshold is N times the one configured. That is an open item, not a
+// thing this function can fix; what it can do is stop the number from lying
+// about time. Found by the operations lens of the review panel, 2026-09-21.
+export function collectBrakeMetrics(now = Date.now()): void {
+  setGauge("relay_recovery_pause_seconds_left", RECOVERY.pausedFor(now));
+  setGauge("relay_transfer_pause_seconds_left", TRANSFER.pausedFor(now));
 }

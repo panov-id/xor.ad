@@ -133,7 +133,7 @@ async function closeIdentities(): Promise<number> {
     // that were already frozen, the second sees the old snapshot where none of
     // them are. Neither would fail. The statement would run, return the same
     // count, and the tests would stay green while shares quietly survived.
-    const rows = await run<{ frozen: string[] }>(
+    const rows = await run<{ frozen: string[]; burned: number }>(
       `WITH closed AS (
          SELECT id FROM identities WHERE closed_at IS NOT NULL
        ), frozen AS (
@@ -151,12 +151,27 @@ async function closeIdentities(): Promise<number> {
          DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM closed)
          RETURNING identity
        )
-       SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen`,
+       SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen,
+              (SELECT count(*)::int FROM burned) AS burned`,
     );
 
     for (const sessionId of rows[0]?.frozen ?? []) {
       await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
     }
+
+    // The counters the routes keep, kept here too. This pass does by hand what
+    // lib/sessions.ts does for one session — one statement for all of them,
+    // which is right for a sweep — and so it also has to say so by hand. It did
+    // not: the dashboard panel that splits freezes by reason exists to tell a
+    // wave of closures from somebody attacking open tabs, and the series
+    // reason="closed" had never once been written, so half of that panel was a
+    // legend with no line. Same for burned shares, which read zero on a night
+    // that burned a thousand. Found by the operations lens of the review panel,
+    // 2026-09-21.
+    const frozen = rows[0]?.frozen?.length ?? 0;
+    if (frozen > 0) inc("relay_sessions_frozen_total", { reason: "closed" }, frozen);
+    const burned = rows[0]?.burned ?? 0;
+    if (burned > 0) inc("relay_vault_shares_burned_total", {}, burned);
     return shut.length;
   });
 }

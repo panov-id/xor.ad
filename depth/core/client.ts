@@ -31,6 +31,19 @@ export interface Answer<T = unknown> {
 // The five circles the contract allows (openapi.yaml PhraseCreate.area_radius).
 export type Radius = 100 | 300 | 1000 | 3000 | 10000;
 
+// Protocol §6: 409 comes in two shapes. A stale edition of the documents is
+// LegalReacceptance — `error` is the string legal_reacceptance_required and the
+// documents to accept come with it; every other conflict is an ApiError with
+// `error.code`. The terminal answers the first with the documents screen and
+// the second with the line for its code (depth-core panel, 2026-09-21).
+export function conflictOf(answer: Answer): "reacceptance" | string | null {
+  if (answer.status !== 409) return null;
+  const body = answer.body as { error?: unknown } | null;
+  if (body?.error === "legal_reacceptance_required") return "reacceptance";
+  const code = (body?.error as { code?: unknown } | undefined)?.code;
+  return typeof code === "string" ? code : "conflict";
+}
+
 export class Client {
   #key: SigningKey | null = null;
   // The private half of the wrapping pair. Kept, not dropped: anything sealed to

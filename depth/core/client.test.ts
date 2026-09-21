@@ -47,3 +47,12 @@ Deno.test("without testOnly the core refuses to register with placeholder secret
   try { await client.register({ name: "Женя", age: 30 }); } catch (e) { refused = String(e).includes("placeholder"); }
   assert(refused, "the core registered with placeholders without being told they are acceptable");
 });
+
+Deno.test("the two shapes of 409 are told apart", async () => {
+  // Protocol §6: a new edition of the documents answers 409 with no
+  // error.code; every other conflict carries one (depth-core panel, 2026-09-21).
+  const { conflictOf } = await import("./client.ts");
+  assertEquals(conflictOf({ status: 409, body: { error: "legal_reacceptance_required", documents: ["terms"] } }), "reacceptance");
+  assertEquals(conflictOf({ status: 409, body: { error: { code: "stepped_away" } } }), "stepped_away");
+  assertEquals(conflictOf({ status: 200, body: {} }), null);
+});

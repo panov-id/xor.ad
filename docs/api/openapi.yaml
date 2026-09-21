@@ -609,6 +609,9 @@ components:
         read_at: {type: integer, format: unix-seconds, description: "When the answer was read (screen 14 H).", x-description-ru: "Когда ответ прочитан (экран 14 H)."}
     Profile:
       type: object
+      # Always sent by GET /identities/me (routes/identity.ts readProfile); the
+      # rest only when there is something to say (depth-core panel, 2026-09-21).
+      required: [name, age, languages]
       properties:
         name: {type: string}
         name_pending: {type: string, description: A name awaiting the queue's verdict., x-description-ru: "Имя, ждущее вердикта очереди."}

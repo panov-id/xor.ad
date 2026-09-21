@@ -24,7 +24,7 @@ more. The legal section keeps its number (§2): both storefronts'
 | Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
 | Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — consent without a chat |
 | Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
-| `depth` client (terminal, goes first) | 0% | no code in any repository |
+| `depth` client (terminal, goes first) | ~3% | core `depth/core/`: request signing per protocol §2, checked against the node's verifier (2026-09-21) |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
 
 The percentages are estimates: they are not weighted by hours, because steps

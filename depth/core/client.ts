@@ -101,4 +101,24 @@ export class Client {
   like(phraseId: string): Promise<Answer<{ state: string; match_id?: string }>> {
     return this.#call("POST", `/feed/${phraseId}/like`);
   }
+
+  // DELETE /feed/:id/like — unliked, or spent once a match came of that phrase.
+  unlike(phraseId: string): Promise<Answer<{ state: string }>> {
+    return this.#call("DELETE", `/feed/${phraseId}/like`);
+  }
+
+  // POST /matches/:id/consent — waiting, or agreed when both have. The chat it
+  // opens is step 5; the ephemeral key §8.5 sends here is step 6.
+  consent(matchId: string): Promise<Answer<{ state: string }>> {
+    return this.#call("POST", `/matches/${matchId}/consent`);
+  }
+
+  // "Not now", and taking it back while the match lives (screen 7).
+  decline(matchId: string): Promise<Answer> {
+    return this.#call("POST", `/matches/${matchId}/decline`);
+  }
+
+  undoDecline(matchId: string): Promise<Answer> {
+    return this.#call("DELETE", `/matches/${matchId}/decline`);
+  }
 }

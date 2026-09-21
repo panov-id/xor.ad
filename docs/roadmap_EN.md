@@ -24,7 +24,7 @@ more. The legal section keeps its number (§2): both storefronts'
 | Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
 | Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — consent without a chat |
 | Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
-| `depth` client (terminal, goes first) | ~8% | core `depth/core/` (2026-09-21): §2 signing, checked against the node's verifier; registration, profile, a phrase and the feed against a live node; the PIN's Argon2id and the paper code are placeholders |
+| `depth` client (terminal, goes first) | ~12% | core `depth/core/` (2026-09-21): §2 signing, checked against the node's verifier; registration, profile, a phrase, the feed, a like, a match and consent between two terminals against a live node; no drawing (Ink) yet; the PIN's Argon2id and the paper code are placeholders |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
 
 The percentages are estimates: they are not weighted by hours, because steps
@@ -110,8 +110,8 @@ empty throughout.
 |---|---|---|
 | 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 closed 2026-09-21; not rolled out | [~] core: registration and the paper code against a live node, PIN and code are placeholders |
 | 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [ ] |
-| 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like` (2026-09-21): band, block, self-like without an oracle, a match on a mutual like; `DELETE` — a take-back until a match, else `spent`; a limit of 300 an hour; a sweep of expired matches every minute; missing — the offer's match (**blocked**: S7 needs the name queue, and the node has neither a "name checked" mark nor a queue — that is step 2's moderator), a two-connection race test | [ ] |
-| 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo (2026-09-21); `agreed` opens no chat until step 5, the ephemeral key is step 6 | [ ] |
+| 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like` (2026-09-21): band, block, self-like without an oracle, a match on a mutual like; `DELETE` — a take-back until a match, else `spent`; a limit of 300 an hour; a sweep of expired matches every minute; missing — the offer's match (**blocked**: S7 needs the name queue, and the node has neither a "name checked" mark nor a queue — that is step 2's moderator), a two-connection race test | [~] core: like and take-back |
+| 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo (2026-09-21); `agreed` opens no chat until step 5, the ephemeral key is step 6 | [~] core: consent and "not now" |
 | 5. Chat: transport | [ ] `chat/relay.ts` answers 501; the `LISTEN`/`NOTIFY` bus works as of 2026-09-21 | [ ] |
 | 6. Encryption | [ ] | [ ] |
 | 7. Blocks, hiding, sweeping | [ ] | [ ] |

@@ -51,6 +51,6 @@ for _ in $(seq 60); do up && break; sleep 1; done
 up || { echo "the node did not come up" >&2; docker logs "$node" 2>&1 | tail -20 >&2; exit 1; }
 
 docker run --rm --network "$network" \
-  -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" \
+  -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" -e DEPTH_DATABASE_URL="$database_url" \
   -v "$root":/repo -w /repo "$image" \
   deno test --allow-env --allow-read --allow-net depth/ "$@"

@@ -1,0 +1,49 @@
+# promtool unit tests for alerts.yml — run by scripts/test_alerts.sh.
+#
+# Written for FeedPublishesNothing (second review panel, 2026-09-21, task 5):
+# the rule read `sum(rate(published)) == 0`, and with no published series at
+# all that side is an empty vector, not a zero — so the alert stayed silent
+# until the first phrase was ever published after a restart, and only then
+# could it fire. Behaviour that depends on the history of the process is the
+# thing an alert must not have.
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: expiring unread with no published series at all fires
+    interval: 1m
+    input_series:
+      - series: 'relay_feed_verdict_total{verdict="expired_unread"}'
+        values: '0+1x180'
+    alert_rule_test:
+      - eval_time: 150m
+        alertname: FeedPublishesNothing
+        exp_alerts:
+          - exp_labels: { severity: info }
+            exp_annotations:
+              summary: "Лента принимает фразы и не публикует ни одной"
+              description: "За час ни одного published и хотя бы один expired_unread: очередь есть, вердиктов нет. Пока модератора нет (§8.14), это ожидаемо — тревога существует, чтобы ожидаемое не спуталось с поломкой в тот день, когда модератор появится."
+
+  - name: publishing phrases keeps it quiet
+    interval: 1m
+    input_series:
+      - series: 'relay_feed_verdict_total{verdict="expired_unread"}'
+        values: '0+1x180'
+      - series: 'relay_feed_verdict_total{verdict="published"}'
+        values: '0+1x180'
+    alert_rule_test:
+      - eval_time: 150m
+        alertname: FeedPublishesNothing
+        exp_alerts: []
+
+  - name: an idle feed is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_feed_verdict_total{verdict="expired_unread"}'
+        values: '0x180'
+    alert_rule_test:
+      - eval_time: 150m
+        alertname: FeedPublishesNothing
+        exp_alerts: []

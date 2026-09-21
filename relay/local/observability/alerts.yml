@@ -121,10 +121,17 @@ groups:
       # Warning, not critical: nothing is lost that was ever visible, and the
       # answer is a person deciding, not a restart at three in the morning.
       - alert: FeedPublishesNothing
+        # `or vector(0)`: before the first phrase is ever published there is no
+        # published series, and `sum` of nothing is an empty vector rather than
+        # a zero — the rule stayed silent until a first publish after a
+        # restart. alerts.test.yml holds that case (review panel, 2026-09-21).
+        # `info` until the moderator of §8.14 is wired: until then this state is
+        # the expected one, and a warning nobody can act on teaches people to
+        # ignore the channel. Raise it back the day the moderator ships.
         expr: sum(rate(relay_feed_verdict_total{verdict="expired_unread"}[1h])) > 0
-              and sum(rate(relay_feed_verdict_total{verdict="published"}[1h])) == 0
+              and (sum(rate(relay_feed_verdict_total{verdict="published"}[1h])) or vector(0)) == 0
         for: 1h
-        labels: { severity: warning }
+        labels: { severity: info }
         annotations:
           summary: "Лента принимает фразы и не публикует ни одной"
           description: "За час ни одного published и хотя бы один expired_unread: очередь есть, вердиктов нет. Пока модератора нет (§8.14), это ожидаемо — тревога существует, чтобы ожидаемое не спуталось с поломкой в тот день, когда модератор появится."

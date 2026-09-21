@@ -118,6 +118,7 @@ run_in_docker check-mermaid            "$here/check-mermaid.sh"
 run_in_docker check-panel-contrast     "$here/check-panel-contrast.sh"
 run_in_docker check-storefront-contrast "$here/check-storefront-contrast.sh"
 run_in_docker check-panel-font-weights "$here/check-panel-font-weights.sh"
+run_in_docker test-alerts              "$here/test_alerts.sh"
 
 if [ "$with_tests" = 1 ]; then
   echo

@@ -87,6 +87,7 @@ async function publish(req: Request): Promise<Response> {
   const conditions = typeof body.conditions === "string" ? body.conditions.slice(0, 500) : null;
 
   const id = crypto.randomUUID();
+  const published = quantise({ lat: body.lat, lon: body.lon }, body.area_radius);
   const answer = await transaction<Response>(async (run) => {
     // The row is locked before anything is read, because the moments are
     // written at the verdict and two parallel sends otherwise both pass the
@@ -120,10 +121,14 @@ async function publish(req: Request): Promise<Response> {
     // rewritten at the verdict — which is the only moment the text is read
     // anyway.
     await run(
+      // The published centre is computed here, by the same function that will
+      // print it, and stored beside the exact one: the delivery compares
+      // against the published pair so that nothing a caller can bisect is
+      // anything the answer did not already carry (db/027).
       `INSERT INTO feed_messages
          (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
-          discount_value, conditions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          lat_published, lon_published, discount_value, conditions)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
         id,
         caller.brand ?? "unattributed",
@@ -134,6 +139,8 @@ async function publish(req: Request): Promise<Response> {
         body.lat,
         body.lon,
         body.area_radius,
+        published.lat,
+        published.lon,
         discount,
         conditions,
       ],
@@ -170,8 +177,8 @@ interface FeedRow {
   text: string;
   mode: string;
   lang: string;
-  lat: number;
-  lon: number;
+  lat_published: number;
+  lon_published: number;
   area_radius: number;
   like_count: number;
   discount_value: string | null;
@@ -268,22 +275,29 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   for (const attempt of steps) {
     const box = boundingBox({ lat, lon }, attempt + 10000);
     const found = await query<FeedRow>(
-      `SELECT f.id, f.text, f.mode, f.lang, f.lat, f.lon, f.area_radius, f.like_count,
+      `SELECT f.id, f.text, f.mode, f.lang, f.lat_published, f.lon_published,
+              f.area_radius, f.like_count,
               f.discount_value, f.conditions, f.visible_at, a.age AS author_age
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
         WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
-          AND f.lat BETWEEN $1 AND $2 AND f.lon BETWEEN $3 AND $4
+          AND f.lat_published BETWEEN $1 AND $2 AND f.lon_published BETWEEN $3 AND $4
           AND ${bandSql}
           AND ($8::text IS NULL OR f.mode = $8)
           AND ($9::text[] = '{}' OR f.lang = ANY($9))
           AND ($10::timestamptz IS NULL OR (f.visible_at, f.id) < ($10, $11::uuid))
           -- The circles intersect: the distance between the centres is no more
           -- than the two radii together. Measured with the same constant the
-          -- grid uses (lib/feed_geo.ts), so the two cannot drift apart.
+          -- grid uses (lib/feed_geo.ts), so the two cannot drift apart — and
+          -- against the **published** centre, not the exact one. The caller
+          -- owns the other side of this inequality (their own lat, lon and
+          -- radius, at full precision), so measuring from the exact centre
+          -- made the boundary a circle around a value that never goes out,
+          -- and bisecting the boundary read it back to within metres
+          -- (db/027, review panel 2026-09-21).
           AND sqrt(
-                pow((f.lat - $12) * 111320, 2) +
-                pow((f.lon - $13) * 111320 * cos(radians((f.lat + $12) / 2)), 2)
+                pow((f.lat_published - $12) * 111320, 2) +
+                pow((f.lon_published - $13) * 111320 * cos(radians((f.lat_published + $12) / 2)), 2)
               ) <= f.area_radius + $14
         ORDER BY f.visible_at DESC, f.id DESC
         LIMIT ${PAGE_SIZE}`,
@@ -303,7 +317,10 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   }
 
   const items = rows.map((row) => {
-    const at = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
+    // The stored pair, not a fresh rounding of the exact one: the query
+    // matched on these, so printing anything else would mean the answer and
+    // the condition that produced it disagreed (db/027).
+    const at = { lat: row.lat_published, lon: row.lon_published };
     return {
       kind: "phrase",
       id: row.id,
@@ -422,7 +439,7 @@ async function density(req: Request, url: URL): Promise<Response> {
        FROM feed_messages f
        JOIN identities a ON a.id = f.author_identity
       WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
-        AND f.lat BETWEEN $1 AND $2 AND f.lon BETWEEN $3 AND $4
+        AND f.lat_published BETWEEN $1 AND $2 AND f.lon_published BETWEEN $3 AND $4
         AND a.age >= $6 AND ($7::int IS NULL OR a.age <= $7)
         AND (
           CASE WHEN a.age <= 20 THEN $5::int BETWEEN greatest(13, a.age - 2) AND a.age + 2
@@ -430,9 +447,13 @@ async function density(req: Request, url: URL): Promise<Response> {
           END
         )
         AND ($8::text[] = '{}' OR f.lang = ANY($8))
+        -- The published centre here too: the handle answers a coarser question
+        -- than the feed, but its none/few boundary is still a yes-or-no about
+        -- one circle, and a yes-or-no about the exact centre is the same
+        -- oracle in cheaper clothes (db/027).
         AND sqrt(
-              pow((f.lat - $9) * 111320, 2) +
-              pow((f.lon - $10) * 111320 * cos(radians((f.lat + $9) / 2)), 2)
+              pow((f.lat_published - $9) * 111320, 2) +
+              pow((f.lon_published - $10) * 111320 * cos(radians((f.lat_published + $9) / 2)), 2)
             ) <= f.area_radius + $11`,
     [
       box.latMin, box.latMax, box.lonMin, box.lonMax,

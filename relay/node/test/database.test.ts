@@ -1193,8 +1193,12 @@ async function probePhrase(
   const written = await query(
     `INSERT INTO feed_messages
        (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
-        visible_at, expires_at)
-     VALUES ($1, $2, NULL, $3, 'alone', 'ru', 41.9, 12.5, 1000,
+        lat_published, lon_published, visible_at, expires_at)
+     -- 41.9/12.5 is already a node of the kilometre grid, so the published
+     -- pair is the same pair here. The columns are still written out: they are
+     -- NOT NULL since db/027, and a probe that leans on a coincidence would
+     -- break on the first phrase placed anywhere else.
+     VALUES ($1, $2, NULL, $3, 'alone', 'ru', 41.9, 12.5, 1000, 41.9, 12.5,
              CASE WHEN $4 THEN now() END,
              CASE WHEN $4 THEN now() + interval '4 hours 20 minutes' END)`,
     [id, brand, text, published],

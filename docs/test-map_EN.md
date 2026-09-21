@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 311 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
+| `relay/node/test` | 315 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **321** | **about the feed — 31 (sending, the verdict, delivery by intersecting circles, the grid and the bands, take-downs, terms, the density step and the Article 17 statement, 2026-09-21), about chat — 0; about the request signature — 12, about step 1 — 59: routes 33, the transfer 7, the sealing key 5, freezing 3, the sweeper 8 against a live Postgres, the shared brake 3 by the clock; plus 5 about the queue's metrics (2026-09-20, overnight, after the review panel)** |
+| **Total** | **325** | **about the feed — 33 (sending, the verdict, delivery by intersecting circles, the grid and the bands, take-downs, terms, the density step, the Article 17 statement and the visible boundary sitting on the published centre, 2026-09-21), about chat — 0; about the request signature — 12, about step 1 — 61: routes 34, the transfer 8, the sealing key 5, freezing 3, the sweeper 8 against a live Postgres, the shared brake 3 by the clock; plus 5 about the queue's metrics (2026-09-20, overnight, after the review panel)** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day

@@ -892,3 +892,66 @@ Deno.test("a statement that was not shown is not recorded as delivered", async (
     "a statement the author was never shown is recorded as delivered to them",
   );
 });
+
+Deno.test("the visible boundary sits on the published centre, not the exact one", async () => {
+  // The trilateration the review panel found on 2026-09-21. The answer rounds
+  // a phrase's centre to a grid; the query did not, so "is this phrase in my
+  // circle" drew its boundary around the exact centre — and the caller owns
+  // the other side of that inequality, at full precision, with no rate limit
+  // in the way. Two passes of bisection on latitude and one on longitude read
+  // the exact centre back to within metres.
+  //
+  // The case does not bisect. It stands one probe in the gap between the two
+  // possible boundaries: inside the circle around the published centre, and
+  // outside the circle around the exact one. Delivered means the boundary is
+  // where it should be; missing means the node is still measuring from a
+  // value it never hands out.
+  const { quantise } = await import("../src/lib/feed_geo.ts");
+
+  const mine = await author();
+  const theirs = await author();
+  const exact = { lat: 41.94321, lon: 12.5 };
+  const radius = 1000;
+  const published = quantise(exact, radius);
+  const offsetMetres = (published.lat - exact.lat) * 111320;
+  assert(
+    Math.abs(offsetMetres) > 100,
+    `the rounding moved the centre by ${offsetMetres.toFixed(0)} m, too little for this case to tell the two boundaries apart`,
+  );
+
+  const id = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
+    text: "фраза на краю клетки",
+    lat: exact.lat,
+    lon: exact.lon,
+    area_radius: radius,
+  });
+
+  // A probe just inside the published circle, on the far side from the exact
+  // one, so the two boundaries disagree about it.
+  const away = offsetMetres > 0 ? 1 : -1;
+  const probeLat = published.lat + away * (radius + radius - 50) / 111320;
+
+  // A decoy under the probe. Without it an empty answer makes the route grow
+  // the radius (feed.ts) until the phrase falls in anyway, and the case would
+  // pass against the very code it is meant to catch — it did, on the first
+  // run, and that is why the decoy is here.
+  await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
+    text: "приманка под зондом",
+    lat: probeLat,
+    lon: exact.lon,
+    area_radius: radius,
+  });
+  const seen = await signedCall(
+    mine.pair.privateKey,
+    mine.session_id,
+    "GET",
+    feedUrl({ lat: probeLat, lon: exact.lon, radius }),
+  );
+  const items = (seen.body as { items: Array<{ id: string; lat: number }> }).items;
+  const card = items.find((item) => item.id === id);
+  assert(
+    card,
+    "the phrase was cut by a boundary drawn around its exact centre, which is the oracle itself",
+  );
+  assertEquals(card!.lat, published.lat, "the card printed a centre the query did not match on");
+});

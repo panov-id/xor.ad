@@ -181,6 +181,14 @@ export const FEED_DENSITY_LIMITS: Limit[] = [
 // address holding many stolen signing keys could open windows without end
 // (open-work P2). The paper code's numbers, because it is the same kind of act:
 // a person does it once or twice. limits.tsv transfer.invite.hour / .day.
+// A like and its take-back, one budget per identity. A brake for a script, never
+// a person (owner's decision, 2026-09-21): the review panel of that day showed
+// a like/take-back loop holding the author's identity_stats row under lock.
+// limits.tsv like.hour.
+export const LIKE_LIMITS: Limit[] = [
+  { name: "like", max: 300, windowMs: HOUR },
+];
+
 export const TRANSFER_INVITE_LIMITS: Limit[] = [
   { name: "transfer-invite", max: 10, windowMs: HOUR },
   { name: "transfer-invite-day", max: 30, windowMs: DAY },

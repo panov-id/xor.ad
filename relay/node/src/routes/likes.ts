@@ -23,6 +23,7 @@ import { sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { band } from "../lib/feed_geo.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { checkAll, LIKE_LIMITS } from "../lib/rate_limit.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // A ceiling for "no ceiling": the band above 20 is open upwards (feed_geo.band),
@@ -43,6 +44,12 @@ const unliked = () => json({ state: "unliked" }, 200, sunsetHeader());
 async function likePhrase(req: Request, target: string): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+  const allowed = checkAll(LIKE_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    return refuse("rate_limited", "too many likes this hour", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
   if (!UUID.test(target)) return refuse("invalid_body", "that is not a phrase id", 400);
   const me = caller.identityId;
 
@@ -219,6 +226,12 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
 async function unlikePhrase(req: Request, target: string): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+  const allowed = checkAll(LIKE_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    return refuse("rate_limited", "too many likes this hour", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
   if (!UUID.test(target)) return refuse("invalid_body", "that is not a phrase id", 400);
   const me = caller.identityId;
 
@@ -244,7 +257,11 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
       // Live matches only: nothing sweeps matches yet, and an expired row left
       // behind held every later like of the pair for ever (review panel,
       // 2026-09-21) — while the like route already treats it as gone (DATA-5).
-      `SELECT count(*)::int AS n FROM matches WHERE pair_key = $1 AND expires_at > now()`, [pk],
+      // Per phrase, owner's decision of 2026-09-21 (screen 25): the like on the
+      // phrase a live match came from is spent; the pair's other likes are not.
+      `SELECT count(*)::int AS n
+         FROM matches m JOIN match_participants p ON p.match_id = m.id
+        WHERE m.pair_key = $1 AND m.expires_at > now() AND p.message_id = $2`, [pk, target],
     );
     if (matched.n > 0) {
       inc("relay_unlike_total", { result: "spent" });

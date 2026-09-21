@@ -1640,3 +1640,51 @@ Deno.test("a like on an offer cannot be taken back", async () => {
   assertEquals(await likeCount(offer), 1);
   reset();
 });
+
+Deno.test("spent holds the phrase a match came from, not every phrase of that person", async () => {
+  // Owner's decision, 2026-09-21: per phrase, as screen 25 says, not per pair.
+  // The match takes B's phrase that A liked last (§8.5), so A's like on the
+  // other one of B's phrases stays A's to take back.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?");
+  const first = await seedPhrase(b.identity_id, "первая фраза Б");
+  const second = await seedPhrase(b.identity_id, "вторая фраза Б");
+  await like(a, first);
+  await like(a, second);
+  const back = await like(b, mine);
+  assertEquals(stateOf(back), "matched");
+  const [matched] = await database.queryOrThrow<{ message_id: string }>(
+    `SELECT message_id FROM match_participants WHERE match_id = $1 AND identity = $2`,
+    [(back.body as { match_id: string }).match_id, b.identity_id],
+  );
+  const other = matched.message_id === first ? second : first;
+  assertEquals((await unlike(a, matched.message_id)).body, { state: "spent" });
+  assertEquals((await unlike(a, other)).body, { state: "unliked" },
+    "a like on a phrase no match came from was held by the pair's match");
+  reset();
+});
+
+Deno.test({
+  name: "the three hundred and first like or take-back in an hour is refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // limits.tsv like.hour — a brake for a script, never a person (owner,
+    // 2026-09-21). A take-back of nothing is the cheapest call to count with.
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const ghost = crypto.randomUUID();
+    for (let i = 0; i < 300; i++) {
+      const r = await unlike(a, ghost);
+      assertEquals(r.status, 200, `call ${i + 1} of 300 was refused`);
+    }
+    const over = await unlike(a, ghost);
+    assertEquals(over.status, 429, "the 301st call in an hour went through");
+    assert(over.headers.get("retry-after"), "the limit did not say when to come back");
+    reset();
+  },
+});

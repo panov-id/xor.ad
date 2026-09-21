@@ -2309,3 +2309,24 @@ What is left is the **owner's action**: make the pair, put the public half in
 `backup.env` on the boxes and the private half in a password manager. Until
 then the Article 30 record says plainly against Hetzner that encryption at rest
 is ours rather than theirs.
+
+### P5. The published centre still allows NULL — open
+
+`relay/node/db/027` adds `lat_published`/`lon_published` **without** `NOT NULL`
+— on purpose: the wizard applies migrations in the new image while the old node
+is still serving (`relay/wizard/wizard.py`: migrate, then `up -d`), and the old
+`INSERT` does not know these columns. With `NOT NULL` in the same migration,
+every phrase the old node took during the deploy window would have failed, and
+after a rollback of the image it would have failed for good. Found by the
+operations and data lenses of the second review panel, 2026-09-21.
+
+What is left is the other half (contract), **as a separate migration in a
+later release**, once no node running the old code remains:
+
+- first re-run the backfill from `027` for rows with `lat_published IS NULL` —
+  the old node may have written some during the deploy window, and such phrases
+  are invisible to the feed until then (a `BETWEEN` on `NULL` is false);
+- then `SET NOT NULL` on both columns.
+
+This migration must not ship in the same release as `027` — that is exactly
+the mistake `027` steps away from.

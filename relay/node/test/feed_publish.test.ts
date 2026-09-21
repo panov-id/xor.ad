@@ -1210,3 +1210,96 @@ Deno.test("a capped density count still reaches the top step", async () => {
   );
   reset();
 });
+
+Deno.test("the old node can still publish while db/027 is applied", async () => {
+  // The wizard migrates in the new image while the old node is still serving,
+  // then swaps containers. The old node's INSERT does not name lat_published or
+  // lon_published; when 027 made them NOT NULL, every phrase the old node took
+  // during that window failed, and after a rollback of the image every phrase
+  // failed for good. Found by the operations and data lenses of the second
+  // review panel, 2026-09-21. The old INSERT, verbatim in its column list:
+  const writer = await author();
+  const id = crypto.randomUUID();
+  const written = await database.query(
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+        discount_value, conditions)
+     VALUES ($1, 'xor', $2, 'старый узел', 'alone', 'und', 41.9, 12.5, 1000, NULL, NULL)`,
+    [id, writer.identity_id],
+  );
+  assert(written !== null, "an INSERT that does not name the published columns was refused");
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [id]);
+});
+
+Deno.test("the backfill in db/027 rounds exactly as quantise does", async () => {
+  // The migration carries a second implementation of the grid, and the first
+  // version of it disagreed with the TypeScript: PostgreSQL's round() on a
+  // double rounds halves to even, Math.round rounds them up, and an integer
+  // radius divided by 111320.0 went through numeric. Measured by the data lens
+  // of the second review panel on 20 040 points. This runs the migration's own
+  // UPDATE statement, read out of the file, so a later edit to either side is
+  // caught rather than trusted.
+  const { quantise } = await import("../src/lib/feed_geo.ts");
+  const text = await Deno.readTextFile(
+    new URL("../db/027_feed_published_centre.sql", import.meta.url),
+  );
+  const statement = text.slice(
+    text.indexOf("UPDATE feed_messages SET"),
+    text.indexOf("WHERE lat_published IS NULL;") + "WHERE lat_published IS NULL".length,
+  );
+  assert(statement.startsWith("UPDATE"), "the backfill statement was not found in db/027");
+
+  const writer = await author();
+  // Exact halves of a step, which is where the two roundings part, plus
+  // ordinary points — for every radius the product offers.
+  const cases: Array<{ lat: number; lon: number; r: number }> = [];
+  for (const r of [100, 300, 1000, 3000, 10000]) {
+    const step = r / 111320;
+    for (const k of [2.5, 7.5, -3.5, 101.5]) cases.push({ lat: k * step, lon: 12.5, r });
+    for (let i = 0; i < 6; i++) cases.push({ lat: 35 + Math.random() * 20, lon: -10 + Math.random() * 40, r });
+  }
+  const ids: string[] = [];
+  for (const c of cases) {
+    const id = crypto.randomUUID();
+    ids.push(id);
+    await database.queryOrThrow(
+      // Published rows: feed_one_waiting allows one phrase per author in the
+      // queue, and this case needs dozens from one author.
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          visible_at, expires_at)
+       VALUES ($1, 'xor', $2, 'сетка', 'alone', 'und', $3, $4, $5,
+               now(), now() + interval '4 hours')`,
+      [id, writer.identity_id, c.lat, c.lon, c.r],
+    );
+  }
+  await database.queryOrThrow(`${statement} AND id = ANY($1::uuid[])`, [ids]);
+
+  const rows = await database.queryOrThrow<{ id: string; lat_published: number; lon_published: number }>(
+    `SELECT id, lat_published, lon_published FROM feed_messages WHERE id = ANY($1::uuid[])`,
+    [ids],
+  );
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const differ: string[] = [];
+  cases.forEach((c, i) => {
+    const want = quantise({ lat: c.lat, lon: c.lon }, c.r);
+    const got = byId.get(ids[i])!;
+    // The latitude is plain arithmetic and must match bit for bit — this is
+    // where the rounding of halves showed. The longitude goes through cos(),
+    // and PostgreSQL and V8 are different implementations of it: the first run
+    // of this case found them apart in the last bit on 5 of 50 points, never
+    // in the cell. So the cell is compared exactly and the value to within a
+    // few units in the last place (1e-9 degrees is about a tenth of a
+    // millimetre).
+    const cosLat = Math.cos((want.lat * Math.PI) / 180);
+    const dLambda = c.r / (111320 * cosLat);
+    const cellWant = Math.round(want.lon / dLambda);
+    const cellGot = Math.round(got.lon_published / dLambda);
+    if (got.lat_published !== want.lat || cellGot !== cellWant ||
+        Math.abs(got.lon_published - want.lon) > 1e-9) {
+      differ.push(`r=${c.r} lat=${c.lat}: sql ${got.lat_published},${got.lon_published} ts ${want.lat},${want.lon}`);
+    }
+  });
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = ANY($1::uuid[])`, [ids]);
+  assertEquals(differ, [], `the SQL backfill and quantise disagree on ${differ.length} of ${cases.length}`);
+});

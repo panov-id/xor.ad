@@ -33,25 +33,62 @@ ALTER TABLE feed_messages
 
 -- The one-time backfill, and the only place this arithmetic is written in SQL.
 -- It is the same grid as lib/feed_geo.ts `quantise`, cosine taken from the
--- already-rounded latitude, poles folded onto their meridian. Authority is the
--- TypeScript: if the two ever disagree, the TypeScript is right and this file
--- is history.
+-- already-rounded latitude, poles folded onto their meridian. "The same" means
+-- the same cell every time, and the same latitude bit for bit; the longitude
+-- can differ in its last bit, because it passes through cos(), and PostgreSQL's
+-- cos() and V8's Math.cos are different implementations. No formula removes
+-- that, and the first two versions of this comment claimed otherwise.
+--
+-- It matters less than it sounds: on every contour this migration reaches,
+-- feed_messages is empty when it runs (025 is deployed nowhere yet), so the
+-- statement below touches no rows. It stays correct for the case where it
+-- would.
+--
+-- Two differences, both measured by the review panel's data lens on
+-- 2026-09-21 against the TypeScript on 20 040 points:
+--
+--   `round(double)` in PostgreSQL rounds halves to even (rint): round(2.5) = 2.
+--   JavaScript's `Math.round` rounds halves up. At an exact half the two picked
+--   neighbouring cells — up to ten kilometres apart at the widest radius. The
+--   formula below uses floor(x + 0.5), which is Math.round.
+--
+--   `area_radius / 111320.0` with an integer radius is computed in numeric and
+--   converted afterwards; the TypeScript divides doubles. Longitudes differed
+--   in the last bits in 15% of points. The radius is cast to float8 first.
+--
+-- relay/node/test/feed_publish.test.ts runs this very statement, read out of
+-- this file, against `quantise` — half-points included — so the promise is
+-- checked, not stated. Its first run is what found the cos() difference.
 UPDATE feed_messages SET
-  lat_published = round(lat / (area_radius / 111320.0)) * (area_radius / 111320.0),
+  lat_published = floor(lat / (area_radius::float8 / 111320) + 0.5)
+                  * (area_radius::float8 / 111320),
   lon_published = CASE
-    WHEN abs(cos(radians(round(lat / (area_radius / 111320.0)) * (area_radius / 111320.0)))) < 1e-9
+    WHEN abs(cos(radians(floor(lat / (area_radius::float8 / 111320) + 0.5)
+                         * (area_radius::float8 / 111320)))) < 1e-9
       THEN 0
-    ELSE round(
-           lon / (area_radius / (111320.0 * cos(radians(
-             round(lat / (area_radius / 111320.0)) * (area_radius / 111320.0)))))
-         ) * (area_radius / (111320.0 * cos(radians(
-             round(lat / (area_radius / 111320.0)) * (area_radius / 111320.0)))))
+    ELSE floor(
+           lon / (area_radius::float8 / (111320 * cos(radians(
+             floor(lat / (area_radius::float8 / 111320) + 0.5)
+             * (area_radius::float8 / 111320))))) + 0.5
+         ) * (area_radius::float8 / (111320 * cos(radians(
+             floor(lat / (area_radius::float8 / 111320) + 0.5)
+             * (area_radius::float8 / 111320)))))
   END
 WHERE lat_published IS NULL;
 
-ALTER TABLE feed_messages
-  ALTER COLUMN lat_published SET NOT NULL,
-  ALTER COLUMN lon_published SET NOT NULL;
+-- **No NOT NULL here, and that is the deploy, not an oversight.** The wizard
+-- runs migrations in the new image while the old node is still serving
+-- (relay/wizard/wizard.py: migrate, then `up -d`). The old node's INSERT does
+-- not know these columns; made NOT NULL in this file, every phrase published
+-- during that window failed — and after a rollback of the image, every phrase
+-- failed for good, with no schema rollback to undo it. Found by the operations
+-- and data lenses of the review panel, 2026-09-21.
+--
+-- So this release only adds the columns (expand). The new code always writes
+-- them. NOT NULL comes in a later migration, in a later release, once no node
+-- running the old code remains (contract) — and that migration must start by
+-- re-running the backfill above for rows the old node wrote during this
+-- window, or it will fail on them. Recorded as open item P5 in open-work.
 
 -- The box the delivery narrows with reads the published pair now, so the index
 -- follows it. The old one stays until the next migration proves nothing needs

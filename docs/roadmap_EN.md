@@ -21,7 +21,7 @@ more. The legal section keeps its number (§2): both storefronts'
 | Panel xor.panov.id | ~75% | `curl` 2026-09-21: 200; 9 pages in `panel/src/pages` |
 | Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-21: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
 | Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
-| Legal and DSA | ~60% | Bunny transfer outside the EEA and the LAW-7 sweeper are open — §2 |
+| Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
 | Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — consent without a chat |
 | Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
 | `depth` client (terminal, goes first) | 0% | no code in any repository |
@@ -81,8 +81,11 @@ The percentages are estimates: they are not weighted by hours, because steps
   hundredth are reachable.
 - [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
   `article-30-register_EN.md`. SCC or a replacement.
-- [ ] LAW-7: the abandoned-identity sweeper is not built — the register
-  promises a retention period the code does not enforce (Art. 5(1)(e) GDPR).
+- [x] LAW-7: the abandoned-identity sweeper — built 2026-09-20
+  (`lib/identity_sweeper.ts`: a year without a session closes, 30 days later
+  deletes; tests `identity_sweeper.test.ts`). Until 2026-09-21 this line and the
+  Article 30 register said "not built" — a quorum of agents picked it as the next
+  piece, and reading the code showed it was already there.
 - [ ] J9: recheck micro-enterprise status **by 2027-08-05**. The Art. 19(1)
   DSA exemption from Art. 20–28 depends on it. There are no transparency
   reports on the same ground (Art. 15(3), 19(1)); on request — Art. 24(3).

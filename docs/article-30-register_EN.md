@@ -57,7 +57,7 @@ therefore a processor for everything kept in the database, in every activity bel
 - **Retention.** While the identity lives. A closed identity is deleted 30 days
   after closing (`chat_EN.md` §8.2). **An identity with no live session for a year
   is closed** and deleted 30 days later; once closed, the paper code does not
-  restore it (owner's decision 2026-09-15, LAW-7; the sweeper is not built). A frozen session is
+  restore it (owner's decision 2026-09-15, LAW-7; the sweeper was built on 2026-09-20 — `relay/node/src/lib/identity_sweeper.ts`, hourly, tests in `relay/node/test/identity_sweeper.test.ts`; entry corrected 2026-09-21). A frozen session is
   kept while the identity can still return to it; one unseen for a year is
   cleaned up together with its key share (see "Chat").
 

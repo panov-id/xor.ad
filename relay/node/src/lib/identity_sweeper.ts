@@ -102,78 +102,128 @@ async function closeIdentities(): Promise<number> {
   // is `closed_at IS NULL`.
   //
   // So the transition is one statement and the consequences are another. The
-  // second one works on **every** closed identity that still has something
-  // undone, which makes it idempotent and self-healing: whatever a race leaves
-  // behind is picked up on the next pass an hour later, rather than surviving
-  // until the row is deleted thirty days on. It does not remove the race — two
+  // second one works on every closed identity **inside the deletion window**
+  // that still has something undone, which makes it idempotent and
+  // self-healing: whatever a race leaves behind is picked up on the next pass
+  // an hour later, rather than surviving until the row is deleted thirty days
+  // on. Outside that window there is nothing left to finish — the third pass
+  // deletes the row itself (the window was added 2026-09-21; before it, this
+  // statement read every identity ever closed, hourly, to find nothing). It does not remove the race — two
   // writers still need a lock for that, and that is written up as a task — it
   // stops the race from being permanent.
-  return await transaction(async (run) => {
-    const shut = await run<{ id: string }>(
-      `UPDATE identities SET closed_at = now(),
-              recovery_auth_hash = NULL, recovery_wrapped_key = NULL,
-              first_pin_grant_at = NULL
+  // **In batches, like the other two passes, and for the reason written at
+  // BATCH above.** This one was the exception until 2026-09-21: one UPDATE
+  // over the whole table, then one CTE over every closed identity, then a
+  // round trip per frozen session. On the first night after a year of use that
+  // is tens of thousands of rows in a single transaction — a row lock on each,
+  // the tables bloated, and the pass outliving the ten-minute lease so a second
+  // node picks the job up while the first is still inside it. The comment
+  // arguing against exactly that was sitting forty lines above the code doing
+  // it. Found by the data and operations lenses of the review panel.
+  const shut = await inBatches(
+    `WITH doomed AS (
+       SELECT id FROM identities
         WHERE closed_at IS NULL
           AND NOT EXISTS (
             SELECT 1 FROM sessions s
              WHERE s.identity = identities.id
                AND s.last_seen_at > now() - interval '${INACTIVE_DAYS} days'
           )
-        RETURNING id`,
-    );
+        LIMIT ${BATCH}
+     ), shut AS (
+       UPDATE identities SET closed_at = now(),
+              recovery_auth_hash = NULL, recovery_wrapped_key = NULL,
+              first_pin_grant_at = NULL
+        WHERE id IN (SELECT id FROM doomed)
+        RETURNING id
+     )
+     SELECT count(*)::text AS count FROM shut`,
+  );
 
-    // Everything closing owes, over every closed identity — the ones just shut
-    // above and any left half-done by an earlier pass.
-    //
-    // `burned` filters by identity and **must not** filter by `frozen_at`.
-    // Data-modifying CTEs share one snapshot and cannot see one another's
-    // writes (PostgreSQL 16 §7.8.2, checked in a container on 2026-09-20), so
-    // `WHERE session IN (SELECT id FROM frozen)` or `AND frozen_at IS NOT NULL`
-    // would silently stop burning anything at all: the first loses the sessions
-    // that were already frozen, the second sees the old snapshot where none of
-    // them are. Neither would fail. The statement would run, return the same
-    // count, and the tests would stay green while shares quietly survived.
-    const rows = await run<{ frozen: string[]; burned: number }>(
-      `WITH closed AS (
-         SELECT id FROM identities WHERE closed_at IS NOT NULL
-       ), frozen AS (
-         UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed'
-          WHERE identity IN (SELECT id FROM closed) AND frozen_at IS NULL
-          RETURNING id
-       ), burned AS (
-         UPDATE vault_shares SET share_enc = NULL, burned_at = now()
-          WHERE session IN (
-                  SELECT id FROM sessions WHERE identity IN (SELECT id FROM closed)
-                )
-            AND share_enc IS NOT NULL
-          RETURNING session
-       ), faces AS (
-         DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM closed)
-         RETURNING identity
-       )
-       SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen,
-              (SELECT count(*)::int FROM burned) AS burned`,
-    );
+  // The consequences, also in batches, and **bounded by the deletion window**.
+  // The set used to be every closed identity there has ever been, which is the
+  // same predicate as the partial index db/023 built for this pass — so the
+  // index excluded nothing and the statement read the whole backlog hourly to
+  // find, almost always, nothing to do. Anything closed longer ago than
+  // DELETION_DELAY_DAYS is deleted outright by the third pass, so there is
+  // nothing for this one to finish there.
+  //
+  // The set is also narrowed to identities that still have something undone.
+  // Without that, a LIMIT would keep handing back the same finished rows and
+  // the unfinished ones would never come up.
+  for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const frozen = await transaction(async (run) => {
+      // `burned` filters by identity and **must not** filter by `frozen_at`.
+      // Data-modifying CTEs share one snapshot and cannot see one another's
+      // writes (PostgreSQL 16 §7.8.2, checked in a container on 2026-09-20), so
+      // `WHERE session IN (SELECT id FROM frozen)` or `AND frozen_at IS NOT NULL`
+      // would silently stop burning anything at all: the first loses the sessions
+      // that were already frozen, the second sees the old snapshot where none of
+      // them are. Neither would fail. The statement would run, return the same
+      // count, and the tests would stay green while shares quietly survived.
+      const rows = await run<{ frozen: string[]; burned: number; faces: number }>(
+        `WITH closed AS (
+           SELECT i.id FROM identities i
+            WHERE i.closed_at IS NOT NULL
+              AND i.closed_at > now() - interval '${DELETION_DELAY_DAYS} days'
+              AND (
+                EXISTS (SELECT 1 FROM sessions s
+                         WHERE s.identity = i.id AND s.frozen_at IS NULL)
+                OR EXISTS (SELECT 1 FROM vault_shares v
+                            JOIN sessions s2 ON s2.id = v.session
+                           WHERE s2.identity = i.id AND v.share_enc IS NOT NULL)
+                OR EXISTS (SELECT 1 FROM identity_appearance a WHERE a.identity = i.id)
+              )
+            LIMIT ${BATCH}
+         ), frozen AS (
+           UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed'
+            WHERE identity IN (SELECT id FROM closed) AND frozen_at IS NULL
+            RETURNING id
+         ), burned AS (
+           UPDATE vault_shares SET share_enc = NULL, burned_at = now()
+            WHERE session IN (
+                    SELECT id FROM sessions WHERE identity IN (SELECT id FROM closed)
+                  )
+              AND share_enc IS NOT NULL
+            RETURNING session
+         ), faces AS (
+           DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM closed)
+           RETURNING identity
+         )
+         SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen,
+                (SELECT count(*)::int FROM burned) AS burned,
+                (SELECT count(*)::int FROM faces) AS faces`,
+      );
 
-    for (const sessionId of rows[0]?.frozen ?? []) {
-      await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
-    }
+      // One statement for the whole batch rather than one round trip per
+      // session. A pass that closes ten thousand identities used to make ten
+      // thousand separate calls to pg_notify inside its transaction.
+      const ids = rows[0]?.frozen ?? [];
+      if (ids.length > 0) {
+        await run(
+          `SELECT pg_notify('session_frozen', id) FROM unnest($1::text[]) AS id`,
+          [ids],
+        );
+      }
 
-    // The counters the routes keep, kept here too. This pass does by hand what
-    // lib/sessions.ts does for one session — one statement for all of them,
-    // which is right for a sweep — and so it also has to say so by hand. It did
-    // not: the dashboard panel that splits freezes by reason exists to tell a
-    // wave of closures from somebody attacking open tabs, and the series
-    // reason="closed" had never once been written, so half of that panel was a
-    // legend with no line. Same for burned shares, which read zero on a night
-    // that burned a thousand. Found by the operations lens of the review panel,
-    // 2026-09-21.
-    const frozen = rows[0]?.frozen?.length ?? 0;
-    if (frozen > 0) inc("relay_sessions_frozen_total", { reason: "closed" }, frozen);
-    const burned = rows[0]?.burned ?? 0;
-    if (burned > 0) inc("relay_vault_shares_burned_total", {}, burned);
-    return shut.length;
-  });
+      // The counters the routes keep, kept here too. This pass does by hand
+      // what lib/sessions.ts does for one session — one statement for all of
+      // them, which is right for a sweep — and so it also has to say so by
+      // hand. It did not: the dashboard panel that splits freezes by reason
+      // exists to tell a wave of closures from somebody attacking open tabs,
+      // and the series reason="closed" had never once been written. Same for
+      // burned shares, which read zero on a night that burned a thousand.
+      if (ids.length > 0) {
+        inc("relay_sessions_frozen_total", { reason: "closed" }, ids.length);
+      }
+      const burned = rows[0]?.burned ?? 0;
+      if (burned > 0) inc("relay_vault_shares_burned_total", {}, burned);
+      return ids.length + burned + (rows[0]?.faces ?? 0);
+    });
+    if (frozen === 0) break;
+  }
+
+  return shut;
 }
 
 // One pass. Returns what it did, so the caller can log a line only when there is

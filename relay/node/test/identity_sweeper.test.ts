@@ -322,3 +322,75 @@ function countOf(rendered: string, series: string): number {
   }
   return 0;
 }
+
+Deno.test("closing more than one batch's worth finishes the job", async () => {
+  // This pass was the one exception to the batching the file argues for forty
+  // lines above BATCH: one UPDATE over the whole table, one CTE over every
+  // closed identity, and a round trip to pg_notify per frozen session. Found
+  // by the data and operations lenses of the review panel, 2026-09-21.
+  //
+  // A real batch is two thousand rows, which is too slow to build here, so the
+  // ceiling is lowered for the case and put back afterwards. What is being
+  // checked is that the loop goes round: with the batching wrong, a lowered
+  // ceiling leaves everything past the first batch open.
+  const sweeper = await import("../src/lib/identity_sweeper.ts");
+  const wanted = 7;
+  const ids: string[] = [];
+  for (let i = 0; i < wanted; i++) {
+    const made = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 1 });
+    ids.push(made.identityId);
+  }
+
+  await sweeper.sweepIdentities();
+
+  const [open] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM identities
+      WHERE id = ANY($1::uuid[]) AND closed_at IS NULL`,
+    [ids],
+  );
+  assertEquals(open.n, "0", "identities past the first batch were left open");
+
+  const [live] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM sessions
+      WHERE identity = ANY($1::uuid[]) AND frozen_at IS NULL`,
+    [ids],
+  );
+  assertEquals(live.n, "0", "sessions of a closed identity were left live");
+
+  const [unburned] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM vault_shares v
+       JOIN sessions s ON s.id = v.session
+      WHERE s.identity = ANY($1::uuid[]) AND v.share_enc IS NOT NULL`,
+    [ids],
+  );
+  assertEquals(unburned.n, "0", "shares of a closed identity survived the sweep");
+});
+
+Deno.test("every frozen session is announced, however many there are", async () => {
+  // The notification used to be a round trip per session inside the
+  // transaction; it is one statement over the whole batch now, and the thing
+  // that must not change is that each session still gets its own payload.
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const sweeper = await import("../src/lib/identity_sweeper.ts");
+  const ids: string[] = [];
+  const sessions: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    const made = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 1 });
+    ids.push(made.identityId);
+    sessions.push(made.sessionId);
+  }
+
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const arrived: string[] = [];
+  await sql.listen("session_frozen", (payload: string) => arrived.push(payload));
+  await sweeper.sweepIdentities();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  await sql.end();
+
+  for (const session of sessions) {
+    assert(
+      arrived.includes(session),
+      `session ${session} was frozen without a notification of its own`,
+    );
+  }
+});

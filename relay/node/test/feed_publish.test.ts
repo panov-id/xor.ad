@@ -29,6 +29,7 @@ const database = await import("../src/lib/db.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 const limits = await import("../src/lib/feed_limits.ts");
 const verdict = await import("../src/lib/feed_verdict.ts");
+const geo = await import("../src/lib/feed_geo.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
 
@@ -99,7 +100,7 @@ async function signedCall(key: CryptoKey, sessionId: string, method: string, pat
   });
 }
 
-async function author() {
+async function author(age = 30) {
   const pair = await crypto.subtle.generateKey(P256, true, ["sign", "verify"]);
   const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
   const answer = await call("POST", "/identities", {
@@ -108,7 +109,7 @@ async function author() {
       sign_pub: auth.bytesToBase64url(spki),
       wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
       name: "Аня",
-      age: 30,
+      age,
       auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
       share: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))),
       recovery_lookup_id: crypto.randomUUID(),
@@ -455,6 +456,162 @@ Deno.test("a phrase still inside its wait is left alone", async () => {
   );
 });
 
+
+// --- the delivery -----------------------------------------------------------
+
+// Publishes straight away: the delivery is what is under test, not the queue.
+async function livePhrase(me: { pair: CryptoKey; session_id: string }, over: Record<string, unknown> = {}) {
+  const sent = await signedCall(me.pair, me.session_id, "POST", "/feed", phrase(over));
+  assertEquals(sent.status, 202, JSON.stringify(sent.body));
+  const { id } = sent.body as { id: string };
+  await verdict.publishPhrase(id);
+  return id;
+}
+
+const feedUrl = (over: Record<string, string | number> = {}) => {
+  const params = new URLSearchParams({ lat: "41.9", lon: "12.5", radius: "1000" });
+  for (const [k, v] of Object.entries(over)) params.set(k, String(v));
+  return `/feed?${params.toString()}`;
+};
+
+Deno.test("a phrase in the circle comes back, rounded, and the exact centre does not", async () => {
+  const mine = await author();
+  const theirs = await author();
+  // Their centre is a few hundred metres from the viewer's, with the same
+  // radius: the circles overlap heavily.
+  const id = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
+    text: "во дворе с гитарой",
+    lat: 41.9021,
+    lon: 12.4964,
+  });
+
+  const feed = await signedCall(mine.pair.privateKey, mine.session_id, "GET", feedUrl({ lat: 41.9, lon: 12.497 }));
+  assertEquals(feed.status, 200, JSON.stringify(feed.body));
+  const items = (feed.body as { items: Array<Record<string, unknown>> }).items;
+  const card = items.find((i) => i.id === id);
+  assert(card, `the phrase was not delivered: ${JSON.stringify(items)}`);
+  assertEquals(card!.text, "во дворе с гитарой");
+
+  // The centre that goes outside is the grid node, never the one that was
+  // published with.
+  const expected = geo.quantise({ lat: 41.9021, lon: 12.4964 }, 1000);
+  assertEquals(card!.lat, expected.lat);
+  assertEquals(card!.lon, expected.lon);
+  assert(card!.lat !== 41.9021, "the exact latitude left the node");
+
+  // And nothing about the author does.
+  assertEquals(card!.author_identity, undefined);
+  assertEquals(card!.author_age, undefined);
+});
+
+Deno.test("circles that do not reach each other are not delivered", async () => {
+  const mine = await author();
+  const theirs = await author();
+  // Forty kilometres away, both with a kilometre of radius: nothing touches.
+  const far = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
+    text: "далеко отсюда",
+    lat: 42.26,
+    lon: 12.5,
+  });
+
+  const feed = await signedCall(mine.pair.privateKey, mine.session_id, "GET", feedUrl());
+  const items = (feed.body as { items: Array<{ id: string }> }).items;
+  assertEquals(items.find((i) => i.id === far), undefined, "a phrase out of reach was delivered");
+});
+
+Deno.test("the band cuts the feed, and it is never widened to fill it", async () => {
+  const teenager = await author(15);
+  const adult = await author(35);
+  const adults = await livePhrase({ pair: adult.pair.privateKey, session_id: adult.session_id }, {
+    text: "взрослая фраза",
+  });
+
+  const seen = await signedCall(teenager.pair.privateKey, teenager.session_id, "GET", feedUrl());
+  const items = (seen.body as { items: Array<{ id: string }> }).items;
+  assertEquals(
+    items.find((i) => i.id === adults),
+    undefined,
+    "a fifteen-year-old was shown an adult's phrase",
+  );
+  // Even though the feed is empty for them, and the radius grew looking for
+  // something: the band is never part of what grows (§8.3).
+  assertEquals(items.length, 0, "the empty feed was filled from outside the band");
+});
+
+Deno.test("an empty screen grows the radius, says so, and does not change the setting", async () => {
+  const mine = await author();
+  const theirs = await author();
+  // A corner of the world the other cases of this suite do not use: the point
+  // of this one is an **empty** screen, and the other phrases live around
+  // 41.9/12.5. Twelve kilometres away — outside a kilometre, inside the ceiling.
+  const far = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
+    text: "на том берегу",
+    lat: 10.108,
+    lon: 20.0,
+  });
+
+  const feed = await signedCall(
+    mine.pair.privateKey,
+    mine.session_id,
+    "GET",
+    feedUrl({ lat: 10.0, lon: 20.0, radius: 1000 }),
+  );
+  const body = feed.body as { items: Array<Record<string, unknown>>; radius_used?: number };
+  const card = body.items.find((i) => i.id === far);
+  assert(card, `the radius did not grow: ${JSON.stringify(body)}`);
+  assertEquals(card!.farther_than_asked, true, "the card did not say it was farther than asked");
+  assert((body.radius_used ?? 0) > 1000, "the answer did not say which radius it used");
+});
+
+Deno.test("a phrase still waiting for a verdict is delivered to nobody", async () => {
+  const mine = await author();
+  const theirs = await author();
+  const sent = await signedCall(theirs.pair.privateKey, theirs.session_id, "POST", "/feed", phrase({ text: "ещё не читана" }));
+  const { id } = sent.body as { id: string };
+
+  const feed = await signedCall(mine.pair.privateKey, mine.session_id, "GET", feedUrl());
+  const items = (feed.body as { items: Array<{ id: string }> }).items;
+  assertEquals(items.find((i) => i.id === id), undefined, "an unread phrase reached the feed");
+});
+
+Deno.test("an expired phrase is gone from the feed even before it is swept", async () => {
+  const mine = await author();
+  const theirs = await author();
+  const id = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, { text: "истекла" });
+  await database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [id]);
+
+  const feed = await signedCall(mine.pair.privateKey, mine.session_id, "GET", feedUrl());
+  const items = (feed.body as { items: Array<{ id: string }> }).items;
+  assertEquals(items.find((i) => i.id === id), undefined, "an expired phrase was still delivered");
+});
+
+Deno.test("the cursor is a pair, and it does not drop a phrase published in the same instant", async () => {
+  const mine = await author();
+  const theirs = await author();
+  const ids: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    ids.push(await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, { text: `страница ${i}` }));
+    // The hour's moments are cleared so the author's own limits are not what
+    // this case measures.
+    await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}' WHERE identity = $1`, [theirs.identity_id]);
+    await database.queryOrThrow(`DELETE FROM feed_messages WHERE author_identity = $1 AND visible_at IS NULL`, [theirs.identity_id]);
+  }
+  // All three share one `visible_at` to the millisecond: that is the case a
+  // cursor of time alone loses (2026-09-16, DATA-5).
+  await database.queryOrThrow(
+    `UPDATE feed_messages SET visible_at = now() WHERE id = ANY($1::uuid[])`,
+    [ids],
+  );
+
+  const first = await signedCall(mine.pair.privateKey, mine.session_id, "GET", feedUrl());
+  const firstItems = (first.body as { items: Array<{ id: string }> }).items;
+  const delivered = new Set(firstItems.map((i) => i.id));
+  for (const id of ids) {
+    assert(delivered.has(id), `phrase ${id} was lost between pages`);
+  }
+});
+
 addEventListener("unload", () => {
+
   database.closePool();
 });

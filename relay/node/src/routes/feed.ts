@@ -17,6 +17,8 @@ import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { refusalFor } from "../lib/feed_limits.ts";
+import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
+import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 
@@ -155,6 +157,184 @@ async function publish(req: Request): Promise<Response> {
   return answer;
 }
 
-route("POST", "/feed", (c) => publish(c.req));
 
-export { publish, TEXT_MAX_BYTES, TEXT_MAX_GRAPHEMES };
+
+
+
+// docs/facts/limits.tsv: `feed.page.size` (30) and `feed.radius.ceiling` (25 km).
+const PAGE_SIZE = 30;
+const RADIUS_CEILING = 25000;
+
+interface FeedRow {
+  id: string;
+  text: string;
+  mode: string;
+  lang: string;
+  lat: number;
+  lon: number;
+  area_radius: number;
+  like_count: number;
+  discount_value: string | null;
+  conditions: string | null;
+  visible_at: Date;
+  author_age: number;
+}
+
+// GET /feed — the circles that intersect, and nothing else about anybody.
+//
+// The viewer names a centre and a radius with the request; §8.3 says the area
+// is placed **anywhere**, with no check of where the person actually is and no
+// geolocation permission, so there is nothing to store and nothing to verify.
+// The contract did not name these parameters until 2026-09-21 — the route
+// cannot exist without them, and the same paragraph says the node sees the
+// viewing radius, so the omission was an omission.
+//
+// What a card carries outside: the phrase, its mode, its language, its like
+// count, and its centre **rounded to the grid of its own radius**
+// (lib/feed_geo.ts). The exact centre never leaves. Nothing about the author
+// leaves at all — not an id, not a name, not an age; the age is read to decide
+// the band and then dropped.
+async function deliver(req: Request, url: URL): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+
+  const lat = Number(url.searchParams.get("lat"));
+  const lon = Number(url.searchParams.get("lon"));
+  const radius = Number(url.searchParams.get("radius"));
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+    return refuse("invalid_body", "lat is missing or not a latitude", 400);
+  }
+  if (!Number.isFinite(lon) || lon < -180 || lon > 180) {
+    return refuse("invalid_body", "lon is missing or not a longitude", 400);
+  }
+  // The viewing radius gets no steps (§8.3): it is not published to anybody, so
+  // it cannot be a mark. It is still bounded by the ceiling the handle has.
+  if (!Number.isFinite(radius) || radius < 100 || radius > RADIUS_CEILING) {
+    return refuse("invalid_body", `radius must be between 100 and ${RADIUS_CEILING} metres`, 400);
+  }
+  const mode = url.searchParams.get("mode");
+  if (mode !== null && !MODES.includes(mode)) {
+    return refuse("invalid_body", `mode must be one of ${MODES.join(", ")}`, 400);
+  }
+
+  // The cursor is `(visible_at, id)` — a pair, because two phrases published in
+  // the same millisecond would otherwise make a page boundary that drops one of
+  // them (2026-09-16, DATA-5).
+  const after = url.searchParams.get("after");
+  let cursorAt: string | null = null;
+  let cursorId: string | null = null;
+  if (after) {
+    const [at, id] = after.split("_");
+    if (!at || !id || !/^[0-9]+$/.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
+      return refuse("invalid_body", "after is not a cursor from this feed", 400);
+    }
+    cursorAt = new Date(Number(at)).toISOString();
+    cursorId = id;
+  }
+
+  const [me] = await query<{ age: number; languages: string[]; filter_age_min: number | null; filter_age_max: number | null }>(
+    `SELECT age, languages, filter_age_min, filter_age_max FROM identities WHERE id = $1`,
+    [caller.identityId],
+  ) ?? [];
+  if (!me) return refuse("unavailable", "the node cannot answer right now", 503);
+
+  const mine = band(me.age);
+  // The viewer's own filter, clamped into their band: narrower is allowed,
+  // wider is not, and the clamp is here rather than in a CHECK because the band
+  // depends on the age (§8.3).
+  const ageLow = Math.max(mine.low, me.filter_age_min ?? mine.low);
+  const ageHigh = mine.high === null
+    ? (me.filter_age_max ?? null)
+    : Math.min(mine.high, me.filter_age_max ?? mine.high);
+
+  // The band is symmetric: the author must be inside the viewer's band **and**
+  // the viewer inside the author's. Written as SQL rather than filtered in
+  // memory because it decides which rows are read at all.
+  const bandSql = `
+    a.age >= $6 AND ($7::int IS NULL OR a.age <= $7)
+    AND (
+      CASE WHEN a.age <= 20 THEN $5::int BETWEEN greatest(13, a.age - 2) AND a.age + 2
+           ELSE $5::int >= least(21, a.age - 2)
+      END
+    )`;
+
+  // Growing the radius is the answer to an empty screen, and only the radius:
+  // an empty feed says nothing — broken, nobody here, or the person narrowed
+  // themselves — while the band is never widened, because widening it is the
+  // door it exists to close.
+  const steps = [radius, ...[1000, 3000, 10000, RADIUS_CEILING].filter((r) => r > radius)];
+  let rows: FeedRow[] = [];
+  let usedRadius = radius;
+  for (const attempt of steps) {
+    const box = boundingBox({ lat, lon }, attempt + 10000);
+    const found = await query<FeedRow>(
+      `SELECT f.id, f.text, f.mode, f.lang, f.lat, f.lon, f.area_radius, f.like_count,
+              f.discount_value, f.conditions, f.visible_at, a.age AS author_age
+         FROM feed_messages f
+         JOIN identities a ON a.id = f.author_identity
+        WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
+          AND f.lat BETWEEN $1 AND $2 AND f.lon BETWEEN $3 AND $4
+          AND ${bandSql}
+          AND ($8::text IS NULL OR f.mode = $8)
+          AND ($9::text[] = '{}' OR f.lang = ANY($9))
+          AND ($10::timestamptz IS NULL OR (f.visible_at, f.id) < ($10, $11::uuid))
+          -- The circles intersect: the distance between the centres is no more
+          -- than the two radii together. Measured with the same constant the
+          -- grid uses (lib/feed_geo.ts), so the two cannot drift apart.
+          AND sqrt(
+                pow((f.lat - $12) * 111320, 2) +
+                pow((f.lon - $13) * 111320 * cos(radians((f.lat + $12) / 2)), 2)
+              ) <= f.area_radius + $14
+        ORDER BY f.visible_at DESC, f.id DESC
+        LIMIT ${PAGE_SIZE}`,
+      [
+        box.latMin, box.latMax, box.lonMin, box.lonMax,
+        me.age, ageLow, ageHigh,
+        mode, me.languages ?? [],
+        cursorAt, cursorId,
+        lat, lon, attempt,
+      ],
+    ) ?? [];
+    usedRadius = attempt;
+    if (found.length > 0 || cursorAt) {
+      rows = found;
+      break;
+    }
+  }
+
+  const items = rows.map((row) => {
+    const at = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
+    return {
+      kind: "phrase",
+      id: row.id,
+      text: row.text,
+      mode: row.mode,
+      lang: row.lang,
+      lat: at.lat,
+      lon: at.lon,
+      area_radius: row.area_radius,
+      like_count: row.like_count,
+      created_at: Math.floor(row.visible_at.getTime() / 1000),
+      ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
+      // "Farther than you asked", and only when it is true. The viewer's own
+      // setting is not changed by this: an empty screen gets a temporary
+      // answer, not a silent edit of somebody's preferences (§8.3).
+      ...(usedRadius > radius ? { farther_than_asked: true } : {}),
+    };
+  });
+
+  const last = rows[rows.length - 1];
+  inc("relay_feed_total", { result: "delivered" });
+  return json({
+    items,
+    next: rows.length === PAGE_SIZE && last
+      ? `${last.visible_at.getTime()}_${last.id}`
+      : null,
+    ...(usedRadius > radius ? { radius_used: usedRadius } : {}),
+  }, 200, sunsetHeader());
+}
+
+route("POST", "/feed", (c) => publish(c.req));
+route("GET", "/feed", (c) => deliver(c.req, c.url));
+
+export { deliver, PAGE_SIZE, publish, RADIUS_CEILING, TEXT_MAX_BYTES, TEXT_MAX_GRAPHEMES };

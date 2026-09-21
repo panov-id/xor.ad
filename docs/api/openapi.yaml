@@ -1626,15 +1626,51 @@ paths:
       tags: [feed]
       summary: The feed by intersecting circles
       x-summary-ru: Лента по пересечению кругов
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/feed.ts
       security: [{identitySignature: []}]
-      description: With language, mode and age filters; 30 cards, then more by cursor (screen 3; protocol §6, decided 2026-09-16). What the viewer liked is not delivered — it is in GET /likes (2026-09-17).
-      x-description-ru: С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче нет — оно в GET /likes (17.09.2026).
+      description: >-
+        With language, mode and age filters; 30 cards, then more by cursor
+        (screen 3; protocol §6, decided 2026-09-16). What the viewer liked is not
+        delivered — it is in GET /likes (2026-09-17).
+
+
+        The viewer's circle arrives with the request: `lat`, `lon` and `radius`.
+        §8.3 puts the area anywhere, with no check of where the person is and no
+        geolocation permission, so there is nothing to store and nothing to
+        verify — and the same paragraph says the node sees the viewing radius,
+        because GET /feed and GET /feed/density are built on it. The three
+        parameters were named here on 2026-09-21, with the route: the operation
+        could not be called without them.
+
+
+        A card's centre is the grid node its own radius rounds to, never the
+        centre it was published with. Nothing about the author is in a card.
+      x-description-ru: >-
+        С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору
+        (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче
+        нет — оно в GET /likes (17.09.2026).
+
+
+        Круг зрителя приходит с запросом: `lat`, `lon` и `radius`. §8.3 ставит
+        область куда угодно, без проверки местоположения и без разрешения на
+        геолокацию, — хранить и проверять нечего; там же сказано, что радиус
+        просмотра узел видит, потому что на нём построены GET /feed и
+        GET /feed/density. Три параметра названы здесь 21.09.2026 вместе с
+        ручкой: без них операция невызываема.
+
+
+        Центр карточки — узел сетки, к которому округлил её собственный радиус,
+        а не тот центр, с которым публиковали. Об авторе в карточке нет ничего.
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
+        - {name: lat, in: query, required: true, schema: {type: number, minimum: -90, maximum: 90}, description: "The centre of the circle the viewer is looking at.", x-description-ru: "Центр круга, на который смотрит зритель."}
+        - {name: lon, in: query, required: true, schema: {type: number, minimum: -180, maximum: 180}}
+        - {name: radius, in: query, required: true, schema: {type: integer, minimum: 100, maximum: 25000}, description: "Metres. Unlike a phrase's radius this one is not stepped — it is never published, so it cannot be a mark (§8.3).", x-description-ru: "Метры. В отличие от радиуса фразы ступеней не имеет — наружу он не публикуется и меткой быть не может (§8.3)."}
+        - {name: mode, in: query, required: false, schema: {type: string, enum: [alone, company, party]}}
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}

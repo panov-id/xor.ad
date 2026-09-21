@@ -107,18 +107,17 @@ empty throughout.
 |---|---|---|
 | 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 closed 2026-09-21; not rolled out | [ ] |
 | 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [ ] |
-| 3. Likes | [ ] counters in `identity_stats` and `like_count` exist; no `likes` table, no routes | [ ] |
-| 4. Match and double consent | [ ] no `matches`, `match_participants`, `blocks` tables | [ ] |
+| 3. Likes | [~] `likes` table — migration `db/030` (2026-09-21); counters in `identity_stats` and `like_count`; no routes | [ ] |
+| 4. Match and double consent | [~] `matches`, `match_participants`, `blocks` — migration `db/030`, `chat_id` without a key until `chats` (step 5); no routes | [ ] |
 | 5. Chat: transport | [ ] `chat/relay.ts` answers 501; the `LISTEN`/`NOTIFY` bus works as of 2026-09-21 | [ ] |
 | 6. Encryption | [ ] | [ ] |
 | 7. Blocks, hiding, sweeping | [ ] | [ ] |
 | 8. Notifications and games | [ ] | [ ] |
 | 9. Web face | — | [ ] prototype exists, app does not |
 
-Of the eleven tables in the first cut (§13), six exist: `identities`,
-`sessions`, `vault_shares`, `legal_acceptances`, `feed_messages`,
-`identity_stats`. Five do not: `likes`, `matches`, `match_participants`,
-`blocks`, `support_requests`.
+Of the eleven tables in the first cut (§13), ten exist — six before
+2026-09-21, and `likes`, `matches`, `match_participants`, `blocks` by
+migration `db/030`. One does not: `support_requests`.
 
 Chat code was cleared by the owner's word on 2026-09-21.
 

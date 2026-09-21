@@ -2152,3 +2152,83 @@ Deno.test({
     assertEquals(code, 0, `migrate_control_state.ts gave up under a 17 s lock:\n${stderr.slice(-400)}`);
   },
 });
+
+Deno.test({
+  name: "the first cut's last four tables hold their keys (chat spec §13, steps 3–4)",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // likes, matches, match_participants, blocks — the four of the eleven that
+    // step 1 and 2 did not need. Asked of the database rather than of the file:
+    // a duplicate that goes in is a counter that goes up twice.
+    const tag = crypto.randomUUID();
+    const [a, b] = [crypto.randomUUID(), crypto.randomUUID()];
+    for (const id of [a, b]) {
+      await database.queryOrThrow(
+        `INSERT INTO identities (id, name, age, identity_public_key) VALUES ($1, 'проба', 30, $2)`,
+        [id, `key-${tag}-${id}`],
+      );
+    }
+    const phrase = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, 'проба', 'alone', 'und', 48.2, 16.37, 1000, 48.2, 16.37,
+               now(), now() + interval '1 hour')`,
+      [phrase, b],
+    );
+
+    await database.queryOrThrow(
+      `INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)`, [a, phrase],
+    );
+    const again = await database.queryOrThrow<{ feed_message_id: string }>(
+      `INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING RETURNING feed_message_id`, [a, phrase],
+    );
+    assertEquals(again.length, 0, "a second like of the same phrase by the same person went in");
+
+    await database.queryOrThrow(
+      `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2)`, [a, b],
+    );
+    const twice = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING RETURNING id`, [a, b],
+    );
+    assertEquals(twice.length, 0, "the same block was written twice");
+
+    const pair = `pair-${tag}`;
+    const match = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO matches (id, pair_key, expires_at) VALUES ($1, $2, now() + interval '1 hour')`,
+      [match, pair],
+    );
+    let duplicatePair = false;
+    try {
+      await database.queryOrThrow(
+        `INSERT INTO matches (id, pair_key, expires_at) VALUES ($1, $2, now() + interval '1 hour')`,
+        [crypto.randomUUID(), pair],
+      );
+    } catch { duplicatePair = true; }
+    assert(duplicatePair, "two live matches for one pair were accepted");
+
+    let badMode = false;
+    try {
+      await database.queryOrThrow(
+        `INSERT INTO match_participants (match_id, identity, message_id, text_snapshot, mode)
+         VALUES ($1, $2, $3, 'проба', 'crowd')`, [match, a, phrase],
+      );
+    } catch { badMode = true; }
+    assert(badMode, "a mode outside alone/company/party was accepted");
+
+    // Cascades: an identity that goes takes its likes, blocks and match rows.
+    await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [phrase]);
+    await database.queryOrThrow(`DELETE FROM matches WHERE id = $1`, [match]);
+    await database.queryOrThrow(`DELETE FROM identities WHERE id = ANY($1::uuid[])`, [[a, b]]);
+    const [left] = await database.queryOrThrow<{ n: string }>(
+      `SELECT (SELECT count(*) FROM likes WHERE liker_identity = $1)
+            + (SELECT count(*) FROM blocks WHERE blocker_identity = $1) AS n`, [a],
+    );
+    assertEquals(String(left.n), "0", "likes or blocks outlived their identity");
+  },
+});

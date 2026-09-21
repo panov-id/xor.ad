@@ -119,6 +119,7 @@ run_in_docker check-panel-contrast     "$here/check-panel-contrast.sh"
 run_in_docker check-storefront-contrast "$here/check-storefront-contrast.sh"
 run_in_docker check-panel-font-weights "$here/check-panel-font-weights.sh"
 run_in_docker test-alerts              "$here/test_alerts.sh"
+run_in_docker test-depth               "$here/run-depth-tests.sh"
 
 if [ "$with_tests" = 1 ]; then
   echo

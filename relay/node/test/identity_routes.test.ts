@@ -689,6 +689,50 @@ Deno.test("the first PIN needs a grant, spends it, and works only once", async (
 // UPDATEs that used to stand in for POST /recovery/claim here are gone — the
 // route exists, and a test that arranges its own preconditions by hand proves
 // only that the SQL beneath it works.
+Deno.test("a first-PIN grant older than an hour is no longer a grant", async () => {
+  // `vault.first_pin.ttl` — an hour, the owner's decision of 2026-09-21 after
+  // the security lens of the review panel. Without a term "one-time" meant "for
+  // ever, until spent": somebody recovers, never reaches /vault/init, and six
+  // months later whoever steals that session's signing key sets a PIN of their
+  // own and overwrites the owner's share — which is exactly what the route
+  // promises cannot happen.
+  const { created, pair, lookupId } = await registered();
+  const raised = await signedCall(
+    pair.privateKey, created.session_id, "POST", "/recovery/claim", { lookup_id: lookupId },
+  );
+  assertEquals(raised.status, 200);
+
+  // The grant is real right now.
+  const [before] = await database.queryOrThrow<{ first_pin_grant_at: Date | null }>(
+    `SELECT first_pin_grant_at FROM identities WHERE id = $1`,
+    [created.identity_id],
+  );
+  assert(before.first_pin_grant_at, "recovery left no grant to expire");
+
+  // Age it past the hour rather than wait one out.
+  await database.queryOrThrow(
+    `UPDATE identities SET first_pin_grant_at = now() - interval '61 minutes' WHERE id = $1`,
+    [created.identity_id],
+  );
+  const late = await signedCall(pair.privateKey, created.session_id, "POST", "/vault/init", {
+    auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
+    share: authBase64(newShareBytes()),
+  });
+  assertEquals(late.status, 409, "an hour-old grant still set a PIN");
+  assertEquals((late.body as { error: { code: string } }).error.code, "unauthorized");
+
+  // And inside the hour it still works — the term is a term, not a closure.
+  await database.queryOrThrow(
+    `UPDATE identities SET first_pin_grant_at = now() - interval '59 minutes' WHERE id = $1`,
+    [created.identity_id],
+  );
+  const inTime = await signedCall(pair.privateKey, created.session_id, "POST", "/vault/init", {
+    auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
+    share: authBase64(newShareBytes()),
+  });
+  assertEquals(inTime.status, 204, "a grant inside the hour was refused");
+});
+
 Deno.test("a first PIN takes over a share whose session was locked out", async () => {
   const { created, pair, lookupId: lookup_id } = await registered();
   const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };

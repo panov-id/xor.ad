@@ -26,7 +26,9 @@ the one whose absence makes a prod deploy fail with the wrong explanation.
   provider   HETZNER_TOKEN (or the provider in use)
   ssh        SSH_PUBLIC_KEY
   node       SESSION_SECRET_DEV / _STAGING / _PROD (one per environment,
-             never shared), POSTGRES_PASSWORD, ORIGIN_TOKEN, METRICS_TOKEN
+             never shared), VAULT_SHARE_KEY_DEV / _STAGING / _PROD (likewise,
+             and losing one loses every local history in that environment),
+             POSTGRES_PASSWORD, ORIGIN_TOKEN, METRICS_TOKEN
   images     GHCR_USER, GHCR_TOKEN
   prod gate  GITHUB_TOKEN — read access to the release repo. Without it the
              release check cannot tell "no such release" from "private repo,
@@ -178,6 +180,20 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # prod meant a token minted by the dev node verified on prod byte for
         # byte — and dev is the environment with the weaker way in.
         "SESSION_SECRET": require_secret(f"SESSION_SECRET_{env.upper()}", env),
+        # The key the node seals vault shares under (chat spec §8.2). Required,
+        # not optional, and that is a change of 2026-09-21: it was not in this
+        # map at all, so a deployed node had no key and answered every
+        # registration with "this node cannot store a vault share right now" —
+        # a whole step of the product refusing itself, quietly, on a box that
+        # looked healthy.
+        #
+        # Per environment and never shared, for the same reason as the session
+        # secret. And louder than that one: the key is not a credential that can
+        # be rotated at will — **change it and every share sealed under the old
+        # one stops opening**, which means every device in that environment
+        # loses its local history at once. Generate it with
+        # relay/wizard/new-vault-key.sh and keep it where the other secrets are.
+        "VAULT_SHARE_KEY": require_secret(f"VAULT_SHARE_KEY_{env.upper()}", env),
         "PANEL_URL": e.get("panel_url", ""),
         "PANEL_SENDER": os.environ.get("PANEL_SENDER", ""),
         # Whether a public request must name its tenant with a key. Per env, in
@@ -466,7 +482,12 @@ def require_secret(name: str, env: str) -> str:
     """A secret with no value deploys a node that fails silently later."""
     value = os.environ.get(name, "")
     if not value:
-        raise SystemExit(f"{name} is not set — {env} would have no session secret to sign with")
+        # The wording used to name the session secret specifically, which was
+        # true when it was the only caller and misleading from the moment it
+        # was not (2026-09-21).
+        raise SystemExit(
+            f"{name} is not set — {env} would deploy a node missing a secret it cannot work without"
+        )
     return value
 
 

@@ -1428,7 +1428,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       /recovery/claim`. Without it a frozen phone went on opening its own history
       with its own PIN.
 
-- [ ] **G16. The first-PIN grant never expires — review panel 2026-09-20,
+- [x] **G16. The first-PIN grant never expires — review panel 2026-09-20,
       security lens.** `relay/node/src/routes/identity.ts` spends the grant on
       `first_pin_grant_at IS NOT NULL` and nobody reads the age of the mark,
       though the column is a `timestamptz`.
@@ -1447,7 +1447,15 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       a row in `docs/facts/limits.tsv` next to `signup.unfinished.ttl`; the code
       change is one condition in one statement.
 
-- [ ] **G17. The vault sealing key is derived by a single SHA-256, and nothing
+
+      **Closed 2026-09-21. The owner's decision: an hour.** `vault.first_pin.ttl`
+      in the limits registry, the condition `first_pin_grant_at > now() -
+      interval '1 hour'` in `POST /vault/init`, and the case "a first-PIN grant
+      older than an hour is no longer a grant" holds both sides of the edge: 61
+      minutes refused, 59 accepted. The price is accepted out loud — somebody who
+      recovers and is interrupted for longer copies the sixteen characters of the
+      paper code again.
+- [x] **G17. The vault sealing key is derived by a single SHA-256, and nothing
       states any requirement for it — review panel 2026-09-20, protocols lens.**
       `VAULT_SHARE_KEY` comes from the environment and becomes an AES-GCM key
       through one `SHA-256` (`relay/node/src/lib/vault_share.ts`). **VERIFIED**
@@ -1465,6 +1473,22 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       phrase; having the wizard generate the key addresses the cause rather than
       the symptom and means a pass over every environment. The owner's call.
 
+
+      **Closed 2026-09-21. The owner's decision: the wizard generates the key,
+      plus HKDF.** The derivation in `relay/node/src/lib/vault_share.ts` is HKDF
+      (RFC 5869) with the salt `xor.ad/vault-share/v1`; five cases in
+      `test/vault_share.test.ts`, one of which goes red precisely on a return to
+      the bare hash. The wizard now **requires** `VAULT_SHARE_KEY_<ENV>` the way
+      it requires the session secret, generates it with
+      `relay/wizard/new-vault-key.sh` (32 bytes from the system CSPRNG), and two
+      new cases in the wizard's own test hold that.
+      🔴 **The side finding, which turned out to be the main one:** before this
+      the wizard did not know about the key at all — a deployed node had none and
+      answered every registration with "this node cannot store a vault share
+      right now" while looking perfectly healthy. Step 1 could not have worked on
+      a box.
+      🟠 The price is named: the key does not rotate — shares sealed under the
+      old derivation will not open. Paid on 2026-09-21, while no node holds one.
 - [ ] **G18. The request signature covers neither the node nor the query string
       — review panel 2026-09-20, protocols lens.** What is signed is
       `method\npath\nsha256(body)\ntime`, and `path` is the `pathname`, without

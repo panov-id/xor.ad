@@ -61,6 +61,20 @@ const MIN_AGE = 13;
 // storage failures (review panel 2026-09-20, data lens). 200 is far past any
 // person and far short of the type.
 const MAX_AGE = 200;
+// How long the one-time right to set a first PIN stays good: `vault.first_pin.ttl`
+// in docs/facts/limits.tsv, an hour, decided by the owner on 2026-09-21.
+//
+// Without a term "one-time" meant "for ever, until spent", and the security lens
+// of the review panel showed what that buys: somebody recovers in January, does
+// not reach POST /vault/init — on the same-device path that is the ordinary
+// outcome, the old PIN still works — and six months later whoever steals the
+// signing key from that session calls /vault/init, sets a PIN of their own
+// without knowing the old one, and overwrites the owner's share. The route's
+// own comment promises that cannot happen.
+//
+// The price of an hour is named and accepted: somebody who recovers and is
+// interrupted for longer copies the sixteen characters of the paper code again.
+const FIRST_PIN_TTL_HOURS = 1;
 // The share is 32 random bytes (§8.2). Anything else is not a share.
 const SHARE_BYTES = 32;
 
@@ -722,11 +736,15 @@ async function vaultInit(req: Request): Promise<Response> {
     // find a grant. An empty result is the refusal, not an error to recover from.
     const spent = await run<{ id: string }>(
       `UPDATE identities SET first_pin_grant_at = NULL
-        WHERE id = $1 AND first_pin_grant_at IS NOT NULL AND closed_at IS NULL
+        WHERE id = $1 AND closed_at IS NULL
+          AND first_pin_grant_at > now() - interval '${FIRST_PIN_TTL_HOURS} hours'
         RETURNING id`,
       [caller.identityId],
     );
     if (spent.length === 0) {
+      // One wording for "never had one", "already spent" and "expired": all
+      // three mean the same to an honest client, and telling them apart tells
+      // a stolen signing key which door it is standing at.
       inc("relay_vault_init_total", { result: "no_grant" });
       return refuse("unauthorized", "no first-PIN grant on this identity", 409);
     }

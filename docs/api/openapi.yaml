@@ -2987,7 +2987,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "503": {$ref: "#/components/responses/Unavailable"}
-        "409": {description: "No first-PIN grant on this identity, or it was already spent — code unauthorized. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it (2026-09-20).", x-description-ru: "Права «первый ПИН» на этой личности нет либо оно уже израсходовано — code unauthorized. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается (20.09.2026).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "409": {description: "No first-PIN grant on this identity, or it was already spent, or it is older than `vault.first_pin.ttl` — one hour (2026-09-21). One wording for all three: an honest client cannot act on the difference, and telling them apart would tell a stolen signing key which door it is standing at. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it.", x-description-ru: "Права «первый ПИН» на этой личности нет, либо оно израсходовано, либо старше `vault.first_pin.ttl` — часа (21.09.2026). Одна формулировка на все три: честному клиенту разница ничего не даёт, а украденному ключу подписи она сказала бы, у какой двери он стоит. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}
   /sessions/{lookup_id}/approve:
     post:

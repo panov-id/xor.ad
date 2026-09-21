@@ -26,17 +26,45 @@ export function configured(): boolean {
   return config.vaultShareKey.length > 0;
 }
 
-// The env value is a passphrase, not key material, so it is stretched rather than
-// used raw: SHA-256 over it gives the 32 bytes AES-256 wants, deterministically
-// across every node in the pool — which is required, since any node may answer
-// the next request for the same share.
+// The env value is turned into key material by HKDF (RFC 5869), not by a single
+// hash over it.
+//
+// [retired] It used to be `SHA-256(VAULT_SHARE_KEY)`, justified by needing the
+// same key on every node of the pool — true, and no argument for a bare hash:
+// HKDF is exactly as deterministic. What the bare hash cost was named by the
+// protocols lens of the review panel on 2026-09-20: if the variable ever holds
+// a phrase rather than 32 random bytes, a search against a dump costs one
+// SHA-256 per guess, and every share on the node opens offline. HKDF does not
+// stretch either — nothing salt-and-expand does makes a weak phrase strong —
+// so the other half of the fix is that the wizard now generates the value and
+// refuses to deploy a node without one (relay/wizard/wizard.py).
+//
+// What HKDF adds here is domain separation: the salt and `info` below bind the
+// derived key to this purpose, so the same environment value used for anything
+// else never yields the same bytes. The salt is a constant rather than random
+// for the reason the old comment gave: every node must derive the same key.
+//
+// **Changing any of the three inputs — the value, the salt, the info string —
+// changes the key, and shares sealed under the old one stop opening.** That is
+// the price of this commit, paid on 2026-09-21 while no node held a share.
+const KEY_SALT = new TextEncoder().encode("xor.ad/vault-share/v1");
+const KEY_INFO = new TextEncoder().encode("vault share sealing key, AES-256-GCM");
+
 async function key(): Promise<CryptoKey> {
   if (cached) return cached;
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(config.vaultShareKey),
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(config.vaultShareKey) as BufferSource,
+    "HKDF",
+    false,
+    ["deriveBits"],
   );
-  cached = await crypto.subtle.importKey("raw", digest, "AES-GCM", false, ["encrypt", "decrypt"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "HKDF", hash: "SHA-256", salt: KEY_SALT as BufferSource, info: KEY_INFO as BufferSource },
+    material,
+    256,
+  );
+  cached = await crypto.subtle.importKey("raw", bits, "AES-GCM", false, ["encrypt", "decrypt"]);
   return cached;
 }
 

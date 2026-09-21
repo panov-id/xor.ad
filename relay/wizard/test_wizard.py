@@ -162,6 +162,8 @@ try:
 
     os.environ["SESSION_SECRET_DEV"] = "dev-only"
     os.environ["SESSION_SECRET_PROD"] = "prod-only"
+    os.environ["VAULT_SHARE_KEY_DEV"] = "dev-vault-key"
+    os.environ["VAULT_SHARE_KEY_PROD"] = "prod-vault-key"
     dev_file = wizard.env_file(inventory, box, "dev")
     prod_file = wizard.env_file(inventory, box, "prod")
     check("each environment file carries its own secret",
@@ -185,6 +187,26 @@ try:
     untagged = wizard.env_file(pinned, box, "prod")
     check("an environment with no pin still names one, rather than nothing",
           "RELAY_IMAGE_TAG=dev" in untagged)
+
+    # The vault key travels the same way and matters more: it is not rotatable,
+    # so an environment that gets the wrong one cannot be corrected afterwards —
+    # every share sealed under it stops opening. Added 2026-09-21, when the key
+    # entered the wizard at all: before that a deployed node had none, and
+    # answered every registration "this node cannot store a vault share right
+    # now" while looking perfectly healthy.
+    check("each environment file carries its own vault key",
+          "VAULT_SHARE_KEY=dev-vault-key" in dev_file
+          and "VAULT_SHARE_KEY=prod-vault-key" in prod_file,
+          [line for line in dev_file.splitlines() if "VAULT_SHARE" in line] or "no such line")
+
+    os.environ.pop("VAULT_SHARE_KEY_PROD", None)
+    try:
+        wizard.env_file(inventory, box, "prod")
+        check("a node file cannot be built without that environment's vault key", False,
+              "it produced a file with no key, and that node refuses every registration")
+    except SystemExit:
+        check("a node file cannot be built without that environment's vault key", True)
+    os.environ["VAULT_SHARE_KEY_PROD"] = "prod-vault-key"
 
     os.environ.pop("SESSION_SECRET_PROD", None)
     try:

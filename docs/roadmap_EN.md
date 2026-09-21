@@ -107,7 +107,7 @@ empty throughout.
 |---|---|---|
 | 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 closed 2026-09-21; not rolled out | [ ] |
 | 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [ ] |
-| 3. Likes | [~] `likes` table — migration `db/030` (2026-09-21); counters in `identity_stats` and `like_count`; no routes | [ ] |
+| 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like` (2026-09-21): band, block, self-like without an oracle, a match on a mutual like; missing — taking a like back, the offer's match, a rate limit (no number in the registry), a two-connection race test | [ ] |
 | 4. Match and double consent | [~] `matches`, `match_participants`, `blocks` — migration `db/030`, `chat_id` without a key until `chats` (step 5); no routes | [ ] |
 | 5. Chat: transport | [ ] `chat/relay.ts` answers 501; the `LISTEN`/`NOTIFY` bus works as of 2026-09-21 | [ ] |
 | 6. Encryption | [ ] | [ ] |

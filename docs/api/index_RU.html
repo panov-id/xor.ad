@@ -637,11 +637,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-chat">chat</h2>
 <p>Лайк, мэтч, чат, игры в чате (протокол §4.3, §4.7). Не построено.</p>
 <section class="op" id="post-feed--id--like">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-built">построено</span></div>
 <p><strong>Лайкнуть фразу или оффер</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked или matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code) либо stepped_away (ApiError).</td><td><code>object</code></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked или matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Нужно принять заново (без error.code), stepped_away либо refused — своей живой фразы нет, а цель не оффер (§8.4; код заведён 21.09.2026). Остальные запреты — своя фраза, блокировка, другая полоса, исчезнувшая фраза — отвечают 200 liked, а не отказом: иной ответ был бы оракулом.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/likes.ts</code></p>
 </section>
 <section class="op" id="delete-feed--id--like">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">спека</span></div>

@@ -637,11 +637,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-chat">chat</h2>
 <p>Like, match, chat, games in a chat (protocol §4.3, §4.7). Not built.</p>
 <section class="op" id="post-feed--id--like">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/feed/{id}/like</code><span class="chip s-built">built</span></div>
 <p><strong>Like a phrase or an offer</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked or matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code) or stepped_away (ApiError).</td><td><code>object</code></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>liked or matched.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>409</code></td><td>Re-acceptance required (no error.code), stepped_away, or refused — no live phrase of one&#x27;s own and the target is not an offer (§8.4; the code added 2026-09-21). A like the rules forbid otherwise — one&#x27;s own phrase, a block, another band, a phrase that is gone — answers 200 liked, never a refusal: a different answer would be an oracle.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/likes.ts</code></p>
 </section>
 <section class="op" id="delete-feed--id--like">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}/like</code><span class="chip s-spec">spec</span></div>

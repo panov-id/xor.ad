@@ -33,6 +33,7 @@ const geo = await import("../src/lib/feed_geo.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
 await import("../src/routes/statements.ts");
+await import("../src/routes/likes.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -1390,3 +1391,117 @@ Deno.test("a cursor that is not one from this route is refused", async () => {
   assertEquals(bad.status, 400);
   assertEquals((bad.body as { error: { code: string } }).error.code, "invalid_body");
 });
+
+// ── Likes (chat spec §8.4) and the match they make (§8.5) ──────────────────────
+// Phrases are written straight into the table at their own spot, so these cases
+// neither wait for a moderator nor land on another case's feed.
+async function seedPhrase(identity: string, text: string, mode = "alone"): Promise<string> {
+  const id = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+        lat_published, lon_published, visible_at, expires_at)
+     VALUES ($1, 'xor', $2, $3, $4, 'und', 60.17, 24.94, 1000, 60.17, 24.94,
+             now(), now() + interval '3 hours')`,
+    [id, identity, text, mode],
+  );
+  return id;
+}
+const like = (who: { pair: CryptoKeyPair; session_id: string }, phraseId: string) =>
+  signedCall(who.pair.privateKey, who.session_id, "POST", `/feed/${phraseId}/like`);
+const stateOf = (r: { body: unknown }) => (r.body as { state?: string }).state;
+async function likeCount(id: string): Promise<number> {
+  const [row] = await database.queryOrThrow<{ like_count: number }>(
+    `SELECT like_count FROM feed_messages WHERE id = $1`, [id]);
+  return Number(row.like_count);
+}
+
+Deno.test("a like counts once, and a double tap adds nothing", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  await seedPhrase(a.identity_id, "кто на набережную?");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+
+  const first = await like(a, theirs);
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  assertEquals(stateOf(first), "liked");
+  const again = await like(a, theirs);
+  assertEquals(stateOf(again), "liked");
+  assertEquals(await likeCount(theirs), 1, "a double tap counted twice");
+
+  const stats = await database.queryOrThrow<{ identity: string; likes_given: number; likes_received: number }>(
+    `SELECT identity, likes_given, likes_received FROM identity_stats WHERE identity = ANY($1::uuid[])`,
+    [[a.identity_id, b.identity_id]],
+  );
+  const by = Object.fromEntries(stats.map((r) => [r.identity, r]));
+  assertEquals(Number(by[a.identity_id].likes_given), 1, "the liker's count did not move");
+  assertEquals(Number(by[b.identity_id].likes_received), 1, "the author's count did not move");
+  reset();
+});
+
+Deno.test("liking back makes a match with both phrases in it", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?", "company");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+
+  assertEquals(stateOf(await like(a, theirs)), "liked");
+  const back = await like(b, mine);
+  assertEquals(back.status, 200, JSON.stringify(back.body));
+  assertEquals(stateOf(back), "matched", "a mutual like did not make a match");
+  const matchId = (back.body as { match_id?: string }).match_id;
+  assert(matchId, "a match came back without its id");
+
+  const people = await database.queryOrThrow<{ identity: string; text_snapshot: string; mode: string }>(
+    `SELECT identity, text_snapshot, mode FROM match_participants WHERE match_id = $1`, [matchId],
+  );
+  assertEquals(people.length, 2, "the match does not hold both sides");
+  const snap = Object.fromEntries(people.map((p) => [p.identity, p]));
+  assertEquals(snap[a.identity_id].text_snapshot, "кто на набережную?");
+  assertEquals(snap[a.identity_id].mode, "company");
+  assertEquals(snap[b.identity_id].text_snapshot, "гуляю у залива");
+  reset();
+});
+
+Deno.test("a like with no live phrase of one's own is refused, not swallowed", async () => {
+  // §8.4: such a like could never become a match, so taking it quietly would
+  // be a like that goes nowhere without the person ever knowing.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  const refused = await like(a, theirs);
+  assertEquals(refused.status, 409, JSON.stringify(refused.body));
+  assertEquals((refused.body as { error: { code: string } }).error.code, "refused");
+  assertEquals(await likeCount(theirs), 0);
+  reset();
+});
+
+Deno.test("a like the rules forbid answers exactly like one that counted", async () => {
+  // Different answers would be an oracle: blocked, out of band and one's own
+  // phrase would each be told apart from a like that went in (§8.4, §8.9).
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const blocked = await author();
+  const young = await author(15);
+  const own = await seedPhrase(a.identity_id, "своя фраза");
+  const theirs = await seedPhrase(blocked.identity_id, "фраза того, кого заблокировали");
+  const teen = await seedPhrase(young.identity_id, "фраза из другой полосы");
+  await database.queryOrThrow(
+    `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2)`, [blocked.identity_id, a.identity_id],
+  );
+  for (const [target, why] of [[own, "self"], [theirs, "blocked"], [teen, "band"]] as const) {
+    const answer = await like(a, target);
+    assertEquals(answer.status, 200, `${why}: ${JSON.stringify(answer.body)}`);
+    assertEquals(answer.body, { state: "liked" }, `${why}: the answer tells this case apart`);
+    assertEquals(await likeCount(target), 0, `${why}: the like went in`);
+  }
+  reset();
+});
+

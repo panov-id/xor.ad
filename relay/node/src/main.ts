@@ -28,6 +28,7 @@ import "./routes/identity.ts"; // registers the identity routes of chat spec §1
 import "./routes/transfer.ts"; // and the transfer of an identity between devices (§8.2)
 import "./routes/feed.ts"; // step 2 of the build order: publishing a phrase (§8.3)
 import "./routes/statements.ts"; // and Article 17 for an author with no mailbox (§13)
+import "./routes/likes.ts"; // step 3: a like, and the match a mutual one makes (§8.4, §8.5)
 
 type Handler = (req: Request) => Response | Promise<Response>;
 

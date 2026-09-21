@@ -186,7 +186,10 @@ Deno.test("a request from outside the window is refused before the key is read",
   assertEquals(verdict, "time_out_of_window");
 });
 
-Deno.test("each missing or malformed header is named, not lumped together", async () => {
+// Not async: everything it checks is synchronous, and `async` without an await
+// is what the linter calls out (it did, from before this branch — found when CI
+// ran the linter over this file on 2026-09-21).
+Deno.test("each missing or malformed header is named, not lumped together", () => {
   const base = {
     "x-identity-session": "0f9c3d0a-0000-4000-8000-000000000001",
     "x-identity-time": String(NOW),

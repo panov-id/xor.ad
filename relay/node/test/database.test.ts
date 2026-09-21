@@ -1244,7 +1244,8 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
-    const { query } = await import("../src/lib/db.ts");
+    // The probe helpers reach for the database themselves since they stopped
+    // building their own table (2026-09-21), so this case no longer needs it.
     const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
 
     const id = await probePhrase("alpha", "фраза из альфы");

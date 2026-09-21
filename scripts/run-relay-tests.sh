@@ -13,6 +13,13 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="denoland/deno:alpine-2.1.4"
 
+# The linter runs first, and it runs here rather than only in CI. On 2026-09-21
+# CI was the first thing to see three lint problems on this branch (an `async`
+# with nothing to await, two unused bindings) because no local run ever called
+# `deno lint` — the whole session went by without it. A check that only the
+# pipeline performs is a check you learn about after the push.
+docker run --rm -v "$root/relay/node":/node -w /node "$image" lint
+
 docker run --rm \
   -v "$root/relay/node":/node \
   -w /node \

@@ -628,7 +628,9 @@ Deno.test("two sessions of one identity hold two different shares", async () => 
   // one identity, two of its own sessions, and no way for the second to reach
   // what belongs to the first.
   const pin = crypto.getRandomValues(new Uint8Array(32));
-  const { created, pair, lookupId } = await registered(pin);
+  // No `pair` here: this case signs with the new device's key, not the old
+  // one's, and an unused binding is a claim that it matters.
+  const { created, lookupId } = await registered(pin);
 
   // The device moves: the old session keeps its row, the new one arrives with
   // no share at all and sets its own PIN through the grant recovery left.

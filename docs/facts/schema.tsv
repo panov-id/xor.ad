@@ -50,7 +50,7 @@ chats	docs/chat_RU.md:2136	relay/node/db/031_chats.sql	product
 dsa_notices	-	relay/node/db/005_dsa_notices.sql	control
 dsa_statements	-	relay/node/db/005_dsa_notices.sql	control
 feed_messages	docs/chat_RU.md:1464	relay/node/db/025_feed_and_stats.sql	product
-hidden_messages	docs/chat_RU.md:2372	-	product
+hidden_messages	docs/chat_RU.md:2372	relay/node/db/034_hidden_messages.sql	product
 idempotency	-	relay/node/db/001_control_state.sql	control
 identities	docs/chat_RU.md:776	relay/node/db/022_identity_and_sessions.sql	product
 identity_stats	docs/chat_RU.md:1937	relay/node/db/025_feed_and_stats.sql	product

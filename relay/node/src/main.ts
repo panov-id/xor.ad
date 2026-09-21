@@ -32,6 +32,7 @@ import "./routes/likes.ts"; // step 3: a like, and the match a mutual one makes 
 import "./routes/matches.ts"; // step 4: consent to a match, and "not now" (§8.5)
 import "./routes/chats.ts"; // step 5: a chat message through the node, and its receipt (§8.8)
 import "./routes/blocks.ts"; // step 7: blocks (§8.9)
+import "./routes/hidden.ts"; // and hiding a phrase for oneself
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)
 
 type Handler = (req: Request) => Response | Promise<Response>;

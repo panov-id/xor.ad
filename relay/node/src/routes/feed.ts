@@ -355,6 +355,9 @@ async function deliver(req: Request, url: URL): Promise<Response> {
           AND NOT EXISTS (SELECT 1 FROM blocks b
                            WHERE (b.blocker_identity = $15::uuid AND b.blocked_identity = f.author_identity)
                               OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $15::uuid))
+          -- §8.9: what the viewer hid for themselves stays out of their feed only.
+          AND NOT EXISTS (SELECT 1 FROM hidden_messages h
+                           WHERE h.identity = $15::uuid AND h.feed_message_id = f.id)
           AND ($10::bigint IS NULL OR (f.visible_at, f.id) <
                 (timestamptz 'epoch' + $10::bigint * interval '1 microsecond', $11::uuid))
           -- The circles intersect: the distance between the centres is no more

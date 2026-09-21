@@ -38,6 +38,7 @@ await import("../src/routes/matches.ts");
 await import("../src/routes/chats.ts");
 await import("../src/routes/inbox.ts");
 await import("../src/routes/blocks.ts");
+await import("../src/routes/hidden.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -2153,6 +2154,51 @@ Deno.test({
     assertEquals((await call()).status, 204, "a replay answered differently");
     assertEquals(await blockedBy(a.identity_id), 0, "a replayed request restored a lifted block");
     assertEquals((await matchCall(b, "DELETE", `/blocks/${mine[0].id}`)).status, 204, "someone else's id answered differently");
+    reset();
+  },
+});
+
+// ── Hiding a phrase for oneself (§8.9, screens 5 and 10) ───────────────────────
+Deno.test({
+  name: "a hidden phrase leaves one's own feed only, and comes back by its id",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    const { quantise } = await import("../src/lib/feed_geo.ts");
+    reset();
+    const me = await author();
+    const other = await author();
+    const writer = await author();
+    const here = { lat: 35.17, lon: 33.36 };
+    const at = quantise(here, 1000);
+    const phraseId = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, 'кофе у моря', 'alone', 'und', $3, $4, 1000, $5, $6, now(), now() + interval '3 hours')`,
+      [phraseId, writer.identity_id, here.lat, here.lon, at.lat, at.lon],
+    );
+    const sees = async (who: typeof me) =>
+      ((await signedCall(who.pair.privateKey, who.session_id, "GET", feedUrl(here))).body as {
+        items: Array<{ id: string }>;
+      }).items.some((i) => i.id === phraseId);
+    assert(await sees(me), "the phrase was not in the feed to begin with — the case proves nothing");
+
+    const hid = await signedCall(me.pair.privateKey, me.session_id, "POST", "/hidden", { feed: phraseId });
+    assertEquals(hid.status, 200, JSON.stringify(hid.body));
+    const hiddenId = (hid.body as { id: string }).id;
+    assert(hiddenId && hiddenId !== phraseId, "the handle is the phrase id itself");
+    assert(!(await sees(me)), "a hidden phrase is still in one's own feed");
+    assert(await sees(other), "hiding for oneself hid the phrase from somebody else");
+
+    const list = await matchCall(me, "GET", "/hidden");
+    assertEquals(list.body, [{ id: hiddenId, kind: "feed", text: "кофе у моря" }]);
+    assertEquals((await matchCall(other, "DELETE", `/hidden/${hiddenId}`)).status, 204, "someone else's id answered differently");
+    assert(!(await sees(me)), "someone else brought one's hidden phrase back");
+    assertEquals((await matchCall(me, "DELETE", `/hidden/${hiddenId}`)).status, 204);
+    assert(await sees(me), "the phrase did not come back");
     reset();
   },
 });

@@ -190,6 +190,11 @@ export const LIKE_LIMITS: Limit[] = [
 ];
 
 // Messages in a chat, per identity (limits.tsv chat.messages.minute, SEC-18).
+// Hiding per identity (limits.tsv hidden.hour, OPS-13).
+export const HIDDEN_LIMITS: Limit[] = [
+  { name: "hidden", max: 60, windowMs: HOUR },
+];
+
 // Blocks per identity (limits.tsv blocks.hour, SEC-1).
 export const BLOCK_LIMITS: Limit[] = [
   { name: "block", max: 20, windowMs: HOUR },

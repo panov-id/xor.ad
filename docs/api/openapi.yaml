@@ -2505,7 +2505,8 @@ paths:
       tags: [safety]
       summary: "Hide a phrase or a line for yourself"
       x-summary-ru: "Скрыть фразу или реплику у себя"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/hidden.ts
       security: [{identitySignature: []}]
       description: "200 with an id for bringing it back; the author does not learn; lives until the phrase dies (chat spec §8.9, hidden_messages)."
       x-description-ru: "200 с id для возврата; автор не узнаёт; живёт до смерти фразы (спека чата §8.9, hidden_messages)."
@@ -2524,7 +2525,8 @@ paths:
       tags: [safety]
       summary: "The hidden list"
       x-summary-ru: "Список скрытого"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/hidden.ts
       security: [{identitySignature: []}]
       description: "For screen 10; short by construction. Fields {id, kind, text} named in protocol §4.8 (2026-09-16)."
       x-description-ru: "Для экрана 10; недолог по построению. Поля {id, kind, text} названы в протоколе §4.8 (16.09.2026)."
@@ -2543,7 +2545,8 @@ paths:
       tags: [safety]
       summary: "Bring the hidden back"
       x-summary-ru: "Вернуть скрытое"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/hidden.ts
       security: [{identitySignature: []}]
       description: "Screen 5."
       x-description-ru: "Экран 5."

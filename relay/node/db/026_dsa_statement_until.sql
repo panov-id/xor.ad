@@ -1,0 +1,16 @@
+-- Article 17(3)(a): a statement of reasons says how long the restriction lasts.
+--
+-- The column the spec promised and the table did not have — `dsa.statements.until.unbuilt`
+-- in the open registry, decided 2026-09-17 (LAW-1) and built 2026-09-21 with the
+-- route that shows a statement to its author.
+--
+-- Nullable, and the absence is the meaning: **no `until` is not "we forgot" but
+-- "indefinitely"**. A removal is indefinite by nature and a temporary hiding is
+-- not, and the article asks us to say which. A NOT NULL column with a far-off
+-- default would have said "until the year 9999" to a person, which is not what
+-- anybody means by it.
+--
+-- There is no territorial scope beside it, and that is also from the spec: the
+-- restriction applies to the service as a whole. A column nobody can vary is a
+-- column that invites somebody to vary it.
+ALTER TABLE dsa_statements ADD COLUMN IF NOT EXISTS until timestamptz;

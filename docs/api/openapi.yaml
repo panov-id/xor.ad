@@ -2725,7 +2725,8 @@ paths:
       tags: [identity]
       summary: "Your own Article 17 statements"
       x-summary-ru: "Свои мотивировки по ст. 17"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/statements.ts
       security: [{identitySignature: []}]
       description: "Without the notifier's identity; shown on the next entry with this identity, kept a year (dsa/SPEC §7, retention in §9; LAW-1, 2026-09-16; the section corrected from §6 on 2026-09-20). The first delivery sets delivered_at (proof of delivery, Art. 17)."
       x-description-ru: "Без личности заявителя; показываются при следующем входе с этой личности, лежат год (dsa/SPEC §7, срок хранения в §9; LAW-1, 16.09.2026; раздел исправлен с §6 20.09.2026). Первая выдача ставит delivered_at (доказательство вручения, ст. 17)."

@@ -32,6 +32,7 @@ const verdict = await import("../src/lib/feed_verdict.ts");
 const geo = await import("../src/lib/feed_geo.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
+await import("../src/routes/statements.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -754,7 +755,106 @@ Deno.test("density counts what the feed would deliver, not what is in the circle
   );
 });
 
+
+// --- Article 17: what the author is told ------------------------------------
+//
+// §13 puts this screen with the feed rather than after it, and the reason is
+// the feed: it is the first place where something of somebody's can be taken
+// down. We never ask for an email — identity is a key pair — so without this
+// route a restriction is a silent deletion.
+
+async function writeStatement(identityId: string, over: Record<string, unknown> = {}) {
+  const id = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO dsa_statements
+       (id, brand, target_id, recipient_identity, restriction, facts,
+        ground_kind, ground_text, automated_used, until)
+     VALUES ($1, 'alpha', $2, $3, $4, $5, $6, $7, false, $8)`,
+    [
+      id,
+      over.target_id ?? crypto.randomUUID(),
+      identityId,
+      over.restriction ?? "removed",
+      over.facts ?? "Фраза называла частный адрес и звала туда людей.",
+      over.ground_kind ?? "legal",
+      over.ground_text ?? "ст. 17(3)(d), незаконное содержание",
+      over.until ?? null,
+    ],
+  );
+  return id;
+}
+
+Deno.test("an author with no mailbox can read why their phrase went", async () => {
+  const me = await author();
+  const stranger = await author();
+  const mine = await writeStatement(me.identity_id);
+  const theirs = await writeStatement(stranger.identity_id);
+
+  const seen = await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements");
+  assertEquals(seen.status, 200, JSON.stringify(seen.body));
+  const items = (seen.body as { items: Array<Record<string, unknown>> }).items;
+  assertEquals(items.length, 1, JSON.stringify(items));
+  assertEquals(items[0].id, mine);
+  assertEquals(items[0].restriction, "removed");
+  assertEquals(items[0].ground_kind, "legal");
+  // Indefinite is an absent field, not a null one: a client printing
+  // "until: none" would be saying something nobody meant.
+  assertEquals("until" in items[0], false, "an indefinite restriction carried an until");
+  // Where to take it further travels with the statement.
+  assert(items[0].appeal, "the statement did not say where to appeal");
+
+  // And nothing about who complained.
+  const text = JSON.stringify(items[0]);
+  assert(!text.includes("notifier"), "the notifier reached the author");
+  assertEquals(items.find((i) => i.id === theirs), undefined, "another person's statement was shown");
+});
+
+Deno.test("a temporary restriction says when it ends", async () => {
+  const me = await author();
+  await writeStatement(me.identity_id, {
+    restriction: "hidden",
+    until: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+  });
+  const seen = await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements");
+  const [item] = (seen.body as { items: Array<Record<string, unknown>> }).items;
+  assert(typeof item.until === "number", `until was ${JSON.stringify(item.until)}`);
+  assert((item.until as number) * 1000 > Date.now(), "the end of the restriction is in the past");
+});
+
+Deno.test("the first reading is what counts as delivery", async () => {
+  // A statement written and never shown discharges nothing (db/005). The column
+  // is written here, by the reading, and never moved afterwards — it means "the
+  // first time the author could have read it".
+  const me = await author();
+  const id = await writeStatement(me.identity_id);
+  const [before] = await database.queryOrThrow<{ delivered_at: Date | null }>(
+    `SELECT delivered_at FROM dsa_statements WHERE id = $1`,
+    [id],
+  );
+  assertEquals(before.delivered_at, null, "a statement was delivered before anybody read it");
+
+  await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements");
+  const [after] = await database.queryOrThrow<{ delivered_at: Date | null }>(
+    `SELECT delivered_at FROM dsa_statements WHERE id = $1`,
+    [id],
+  );
+  assert(after.delivered_at, "reading a statement did not record the delivery");
+
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements");
+  const [again] = await database.queryOrThrow<{ delivered_at: Date }>(
+    `SELECT delivered_at FROM dsa_statements WHERE id = $1`,
+    [id],
+  );
+  assertEquals(
+    again.delivered_at.getTime(),
+    after.delivered_at!.getTime(),
+    "a second reading moved the moment of first delivery",
+  );
+});
+
 addEventListener("unload", () => {
+
 
 
   database.closePool();

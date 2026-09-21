@@ -539,12 +539,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>409</code></td><td>stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
 </section>
 <section class="op" id="get-statements">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/statements</code><span class="chip s-built">built</span></div>
 <p><strong>Your own Article 17 statements</strong></p>
 <p>Without the notifier&#x27;s identity; shown on the next entry with this identity, kept a year (dsa/SPEC §7, retention in §9; LAW-1, 2026-09-16; the section corrected from §6 on 2026-09-20). The first delivery sets delivered_at (proof of delivery, Art. 17).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over method, path, body sha256 and unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-statement"><code>Statement</code></a>&gt;</td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/statements.ts</code></p>
 </section>
 <section class="op" id="post-vault-init">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/vault/init</code><span class="chip s-built">built</span></div>

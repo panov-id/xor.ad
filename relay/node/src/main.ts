@@ -27,6 +27,7 @@ import "./routes/v1.ts"; // registers the public /v1/* API on the same router
 import "./routes/identity.ts"; // registers the identity routes of chat spec §13 step 1
 import "./routes/transfer.ts"; // and the transfer of an identity between devices (§8.2)
 import "./routes/feed.ts"; // step 2 of the build order: publishing a phrase (§8.3)
+import "./routes/statements.ts"; // and Article 17 for an author with no mailbox (§13)
 
 type Handler = (req: Request) => Response | Promise<Response>;
 

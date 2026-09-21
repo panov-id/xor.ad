@@ -223,7 +223,7 @@ components:
     LikeResult:
       type: object
       properties:
-        state: {type: string, enum: [liked, matched, spent]}
+        state: {type: string, enum: [liked, matched, spent, unliked], description: "unliked — the answer to a take-back (added 2026-09-21).", x-description-ru: "unliked — ответ на снятие лайка (добавлено 21.09.2026)."}
         match_id: {type: string, format: uuid}
     SessionsInvite:
       type: object
@@ -1775,7 +1775,8 @@ paths:
       tags: [chat]
       summary: Take a like back until a match
       x-summary-ru: Снять лайк, пока нет мэтча
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/likes.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1787,7 +1788,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: "Taken back, or state spent once a match exists.", x-description-ru: "Снят или state spent, если мэтч уже есть.", content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
+        "200": {description: "state unliked — taken back, or nothing was there to take; state spent once the pair has a match, and nothing moves.", x-description-ru: "state unliked — снят либо снимать было нечего; state spent, если у пары уже есть мэтч, и ничего не меняется.", content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
   /matches/{id}/consent:
     post:
       tags: [chat]

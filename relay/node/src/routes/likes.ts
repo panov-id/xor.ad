@@ -13,7 +13,7 @@
 //
 // Not here yet, and said so: the one-sided match of an offer (§8.5), which also
 // has to send an unchecked name through the queue first (S7, 2026-09-14). An
-// offer's like counts; its match is the next piece. And DELETE /feed/:id/like.
+// offer's like counts; its match is the next piece.
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
@@ -35,6 +35,10 @@ async function pairKey(a: string, b: string): Promise<string> {
 }
 
 const liked = () => json({ state: "liked" }, 200, sunsetHeader());
+// Not in the contract's enum before 2026-09-21: it named liked, matched and
+// spent, and a take-back had no word of its own — answering "liked" to it
+// would say the opposite of what happened.
+const unliked = () => json({ state: "unliked" }, 200, sunsetHeader());
 
 async function likePhrase(req: Request, target: string): Promise<Response> {
   const caller = await callerOf(req);
@@ -202,6 +206,66 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
   return answer;
 }
 
-route("POST", "/feed/:id/like", (c) => likePhrase(c.req, c.params.id));
+// DELETE /feed/:id/like — §8.4: a like is taken back only while no match came
+// of it. Under the same two locks as the like, so a take-back and a crossing
+// like of the same pair queue behind each other instead of each reading the
+// other's old snapshot (DATA-2). The spec's second condition, no row in
+// `chats`, waits for step 5: there is no `chats` table yet, and a pair cannot
+// have a chat without first having the match this already checks.
+//
+// Nothing to take back answers the same as a take-back: whether this person
+// liked that phrase is their own business, but the phrase being gone or never
+// existing is not something to confirm.
+async function unlikePhrase(req: Request, target: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(target)) return refuse("invalid_body", "that is not a phrase id", 400);
+  const me = caller.identityId;
 
-export { likePhrase };
+  const answer = await transaction<Response>(async (run) => {
+    const [phrase] = await run<{ author: string }>(
+      `SELECT author_identity AS author FROM feed_messages WHERE id = $1`, [target],
+    );
+    if (!phrase) return unliked();
+    const pk = await pairKey(me, phrase.author);
+    await run(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pk]);
+    await run(
+      `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
+      [[me, phrase.author]],
+    );
+    const [matched] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM matches WHERE pair_key = $1`, [pk],
+    );
+    if (matched.n > 0) {
+      inc("relay_unlike_total", { result: "spent" });
+      return json({ state: "spent" }, 200, sunsetHeader());
+    }
+    const gone = await run<{ feed_message_id: string }>(
+      `DELETE FROM likes WHERE liker_identity = $1 AND feed_message_id = $2 RETURNING feed_message_id`,
+      [me, target],
+    );
+    if (gone.length > 0) {
+      await run(`UPDATE feed_messages SET like_count = greatest(like_count - 1, 0) WHERE id = $1`, [target]);
+      await run(
+        `UPDATE identity_stats
+            SET likes_given    = greatest(likes_given    - (identity = $1)::int, 0),
+                likes_received = greatest(likes_received - (identity = $2)::int, 0),
+                updated_at     = now()
+          WHERE identity = ANY(ARRAY[$1, $2]::uuid[])`,
+        [me, phrase.author],
+      );
+    }
+    inc("relay_unlike_total", { result: gone.length > 0 ? "taken_back" : "nothing" });
+    return unliked();
+  }).catch((error) => {
+    log("error", "unlike failed", { error: String(error) });
+    inc("relay_unlike_total", { result: "storage_failed" });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return answer;
+}
+
+route("POST", "/feed/:id/like", (c) => likePhrase(c.req, c.params.id));
+route("DELETE", "/feed/:id/like", (c) => unlikePhrase(c.req, c.params.id));
+
+export { likePhrase, unlikePhrase };

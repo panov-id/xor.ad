@@ -1505,3 +1505,45 @@ Deno.test("a like the rules forbid answers exactly like one that counted", async
   reset();
 });
 
+
+const unlike = (who: { pair: CryptoKeyPair; session_id: string }, phraseId: string) =>
+  signedCall(who.pair.privateKey, who.session_id, "DELETE", `/feed/${phraseId}/like`);
+
+Deno.test("a like taken back gives back its counts", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  await seedPhrase(a.identity_id, "кто на набережную?");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  assertEquals(stateOf(await like(a, theirs)), "liked");
+  const back = await unlike(a, theirs);
+  assertEquals(back.status, 200, JSON.stringify(back.body));
+  assertEquals(back.body, { state: "unliked" }, "a like taken back did not say so");
+  assertEquals(await likeCount(theirs), 0, "like_count did not go back");
+  const [given] = await database.queryOrThrow<{ n: number }>(
+    `SELECT likes_given AS n FROM identity_stats WHERE identity = $1`, [a.identity_id]);
+  assertEquals(Number(given.n), 0, "likes_given did not go back");
+  const again = await unlike(a, theirs);
+  assertEquals(again.body, { state: "unliked" }, "taking back a like that is not there answered differently");
+  assertEquals(await likeCount(theirs), 0, "a second take-back went below the truth");
+  reset();
+});
+
+Deno.test("a like that made a match cannot be taken back: spent", async () => {
+  // §8.4: the like is withdrawn only while no match came of it; once the pair
+  // has a match the answer is spent and nothing moves.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  await like(a, theirs);
+  assertEquals(stateOf(await like(b, mine)), "matched");
+  const back = await unlike(a, theirs);
+  assertEquals(back.status, 200, JSON.stringify(back.body));
+  assertEquals(back.body, { state: "spent" }, "a like with a match behind it was taken back");
+  assertEquals(await likeCount(theirs), 1, "the like under a match was removed");
+  reset();
+});

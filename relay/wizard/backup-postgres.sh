@@ -39,6 +39,27 @@ else
   echo "         dumps share the working zone and its key," >&2
   echo "         so one leak or one mistaken prune takes the data and the backups." >&2
 fi
+# Everything this script writes to disk is the database, so nobody else on the
+# host gets to read it: umask 077, and one private working directory that is
+# removed however the script ends. Until 2026-09-21 the dump went to a
+# predictable /tmp name with the unit's umask (0644 at 022), and a failure
+# midway — a network error on the upload, a malformed key — left it there in
+# the clear, with the data key beside it (review panel, second pass).
+umask 077
+work="$(mktemp -d)"
+trap 'rm -rf "${work}"' EXIT
+
+# The key is checked before anything is dumped. A malformed key used to be
+# discovered after the dump was on disk, by which point `set -e` had stopped the
+# script and left it there — and no database got a backup that night at all.
+if [ -n "${BACKUP_PUBLIC_KEY:-}" ]; then
+  if ! printf '%s' "${BACKUP_PUBLIC_KEY}" | base64 -d > "${work}/public.pem" 2>/dev/null \
+     || ! openssl pkey -pubin -in "${work}/public.pem" -noout 2>/dev/null; then
+    echo "refusing to run: BACKUP_PUBLIC_KEY is set but is not a base64 PEM public key" >&2
+    exit 1
+  fi
+fi
+
 stamp="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # Keep a fortnight: control state is small, and two weeks is long enough to
 # notice a corruption that a single night's dump would have already overwritten.
@@ -46,8 +67,6 @@ keep_days=14
 
 for database in ${DATABASES}; do
   environment="${database#relay_}"
-  file="/tmp/${database}-${stamp}.sql.gz"
-
   # --clean --if-exists so the dump restores onto a non-empty database without a
   # manual drop; the restore drill depends on that being true.
   # Транзит в копию не идёт: недоставленный шифротекст живёт до доставки,
@@ -56,70 +75,71 @@ for database in ${DATABASES}; do
   # trailing backslash ends the command there, and from 2026-09-12 to 2026-09-15 it
   # sent `docker compose exec` with no command and ran pg_dump on the host — no dump
   # at all (final review panel, OPS-1). scripts/check-backup-script.sh guards it.
-  docker compose exec -T -e PGPASSWORD="${POSTGRES_PASSWORD}" postgres \
-    pg_dump --clean --if-exists --no-owner --username relay \
-      --exclude-table-data=pending_deliveries "${database}" \
-    | gzip -9 > "${file}"
+  dump() {
+    docker compose exec -T -e PGPASSWORD="${POSTGRES_PASSWORD}" postgres \
+      pg_dump --clean --if-exists --no-owner --username relay \
+        --exclude-table-data=pending_deliveries "${database}"
+  }
 
-  size="$(stat -c %s "${file}")"
-  if [ "${size}" -lt 512 ]; then
-    # A dump this small is an error message, not a database.
-    echo "refusing to upload ${database}: dump is ${size} bytes" >&2
-    rm -f "${file}"
-    continue
-  fi
-
-  # Encryption before the dump leaves the node, when there is a public key to do
-  # it with. The Hetzner DPA (TOM appendix, p. 20) puts encryption of backups at
-  # rest on us, and this dump is the whole database: names, ages, vault key
-  # shares, the emails of Article 16 notifiers, the panel's audit log. It goes
-  # to a third party's storage, so a leaked storage key used to hand over
-  # everything.
-  #
-  # Hybrid, and deliberately: a random key for the data, the public key for that
-  # random key. RSA cannot encrypt a gigabyte and AES cannot be given a key the
-  # box does not hold — this is the usual way out of both. The box can write
-  # backups and cannot read them, which is the property that makes it worth
-  # doing at all (relay/wizard/new-backup-key.sh).
-  remote="${stamp}.sql.gz"
-  type="application/gzip"
   if [ -n "${BACKUP_PUBLIC_KEY:-}" ]; then
-    pub="$(mktemp)"; datakey="$(mktemp)"; sealed="$(mktemp)"
-    printf '%s' "${BACKUP_PUBLIC_KEY}" | base64 -d > "${pub}"
-    # Both halves of the AES parameters, one per line, so the restore reads them
-    # with `sed -n 1p` and `sed -n 2p` and nothing has to be parsed.
-    printf '%s\n%s\n' "$(openssl rand -hex 32)" "$(openssl rand -hex 16)" > "${datakey}"
-    openssl enc -aes-256-cbc \
-      -K "$(sed -n 1p "${datakey}")" -iv "$(sed -n 2p "${datakey}")" \
-      -in "${file}" -out "${file}.enc"
-    openssl pkeyutl -encrypt -pubin -inkey "${pub}" \
-      -pkeyopt rsa_padding_mode:oaep -in "${datakey}" -out "${sealed}"
-
-    curl -fsS -X PUT -H "AccessKey: ${key}" \
-      -H "Content-Type: application/octet-stream" \
-      --data-binary "@${sealed}" \
-      "https://${host}/${zone}/backups/${environment}/postgres/${stamp}.key.enc" \
-      >/dev/null
-
-    shred -u "${datakey}" 2>/dev/null || rm -f "${datakey}"
-    rm -f "${pub}" "${sealed}" "${file}"
-    file="${file}.enc"
+    # Encrypted on the way through, so the plain dump never touches the disk at
+    # all: pg_dump | gzip | openssl enc. The Hetzner DPA puts encryption of
+    # backups at rest on us (TOM appendix, p. 20), and this dump is the whole
+    # database.
+    #
+    # Hybrid, and deliberately: a random passphrase for the data, the public key
+    # for that passphrase. The box can write backups and cannot read them, which
+    # is the property that makes this worth doing (new-backup-key.sh).
+    #
+    # The passphrase is read from a file, not passed on the command line. The
+    # first version gave the AES key as `-K <hex>`, which put it in argv — in
+    # `ps` and /proc/<pid>/cmdline for as long as a large dump took to encrypt.
+    file="${work}/${database}.sql.gz.enc"
+    head -c 48 /dev/urandom | base64 -w0 > "${work}/passphrase"
+    dump | gzip -9 | openssl enc -aes-256-cbc -pbkdf2 -salt \
+      -pass "file:${work}/passphrase" -out "${file}"
+    openssl pkeyutl -encrypt -pubin -inkey "${work}/public.pem" \
+      -pkeyopt rsa_padding_mode:oaep -in "${work}/passphrase" -out "${work}/sealed"
+    rm -f "${work}/passphrase"
     remote="${stamp}.sql.gz.enc"
     type="application/octet-stream"
-    size="$(stat -c %s "${file}")"
   else
+    file="${work}/${database}.sql.gz"
+    dump | gzip -9 > "${file}"
+    remote="${stamp}.sql.gz"
+    type="application/gzip"
     echo "WARNING: BACKUP_PUBLIC_KEY is not set — the dump goes to storage in the" >&2
     echo "         clear, and it is the whole database. Encryption of backups at" >&2
     echo "         rest is ours under the Art. 28 agreement, not the provider's." >&2
     echo "         Make a key with relay/wizard/new-backup-key.sh." >&2
   fi
 
+  size="$(stat -c %s "${file}")"
+  if [ "${size}" -lt 512 ]; then
+    # A dump this small is an error message, not a database — encrypted or not,
+    # the salt adds sixteen bytes, not five hundred.
+    echo "refusing to upload ${database}: dump is ${size} bytes" >&2
+    rm -f "${file}" "${work}/sealed"
+    continue
+  fi
+
+  # The dump first, the sealed passphrase second. The other order left a key
+  # with no dump behind it whenever the dump's upload failed; this one leaves at
+  # worst a dump nobody can open, which is visibly incomplete.
   curl -fsS -X PUT \
     -H "AccessKey: ${key}" \
     -H "Content-Type: ${type}" \
     --data-binary "@${file}" \
     "https://${host}/${zone}/backups/${environment}/postgres/${remote}" \
     >/dev/null
+  if [ -f "${work}/sealed" ]; then
+    curl -fsS -X PUT -H "AccessKey: ${key}" \
+      -H "Content-Type: application/octet-stream" \
+      --data-binary "@${work}/sealed" \
+      "https://${host}/${zone}/backups/${environment}/postgres/${stamp}.key.enc" \
+      >/dev/null
+    rm -f "${work}/sealed"
+  fi
   echo "uploaded ${database} (${size} bytes) as ${remote}"
   rm -f "${file}"
 
@@ -138,7 +158,12 @@ except Exception:
     entries = []
 for entry in entries:
     name = entry.get("ObjectName", "")
-    if name.endswith(".sql.gz") and name[:10] < cutoff:
+    # Every kind of object a night leaves behind, by the date its name starts
+    # with. Until 2026-09-21 this matched ".sql.gz" alone, so from the first
+    # encrypted night neither "<stamp>.sql.gz.enc" nor "<stamp>.key.enc" was
+    # ever removed — the fourteen days became for ever, key shares and Art. 16
+    # emails included (review panel, second pass).
+    if name.endswith((".sql.gz", ".sql.gz.enc", ".key.enc")) and name[:10] < cutoff:
         print(name)
 PY
     curl -fsS -X DELETE -H "AccessKey: ${key}" \

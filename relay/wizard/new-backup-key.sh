@@ -66,8 +66,9 @@ fi
 echo "=== ОТКРЫТАЯ ПОЛОВИНА — одной строкой в backup.env на боксе ==="
 echo "BACKUP_PUBLIC_KEY=$(base64 -w0 < "$work/public.pem")"
 echo
-echo "Проверить расшифровку потом:"
-echo "  openssl pkeyutl -decrypt -inkey private.pem -in <stamp>.key.enc \\"
-echo "    -pkeyopt rsa_padding_mode:oaep -out datakey.txt"
-echo "  openssl enc -d -aes-256-cbc -K \$(sed -n 1p datakey.txt) -iv \$(sed -n 2p datakey.txt) \\"
+echo "Восстановить дамп (формат с 21.09.2026 — пароль данных файлом, не -K):"
+echo "  openssl pkeyutl -decrypt -inkey backup-private.pem -in <stamp>.key.enc \\"
+echo "    -pkeyopt rsa_padding_mode:oaep -out passphrase"
+echo "  openssl enc -d -aes-256-cbc -pbkdf2 -pass file:passphrase \\"
 echo "    -in <stamp>.sql.gz.enc | gunzip > dump.sql"
+echo "  shred -u passphrase"

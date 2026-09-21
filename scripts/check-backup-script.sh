@@ -78,14 +78,20 @@ fi
 
 # Сломанная копия: вернуть комментарий между переносом и pg_dump, как в 96b49cc.
 python3 - "$script" "$work/broken.sh" <<'PY'
-import sys
+import re, sys
 src, dst = sys.argv[1], sys.argv[2]
 text = open(src, encoding="utf-8").read()
-needle = 'postgres \\\n    pg_dump'
-if needle not in text:
+# По образцу, а не буквально: отступ команды менялся (21.09.2026 её завернули в
+# функцию, и четыре пробела стали шестью), и буквальный поиск перестал находить
+# место поломки. Проба это сказала вслух — ниже, — а не промолчала.
+pattern = re.compile(r'(postgres \\\n)([ \t]*)(pg_dump)')
+match = pattern.search(text)
+if not match:
     sys.exit("в скрипте не найдена команда дампа — проба не может сломать копию")
-open(dst, "w", encoding="utf-8").write(
-    text.replace(needle, 'postgres \\\n    # комментарий посреди команды\n    pg_dump', 1))
+indent = match.group(2)
+broken = text[:match.start()] + match.group(1) + indent + "# комментарий посреди команды\n" \
+         + indent + match.group(3) + text[match.end():]
+open(dst, "w", encoding="utf-8").write(broken)
 PY
 [ -f "$work/broken.sh" ] || { failures=$((failures + 1)); echo "  ✗ сломанную копию собрать не удалось"; }
 if [ -f "$work/broken.sh" ]; then

@@ -382,6 +382,7 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | raising by paper code | 10 an hour and 30 a day per address, plus the shared brake of 50 misses an hour | the node |
 | transfer window (`POST /sessions/invite`) | 10 an hour and 30 a day per address | the node |
 | a like and taking it back | 300 an hour per identity | the node |
+| the list in `POST /chats/alive` | 200 ids | the node |
 | the first-PIN grant | 1 hour after a recovery or a transfer, then the paper code again | the node |
 | tables set | 4 an hour per identity | the node |
 | seating attempts | 30 an hour per identity | the node |

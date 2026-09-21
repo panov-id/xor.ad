@@ -1865,7 +1865,8 @@ paths:
       tags: [chat]
       summary: Which chats are still alive
       x-summary-ru: Какие чаты ещё живы
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1904,7 +1905,8 @@ paths:
       tags: [chat]
       summary: Your own span handle
       x-summary-ru: Своя ручка срока
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
       description: 10, 30 or 60 minutes, or while we talk (260 minutes).
       x-description-ru: 10, 30 или 60 минут либо «пока говорим» (260 минут).

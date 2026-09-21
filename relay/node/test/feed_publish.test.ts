@@ -2021,3 +2021,41 @@ Deno.test({
     void b;
   },
 });
+
+Deno.test({
+  name: "alive answers one's own live conversations and nothing else",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // §8.10: the only command that destroys anything — the client wipes what is
+    // not in the answer. Someone else's id and one that never existed must look
+    // exactly like a dead one: simply absent.
+    const { a, chat } = await openChat();
+    const other = await openChat();
+    const ask = (ids: unknown) => signedCall(a.pair.privateKey, a.session_id, "POST", "/chats/alive", { ids });
+    const got = await ask([chat, other.chat, crypto.randomUUID()]);
+    assertEquals(got.status, 200, JSON.stringify(got.body));
+    assertEquals(got.body, { alive: [chat] });
+    await matchCall(a, "DELETE", `/chats/${chat}`);
+    assertEquals((await ask([chat])).body, { alive: [] }, "a closed conversation is still alive");
+    assertEquals((await ask(Array.from({ length: 201 }, () => crypto.randomUUID()))).status, 400, "a list over the ceiling was taken");
+  },
+});
+
+Deno.test({
+  name: "one's own span is one of four, and it moves one's own end only",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    const set = (who: typeof a, span: unknown) =>
+      signedCall(who.pair.privateKey, who.session_id, "PATCH", `/chats/${chat}`, { span });
+    assertEquals((await set(a, 10)).status, 200);
+    assertEquals((await set(a, 15)).status, 400, "a span outside 10/30/60/260 was taken");
+    const rows = await database.queryOrThrow<{ identity: string; idle_ttl_minutes: number }>(
+      `SELECT identity, idle_ttl_minutes FROM chat_participants WHERE chat_id = $1`, [chat]);
+    const by = Object.fromEntries(rows.map((r) => [r.identity, r.idle_ttl_minutes]));
+    assertEquals(by[a.identity_id], 10);
+    assertEquals(by[b.identity_id], 60, "one side's span moved the other's");
+  },
+});

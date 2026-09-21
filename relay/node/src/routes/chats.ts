@@ -213,6 +213,64 @@ async function close(req: Request, chatId: string): Promise<Response> {
   return answer;
 }
 
+// POST /chats/alive — which of these conversations still live for the caller
+// (§8.10). The client wipes whatever is not in the answer, so: only the caller's
+// own, live and inside the caller's own term; anything else is simply absent,
+// alike for a stranger's chat and one that never was; and a failed read is 503,
+// never an empty list, or a bad minute on the node would erase a history.
+const ALIVE_MAX = 200; // limits.tsv chat.alive.ids
+
+async function alive(req: Request): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  const body = await readJson<{ ids?: unknown }>(req);
+  const ids = Array.isArray(body?.ids) ? body!.ids : null;
+  if (!ids || ids.length > ALIVE_MAX || !ids.every((i) => typeof i === "string" && UUID.test(i))) {
+    return refuse("invalid_body", `ids must be at most ${ALIVE_MAX} uuids`, 400);
+  }
+  try {
+    const rows = await transaction((run) =>
+      run<{ chat_id: string }>(
+        `SELECT p.chat_id FROM chat_participants p JOIN chats c ON c.id = p.chat_id
+          WHERE p.identity = $1 AND p.chat_id = ANY($2::uuid[])
+            AND p.gone_at IS NULL AND NOT (${TERM_PASSED})`,
+        [caller.identityId, ids],
+      )
+    );
+    const live = new Set(rows.map((r) => r.chat_id));
+    return json({ alive: (ids as string[]).filter((i) => live.has(i)) }, 200, sunsetHeader());
+  } catch (error) {
+    log("error", "alive failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  }
+}
+
+// PATCH /chats/:id — one's own span: 10, 30, 60 minutes or 260, "while we talk"
+// (§8.6). It moves the caller's own end and nobody else's.
+const SPANS = [10, 30, 60, 260];
+
+async function span(req: Request, chatId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
+  const body = await readJson<{ span?: unknown }>(req);
+  if (typeof body?.span !== "number" || !SPANS.includes(body.span)) {
+    return refuse("invalid_body", "span must be 10, 30, 60 or 260", 400);
+  }
+  const done = await transaction((run) =>
+    run<{ chat_id: string }>(
+      `UPDATE chat_participants SET idle_ttl_minutes = $3
+        WHERE chat_id = $1 AND identity = $2 AND gone_at IS NULL RETURNING chat_id`,
+      [chatId, caller.identityId, body.span],
+    )
+  ).catch(() => null);
+  if (done === null) return refuse("unavailable", "the node cannot write right now", 503);
+  if (done.length === 0) return refuse("not_found", "no such chat", 404);
+  return json({ span: body.span }, 200, sunsetHeader());
+}
+
+route("POST", "/chats/alive", (c) => alive(c.req));
+route("PATCH", "/chats/:id", (c) => span(c.req, c.params.id));
 route("DELETE", "/chats/:id", (c) => close(c.req, c.params.id));
 route("POST", "/chats/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/chats/:id/messages", (c) => send(c.req, c.params.id));

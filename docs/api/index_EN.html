@@ -679,7 +679,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Source: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="post-chats-alive">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/alive</code><span class="chip s-built">built</span></div>
 <p><strong>Which chats are still alive</strong></p>
 <p>Only on a confirmed database read — 503 rather than an empty list, or local history would be wiped.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -687,9 +687,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-chatsalive"><code>ChatsAlive</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The live ids.</td><td><a href="#schema-chatsaliveresult"><code>ChatsAliveResult</code></a></td></tr><tr><td><code>503</code></td><td>The database read was not confirmed.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="patch-chats--id">
-<div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/chats/{id}</code><span class="chip s-built">built</span></div>
 <p><strong>Your own span handle</strong></p>
 <p>10, 30 or 60 minutes, or while we talk (260 minutes).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -697,6 +698,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-chatspan"><code>ChatSpan</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="delete-chats--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-built">built</span></div>

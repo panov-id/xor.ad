@@ -98,6 +98,7 @@ recovery.claim.day	30	запросов	подъёмов бумажным код�
 transfer.invite.hour	10	запросов	окон переноса в час по адресу (21.09.2026, open-work P2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.invite.day	30	запросов	окон переноса в сутки по адресу (21.09.2026, open-work P2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 like.hour	300	запросов	лайков и снятий в час на личность, тормоз от скрипта (владелец 21.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+chat.alive.ids	200	идентификаторов	потолок списка в POST /chats/alive; спека говорила «ограничена» без числа — технический выбор 21.09.2026	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 vault.first_pin.ttl	1	час	срок одноразового права «первый ПИН» после восстановления или переноса (решение владельца 21.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	запрос
 feed.density.burst	100	запросов	запросов плотности в час по личности, после которых это снятие профиля, а не человек (окно — час, решение владельца 21.09.2026; до того реестр говорил «подряд», а код считал час) (chat §8.3, 15.09.2026, SEC-9)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,xor.ad/docs/api/openapi.yaml	
 moderation.queue.wait	10	минут	предел ожидания вердикта; дальше строка очереди удаляется, в счётчик паузы не идёт (15.09.2026, OPS-7)	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	moderation.queue.wait.unbuilt

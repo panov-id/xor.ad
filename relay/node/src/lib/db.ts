@@ -65,6 +65,16 @@ function ensurePool(): Sql {
 // parameters are still sent separately and are never interpolated, which is the
 // thing that matters. Every caller in this node builds SQL as a constant string
 // and passes values as `$1…$n`.
+//
+// What the driver does to those values on the way out is worth knowing before
+// it costs an afternoon. Measured 2026-09-21: a string parameter that looks
+// like a timestamp is turned into a JavaScript `Date`, and a `Date` holds
+// milliseconds — so "2026-09-21T09:00:00.500900Z" reaches Postgres as
+// …500000, with no error and no warning. The feed's cursor was written that
+// way first and was undone by this, while reading correctly in the source
+// (routes/feed.ts says the same at the cursor). Anything that needs
+// microseconds crosses this boundary as digits and is turned back into an
+// instant in SQL.
 function run<T>(sql: Sql, text: string, args: unknown[]): Promise<T[]> {
   return sql.unsafe(text, args) as Promise<T[]>;
 }

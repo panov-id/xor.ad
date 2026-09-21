@@ -252,10 +252,14 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   // refuter: three rows in one millisecond, page one showed the newest, page
   // two showed the oldest, the middle one existed on neither page.
   //
-  // So the cursor carries the timestamp as the database prints it, to the
-  // microsecond, and goes back in as a `timestamptz` rather than through a
-  // JavaScript `Date` — which cannot hold microseconds at all and would undo
-  // this in one line.
+  // So the cursor carries microseconds since the epoch, as digits, and the
+  // query turns them back into an instant with integer arithmetic. Two things
+  // it must not be, both measured here on 2026-09-21: not a JavaScript `Date`,
+  // which has no microseconds at all; and **not a string that looks like a
+  // timestamp**, because postgres.js converts such a parameter into a `Date`
+  // on the way out — a cursor of "…500900Z" arrived at the database as
+  // "…500000" and the first version of this fix was undone by its own driver,
+  // silently, while looking correct in the source.
   const after = url.searchParams.get("after");
   let cursorAt: string | null = null;
   let cursorId: string | null = null;
@@ -263,8 +267,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     const cut = after.lastIndexOf("_");
     const at = cut < 0 ? "" : after.slice(0, cut);
     const id = cut < 0 ? "" : after.slice(cut + 1);
-    const stamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
-    if (!stamp.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
+    if (!/^[0-9]{1,19}$/.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
       return refuse("invalid_body", "after is not a cursor from this feed", 400);
     }
     cursorAt = at;
@@ -309,8 +312,8 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     const found = await query<FeedRow>(
       `SELECT f.id, f.text, f.mode, f.lang, f.lat_published, f.lon_published,
               f.area_radius, f.like_count,
-              to_char(f.visible_at AT TIME ZONE 'UTC',
-                      'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS visible_at_cursor,
+              (extract(epoch from f.visible_at) * 1000000)::bigint::text
+                AS visible_at_cursor,
               f.discount_value, f.conditions, f.visible_at, a.age AS author_age
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
@@ -318,8 +321,19 @@ async function deliver(req: Request, url: URL): Promise<Response> {
           AND f.lat_published BETWEEN $1 AND $2 AND f.lon_published BETWEEN $3 AND $4
           AND ${bandSql}
           AND ($8::text IS NULL OR f.mode = $8)
-          AND ($9::text[] = '{}' OR f.lang = ANY($9))
-          AND ($10::timestamptz IS NULL OR (f.visible_at, f.id) < ($10, $11::uuid))
+          -- An undetermined language passes every filter, and it has to
+          -- until the detector of section 8.14 exists. Every phrase is stored
+          -- as und (the insert above says "rewritten at the verdict"; the
+          -- verdict rewrites nothing, it touches visible_at and expires_at
+          -- only), so a viewer who names a language would otherwise get an
+          -- empty feed and an empty density for ever, and the radius growth
+          -- would not save them: it grows the radius, not the filter. Nobody
+          -- can name one today, there being no route that writes
+          -- identities.languages, so this is a mine defused before the first
+          -- PATCH of a profile arms it. Review panel, 2026-09-21.
+          AND ($9::text[] = '{}' OR f.lang = 'und' OR f.lang = ANY($9))
+          AND ($10::bigint IS NULL OR (f.visible_at, f.id) <
+                (timestamptz 'epoch' + $10::bigint * interval '1 microsecond', $11::uuid))
           -- The circles intersect: the distance between the centres is no more
           -- than the two radii together. Measured with the same constant the
           -- grid uses (lib/feed_geo.ts), so the two cannot drift apart — and
@@ -491,7 +505,10 @@ async function density(req: Request, url: URL): Promise<Response> {
                ELSE $5::int >= least(21, a.age - 2)
           END
         )
-        AND ($8::text[] = '{}' OR f.lang = ANY($8))
+        -- Same reason as the feed's: an unknown language passes, or the
+        -- handle would say "nobody here" to everyone who chose one (db note
+        -- above, review panel 2026-09-21).
+        AND ($8::text[] = '{}' OR f.lang = 'und' OR f.lang = ANY($8))
         -- The published centre here too: the handle answers a coarser question
         -- than the feed, but its none/few boundary is still a yes-or-no about
         -- one circle, and a yes-or-no about the exact centre is the same

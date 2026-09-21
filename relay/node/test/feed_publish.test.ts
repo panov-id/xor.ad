@@ -997,9 +997,17 @@ Deno.test("a page boundary inside one millisecond does not swallow a phrase", as
   // container by the review panel's refuter, 2026-09-21; this is the same
   // measurement, against the route.
   const { reset } = await import("../src/lib/rate_limit.ts");
+  const { quantise } = await import("../src/lib/feed_geo.ts");
   reset();
   const me = await author();
   const writer = await author();
+
+  // Its own patch of the world. These rows are dated in the future and there
+  // are thirty-one of them, so left at the shared coordinates they would push
+  // every other case's phrase off the first page — which is exactly what they
+  // did on the first run.
+  const here = { lat: 48.2, lon: 16.37 };
+  const at = quantise(here, 1000);
 
   // Thirty-one rows so the first page ends exactly between row 30 and row 31,
   // and the two that straddle the boundary share a millisecond.
@@ -1009,21 +1017,30 @@ Deno.test("a page boundary inside one millisecond does not swallow a phrase", as
   stamps.push(`${base}.500900Z`); // row 30 — last on page one
   stamps.push(`${base}.500123Z`); // row 31 — same millisecond, smaller microsecond
   const ids: string[] = [];
-  for (const at of stamps) {
+  // The stamp goes into the statement itself rather than through a parameter.
+  // Measured 2026-09-21: postgres.js turns a parameter that looks like a
+  // timestamp into a JS Date on the way out, and a Date has milliseconds, so
+  // ".500900" arrived as ".500000" and the case could not set up the very
+  // collision it exists to measure. The values here are constants written
+  // three lines above, not input.
+  for (const stamp of stamps) {
     const id = crypto.randomUUID();
     await database.queryOrThrow(
       `INSERT INTO feed_messages
          (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
           lat_published, lon_published, visible_at, expires_at)
-       VALUES ($1, 'xor', $2, $3, 'alone', 'und', 41.9, 12.5, 1000, 41.9, 12.5,
-               $4::timestamptz, $4::timestamptz + interval '4 hours')`,
-      [id, writer.identity_id, `фраза ${ids.length}`, at],
+       VALUES ($1, 'xor', $2, $3, 'alone', 'und', $4, $5, 1000, $6, $7,
+               '${stamp}'::timestamptz,
+               '${stamp}'::timestamptz + interval '4 hours')`,
+      [id, writer.identity_id, `фраза ${ids.length}`,
+       here.lat, here.lon, at.lat, at.lon],
     );
     ids.push(id);
   }
   const straddling = ids[ids.length - 1];
 
-  const first = await signedCall(me.pair.privateKey, me.session_id, "GET", feedUrl());
+  const there = feedUrl({ lat: here.lat, lon: here.lon });
+  const first = await signedCall(me.pair.privateKey, me.session_id, "GET", there);
   const page = first.body as { items: Array<{ id: string }>; next: string | null };
   assertEquals(page.items.length, 30, "the page size changed; this case assumes thirty");
   assert(page.next, "a full page came back without a cursor");
@@ -1032,12 +1049,99 @@ Deno.test("a page boundary inside one millisecond does not swallow a phrase", as
     me.pair.privateKey,
     me.session_id,
     "GET",
-    feedUrl({ after: page.next! }),
+    feedUrl({ lat: here.lat, lon: here.lon, after: page.next! }),
   );
   const rest = (second.body as { items: Array<{ id: string }> }).items;
   assert(
     rest.find((item) => item.id === straddling),
     "the phrase sharing a millisecond with the page boundary was never delivered on either page",
+  );
+  reset();
+});
+
+Deno.test("an identity with no counters row can still publish", async () => {
+  // The counters row is written by registration and by nothing else, so an
+  // identity older than db/025 has none — and a missing row was answered with
+  // "four live phrases already", for ever, from an identity that had never
+  // published anything. A permanent ban wearing the words of a temporary
+  // ceiling. Found by the data lens of the review panel, 2026-09-21.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+
+  // The state db/025 left behind, reproduced exactly: the identity is there
+  // and its counters row is not.
+  await database.queryOrThrow(`DELETE FROM identity_stats WHERE identity = $1`, [me.identity_id]);
+  const [gone] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(gone.n, "0", "the counters row did not go away; the case is testing nothing");
+
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  assertEquals(
+    sent.status,
+    202,
+    `an identity with no counters row was refused: ${JSON.stringify(sent.body)}`,
+  );
+
+  // And the row is there afterwards, so the ceiling is countable from now on
+  // and FOR UPDATE has something to lock.
+  const [back] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(back.n, "1", "publishing did not leave a counters row behind");
+  reset();
+});
+
+Deno.test("choosing a language does not empty the feed while no phrase has one", async () => {
+  // Every phrase is stored with lang 'und' — the insert says the column is
+  // "rewritten at the verdict" and the verdict rewrites nothing, because the
+  // detector of §8.14 does not exist yet. The filter compared the viewer's
+  // languages against that column, so the first person to choose a language
+  // would have seen an empty feed for ever, with the radius growth unable to
+  // help: it grows the radius, not the filter. No route writes
+  // identities.languages today, which is what makes this a mine rather than a
+  // fire. Found by the data lens of the review panel, 2026-09-21.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+  const writer = await author();
+  const spot = { lat: 50.45, lon: 30.52 };
+  const id = await livePhrase({ pair: writer.pair.privateKey, session_id: writer.session_id }, {
+    text: "фраза без определённого языка",
+    lat: spot.lat,
+    lon: spot.lon,
+  });
+
+  // The state a PATCH /identity would put this identity in, once there is one.
+  await database.queryOrThrow(
+    `UPDATE identities SET languages = ARRAY['ru'] WHERE id = $1`,
+    [me.identity_id],
+  );
+
+  const seen = await signedCall(
+    me.pair.privateKey,
+    me.session_id,
+    "GET",
+    feedUrl({ lat: spot.lat, lon: spot.lon }),
+  );
+  const items = (seen.body as { items: Array<{ id: string }> }).items;
+  assert(
+    items.find((item) => item.id === id),
+    "choosing a language emptied the feed of phrases whose language nobody has determined",
+  );
+
+  const density = await signedCall(
+    me.pair.privateKey,
+    me.session_id,
+    "GET",
+    `/feed/density?lat=${spot.lat}&lon=${spot.lon}&radius=1000`,
+  );
+  assert(
+    (density.body as { step: string }).step !== "none",
+    "the density handle said nobody was here to a viewer who chose a language",
   );
   reset();
 });

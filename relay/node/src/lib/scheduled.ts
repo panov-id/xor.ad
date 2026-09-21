@@ -40,6 +40,19 @@ export const PRUNE_IDEMPOTENCY = "prune_idempotency";
 // mistyped address, a change of mind, every request in a flood — stayed for
 // ever, holding an operator's email address in clear.
 export const PRUNE_MAGIC = "prune_magic_links";
+// Invitations to move an identity to another device, and the one-shot nonces of
+// protocol §2. Both tables were built with an index "for the sweeper" and both
+// sweepers were missing — db/024 says "the sweeper reads by expiry; without this
+// it reads the whole table hourly", db/022 says "swept by nonce.ttl, by the same
+// janitor that sweeps conversations", and neither janitor existed. Found by the
+// data lens of the review panel, 2026-09-21.
+//
+// For nonces that is only growth. For invitations it is worse: `lookup_id` is
+// the primary key and comes from the client, so a row that is never deleted
+// reserves that code for ever, and an honest invitation can collide with one
+// from a year ago.
+export const PRUNE_INVITES = "prune_session_invites";
+export const PRUNE_NONCES = "prune_nonces";
 // Jobs that gave up. Kept as evidence, but not for ever: nothing removed them,
 // and the standing-job index deliberately ignores them, so one kind could hold
 // any number. Found by a review lens, 2026-09-08.
@@ -67,6 +80,18 @@ const IDEMPOTENCY_BATCH = 5000;
 // than running for an hour on the first night. Twenty-five million rows is well
 // past anything this table can honestly reach in a day.
 const IDEMPOTENCY_BATCHES = 5000;
+
+// The same shape for the two tables that had no sweeper at all: batched, so the
+// first run after a busy stretch is not one transaction holding a lock per row
+// (the reason written out at PRUNE_IDEMPOTENCY below). Smaller batches because
+// these tables are small by design — an invitation lives two minutes and a
+// nonce ten, so anything found here is a backlog, not a population.
+const INVITE_BATCH = 2000;
+const INVITE_BATCHES = 500;
+
+// From docs/facts/limits.tsv (nonce.ttl): §2 refuses a nonce older than this on
+// its own, so a row past it decides nothing.
+const NONCE_TTL_MINUTES = 10;
 const A_DAY_MS = 24 * 60 * 60 * 1000;
 const A_MINUTE_MS = 60 * 1000;
 const A_HOUR_MS = 60 * A_MINUTE_MS;
@@ -159,6 +184,58 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_HOUR_MS);
   });
 
+  // An expired invitation is kept an hour past its expiry, long enough for the
+  // device that was showing the code to ask what happened to it and be told
+  // "expired" rather than "no such code" — stateOf() in routes/transfer.ts
+  // draws that distinction and it is worth something to the person holding a
+  // dead screen. Decided invitations go by the same clock: the decision has
+  // already reached both sides.
+  handle(PRUNE_INVITES, async () => {
+    let deleted = 0;
+    for (let batch = 0; batch < INVITE_BATCHES; batch++) {
+      const rows = await queryOrThrow<{ count: string }>(
+        `WITH doomed AS (
+           SELECT lookup_id FROM session_invites
+            WHERE expires_at < now() - interval '1 hour'
+            LIMIT ${INVITE_BATCH}
+         ), gone AS (
+           DELETE FROM session_invites
+            WHERE lookup_id IN (SELECT lookup_id FROM doomed) RETURNING 1
+         )
+         SELECT count(*)::text AS count FROM gone`,
+      );
+      const went = Number(rows[0]?.count ?? 0);
+      deleted += went;
+      if (went < INVITE_BATCH) break;
+    }
+    log("info", "pruned session invites", { deleted });
+    return new Date(Date.now() + A_HOUR_MS);
+  });
+
+  // A nonce is spent or it is not, and after nonce.ttl it can be neither: §2
+  // refuses anything older than the window on its own, so a row past it decides
+  // nothing and only takes room.
+  handle(PRUNE_NONCES, async () => {
+    let deleted = 0;
+    for (let batch = 0; batch < INVITE_BATCHES; batch++) {
+      const rows = await queryOrThrow<{ count: string }>(
+        `WITH doomed AS (
+           SELECT ctid FROM nonces
+            WHERE created_at < now() - interval '${NONCE_TTL_MINUTES} minutes'
+            LIMIT ${INVITE_BATCH}
+         ), gone AS (
+           DELETE FROM nonces WHERE ctid IN (SELECT ctid FROM doomed) RETURNING 1
+         )
+         SELECT count(*)::text AS count FROM gone`,
+      );
+      const went = Number(rows[0]?.count ?? 0);
+      deleted += went;
+      if (went < INVITE_BATCH) break;
+    }
+    log("info", "pruned nonces", { deleted });
+    return new Date(Date.now() + A_HOUR_MS);
+  });
+
   handle(PRUNE_MAGIC, async () => {
     const result = await pruneMagicLinks();
     // Come straight back while there is more, rather than leaving the rest for
@@ -185,6 +262,8 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_DSA, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_IDEMPOTENCY, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_MAGIC, {}, new Date(Date.now() + A_DAY_MS));
+  await enqueueOnce(PRUNE_INVITES, {}, new Date(Date.now() + A_HOUR_MS));
+  await enqueueOnce(PRUNE_NONCES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));

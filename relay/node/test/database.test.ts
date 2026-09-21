@@ -1967,3 +1967,140 @@ Deno.test({
     await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [PRUNE_IDEMPOTENCY]);
   },
 });
+
+Deno.test({
+  name: "a connection from this node carries a statement timeout",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // A query that fails is handled — query() returns null and the route says
+    // 503. A query that hangs is not: it holds one of four connections and
+    // moves no counter, so four of them leave the node silent on every route
+    // that touches the database with storage_failed still at zero. Raised by
+    // the operations lens of the review panel, 2026-09-21.
+    //
+    // Asked of the server rather than of the source, because what matters is
+    // what the connection actually carries: postgres.js sends these as startup
+    // parameters, and a typo in the option name would be accepted in silence.
+    // SHOW names its column after the parameter, not "setting" — worth writing
+    // down, because reading `.setting` gives undefined and an assertion that
+    // fails for a reason that has nothing to do with the timeout.
+    const [statement] = await database.queryOrThrow<{ statement_timeout: string }>(
+      `SHOW statement_timeout`,
+    );
+    assertEquals(statement.statement_timeout, "15s", "connections are not bounded in time");
+
+    const [idle] = await database.queryOrThrow<{ idle_in_transaction_session_timeout: string }>(
+      `SHOW idle_in_transaction_session_timeout`,
+    );
+    assertEquals(
+      idle.idle_in_transaction_session_timeout,
+      "15s",
+      "a transaction that runs nothing can still hold its locks for ever",
+    );
+  },
+});
+
+Deno.test({
+  name: "invitations and nonces are swept, and the tables say they should be",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Both tables were built with an index "for the sweeper" and neither
+    // sweeper existed (db/022:157-160, db/024:61-64). For nonces that is
+    // growth; for invitations it is worse, because lookup_id is the primary
+    // key and comes from the client, so a row nobody deletes reserves that
+    // code for ever. Found by the data lens of the review panel, 2026-09-21.
+    const { registerScheduledJobs, PRUNE_INVITES, PRUNE_NONCES } = await import(
+      "../src/lib/scheduled.ts"
+    );
+    const { enqueue, runOnce } = await import("../src/lib/jobs.ts");
+    registerScheduledJobs();
+
+    const identity = crypto.randomUUID();
+    const session = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO identities (id, identity_public_key, name, age)
+       VALUES ($1, 'probe-key', 'Аня', 30)`,
+      [identity],
+    );
+    await database.queryOrThrow(
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key)
+       VALUES ($1, $2, 'probe-sign', 'probe-wrap')`,
+      [session, identity],
+    );
+
+    const stale = `probe-invite-stale-${uniqueId()}`;
+    const fresh = `probe-invite-fresh-${uniqueId()}`;
+    // One live invitation per identity is held by a partial unique index, so
+    // the dead one and the live one belong to different people — which is also
+    // the honest shape of what the sweeper meets.
+    const other = crypto.randomUUID();
+    const otherSession = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO identities (id, identity_public_key, name, age)
+       VALUES ($1, 'probe-key', 'Борис', 31)`,
+      [other],
+    );
+    await database.queryOrThrow(
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key)
+       VALUES ($1, $2, 'probe-sign', 'probe-wrap')`,
+      [otherSession, other],
+    );
+    await database.queryOrThrow(
+      `INSERT INTO session_invites (lookup_id, identity, session, expires_at)
+       VALUES ($1, $2, $3, now() - interval '2 hours')`,
+      [stale, identity, session],
+    );
+    await database.queryOrThrow(
+      `INSERT INTO session_invites (lookup_id, identity, session, expires_at)
+       VALUES ($1, $2, $3, now() + interval '2 minutes')`,
+      [fresh, other, otherSession],
+    );
+
+    await enqueue(PRUNE_INVITES, {});
+    assert(await runOnce(), "the invitation sweeper did not run");
+
+    const [goneInvite] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM session_invites WHERE lookup_id = $1`,
+      [stale],
+    );
+    assertEquals(goneInvite.n, "0", "an invitation two hours dead still holds its lookup_id");
+    const [keptInvite] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM session_invites WHERE lookup_id = $1`,
+      [fresh],
+    );
+    assertEquals(keptInvite.n, "1", "a live invitation was swept away with the dead ones");
+
+    // Sixteen bytes exactly, as the table insists.
+    const staleNonce = crypto.getRandomValues(new Uint8Array(16));
+    const freshNonce = crypto.getRandomValues(new Uint8Array(16));
+    await database.queryOrThrow(
+      `INSERT INTO nonces (session_id, nonce, route, status, response, created_at)
+       VALUES ($1, $2::bytea, 'POST /away', 200, 'null'::jsonb,
+               now() - interval '1 hour'),
+              ($1, $3::bytea, 'POST /away', 200, 'null'::jsonb, now())`,
+      [session, staleNonce, freshNonce],
+    );
+
+    await enqueue(PRUNE_NONCES, {});
+    assert(await runOnce(), "the nonce sweeper did not run");
+
+    const [goneNonce] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM nonces WHERE nonce = $1::bytea`,
+      [staleNonce],
+    );
+    assertEquals(goneNonce.n, "0", "a nonce an hour past its ten-minute window was kept");
+    const [keptNonce] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM nonces WHERE nonce = $1::bytea`,
+      [freshNonce],
+    );
+    assertEquals(keptNonce.n, "1", "a nonce inside its window was swept");
+
+    await database.queryOrThrow(`DELETE FROM nonces WHERE session_id = $1`, [session]);
+    await database.queryOrThrow(`DELETE FROM session_invites WHERE session = $1`, [session]);
+    await database.queryOrThrow(`DELETE FROM session_invites WHERE session = $1`, [otherSession]);
+    await database.queryOrThrow(`DELETE FROM sessions WHERE id = ANY($1::uuid[])`, [[session, otherSession]]);
+    await database.queryOrThrow(`DELETE FROM identities WHERE id = ANY($1::uuid[])`, [[identity, other]]);
+  },
+});

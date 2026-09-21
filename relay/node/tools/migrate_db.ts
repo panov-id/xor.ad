@@ -7,6 +7,13 @@
 // this buys is that reading db/ tells you the schema, and reading
 // schema_migrations tells you what a database actually has.
 
+// A migration may legally take minutes — an index over millions of rows, a
+// backfill — and lib/db.ts caps a statement at fifteen seconds because that is
+// right for a web request and wrong for this. The pool reads this when it is
+// built, which has not happened yet: the import below only loads the module.
+// Half an hour, and an operator who needs longer sets it themselves.
+if (!Deno.env.get("RELAY_DB_TIMEOUT_MS")) Deno.env.set("RELAY_DB_TIMEOUT_MS", "1800000");
+
 import { closePool, queryOrThrow, transaction } from "../src/lib/db.ts";
 
 // One migrator at a time per database. The wizard runs this per environment and

@@ -36,6 +36,26 @@ import { log } from "./log.ts";
 // multiplies by the size of the pool of nodes.
 const POOL_SIZE = 4;
 
+// A query that hangs is worse for this node than a query that fails, and the
+// difference is the whole reason these two exist. `query()` turns an error into
+// null and the route answers 503; a connection waiting on a lock that will
+// never be released answers nothing at all, holds a quarter of the pool, and
+// moves no counter — four of them and the node is silent on every route that
+// touches the database, with `storage_failed` still at zero. Raised by the
+// operations lens of the review panel, 2026-09-21.
+//
+// Fifteen seconds is far longer than anything the routes do (the slowest is
+// the feed's five radius attempts) and far shorter than a night. The tools are
+// a different matter: a migration or a sweep over millions of rows may legally
+// take minutes, so they set their own through RELAY_DB_TIMEOUT_MS rather than
+// inheriting a limit written for a web request.
+// Read when the pool is built rather than when this module loads, so a tool
+// can raise it before its first query without a second pool or an import dance.
+function statementTimeoutMs(): number {
+  const named = Number(Deno.env.get("RELAY_DB_TIMEOUT_MS"));
+  return Number.isFinite(named) && named > 0 ? named : 15_000;
+}
+
 // deno-lint-ignore no-explicit-any
 type Sql = any;
 
@@ -49,6 +69,14 @@ function ensurePool(): Sql {
   if (!pool) {
     pool = postgres(config.databaseUrl, {
       max: POOL_SIZE,
+      connection: {
+        // Both, because they catch different halves: the first bounds a
+        // statement the server is running, the second bounds a transaction
+        // that is running nothing at all — the shape a dropped connection
+        // leaves behind, holding its locks.
+        statement_timeout: statementTimeoutMs(),
+        idle_in_transaction_session_timeout: statementTimeoutMs(),
+      },
       // Notices are the server talking, not an error, and postgres.js would
       // print them to stderr by default — straight past lib/log.ts and its
       // shape. Routed here so a "table does not exist, skipping" from a

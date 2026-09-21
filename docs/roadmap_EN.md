@@ -1,80 +1,150 @@
-# Roadmap — checklist
+# Roadmap — state as of 2026-09-21
 
-> **Historical document.** A snapshot from 7 July 2026 — before the move off
-> Supabase onto our own relay node, and before the production rollout. The live
-> tracker is [`open-work_EN.md`](open-work_EN.md). The product half (sections
-> 3–5) still stands; the infrastructure half (section 6 and "Next session") does
-> not: Supabase is out of the path, control state lives in our own Postgres
-> beside the node, and production shipped on 2026-07-27–2026-07-28.
+A snapshot of where the product stands as a whole. The detailed work tracker is
+[`open-work_EN.md`](open-work_EN.md); the product build order is §13 of
+[`chat_EN.md`](chat_EN.md). This file sits one level above both: which layers
+exist, which do not, and how that was checked. The snapshot was checked by a
+five-lens review panel —
+[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md).
 
-Status as of 7 July 2026. `[x]` done, `[~]` partial, `[ ]` ahead.
+`[x]` done and verified, `[~]` partial, `[ ]` ahead. Every claim about a live
+environment carries a date and a method. The 7 July 2026 snapshot (Supabase,
+"prod later") is replaced in full: none of its infrastructure claims hold any
+more. The legal section keeps its number (§2): both storefronts'
+`17-offer_*.md` and `legal-review-brief_*.md` link to it.
 
-## 0. Done (foundation)
-- [x] Business logic and screen descriptions (neighbro + sosed).
-- [x] Neighbro landing (dark/gold, 6-language i18n, waitlist, PWA, icons, config.js).
-- [x] Interactive **app prototype** (single-file): splash `by PSYTICAN`, age-gate onboarding with consent, 3-column workspace with collapsible rails, live feed (refresh/auto), plus/minus swipe, chat with liked phrases, profile popup (name/age/age-filter/language/appearance/documents), 11 accents, light/dark.
-- [x] Prototype spec `docs/app-prototype-spec_RU/EN.md`.
-- [x] **Terms & Conditions** `neighbro.place/landing/legal/terms_EN.md` (operator PSYTICAN & PEJEDED, Cyprus, 13+). English only — a decision, see `open-work_EN.md` G7.
-- [x] Deploy infra (3 envs dev/UAT/prod), local Supabase+nginx, tests (E2E/visual).
+## Summary
 
-## 1. Update the neighbro landing (next)
-- [x] Decide: **light/dark** button — next to the language switcher.
-- [x] Decide: logo = **accent** cycle, a subset of 5 (gold/crimson/teal/azure/violet).
-- [x] Landing theme system: color tokenization, `[data-mode="light"]`, `[data-theme]`, theme-color.
-- [x] Auto-detection (before paint, no splash flash): **language** from the browser; **light/dark** from `prefers-color-scheme`; **random accent each session** (different from last) — until the user picks a color/language/mode themselves (then their choice sticks).
-- [x] Feed preview to the new mechanics: **people + plus, no distance**.
-- [x] **by PSYTICAN** credit in the footer.
-- [x] Embed **live app mockups** in device frames (phone + wide frame), using the landing fonts; recolor with the theme.
-- [~] Redraw in the **brutalist canon** (tokens/accents/light-dark done; full redesign ahead).
-- [x] **Feature copy**: "Why it feels different" section (by area / join-skip / why you matched / rule-free games), localized in 6 languages. Say/Match/Fade story kept.
-- [x] **HTML `legal.html`** (Terms/Privacy tabs, markdown rendering, brutalist style, inherits theme) + localized footer links. The documents themselves are English; only the interface labels are localized.
-- [x] Checks: `overflow=0` (desktop/mobile), i18n of new strings, **E2E 6/6 passed** (waitlist sosed+neighbro).
-- [x] Splash loader on the landing (like the prototype): main-color circle, house logo, `NEIGHBRO` / `by PSYTICAN`.
-- [x] Align the mockups section (balanced centered composition: wide frame left, phone right).
+| Layer | Readiness | Verified by |
+|---|---|---|
+| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-21: both 200 |
+| Panel xor.panov.id | ~75% | `curl` 2026-09-21: 200; 9 pages in `panel/src/pages` |
+| Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-21: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
+| Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
+| Legal and DSA | ~60% | Bunny transfer outside the EEA and the LAW-7 sweeper are open — §2 |
+| Relay node: product, steps 1–4 of §13 | ~25% | step 1 nearly done, step 2 without a moderator, 3–4 without tables |
+| Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
+| `depth` client (terminal, goes first) | 0% | no code in any repository |
+| Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
 
-## 2. Legal / compliance
-- [x] **Privacy Policy** `neighbro.place/landing/legal/privacy_EN.md` (GDPR-style). There is one source, `landing/legal/`; the top-level `legal/` holds pointers.
-- [x] **Removed the ARC number** from all documents, the prototype, and memory.
-- [x] **Conduct rules**: ban harassment/bullying/shaming/anti-social behavior; ban selling goods/services — promotion only via offers. In **Terms §8** and **Community Guidelines**; **Rules** tab in legal.html + footer link (6 languages).
-- [x] Reconciled `legal/` duplicates: kept `terms_/privacy_/community-guidelines_`; deleted old `terms-of-service_/privacy-policy_`.
-- [ ] Set up `support@neighbro.place` mailbox.
-- [ ] Legal review of the Terms (13+ together with offline meetings is sensitive).
-- [ ] **Work out the legal side of saving an offer** (opened 2026-08-29). A saved card outlives the offer itself on the device, and there are three questions about that, all for a lawyer rather than for me: **what binds the business** when the discount on a saved card has already passed its `discount_until` and someone turns up with it; **what happens to the copy** when an offer is taken down on a report or turns out to be unlawful — we cannot erase it from a device, there is no such handle; **whether** a saved card counts as an offer in the contract-law sense or as an invitation to treat. The terms currently say only "a published discount must be honoured", with no term and no word about copies.
-- [ ] Screen/page to view accepted documents (already in the app profile).
+The percentages are estimates: they are not weighted by hours, because steps
+3–9 have not yet been cut into priced tasks.
 
-## 3. App screens (next)
-- [ ] **Say** screen (post): ≤128 chars, "how many of us", **an area on a map** — there is no location blur, the point does not reveal where a person is (`chat_EN.md` §8.3).
-- [ ] **Match moment** (mutual plus → "matched" animation → chat opens).
-- [ ] **Set location** screen (map/area search instead of the placeholder).
-- [ ] **Rule-free games** (dominoes/checkers/chess, request-based start, realtime).
-- [ ] **Session freeze** (self-lockout, server-side deadline).
-- [ ] Support button, invites and rewards.
+## 1. Live environment and operations
 
-## 4. App i18n
-- [ ] Full app-string translation (like the landing i18n), 6+ languages; the prototype has the selector only.
+- [x] Production is public: `api.relay.panov.id/health` 200, node `p1-prod`,
+  image `v2026.9.11-g8f89e7a`, brands `sosed` and `neighbro`. Measured
+  2026-09-21.
+- [x] Storefronts `sosed.place` and `neighbro.place`, panel `xor.panov.id` —
+  200. Measured 2026-09-21. Production shipped 2026-07-27–28.
+- [x] Supabase left the path on 2026-07-22: state lives in our own Postgres
+  beside the node, delivery through Bunny.
+- [ ] Dev and staging (box n1) — not measured: behind an IP allow-list.
+- [~] Article 16 notice intake — the host `report.relay.panov.id` is alive
+  (`/health` 200, `p1-prod`, measured 2026-09-21), route `POST /report`; not
+  yet shipped to the storefronts in production. Why it moved: the WAF on every
+  zone cuts bodies quoting `<script>` or `../`, and the zone has zero custom
+  rules (`open-work_EN.md`, G12/G13).
+- [ ] **Roll out `day56`.** 76 commits ahead of `origin/dev` (`cd21688`,
+  2026-09-19); migrations `025`–`029` have not been applied anywhere (by the
+  code and the branch; `schema_migrations` on the boxes was not queried).
+  Start with dev (n1), not production.
+- [ ] `NOT NULL` on the published centre (P5) — only in the rollout after
+  `027`, never in the same one.
+- [~] Nightly backup encryption (P4): the mechanism shipped 2026-09-21
+  (`4a4da9b`); no key on the boxes yet — an owner action: the public half into
+  `backup.env` on p1 and n1, the private half from its file into the password
+  vault. Until then, backups are plaintext.
+- [ ] L1: the waitlist is not in the backup — it lives in Bunny storage, and
+  the backup takes only Postgres.
+- [~] Restore drill — last on 2026-08-07 (`scripts/verify-backup-restore.sh`).
+- [~] Alerts: `relay/local/observability/alerts.yml` and the gate
+  `scripts/check-metrics-exist.sh`, runbook `runbook-node-down_*.md`; not
+  verified to fire in production.
+- [~] Rollback — the procedure exists (`relay/RELEASE_EN.md`, the previous
+  `:vX.Y.Z`), never exercised on a live environment.
+- [ ] Per-address rate limits live in node memory: they do not survive a
+  container rebuild and are not shared between nodes.
 
-## 5. Sosed (mirroring)
-- [ ] Port the updates to **sosed.place** (red accent, Soviet aesthetic).
-- [ ] Sync the READMEs of all three repos (project rule).
+## 2. Legal and DSA
 
-## 6. Backend / data / deploy
-- [ ] Real tables/RLS for messages, likes, chats, profile, age filter, ephemerality (TTL/fade).
-- [ ] Realtime (websockets via the api proxy) for chat and games.
-- [x] ~~Web Push~~ — **cancelled 2026-08-07**, see `docs/pwa-push_EN.md`. The
-      launch call goes by waitlist email.
-- [x] **dev + UAT deployed** (neighbro landing + panel; Supabase `vrkqnfonmaixuvfqsfzt`; Bunny zones + api proxy with Origin Host Header/WebSockets/cache=0; panov.id DNS; GitHub secrets). prod later. sosed provisioned only, not deployed.
+- [x] Terms, Privacy, Community Guidelines; operator PSYTICAN & PEJEDED. Both
+  storefronts' `support@` addresses are live per the Article 30 register.
+- [x] Article 30 GDPR record of processing (`article-30-register_EN.md`); its
+  GA4 row is marked "live production not verified".
+- [x] Breach procedure, 72 hours per Article 33 GDPR
+  (`breach-procedure_EN.md`).
+- [x] Mail: Resend on staging and production, Mailpit on dev.
+- [~] DSA notice and decision register in the panel, `GET /statements` —
+  not whole in production until `day56` and the Article 16 intake ship; P3:
+  at most 100 rows with no cursor, so from the 101st statement of reasons the
+  author does not receive it (Art. 17(1)).
+- [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
+  `article-30-register_EN.md`. SCC or a replacement.
+- [ ] LAW-7: the abandoned-identity sweeper is not built — the register
+  promises a retention period the code does not enforce (Art. 5(1)(e) GDPR).
+- [ ] J9: recheck micro-enterprise status **by 2027-08-05**. The Art. 19(1)
+  DSA exemption from Art. 20–28 depends on it. There are no transparency
+  reports on the same ground (Art. 15(3), 19(1)); on request — Art. 24(3).
+- [ ] Legal review of the Terms (13+ together with offline meetups).
+- [ ] Legal analysis of saved offers (filed 2026-08-29), three questions:
+  what binds the venue when `discount_until` on a saved card has passed; what
+  to do with the copy of an offer removed after a complaint; whether a saved
+  card is an offer or an invitation to make offers. Details —
+  `legal-review-brief_EN.md`.
+- [ ] The Article 17 statement-of-reasons screen for an author without
+  email — together with step 2.
 
-## Next session (deploy follow-ups)
-- [x] **Panel sign-in:** admin bootstrapped, allow-list/site_url set, sign-in via magic-link (`generate_link`) works.
-- [ ] **Email/SMTP (come back):** Resend, domain `panov.id` — DKIM verified, MX added on `send.panov.id` (forwards intact), awaiting propagation/verification. Once `status=verified`: set **Custom SMTP in Supabase Auth** (Management API `/config/auth`: `smtp.resend.com`, user `resend`, pass = sending key, sender `no-reply@panov.id`) and send a test email. Details in memory `email-smtp.md`.
-- [ ] Delete the test waitlist row `deploy-check-1783441254@example.com` (or add `SUPABASE_SERVICE_ROLE_KEY` to `.env.deploy` and I'll clean it).
-- [ ] Verify uat api proxy (insert) and realtime over WebSocket (as on dev).
-- [ ] Decide on **sosed**: deploy the face or hold.
-- [ ] **prod** (once uat is accepted): `run-wizard.sh prod` + prod DNS — real domains `neighbro.place`/`sosed.place`/`xor.panov.id` (DNS at their registrar, not only panov.id) + Bunny SSL/proxy.
-- [ ] Settle the branch flow (day-branches vs `dev`/`main`) — everything is on `day4` now, deploys come from `dev`/`main`.
-- [ ] Continue product: app screens (Say/match/Set location/games), tables/RLS (sections 3–6).
+## 3. Product: build order (§13 of the chat spec)
+
+The terminal goes first; the web is the last step, over a protocol already
+proven. The server is built ahead of the client, so the client column is
+empty throughout.
+
+| Step | Server (`xor.ad/relay/node`) | `depth` client |
+|---|---|---|
+| 1. Identity and session | [~] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 open — no per-address limit on `/sessions/invite` | [ ] |
+| 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [ ] |
+| 3. Likes | [ ] counters in `identity_stats` and `like_count` exist; no `likes` table, no routes | [ ] |
+| 4. Match and double consent | [ ] no `matches`, `match_participants`, `blocks` tables | [ ] |
+| 5. Chat: transport | [ ] `chat/relay.ts` answers 501; the `LISTEN`/`NOTIFY` bus works as of 2026-09-21 | [ ] |
+| 6. Encryption | [ ] | [ ] |
+| 7. Blocks, hiding, sweeping | [ ] | [ ] |
+| 8. Notifications and games | [ ] | [ ] |
+| 9. Web face | — | [ ] prototype exists, app does not |
+
+Of the eleven tables in the first cut (§13), six exist: `identities`,
+`sessions`, `vault_shares`, `legal_acceptances`, `feed_messages`,
+`identity_stats`. Five do not: `likes`, `matches`, `match_participants`,
+`blocks`, `support_requests`.
+
+Chat code is written only on the owner's separate word.
+
+## 4. Storefronts and panel
+
+- [x] Landing pages of both storefronts: themes, accents, i18n, waitlist,
+  `legal.html`.
+- [x] App screen mockups are assembled from the kit (`panel/design/sheets`,
+  `panel/design/kit`), with a gallery and text gates.
+- [x] Panel: link sign-in, API keys and secret keys with quotas, brands, panel
+  users, waitlist, logs, DSA notice register.
+- [ ] Translation of the app strings: only a language selector exists, in the
+  prototype.
+
+## 5. Review panel leftovers, 2026-09-21
+
+The first panel (`PANEL_2026-09-21_steps1-2.md`) is closed in full. The second
+(`PANEL_2026-09-21_day-fixes.md`) — 7 of 10 tasks. Open:
+
+- [ ] 5 — the `FeedPublishesNothing` alert and a promtool test in the gates.
+- [ ] 7 — a 30-minute timeout for `tools/prune_dsa_records.ts` and
+  `tools/migrate_control_state.ts`.
+- [ ] 8 — `pin_mismatch` and `no_first_pin_grant` instead of
+  `unauthorized`/409; a breaking contract change.
 
 ## Open questions
-- Accent set on the landing (all 11 or a subset).
-- The real brand display font (Unbounded on the landing vs system in the prototype).
-- Minimum age (13+ now; a lawyer may insist on 16+).
+
+- Minimum age: 13+ now; a lawyer may insist on 16+. The Art. 8 GDPR consent
+  threshold applies only to processing based on consent.
+- The accent set and the brand reference typeface — open in the 7 July
+  snapshot; whether they were settled has not been checked.

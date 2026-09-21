@@ -11,7 +11,7 @@
 // not who sent them. That is enough to answer "is this growing?" and not enough
 // to identify anyone.
 
-import { query, transaction } from "../src/lib/db.ts";
+import { closePool, query, transaction } from "../src/lib/db.ts";
 
 const YEAR_DAYS = 365;
 
@@ -135,4 +135,11 @@ if (import.meta.main) {
       ? `deleted: ${result.notices} notices, ${result.statements} statements`
       : `would delete: ${result.notices} notices, ${result.statements} statements`,
   );
+  // Inside the `import.meta.main` guard and nowhere else. This file is both a
+  // command and a module — lib/scheduled.ts imports pruneDsaRecords to run it
+  // nightly — so a close at the top level would shut the running node's pool
+  // the moment the module was imported. The command has to hand its
+  // connections back or the process never exits (see tools/migrate_db.ts); the
+  // node must not, because it is still using them.
+  await closePool();
 }

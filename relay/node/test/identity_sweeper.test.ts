@@ -229,35 +229,37 @@ Deno.test("a quiet pass says nothing and changes nothing", async () => {
 // proved by the throw it makes on the next query — the same positive control
 // test/session_freeze.test.ts uses, and its comment explains why.
 Deno.test("closing an inactive identity announces the freeze", async () => {
-  const { Client } = await import("jsr:@db/postgres@0.19");
+  // Closing a session is a freeze, and every freeze has to announce itself —
+  // otherwise a tab with an open socket goes on receiving until the TCP
+  // connection drops. The sweeper used to freeze inside a CTE and say nothing;
+  // found by the operations lens of the review panel, 2026-09-20.
+  //
+  // The payload is read, not inferred: until 2026-09-21 the driver could not
+  // receive a notification and this case proved delivery by catching the
+  // exception it threw instead (open-work G14).
+  const postgres = (await import("npm:postgres@3.4.4")).default;
   const gone = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 1 });
-  const listener = new Client(Deno.env.get("DATABASE_URL")!);
-  await listener.connect();
-  await listener.queryObject("LISTEN session_frozen");
-
-  const quiet = await listener.queryObject("SELECT 1").then(() => true).catch(() => false);
-  assert(quiet, "something was announced before the sweeper ran");
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const arrived: string[] = [];
+  await sql.listen("session_frozen", (payload: string) => arrived.push(payload));
 
   await sweeper.sweepIdentities();
 
-  let announced = false;
-  try {
-    await listener.queryObject("SELECT 1");
-  } catch (error) {
-    assert(
-      /Unexpected simple query message: A/.test(String(error)),
-      `the listening connection failed for another reason: ${error}`,
-    );
-    announced = true;
+  const until = Date.now() + 2000;
+  while (Date.now() < until && !arrived.includes(gone.sessionId)) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
   }
-  assert(announced, "the sweeper froze a session without announcing it");
+  assert(
+    arrived.includes(gone.sessionId),
+    `the sweeper froze a session without announcing it; heard: ${JSON.stringify(arrived)}`,
+  );
 
   const [session] = await database.queryOrThrow<{ frozen_reason: string | null }>(
     `SELECT frozen_reason FROM sessions WHERE id = $1`,
     [gone.sessionId],
   );
   assertEquals(session.frozen_reason, "closed");
-  await listener.end();
+  await sql.end();
 });
 
 // The cases above place their rows relative to the sweeper's own constants, so

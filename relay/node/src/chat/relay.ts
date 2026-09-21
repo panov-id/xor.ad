@@ -21,6 +21,12 @@
 // ideas document carries the same correction at its head, and what remains a
 // future branch there is the untrusted community pool, not the encryption.
 //
+// The bus it will run on works as of 2026-09-21: the node's driver is
+// postgres.js, whose `sql.listen()` receives a NOTIFY — the previous one could
+// not, and that blocked this file's whole reason for existing (open-work G14).
+// `lib/sessions.ts` already emits `session_frozen`; what is missing here is the
+// socket, not the signal.
+//
 // It is left as a stub so the node's structure is chat-ready without pulling
 // chat logic into the build. Whoever implements step 5 of the build order reads
 // this file first — which is why it is worth its length.

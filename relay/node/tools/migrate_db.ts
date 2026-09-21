@@ -7,7 +7,7 @@
 // this buys is that reading db/ tells you the schema, and reading
 // schema_migrations tells you what a database actually has.
 
-import { queryOrThrow, transaction } from "../src/lib/db.ts";
+import { closePool, queryOrThrow, transaction } from "../src/lib/db.ts";
 
 // One migrator at a time per database. The wizard runs this per environment and
 // the pool has more than one box; two runs used to see the same empty `applied`
@@ -79,3 +79,11 @@ for (const name of files) {
 }
 
 console.log(`\n${files.length} migration(s) on disk, ${applied.size} already applied, ${ran} run now`);
+
+// A tool that runs to completion has to hand the connections back, or the
+// process never exits: postgres.js keeps its pool open until told otherwise,
+// and Deno waits for it. The old driver let the process end with connections
+// still open, so nothing here said this — and the migration container hung for
+// ever the first time it ran on the new one (2026-09-21). The node itself does
+// not call this: it is a server, and its pool lives as long as it does.
+await closePool();

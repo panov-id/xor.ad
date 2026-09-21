@@ -11,7 +11,7 @@
 
 import { config } from "../src/config.ts";
 import { get, list, storageEnabled } from "../src/lib/storage.ts";
-import { enabled as databaseEnabled, queryOrThrow } from "../src/lib/db.ts";
+import { closePool, enabled as databaseEnabled, queryOrThrow } from "../src/lib/db.ts";
 import { type Brand } from "../src/config.ts";
 import { type PublishableKey } from "../src/lib/api_key.ts";
 
@@ -75,3 +75,7 @@ for (const key of keys) {
 console.log(`   wrote ${written} key(s), ${skipped} already there`);
 console.log("\nThe objects in storage are left in place: the node reads the database first and");
 console.log("falls back to them, so nothing is lost if this has to be undone.");
+
+// Hands the connections back so the process can exit — see the note at the end
+// of tools/migrate_db.ts for why this became necessary on 2026-09-21.
+await closePool();

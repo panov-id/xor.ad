@@ -1374,7 +1374,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       the image's description in the registry — those go up on the day the image is
       published.
 
-- [ ] **G14. The node's Postgres driver cannot receive `NOTIFY` — measured
+- [x] **G14. The node's Postgres driver cannot receive `NOTIFY` — measured
       2026-09-20.** `@db/postgres@0.19.5` does not ignore a notification, it
       **throws** on one: a connection Postgres has sent an `A`
       (NotificationResponse) message answers the very next query with
@@ -1396,6 +1396,34 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       take a different bus. The choice shapes all of step 5, so it is not made
       in passing — decide before the chat's first line.
 
+
+      **Closed 2026-09-21. The owner's decision: move everything to postgres.js.**
+      Measured before choosing: under Deno both candidates received a
+      notification — postgres.js in 74ms, node-postgres in 40ms with the
+      connection verified alive afterwards. The first won on shape: `sql.listen()`
+      is a first-class call, and its transactions map onto the API `lib/db.ts`
+      already offers.
+
+      **One file** was rewritten — `relay/node/src/lib/db.ts`: the driver was
+      imported exactly there, and the other fifteen sites go through its five
+      functions. The listener's tests no longer catch an exception in place of a
+      notification: `session_freeze.test.ts` and `identity_sweeper.test.ts` read
+      the payload and check **which** session was announced.
+
+      🟡 Found by running rather than by reading: `tools/migrate_db.ts` never
+      closed the pool. The old driver let the process exit anyway; postgres.js
+      keeps it alive, and the migration container hung for ever on the first run.
+      The close was added there and in `migrate_control_state.ts`, and in
+      `prune_dsa_records.ts` **inside `import.meta.main`** — that file is also a
+      module, imported by the scheduler, so a top-level close would have shut a
+      running node's pool at import time.
+
+      🟣 A side effect: the database suites got four to ten times faster — 51
+      cases of the control suite in 1s against 13s, the identity routes in 2s
+      against 25s.
+
+      🟠 The price named when the choice was made is paid: the node now has its
+      first npm dependency, and it is also its only external one.
 - [ ] **G15. The device transfer cannot be finished: neither side has a way to
       learn the outcome — found 2026-09-20 while writing the routes.** The
       contract (`protocol_EN.md` §4.1) names four routes — `POST

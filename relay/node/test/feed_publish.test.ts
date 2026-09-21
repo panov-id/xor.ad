@@ -1938,3 +1938,45 @@ Deno.test({
     assertEquals(await queued(chat, b.session_id), [fresh], "the sweep took the wrong rows");
   },
 });
+
+Deno.test({
+  name: "a block closes the chat to both: no message, no ticket",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // §8.9: a block acts on phrases, the match and the shared chat alike. Step 5
+    // panel, 2026-09-21, security lens: no chat path read `blocks` at all.
+    const { a, b, chat } = await openChat();
+    await database.queryOrThrow(
+      `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2)`, [b.identity_id, a.identity_id]);
+    const sent = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`,
+      { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    assertEquals(sent.status, 404, "the blocked one wrote into the chat");
+    assertEquals(await queued(chat, b.session_id), [], "a message from the blocked one was queued");
+    const ticket = await signedCall(b.pair.privateKey, b.session_id, "POST", `/chats/${chat}/ticket`);
+    assertEquals(ticket.status, 404, "the blocker got a ticket into the blocked chat");
+  },
+});
+
+Deno.test({
+  name: "a pair with a live chat gets no second match, and agreeing never fails on it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Step 5 panel, data lens: with a live chat and an expired match, a mutual
+    // like made a new match, and both agreeing then failed on chats.pair_key —
+    // a 503 on every press. §8.6: while a chat lives, no match is made.
+    const { a, b, chat } = await openChat();
+    await database.queryOrThrow(
+      `UPDATE matches SET expires_at = now() - interval '1 minute' WHERE chat_id = $1`, [chat]);
+    const mine = await seedPhrase(a.identity_id, "ещё раз к реке?");
+    const theirs = await seedPhrase(b.identity_id, "да, давай");
+    const first = await like(a, theirs);
+    const back = await like(b, mine);
+    assertEquals(stateOf(first), "liked", "a pair with a live chat was given a second match (first like)");
+    assertEquals(stateOf(back), "liked", "a pair with a live chat was given a second match (like back)");
+    const [kept] = await database.queryOrThrow<{ chat_id: string | null }>(
+      `SELECT chat_id FROM matches WHERE pair_key = (SELECT pair_key FROM chats WHERE id = $1)`, [chat]);
+    assertEquals(kept.chat_id, chat, "the pair's match row was taken over and lost its chat");
+  },
+});

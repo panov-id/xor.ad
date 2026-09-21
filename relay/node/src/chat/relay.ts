@@ -21,6 +21,7 @@ import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 
 export const NODE_ROLE = Deno.env.get("NODE_ROLE") ?? "relay"; // core | relay
+const VERSION = "xor.p1";
 
 interface Room {
   socket: WebSocket;
@@ -59,6 +60,21 @@ async function hand(room: Room, localId: string | null): Promise<void> {
   }
 }
 
+// Protocol §4.4: freezing a session tears its sockets. lib/sessions.ts sends
+// `NOTIFY session_frozen` in the freezing transaction; every node's rooms of
+// that session close 4002 (step 5 panel, 2026-09-21: nothing listened).
+let listeningFrozen: Promise<void> | null = null;
+function ensureListeningFrozen(): Promise<void> {
+  listeningFrozen ??= listen("session_frozen", (session) => {
+    for (const set of rooms.values()) {
+      for (const room of set) {
+        if (room.session === session) room.socket.close(4002, "the session was frozen");
+      }
+    }
+  });
+  return listeningFrozen;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     const [chat, localId] = payload.split(":");
@@ -73,27 +89,53 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   if ((req.headers.get("upgrade") ?? "").toLowerCase() !== "websocket") {
     return new Response("a websocket upgrade is expected here", { status: 426 });
   }
+  // `xor.p1, ticket.<t>` (protocol §4.4, §6): the version by name, the ticket
+  // behind its prefix. The answer names the version only.
   const offered = (req.headers.get("sec-websocket-protocol") ?? "").split(",").map((p) => p.trim()).filter(Boolean);
-  const token = offered[0] ?? "";
+  const speaks = offered.includes(VERSION);
+  const token = (offered.find((p) => p.startsWith("ticket.")) ?? "").slice("ticket.".length);
+  if (!speaks) {
+    const { socket, response } = Deno.upgradeWebSocket(req);
+    socket.onopen = () => socket.close(4004, "protocol version not supported");
+    inc("relay_chat_rooms_total", { result: "bad_version" });
+    return response;
+  }
   // Spent in the statement that reads it: a ticket opens one room, once.
+  // Only for a session that is not frozen: one frozen inside the ticket's thirty
+  // seconds must not open a room (step 5 panel, 2026-09-21).
+  let failed = false;
   const [spent] = token
     ? await queryOrThrow<{ session: string; chat: string }>(
-      `DELETE FROM socket_tickets WHERE token_hash = $1 AND expires_at > now()
-        RETURNING session, chat`,
+      `DELETE FROM socket_tickets t USING sessions s
+        WHERE t.token_hash = $1 AND t.expires_at > now()
+          AND s.id = t.session AND s.frozen_at IS NULL
+        RETURNING t.session, t.chat`,
       [await sha256hex(new TextEncoder().encode(token))],
-    ).catch(() => [])
+    ).catch(() => { failed = true; return []; })
     : [];
 
-  const { socket, response } = Deno.upgradeWebSocket(req, token ? { protocol: token } : {});
+  const { socket, response } = Deno.upgradeWebSocket(req, { protocol: VERSION });
+  if (failed) {
+    // A database that failed is not a bad ticket: 1011, and the client retries
+    // later instead of buying tickets in a loop.
+    socket.onopen = () => socket.close(1011, "the node failed");
+    return response;
+  }
   if (!spent) {
     socket.onopen = () => socket.close(4001, "ticket expired, spent or wrong");
     inc("relay_chat_rooms_total", { result: "bad_ticket" });
     return response;
   }
   await ensureListening();
+  await ensureListeningFrozen();
   const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();
+    // One room per (chat, session): an older socket of the same session is
+    // closed, so tickets cannot pile up rooms (step 5 panel, 2026-09-21).
+    for (const older of set) {
+      if (older.session === room.session) older.socket.close(1000, "replaced by a newer socket");
+    }
     set.add(room);
     rooms.set(room.chat, set);
     inc("relay_chat_rooms_total", { result: "opened" });

@@ -59,7 +59,7 @@ docker exec "$db" psql -q -U relay -d relay_test -c \
 docker run -d --label "$label" --name "$node" --network "$network" --network-alias node $cache \
   -e DATABASE_URL="$database_url" -e VAULT_SHARE_KEY=depth-test-vault-key \
   -e STORAGE_TRANSPORT=fs -e STORAGE_DIR=/tmp/data -e MAIL_TRANSPORT=none \
-  -e NODE_ENV_NAME=test -e NODE_ID=depth-test -e ALLOWED_ORIGINS="" \
+  -e NODE_ENV_NAME=test -e NODE_ID=depth-test -e ALLOWED_ORIGINS="" -e ORIGIN_TOKEN=depth-test-origin \
   -v "$root/relay/node":/node -w /node "$image" \
   deno run --allow-env --allow-net --allow-read --allow-write src/main.ts >/dev/null
 
@@ -74,7 +74,7 @@ out="$(mktemp)"
 status=0
 # shellcheck disable=SC2086
 docker run --rm --network "$network" $cache \
-  -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" -e DEPTH_DATABASE_URL="$database_url" \
+  -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" -e DEPTH_DATABASE_URL="$database_url" -e DEPTH_ORIGIN_TOKEN=depth-test-origin \
   -v "$root":/repo -w /repo "$image" \
   deno test --allow-env --allow-read --allow-net depth/ "$@" 2>&1 | tee "$out" || status=$?
 if [ "$status" -eq 0 ] && grep -qE "[1-9][0-9]* ignored" "$out"; then

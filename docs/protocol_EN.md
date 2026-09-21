@@ -178,7 +178,7 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 | `GET /likes` | everything this identity liked that is still alive: cards of the same shape as `GET /feed` — phrases and private authors' offers with `state` (`liked` \| `matched`) and tables — by the `?after` cursor and `{items, next}` (§6); screen 25 "My likes" | **spec** (proposed and agreed 2026-09-17) (§8.4, mechanics §11) |
 | `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented; until chats exist (step 5) the answer is `waiting` or `agreed`, someone else's or an expired match — 404 (2026-09-21) | **spec** (agreed 2026-09-17) (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
-| `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |
+| `POST /chats/:id/ticket` | a one-time ticket for the socket, 30 seconds; someone else's chat, a finished one or one closed by a block — 404; built 2026-09-21 | **spec** |
 | `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
 | `DELETE /chats/:id` | closes a conversation by hand — for both at once | **spec** (agreed 2026-09-17) (§5, screen 8) |
 | `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **spec** (agreed 2026-09-17) (§8.6) |
@@ -415,8 +415,9 @@ counting characters in it is impossible either exactly or approximately.
 ## 6. Errors
 
 What the spec states: `POST /feed` answers **202**; an undelivered message yields
-`error` — the same behaviour as being offline; routes that do not exist yet answer
-**404** (`/feed`) and **501** (`/chat`).
+`error` — the same behaviour as being offline. [retired] This said "routes that do not
+exist yet answer 404 (`/feed`) and 501 (`/chat`)": both were built on 2026-09-21, and
+`GET /chat` without an upgrade answers **426**.
 
 **The "accept again" refusal is the one shape already needed** (2026-08-29).
 Any signed request that publishes or opens a chat answers **409** with the

@@ -82,9 +82,60 @@ Deno.test({
       const { b, chatId } = await chatBetween(sql);
       const ticket = await b.ticket(chatId);
       const first = await b.openRoomWith(ticket);
+      // Wait for the handshake: closing before it reaches the node leaves the
+      // ticket unspent, and the second socket then opens honestly — the case
+      // failed one run in three on exactly that race.
+      await first.protocol();
       first.close();
       const again = await b.openRoomWith(ticket);
-      assertEquals(await again.closed, 4001, "a ticket opened a room twice");
+      assertEquals(await again.closedWithin(), 4001, "a ticket opened a room twice");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
+Deno.test({
+  name: "the socket speaks xor.p1, and one without it is closed 4004",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Protocol §4.4 and §6: Sec-WebSocket-Protocol carries `xor.p1, ticket.<t>`;
+    // the node answers xor.p1 — never the ticket — and closes 4004 when the
+    // version is missing (step 5 panel, 2026-09-21).
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      assertEquals(await room.protocol(), "xor.p1", "the node did not answer with the protocol's name");
+      room.close();
+      const bare = await b.openRoomWith(await b.ticket(chatId), { withVersion: false });
+      assertEquals(await bare.closedWithin(), 4004, "a socket without xor.p1 was not closed 4004");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
+Deno.test({
+  name: "freezing a session closes its socket 4002",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Protocol §4.4: "freezing a session tears its sockets" — NOTIFY
+    // session_frozen in the same transaction as frozen_at (lib/sessions.ts).
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await room.protocol();
+      await sql.begin(async (tx) => {
+        await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`, [b.sessionId]);
+        await tx.unsafe(`SELECT pg_notify('session_frozen', $1)`, [b.sessionId]);
+      });
+      assertEquals(await room.closedWithin(), 4002, "a frozen session kept its socket (0 = still open after 5 s)");
     } finally {
       await sql.end();
     }

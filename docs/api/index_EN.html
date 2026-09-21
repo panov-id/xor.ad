@@ -61,10 +61,11 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 </section>
 <section class="op" id="get-chat">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chat</code><span class="chip s-built">built</span></div>
-<p><strong>Chat relay slot, not enabled</strong></p>
+<p><strong>The chat&#x27;s room (WebSocket)</strong></p>
+<p>Sec-WebSocket-Protocol offers `xor.p1, ticket.&lt;t&gt;` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. Not yet: 4003 on a finished chat, 1001 on restart (built 2026-09-21).</p>
 <h3>Access</h3><p>no access control</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>501</code></td><td>chat relay not enabled on this node yet</td><td></td></tr></table></div>
-<p class="src">Source: <code>relay/node/src/main.ts</code></p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>101</code></td><td>Switching to the room.</td><td></td></tr><tr><td><code>426</code></td><td>Not a WebSocket upgrade.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/chat/relay.ts</code></p>
 </section>
 <h2 id="tag-intake">intake</h2>
 <p>Public intake from the storefronts, keyed by a publishable key or none.</p>
@@ -1364,7 +1365,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>nonce</code></td><td><a href="#schema-nonce"><code>Nonce</code></a></td><td>yes</td><td></td></tr><tr><td><code>auth</code></td><td><a href="#schema-auth"><code>Auth</code></a></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-message"><div class="op-head"><code class="path">Message</code></div>
 <p>A ciphertext to deliver (chat spec §8.8; proposed 2026-09-16, SEC-8).</p>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>local_id</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>ciphertext</code></td><td><code>string</code></td><td>yes</td><td>base64url, at most max_ciphertext_bytes.</td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>local_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>ciphertext</code></td><td><code>string</code></td><td>yes</td><td>base64url, at most max_ciphertext_bytes.</td></tr></table></div></section>
 <section class="op" id="schema-messageack"><div class="op-head"><code class="path">MessageAck</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>local_id</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>accepted</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>error</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-received"><div class="op-head"><code class="path">Received</code></div>

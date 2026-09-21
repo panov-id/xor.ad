@@ -52,12 +52,24 @@ export class Client {
   #session = "";
   identityId = "";
 
-  constructor(private readonly base: string, private readonly apiKey: string) {}
+  // Test stands only: the node trusts x-client-ip when x-origin-token matches its
+  // ORIGIN_TOKEN, as it trusts the edge. Each test client then looks like its own
+  // address, so a run of many registrations does not meet the per-address limit
+  // meant for strangers. Unset outside tests — the edge sets these, not a client.
+  #edge: Record<string, string> = {};
+
+  constructor(private readonly base: string, private readonly apiKey: string) {
+    const token = Deno.env.get("DEPTH_ORIGIN_TOKEN");
+    if (token) {
+      const r = crypto.getRandomValues(new Uint8Array(3));
+      this.#edge = { "x-origin-token": token, "x-client-ip": `10.${r[0]}.${r[1]}.${r[2]}` };
+    }
+  }
 
   async #call<T>(method: string, path: string, body?: unknown, signed = true): Promise<Answer<T>> {
     const url = new URL(path, this.base).toString();
     const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
-    const headers: Record<string, string> = { "x-protocol-version": PROTOCOL_MAJOR };
+    const headers: Record<string, string> = { "x-protocol-version": PROTOCOL_MAJOR, ...this.#edge };
     if (body !== undefined) headers["content-type"] = "application/json";
     if (signed) {
       if (!this.#key) throw new Error("not registered: there is no key to sign with");
@@ -189,11 +201,18 @@ export class Client {
     return await this.openRoomWith(await this.ticket(chatId));
   }
 
-  // The ticket rides in Sec-WebSocket-Protocol, never in the query (protocol §4.4).
-  openRoomWith(ticket: string): Promise<Room> {
+  // The ticket rides in Sec-WebSocket-Protocol next to the protocol's name,
+  // `xor.p1, ticket.<t>` — never in the query (protocol §4.4, §6).
+  // `withVersion: false` exists for the test that the node refuses it.
+  openRoomWith(ticket: string, opts: { withVersion?: boolean } = {}): Promise<Room> {
     const url = new URL("/chat", this.base);
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    return Promise.resolve(new Room(new WebSocket(url, [ticket])));
+    const offered = opts.withVersion === false ? [`ticket.${ticket}`] : ["xor.p1", `ticket.${ticket}`];
+    return Promise.resolve(new Room(new WebSocket(url, offered)));
+  }
+
+  get sessionId(): string {
+    return this.#session;
   }
 }
 
@@ -218,6 +237,18 @@ export class Room {
       else this.#frames.push(f);
     };
     this.closed = new Promise((resolve) => (socket.onclose = (e) => resolve(e.code)));
+  }
+
+  // The close code, or 0 if the socket is still open after the time: a test that
+  // waits on it fails with a word instead of hanging the run.
+  closedWithin(ms = 5000): Promise<number> {
+    return Promise.race([this.closed, new Promise<number>((r) => setTimeout(() => r(0), ms))]);
+  }
+
+  // The subprotocol the node chose, once the socket is open.
+  protocol(): Promise<string> {
+    if (this.socket.readyState === WebSocket.OPEN) return Promise.resolve(this.socket.protocol);
+    return new Promise((resolve) => this.socket.addEventListener("open", () => resolve(this.socket.protocol), { once: true }));
   }
 
   next(timeoutMs = 5000): Promise<Frame> {

@@ -97,8 +97,29 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     if (existing.chat_id) {
       return json({ state: "agreed", chat_id: existing.chat_id }, 200, sunsetHeader());
     }
-    const chatId = crypto.randomUUID();
-    await run(`INSERT INTO chats (id, pair_key) VALUES ($1, $2)`, [chatId, existing.pair_key]);
+    // The two identity_stats rows in order first, as the like takes them (§8.4):
+    // an UPDATE … IN (subquery) locks in scan order and could deadlock against a
+    // like of the same two people (step 5 panel, 2026-09-21, data lens).
+    await run(
+      `SELECT 1 FROM identity_stats
+        WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
+        ORDER BY identity FOR UPDATE`,
+      [matchId],
+    );
+    // One chat per pair: an existing one (a chat that outlived an older match of
+    // the pair) is joined rather than duplicated, never a unique-key failure.
+    const [created] = await run<{ id: string }>(
+      `INSERT INTO chats (id, pair_key) VALUES ($1, $2)
+       ON CONFLICT (pair_key) DO NOTHING RETURNING id`,
+      [crypto.randomUUID(), existing.pair_key],
+    );
+    if (!created) {
+      const [kept] = await run<{ id: string }>(`SELECT id FROM chats WHERE pair_key = $1`, [existing.pair_key]);
+      await run(`UPDATE matches SET chat_id = $1 WHERE id = $2`, [kept.id, matchId]);
+      inc("relay_match_total", { action: "agreed" });
+      return json({ state: "agreed", chat_id: kept.id }, 200, sunsetHeader());
+    }
+    const chatId = created.id;
     await run(
       `INSERT INTO chat_participants (chat_id, identity)
        SELECT $1, identity FROM match_participants WHERE match_id = $2`,

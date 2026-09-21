@@ -176,6 +176,22 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
       return liked();
     }
 
+    // §8.6: while the pair's chat lives, no match is made — the like counts and
+    // goes no further. Without this a mutual like took over the pair's match row
+    // and lost its chat, and agreeing then failed on chats.pair_key (step 5
+    // panel, 2026-09-21, data lens). The phrase joining the chat's header
+    // (§8.7) is not built yet.
+    const [chatLives] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM chats c
+        WHERE c.pair_key = $1
+          AND EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)`,
+      [pk],
+    );
+    if (chatLives.n > 0) {
+      inc("relay_like_total", { result: "liked" });
+      return liked();
+    }
+
     // DATA-5: an expired match nobody swept must not stand in the way of a new one.
     await run(
       `DELETE FROM match_participants p USING matches m

@@ -9,8 +9,8 @@
 // caller's are skipped in silence (SEC-19).
 //
 // The queue keeps chat.pending.max per (chat, recipient) — enforced here — and
-// lives chat.pending.ttl — lib/pending_sweeper.ts. Not here yet: the socket
-// that hands a row over as it is written (the ticket and chat/relay.ts).
+// lives chat.pending.ttl — lib/pending_sweeper.ts. The socket that hands a row
+// over as it is written is chat/relay.ts; its ticket is issued below.
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
@@ -31,12 +31,6 @@ async function send(req: Request, chatId: string): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
-  const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
-  if (!allowed.allowed) {
-    return refuse("rate_limited", "too many messages this minute", 429, {}, {
-      "retry-after": String(allowed.retryAfterSeconds),
-    });
-  }
   const body = await readJson<{ local_id?: unknown; ciphertext?: unknown }>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);
   const localId = typeof body.local_id === "string" && UUID.test(body.local_id) ? body.local_id : null;
@@ -50,11 +44,26 @@ async function send(req: Request, chatId: string): Promise<Response> {
 
   const answer = await transaction<Response>(async (run) => {
     const [member] = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM chat_participants
-        WHERE chat_id = $1 AND identity = $2 AND gone_at IS NULL`,
+      // A member whose chat no block stands between (§8.9: a block closes the
+      // shared chat to both; step 5 panel, 2026-09-21).
+      `SELECT count(*)::int AS n FROM chat_participants me
+        WHERE me.chat_id = $1 AND me.identity = $2 AND me.gone_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM chat_participants other
+              JOIN blocks b ON (b.blocker_identity = me.identity AND b.blocked_identity = other.identity)
+                            OR (b.blocker_identity = other.identity AND b.blocked_identity = me.identity)
+             WHERE other.chat_id = me.chat_id AND other.identity <> me.identity)`,
       [chatId, me],
     );
     if (member.n === 0) return refuse("not_found", "no such chat", 404);
+    // After membership, not before: protocol §4.3 orders stepped_away, then 404,
+    // then 429 — a stranger must not learn a chat exists from a 429 (SEC-22).
+    const allowed = checkAll(CHAT_MESSAGE_LIMITS, me);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many messages this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
     // The other side's live session; a frozen one has nothing to read with.
     await run(
       `INSERT INTO pending_deliveries (chat, recipient_session, local_id, ciphertext)
@@ -129,11 +138,26 @@ async function ticket(req: Request, chatId: string): Promise<Response> {
   const token = bytesToBase64url(raw);
   const issued = await transaction<Response>(async (run) => {
     const [member] = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM chat_participants
-        WHERE chat_id = $1 AND identity = $2 AND gone_at IS NULL`,
+      // A member whose chat no block stands between (§8.9: a block closes the
+      // shared chat to both; step 5 panel, 2026-09-21).
+      `SELECT count(*)::int AS n FROM chat_participants me
+        WHERE me.chat_id = $1 AND me.identity = $2 AND me.gone_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM chat_participants other
+              JOIN blocks b ON (b.blocker_identity = me.identity AND b.blocked_identity = other.identity)
+                            OR (b.blocker_identity = other.identity AND b.blocked_identity = me.identity)
+             WHERE other.chat_id = me.chat_id AND other.identity <> me.identity)`,
       [chatId, caller.identityId],
     );
     if (member.n === 0) return refuse("not_found", "no such chat", 404);
+    // Tickets share the message budget: each one is a socket, and an unbounded
+    // number of them was an unbounded number of rooms (step 5 panel, 2026-09-21).
+    const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many tickets this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
     await run(
       `INSERT INTO socket_tickets (token_hash, session, chat, expires_at)
        VALUES ($1, $2, $3, now() + interval '${TICKET_SECONDS} seconds')`,

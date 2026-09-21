@@ -259,8 +259,11 @@ async function span(req: Request, chatId: string): Promise<Response> {
   }
   const done = await transaction((run) =>
     run<{ chat_id: string }>(
-      `UPDATE chat_participants SET idle_ttl_minutes = $3
-        WHERE chat_id = $1 AND identity = $2 AND gone_at IS NULL RETURNING chat_id`,
+      // Not past one's own term: a span of 260 set between the term and the
+      // sweep's next minute revived what §8.10 had ended (step 7 panel).
+      `UPDATE chat_participants p SET idle_ttl_minutes = $3 FROM chats c
+        WHERE c.id = p.chat_id AND p.chat_id = $1 AND p.identity = $2
+          AND p.gone_at IS NULL AND NOT (${TERM_PASSED}) RETURNING p.chat_id`,
       [chatId, caller.identityId, body.span],
     )
   ).catch(() => null);

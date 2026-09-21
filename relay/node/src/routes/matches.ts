@@ -50,6 +50,13 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
       `SELECT m.id FROM matches m
          JOIN match_participants p ON p.match_id = m.id AND p.identity = $2
         WHERE m.id = $1 AND m.expires_at > now()
+          -- §8.9: nothing between two people a block stands between (step 7
+          -- panel, 2026-09-21: consent used to open a chat over a block).
+          AND NOT EXISTS (
+            SELECT 1 FROM match_participants o
+              JOIN blocks b ON (b.blocker_identity = p.identity AND b.blocked_identity = o.identity)
+                            OR (b.blocker_identity = o.identity AND b.blocked_identity = p.identity)
+             WHERE o.match_id = m.id AND o.identity <> p.identity)
         FOR UPDATE OF m`,
       [matchId, me],
     );

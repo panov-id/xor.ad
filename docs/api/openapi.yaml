@@ -1834,6 +1834,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -1855,6 +1856,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -1897,6 +1899,8 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "404": {description: "Not the caller's, or it is over.", x-description-ru: "Не своё либо уже кончилось."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -1918,6 +1922,8 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ChatSpan"}}}}
       responses:
+        "404": {description: "Not the caller's, or it is over.", x-description-ru: "Не своё либо уже кончилось."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2455,6 +2461,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/BlockTarget"}}}}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2474,6 +2481,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2495,6 +2503,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2516,6 +2525,8 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/HideTarget"}}}}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "404": {description: "Not the caller's, or it is over.", x-description-ru: "Не своё либо уже кончилось."}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
@@ -2535,6 +2546,7 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}

@@ -40,8 +40,8 @@ async function inbox(req: Request): Promise<Response> {
       ORDER BY m.created_at DESC LIMIT ${PAGE}`,
     [me],
   );
-  const chats = await query<{ id: string; name: string; age: number; ends: string; created_at: Date }>(
-    `SELECT c.id, them.name, them.age, c.created_at,
+  const chats = await query<{ id: string; name: string; age: number; ends: string; created_at: Date; over: boolean }>(
+    `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
               + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends
        FROM chat_participants p
@@ -64,7 +64,8 @@ async function inbox(req: Request): Promise<Response> {
     })),
     ...chats.map((c) => ({
       kind: "chat", id: c.id, name: c.name, age: c.age,
-      chat_expires_at: Number(c.ends), state: "open",
+      // Over for the other side: screen 7 shows "ended" — the fact, never their term.
+      chat_expires_at: Number(c.ends), state: c.over ? "ended" : "open",
     })),
   ];
   return json({ items }, 200, sunsetHeader());

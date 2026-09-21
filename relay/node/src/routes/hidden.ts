@@ -18,6 +18,20 @@ import { checkAll, HIDDEN_LIMITS } from "../lib/rate_limit.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 
+// Only what the caller may see (step 7 panel, 2026-09-21): published and alive,
+// inside each other's age band, and with no block either way. Without this the
+// route confirmed a remembered id and GET returned its text — a way round §8.9.
+// Needs `f` (feed_messages), `author` and `me` (identities) in scope; $1 is me.
+const MAY_SEE = `f.visible_at IS NOT NULL AND f.expires_at > now()
+  AND author.closed_at IS NULL
+  AND author.age BETWEEN (CASE WHEN me.age <= 20 THEN greatest(13, me.age - 2) ELSE least(21, me.age - 2) END)
+                     AND (CASE WHEN me.age <= 20 THEN me.age + 2 ELSE 1000 END)
+  AND me.age BETWEEN (CASE WHEN author.age <= 20 THEN greatest(13, author.age - 2) ELSE least(21, author.age - 2) END)
+                 AND (CASE WHEN author.age <= 20 THEN author.age + 2 ELSE 1000 END)
+  AND NOT EXISTS (SELECT 1 FROM blocks b
+                   WHERE (b.blocker_identity = $1 AND b.blocked_identity = author.id)
+                      OR (b.blocker_identity = author.id AND b.blocked_identity = $1))`;
+
 async function hide(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
@@ -34,7 +48,10 @@ async function hide(req: Request): Promise<Response> {
   // the caller's own screen that named it, there is nothing to guess here.
   const rows = await query<{ id: string }>(
     `INSERT INTO hidden_messages (identity, feed_message_id)
-     SELECT $1, f.id FROM feed_messages f WHERE f.id = $2 AND f.visible_at IS NOT NULL
+     SELECT $1, f.id FROM feed_messages f
+       JOIN identities author ON author.id = f.author_identity
+       JOIN identities me ON me.id = $1
+      WHERE f.id = $2 AND ${MAY_SEE}
      ON CONFLICT (identity, feed_message_id) DO UPDATE SET identity = EXCLUDED.identity
      RETURNING id`,
     [caller.identityId, feed],
@@ -48,8 +65,11 @@ async function list(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   const rows = await query<{ id: string; text: string }>(
-    `SELECT h.id, f.text FROM hidden_messages h JOIN feed_messages f ON f.id = h.feed_message_id
-      WHERE h.identity = $1 AND f.expires_at > now() ORDER BY h.created_at DESC`,
+    `SELECT h.id, f.text FROM hidden_messages h
+       JOIN feed_messages f ON f.id = h.feed_message_id
+       JOIN identities author ON author.id = f.author_identity
+       JOIN identities me ON me.id = $1
+      WHERE h.identity = $1 AND ${MAY_SEE} ORDER BY h.created_at DESC`,
     [caller.identityId],
   );
   if (rows === null) return refuse("unavailable", "the node cannot answer right now", 503);
@@ -60,7 +80,9 @@ async function unhide(req: Request, id: string): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   if (UUID.test(id)) {
-    await query(`DELETE FROM hidden_messages WHERE id = $1 AND identity = $2`, [id, caller.identityId]);
+    // A failed write is not "done" (step 7 panel): 503, so the person tries again.
+    const gone = await query(`DELETE FROM hidden_messages WHERE id = $1 AND identity = $2`, [id, caller.identityId]);
+    if (gone === null) return refuse("unavailable", "the node cannot write right now", 503);
   }
   return new Response(null, { status: 204, headers: sunsetHeader() });
 }

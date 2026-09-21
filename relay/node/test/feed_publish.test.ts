@@ -2202,3 +2202,107 @@ Deno.test({
     reset();
   },
 });
+
+Deno.test({
+  name: "a span set after one's term does not bring the conversation back",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Step 7 panel, security lens: PATCH did not look at the term, so between the
+    // term and the sweep's next minute a span of 260 revived what §8.10 had ended.
+    const { a, chat } = await openChat();
+    await database.queryOrThrow(`UPDATE chats SET created_at = now() - interval '61 minutes' WHERE id = $1`, [chat]);
+    const late = await signedCall(a.pair.privateKey, a.session_id, "PATCH", `/chats/${chat}`, { span: 260 });
+    assertEquals(late.status, 404, "a span was taken after the caller's own term");
+    const alive = await signedCall(a.pair.privateKey, a.session_id, "POST", "/chats/alive", { ids: [chat] });
+    assertEquals(alive.body, { alive: [] }, "the conversation came back to life");
+  },
+});
+
+Deno.test({
+  name: "hiding does not let a blocked person read the blocker's phrase",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Step 7 panel, security lens: POST /hidden checked only that the phrase was
+    // published, and GET /hidden returned its text — a way round §8.9 for anyone
+    // who remembered an id. The same goes for a phrase outside one's age band.
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const blocked = await author();
+    const blocker = await author();
+    const teen = await author(15);
+    const theirs = await seedPhrase(blocker.identity_id, "фраза блокирующего");
+    const young = await seedPhrase(teen.identity_id, "фраза из другой полосы");
+    await database.queryOrThrow(
+      `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2)`, [blocker.identity_id, blocked.identity_id]);
+    for (const [id, why] of [[theirs, "blocked"], [young, "band"]] as const) {
+      const hid = await signedCall(blocked.pair.privateKey, blocked.session_id, "POST", "/hidden", { feed: id });
+      assertEquals(hid.status, 404, `${why}: a phrase one may not see was hidden, and so confirmed`);
+    }
+    const list = await matchCall(blocked, "GET", "/hidden");
+    assertEquals(list.body, [], "a text one may not see came back through the hidden list");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a block outlives the conversation it ended: no match comes back, no consent over it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Step 7 panel, data lens, reproduced in a container: the block deleted the
+    // pair's match only while it had no chat. With a chat, the sweep deleted the
+    // chat, the foreign key set matches.chat_id to NULL, and the match came back
+    // into the inbox as pending — one consent then opened a chat over the block.
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
+    reset();
+    const { a, b, chat } = await openChat();
+    const [m] = await database.queryOrThrow<{ id: string }>(`SELECT id FROM matches WHERE chat_id = $1`, [chat]);
+    const blocked = await signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", { chat, nonce: nonce() });
+    assertEquals(blocked.status, 204);
+    await sweepChats();
+    const items = ((await matchCall(b, "GET", "/inbox")).body as { items: Array<{ id: string }> }).items;
+    assertEquals(items.find((i) => i.id === m.id), undefined, "the match came back into the blocked one's inbox");
+    const again = await matchCall(b, "POST", `/matches/${m.id}/consent`);
+    assertEquals(again.status, 404, "consent was taken over a block");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a conversation that ended takes its match with it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // The same return without any block: closed by hand, swept, and the match —
+    // both sides' consent still on it — was offered again as pending.
+    const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
+    const { a, b, chat } = await openChat();
+    const [m] = await database.queryOrThrow<{ id: string }>(`SELECT id FROM matches WHERE chat_id = $1`, [chat]);
+    await matchCall(a, "DELETE", `/chats/${chat}`);
+    await sweepChats();
+    const items = ((await matchCall(b, "GET", "/inbox")).body as { items: Array<{ id: string }> }).items;
+    assertEquals(items.find((i) => i.id === m.id), undefined, "a finished conversation's match was offered again");
+  },
+});
+
+Deno.test({
+  name: "a conversation over for the other side reads as ended, and their term is not told",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Screen 7: "ended" when it is over for the other one. The fact only — the
+    // other side's span is theirs (§8.6).
+    const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
+    const { a, b, chat } = await openChat();
+    await signedCall(a.pair.privateKey, a.session_id, "PATCH", `/chats/${chat}`, { span: 10 });
+    await database.queryOrThrow(`UPDATE chats SET created_at = now() - interval '11 minutes' WHERE id = $1`, [chat]);
+    await sweepChats();
+    const items = ((await matchCall(b, "GET", "/inbox")).body as { items: Array<Record<string, unknown>> }).items;
+    const row = items.find((i) => i.id === chat);
+    assertEquals(row?.state, "ended", JSON.stringify(row));
+    assert(!JSON.stringify(row).includes("\"span\""), "the other side's span leaked");
+  },
+});

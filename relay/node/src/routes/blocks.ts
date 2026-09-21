@@ -21,7 +21,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
+import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, BLOCK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -55,7 +55,17 @@ async function block(req: Request): Promise<Response> {
        ON CONFLICT DO NOTHING RETURNING nonce`,
       [caller.sessionId, given],
     );
-    if (fresh.length === 0) return done();
+    if (fresh.length === 0) {
+      // The same nonce on this route is a repeat: the stored answer, nothing
+      // done again. On another route it is a mistake or a trick — 409 (protocol
+      // §2, SEC-25).
+      const [kept] = await run<{ route: string }>(
+        `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, given]);
+      if (kept && kept.route !== "POST /blocks") {
+        return refuse("invalid_body", "this nonce was used on another route", 409);
+      }
+      return done();
+    }
 
     // Whom the phrase or the conversation leads to — only if it is the
     // caller's to see: a live phrase of somebody else, or a chat they are in.
@@ -73,13 +83,20 @@ async function block(req: Request): Promise<Response> {
       );
     if (!target) return done();
 
+    // The pair's lock, as the like takes it (routes/likes.ts): without it a like
+    // that had passed its block check could write a match after this block had
+    // committed and found none to delete (step 7 panel, data lens).
+    const [low, high] = me < target.other ? [me, target.other] : [target.other, me];
+    const pk = await sha256hex(new TextEncoder().encode(`${low}:${high}`));
+    await run(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pk]);
+
     await run(
       `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
       [me, target.other],
     );
     // The pair's match goes out, and their conversation ends for both (§8.9).
     await run(
-      `DELETE FROM matches m WHERE m.chat_id IS NULL AND m.id IN (
+      `DELETE FROM matches m WHERE m.id IN (
          SELECT a.match_id FROM match_participants a
            JOIN match_participants b ON b.match_id = a.match_id
           WHERE a.identity = $1 AND b.identity = $2)`,
@@ -122,7 +139,9 @@ async function lift(req: Request, id: string): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   if (UUID.test(id)) {
-    await query(`DELETE FROM blocks WHERE id = $1 AND blocker_identity = $2`, [id, caller.identityId]);
+    // A failed write is not "done" (step 7 panel): 503, so the person tries again.
+    const gone = await query(`DELETE FROM blocks WHERE id = $1 AND blocker_identity = $2`, [id, caller.identityId]);
+    if (gone === null) return refuse("unavailable", "the node cannot write right now", 503);
   }
   return done();
 }

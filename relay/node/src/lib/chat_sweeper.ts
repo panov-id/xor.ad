@@ -27,6 +27,14 @@ export async function sweepChats(): Promise<{ ended: number; deleted: number }> 
     for (const chat of chats) await queryOrThrow(`SELECT pg_notify('chat_closed', $1)`, [chat]);
     inc("relay_chat_ended_total", { by: "term" }, ended.length);
   }
+  // A conversation that is over takes its match with it. The foreign key would
+  // otherwise set matches.chat_id to NULL, and the match — both consents still
+  // on it — came back into the inbox as pending (step 7 panel, 2026-09-21).
+  await queryOrThrow(
+    `DELETE FROM matches m USING chats c
+      WHERE m.chat_id = c.id
+        AND NOT EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)`,
+  );
   const deleted = await queryOrThrow<{ id: string }>(
     `DELETE FROM chats c
       WHERE NOT EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)

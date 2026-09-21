@@ -173,19 +173,19 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own; answers `liked` or `matched`; with no live phrase of your own (not an offer) — 409 `refused` (2026-09-21) | **spec** (agreed 2026-09-17) (§8.4) |
-| `DELETE /feed/:id/like` | takes a like back until a live match has come of it: `{state: 'unliked'}`, also when there was nothing to take; otherwise, and on an offer, `{state: 'spent'}` (2026-09-21) | **spec** (agreed 2026-09-17) (§8.4) |
+| `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own; answers `liked` or `matched`; with no live phrase of your own (not an offer) — 409 `refused` (2026-09-21) | **built** 2026-09-21, was: spec (agreed 2026-09-17) (§8.4) |
+| `DELETE /feed/:id/like` | takes a like back until a live match has come of it: `{state: 'unliked'}`, also when there was nothing to take; otherwise, and on an offer, `{state: 'spent'}` (2026-09-21) | **built** 2026-09-21, was: spec (agreed 2026-09-17) (§8.4) |
 | `GET /likes` | everything this identity liked that is still alive: cards of the same shape as `GET /feed` — phrases and private authors' offers with `state` (`liked` \| `matched`) and tables — by the `?after` cursor and `{items, next}` (§6); screen 25 "My likes" | **spec** (proposed and agreed 2026-09-17) (§8.4, mechanics §11) |
-| `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented; until chats exist (step 5) the answer is `waiting` or `agreed`, someone else's or an expired match — 404 (2026-09-21) | **spec** (agreed 2026-09-17) (§8.5) |
-| `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
-| `POST /chats/:id/ticket` | a one-time ticket for the socket, 30 seconds; someone else's chat, a finished one or one closed by a block — 404; built 2026-09-21 | **spec** |
-| `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
-| `DELETE /chats/:id` | closes a conversation by hand — for both at once | **spec** (agreed 2026-09-17) (§5, screen 8) |
-| `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **spec** (agreed 2026-09-17) (§8.6) |
-| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8; panel, SEC-8) |
-| `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8) |
-| `POST /matches/:id/decline` | "not now": the match decline is written at once (screens 6, 7; 2026-09-19) | **spec** |
-| `DELETE /matches/:id/decline` | undo the decline — while the match lives: the undo row has no timer (screen 7, owner's decision 2026-09-18) | **spec** |
+| `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented; until chats exist (step 5) the answer is `waiting` or `agreed`, someone else's or an expired match — 404 (2026-09-21) | **built** 2026-09-21, was: spec (agreed 2026-09-17) (§8.5) |
+| `GET /inbox` | offers and conversations in one response; a count only on offers | **built** 2026-09-21, was: spec |
+| `POST /chats/:id/ticket` | a one-time ticket for the socket, 30 seconds; someone else's chat, a finished one or one closed by a block — 404; built 2026-09-21 | **built** 2026-09-21, was: spec |
+| `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **built** 2026-09-21, was: spec |
+| `DELETE /chats/:id` | closes a conversation by hand — for both at once | **built** 2026-09-21, was: spec (agreed 2026-09-17) (§5, screen 8) |
+| `PATCH /chats/:id` | your own span handle: 10 / 30 / 60 minutes or "while we're talking" (260 minutes, 4:20) | **built** 2026-09-21, was: spec (agreed 2026-09-17) (§8.6) |
+| `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.8; panel, SEC-8) |
+| `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.8) |
+| `POST /matches/:id/decline` | "not now": the match decline is written at once (screens 6, 7; 2026-09-19) | **built** 2026-09-21, was: spec |
+| `DELETE /matches/:id/decline` | undo the decline — while the match lives: the undo row has no timer (screen 7, owner's decision 2026-09-18) | **built** 2026-09-21, was: spec |
 
 ### 4.4. The socket
 
@@ -292,12 +292,12 @@ Blocking someone seated is `POST /blocks` with `{table: id, seat}` (§4.8): the 
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /blocks` | block by a phrase `{feed: id}`, a conversation `{chat: id}` or a seat `{table: id, seat}`, with a `nonce`; **204** always, a repeat too: the answer is not an oracle; the match dies, the shared chat closes, phrases are hidden from both; at most `blocks.hour` per identity — the price is acknowledged: a block by a phrase shows the blocker which other phrases of the same author vanished (SEC-1) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9, schema `blocks`) |
-| `GET /blocks` | your own blocks: `{id, since}` — `id` is opaque (`blocks.id`) and does not reduce to an identity; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9 "until lifted") |
-| `DELETE /blocks/:id` | lift a block; **204** on a foreign or unknown `id` too (SEC-14); the set of visible tables is recomputed on the next entry into the feed | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9, §6.1) |
-| `POST /hidden` | hide (at most `hidden.hour` an hour per identity) a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **200** `{id}` for bringing it back; the author does not learn | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.9, schema `hidden_messages`) |
-| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line until the table is swept (`DELETE FROM tables`, §6.1; DATA-8) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 10) |
-| `DELETE /hidden/:id` | bring the hidden back by `hidden_messages.id`; **204** on a foreign `id` too (SEC-14) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 5) |
+| `POST /blocks` | block by a phrase `{feed: id}`, a conversation `{chat: id}` or a seat `{table: id, seat}`, with a `nonce`; **204** always, a repeat too: the answer is not an oracle; the match dies, the shared chat closes, phrases are hidden from both; at most `blocks.hour` per identity — the price is acknowledged: a block by a phrase shows the blocker which other phrases of the same author vanished (SEC-1) | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.9, schema `blocks`) |
+| `GET /blocks` | your own blocks: `{id, since}` — `id` is opaque (`blocks.id`) and does not reduce to an identity; screen 10 shows the list and lifting without identities (decided 2026-09-16) | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.9 "until lifted") |
+| `DELETE /blocks/:id` | lift a block; **204** on a foreign or unknown `id` too (SEC-14); the set of visible tables is recomputed on the next entry into the feed | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.9, §6.1) |
+| `POST /hidden` | hide (at most `hidden.hour` an hour per identity) a phrase `{feed: id}` for yourself only — from the "…" menu; a line `{line: id}` — as the outcome of a complaint without the "illegal" checkbox (screen 19), a line has no menu item; **200** `{id}` for bringing it back; the author does not learn | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.9, schema `hidden_messages`) |
+| `GET /hidden` | the hidden list for screen 10: `{id, kind, text}` — short by construction: a phrase lives until it dies, a line until the table is swept (`DELETE FROM tables`, §6.1; DATA-8) | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (screen 10) |
+| `DELETE /hidden/:id` | bring the hidden back by `hidden_messages.id`; **204** on a foreign `id` too (SEC-14) | **built** 2026-09-21, was: spec (proposed 2026-09-16, agreed 2026-09-17) (screen 5) |
 
 ### 4.9. Stepping away (chat spec §8.2 "stepped away", screen 20)
 

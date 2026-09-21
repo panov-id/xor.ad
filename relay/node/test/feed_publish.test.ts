@@ -1011,7 +1011,12 @@ Deno.test("a page boundary inside one millisecond does not swallow a phrase", as
 
   // Thirty-one rows so the first page ends exactly between row 30 and row 31,
   // and the two that straddle the boundary share a millisecond.
-  const base = "2026-09-21T09:00:00";
+  // Tomorrow, worked out when the case runs. The first version wrote the date
+  // it was written on, 2026-09-21T09:00, and four hours of life made that the
+  // past by the afternoon: every row had expired, the page came back empty,
+  // and the case failed on its page-size check rather than on what it guards.
+  const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
+  const base = `${tomorrow}T09:00:00`;
   const stamps: string[] = [];
   for (let i = 0; i < 29; i++) stamps.push(`${base}.9${String(800 - i).padStart(5, "0")}Z`);
   stamps.push(`${base}.500900Z`); // row 30 — last on page one

@@ -28,6 +28,7 @@ import { query, transaction } from "../lib/db.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, TRANSFER_CLAIM_LIMITS } from "../lib/rate_limit.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { checkPin } from "../lib/pin_attempts.ts";
 import { base64urlToBytes, bytesToBase64url, importSignPublicKey, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { TRANSFER } from "../lib/recovery_misses.ts";
@@ -86,20 +87,19 @@ async function createInvite(req: Request): Promise<Response> {
   const presented = await sha256hex(auth);
 
   const answer = await transaction<Response>(async (run) => {
-    // The PIN, against this device's own row. Not the share: nothing is handed
-    // out here, so there is nothing to seal or open — only the proof to check.
-    const [vault] = await run<{ auth_hash: string; locked_at: Date | null }>(
-      `SELECT auth_hash, locked_at FROM vault_shares WHERE session = $1 FOR UPDATE`,
-      [caller.sessionId],
-    );
-    if (!vault) return refuse("not_found", "this session has no share", 404);
-    if (vault.locked_at) {
-      return refuse("pin_locked", "entry is closed until the paper code", 409, { attempts_left: 0 });
-    }
-    if (vault.auth_hash !== presented) {
-      inc("relay_transfer_total", { result: "wrong_pin" });
-      return refuse("unauthorized", "that PIN does not match", 409);
-    }
+    // The PIN, against this device's own row, through the same counter as
+    // POST /vault/share. Not the share: nothing is handed out here, so there
+    // is nothing to seal or open — only the proof to check.
+    //
+    // This route used to check the proof by hand: `auth_hash, locked_at`, a
+    // `!==`, and a metric. No attempt spent, no delay honoured, no freeze on
+    // the tenth, and no per-address limit either — so a stolen signing key
+    // bought an unlimited, untimed, unrecorded PIN search, against the one
+    // action the proof exists to protect. Found by the security lens of the
+    // review panel, 2026-09-21.
+    const vault = await checkPin(run, caller.sessionId, presented, (result) =>
+      inc("relay_transfer_total", { result }));
+    if (vault instanceof Response) return vault;
 
     // One invitation in flight per identity, held by the index rather than by
     // this code. A second one would mean two devices racing for the single live

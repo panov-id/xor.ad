@@ -350,3 +350,35 @@ Deno.test("a second window closes the first, rather than racing it", async () =>
 addEventListener("unload", () => {
   database.closePool();
 });
+
+Deno.test("guessing the PIN at the transfer window costs what guessing costs", async () => {
+  // The window asks for a proof of the PIN because a stolen signing key must
+  // not be enough to hand the identity away. Until 2026-09-21 it checked that
+  // proof by hand — one comparison, one metric — while the counter, the
+  // delays and the freeze on the tenth all lived in POST /vault/share alone.
+  // So the most irreversible of the three actions was the one place where a
+  // PIN could be searched without limit. Found by the security lens of the
+  // review panel.
+  const old = await device_with_identity();
+  const wrongPin = () => ({ auth: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))) });
+
+  // Five misses: the counter goes down, and it is the node saying so.
+  const seen: number[] = [];
+  for (let i = 0; i < 5; i++) {
+    const miss = await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite", {
+      lookup_id: lookup(),
+      ...wrongPin(),
+    });
+    assertEquals(miss.status, 409, JSON.stringify(miss.body));
+    seen.push((miss.body as { error: { attempts_left?: number } }).error.attempts_left ?? -1);
+  }
+  assertEquals(seen, [9, 8, 7, 6, 5], "the transfer window is not spending attempts");
+
+  // And the sixth waits, by §8.2's own numbers, instead of answering at once.
+  const early = await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite", {
+    lookup_id: lookup(),
+    ...wrongPin(),
+  });
+  assertEquals(early.status, 429, JSON.stringify(early.body));
+  assert(early.headers.get("retry-after"), "the delay was not given as a header");
+});

@@ -986,3 +986,58 @@ Deno.test("reading the feed is counted per identity, so a fan-out costs somethin
   assertEquals(other.status, 200, "one identity's reading closed the feed for another");
   reset();
 });
+
+Deno.test("a page boundary inside one millisecond does not swallow a phrase", async () => {
+  // The cursor is a pair, (visible_at, id), precisely so that a boundary
+  // landing between two phrases published at the same instant keeps both. Its
+  // first half was built from Date.getTime() — milliseconds — while the column
+  // holds microseconds, so the pair guarded against a collision it could no
+  // longer see: a cursor of …500123 went out as …500, and page two dropped
+  // everything between …500000 and …500123 without a trace. Measured in a
+  // container by the review panel's refuter, 2026-09-21; this is the same
+  // measurement, against the route.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+  const writer = await author();
+
+  // Thirty-one rows so the first page ends exactly between row 30 and row 31,
+  // and the two that straddle the boundary share a millisecond.
+  const base = "2026-09-21T09:00:00";
+  const stamps: string[] = [];
+  for (let i = 0; i < 29; i++) stamps.push(`${base}.9${String(800 - i).padStart(5, "0")}Z`);
+  stamps.push(`${base}.500900Z`); // row 30 — last on page one
+  stamps.push(`${base}.500123Z`); // row 31 — same millisecond, smaller microsecond
+  const ids: string[] = [];
+  for (const at of stamps) {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, $3, 'alone', 'und', 41.9, 12.5, 1000, 41.9, 12.5,
+               $4::timestamptz, $4::timestamptz + interval '4 hours')`,
+      [id, writer.identity_id, `фраза ${ids.length}`, at],
+    );
+    ids.push(id);
+  }
+  const straddling = ids[ids.length - 1];
+
+  const first = await signedCall(me.pair.privateKey, me.session_id, "GET", feedUrl());
+  const page = first.body as { items: Array<{ id: string }>; next: string | null };
+  assertEquals(page.items.length, 30, "the page size changed; this case assumes thirty");
+  assert(page.next, "a full page came back without a cursor");
+
+  const second = await signedCall(
+    me.pair.privateKey,
+    me.session_id,
+    "GET",
+    feedUrl({ after: page.next! }),
+  );
+  const rest = (second.body as { items: Array<{ id: string }> }).items;
+  assert(
+    rest.find((item) => item.id === straddling),
+    "the phrase sharing a millisecond with the page boundary was never delivered on either page",
+  );
+  reset();
+});

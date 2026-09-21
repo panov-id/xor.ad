@@ -185,6 +185,7 @@ interface FeedRow {
   discount_value: string | null;
   conditions: string | null;
   visible_at: Date;
+  visible_at_cursor: string;
   author_age: number;
 }
 
@@ -240,15 +241,33 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   // The cursor is `(visible_at, id)` — a pair, because two phrases published in
   // the same millisecond would otherwise make a page boundary that drops one of
   // them (2026-09-16, DATA-5).
+  //
+  // The pair only works if its first half survives the round trip, and until
+  // 2026-09-21 it did not: the cursor was built from `Date.getTime()`,
+  // milliseconds, while `timestamptz` holds microseconds. A phrase published at
+  // …500123 came back as …500, and the next page's `(visible_at, id) < (…)`
+  // then threw away every row between …500000 and …500123 — rows that had not
+  // been shown, on a descending order, silently. The pair was doing its job and
+  // its first half was lying. Measured in a container by the review panel's
+  // refuter: three rows in one millisecond, page one showed the newest, page
+  // two showed the oldest, the middle one existed on neither page.
+  //
+  // So the cursor carries the timestamp as the database prints it, to the
+  // microsecond, and goes back in as a `timestamptz` rather than through a
+  // JavaScript `Date` — which cannot hold microseconds at all and would undo
+  // this in one line.
   const after = url.searchParams.get("after");
   let cursorAt: string | null = null;
   let cursorId: string | null = null;
   if (after) {
-    const [at, id] = after.split("_");
-    if (!at || !id || !/^[0-9]+$/.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
+    const cut = after.lastIndexOf("_");
+    const at = cut < 0 ? "" : after.slice(0, cut);
+    const id = cut < 0 ? "" : after.slice(cut + 1);
+    const stamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+    if (!stamp.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
       return refuse("invalid_body", "after is not a cursor from this feed", 400);
     }
-    cursorAt = new Date(Number(at)).toISOString();
+    cursorAt = at;
     cursorId = id;
   }
 
@@ -290,6 +309,8 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     const found = await query<FeedRow>(
       `SELECT f.id, f.text, f.mode, f.lang, f.lat_published, f.lon_published,
               f.area_radius, f.like_count,
+              to_char(f.visible_at AT TIME ZONE 'UTC',
+                      'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS visible_at_cursor,
               f.discount_value, f.conditions, f.visible_at, a.age AS author_age
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
@@ -358,7 +379,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   return json({
     items,
     next: rows.length === PAGE_SIZE && last
-      ? `${last.visible_at.getTime()}_${last.id}`
+      ? `${last.visible_at_cursor}_${last.id}`
       : null,
     ...(usedRadius > radius ? { radius_used: usedRadius } : {}),
   }, 200, sunsetHeader());

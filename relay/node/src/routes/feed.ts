@@ -307,8 +307,25 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   const steps = [radius, ...[1000, 3000, 10000, RADIUS_CEILING].filter((r) => r > radius)];
   let rows: FeedRow[] = [];
   let usedRadius = radius;
-  for (const attempt of steps) {
+  for (const [index, attempt] of steps.entries()) {
     const box = boundingBox({ lat, lon }, attempt + 10000);
+    // Two ways of asking the same geometric question, and which one is cheaper
+    // depends entirely on whether anybody is there. Measured 2026-09-21 on a
+    // million phrases (scripts/measure-feed-geo.sh, numbers in the panel
+    // protocol): where phrases are dense the planner ignores the geometry and
+    // walks `feed_cursor`, whose order is this query's order, and fills a page
+    // in 8 ms — a box scan there is nine times worse, because it has to collect
+    // every hit and sort. Where they are sparse that same walk reads the whole
+    // table and finds nothing: 468 ms, repeated for every widening, so about
+    // two seconds to say "nobody here".
+    //
+    // The first attempt is the common one and asks with BETWEEN. The widenings
+    // happen only after an empty answer — that is, only in the sparse case — so
+    // they ask with `<@ box`, which the GiST index of db/029 can serve.
+    const geo = index === 0
+      ? "f.lat_published BETWEEN $1 AND $2 AND f.lon_published BETWEEN $3 AND $4"
+      : "point(f.lon_published, f.lat_published) <@ " +
+        "box(point($3::float8, $1::float8), point($4::float8, $2::float8))";
     const found = await query<FeedRow>(
       `SELECT f.id, f.text, f.mode, f.lang, f.lat_published, f.lon_published,
               f.area_radius, f.like_count,
@@ -318,7 +335,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
         WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
-          AND f.lat_published BETWEEN $1 AND $2 AND f.lon_published BETWEEN $3 AND $4
+          AND ${geo}
           AND ${bandSql}
           AND ($8::text IS NULL OR f.mode = $8)
           -- An undetermined language passes every filter, and it has to

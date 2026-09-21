@@ -137,12 +137,9 @@ psql -t -c "EXPLAIN (ANALYZE, BUFFERS, COSTS OFF) $SPARSE" \
   | sed 's/^[[:space:]]*/  /'
 
 
-echo
-echo "== добавляю GiST по точке и повторяю тем же запросом =="
-psql -q -c "CREATE INDEX feed_live_geo_gist ON feed_messages
-              USING gist (point(lon_published, lat_published))
-              WHERE visible_at IS NOT NULL"
-psql -q -c "ANALYZE feed_messages"
+# The GiST index is the schema's own since db/029 (feed_live_geo_box), so it is
+# already there: what is measured below is what the node runs, not an index
+# this script made up for the occasion.
 
 # The box form is what a GiST index on a point can answer; the BETWEEN pair
 # cannot use it. Same rows, different way of asking.

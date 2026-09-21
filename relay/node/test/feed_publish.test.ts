@@ -1145,3 +1145,28 @@ Deno.test("choosing a language does not empty the feed while no phrase has one",
   );
   reset();
 });
+
+Deno.test("a widening asks through the box index, not through the whole table", async () => {
+  // Measured on a million phrases (scripts/measure-feed-geo.sh, 2026-09-21): a
+  // widening happens only after an empty answer, and in the empty case the
+  // BETWEEN form walks feed_cursor over every row in the table — 468 ms per
+  // attempt, up to five attempts. The box form over db/029's GiST index answers
+  // in 63 ms. This checks the planner actually takes that index for the form
+  // the route now sends; with enable_seqscan off a small test table still
+  // shows which index the query *can* use, which is the property that matters.
+  const rows = await database.transaction(async (run) => {
+    await run(`SET LOCAL enable_seqscan = off`);
+    await run(`SET LOCAL enable_bitmapscan = on`);
+    return await run<{ "QUERY PLAN": string }>(
+      `EXPLAIN SELECT f.id FROM feed_messages f
+        WHERE f.visible_at IS NOT NULL
+          AND point(f.lon_published, f.lat_published) <@
+              box(point(12.4::float8, 41.8::float8), point(12.6::float8, 42.0::float8))`,
+    );
+  });
+  const text = rows.map((r) => r["QUERY PLAN"]).join("\n");
+  assert(
+    text.includes("feed_live_geo_box"),
+    `the widening query does not reach the box index:\n${text}`,
+  );
+});

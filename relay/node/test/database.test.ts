@@ -2104,3 +2104,51 @@ Deno.test({
     await database.queryOrThrow(`DELETE FROM identities WHERE id = ANY($1::uuid[])`, [[identity, other]]);
   },
 });
+
+// The tools run as commands, in their own process, with their own pool — and
+// that pool is built by the same lib/db.ts that caps every statement at fifteen
+// seconds for the node's routes. A year of DSA records or a first migration of
+// every brand may legally wait longer than a web request, so each tool raises
+// the cap itself before its first query (second review panel, 2026-09-21,
+// task 7). Asked of the running command rather than of its source: a lock held
+// past fifteen seconds is exactly what the cap turns into a failure, and the
+// only honest check is to hold one and watch the command wait instead of die.
+async function survivesLongLock(table: string, args: string[]): Promise<{ code: number; stderr: string }> {
+  const release = database.transaction(async (tx) => {
+    await tx(`SET LOCAL statement_timeout = 0`);
+    await tx(`LOCK TABLE ${table} IN ACCESS EXCLUSIVE MODE`);
+    const child = new Deno.Command(Deno.execPath(), {
+      args: ["run", "--allow-env", "--allow-net", "--allow-read", "--allow-write", ...args],
+      stdout: "null",
+      stderr: "piped",
+    }).output();
+    // Longer than the node's cap, so the old tool fails inside this window.
+    await tx(`SELECT pg_sleep(17)`);
+    // Wrapped: returning the bare promise would make the transaction wait for
+    // the command, which waits for this transaction's lock — and the server
+    // ends the pair fifteen idle seconds later.
+    return { child };
+  });
+  const out = await (await release).child;
+  return { code: out.code, stderr: new TextDecoder().decode(out.stderr) };
+}
+
+Deno.test({
+  name: "the DSA pruning command outlasts a lock the node's fifteen seconds would not",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { code, stderr } = await survivesLongLock("dsa_notices", ["tools/prune_dsa_records.ts"]);
+    assertEquals(code, 0, `prune_dsa_records.ts gave up under a 17 s lock:\n${stderr.slice(-400)}`);
+  },
+});
+
+Deno.test({
+  name: "the control-state migration outlasts a lock the node's fifteen seconds would not",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { code, stderr } = await survivesLongLock("brands", ["tools/migrate_control_state.ts", "--apply"]);
+    assertEquals(code, 0, `migrate_control_state.ts gave up under a 17 s lock:\n${stderr.slice(-400)}`);
+  },
+});

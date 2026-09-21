@@ -11,7 +11,7 @@
 // not who sent them. That is enough to answer "is this growing?" and not enough
 // to identify anyone.
 
-import { closePool, query, transaction } from "../src/lib/db.ts";
+import { closePool, queryOrThrow, transaction } from "../src/lib/db.ts";
 
 const YEAR_DAYS = 365;
 
@@ -38,7 +38,10 @@ export async function pruneDsaRecords(
   const cutoff = `now() - interval '${days} days'`;
 
   if (!apply) {
-    const notices = await query<{ count: string }>(
+    // Thrown, not swallowed: query() turns a failure into null, and a null here
+    // printed "would delete: 0" — the one answer that tells the operator it is
+    // safe to go on. Found 2026-09-21 by a lock that outlived the timeout.
+    const notices = await queryOrThrow<{ count: string }>(
       `SELECT count(*)::text AS count FROM dsa_notices WHERE created_at < ${cutoff}`,
     );
     // The same condition the delete below uses, and it has to be: the preview is
@@ -46,14 +49,14 @@ export async function pruneDsaRecords(
     // their own age alone said "0" for exactly the case this tool was fixed to
     // handle — a year-old notice with a young statement — and then --apply
     // removed it.
-    const statements = await query<{ count: string }>(
+    const statements = await queryOrThrow<{ count: string }>(
       `SELECT count(*)::text AS count FROM dsa_statements
         WHERE created_at < ${cutoff}
            OR notice_id IN (SELECT id FROM dsa_notices WHERE created_at < ${cutoff})`,
     );
     return {
-      notices: Number(notices?.[0]?.count ?? 0),
-      statements: Number(statements?.[0]?.count ?? 0),
+      notices: Number(notices[0].count),
+      statements: Number(statements[0].count),
       applied: false,
     };
   }
@@ -129,6 +132,11 @@ export async function pruneDsaRecords(
 }
 
 if (import.meta.main) {
+  // Half an hour, as tools/migrate_db.ts: a year of records may wait on a lock
+  // longer than the fifteen seconds lib/db.ts gives a web request. Set here and
+  // not at the top of the file — lib/scheduled.ts imports this module into the
+  // running node, whose pool must keep its own limit.
+  if (!Deno.env.get("RELAY_DB_TIMEOUT_MS")) Deno.env.set("RELAY_DB_TIMEOUT_MS", "1800000");
   const result = await pruneDsaRecords({ apply: Deno.args.includes("--apply") });
   console.log(
     result.applied

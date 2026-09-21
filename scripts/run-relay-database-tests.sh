@@ -72,7 +72,7 @@ echo "== database suite"
 docker run --rm --network "$network" \
   -e DATABASE_URL="$database_url" \
   -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts "$@"
+  deno test --allow-env --allow-net --allow-read --allow-write --allow-run test/database.test.ts "$@"
 
 echo
 echo "== feed publish suite (chat spec §8.3: sending a phrase)"

@@ -9,6 +9,10 @@
 // Idempotent: a row that is already there is left alone, so a re-run after a
 // partial failure finishes the job rather than doubling it.
 
+// Half an hour, as tools/migrate_db.ts: the pool reads this when it is built,
+// after the imports below. A command only — nothing imports this file.
+if (!Deno.env.get("RELAY_DB_TIMEOUT_MS")) Deno.env.set("RELAY_DB_TIMEOUT_MS", "1800000");
+
 import { config } from "../src/config.ts";
 import { get, list, storageEnabled } from "../src/lib/storage.ts";
 import { closePool, enabled as databaseEnabled, queryOrThrow } from "../src/lib/db.ts";

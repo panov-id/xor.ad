@@ -525,7 +525,7 @@ Deno.test("a wrong PIN spends one try and says how many are left", async () => {
   );
   assertEquals(refused.status, 409);
   const error = (refused.body as { error: { code: string; attempts_left: number } }).error;
-  assertEquals(error.code, "unauthorized");
+  assertEquals(error.code, "pin_mismatch");
   assertEquals(error.attempts_left, 9);
   assertEquals((await attemptsLeft(created.session_id)).attempts_left, 9);
 });
@@ -686,7 +686,7 @@ Deno.test("the first PIN needs a grant, spends it, and works only once", async (
     pair.privateKey, created.session_id, "POST", "/vault/init", payload,
   );
   assertEquals(ungranted.status, 409);
-  assertEquals((ungranted.body as { error: { code: string } }).error.code, "unauthorized");
+  assertEquals((ungranted.body as { error: { code: string } }).error.code, "no_first_pin_grant");
 
   // What an approved transfer or a recovery leaves behind.
   await database.queryOrThrow(
@@ -758,7 +758,7 @@ Deno.test("a first-PIN grant older than an hour is no longer a grant", async () 
     share: authBase64(newShareBytes()),
   });
   assertEquals(late.status, 409, "an hour-old grant still set a PIN");
-  assertEquals((late.body as { error: { code: string } }).error.code, "unauthorized");
+  assertEquals((late.body as { error: { code: string } }).error.code, "no_first_pin_grant");
 
   // And inside the hour it still works — the term is a term, not a closure.
   await database.queryOrThrow(

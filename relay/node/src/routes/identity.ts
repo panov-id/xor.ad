@@ -686,7 +686,7 @@ interface VaultInitBody {
 // POST /vault/init — the first PIN on a device that did not choose the old one.
 //
 // A transfer or a recovery leaves a one-time grant on the identity, and this
-// route spends it. Without the grant the answer is 409 unauthorized, and that
+// route spends it. Without the grant the answer is 409 no_first_pin_grant, and that
 // refusal is the whole reason the column exists: a signing key alone must never
 // replace a PIN, because the canon's other rule — a PIN change needs the old one
 // — would otherwise be worth nothing to anybody holding a stolen key.
@@ -724,7 +724,7 @@ async function vaultInit(req: Request): Promise<Response> {
       // three mean the same to an honest client, and telling them apart tells
       // a stolen signing key which door it is standing at.
       inc("relay_vault_init_total", { result: "no_grant" });
-      return refuse("unauthorized", "no first-PIN grant on this identity", 409);
+      return refuse("no_first_pin_grant", "no first-PIN grant on this identity", 409);
     }
 
     // The row is the device's, so it is written rather than inserted: the session

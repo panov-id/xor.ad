@@ -224,7 +224,7 @@ Deno.test("without a PIN the window does not open", async () => {
     auth: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))),
   });
   assertEquals(wrong.status, 409);
-  assertEquals((wrong.body as { error: { code: string } }).error.code, "unauthorized");
+  assertEquals((wrong.body as { error: { code: string } }).error.code, "pin_mismatch");
 });
 
 Deno.test("a second claim cancels the transfer, and both sides are told", async () => {

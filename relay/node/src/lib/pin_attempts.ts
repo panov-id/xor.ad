@@ -108,7 +108,11 @@ export async function checkPin(
     }
     meter(left === 0 ? "locked" : "wrong_pin");
     return refuse(
-      left === 0 ? "pin_locked" : "unauthorized",
+      // Its own code, not `unauthorized`: that one belongs to 401 and a bad
+      // signature (openapi.yaml), and a client that reads the code to decide
+      // between "sign again" and "ask for the PIN again" was told the wrong
+      // one. Second review panel, 2026-09-21, task 8.
+      left === 0 ? "pin_locked" : "pin_mismatch",
       left === 0 ? "entry is closed until the paper code" : "that PIN does not match",
       409,
       { attempts_left: Math.max(left, 0) },

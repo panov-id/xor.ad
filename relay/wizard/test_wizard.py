@@ -500,8 +500,17 @@ check("the fallback names the working key, not itself",
 
 # And run the selection for real, both ways, with the rest of the script cut off:
 # a shell reading is not a check.
-selection = backup.split("stamp=")[0].replace("cd /opt/relay/compose", "")
-selection = selection.replace("set -a; . ./backup.env; set +a", "")
+# Both cuts are made by pattern and then verified, because the literal ones
+# rotted silently: the `cd` was rewritten to honour RELAY_COMPOSE_DIR
+# (6f17359), the literal replace stopped matching, and the fragment kept a
+# `cd` into a directory no runner has. Four cases went red on CI reporting
+# "No such file or directory" — a failure of the cut, not of the zone
+# selection they exist to check. A cut that can miss must say so.
+selection = backup.split("stamp=")[0]
+for pattern in (r'^cd .*$', r'^set -a; \. \./backup\.env; set \+a$'):
+    selection, cuts = re.subn(pattern, "", selection, flags=re.M)
+    check(f"the fragment really loses {pattern}", cuts == 1,
+          f"cut {cuts} lines, expected exactly 1 — backup-postgres.sh changed shape")
 for label, env, expect_zone in [
     ("its own zone", {"BACKUP_STORAGE_ZONE": "relay-backups", "BACKUP_STORAGE_KEY": "k2",
                       "BUNNY_STORAGE_ZONE": "relay-live", "BUNNY_STORAGE_KEY": "k1"}, "relay-backups"),

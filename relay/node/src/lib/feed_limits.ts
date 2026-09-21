@@ -60,14 +60,30 @@ export async function refusalFor(
   identityId: string,
   now: Date = new Date(),
 ): Promise<Refusal | null> {
+  // The row is created if it is not there, and that is not a convenience: the
+  // counters row is written by registration (routes/identity.ts) and by
+  // nothing else, so an identity that predates db/025 — or arrives by any
+  // future path whose author forgets the fourth INSERT — has none. Refusing
+  // such an identity for ever, which is what the code below used to do, is a
+  // silent permanent ban delivered as "four live phrases already". And
+  // `SELECT … FOR UPDATE` over a row that does not exist takes no lock at all,
+  // so the whole of §8.3's protection against two parallel sends rested on the
+  // row being there. Found by the data lens of the review panel, 2026-09-21;
+  // the refuter confirmed no contour has such identities today, which makes
+  // this a mine rather than a fire — and the time to defuse one is before it
+  // is stepped on.
+  await run(
+    `INSERT INTO identity_stats (identity) VALUES ($1) ON CONFLICT DO NOTHING`,
+    [identityId],
+  );
   const [stats] = await run<StatsRow>(
     `SELECT rejected_at_recent, published_at_recent FROM identity_stats
       WHERE identity = $1 FOR UPDATE`,
     [identityId],
   );
-  // No row is not "no limits": it is an identity whose registration did not
-  // finish the way §8.3 requires, and the safe answer is to refuse rather than
-  // to let the ceiling be uncountable.
+  // Still nothing: the insert above cannot fail quietly, so this means the
+  // database answered something unexpected. Refuse rather than let the ceiling
+  // be uncountable.
   if (!stats) return { kind: "live", live: LIVE_MAX };
 
   const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);

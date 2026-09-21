@@ -1547,3 +1547,96 @@ Deno.test("a like that made a match cannot be taken back: spent", async () => {
   assertEquals(await likeCount(theirs), 1, "the like under a match was removed");
   reset();
 });
+
+Deno.test("a block hides each one's phrases from the other, in the feed and in its density", async () => {
+  // §8.9: "phrases are shown to neither of them". Until 030 there was no
+  // blocks table to read; the likes review panel (2026-09-21, security lens)
+  // found the feed still showing them — and a like_count that did not move
+  // after a like was then how the blocked person could tell.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const here = { lat: 64.14, lon: -21.94 };
+  const { quantise } = await import("../src/lib/feed_geo.ts");
+  const at = quantise(here, 1000);
+  const put = async (who: string, text: string) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, $3, 'alone', 'und', $4, $5, 1000, $6, $7, now(), now() + interval '3 hours')`,
+      [id, who, text, here.lat, here.lon, at.lat, at.lon],
+    );
+    return id;
+  };
+  const fromA = await put(a.identity_id, "фраза А");
+  const fromB = await put(b.identity_id, "фраза Б");
+  const sees = async (who: typeof a, id: string) => {
+    const got = await signedCall(who.pair.privateKey, who.session_id, "GET", feedUrl(here));
+    assertEquals(got.status, 200, JSON.stringify(got.body));
+    return (got.body as { items: Array<{ id: string }> }).items.some((i) => i.id === id);
+  };
+  const density = async (who: typeof a) => {
+    const got = await signedCall(who.pair.privateKey, who.session_id, "GET",
+      `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`);
+    return (got.body as { step: string }).step;
+  };
+  assert(await sees(a, fromB), "before the block A did not see B at all — the case proves nothing");
+  assert(await sees(b, fromA), "before the block B did not see A at all — the case proves nothing");
+
+  await database.queryOrThrow(
+    `INSERT INTO blocks (blocker_identity, blocked_identity) VALUES ($1, $2)`, [b.identity_id, a.identity_id],
+  );
+  assert(!(await sees(a, fromB)), "the blocked one still sees the blocker's phrase");
+  assert(!(await sees(b, fromA)), "the blocker still sees the blocked one's phrase");
+
+  // Density counts one's own phrase too, so A's goes before the count: what is
+  // left at the spot is B's alone, which A must no longer be told about.
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [fromA]);
+  assertEquals(await density(a), "none", "density still counts a blocked author's phrase");
+  await database.queryOrThrow(`DELETE FROM blocks WHERE blocker_identity = $1`, [b.identity_id]);
+  assert((await density(a)) !== "none", "without the block B's phrase does not count — the case proves nothing");
+  reset();
+});
+
+Deno.test("an expired match nobody swept does not hold a like for ever", async () => {
+  // Likes review panel, 2026-09-21 (data and security lenses): spent counted
+  // any match row of the pair, and nothing sweeps matches yet.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  await seedPhrase(a.identity_id, "кто на набережную?");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  await like(a, theirs);
+  const { sha256hex } = await import("../src/lib/identity_auth.ts");
+  const [lo, hi] = [a.identity_id, b.identity_id].sort();
+  const pk = await sha256hex(new TextEncoder().encode(`${lo}:${hi}`));
+  await database.queryOrThrow(
+    `INSERT INTO matches (id, pair_key, expires_at) VALUES ($1, $2, now() - interval '1 hour')`,
+    [crypto.randomUUID(), pk],
+  );
+  const back = await unlike(a, theirs);
+  assertEquals(back.body, { state: "unliked" }, "an expired match still held the like");
+  assertEquals(await likeCount(theirs), 0);
+  reset();
+});
+
+Deno.test("a like on an offer cannot be taken back", async () => {
+  // §8.4 and screens 5 and 25: a like on an offer makes its match at once and
+  // is not taken back. The one-sided match is not built yet, so without this
+  // the like went back as if it were a phrase's.
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const offer = await seedPhrase(b.identity_id, "отдам две табуретки");
+  await database.queryOrThrow(`UPDATE feed_messages SET discount_value = '100%' WHERE id = $1`, [offer]);
+  assertEquals(stateOf(await like(a, offer)), "liked");
+  const back = await unlike(a, offer);
+  assertEquals(back.body, { state: "spent" }, "a like on an offer was taken back");
+  assertEquals(await likeCount(offer), 1);
+  reset();
+});

@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS matches (
 CREATE TABLE IF NOT EXISTS match_participants (
   match_id             uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
   identity             uuid NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  -- No foreign key on purpose: the row keeps the snapshot below after the
+  -- phrase is gone, which is what a match is shown by. Nothing sweeps expired
+  -- matches yet; that sweep, when written, takes both (review panel, 2026-09-21).
   message_id           uuid NOT NULL,
   text_snapshot        text NOT NULL,  -- the phrase as it was at the match
   mode                 text NOT NULL CHECK (mode IN ('alone', 'company', 'party')),

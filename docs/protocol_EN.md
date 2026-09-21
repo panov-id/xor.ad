@@ -165,8 +165,8 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own | **spec** (agreed 2026-09-17) (§8.4) |
-| `DELETE /feed/:id/like` | takes a like back until a match has come of it; otherwise `{state: 'spent'}` — **spec** (proposed 2026-09-15, agreed 2026-09-17) (§8.4) | **spec** (agreed 2026-09-17) (§8.4) |
+| `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own; answers `liked` or `matched`; with no live phrase of your own (not an offer) — 409 `refused` (2026-09-21) | **spec** (agreed 2026-09-17) (§8.4) |
+| `DELETE /feed/:id/like` | takes a like back until a live match has come of it: `{state: 'unliked'}`, also when there was nothing to take; otherwise, and on an offer, `{state: 'spent'}` (2026-09-21) | **spec** (agreed 2026-09-17) (§8.4) |
 | `GET /likes` | everything this identity liked that is still alive: cards of the same shape as `GET /feed` — phrases and private authors' offers with `state` (`liked` \| `matched`) and tables — by the `?after` cursor and `{items, next}` (§6); screen 25 "My likes" | **spec** (proposed and agreed 2026-09-17) (§8.4, mechanics §11) |
 | `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **spec** (agreed 2026-09-17) (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |

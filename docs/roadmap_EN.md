@@ -22,7 +22,7 @@ more. The legal section keeps its number (§2): both storefronts'
 | Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-21: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
 | Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
 | Legal and DSA | ~60% | Bunny transfer outside the EEA and the LAW-7 sweeper are open — §2 |
-| Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3–4 without tables |
+| Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — tables without routes |
 | Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
 | `depth` client (terminal, goes first) | 0% | no code in any repository |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |

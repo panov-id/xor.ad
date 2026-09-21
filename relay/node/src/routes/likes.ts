@@ -223,10 +223,17 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
   const me = caller.identityId;
 
   const answer = await transaction<Response>(async (run) => {
-    const [phrase] = await run<{ author: string }>(
-      `SELECT author_identity AS author FROM feed_messages WHERE id = $1`, [target],
+    const [phrase] = await run<{ author: string; offer: boolean }>(
+      `SELECT author_identity AS author, discount_value IS NOT NULL AS offer
+         FROM feed_messages WHERE id = $1`, [target],
     );
     if (!phrase) return unliked();
+    // §8.4 and screens 5 and 25: a like on an offer makes its match at once
+    // and is not taken back. The one-sided match is not built yet; the rule is.
+    if (phrase.offer) {
+      inc("relay_unlike_total", { result: "spent" });
+      return json({ state: "spent" }, 200, sunsetHeader());
+    }
     const pk = await pairKey(me, phrase.author);
     await run(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pk]);
     await run(
@@ -234,7 +241,10 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
       [[me, phrase.author]],
     );
     const [matched] = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM matches WHERE pair_key = $1`, [pk],
+      // Live matches only: nothing sweeps matches yet, and an expired row left
+      // behind held every later like of the pair for ever (review panel,
+      // 2026-09-21) — while the like route already treats it as gone (DATA-5).
+      `SELECT count(*)::int AS n FROM matches WHERE pair_key = $1 AND expires_at > now()`, [pk],
     );
     if (matched.n > 0) {
       inc("relay_unlike_total", { result: "spent" });

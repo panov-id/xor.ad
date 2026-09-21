@@ -1769,6 +1769,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
         "409": {description: "Re-acceptance required (no error.code), stepped_away, or refused — no live phrase of one's own and the target is not an offer (§8.4; the code added 2026-09-21). A like the rules forbid otherwise — one's own phrase, a block, another band, a phrase that is gone — answers 200 liked, never a refusal: a different answer would be an oracle.", x-description-ru: "Нужно принять заново (без error.code), stepped_away либо refused — своей живой фразы нет, а цель не оффер (§8.4; код заведён 21.09.2026). Остальные запреты — своя фраза, блокировка, другая полоса, исчезнувшая фраза — отвечают 200 liked, а не отказом: иной ответ был бы оракулом.", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
     delete:
@@ -1788,6 +1789,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: "state unliked — taken back, or nothing was there to take; state spent once the pair has a match, and nothing moves.", x-description-ru: "state unliked — снят либо снимать было нечего; state spent, если у пары уже есть мэтч, и ничего не меняется.", content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
   /matches/{id}/consent:
     post:

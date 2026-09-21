@@ -349,6 +349,12 @@ async function deliver(req: Request, url: URL): Promise<Response> {
           -- identities.languages, so this is a mine defused before the first
           -- PATCH of a profile arms it. Review panel, 2026-09-21.
           AND ($9::text[] = '{}' OR f.lang = 'und' OR f.lang = ANY($9))
+          -- §8.9: a block hides each one's phrases from the other. Missing until
+          -- 030 made the table; the likes review panel (2026-09-21) found it by
+          -- the like_count that a blocked like left unmoved.
+          AND NOT EXISTS (SELECT 1 FROM blocks b
+                           WHERE (b.blocker_identity = $15::uuid AND b.blocked_identity = f.author_identity)
+                              OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $15::uuid))
           AND ($10::bigint IS NULL OR (f.visible_at, f.id) <
                 (timestamptz 'epoch' + $10::bigint * interval '1 microsecond', $11::uuid))
           -- The circles intersect: the distance between the centres is no more
@@ -372,6 +378,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
         mode, me.languages ?? [],
         cursorAt, cursorId,
         lat, lon, attempt,
+        caller.identityId,
       ],
     ) ?? [];
     usedRadius = attempt;
@@ -541,6 +548,12 @@ async function density(req: Request, url: URL): Promise<Response> {
         -- handle would say "nobody here" to everyone who chose one (db note
         -- above, review panel 2026-09-21).
         AND ($8::text[] = '{}' OR f.lang = 'und' OR f.lang = ANY($8))
+        -- §8.9: a block hides each one's phrases from the other. Missing until
+        -- 030 made the table; the likes review panel (2026-09-21) found it by
+        -- the like_count that a blocked like left unmoved.
+        AND NOT EXISTS (SELECT 1 FROM blocks b
+                       WHERE (b.blocker_identity = $12::uuid AND b.blocked_identity = f.author_identity)
+                        OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $12::uuid))
         -- The published centre here too: the handle answers a coarser question
         -- than the feed, but its none/few boundary is still a yes-or-no about
         -- one circle, and a yes-or-no about the exact centre is the same
@@ -556,6 +569,7 @@ async function density(req: Request, url: URL): Promise<Response> {
       me.age, mine.low, mine.high,
       me.languages ?? [],
       lat, lon, radius,
+      caller.identityId,
     ],
   );
   if (counted === null) return refuse("unavailable", "the node cannot answer right now", 503);

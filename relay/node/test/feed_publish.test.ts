@@ -1980,3 +1980,44 @@ Deno.test({
     assertEquals(kept.chat_id, chat, "the pair's match row was taken over and lost its chat");
   },
 });
+
+// ── The end of a conversation (§8.10) ─────────────────────────────────────────
+const goneOf = async (chat: string) =>
+  (await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM chat_participants WHERE chat_id = $1 AND gone_at IS NOT NULL`, [chat]))[0].n;
+
+Deno.test({
+  name: "closing a conversation by hand ends it for both and empties its queue",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    const closed = await matchCall(b, "DELETE", `/chats/${chat}`);
+    assertEquals(closed.status, 200, JSON.stringify(closed.body));
+    assertEquals(await goneOf(chat), 2, "the conversation is not over for both");
+    assertEquals(await queued(chat, b.session_id), [], "a closed conversation kept its queue");
+    const late = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    assertEquals(late.status, 404, "a closed conversation took a message");
+    assertEquals((await matchCall(a, "DELETE", `/chats/${chat}`)).status, 404, "closing twice answered differently from a chat that is not there");
+  },
+});
+
+Deno.test({
+  name: "one's own term ends the conversation for oneself, and the sweep removes what is over for both",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
+    const { a, b, chat } = await openChat();
+    // A's term: created_at + 60 minutes (never wrote). Put the chat 61 minutes back.
+    await database.queryOrThrow(`UPDATE chats SET created_at = now() - interval '61 minutes' WHERE id = $1`, [chat]);
+    const late = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    assertEquals(late.status, 404, "a message was taken after the sender's own term");
+    assertEquals(await goneOf(chat), 1, "the sender's end was not written");
+    await sweepChats();
+    const left = await database.queryOrThrow(`SELECT 1 FROM chats WHERE id = $1`, [chat]);
+    assertEquals(left.length, 0, "a conversation over for both outlived the sweep");
+    void b;
+  },
+});

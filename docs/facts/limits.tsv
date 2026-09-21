@@ -51,7 +51,7 @@ moderation.false.block.budget	7	процентов	бюджет ложных б�
 report.threshold.share	5	процентов	порог жалоб от возможной аудитории	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 report.threshold.floor	3	человека	нижняя граница порога жалоб	конфиг	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 table.idle.span	60	минут	срок молчания стола, общий на всех	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	table.sweeper
-chat.idle.ttl	10 30 60 260	минут	ручка срока беседы, своя у каждого	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	chat.janitor.missing
+chat.idle.ttl	10 30 60 260	минут	ручка срока беседы, своя у каждого	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	sweep_chats
 name.length	24	графем	длина имени: 24 графемы и не длиннее 400 байт — вторая граница не формальность, 24 составных эмодзи это 600 байт (замер 21.09.2026)	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/02-name-screen_RU.md,sosed.place/docs/02-name-screen_EN.md,neighbro.place/docs/02-name-screen_RU.md,neighbro.place/docs/02-name-screen_EN.md	
 invite.lifetime	120	секунд	жизнь приглашения	узел	xor.ad/docs/test-map_RU.md,xor.ad/docs/test-map_EN.md	запрос
 stickers.catalogue.wire	150	КБ	потолок каталога стикеров на проводе	клиент	sosed.place/docs/16-stickers_RU.md,sosed.place/docs/16-stickers_EN.md,neighbro.place/docs/16-stickers_RU.md,neighbro.place/docs/16-stickers_EN.md	
@@ -114,7 +114,7 @@ ticket.lifetime	30	секунд	жизнь одноразового билета
 nonce.bytes	16	байт	длина nonce у одноразовых действий (протокол §2, 16.09.2026, SEC-3)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 backup.age.alert	26	часов	порог возраста последнего дампа у сторожа С7, переменная узла BACKUP_AGE_ALERT_HOURS (16.09.2026, OPS-14)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	backup.silent.failure
 chat.messages.minute	60	в минуту	сообщений в беседе в минуту на личность (16.09.2026, SEC-18)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
-nonce.ttl	10	минут	жизнь пары (сессия, nonce) в таблице nonces (16.09.2026, OPS-1)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	chat.janitor.missing
+nonce.ttl	10	минут	жизнь пары (сессия, nonce) в таблице nonces (16.09.2026, OPS-1)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	prune_nonces
 table.name.length	24	графем	имя стола, необязательное, через очередь модерации (решение владельца 17.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
 console.lines.max	200	строк	потолок консоли «Что происходило» на устройстве, старые вытесняются (21-console)	клиент	sosed.place/docs/21-console_RU.md,sosed.place/docs/21-console_EN.md,neighbro.place/docs/21-console_RU.md,neighbro.place/docs/21-console_EN.md	
 likes.soon.threshold	65	минут	остаток чужой фразы, с которого в «Моих лайках» стоит «скоро исчезнет» вместо числа (25-my-likes)	клиент	sosed.place/docs/25-my-likes_RU.md,sosed.place/docs/25-my-likes_EN.md,neighbro.place/docs/25-my-likes_RU.md,neighbro.place/docs/25-my-likes_EN.md	

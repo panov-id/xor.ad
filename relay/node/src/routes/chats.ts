@@ -20,6 +20,7 @@ import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../
 import { checkAll, CHAT_MESSAGE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { TERM_PASSED } from "../lib/chat_sweeper.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // limits.tsv chat.ciphertext.bytes: the base64url text, not the bytes under it —
@@ -43,6 +44,21 @@ async function send(req: Request, chatId: string): Promise<Response> {
   const me = caller.identityId;
 
   const answer = await transaction<Response>(async (run) => {
+    // One's own term first (§8.10): past it, the sender's end is written here
+    // rather than left to the sweep's next minute, and the answer is the 404 of
+    // a chat that is not there.
+    const ended = await run<{ chat_id: string }>(
+      `UPDATE chat_participants p SET gone_at = now() FROM chats c
+        WHERE c.id = p.chat_id AND p.chat_id = $1 AND p.identity = $2
+          AND p.gone_at IS NULL AND ${TERM_PASSED}
+        RETURNING p.chat_id`,
+      [chatId, me],
+    );
+    if (ended.length > 0) {
+      await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+      await run(`SELECT pg_notify('chat_closed', $1)`, [chatId]);
+      return refuse("not_found", "no such chat", 404);
+    }
     const [member] = await run<{ n: number }>(
       // A member whose chat no block stands between (§8.9: a block closes the
       // shared chat to both; step 5 panel, 2026-09-21).
@@ -171,6 +187,33 @@ async function ticket(req: Request, chatId: string): Promise<Response> {
   return issued;
 }
 
+// DELETE /chats/:id — closed by hand, for both at once (§5, screen 8). Over for
+// both, its queue gone, its rooms told to close 4003. A chat that is not the
+// caller's, or already over, answers the same 404.
+async function close(req: Request, chatId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
+  const answer = await transaction<Response>(async (run) => {
+    const [member] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM chat_participants
+        WHERE chat_id = $1 AND identity = $2 AND gone_at IS NULL`,
+      [chatId, caller.identityId],
+    );
+    if (member.n === 0) return refuse("not_found", "no such chat", 404);
+    await run(`UPDATE chat_participants SET gone_at = now() WHERE chat_id = $1 AND gone_at IS NULL`, [chatId]);
+    await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+    await run(`SELECT pg_notify('chat_closed', $1)`, [chatId]);
+    inc("relay_chat_ended_total", { by: "hand" });
+    return json({ state: "closed" }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "chat close failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return answer;
+}
+
+route("DELETE", "/chats/:id", (c) => close(c.req, c.params.id));
 route("POST", "/chats/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/chats/:id/messages", (c) => send(c.req, c.params.id));
 route("POST", "/chats/:id/received", (c) => received(c.req, c.params.id));

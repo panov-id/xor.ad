@@ -190,6 +190,11 @@ export class Client {
     return this.#call("POST", `/chats/${chatId}/received`, { ids });
   }
 
+  // DELETE /chats/:id — closed by hand, for both at once (screen 8).
+  closeChat(chatId: string): Promise<Answer<{ state: string }>> {
+    return this.#call("DELETE", `/chats/${chatId}`);
+  }
+
   // POST /chats/:id/ticket — one ticket, one socket, thirty seconds.
   async ticket(chatId: string): Promise<string> {
     const answer = await this.#call<{ ticket: string }>("POST", `/chats/${chatId}/ticket`);

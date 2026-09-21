@@ -13,7 +13,8 @@
 // the recipient's POST /chats/:id/received (§8.8), so a frame lost on a dying
 // socket comes again on the next one.
 //
-// Close codes (protocol §4.4): 4001 a ticket expired, spent or wrong.
+// Close codes (protocol §4.4): 4001 bad ticket; 4002 session frozen; 4003 the
+// conversation is over; 4004 no xor.p1; 1011 the node failed; 1000 replaced.
 
 import { listen, queryOrThrow } from "../lib/db.ts";
 import { sha256hex } from "../lib/identity_auth.ts";
@@ -75,6 +76,16 @@ function ensureListeningFrozen(): Promise<void> {
   return listeningFrozen;
 }
 
+// Protocol §4.4: 4003 — the conversation is over (closed by hand, a term that
+// came, §8.10). `NOTIFY chat_closed` carries the chat id; every room of it goes.
+let listeningClosed: Promise<void> | null = null;
+function ensureListeningClosed(): Promise<void> {
+  listeningClosed ??= listen("chat_closed", (chat) => {
+    for (const room of rooms.get(chat) ?? []) room.socket.close(4003, "the conversation is over");
+  });
+  return listeningClosed;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     const [chat, localId] = payload.split(":");
@@ -128,6 +139,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   }
   await ensureListening();
   await ensureListeningFrozen();
+  await ensureListeningClosed();
   const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();

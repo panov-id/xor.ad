@@ -62,7 +62,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-chat">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chat</code><span class="chip s-built">built</span></div>
 <p><strong>The chat&#x27;s room (WebSocket)</strong></p>
-<p>Sec-WebSocket-Protocol offers `xor.p1, ticket.&lt;t&gt;` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. Not yet: 4003 on a finished chat, 1001 on restart (built 2026-09-21).</p>
+<p>Sec-WebSocket-Protocol offers `xor.p1, ticket.&lt;t&gt;` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. 4003 the conversation is over (closed by hand or a term that came). Not yet: 1001 on restart (built 2026-09-21).</p>
 <h3>Access</h3><p>no access control</p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>101</code></td><td>Switching to the room.</td><td></td></tr><tr><td><code>426</code></td><td>Not a WebSocket upgrade.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/chat/relay.ts</code></p>
@@ -699,11 +699,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-chats--id">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-built">built</span></div>
 <p><strong>Close a conversation by hand, for both</strong></p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="get-chats--id--game">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>

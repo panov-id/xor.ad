@@ -837,8 +837,8 @@ paths:
       x-status: built
       x-source: relay/node/src/chat/relay.ts
       security: []
-      description: "Sec-WebSocket-Protocol offers `xor.p1, ticket.<t>` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. Not yet: 4003 on a finished chat, 1001 on restart (built 2026-09-21)."
-      x-description-ru: "Sec-WebSocket-Protocol предлагает `xor.p1, ticket.<t>` с билетом из POST /chats/{id}/ticket; узел отвечает xor.p1. Кадры идут только от узла к клиенту, в виде {type, seq, data}; тип message несёт {id, ciphertext, created_at}. Ждущее в очереди приходит при открытии, остальное — по мере записи. Коды закрытия: 4001 билет просрочен, погашен или не тот; 4002 сессия заморожена; 4004 не предложен xor.p1; 1011 ошибка узла; 1000 заменён новым сокетом той же сессии. Ещё нет: 4003 при кончившейся беседе, 1001 при перезапуске (построено 21.09.2026)."
+      description: "Sec-WebSocket-Protocol offers `xor.p1, ticket.<t>` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. 4003 the conversation is over (closed by hand or a term that came). Not yet: 1001 on restart (built 2026-09-21)."
+      x-description-ru: "Sec-WebSocket-Protocol предлагает `xor.p1, ticket.<t>` с билетом из POST /chats/{id}/ticket; узел отвечает xor.p1. Кадры идут только от узла к клиенту, в виде {type, seq, data}; тип message несёт {id, ciphertext, created_at}. Ждущее в очереди приходит при открытии, остальное — по мере записи. Коды закрытия: 4001 билет просрочен, погашен или не тот; 4002 сессия заморожена; 4004 не предложен xor.p1; 1011 ошибка узла; 1000 заменён новым сокетом той же сессии. 4003 беседа кончилась (закрыта руками или вышел срок). Ещё нет: 1001 при перезапуске (построено 21.09.2026)."
       responses:
         "101": {description: Switching to the room., x-description-ru: Переход в комнату.}
         "426": {description: Not a WebSocket upgrade., x-description-ru: Это не апгрейд до WebSocket.}
@@ -1886,7 +1886,8 @@ paths:
       tags: [chat]
       summary: Close a conversation by hand, for both
       x-summary-ru: Закрыть беседу руками, сразу у обоих
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}

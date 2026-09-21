@@ -141,3 +141,24 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "closing the conversation closes the other one's room 4003",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Protocol §4.4: 4003 — the conversation is over; the client does not
+    // reconnect and shows the tombstone.
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await room.protocol();
+      assertEquals((await a.closeChat(chatId)).status, 200);
+      assertEquals(await room.closedWithin(), 4003, "the room outlived its conversation (0 = still open after 5 s)");
+    } finally {
+      await sql.end();
+    }
+  },
+});

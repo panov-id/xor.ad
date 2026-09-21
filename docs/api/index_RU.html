@@ -62,7 +62,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-chat">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chat</code><span class="chip s-built">построено</span></div>
 <p><strong>Комната беседы (WebSocket)</strong></p>
-<p>Sec-WebSocket-Protocol предлагает `xor.p1, ticket.&lt;t&gt;` с билетом из POST /chats/{id}/ticket; узел отвечает xor.p1. Кадры идут только от узла к клиенту, в виде {type, seq, data}; тип message несёт {id, ciphertext, created_at}. Ждущее в очереди приходит при открытии, остальное — по мере записи. Коды закрытия: 4001 билет просрочен, погашен или не тот; 4002 сессия заморожена; 4004 не предложен xor.p1; 1011 ошибка узла; 1000 заменён новым сокетом той же сессии. Ещё нет: 4003 при кончившейся беседе, 1001 при перезапуске (построено 21.09.2026).</p>
+<p>Sec-WebSocket-Protocol предлагает `xor.p1, ticket.&lt;t&gt;` с билетом из POST /chats/{id}/ticket; узел отвечает xor.p1. Кадры идут только от узла к клиенту, в виде {type, seq, data}; тип message несёт {id, ciphertext, created_at}. Ждущее в очереди приходит при открытии, остальное — по мере записи. Коды закрытия: 4001 билет просрочен, погашен или не тот; 4002 сессия заморожена; 4004 не предложен xor.p1; 1011 ошибка узла; 1000 заменён новым сокетом той же сессии. 4003 беседа кончилась (закрыта руками или вышел срок). Ещё нет: 1001 при перезапуске (построено 21.09.2026).</p>
 <h3>Доступ</h3><p>без доступа</p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>101</code></td><td>Переход в комнату.</td><td></td></tr><tr><td><code>426</code></td><td>Это не апгрейд до WebSocket.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/chat/relay.ts</code></p>
@@ -699,11 +699,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="delete-chats--id">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}</code><span class="chip s-built">построено</span></div>
 <p><strong>Закрыть беседу руками, сразу у обоих</strong></p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="get-chats--id--game">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>

@@ -2705,7 +2705,8 @@ paths:
       tags: [chat]
       summary: "Send a ciphertext"
       x-summary-ru: "Отправить шифротекст"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
       description: "Stored in pending_deliveries, last_activity_at moves, handed to the other at once or on connection; could not — {local_id, error} (chat spec §8.8; SEC-8)."
       x-description-ru: "Кладётся в pending_deliveries, двигает last_activity_at, отдаётся второму сразу или при подключении; не смог — {local_id, error} (спека чата §8.8; SEC-8)."
@@ -2718,7 +2719,7 @@ paths:
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "202": {description: Accepted., x-description-ru: Принято., content: {application/json: {schema: {$ref: "#/components/schemas/MessageAck"}}}}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {description: "invalid_body: no uuid local_id, or a ciphertext that is not base64url or is longer than chat.ciphertext.bytes (2048) — added 2026-09-21; or an unsupported protocol version.", x-description-ru: "invalid_body: local_id не uuid либо ciphertext не base64url или длиннее chat.ciphertext.bytes (2048) — добавлено 21.09.2026; либо неподдерживаемая версия протокола.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "404": {$ref: "#/components/responses/ApiError"}
         "409": {description: Re-acceptance required (no error.code) or stepped_away (ApiError)., x-description-ru: Нужно принять заново (без error.code) либо stepped_away (ApiError)., content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -2727,7 +2728,8 @@ paths:
       tags: [chat]
       summary: "Confirm receipt"
       x-summary-ru: "Подтвердить получение"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
       description: "The node deletes what was delivered from pending_deliveries (chat spec §8.8)."
       x-description-ru: "Узел удаляет доставленное из pending_deliveries (спека чата §8.8)."

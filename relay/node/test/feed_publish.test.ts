@@ -35,6 +35,7 @@ await import("../src/routes/feed.ts");
 await import("../src/routes/statements.ts");
 await import("../src/routes/likes.ts");
 await import("../src/routes/matches.ts");
+await import("../src/routes/chats.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -1827,3 +1828,69 @@ Deno.test({
   assertEquals(after.declined_at, null, "consent after not now left the decline standing");
   assert(after.accepted_at, "consent after not now was not written");
 }});
+
+// ── Chat messages through the node (§8.8) ─────────────────────────────────────
+async function openChat() {
+  const { a, b, id } = await freshMatch();
+  await matchCall(a, "POST", `/matches/${id}/consent`);
+  const agreed = await matchCall(b, "POST", `/matches/${id}/consent`);
+  return { a, b, chat: (agreed.body as { chat_id: string }).chat_id };
+}
+const ciphertext = (n = 64) => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(n)));
+async function queued(chat: string, sessionId: string): Promise<string[]> {
+  const rows = await database.queryOrThrow<{ local_id: string }>(
+    `SELECT local_id FROM pending_deliveries WHERE chat = $1 AND recipient_session = $2`, [chat, sessionId]);
+  return rows.map((r) => r.local_id);
+}
+
+Deno.test({
+  name: "a message waits in the other one's queue, once, and the answer does not say who is there",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    const localId = crypto.randomUUID();
+    const sent = await matchCall(a, "POST", `/chats/${chat}/messages`);
+    assertEquals(sent.status, 400, "a message with no body was taken");
+    const body = { local_id: localId, ciphertext: ciphertext() };
+    const ok = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, body);
+    assertEquals(ok.status, 202, JSON.stringify(ok.body));
+    assertEquals(ok.body, { local_id: localId, accepted: true });
+    await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, body);
+    assertEquals(await queued(chat, b.session_id), [localId], "the recipient's queue is not exactly the one message");
+    assertEquals(await queued(chat, a.session_id), [], "the sender queued a message to itself");
+  },
+});
+
+Deno.test({
+  name: "receipt deletes one's own rows and nobody else's",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    const localId = crypto.randomUUID();
+    await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: localId, ciphertext: ciphertext() });
+    const byOther = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/received`, { ids: [localId] });
+    assertEquals(byOther.status, 204);
+    assertEquals(await queued(chat, b.session_id), [localId], "the sender deleted the recipient's row");
+    const byOwner = await signedCall(b.pair.privateKey, b.session_id, "POST", `/chats/${chat}/received`, { ids: [localId] });
+    assertEquals(byOwner.status, 204);
+    assertEquals(await queued(chat, b.session_id), [], "receipt left the row");
+  },
+});
+
+Deno.test({
+  name: "a stranger cannot write into a chat, and an oversized ciphertext is refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, chat } = await openChat();
+    const stranger = await author();
+    const other = await signedCall(stranger.pair.privateKey, stranger.session_id, "POST", `/chats/${chat}/messages`,
+      { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    assertEquals(other.status, 404, "a stranger wrote into someone else's chat");
+    const big = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`,
+      { local_id: crypto.randomUUID(), ciphertext: "A".repeat(2049) });
+    assertEquals(big.status, 400, "a ciphertext over chat.ciphertext.bytes was taken");
+  },
+});

@@ -30,6 +30,7 @@ import "./routes/feed.ts"; // step 2 of the build order: publishing a phrase (§
 import "./routes/statements.ts"; // and Article 17 for an author with no mailbox (§13)
 import "./routes/likes.ts"; // step 3: a like, and the match a mutual one makes (§8.4, §8.5)
 import "./routes/matches.ts"; // step 4: consent to a match, and "not now" (§8.5)
+import "./routes/chats.ts"; // step 5: a chat message through the node, and its receipt (§8.8)
 
 type Handler = (req: Request) => Response | Promise<Response>;
 

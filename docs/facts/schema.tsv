@@ -62,7 +62,7 @@ matches	docs/chat_RU.md:2012	relay/node/db/030_likes_matches_blocks.sql	product
 offers	docs/offers/SPEC_RU.md:310	-	product
 offer_link_reports	docs/offers/SPEC_RU.md:698	-	product
 pageview_daily	-	relay/node/db/001_control_state.sql	control
-pending_deliveries	docs/chat_RU.md:2300	-	product
+pending_deliveries	docs/chat_RU.md:2300	relay/node/db/032_pending_deliveries.sql	product
 quota_counters	-	relay/node/db/001_control_state.sql	control
 schema_migrations	-	relay/node/db/001_control_state.sql	control
 sessions	docs/chat_RU.md:1021	relay/node/db/022_identity_and_sessions.sql	product

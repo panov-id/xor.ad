@@ -189,6 +189,11 @@ export const LIKE_LIMITS: Limit[] = [
   { name: "like", max: 300, windowMs: HOUR },
 ];
 
+// Messages in a chat, per identity (limits.tsv chat.messages.minute, SEC-18).
+export const CHAT_MESSAGE_LIMITS: Limit[] = [
+  { name: "chat-message", max: 60, windowMs: 60_000 },
+];
+
 export const TRANSFER_INVITE_LIMITS: Limit[] = [
   { name: "transfer-invite", max: 10, windowMs: HOUR },
   { name: "transfer-invite-day", max: 30, windowMs: DAY },

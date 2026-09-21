@@ -20,6 +20,7 @@ import { pruneObjects } from "../../tools/prune_objects.ts";
 import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
+import { sweepStaleQueue } from "./feed_verdict.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
 // Everything else the policy promises a window for. Page views keep their own job
@@ -47,6 +48,10 @@ export const PRUNE_MAGIC = "prune_magic_links";
 // the name docs/facts/limits.tsv gives as their enforcer, and until 2026-09-20
 // the name pointed at nothing at all.
 export const SWEEP_IDENTITIES = "sweep_identities";
+// Phrases that waited past `moderation.queue.wait` without a verdict. §8.3:
+// such a row is deleted and does not count as queued — so the author's slot
+// frees and their pause does not grow because the node was slow.
+export const SWEEP_FEED_QUEUE = "sweep_feed_queue";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -125,6 +130,13 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_DAY_MS);
   });
 
+  handle(SWEEP_FEED_QUEUE, async () => {
+    // Every minute, because the deadline it enforces is ten: a pass an hour
+    // would make "ten minutes" mean "up to seventy".
+    await sweepStaleQueue();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
   handle(SWEEP_IDENTITIES, async () => {
     // Hourly, not daily: the shortest of the three deadlines is an hour, and a
     // once-a-night pass would hold abandoned signups for a day at worst — rows
@@ -161,4 +173,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_MAGIC, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
+  await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
 }

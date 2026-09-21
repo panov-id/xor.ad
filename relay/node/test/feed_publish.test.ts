@@ -28,6 +28,7 @@ const { match } = await import("../src/lib/router.ts");
 const database = await import("../src/lib/db.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 const limits = await import("../src/lib/feed_limits.ts");
+const verdict = await import("../src/lib/feed_verdict.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
 
@@ -302,6 +303,156 @@ Deno.test("a radius between the steps is refused, and so is a mode nobody named"
   assertEquals(odd.status, 400, "a radius between the steps was accepted");
   const mode = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ mode: "alone-ish" }));
   assertEquals(mode.status, 400, "an unknown mode was accepted");
+});
+
+
+// --- the verdict ------------------------------------------------------------
+//
+// Two things have to happen together: the row becomes visible or stops
+// existing, and the moment goes into the author's counters. Apart they are a
+// hole — a send arriving between them sees an empty queue and an unwritten
+// moment, and passes "four an hour" (§8.3, review panel 2026-09-14).
+
+Deno.test("a passed phrase becomes visible and gets its term in one write", async () => {
+  const me = await author();
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  const { id } = sent.body as { id: string };
+
+  const applied = await verdict.publishPhrase(id);
+  assertEquals(applied.applied, true);
+  assertEquals(applied.identityId, me.identity_id);
+
+  const [row] = await database.queryOrThrow<{ visible_at: Date | null; expires_at: Date | null }>(
+    `SELECT visible_at, expires_at FROM feed_messages WHERE id = $1`,
+    [id],
+  );
+  assert(row.visible_at, "the phrase did not become visible");
+  assert(row.expires_at, "a published phrase has no term");
+  const span = row.expires_at!.getTime() - row.visible_at!.getTime();
+  // Four hours twenty — `feed.phrase.span`, read from the registry rather than
+  // from memory.
+  assertEquals(span, (4 * 60 + 20) * 60 * 1000, "the term is not four hours and twenty minutes");
+
+  // And the moment, in the same breath.
+  const [stats] = await database.queryOrThrow<
+    { published_at_recent: Date[]; first_published_at: Date | null }
+  >(
+    `SELECT published_at_recent, first_published_at FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(stats.published_at_recent.length, 1, "the publication left no moment");
+  assert(stats.first_published_at, "the first publication left no date");
+});
+
+Deno.test("a refused phrase stops existing, and leaves a moment behind", async () => {
+  const me = await author();
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  const { id } = sent.body as { id: string };
+
+  assertEquals((await verdict.refusePhrase(id)).applied, true);
+
+  const rows = await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id]);
+  assertEquals(rows.length, 0, "a refused phrase was kept as a row with a flag");
+  const [stats] = await database.queryOrThrow<{ rejected_at_recent: Date[] }>(
+    `SELECT rejected_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(stats.rejected_at_recent.length, 1, "the refusal left no moment");
+
+  // The slot frees with the row: the author can send again at once.
+  const again = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "другая" }));
+  assertEquals(again.status, 202, "a refusal did not free the waiting slot");
+});
+
+Deno.test("a verdict that arrives twice decides once", async () => {
+  const me = await author();
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  const { id } = sent.body as { id: string };
+
+  assertEquals((await verdict.publishPhrase(id)).applied, true);
+  const second = await verdict.publishPhrase(id);
+  assertEquals(second.applied, false, "the same phrase was published twice");
+
+  const [stats] = await database.queryOrThrow<{ published_at_recent: Date[] }>(
+    `SELECT published_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(stats.published_at_recent.length, 1, "a repeated verdict wrote a second moment");
+});
+
+Deno.test("the moments are cut to the last few, and the hour drops out of them", async () => {
+  const me = await author();
+  // Nine refusals in a row leave six — the number §8.3 states, checked against
+  // the expression rather than against a memory of it.
+  for (let i = 0; i < 9; i++) {
+    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `раз ${i}` }));
+    assertEquals(sent.status, 202, `send ${i + 1} was refused: ${JSON.stringify(sent.body)}`);
+    await verdict.refusePhrase((sent.body as { id: string }).id);
+    // The pause would stop the next send after the fifth refusal, so the
+    // moments are aged out of the pause's window between rounds — what is
+    // under test here is the trimming, not the pause.
+    await database.queryOrThrow(
+      `UPDATE identity_stats
+          SET rejected_at_recent = ARRAY(
+                SELECT t - interval '20 minutes' FROM unnest(rejected_at_recent) t
+              )
+        WHERE identity = $1`,
+      [me.identity_id],
+    );
+  }
+  const [stats] = await database.queryOrThrow<{ rejected_at_recent: Date[] }>(
+    `SELECT rejected_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assert(
+    stats.rejected_at_recent.length <= 6,
+    `nine refusals left ${stats.rejected_at_recent.length} moments, not six or fewer`,
+  );
+});
+
+Deno.test("a phrase nobody read is dropped, and its author is not charged for it", async () => {
+  // §8.3: a row whose checking wait expired is deleted and does not count as
+  // queued. No moment either way — neither a publication nor a refusal
+  // happened, and the author's pause must not grow because the node was slow.
+  const me = await author();
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  const { id } = sent.body as { id: string };
+  await database.queryOrThrow(
+    `UPDATE feed_messages SET created_at = now() - make_interval(mins => $2) WHERE id = $1`,
+    [id, verdict.QUEUE_WAIT_MINUTES + 1],
+  );
+
+  const swept = await verdict.sweepStaleQueue();
+  assert(swept >= 1, "the stale phrase was not swept");
+
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id])).length,
+    0,
+  );
+  const [stats] = await database.queryOrThrow<
+    { rejected_at_recent: Date[]; published_at_recent: Date[] }
+  >(
+    `SELECT rejected_at_recent, published_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(stats.rejected_at_recent.length, 0, "waiting too long counted as a refusal");
+  assertEquals(stats.published_at_recent.length, 0, "waiting too long counted as a publication");
+
+  // And the slot is free again.
+  const again = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "заново" }));
+  assertEquals(again.status, 202, "the sweep did not free the waiting slot");
+});
+
+Deno.test("a phrase still inside its wait is left alone", async () => {
+  const me = await author();
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  const { id } = sent.body as { id: string };
+  await verdict.sweepStaleQueue();
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id])).length,
+    1,
+    "a phrase that had just arrived was swept",
+  );
 });
 
 addEventListener("unload", () => {

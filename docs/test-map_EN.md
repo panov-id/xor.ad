@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 274 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
+| `relay/node/test` | 277 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **284** | **about chat and feed — 0; about the request signature — 12, about step 1 — 59: routes 33, the transfer 7, the sealing key 5, freezing 3, the sweeper 8 against a live Postgres, the shared brake 3 by the clock; plus 5 about the queue's metrics (2026-09-20, overnight, after the review panel)** |
+| **Total** | **287** | **about chat and feed — 0; about the request signature — 12, about step 1 — 59: routes 33, the transfer 7, the sealing key 5, freezing 3, the sweeper 8 against a live Postgres, the shared brake 3 by the clock; plus 5 about the queue's metrics (2026-09-20, overnight, after the review panel)** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
@@ -68,7 +68,7 @@ through three different wrappers and cannot be counted by eye.
 |---|---|---|---|
 | 2.1 | An unsigned request does not pass | a bare `curl` at a guarded route → refused | **held** — "the profile answers a finished registration and refuses an unsigned request" (`identity_routes.test.ts`) |
 | 2.2 | A signature outside the ±5 minute window is not accepted | client clock moved 6 minutes → refused | nothing to check |
-| 2.3 | The signature covers method, path, sha256 of the body and time | one byte of the body changed under the same signature → refused | **partly** — a stranger's key is refused ("another device's signature does not open this session", `identity_routes.test.ts`); a changed body byte under the same signature is not covered |
+| 2.3 | **The signature covers method, host, path with query, sha256 of the body and time** (2026-09-21: host and query added, G18) | one byte of the body changed under the same signature → refused; the same signature on another host and with another cursor → refused | **held** — "a changed body breaks the signature", "a request signed for one node does not verify on another", "a cursor cannot be moved under a valid signature" (`identity_auth.test.ts`) |
 | 2.4 | A frozen session is accepted **nowhere**, delivery subscription included — except a new support request when frozen by the PIN limit (`frozen_reason = pin_limit`, 2026-09-14, §8.2) | `frozen_at` set → both REST and WS refuse | **partly** — REST: "the tenth miss closes entry and leaves the share intact" (`identity_routes.test.ts`); the WS half has nothing to check, there are no sockets (G14, G15) |
 | 2.5 | ECDSA P-256 works in engines without Ed25519 | `scripts/check-webcrypto-support.sh` across three engines | **have** |
 

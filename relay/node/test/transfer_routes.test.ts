@@ -90,7 +90,17 @@ async function call(method: string, path: string, init: {
 async function signedCall(key: CryptoKey, sessionId: string, method: string, path: string, body?: unknown) {
   const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
   const time = Math.floor(Date.now() / 1000);
-  const payload = auth.signedPayload(method, path, await auth.sha256hex(raw), time);
+  // The same URL `call` will build, because the signature covers the authority
+  // and the query since 2026-09-21 — a client that signs a bare path signs
+  // something the node will not reproduce.
+  const target = new URL(`https://relay.test${path}`);
+  const payload = auth.signedPayload(
+    method,
+    auth.signedAuthority(target),
+    auth.signedPath(target),
+    await auth.sha256hex(raw),
+    time,
+  );
   const signature = new Uint8Array(
     await crypto.subtle.sign(SIGN, key, new TextEncoder().encode(payload)),
   );

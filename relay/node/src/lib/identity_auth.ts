@@ -66,22 +66,75 @@ export async function sha256hex(bytes: Uint8Array): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// The exact four lines that get signed. Kept as one function because both the
+// The exact five lines that get signed. Kept as one function because both the
 // node and the clients have to build the same bytes, and a test that builds them
 // a second way tests the test.
+//
+// **It became five on 2026-09-21, by the owner's decision (open-work G18).** It
+// was four — method, path, body hash, time — and the protocols lens of the
+// review panel named what the two missing ones cost:
+//
+//   *authority*. Nothing in the signature said which node or which face the
+//   request was addressed to, so one signed request was accepted by every node
+//   of the pool where that session lives, and by api.sosed as readily as by
+//   api.neighbro, for the whole ±5 minute window. RFC 9421 keeps `@authority`
+//   in the covered components for exactly this.
+//
+//   *query*. §2 argued the query out of the signature for reproducibility and
+//   never named the price: `GET /feed?after=<cursor>` and `GET /inbox` carry a
+//   cursor there, and anything that can rewrite a request in flight could move
+//   it while the signature stayed valid. Reproducibility is a real problem and
+//   the answer is normalisation, not omission.
+//
+// The change was made while it was free: measured the same day, the signature
+// is implemented by this node and its tests and by nothing else — there is no
+// client in sosed.place or neighbro.place, and `depth` does not exist. The
+// major version stays 1 because there is no version 1 in anybody's hands to
+// stay compatible with.
 export function signedPayload(
   method: string,
+  authority: string,
   path: string,
   bodySha256: string,
   time: number,
 ): string {
-  return `${method}\n${path}\n${bodySha256}\n${time}`;
+  return `${method}\n${authority}\n${path}\n${bodySha256}\n${time}`;
 }
 
-// The path without the query string (protocol §2: "anything may be in it, and the
-// signature has to be reproducible"). Takes the URL the request arrived with.
+// The host the request was addressed to, lowercased, with a default port
+// dropped. `api.sosed.place` and `api.sosed.place:443` are one authority;
+// `API.SOSED.PLACE` is the same one shouting.
+export function signedAuthority(url: string | URL): string {
+  const parsed = new URL(url);
+  const port = parsed.port === "" || (parsed.protocol === "https:" && parsed.port === "443") ||
+      (parsed.protocol === "http:" && parsed.port === "80")
+    ? ""
+    : `:${parsed.port}`;
+  return `${parsed.hostname.toLowerCase()}${port}`;
+}
+
+// The path **with** its query, normalised so that the same request always
+// produces the same line whoever serialised it.
+//
+// Normalisation is the whole difficulty, and it is why §2 left the query out in
+// the first place: `?b=2&a=1` and `?a=1&b=2` are the same request and different
+// strings. So the parameters are sorted — by name, then by value, both compared
+// as the code units they are — and re-encoded by one encoder rather than
+// whichever the client happened to use. A parameter repeated twice keeps both
+// of its values, in sorted order, because dropping one would make two different
+// requests sign the same.
+//
+// An empty query signs as a bare path, not as a path with a trailing `?`: a
+// client that builds `/feed` and one that builds `/feed?` mean the same thing.
 export function signedPath(url: string | URL): string {
-  return new URL(url).pathname;
+  const parsed = new URL(url);
+  const pairs = [...parsed.searchParams.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0));
+  if (pairs.length === 0) return parsed.pathname;
+  const query = pairs
+    .map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value)}`)
+    .join("&");
+  return `${parsed.pathname}?${query}`;
 }
 
 // The three headers, shape-checked and nothing more. A missing session is not a
@@ -138,6 +191,7 @@ export async function verifySignedRequest(
   if (!key) return "malformed_key";
   const payload = signedPayload(
     input.method,
+    signedAuthority(input.url),
     signedPath(input.url),
     await sha256hex(input.body),
     headers.time,

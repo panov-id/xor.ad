@@ -117,7 +117,17 @@ async function signedCall(
 ) {
   const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
   const time = Math.floor(Date.now() / 1000);
-  const payload = auth.signedPayload(method, path, await auth.sha256hex(raw), time);
+  // The same URL `call` will build, because the signature covers the authority
+  // and the query since 2026-09-21 — a client that signs a bare path signs
+  // something the node will not reproduce.
+  const target = new URL(`https://relay.test${path}`);
+  const payload = auth.signedPayload(
+    method,
+    auth.signedAuthority(target),
+    auth.signedPath(target),
+    await auth.sha256hex(raw),
+    time,
+  );
   const signature = new Uint8Array(
     await crypto.subtle.sign(SIGN, key, new TextEncoder().encode(payload)),
   );
@@ -243,6 +253,20 @@ Deno.test("a name is measured in graphemes, the way a person sees it", async () 
   // is 100 bytes, well under the DDL's 400, and far over the product's 24.
   const hundred = await register({ name: "a".repeat(100) });
   assertEquals(hundred.answer.status, 400, "a hundred letters passed as a name");
+
+  // The other ceiling, and the refusal has to say which one was met. 24 graphemes
+  // of a four-person family emoji are 600 bytes (measured 2026-09-21), so this
+  // name is inside the product's limit and outside the schema's — the owner's
+  // decision of that day was to say so rather than move the schema.
+  const family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}";
+  const heavy = await register({ name: family.repeat(24) });
+  assertEquals(heavy.answer.status, 400, "600 bytes of name were accepted");
+  const said = (heavy.answer.body as { error: { message: string } }).error.message;
+  assert(said.includes("bytes"), `the refusal did not name the ceiling it met: "${said}"`);
+  assert(
+    !said.includes("longer than 24 characters"),
+    `the refusal blamed the wrong ceiling: "${said}"`,
+  );
 
   assertEquals(await countIdentities(), before + 1, "a refused name still wrote a row");
 });

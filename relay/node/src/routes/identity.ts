@@ -149,12 +149,24 @@ async function createIdentity(req: Request): Promise<Response> {
   }
 
   const name = body.name;
-  if (
-    typeof name !== "string" || name.length < 1 ||
-    new TextEncoder().encode(name).length > NAME_MAX_BYTES ||
-    countGraphemes(name) > NAME_MAX_GRAPHEMES
-  ) {
-    return refuse("invalid_body", "the name is missing or too long", 400);
+  if (typeof name !== "string" || name.length < 1) {
+    return refuse("invalid_body", "the name is missing", 400);
+  }
+  // Two ceilings, and the refusal says which one was hit. They are not the same
+  // limit in different units: 24 graphemes of a four-person family emoji are
+  // 600 bytes (measured 2026-09-21), so the byte ceiling refuses before the
+  // grapheme one is reached. The registry states both for the same reason — a
+  // promise of "24 graphemes" that the schema cannot hold is a promise that
+  // fails on somebody's name, and they deserve to be told which rule they met.
+  if (countGraphemes(name) > NAME_MAX_GRAPHEMES) {
+    return refuse("invalid_body", `the name is longer than ${NAME_MAX_GRAPHEMES} characters`, 400);
+  }
+  if (new TextEncoder().encode(name).length > NAME_MAX_BYTES) {
+    return refuse(
+      "invalid_body",
+      `the name fits in ${NAME_MAX_GRAPHEMES} characters but not in ${NAME_MAX_BYTES} bytes`,
+      400,
+    );
   }
 
   for (const field of ["auth_hash", "recovery_lookup_id"] as const) {

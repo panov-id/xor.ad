@@ -1539,7 +1539,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       a box.
       🟠 The price is named: the key does not rotate — shares sealed under the
       old derivation will not open. Paid on 2026-09-21, while no node holds one.
-- [ ] **G18. The request signature covers neither the node nor the query string
+- [x] **G18. The request signature covers neither the node nor the query string
       — review panel 2026-09-20, protocols lens.** What is signed is
       `method\npath\nsha256(body)\ntime`, and `path` is the `pathname`, without
       host and without query (`relay/node/src/lib/identity_auth.ts`).
@@ -1558,7 +1558,24 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       every face at once; leaving it is a price that belongs written into §2.
       Decide before a second face and a second node share one environment.
 
-- [ ] **G19. Twenty-four graphemes of name are unreachable for heavy emoji —
+
+      **Closed 2026-09-21. The owner's decision: add both the authority and the
+      query.** The signed string is five lines now: `method \n host \n path with
+      normalised query \n sha256(body) \n time`. The host lowercased and a
+      default port dropped; parameters sorted by name and value, re-encoded by
+      one encoder, a repeated parameter keeping both values, an empty query
+      signing as a bare path. Two new cases in `test/identity_auth.test.ts`: a
+      signature made for `api.sosed.place` does not verify on
+      `api.neighbro.place`, and the `?after` cursor cannot be moved under a
+      valid signature — both watched go red first.
+
+      **The major version stays 1, and that is a measurement rather than
+      carelessness:** the signature is implemented by this node and its tests
+      alone; there is not one `x-identity-sign` in `sosed.place` or
+      `neighbro.place`, and `depth` is not written. A version exists so as not to
+      diverge from whoever holds the previous protocol; nobody holds it — which
+      is why the change was made now, while it is free.
+- [x] **G19. Twenty-four graphemes of name are unreachable for heavy emoji —
       found by a test, 2026-09-20.** Since tonight the node counts graphemes
       (`Intl.Segmenter`), as `docs/facts/limits.tsv` promises (`name.length`,
       enforced by the node). But the schema carries `octet_length(name) <= 400`,
@@ -1571,6 +1588,15 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       ceiling to 24 × 4 × 5 = 480 (a migration, one line), or state the limit
       honestly — "24 graphemes, and no longer than 400 bytes" — in the registry
       and on the screen.
+
+      **Closed 2026-09-21. The owner's decision: state the limit honestly.** The
+      schema stays at 400 bytes and the promise stops being unkeepable: the
+      registry, the spec and the node's refusal all say "24 graphemes and no
+      longer than 400 bytes", and the refusal names which of the two was met.
+      The measurement it stands on: 24 four-person family emoji are 600 bytes,
+      three-person ones 432, while flags and skin tones fit in 192. The case "a
+      name is measured in graphemes" holds both ceilings and goes red if the
+      refusal stops telling them apart.
 ## M. Found in August — not deferred, in hand
 
 Items J13–J21 and D8 physically sat inside "G. Deliberately deferred" and were

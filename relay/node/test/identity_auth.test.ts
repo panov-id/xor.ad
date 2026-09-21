@@ -15,6 +15,7 @@ import {
   PROTOCOL_MAJOR,
   protocolVersion,
   readSignedHeaders,
+  signedAuthority,
   signedPath,
   signedPayload,
   sha256hex,
@@ -33,7 +34,7 @@ async function device() {
   return { pair, signPublicKey: bytesToBase64url(spki) };
 }
 
-// What a client does: build the four lines, sign them, put the pieces in headers.
+// What a client does: build the five lines, sign them, put the pieces in headers.
 async function signedRequest(
   key: CryptoKey,
   method: string,
@@ -42,7 +43,13 @@ async function signedRequest(
   time: number,
   sessionId = "0f9c3d0a-0000-4000-8000-000000000001",
 ) {
-  const payload = signedPayload(method, signedPath(url), await sha256hex(body), time);
+  const payload = signedPayload(
+    method,
+    signedAuthority(url),
+    signedPath(url),
+    await sha256hex(body),
+    time,
+  );
   const signature = new Uint8Array(
     await crypto.subtle.sign(SIGN, key, new TextEncoder().encode(payload)),
   );
@@ -61,19 +68,41 @@ async function signedRequest(
 const NOW = 1_758_000_000;
 const URL_WITH_QUERY = "https://node.example/v1/identities/me?after=abc&x=%0A";
 
-Deno.test("the signed string is the four lines of §2, in order", async () => {
+Deno.test("the signed string is the five lines of §2, in order", async () => {
   const body = new TextEncoder().encode('{"a":1}');
-  const payload = signedPayload("POST", "/v1/feed", await sha256hex(body), NOW);
-  assertEquals(payload.split("\n").length, 4);
-  const [method, path, digest, time] = payload.split("\n");
+  const payload = signedPayload("POST", "api.sosed.place", "/v1/feed", await sha256hex(body), NOW);
+  assertEquals(payload.split("\n").length, 5);
+  const [method, authority, path, digest, time] = payload.split("\n");
   assertEquals(method, "POST");
+  assertEquals(authority, "api.sosed.place");
   assertEquals(path, "/v1/feed");
   assertEquals(digest, await sha256hex(body));
   assertEquals(time, String(NOW));
 });
 
-Deno.test("the query string is outside the signature", () => {
-  assertEquals(signedPath(URL_WITH_QUERY), "/v1/identities/me");
+Deno.test("the query string is inside the signature, normalised", () => {
+  // It used to be left out, argued from reproducibility — and the cursor of
+  // GET /feed rode outside the signature as a result (review panel 2026-09-20,
+  // protocols lens). Reproducibility is answered by normalising rather than by
+  // omitting: the same request signs the same however its client ordered or
+  // encoded it.
+  assertEquals(signedPath(URL_WITH_QUERY), "/v1/identities/me?after=abc&x=%0A");
+  assertEquals(
+    signedPath("https://node.example/v1/feed?b=2&a=1"),
+    signedPath("https://node.example/v1/feed?a=1&b=2"),
+    "the order a client happened to use changed the signature",
+  );
+  // A repeated parameter keeps both values: dropping one would make two
+  // different requests sign the same.
+  assertEquals(signedPath("https://node.example/v1/feed?a=2&a=1"), "/v1/feed?a=1&a=2");
+  // And an empty query is a bare path, so `/feed` and `/feed?` agree.
+  assertEquals(signedPath("https://node.example/v1/feed?"), "/v1/feed");
+});
+
+Deno.test("the authority is normalised, and a default port is not part of it", () => {
+  assertEquals(signedAuthority("https://API.Sosed.Place/v1/feed"), "api.sosed.place");
+  assertEquals(signedAuthority("https://api.sosed.place:443/v1/feed"), "api.sosed.place");
+  assertEquals(signedAuthority("http://localhost:62080/v1/feed"), "localhost:62080");
 });
 
 Deno.test("a request signed by the device verifies", async () => {
@@ -217,4 +246,51 @@ Deno.test("the protocol version is read, and only the served major is supported"
   assert(versionSupported(PROTOCOL_MAJOR));
   assert(!versionSupported(PROTOCOL_MAJOR + 1));
   assert(!versionSupported(null));
+});
+
+Deno.test("a request signed for one node does not verify on another", async () => {
+  // The point of the authority line. A pool has more than one node and the
+  // product has more than one face; before 2026-09-21 a signed request was
+  // accepted by any of them for the whole ±5 minute window, and nothing in the
+  // signature said where it had been addressed (open-work G18).
+  const { pair, signPublicKey } = await device();
+  const body = new TextEncoder().encode("{}");
+  const req = await signedRequest(pair.privateKey, "POST", "https://api.sosed.place/v1/away", body, NOW);
+  const elsewhere = await verifySignedRequest(req, {
+    method: "POST",
+    url: "https://api.neighbro.place/v1/away",
+    body,
+    signPublicKey,
+    now: NOW,
+  });
+  assertEquals(elsewhere, "bad_signature", "a signature travelled to another face");
+
+  // And it still verifies where it was addressed.
+  const athome = await verifySignedRequest(req, {
+    method: "POST",
+    url: "https://api.sosed.place/v1/away",
+    body,
+    signPublicKey,
+    now: NOW,
+  });
+  assert(typeof athome !== "string", `expected a session, got ${athome}`);
+});
+
+Deno.test("a cursor cannot be moved under a valid signature", async () => {
+  // GET /feed and GET /inbox carry `?after=<cursor>`. With the query outside
+  // the signature, anything able to rewrite a request in flight could move it
+  // and the signature stayed good for five minutes.
+  const { pair, signPublicKey } = await device();
+  const body = new Uint8Array();
+  const req = await signedRequest(
+    pair.privateKey, "GET", "https://node.example/v1/feed?after=page-1", body, NOW,
+  );
+  const moved = await verifySignedRequest(req, {
+    method: "GET",
+    url: "https://node.example/v1/feed?after=page-2",
+    body,
+    signPublicKey,
+    now: NOW,
+  });
+  assertEquals(moved, "bad_signature", "the cursor was moved under a valid signature");
 });

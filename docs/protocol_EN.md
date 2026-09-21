@@ -43,7 +43,7 @@ only honest way to write this document without breaking it.
 ## 2. Request signing — from the spec, verbatim
 
 ```
-signed      <method>\n<path>\n<sha256 of body>\n<unix time>
+signed      <method>\n<host>\n<path with normalised query>\n<sha256 of body>\n<unix time>
 headers     x-identity-session   uuid of the live session
             x-identity-time      the same time as in the string
             x-identity-sign      the signature, base64url
@@ -53,8 +53,28 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 
 - **The body enters as a hash, not whole** — otherwise the signature would be
   computed over a stream.
-- **The path enters without its query string**: anything can end up there, and a
-  signature has to be reproducible.
+- **The host enters the signature — since 2026-09-21.** [retired] It was not
+  there at all before, and §2 said nothing about it: a signed request was
+  accepted by **any** node of the pool where that session lives, and `api.sosed`
+  was no different from `api.neighbro` for the whole five-minute window. RFC 9421
+  keeps `@authority` in the covered components for exactly this reason.
+  Normalised: the host lowercased and a default port dropped, so
+  `API.Sosed.Place`, `api.sosed.place` and `api.sosed.place:443` are one host.
+- **The path enters with its query string, normalised — since 2026-09-21.**
+  [retired] This used to read "the path enters without its query string: anything
+  can end up there, and a signature has to be reproducible". The argument was
+  right and the conclusion was not: reproducibility comes from normalising, not
+  from leaving out. The price of leaving out was named by the panel on
+  2026-09-20 — the `?after` cursor of `GET /feed` and `GET /inbox` rode outside
+  the signature, and anything able to rewrite a request in flight could move it
+  inside the window. Normalised: parameters sorted by name then by value and
+  re-encoded by one encoder; a repeated parameter keeps both values; an empty
+  query signs as a bare path, so `/feed` and `/feed?` agree.
+- **The major version stays 1.** The change breaks compatibility and there was
+  nothing to break: measured on 2026-09-21, the signature is implemented by this
+  node and its tests alone — there is no client in `sosed.place` or
+  `neighbro.place`, and `depth` is not written. A version exists so as not to
+  diverge from whoever holds the previous protocol; nobody holds it.
 - **A window instead of a nonce** is a deliberate trade (§8.2): whoever intercepts
   a request can replay it within five minutes; a nonce would require shared memory
   across nodes.

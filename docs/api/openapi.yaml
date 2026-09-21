@@ -1373,7 +1373,8 @@ paths:
       tags: [identity]
       summary: A transfer code for another device
       x-summary-ru: Код переноса на другое устройство
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/transfer.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1470,7 +1471,8 @@ paths:
       tags: [identity]
       summary: Use the transfer code on the new device
       x-summary-ru: Применить код переноса на новом устройстве
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/transfer.ts
       security: [{publishableKey: []}]
       description: The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery's; a second claim on the same invite cancels the transfer on both sides, and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15).
       x-description-ru: Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления; второй claim на то же приглашение отменяет перенос на обеих сторонах, и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026).
@@ -2994,7 +2996,8 @@ paths:
       tags: [identity]
       summary: "It's me"
       x-summary-ru: "Это я"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/transfer.ts
       security: [{identitySignature: []}]
       description: "The old device confirms the transfer after the four characters matched (screen 13). Only a session of the identity that issued the invite, once, within the invite's 120 seconds; otherwise not_found."
       x-description-ru: "Старое устройство подтверждает перенос, когда четыре знака совпали (экран 13). Только сессией той личности, что выдала приглашение, один раз, в пределах его 120 секунд; иначе not_found."
@@ -3009,12 +3012,62 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "404": {description: "The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.", x-description-ru: "Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}
+  /sessions/{lookup_id}:
+    get:
+      tags: [identity]
+      summary: The state of an invitation
+      x-summary-ru: Состояние приглашения
+      x-status: built
+      x-source: relay/node/src/routes/transfer.ts
+      # Unsigned: the new device has no session until the transfer completes,
+      # and the old one should not have to sign for an answer both sides need.
+      # The `lookup_id` is the secret and the authorisation, exactly as it is
+      # for the claim.
+      security: [{}]
+      description: >-
+        What happened to a transfer, and the envelope meant for whichever side
+        is asking. The fifty-eighth name in the contract, added 2026-09-21:
+        without it neither device could learn the outcome — the sockets of §8.1
+        do not exist yet, and a repeated POST /sessions/claim cannot serve as a
+        poll because a second claim cancels the transfer.
+      x-description-ru: >-
+        Что стало с переносом и конверт для той стороны, которая спрашивает.
+        Пятьдесят восьмое имя в контракте, заведено 21.09.2026: без него ни одно
+        из устройств не могло узнать исход — сокетов §8.1 ещё нет, а повторный
+        POST /sessions/claim опросом служить не может, потому что второй claim
+        отменяет перенос.
+      parameters:
+        - {name: lookup_id, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+      responses:
+        "200":
+          description: "The state, and at most one envelope: `claim_envelope` while it is claimed, `reply_envelope` and `session_id` once it is approved."
+          x-description-ru: "Состояние и не больше одного конверта: `claim_envelope`, пока приглашение занято, `reply_envelope` и `session_id` — когда подтверждено."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state]
+                properties:
+                  state:
+                    type: string
+                    enum: [waiting, claimed, approved, rejected, cancelled, expired]
+                  claim_envelope: {type: string, description: "base64url; opaque to the node.", x-description-ru: "base64url; узлу непрозрачен."}
+                  reply_envelope: {type: string, description: "base64url; opaque to the node.", x-description-ru: "base64url; узлу непрозрачен."}
+                  session_id: {type: string, format: uuid}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "404": {description: "No such code — one wording for a code that never existed and one already swept.", x-description-ru: "Нет такого кода — одна формулировка на не существовавший и на уже убранный.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+
   /sessions/{lookup_id}/reject:
     post:
       tags: [identity]
       summary: "Doesn't match"
       x-summary-ru: "Не совпадает"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/transfer.ts
       security: [{identitySignature: []}]
       description: "The old device refuses; the code dies (screen 13). Only a session of the identity that issued the invite, once; otherwise not_found."
       x-description-ru: "Старое устройство отказывает; код гаснет (экран 13). Только сессией той личности, что выдала приглашение, один раз; иначе not_found."

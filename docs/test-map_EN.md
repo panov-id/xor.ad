@@ -34,9 +34,9 @@ Three rules apply to every row, from the project's `CLAUDE.md`:
 
 | Where | Cases | About |
 |---|---|---|
-| `relay/node/test` | 266 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
+| `relay/node/test` | 274 | storefronts, panel, tenancy, DSA, keys, limits, request signature, identity routes, the PIN counter, the first PIN, recovery by paper code, freezing a session, the identity sweeper |
 | `testing/e2e` | 10 | the waitlist and storefront headers |
-| **Total** | **276** | **about chat and feed — 0; about the request signature — 12, about step 1 — 52: routes 33, the sealing key 5, freezing 3, the sweeper 8 against a live Postgres, the shared brake 3 by the clock; plus 5 about the queue's metrics (2026-09-20, overnight, after the review panel)** |
+| **Total** | **284** | **about chat and feed — 0; about the request signature — 12, about step 1 — 59: routes 33, the transfer 7, the sealing key 5, freezing 3, the sweeper 8 against a live Postgres, the shared brake 3 by the clock; plus 5 about the queue's metrics (2026-09-20, overnight, after the review panel)** |
 
 Five of them (`chat_stub.test.ts`) guard exactly one thing: that the chat stub
 answers `501` and does nothing. That is a correct test — it will fail on the day
@@ -85,7 +85,7 @@ through three different wrappers and cannot be counted by eye.
 | 3.4 | The `local` half never leaves the device | intercept the registration traffic: only `auth` in the body | nothing to check |
 | 3.5 | A share belongs to a device, not to an identity | another live session of the same identity cannot reach it | **held** — "two sessions of one identity hold two different shares" (`identity_routes.test.ts`). [retired] This used to cite "another session's share cannot be reached from this one": that case uses **two different identities** and catches the guard refusing a stranger's key, which is row 2.3, not this one (review panel 2026-09-20, consistency lens) |
 | 3.6 | The warning appears with three attempts left | the seventh miss → a warning flag in the response | nothing to check |
-| 3.7 | **`POST /vault/init` only against a one-time first-PIN grant** (review panel 2026-09-19) | a signing key without the grant → 409 `unauthorized`; after an approved transfer → accepted, a repeat → 409 | **held** — "the first PIN needs a grant, spends it, and works only once" (`identity_routes.test.ts`); the grant is left by `POST /recovery/claim`, the transfer route is still absent (G15) |
+| 3.7 | **`POST /vault/init` only against a one-time first-PIN grant** (review panel 2026-09-19) | a signing key without the grant → 409 `unauthorized`; after an approved transfer → accepted, a repeat → 409 | **held** — "the first PIN needs a grant, spends it, and works only once" (`identity_routes.test.ts`); the grant is left by both paths now: `POST /recovery/claim` and an approved transfer (`transfer_routes.test.ts`, 2026-09-21) |
 | 3.8 | **A wrong PIN answers `attempts_left`, the tenth `pin_locked`** (2026-09-19) | three misses → `attempts_left` 7; the tenth → code `pin_locked` | **held** — "a wrong PIN spends one try…" and "the tenth miss closes entry…" (`identity_routes.test.ts`) |
 
 ## 4. Moving an identity to another device (step 1)
@@ -93,11 +93,11 @@ through three different wrappers and cannot be counted by eye.
 | № | What must be true | What proves it | State |
 |---|---|---|---|
 | 4.1 | **One live session per identity is held by an index, not by code** | two live-session `INSERT`s → the second fails on the unique index | nothing to check |
-| 4.2 | Without "it's me" on the old device nothing moves (§14) | `claim` without confirmation → the identity stayed | nothing to check |
-| 4.3 | An invitation lives 120 seconds | an attempt at second 121 → refused | nothing to check |
+| 4.2 | Without "it's me" on the old device nothing moves (§14) | `claim` without confirmation → the identity stayed | **held** — "a refusal kills the code and moves nothing" and "a second claim cancels the transfer" (`transfer_routes.test.ts`) |
+| 4.3 | An invitation lives 120 seconds | an attempt at second 121 → refused | **held** — "an expired invitation cannot be claimed, and says so like a wrong code" (`transfer_routes.test.ts`): the term is aged in the database rather than waited out |
 | 4.4 | **Claim misses are limited as recovery's, per address and across the node** (§8.2, 2026-09-15) | 50 claims with wrong codes in an hour from different addresses → the 51st is refused for everyone for 15 minutes; a mistyped code gets "the code did not fit or has expired" | nothing to check |
 | 4.5 | The node sees a `lookup_id` and two opaque envelopes | node log and table contents: no long key | nothing to check |
-| 4.6 | The old device freezes at the same moment | `frozen_at` set before the new one is answered | nothing to check |
+| 4.6 | The old device freezes at the same moment | `frozen_at` set before the new one is answered | **held** — "an identity moves to another device, and the old one goes quiet" (`transfer_routes.test.ts`): one transaction, and the order inside it is the reverse of the obvious one — the old session goes quiet **before** the new one is written, or the partial unique index refuses it |
 | 4.7 | The old device's disk is not wiped, but its share is burned | move the identity back → its own PIN does not open the old device's history: the move burned its share (`chat_EN.md` §8.2; edited 2026-09-15: this said "opens the whole history" [retired]) | **held, through recovery** — "a device left behind cannot open its history even with the right PIN" (`identity_routes.test.ts`): the move there is by paper code, the voluntary transfer waits on G15 |
 | 4.8 | The move works across faces: code shown in `depth`, typed in the web, and back (§14) | a pair of clients, both directions | nothing to check |
 | 4.8a | **`depth` does not start without its wrapper** (`depth-client_EN.md` §2.1, 2026-09-14) | the image without `DEPTH_WRAPPED=1` → refuses and says why; through the wrapper → starts, `docker inspect` gives `LogConfig.Type = none` | nothing to check |

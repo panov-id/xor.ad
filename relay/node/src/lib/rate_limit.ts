@@ -147,6 +147,16 @@ export const RECOVERY_CLAIM_LIMITS: Limit[] = [
   { name: "recovery-claim-day", max: 30, windowMs: DAY },
 ];
 
+// Typing a transfer code, and asking what happened to one. Same numbers as the
+// paper code's per-address ceiling: a person types nine characters once or
+// twice, and the state route is polled for two minutes at most — ten an hour is
+// generous for both and thin for anything else. The node-wide brake is a
+// separate mechanism (lib/shared_misses.ts).
+export const TRANSFER_CLAIM_LIMITS: Limit[] = [
+  { name: "transfer-claim", max: 60, windowMs: HOUR },
+  { name: "transfer-claim-day", max: 200, windowMs: DAY },
+];
+
 export const V1_LIMITS: Limit[] = [
   { name: "v1", max: 1200, windowMs: HOUR },
   { name: "v1-day", max: 20000, windowMs: DAY },

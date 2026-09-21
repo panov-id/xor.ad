@@ -145,3 +145,23 @@ configured("a stored error line carries no address and no id", async () => {
     "an exception text is scrubbed the same way — it is what reaches the line",
   );
 });
+
+// A parameter name with an underscore is one name, not a name and a literal.
+//
+// `:([A-Za-z]+)` took `/sessions/:lookup_id` to mean the parameter `lookup`
+// followed by the text `_id`, so the route matched `/sessions/<x>_id` and
+// nothing else — and a request to it came back "no route" with nothing having
+// failed at registration. Found on 2026-09-21 while adding the transfer, where
+// every route is keyed by a `lookup_id`.
+configured("a path parameter may have an underscore in its name", async () => {
+  const { route, match } = await import("../src/lib/router.ts");
+  route("GET", "/probe/:lookup_id/state", () => new Response("ok"));
+
+  const found = match("GET", "/probe/abc-123/state");
+  assert(found, "the route did not match a path that plainly fits it");
+  assertEquals(found!.params.lookup_id, "abc-123");
+  assertEquals(found!.pattern, "/probe/:lookup_id/state");
+
+  // And the old misreading is gone: the literal `_id` is no longer required.
+  assert(match("GET", "/probe/abc_id/state"), "an ordinary segment stopped matching");
+});

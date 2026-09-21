@@ -16,39 +16,25 @@
 // count, and that is the right trade for a brake: a node that came back up is a
 // node that is no longer under the load that tripped it.
 
-const HOUR = 60 * 60 * 1000;
+import { brake } from "./shared_misses.ts";
 
-export const SHARED_MISS_MAX = 50; // recovery.miss.shared
-export const PAUSE_MS = 15 * 60 * 1000; // recovery.miss.pause
+// The two brakes the canon names, built from one implementation
+// (lib/shared_misses.ts) rather than written twice.
+//
+// `recovery.miss.shared` / `recovery.miss.pause`: fifty wrong paper codes in an
+// hour across the node, then fifteen minutes in which a genuine code waits too.
+export const RECOVERY = brake(50, 15);
+// `claim.miss.shared` / `claim.miss.pause`: the same numbers for the transfer
+// code, and separate counters on purpose — a flood against one must not close
+// the other, because the other may be how somebody gets back in.
+export const TRANSFER = brake(50, 15);
 
-let misses: number[] = [];
-let pausedUntil = 0;
+export const SHARED_MISS_MAX = RECOVERY.max;
+export const PAUSE_MS = RECOVERY.pauseMs;
 
-// Seconds left of the pause, or 0 when codes are being accepted. Called before
-// the body is read: a paused route does no lookup at all, which is the whole
-// point of the brake.
-export function pausedFor(now = Date.now()): number {
-  if (pausedUntil <= now) return 0;
-  return Math.ceil((pausedUntil - now) / 1000);
-}
-
-// Counts one wrong code. Returns true when this miss is the one that started the
-// pause — the caller logs and measures that, because "the brake came on" is a
-// thing an operator wants to see once, not fifty times.
-export function countMiss(now = Date.now()): boolean {
-  misses = misses.filter((at) => at > now - HOUR);
-  misses.push(now);
-  if (misses.length < SHARED_MISS_MAX || pausedUntil > now) return false;
-  pausedUntil = now + PAUSE_MS;
-  // The hour's misses are dropped with the pause, not kept: keeping them would
-  // make every single miss after the pause trip it again, and fifteen minutes
-  // would become for ever.
-  misses = [];
-  return true;
-}
-
-// For tests and for a node that has just started; nothing in the routes calls it.
-export function reset(): void {
-  misses = [];
-  pausedUntil = 0;
-}
+export const pausedFor = (now?: number): number => RECOVERY.pausedFor(now);
+export const countMiss = (now?: number): boolean => RECOVERY.countMiss(now);
+export const reset = (): void => {
+  RECOVERY.reset();
+  TRANSFER.reset();
+};

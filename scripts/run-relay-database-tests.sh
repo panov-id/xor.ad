@@ -75,6 +75,13 @@ docker run --rm --network "$network" \
   deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts "$@"
 
 echo
+echo "== transfer suite (chat spec §8.2: moving an identity between devices)"
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/transfer_routes.test.ts "$@"
+
+echo
 echo "== queue metrics suite (what a scrape sees of the job queue)"
 docker run --rm --network "$network" \
   -e DATABASE_URL="$database_url" \

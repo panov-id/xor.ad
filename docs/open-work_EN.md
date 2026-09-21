@@ -1424,7 +1424,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
 
       🟠 The price named when the choice was made is paid: the node now has its
       first npm dependency, and it is also its only external one.
-- [ ] **G15. The device transfer cannot be finished: neither side has a way to
+- [x] **G15. The device transfer cannot be finished: neither side has a way to
       learn the outcome — found 2026-09-20 while writing the routes.** The
       contract (`protocol_EN.md` §4.1) names four routes — `POST
       /sessions/invite`, `POST /sessions/claim`, `POST
@@ -1456,6 +1456,28 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       /recovery/claim`. Without it a frozen phone went on opening its own history
       with its own PIN.
 
+
+      **Closed 2026-09-21. The owner's decision: a route for the state.**
+      `GET /sessions/:lookup_id` answers the state of an invitation and the
+      envelope meant for whichever side is asking: `waiting`, `claimed` with
+      `claim_envelope` for the old device, `approved` with `reply_envelope` and
+      `session_id` for the new one, plus `rejected`, `cancelled`, `expired`.
+      Unsigned — the new device has no session yet, and the `lookup_id`
+      authorises.
+
+      The whole transfer was written with it: `relay/node/src/routes/transfer.ts`,
+      the `session_invites` table (migration 024), and seven cases against a live
+      Postgres in `test/transfer_routes.test.ts` — the move end to end, the
+      cancellation by a second claim, a stranger's session, a refusal, an expiry,
+      and a second invitation displacing the first.
+
+      🟡 Two traps found by running: the router read `:lookup_id` as the
+      parameter `lookup` followed by the literal `_id` (`:([A-Za-z]+)` in
+      `relay/node/src/lib/router.ts`), so the route silently never fired — fixed,
+      with a case of its own; and in the approval the old session must go quiet
+      **before** the new one is inserted, or the partial unique index
+      `sessions_one_live` refuses it and the route answers 503 about a database
+      it could not write to.
 - [x] **G16. The first-PIN grant never expires — review panel 2026-09-20,
       security lens.** `relay/node/src/routes/identity.ts` spends the grant on
       `first_pin_grant_at IS NOT NULL` and nobody reads the age of the mark,

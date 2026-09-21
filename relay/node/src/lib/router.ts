@@ -18,7 +18,13 @@ const table: Array<{ method: string; re: RegExp; keys: string[]; h: Handler; pat
 
 export function route(method: string, pattern: string, h: Handler): void {
   const keys: string[] = [];
-  const source = "^" + pattern.replace(/:([A-Za-z]+)/g, (_, k: string) => {
+  // Underscores and digits belong to a name. The pattern used to be
+  // `:([A-Za-z]+)`, which took `:lookup_id` to mean the parameter `lookup`
+  // followed by the literal text `_id` — so `/sessions/:lookup_id` matched
+  // `/sessions/<anything>_id` and nothing else, and the route simply never
+  // fired. Nothing failed at registration; the request came back "no route"
+  // (found 2026-09-21 while adding the transfer).
+  const source = "^" + pattern.replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, (_, k: string) => {
     keys.push(k);
     return "([^/]+)";
   }) + "$";

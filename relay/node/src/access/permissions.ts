@@ -46,6 +46,12 @@ export const PERMISSIONS = [
   // to the police about a person. Whoever holds this is who the report comes
   // from, and the audit record names them.
   "dsa_notices.escalate",
+  // The moderation queue of the feed (chat spec §8.3): phrases waiting for a
+  // verdict before anybody sees them. Reading it shows people's words and the
+  // name that goes out with them; deciding publishes or refuses. Apart from the
+  // DSA permissions on purpose — that queue is about what is already published.
+  "feed_queue.read",
+  "feed_queue.decide",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

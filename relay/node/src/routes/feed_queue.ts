@@ -1,0 +1,80 @@
+// The moderator's queue of the feed, in the panel (chat spec §8.3: moderation
+// happens before publication, and not in the path of the request).
+//
+// No model is wired (§8.14 — that is the owner's money to decide), so until one
+// is, a person gives the verdict: lib/feed_verdict.ts has publishPhrase() and
+// refusePhrase(), and nothing called them. A phrase nobody decides within
+// moderation.queue.wait is swept, so this queue is only ever ten minutes deep.
+//
+// What the moderator sees is what will go out: the text, its mode, and the name
+// published with it — and never the author's identity, which nobody outside the
+// node ever sees. A tenant's moderator sees their own brand's phrases only, as
+// with the DSA queue.
+//
+// A verdict applies once: the second answers 409, whoever gave the first.
+
+import { route } from "../lib/router.ts";
+import { json } from "../lib/http.ts";
+import { query } from "../lib/db.ts";
+import { isDenied, requirePermission } from "../lib/access_guard.ts";
+import { publishPhrase, refusePhrase } from "../lib/feed_verdict.ts";
+import { recordAuditEvent } from "../lib/audit.ts";
+import { inc } from "../lib/metrics.ts";
+
+const UUID = /^[0-9a-fA-F-]{36}$/;
+
+route("GET", "/admin/feed-queue", async ({ req }) => {
+  const access = await requirePermission(req, "feed_queue.read");
+  if (isDenied(access)) return access.response;
+  const rows = await query<{
+    id: string; brand: string; text: string; mode: string; name: string; name_state: string; waiting: string;
+  }>(
+    `SELECT f.id, f.brand, f.text, f.mode, a.name, a.name_state,
+            floor(extract(epoch from now() - f.created_at))::bigint::text AS waiting
+       FROM feed_messages f
+       JOIN identities a ON a.id = f.author_identity
+      WHERE f.visible_at IS NULL AND ($1::text IS NULL OR f.brand = $1)
+      ORDER BY f.created_at
+      LIMIT 200`,
+    [access.user.brand],
+  );
+  if (rows === null) return json({ error: "unavailable" }, 503);
+  return json({
+    items: rows.map((r) => ({
+      id: r.id, brand: r.brand, text: r.text, mode: r.mode,
+      name: r.name, name_state: r.name_state, waiting_seconds: Number(r.waiting),
+    })),
+  });
+});
+
+async function decide(req: Request, id: string, verdict: "publish" | "refuse"): Promise<Response> {
+  const access = await requirePermission(req, "feed_queue.decide");
+  if (isDenied(access)) return access.response;
+  if (!UUID.test(id)) return json({ error: "not found" }, 404);
+  // A tenant's moderator decides their own brand's phrases only.
+  if (access.user.brand) {
+    const own = await query<{ id: string }>(
+      `SELECT id FROM feed_messages WHERE id = $1 AND brand = $2`, [id, access.user.brand]);
+    if (own === null) return json({ error: "unavailable" }, 503);
+    if (own.length === 0) return json({ error: "not found" }, 404);
+  }
+  let applied: boolean;
+  try {
+    applied = (verdict === "publish" ? await publishPhrase(id) : await refusePhrase(id)).applied;
+  } catch {
+    return json({ error: "unavailable" }, 503);
+  }
+  if (!applied) return json({ error: "already decided, swept, or never existed" }, 409);
+  // Who and when; the phrase's text does not go into a second store.
+  recordAuditEvent({
+    actor: access.user,
+    action: `feed_queue.${verdict}`,
+    target: id,
+    outcome: "applied",
+  });
+  inc("relay_feed_queue_total", { verdict });
+  return json({ verdict });
+}
+
+route("POST", "/admin/feed-queue/:id/publish", ({ req, params }) => decide(req, params.id, "publish"));
+route("POST", "/admin/feed-queue/:id/refuse", ({ req, params }) => decide(req, params.id, "refuse"));

@@ -39,6 +39,7 @@ await import("../src/routes/chats.ts");
 await import("../src/routes/inbox.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
+await import("../src/routes/feed_queue.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -2304,5 +2305,119 @@ Deno.test({
     const row = items.find((i) => i.id === chat);
     assertEquals(row?.state, "ended", JSON.stringify(row));
     assert(!JSON.stringify(row).includes("\"span\""), "the other side's span leaked");
+  },
+});
+
+// ── The moderator's queue in the panel (§8.3: moderation before publication) ───
+// No model is wired (§8.14), so a person decides. The panel session is minted the
+// way lib/auth.ts redeem() mints it, and the operator's record is written where
+// authed() reads it on every request.
+async function panelAs(role: string, brand: string | null = null): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: any }>> {
+  const { sign } = await import("../src/lib/jwt.ts");
+  const { sha256hex } = await import("../src/lib/hash.ts");
+  const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
+  const { config } = await import("../src/config.ts");
+  const email = `${role}-${crypto.randomUUID()}@platform.test`;
+  await scopedForBrand(null).put(`panel/${config.envName}/users/${await sha256hex(email)}.json`, {
+    email, role, brand, created_at: "2026-09-22T00:00:00.000Z",
+  });
+  const token = await sign({
+    sub: email, role, brand, env: config.envName, exp: Math.floor(Date.now() / 1000) + 3600,
+  }, "feed-publish-secret");
+  return async (method, path, body) => {
+    const url = new URL(`https://relay.test${path}`);
+    const found = match(method, url.pathname);
+    assert(found, `no route for ${method} ${url.pathname}`);
+    const response = await found.h({
+      req: new Request(url, {
+        method,
+        headers: { authorization: `Bearer ${token}`, ...(body === undefined ? {} : { "content-type": "application/json" }) },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      }),
+      params: found.params,
+      url,
+    });
+    const text = await response.text();
+    return { status: response.status, body: text ? JSON.parse(text) : null };
+  };
+}
+
+Deno.test({
+  name: "a moderator sees a waiting phrase, publishes it once, and a viewer cannot",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "жду вердикта человека" }));
+    assertEquals(sent.status, 202, JSON.stringify(sent.body));
+    const moderator = await panelAs("moderator");
+    const viewer = await panelAs("viewer");
+    assertEquals((await viewer("GET", "/admin/feed-queue")).status, 403, "a viewer read the moderation queue");
+
+    const queue = await moderator("GET", "/admin/feed-queue");
+    assertEquals(queue.status, 200, JSON.stringify(queue.body));
+    const row = (queue.body.items as Array<Record<string, unknown>>).find((i) => i.text === "жду вердикта человека");
+    assert(row, "a waiting phrase is not in the queue");
+    assertEquals(row.name, "Аня", "the moderator does not see the name that goes out with the phrase");
+    assert(!JSON.stringify(row).includes(me.identity_id), "the queue hands the moderator the author's identity");
+
+    assertEquals((await viewer("POST", `/admin/feed-queue/${row.id}/publish`)).status, 403);
+    const published = await moderator("POST", `/admin/feed-queue/${row.id}/publish`);
+    assertEquals(published.status, 200, JSON.stringify(published.body));
+    const [live] = await database.queryOrThrow<{ visible_at: Date | null }>(
+      `SELECT visible_at FROM feed_messages WHERE id = $1`, [row.id]);
+    assert(live.visible_at, "a published phrase is not visible");
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`)).status, 409, "a second verdict was applied");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a refused phrase leaves the queue and is never seen",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "это отклонят" }));
+    const moderator = await panelAs("moderator");
+    const row = ((await moderator("GET", "/admin/feed-queue")).body.items as Array<Record<string, unknown>>)
+      .find((i) => i.text === "это отклонят");
+    assert(row, "a waiting phrase is not in the queue");
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/refuse`)).status, 200);
+    const left = await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1 AND visible_at IS NOT NULL`, [row.id]);
+    assertEquals(left.length, 0, "a refused phrase became visible");
+    const again = ((await moderator("GET", "/admin/feed-queue")).body.items as Array<Record<string, unknown>>);
+    assertEquals(again.find((i) => i.id === row.id), undefined, "a refused phrase stayed in the queue");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a tenant's moderator neither sees nor decides another brand's phrase",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "фраза чужого бренда" }));
+    const [row] = await database.queryOrThrow<{ id: string; brand: string }>(
+      `SELECT id, brand FROM feed_messages WHERE text = 'фраза чужого бренда' AND visible_at IS NULL`);
+    assert(row, "the phrase is not waiting");
+    const stranger = await panelAs("moderator", "some-other-brand");
+    const queue = await stranger("GET", "/admin/feed-queue");
+    assertEquals(queue.status, 200, JSON.stringify(queue.body));
+    assertEquals((queue.body.items as Array<{ id: string }>).find((i) => i.id === row.id), undefined,
+      "a tenant's moderator sees another brand's queue");
+    assertEquals((await stranger("POST", `/admin/feed-queue/${row.id}/publish`)).status, 404);
+    assertEquals((await stranger("POST", `/admin/feed-queue/${row.id}/refuse`)).status, 404);
+    const own = await panelAs("moderator", row.brand);
+    const refused = await own("POST", `/admin/feed-queue/${row.id}/refuse`);
+    assertEquals(refused.status, 200, `the brand's own moderator cannot decide: ${JSON.stringify(refused.body)}`);
+    reset();
   },
 });

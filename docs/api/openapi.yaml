@@ -1268,6 +1268,58 @@ paths:
         "200": {description: Invited., x-description-ru: Приглашён.}
         "404": {description: not found, x-description-ru: не найден}
         "502": {description: could not send the invitation, x-description-ru: не удалось отправить приглашение}
+  /admin/feed-queue:
+    get:
+      tags: [admin]
+      summary: Phrases waiting for a verdict before anybody sees them
+      x-summary-ru: Фразы, ждущие вердикта до того, как их кто-либо увидит
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      description: "The moderator's queue while no model is wired (chat spec §8.3, §8.14): text, mode, the name published with it and its state, how long it has waited — never the author's identity. A tenant's moderator sees their own brand only. Built 2026-09-22."
+      x-description-ru: "Очередь модератора, пока модель не подключена (спека чата §8.3, §8.14): текст, режим, имя, с которым фраза выйдет, и его состояние, сколько ждёт — и никогда личность автора. Модератор тенанта видит только свой бренд. Построено 22.09.2026."
+      responses:
+        "200": {description: "At most 200, oldest first, as {items}.", x-description-ru: "Не больше 200, старые первыми, в виде {items}."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/feed-queue/{id}/publish:
+    post:
+      tags: [admin]
+      summary: Publish a phrase from the queue
+      x-summary-ru: Опубликовать фразу из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once.", x-description-ru: "Вердикт, применён один раз."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: "Not a phrase of the moderator's own brand.", x-description-ru: "Не фраза своего бренда."}
+        "409": {description: "Already decided, swept after moderation.queue.wait, or never existed.", x-description-ru: "Уже решено, выметено по moderation.queue.wait либо не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/feed-queue/{id}/refuse:
+    post:
+      tags: [admin]
+      summary: Refuse a phrase from the queue
+      x-summary-ru: Отклонить фразу из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once.", x-description-ru: "Вердикт, применён один раз."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: "Not a phrase of the moderator's own brand.", x-description-ru: "Не фраза своего бренда."}
+        "409": {description: "Already decided, swept after moderation.queue.wait, or never existed.", x-description-ru: "Уже решено, выметено по moderation.queue.wait либо не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/dsa-notices:
     get:
       tags: [admin]

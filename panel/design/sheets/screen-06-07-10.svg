@@ -456,7 +456,7 @@
 <clipPath id="c484910"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c484910)">
 <use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
 <use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
-<rect x="16" y="72" width="343" height="396" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2"/>
+<rect x="16" y="72" width="343" height="414" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2"/>
 <text x="30" y="102" class="k-body">Ваша фраза скрыта.</text>
 <text x="30" y="126" class="k-meta">«кто на набережную к девяти?»</text>
 <text x="30" y="160" class="k-mono">Что произошло</text>
@@ -471,21 +471,22 @@
 <text x="150" y="292" class="k-meta">применялась; решил</text>
 <text x="150" y="310" class="k-meta">человек</text>
 <text x="30" y="340" class="k-mono">Основание</text>
-<text x="150" y="340" class="k-meta">&lt;норма закона&gt;</text>
-<text x="30" y="370" class="k-mono">Что дальше</text>
-<text x="150" y="370" class="k-meta">ответить нам,</text>
-<text x="150" y="388" class="k-meta">координатор</text>
-<text x="150" y="406" class="k-meta">цифровых услуг, суд</text>
-<use href="kit/components.svg#button-text" x="30" y="424" data-w="120" data-label="написать нам"/>
-<use href="kit/components.svg#button-text" x="266" y="424" data-w="80" data-label="понятно"/>
-<rect x="16" y="480" width="343" height="120" rx="13" style="fill:var(--panel)"/>
-<text x="30" y="510" class="k-body">отдам две табуретки, заберите сегодня</text>
-<use href="kit/components.svg#chip-outline" x="30" y="524"/>
-<use href="kit/components.svg#countdown" x="30" y="579" data-text="остаток 5 ч 12 мин"/>
-<use href="kit/components.svg#like" x="196" y="552" data-count="1"/>
-<use href="kit/components.svg#button-text" x="290" y="552" data-w="60" data-label="удалить"/>
-<text x="16" y="632" class="k-mono">свободно 3 из 4</text>
-<use href="kit/components.svg#row-setting" x="16" y="648" data-label="Имя" data-value="Женя"/>
+<text x="150" y="340" class="k-meta">закон:</text>
+<text x="150" y="358" class="k-meta">&lt;норма закона&gt;</text>
+<text x="30" y="388" class="k-mono">Что дальше</text>
+<text x="150" y="388" class="k-meta">ответить нам,</text>
+<text x="150" y="406" class="k-meta">координатор</text>
+<text x="150" y="424" class="k-meta">цифровых услуг, суд</text>
+<use href="kit/components.svg#button-text" x="30" y="442" data-w="120" data-label="написать нам"/>
+<use href="kit/components.svg#button-text" x="266" y="442" data-w="80" data-label="понятно"/>
+<rect x="16" y="498" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="528" class="k-body">отдам две табуретки, заберите сегодня</text>
+<use href="kit/components.svg#chip-outline" x="30" y="542"/>
+<use href="kit/components.svg#countdown" x="30" y="597" data-text="остаток 5 ч 12 мин"/>
+<use href="kit/components.svg#like" x="196" y="570" data-count="1"/>
+<use href="kit/components.svg#button-text" x="290" y="570" data-w="60" data-label="удалить"/>
+<text x="16" y="650" class="k-mono">свободно 3 из 4</text>
+<use href="kit/components.svg#row-setting" x="16" y="666" data-label="Имя" data-value="Женя"/>
 <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-a1="" data-a2="" data-a3="1"/>
 </g></g>
 <!-- V -->
@@ -494,7 +495,7 @@
 <clipPath id="c4634910"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c4634910)">
 <use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
 <use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
-<rect x="16" y="72" width="343" height="378" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2"/>
+<rect x="16" y="72" width="343" height="396" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2"/>
 <text x="30" y="102" class="k-body">Ваша фраза скрыта.</text>
 <text x="30" y="126" class="k-meta">«кто на набережную к девяти?»</text>
 <text x="30" y="160" class="k-mono">Что произошло</text>
@@ -508,21 +509,46 @@
 <text x="150" y="274" class="k-meta">числу жалоб; решения</text>
 <text x="150" y="292" class="k-meta">человека не было</text>
 <text x="30" y="322" class="k-mono">Основание</text>
-<text x="150" y="322" class="k-meta">&lt;пункт условий&gt;</text>
-<text x="30" y="352" class="k-mono">Что дальше</text>
-<text x="150" y="352" class="k-meta">напишите нам —</text>
-<text x="150" y="370" class="k-meta">посмотрит человек;</text>
-<text x="150" y="388" class="k-meta">координатор, суд</text>
-<use href="kit/components.svg#button-text" x="30" y="406" data-w="170" data-label="попросить человека"/>
-<use href="kit/components.svg#button-text" x="266" y="406" data-w="80" data-label="понятно"/>
-<rect x="16" y="462" width="343" height="120" rx="13" style="fill:var(--panel)"/>
-<text x="30" y="492" class="k-body">отдам две табуретки, заберите сегодня</text>
-<use href="kit/components.svg#chip-outline" x="30" y="506"/>
-<use href="kit/components.svg#countdown" x="30" y="561" data-text="остаток 5 ч 12 мин"/>
-<use href="kit/components.svg#like" x="196" y="534" data-count="1"/>
-<use href="kit/components.svg#button-text" x="290" y="534" data-w="60" data-label="удалить"/>
-<text x="16" y="614" class="k-mono">свободно 3 из 4</text>
-<use href="kit/components.svg#row-setting" x="16" y="630" data-label="Имя" data-value="Женя"/>
+<text x="150" y="322" class="k-meta">условия:</text>
+<text x="150" y="340" class="k-meta">&lt;пункт условий&gt;</text>
+<text x="30" y="370" class="k-mono">Что дальше</text>
+<text x="150" y="370" class="k-meta">напишите нам —</text>
+<text x="150" y="388" class="k-meta">посмотрит человек;</text>
+<text x="150" y="406" class="k-meta">координатор, суд</text>
+<use href="kit/components.svg#button-text" x="30" y="424" data-w="170" data-label="попросить человека"/>
+<use href="kit/components.svg#button-text" x="266" y="424" data-w="80" data-label="понятно"/>
+<rect x="16" y="480" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="510" class="k-body">отдам две табуретки, заберите сегодня</text>
+<use href="kit/components.svg#chip-outline" x="30" y="524"/>
+<use href="kit/components.svg#countdown" x="30" y="579" data-text="остаток 5 ч 12 мин"/>
+<use href="kit/components.svg#like" x="196" y="552" data-count="1"/>
+<use href="kit/components.svg#button-text" x="290" y="552" data-w="60" data-label="удалить"/>
+<text x="16" y="632" class="k-mono">свободно 3 из 4</text>
+<use href="kit/components.svg#row-setting" x="16" y="648" data-label="Имя" data-value="Женя"/>
 <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-a1="" data-a2="" data-a3="1"/>
 </g></g>
-<text x="48" y="5748" class="cap">U · «Я» — фраза скрыта, решал человек</text><text x="48" y="5768" class="capm">09 13 «мотивировка по ст. 17 целиком»:</text><text x="48" y="5785" class="capm">блок сверху, пять строк refusal-wordings §6;</text><text x="48" y="5802" class="capm">рамка --err отличает ограниченную от</text><text x="48" y="5819" class="capm">отклонённой; заявитель не назван никогда;</text><text x="48" y="5836" class="capm">основание — заглушка, как в самом §6</text><text x="463" y="5748" class="cap">V · «Я» — скрыта по порогу, автоматически</text><text x="463" y="5768" class="capm">§6, вторая строка «Как решали»: решения</text><text x="463" y="5785" class="capm">человека не было, путь к нему — первый;</text><text x="463" y="5802" class="capm">срок из until; кнопка → поддержка (14);</text><text x="463" y="5819" class="capm">все поля — из GET /statements: restriction,</text><text x="463" y="5836" class="capm">until, facts, ground_*, automated_used</text><text x="878" y="4940" class="cap">Вопросы к U и V</text><text x="878" y="4962" class="capm">1 «понятно»: (a) убирает блок с устройства навсегда</text><text x="878" y="4984" class="capm">  (b) сворачивает в строку «ограничений: 1» наверху «Я»</text><text x="878" y="5006" class="capm">  (c) кнопки нет — блок живёт, пока жива копия</text><text x="878" y="5028" class="capm">2 рамка: (a) --err, как нарисовано · (b) пунктир · (c) нет</text><text x="878" y="5050" class="capm">3 основание: (a) ground_text как есть</text><text x="878" y="5072" class="capm">  (b) плюс тип «закон» / «условия» (ground_kind)</text><text x="878" y="5094" class="capm">4 у V: (a) кнопка «попросить человека» → экран 14</text><text x="878" y="5116" class="capm">  (b) только текст, кнопка «написать нам» как у U</text></svg>
+<!-- W -->
+<g transform="translate(878,4910)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
+<clipPath id="c8784910w"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c8784910w)">
+<use href="kit/components.svg#header-screen" x="0" y="0" data-title="Я" data-back=""/>
+<use href="kit/components.svg#icon-button" x="315" y="6" data-icon="icon-house" data-c="var(--accent)" data-name="домик"/>
+<use href="kit/components.svg#row-setting" x="16" y="72" data-label="Ограничений: 1" data-value="24 авг"/>
+<circle cx="150" cy="96" r="4" style="fill:var(--err)"/>
+<rect x="16" y="132" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="162" class="k-body">кто в субботу на рынок?</text>
+<text x="30" y="193" class="k-meta">фраза</text>
+<use href="kit/components.svg#countdown" x="30" y="231" data-text="остаток 2 ч 05 мин"/>
+<use href="kit/components.svg#like" x="196" y="204" data-count="0"/>
+<use href="kit/components.svg#button-text" x="290" y="204" data-w="60" data-label="удалить"/>
+<rect x="16" y="264" width="343" height="120" rx="13" style="fill:var(--panel)"/>
+<text x="30" y="294" class="k-body">отдам две табуретки, заберите сегодня</text>
+<use href="kit/components.svg#chip-outline" x="30" y="308"/>
+<use href="kit/components.svg#countdown" x="30" y="363" data-text="остаток 5 ч 12 мин"/>
+<use href="kit/components.svg#like" x="196" y="336" data-count="1"/>
+<use href="kit/components.svg#button-text" x="290" y="336" data-w="60" data-label="удалить"/>
+<text x="16" y="416" class="k-mono">свободно 3 из 4</text>
+<use href="kit/components.svg#row-setting" x="16" y="432" data-label="Имя" data-value="Женя"/>
+<use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-a1="" data-a2="" data-a3="1"/>
+</g></g>
+<text x="48" y="5748" class="cap">U · «Я» — фраза скрыта, решал человек</text><text x="48" y="5768" class="capm">09 13 «мотивировка по ст. 17 целиком»:</text><text x="48" y="5785" class="capm">блок сверху, пять строк refusal-wordings §6;</text><text x="48" y="5802" class="capm">рамка --err отличает ограниченную от</text><text x="48" y="5819" class="capm">отклонённой; заявитель не назван никогда;</text><text x="48" y="5836" class="capm">основание — заглушка, как в самом §6</text><text x="878" y="5748" class="cap">W · «Я» — после «понятно» (решение 1b)</text><text x="878" y="5768" class="capm">блок свёрнут в строку «Ограничений: 1»</text><text x="878" y="5785" class="capm">с датой и точкой --err; нажатие</text><text x="878" y="5802" class="capm">раскрывает мотивировку снова — копия</text><text x="878" y="5819" class="capm">живёт на устройстве год (09 13)</text><text x="463" y="5748" class="cap">V · «Я» — скрыта по порогу, автоматически</text><text x="463" y="5768" class="capm">§6, вторая строка «Как решали»: решения</text><text x="463" y="5785" class="capm">человека не было, путь к нему — первый;</text><text x="463" y="5802" class="capm">срок из until; кнопка → поддержка (14);</text><text x="463" y="5819" class="capm">все поля — из GET /statements: restriction,</text><text x="463" y="5836" class="capm">until, facts, ground_*, automated_used</text><text x="1293" y="4940" class="cap">Решено 21.09.2026 (владелец)</text><text x="1293" y="4962" class="capm">1b «понятно» сворачивает блок в строку</text><text x="1293" y="4984" class="capm">  «Ограничений: N» наверху «Я» — кадр W;</text><text x="1293" y="5006" class="capm">  по нажатию мотивировка раскрывается снова</text><text x="1293" y="5028" class="capm">2a рамка --err, как нарисовано</text><text x="1293" y="5050" class="capm">3 основание — тип и текст: «закон:» /</text><text x="1293" y="5072" class="capm">  «условия:» из ground_kind, затем ground_text</text><text x="1293" y="5094" class="capm">4a у V «попросить человека» → экран 14</text><text x="1293" y="5116" class="capm">  с мотивировкой в обращении</text></svg>

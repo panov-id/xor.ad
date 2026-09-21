@@ -1257,7 +1257,7 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-house" transform="translate(0,0)"><path d="M14 26 L22 19 L30 26 L30 33 L14 33 Z" style="fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
 </g>
-<rect x="16" y="72" width="343" height="396" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2" />
+<rect x="16" y="72" width="343" height="414" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2" />
 <text x="30" y="102" class="k-body">Ваша фраза скрыта.</text>
 <text x="30" y="126" class="k-meta">«кто на набережную к девяти?»</text>
 <text x="30" y="160" class="k-mono">Что произошло</text>
@@ -1272,14 +1272,93 @@
 <text x="150" y="292" class="k-meta">применялась; решил</text>
 <text x="150" y="310" class="k-meta">человек</text>
 <text x="30" y="340" class="k-mono">Основание</text>
-<text x="150" y="340" class="k-meta">&lt;норма закона&gt;</text>
-<text x="30" y="370" class="k-mono">Что дальше</text>
-<text x="150" y="370" class="k-meta">ответить нам,</text>
-<text x="150" y="388" class="k-meta">координатор</text>
-<text x="150" y="406" class="k-meta">цифровых услуг, суд</text>
-<g data-kit="button-text" transform="translate(30,424)">
+<text x="150" y="340" class="k-meta">закон:</text>
+<text x="150" y="358" class="k-meta">&lt;норма закона&gt;</text>
+<text x="30" y="388" class="k-mono">Что дальше</text>
+<text x="150" y="388" class="k-meta">ответить нам,</text>
+<text x="150" y="406" class="k-meta">координатор</text>
+<text x="150" y="424" class="k-meta">цифровых услуг, суд</text>
+<g data-kit="button-text" transform="translate(30,442)">
   <rect width="120" height="44" rx="8" data-hit="44" style="fill:none" />
   <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">написать нам</text>
+</g>
+<g data-kit="button-text" transform="translate(266,442)">
+  <rect width="80" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">понятно</text>
+</g>
+<rect x="16" y="498" width="343" height="120" rx="13" style="fill:var(--panel)" />
+<text x="30" y="528" class="k-body">отдам две табуретки, заберите сегодня</text>
+<g data-kit="chip-outline" transform="translate(30,542)">
+  <rect class="k-chipr" x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
+  <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер</text>
+</g>
+<g data-kit="countdown" transform="translate(30,597)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">остаток 5 ч 12 мин</text>
+</g>
+<g data-kit="like" transform="translate(196,570)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  <g><text x="44" y="28" class="k-meta">1</text></g>
+</g>
+<g data-kit="button-text" transform="translate(290,570)">
+  <rect width="60" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">удалить</text>
+</g>
+<text x="16" y="650" class="k-mono">свободно 3 из 4</text>
+<g data-kit="row-setting" transform="translate(16,666)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Имя</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">Женя</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="tabbar" transform="translate(0,748)">
+  
+  <rect y="-12" width="375" height="12" style="fill:var(--bg)" />
+  <rect width="375" height="64" style="fill:var(--bg)" />
+  <rect width="375" height="1" style="fill:var(--border)" />
+  <g><g data-kit="icon-nav-feed" transform="translate(40.5,2)"><path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g><text x="62.5" y="54" text-anchor="middle" class="k-meta">Лента</text></g>
+  <g><g data-kit="icon-nav-chats" transform="translate(165.5,2)"><path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g><text x="187.5" y="54" text-anchor="middle" class="k-meta">Беседы</text></g>
+  <g><g data-kit="icon-nav-me" transform="translate(290.5,2)"><circle cx="22" cy="17" r="4.5" style="fill:none;stroke:var(--fg);stroke-width:2" /><path d="M13 31 C13 25 31 25 31 31" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round" /></g><text x="312.5" y="54" text-anchor="middle" class="k-meta-strong">Я</text><rect x="296.5" y="60" width="32" height="3" style="fill:var(--accent)" /></g>
+  <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
+  </g>
+</g></g>
+
+<g transform="translate(463,4910)" class="k-dark">
+<rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2" />
+<clipPath id="c4634910"><rect width="375" height="812" rx="13" /></clipPath><g clip-path="url(#c4634910)">
+<g data-kit="header-screen" transform="translate(0,0)">
+  <rect width="375" height="56" style="fill:var(--bg)" />
+  <g><text x="16" y="35" class="k-title k-head">Я</text></g>
+  <rect x="0" y="55" width="375" height="1" style="fill:var(--border)" />
+</g>
+<g data-kit="icon-button" transform="translate(315,6)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-house" transform="translate(0,0)"><path d="M14 26 L22 19 L30 26 L30 33 L14 33 Z" style="fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
+</g>
+<rect x="16" y="72" width="343" height="396" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2" />
+<text x="30" y="102" class="k-body">Ваша фраза скрыта.</text>
+<text x="30" y="126" class="k-meta">«кто на набережную к девяти?»</text>
+<text x="30" y="160" class="k-mono">Что произошло</text>
+<text x="150" y="160" class="k-meta">скрыта из ленты</text>
+<text x="150" y="178" class="k-meta">до 31 августа</text>
+<text x="30" y="208" class="k-mono">Почему</text>
+<text x="150" y="208" class="k-meta">жалобы от разных</text>
+<text x="150" y="226" class="k-meta">людей</text>
+<text x="30" y="256" class="k-mono">Как решали</text>
+<text x="150" y="256" class="k-meta">автоматически, по</text>
+<text x="150" y="274" class="k-meta">числу жалоб; решения</text>
+<text x="150" y="292" class="k-meta">человека не было</text>
+<text x="30" y="322" class="k-mono">Основание</text>
+<text x="150" y="322" class="k-meta">условия:</text>
+<text x="150" y="340" class="k-meta">&lt;пункт условий&gt;</text>
+<text x="30" y="370" class="k-mono">Что дальше</text>
+<text x="150" y="370" class="k-meta">напишите нам —</text>
+<text x="150" y="388" class="k-meta">посмотрит человек;</text>
+<text x="150" y="406" class="k-meta">координатор, суд</text>
+<g data-kit="button-text" transform="translate(30,424)">
+  <rect width="170" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">попросить человека</text>
 </g>
 <g data-kit="button-text" transform="translate(266,424)">
   <rect width="80" height="44" rx="8" data-hit="44" style="fill:none" />
@@ -1323,9 +1402,9 @@
   </g>
 </g></g>
 
-<g transform="translate(463,4910)" class="k-dark">
+<g transform="translate(878,4910)" class="k-dark">
 <rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2" />
-<clipPath id="c4634910"><rect width="375" height="812" rx="13" /></clipPath><g clip-path="url(#c4634910)">
+<clipPath id="c8784910w"><rect width="375" height="812" rx="13" /></clipPath><g clip-path="url(#c8784910w)">
 <g data-kit="header-screen" transform="translate(0,0)">
   <rect width="375" height="56" style="fill:var(--bg)" />
   <g><text x="16" y="35" class="k-title k-head">Я</text></g>
@@ -1335,53 +1414,48 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-house" transform="translate(0,0)"><path d="M14 26 L22 19 L30 26 L30 33 L14 33 Z" style="fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
 </g>
-<rect x="16" y="72" width="343" height="378" rx="13" style="fill:var(--panel);stroke:var(--err);stroke-width:2" />
-<text x="30" y="102" class="k-body">Ваша фраза скрыта.</text>
-<text x="30" y="126" class="k-meta">«кто на набережную к девяти?»</text>
-<text x="30" y="160" class="k-mono">Что произошло</text>
-<text x="150" y="160" class="k-meta">скрыта из ленты</text>
-<text x="150" y="178" class="k-meta">до 31 августа</text>
-<text x="30" y="208" class="k-mono">Почему</text>
-<text x="150" y="208" class="k-meta">жалобы от разных</text>
-<text x="150" y="226" class="k-meta">людей</text>
-<text x="30" y="256" class="k-mono">Как решали</text>
-<text x="150" y="256" class="k-meta">автоматически, по</text>
-<text x="150" y="274" class="k-meta">числу жалоб; решения</text>
-<text x="150" y="292" class="k-meta">человека не было</text>
-<text x="30" y="322" class="k-mono">Основание</text>
-<text x="150" y="322" class="k-meta">&lt;пункт условий&gt;</text>
-<text x="30" y="352" class="k-mono">Что дальше</text>
-<text x="150" y="352" class="k-meta">напишите нам —</text>
-<text x="150" y="370" class="k-meta">посмотрит человек;</text>
-<text x="150" y="388" class="k-meta">координатор, суд</text>
-<g data-kit="button-text" transform="translate(30,406)">
-  <rect width="170" height="44" rx="8" data-hit="44" style="fill:none" />
-  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">попросить человека</text>
+<g data-kit="row-setting" transform="translate(16,72)">
+  <rect width="343" height="48" data-hit="44" style="fill:none" />
+  <text x="0" y="30" class="k-body">Ограничений: 1</text>
+  <text x="311" y="30" text-anchor="end" class="k-meta">24 авг</text>
+  <g data-kit="icon-chevron-right" transform="translate(305,2)"><path d="M20 17 L25 22 L20 27" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
+  <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
 </g>
-<g data-kit="button-text" transform="translate(266,406)">
-  <rect width="80" height="44" rx="8" data-hit="44" style="fill:none" />
-  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">понятно</text>
+<circle cx="150" cy="96" r="4" style="fill:var(--err)" />
+<rect x="16" y="132" width="343" height="120" rx="13" style="fill:var(--panel)" />
+<text x="30" y="162" class="k-body">кто в субботу на рынок?</text>
+<text x="30" y="193" class="k-meta">фраза</text>
+<g data-kit="countdown" transform="translate(30,231)">
+  <text x="0" y="0" class="k-mono" style="fill:var(--muted)">остаток 2 ч 05 мин</text>
 </g>
-<rect x="16" y="462" width="343" height="120" rx="13" style="fill:var(--panel)" />
-<text x="30" y="492" class="k-body">отдам две табуретки, заберите сегодня</text>
-<g data-kit="chip-outline" transform="translate(30,506)">
+<g data-kit="like" transform="translate(196,204)">
+  <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
+  <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
+  </g>
+<g data-kit="button-text" transform="translate(290,204)">
+  <rect width="60" height="44" rx="8" data-hit="44" style="fill:none" />
+  <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">удалить</text>
+</g>
+<rect x="16" y="264" width="343" height="120" rx="13" style="fill:var(--panel)" />
+<text x="30" y="294" class="k-body">отдам две табуретки, заберите сегодня</text>
+<g data-kit="chip-outline" transform="translate(30,308)">
   <rect class="k-chipr" x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
   <text x="32" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--accent-text)">оффер</text>
 </g>
-<g data-kit="countdown" transform="translate(30,561)">
+<g data-kit="countdown" transform="translate(30,363)">
   <text x="0" y="0" class="k-mono" style="fill:var(--muted)">остаток 5 ч 12 мин</text>
 </g>
-<g data-kit="like" transform="translate(196,534)">
+<g data-kit="like" transform="translate(196,336)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">1</text></g>
 </g>
-<g data-kit="button-text" transform="translate(290,534)">
+<g data-kit="button-text" transform="translate(290,336)">
   <rect width="60" height="44" rx="8" data-hit="44" style="fill:none" />
   <text x="0" y="27" class="k-meta-strong" style="fill:var(--accent-text)">удалить</text>
 </g>
-<text x="16" y="614" class="k-mono">свободно 3 из 4</text>
-<g data-kit="row-setting" transform="translate(16,630)">
+<text x="16" y="416" class="k-mono">свободно 3 из 4</text>
+<g data-kit="row-setting" transform="translate(16,432)">
   <rect width="343" height="48" data-hit="44" style="fill:none" />
   <text x="0" y="30" class="k-body">Имя</text>
   <text x="311" y="30" text-anchor="end" class="k-meta">Женя</text>
@@ -1399,4 +1473,4 @@
   <g><circle cx="326" cy="12" r="4" style="fill:var(--accent)" /></g>
   </g>
 </g></g>
-<text x="48" y="5748" class="cap">U · «Я» — фраза скрыта, решал человек</text><text x="48" y="5768" class="capm">09 13 «мотивировка по ст. 17 целиком»:</text><text x="48" y="5785" class="capm">блок сверху, пять строк refusal-wordings §6;</text><text x="48" y="5802" class="capm">рамка --err отличает ограниченную от</text><text x="48" y="5819" class="capm">отклонённой; заявитель не назван никогда;</text><text x="48" y="5836" class="capm">основание — заглушка, как в самом §6</text><text x="463" y="5748" class="cap">V · «Я» — скрыта по порогу, автоматически</text><text x="463" y="5768" class="capm">§6, вторая строка «Как решали»: решения</text><text x="463" y="5785" class="capm">человека не было, путь к нему — первый;</text><text x="463" y="5802" class="capm">срок из until; кнопка → поддержка (14);</text><text x="463" y="5819" class="capm">все поля — из GET /statements: restriction,</text><text x="463" y="5836" class="capm">until, facts, ground_*, automated_used</text><text x="878" y="4940" class="cap">Вопросы к U и V</text><text x="878" y="4962" class="capm">1 «понятно»: (a) убирает блок с устройства навсегда</text><text x="878" y="4984" class="capm">  (b) сворачивает в строку «ограничений: 1» наверху «Я»</text><text x="878" y="5006" class="capm">  (c) кнопки нет — блок живёт, пока жива копия</text><text x="878" y="5028" class="capm">2 рамка: (a) --err, как нарисовано · (b) пунктир · (c) нет</text><text x="878" y="5050" class="capm">3 основание: (a) ground_text как есть</text><text x="878" y="5072" class="capm">  (b) плюс тип «закон» / «условия» (ground_kind)</text><text x="878" y="5094" class="capm">4 у V: (a) кнопка «попросить человека» → экран 14</text><text x="878" y="5116" class="capm">  (b) только текст, кнопка «написать нам» как у U</text></svg>
+<text x="48" y="5748" class="cap">U · «Я» — фраза скрыта, решал человек</text><text x="48" y="5768" class="capm">09 13 «мотивировка по ст. 17 целиком»:</text><text x="48" y="5785" class="capm">блок сверху, пять строк refusal-wordings §6;</text><text x="48" y="5802" class="capm">рамка --err отличает ограниченную от</text><text x="48" y="5819" class="capm">отклонённой; заявитель не назван никогда;</text><text x="48" y="5836" class="capm">основание — заглушка, как в самом §6</text><text x="878" y="5748" class="cap">W · «Я» — после «понятно» (решение 1b)</text><text x="878" y="5768" class="capm">блок свёрнут в строку «Ограничений: 1»</text><text x="878" y="5785" class="capm">с датой и точкой --err; нажатие</text><text x="878" y="5802" class="capm">раскрывает мотивировку снова — копия</text><text x="878" y="5819" class="capm">живёт на устройстве год (09 13)</text><text x="463" y="5748" class="cap">V · «Я» — скрыта по порогу, автоматически</text><text x="463" y="5768" class="capm">§6, вторая строка «Как решали»: решения</text><text x="463" y="5785" class="capm">человека не было, путь к нему — первый;</text><text x="463" y="5802" class="capm">срок из until; кнопка → поддержка (14);</text><text x="463" y="5819" class="capm">все поля — из GET /statements: restriction,</text><text x="463" y="5836" class="capm">until, facts, ground_*, automated_used</text><text x="1293" y="4940" class="cap">Решено 21.09.2026 (владелец)</text><text x="1293" y="4962" class="capm">1b «понятно» сворачивает блок в строку</text><text x="1293" y="4984" class="capm">  «Ограничений: N» наверху «Я» — кадр W;</text><text x="1293" y="5006" class="capm">  по нажатию мотивировка раскрывается снова</text><text x="1293" y="5028" class="capm">2a рамка --err, как нарисовано</text><text x="1293" y="5050" class="capm">3 основание — тип и текст: «закон:» /</text><text x="1293" y="5072" class="capm">  «условия:» из ground_kind, затем ground_text</text><text x="1293" y="5094" class="capm">4a у V «попросить человека» → экран 14</text><text x="1293" y="5116" class="capm">  с мотивировкой в обращении</text></svg>

@@ -29,3 +29,5 @@ date	kind	why	example
 2026-12-31	external.fact	дата закрытия чужого сервиса	neighbro.place/docs/00-mechanics_EN.md:408
 2026-07-26	document.stamp	дата снимка обзора многоарендности, а не выбора	xor.ad/docs/tenancy-review_RU.md:7
 2026-09-19	panel.date	дата панели «свежий глаз» по огоньку, на которую ссылается правило чипов в дизайн-системе (RU 19.09.2026, EN 2026-09-19); решение о чипах — часть решения «огонёк» 18.09.2026	xor.ad/docs/design-system-app_EN.md:172
+2026-09-22	document.stamp	дата постройки очереди модерации в строке шага 2 дорожной карты и в контракте, а не выбора	xor.ad/docs/roadmap_EN.md:112
+2026-02-16	external.fact	дата редакции 1.2 договора обработки у хостера, а не наше решение	xor.ad/docs/article-30-register_EN.md:292

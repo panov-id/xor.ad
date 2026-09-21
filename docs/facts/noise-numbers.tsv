@@ -102,3 +102,7 @@ value	unit	kind	why	example
 11	chars	prose.figure	сколько символов кита (<symbol>) добавила вторая версия кита, а не длина строки	xor.ad/docs/design-system-app_RU.md:344
 30	km	sample.data	вход теста: клетка QR дальше порога 25 км	xor.ad/docs/test-map_EN.md:460
 3009	bytes	measurement	замер 20.09.2026 на PostgreSQL 16.13: длина тела nonce-ответа, на котором видно, что pg_column_size меряет сжатую форму (59), а octet_length — тело	xor.ad/docs/chat_RU.md:1042
+400	bytes	measurement	сеть базы на длину фразы: пример байтовой длины текста, который графемный предел пропускает, а не предел	xor.ad/docs/chat_EN.md:1209
+600	bytes	measurement	то же место: вторая байтовая длина из примера широкой сети базы	xor.ad/docs/chat_EN.md:1209
+432	bytes	measurement	замер: 24 семейных эмодзи в байтах, на котором виден отказ байтового потолка	xor.ad/docs/open-work_EN.md:1582
+61	min	sample.data	вход теста границы срока первого ПИН: 61 минута — отказ, 59 — приём	xor.ad/docs/open-work_RU.md:1438

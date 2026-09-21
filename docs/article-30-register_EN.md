@@ -346,8 +346,9 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
       call goes by waitlist email through Resend — the "Waiting list" activity
       already covers it.
 - [ ] When creating new Bunny zones, check the region: it must be `DE`, no replicas.
-- [ ] Accept the Hetzner DPA in the Hetzner console and enter the date here and in
-      `vendors-dpa_EN.md` (LAW-5, 2026-09-15).
+- [x] Accept the Hetzner DPA in the Hetzner console and enter the date here and in
+      `vendors-dpa_EN.md` (LAW-5, 2026-09-15). Accepted 2026-09-21, version 1.2 —
+      the Hetzner row in the processors table above.
 - [ ] Measure the live `config.js` of both storefronts: `analyticsId` empty. Until
       then GA4 in production is NOT VERIFIED either way.
 - [ ] Download the executed copy of the Resend DPA from the dashboard.

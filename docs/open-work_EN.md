@@ -2215,7 +2215,7 @@ mistaken for a loss.
       locally was: the tree hash, its behaviour across history, its availability
       in a shallow clone, and that the YAML still parses.
 
-### P1. The age band gives away a teenager's exact age — open
+### P1. The age band gives away a teenager's exact age — decided 2026-09-21
 
 Review panel, 2026-09-21, security lens. The §8.3 band is symmetric: an author
 aged `a ≤ 20` is visible to a viewer aged `v` exactly when `|a − v| ≤ 2`
@@ -2240,8 +2240,16 @@ What to do about it is the owner's decision, not a one-line change:
   hour;
 - or stop admitting teenagers to the band at all.
 
-Until it is decided, the trilateration fix (`db/027`) closes half of this: a
-phrase's centre can no longer be recovered, its author's age still can.
+**Decided by the owner on 2026-09-21: the second path.** The band stays a
+precise promise, the price is written into protocol §4.2 in both languages, and
+the fan-out got expensive: reading the feed is `feed.read.hour`, 300 requests an
+hour per identity, and density is `feed.density.burst`, 100 an hour per identity
+(`relay/node/src/lib/rate_limit.ts`). Not by address: a fan-out of identities is
+what one address is used for, and a shared address is a household behind one
+router. The age is still computable — it now costs an order of magnitude more,
+and that is recorded as an accepted price rather than a closed hole. The
+trilateration fix (`db/027`) closed the other half: a phrase's centre can no
+longer be recovered.
 
 ### P2. The transfer window has no per-address limit — open
 

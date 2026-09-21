@@ -955,3 +955,34 @@ Deno.test("the visible boundary sits on the published centre, not the exact one"
   );
   assertEquals(card!.lat, published.lat, "the card printed a centre the query did not match on");
 });
+
+Deno.test("reading the feed is counted per identity, so a fan-out costs something", async () => {
+  // The owner's decision of 2026-09-21 on the panel's open item P1: the age
+  // band stays a precise promise, its price is written into §4.2, and the
+  // fan-out that turns the band into an exact age is made expensive. Counted
+  // per identity on purpose — the attack is several identities behind one
+  // address, and counting by address would refuse a household instead.
+  const { FEED_READ_LIMITS, reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+
+  const me = await author();
+  const neighbour = await author();
+  const ceiling = FEED_READ_LIMITS[0].max;
+
+  let refused: { status: number; headers: Headers } | null = null;
+  for (let i = 0; i < ceiling + 1; i++) {
+    const answer = await signedCall(me.pair.privateKey, me.session_id, "GET", feedUrl());
+    if (answer.status === 429) {
+      refused = answer;
+      break;
+    }
+    assertEquals(answer.status, 200, `read ${i} was refused with ${answer.status}`);
+  }
+  assert(refused, `${ceiling + 1} reads from one identity were all allowed`);
+  assert(refused!.headers.get("retry-after"), "the refusal did not say how long to wait");
+
+  // And the next identity is not paying for it: this is not an address bucket.
+  const other = await signedCall(neighbour.pair.privateKey, neighbour.session_id, "GET", feedUrl());
+  assertEquals(other.status, 200, "one identity's reading closed the feed for another");
+  reset();
+});

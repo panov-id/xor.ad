@@ -152,6 +152,31 @@ export const RECOVERY_CLAIM_LIMITS: Limit[] = [
 // twice, and the state route is polled for two minutes at most — ten an hour is
 // generous for both and thin for anything else. The node-wide brake is a
 // separate mechanism (lib/shared_misses.ts).
+// Reading the feed, counted per identity rather than per address — §3 keeps
+// both, and this is the one that matters here. The fan-out the review panel
+// described on 2026-09-21 (P1) uses several identities from one address on
+// purpose: the age band is symmetric, so the set of viewers who see a phrase
+// is [a-2, a+2] and its midpoint is the author's age. Per-address counting
+// would also refuse a household sharing a router, and would not touch the
+// attack at all.
+//
+// 300 an hour: a page is 30 cards, and a person working the feed hard opens
+// pages, changes the radius and comes back — a heavy hour of that is well
+// under this. A script bisecting a boundary is not. The number is the owner's
+// decision of 2026-09-21 by way of this comment; it lives in
+// docs/facts/limits.tsv as feed.read.hour.
+export const FEED_READ_LIMITS: Limit[] = [
+  { name: "feed-read", max: 300, windowMs: HOUR },
+];
+
+// The density handle answers a coarser question and gets its own number, which
+// the registry has had since 2026-09-15 and nothing enforced until now
+// (feed.density.burst): a hundred in a row is a density profile being taken,
+// not a person moving a slider.
+export const FEED_DENSITY_LIMITS: Limit[] = [
+  { name: "feed-density", max: 100, windowMs: HOUR },
+];
+
 export const TRANSFER_CLAIM_LIMITS: Limit[] = [
   { name: "transfer-claim", max: 60, windowMs: HOUR },
   { name: "transfer-claim-day", max: 200, windowMs: DAY },

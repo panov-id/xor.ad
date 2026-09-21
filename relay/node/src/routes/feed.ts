@@ -15,6 +15,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { refusalFor } from "../lib/feed_limits.ts";
 import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
@@ -204,6 +205,18 @@ interface FeedRow {
 async function deliver(req: Request, url: URL): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+
+  // Counted per identity, not per address (§3 keeps both, and the fan-out this
+  // closes is several identities behind one address — review panel 2026-09-21,
+  // open item feed.band.age.exact). Reading the feed had no limit of any kind
+  // until now, which is what made walking a boundary by bisection free.
+  const allowed = checkAll(FEED_READ_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    inc("relay_feed_total", { result: "rate_limited" });
+    return refuse("rate_limited", "too many reads of the feed", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
 
   const lat = Number(url.searchParams.get("lat"));
   const lon = Number(url.searchParams.get("lon"));
@@ -412,6 +425,17 @@ export function densityStep(count: number): string {
 async function density(req: Request, url: URL): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+
+  // The number the registry has carried since 2026-09-15 and nothing enforced:
+  // feed.density.burst, a hundred in a row being a density profile rather than
+  // a person. Per identity, for the same reason the feed's is.
+  const allowed = checkAll(FEED_DENSITY_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    inc("relay_feed_total", { result: "density_rate_limited" });
+    return refuse("rate_limited", "too many density questions", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
 
   const lat = Number(url.searchParams.get("lat"));
   const lon = Number(url.searchParams.get("lon"));

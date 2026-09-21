@@ -16,7 +16,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
+import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, CHAT_MESSAGE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -84,6 +84,9 @@ async function send(req: Request, chatId: string): Promise<Response> {
         WHERE chat_id = $1 AND identity = $2`,
       [chatId, me],
     );
+    // Heard by every node's room on commit (chat/relay.ts): the row is already
+    // written, so a socket that is not there loses nothing.
+    await run(`SELECT pg_notify('chat_message', $1)`, [`${chatId}:${localId}`]);
     inc("relay_chat_message_total", { result: "accepted" });
     return json({ local_id: localId, accepted: true }, 202, sunsetHeader());
   }).catch((error) => {
@@ -113,5 +116,37 @@ async function received(req: Request, chatId: string): Promise<Response> {
   return new Response(null, { status: 204, headers: sunsetHeader() });
 }
 
+// POST /chats/:id/ticket — a one-time ticket for the room's socket (protocol
+// §4.4): the browser's WebSocket carries no custom headers, so the signed call
+// buys a ticket and the socket spends it in Sec-WebSocket-Protocol.
+const TICKET_SECONDS = 30; // limits.tsv ticket.lifetime
+
+async function ticket(req: Request, chatId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
+  const raw = crypto.getRandomValues(new Uint8Array(32));
+  const token = bytesToBase64url(raw);
+  const issued = await transaction<Response>(async (run) => {
+    const [member] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM chat_participants
+        WHERE chat_id = $1 AND identity = $2 AND gone_at IS NULL`,
+      [chatId, caller.identityId],
+    );
+    if (member.n === 0) return refuse("not_found", "no such chat", 404);
+    await run(
+      `INSERT INTO socket_tickets (token_hash, session, chat, expires_at)
+       VALUES ($1, $2, $3, now() + interval '${TICKET_SECONDS} seconds')`,
+      [await sha256hex(new TextEncoder().encode(token)), caller.sessionId, chatId],
+    );
+    return json({ ticket: token, expires_in: TICKET_SECONDS }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "ticket failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return issued;
+}
+
+route("POST", "/chats/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/chats/:id/messages", (c) => send(c.req, c.params.id));
 route("POST", "/chats/:id/received", (c) => received(c.req, c.params.id));

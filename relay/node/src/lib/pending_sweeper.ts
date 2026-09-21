@@ -32,5 +32,8 @@ export async function sweepExpiredPending(): Promise<number> {
     if (took < BATCH) break;
   }
   if (total > 0) inc("relay_pending_swept_total", {}, total);
+  // Socket tickets past their thirty seconds (limits.tsv ticket.lifetime): a
+  // spent one is deleted on use, an unused one here.
+  await queryOrThrow(`DELETE FROM socket_tickets WHERE expires_at <= now()`);
   return total;
 }

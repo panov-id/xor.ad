@@ -65,6 +65,7 @@ pageview_daily	-	relay/node/db/001_control_state.sql	control
 pending_deliveries	docs/chat_RU.md:2300	relay/node/db/032_pending_deliveries.sql	product
 quota_counters	-	relay/node/db/001_control_state.sql	control
 schema_migrations	-	relay/node/db/001_control_state.sql	control
+socket_tickets	-	relay/node/db/033_socket_tickets.sql	product
 sessions	docs/chat_RU.md:1021	relay/node/db/022_identity_and_sessions.sql	product
 session_invites	-	relay/node/db/024_session_invites.sql	product
 table_games	docs/chat_RU.md:414	-	product

@@ -81,4 +81,6 @@ if [ "$status" -eq 0 ] && grep -qE "[1-9][0-9]* ignored" "$out"; then
   echo "tests were skipped — the live ones must run here" >&2; status=1
 fi
 rm -f "$out"
+# A failure against a live node is read in the node's own log first.
+if [ "$status" -ne 0 ]; then echo "── node log (tail) ──" >&2; docker logs "$node" 2>&1 | tail -30 >&2; fi
 exit "$status"

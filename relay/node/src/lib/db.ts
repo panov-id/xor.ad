@@ -157,6 +157,13 @@ export async function transaction<T>(
   }) as T;
 }
 
+// LISTEN on the pool's own connection (postgres.js keeps one aside for it).
+// The chat room waits on it for rows written by any node (chat/relay.ts).
+export async function listen(channel: string, onPayload: (payload: string) => void): Promise<void> {
+  if (!enabled()) return;
+  await ensurePool().listen(channel, onPayload);
+}
+
 export async function closePool(): Promise<void> {
   await pool?.end();
   pool = null;

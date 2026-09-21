@@ -50,7 +50,7 @@ const routes: Record<string, Handler> = {
   // headers, and a report that needed a key would be silenced by exactly the
   // kind of policy error it exists to describe.
   "POST /csp-report": (req) => cspReport(req),
-  "GET /chat": (req) => relayUpgrade(req), // placeholder, returns 501
+  "GET /chat": (req) => relayUpgrade(req), // the chat room: a ticket, then frames (protocol §4.4)
 };
 
 assertConfig();
@@ -124,6 +124,10 @@ Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
     log("info", "request", { route, status: res.status, ms, req_id: reqId });
   }
 
+  // A WebSocket upgrade (101) is handed back untouched: its headers are
+  // immutable, and setting one threw and broke the upgrade — found by the depth
+  // core's socket test on 2026-09-21, the first request of its kind here.
+  if (res.status === 101) return res;
   res.headers.set("x-request-id", reqId);
   for (const [k, v] of Object.entries(corsHeaders(origin))) res.headers.set(k, v);
   // The body is dropped, the headers are kept: RFC 9110 asks a HEAD response to

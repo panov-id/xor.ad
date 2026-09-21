@@ -1840,7 +1840,8 @@ paths:
       tags: [chat]
       summary: A one-time ticket for the socket
       x-summary-ru: Одноразовый билет для сокета
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
       description: The ticket goes in Sec-WebSocket-Protocol, not the query string (protocol §4.4).
       x-description-ru: Билет идёт в Sec-WebSocket-Protocol, а не в строку запроса (протокол §4.4).
@@ -1854,7 +1855,8 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The ticket., x-description-ru: Билет.}
+        "200": {description: "The ticket, for Sec-WebSocket-Protocol on GET /chat; spent on use, dead after expires_in seconds (ticket.lifetime).", x-description-ru: "Билет для Sec-WebSocket-Protocol на GET /chat; гасится при использовании, умирает через expires_in секунд (ticket.lifetime).", content: {application/json: {schema: {type: object, required: [ticket, expires_in], properties: {ticket: {type: string}, expires_in: {type: integer}}}}}}
+        "404": {description: "Not the caller's chat, or it is over.", x-description-ru: "Не беседа звонящего либо она кончилась."}
   /chats/alive:
     post:
       tags: [chat]

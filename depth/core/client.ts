@@ -167,4 +167,69 @@ export class Client {
   undoDecline(matchId: string): Promise<Answer> {
     return this.#call("DELETE", `/matches/${matchId}/decline`);
   }
+
+  // POST /chats/:id/messages — a ciphertext (base64url) under a local_id the
+  // sender keeps; 202 {local_id, accepted} whoever is on the other end (§8.8).
+  sendMessage(chatId: string, localId: string, ciphertext: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }>> {
+    return this.#call("POST", `/chats/${chatId}/messages`, { local_id: localId, ciphertext });
+  }
+
+  received(chatId: string, ids: string[]): Promise<Answer> {
+    return this.#call("POST", `/chats/${chatId}/received`, { ids });
+  }
+
+  // POST /chats/:id/ticket — one ticket, one socket, thirty seconds.
+  async ticket(chatId: string): Promise<string> {
+    const answer = await this.#call<{ ticket: string }>("POST", `/chats/${chatId}/ticket`);
+    if (answer.status !== 200) throw new Error(`no ticket: ${answer.status} ${JSON.stringify(answer.body)}`);
+    return answer.body.ticket;
+  }
+
+  async openRoom(chatId: string): Promise<Room> {
+    return await this.openRoomWith(await this.ticket(chatId));
+  }
+
+  // The ticket rides in Sec-WebSocket-Protocol, never in the query (protocol §4.4).
+  openRoomWith(ticket: string): Promise<Room> {
+    const url = new URL("/chat", this.base);
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+    return Promise.resolve(new Room(new WebSocket(url, [ticket])));
+  }
+}
+
+export interface Frame {
+  type: string;
+  seq: number;
+  data: unknown;
+}
+
+// The frames of one socket, in order, taken one at a time; `closed` resolves to
+// the close code, so a refused ticket (4001) can be told from a dropped line.
+export class Room {
+  #waiting: Array<(f: Frame) => void> = [];
+  #frames: Frame[] = [];
+  readonly closed: Promise<number>;
+
+  constructor(private readonly socket: WebSocket) {
+    socket.onmessage = (e) => {
+      const f = JSON.parse(String(e.data)) as Frame;
+      const next = this.#waiting.shift();
+      if (next) next(f);
+      else this.#frames.push(f);
+    };
+    this.closed = new Promise((resolve) => (socket.onclose = (e) => resolve(e.code)));
+  }
+
+  next(timeoutMs = 5000): Promise<Frame> {
+    const ready = this.#frames.shift();
+    if (ready) return Promise.resolve(ready);
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("no frame within the time")), timeoutMs);
+      this.#waiting.push((f) => { clearTimeout(timer); resolve(f); });
+    });
+  }
+
+  close(): void {
+    this.socket.close(1000);
+  }
 }

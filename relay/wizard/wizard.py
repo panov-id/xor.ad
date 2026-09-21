@@ -701,6 +701,18 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
                           f"BACKUP_STORAGE_ZONE={os.environ.get('BACKUP_STORAGE_ZONE', '')}\n"
                           f"BACKUP_STORAGE_KEY={os.environ.get('BACKUP_STORAGE_KEY', '')}\n"
                           f"BACKUP_STORAGE_HOST={os.environ.get('BACKUP_STORAGE_HOST', '')}\n"
+                          # The public half of the backup key, base64 of a PEM on
+                          # one line. With it the dump is encrypted before it
+                          # leaves the node and the box cannot read it back —
+                          # which is the property worth having, since whoever
+                          # takes the box would otherwise take the backups too.
+                          # The private half is made by
+                          # relay/wizard/new-backup-key.sh and must never appear
+                          # here. Empty means the dump goes out in the clear and
+                          # the script says so every night (added 2026-09-21,
+                          # after the Hetzner DPA put encryption of backups at
+                          # rest on us).
+                          f"BACKUP_PUBLIC_KEY={os.environ.get('BACKUP_PUBLIC_KEY', '')}\n"
                           f"POSTGRES_PASSWORD={os.environ.get('POSTGRES_PASSWORD', '')}\n"
                           # Quoted: the file is sourced by bash, and a bare
                           # "relay_dev relay_staging" would run the second word.

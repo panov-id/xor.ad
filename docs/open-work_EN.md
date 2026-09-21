@@ -2294,5 +2294,18 @@ What to do about it:
 - and a restore drill, without fail: a backup nobody has restored is not a
   backup (`backup-postgres.sh:51` already says the same thing).
 
-Until it is done, the Article 30 record says plainly against Hetzner that
-encryption at rest is ours rather than theirs.
+**The mechanism was built on 2026-09-21; production has no key yet.**
+`relay/wizard/backup-postgres.sh` encrypts the dump before it leaves the node
+whenever `backup.env` carries `BACKUP_PUBLIC_KEY`: a random key for the dump,
+that key sealed under the public half, and `<stamp>.key.enc` sent beside it.
+`relay/wizard/new-backup-key.sh` makes the pair, and the private half never
+reaches the box — on the box it would protect nothing. Without a key the backup
+still happens and the script says so on stderr: a nightly backup that stopped is
+worse than one that is visibly weak. `scripts/test_backup-encryption.sh`
+encrypts and decrypts on every run, compares byte for byte, and checks that a
+stranger's private half does not open it.
+
+What is left is the **owner's action**: make the pair, put the public half in
+`backup.env` on the boxes and the private half in a password manager. Until
+then the Article 30 record says plainly against Hetzner that encryption at rest
+is ours rather than theirs.

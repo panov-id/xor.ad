@@ -69,13 +69,58 @@ for database in ${DATABASES}; do
     continue
   fi
 
+  # Encryption before the dump leaves the node, when there is a public key to do
+  # it with. The Hetzner DPA (TOM appendix, p. 20) puts encryption of backups at
+  # rest on us, and this dump is the whole database: names, ages, vault key
+  # shares, the emails of Article 16 notifiers, the panel's audit log. It goes
+  # to a third party's storage, so a leaked storage key used to hand over
+  # everything.
+  #
+  # Hybrid, and deliberately: a random key for the data, the public key for that
+  # random key. RSA cannot encrypt a gigabyte and AES cannot be given a key the
+  # box does not hold — this is the usual way out of both. The box can write
+  # backups and cannot read them, which is the property that makes it worth
+  # doing at all (relay/wizard/new-backup-key.sh).
+  remote="${stamp}.sql.gz"
+  type="application/gzip"
+  if [ -n "${BACKUP_PUBLIC_KEY:-}" ]; then
+    pub="$(mktemp)"; datakey="$(mktemp)"; sealed="$(mktemp)"
+    printf '%s' "${BACKUP_PUBLIC_KEY}" | base64 -d > "${pub}"
+    # Both halves of the AES parameters, one per line, so the restore reads them
+    # with `sed -n 1p` and `sed -n 2p` and nothing has to be parsed.
+    printf '%s\n%s\n' "$(openssl rand -hex 32)" "$(openssl rand -hex 16)" > "${datakey}"
+    openssl enc -aes-256-cbc \
+      -K "$(sed -n 1p "${datakey}")" -iv "$(sed -n 2p "${datakey}")" \
+      -in "${file}" -out "${file}.enc"
+    openssl pkeyutl -encrypt -pubin -inkey "${pub}" \
+      -pkeyopt rsa_padding_mode:oaep -in "${datakey}" -out "${sealed}"
+
+    curl -fsS -X PUT -H "AccessKey: ${key}" \
+      -H "Content-Type: application/octet-stream" \
+      --data-binary "@${sealed}" \
+      "https://${host}/${zone}/backups/${environment}/postgres/${stamp}.key.enc" \
+      >/dev/null
+
+    shred -u "${datakey}" 2>/dev/null || rm -f "${datakey}"
+    rm -f "${pub}" "${sealed}" "${file}"
+    file="${file}.enc"
+    remote="${stamp}.sql.gz.enc"
+    type="application/octet-stream"
+    size="$(stat -c %s "${file}")"
+  else
+    echo "WARNING: BACKUP_PUBLIC_KEY is not set — the dump goes to storage in the" >&2
+    echo "         clear, and it is the whole database. Encryption of backups at" >&2
+    echo "         rest is ours under the Art. 28 agreement, not the provider's." >&2
+    echo "         Make a key with relay/wizard/new-backup-key.sh." >&2
+  fi
+
   curl -fsS -X PUT \
     -H "AccessKey: ${key}" \
-    -H "Content-Type: application/gzip" \
+    -H "Content-Type: ${type}" \
     --data-binary "@${file}" \
-    "https://${host}/${zone}/backups/${environment}/postgres/${stamp}.sql.gz" \
+    "https://${host}/${zone}/backups/${environment}/postgres/${remote}" \
     >/dev/null
-  echo "uploaded ${database} (${size} bytes) as ${stamp}.sql.gz"
+  echo "uploaded ${database} (${size} bytes) as ${remote}"
   rm -f "${file}"
 
   # Retention runs after a successful upload, never before: losing old dumps

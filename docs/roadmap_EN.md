@@ -134,10 +134,8 @@ Chat code was cleared by the owner's word on 2026-09-21.
 ## 5. Review panel leftovers, 2026-09-21
 
 The first panel (`PANEL_2026-09-21_steps1-2.md`) is closed in full. The second
-(`PANEL_2026-09-21_day-fixes.md`) — 9 of 10 tasks: task 7 closed by
-`6dd62de`, task 8 by `ae65510` (2026-09-21). Open:
-
-- [ ] 5 — the `FeedPublishesNothing` alert and a promtool test in the gates.
+(`PANEL_2026-09-21_day-fixes.md`) is closed in full on 2026-09-21: task 7 by
+`6dd62de`, 8 by `ae65510`, 5 by `2bde94b`.
 
 ## Open questions
 

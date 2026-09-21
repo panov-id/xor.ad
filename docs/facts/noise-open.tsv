@@ -19,7 +19,7 @@
 file	count	kind	why
 xor.ad/docs/offers/CHECKLIST_RU.md	38	checklist.own	чеклист офферов ведёт свою работу сам; в реестр идут только развилки из него
 xor.ad/docs/panel-refactor_RU.md	23	checklist.own	план рефакторинга панели: пункты — шаги работы, а не открытые вопросы
-xor.ad/docs/roadmap_RU.md	13	checklist.own	снимок уровня выше трекера (переписан 21.09.2026): его пункты ведутся в open-work и open.tsv, здесь они сведены для обзора по слоям
+xor.ad/docs/roadmap_RU.md	12	checklist.own	снимок уровня выше трекера (переписан 21.09.2026): его пункты ведутся в open-work и open.tsv, здесь они сведены для обзора по слоям
 xor.ad/docs/app-ui-notes_RU.md	16	checklist.own	заметки по интерфейсу: пункты правятся вместе с экранами
 xor.ad/docs/legal-archive/bunny-dpa_RU.md	3	external	пункты разбора чужого договора, наша сторона их не закрывает
 xor.ad/docs/article-30-register_RU.md	3	checklist.own	реестр обработки ведёт свои пункты сам, срок ежегодной сверки — в open.tsv

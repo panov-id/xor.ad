@@ -47,3 +47,29 @@ tests:
       - eval_time: 150m
         alertname: FeedPublishesNothing
         exp_alerts: []
+
+  - name: likes that cannot be written raise LikesCannotWrite
+    interval: 1m
+    input_series:
+      - series: 'relay_like_total{result="storage_failed"}'
+        values: '0+1x60'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: LikesCannotWrite
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Лайки не записываются"
+              description: "Десять минут подряд лайк или его снятие отвечают 503: узел не может писать в базу. Люди видят, что лайк не поставился."
+
+  - name: likes that are written are not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_like_total{result="liked"}'
+        values: '0+5x60'
+      - series: 'relay_like_total{result="storage_failed"}'
+        values: '0x60'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: LikesCannotWrite
+        exp_alerts: []

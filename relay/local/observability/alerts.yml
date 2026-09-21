@@ -136,6 +136,20 @@ groups:
           summary: "Лента принимает фразы и не публикует ни одной"
           description: "За час ни одного published и хотя бы один expired_unread: очередь есть, вердиктов нет. Пока модератора нет (§8.14), это ожидаемо — тревога существует, чтобы ожидаемое не спуталось с поломкой в тот день, когда модератор появится."
 
+      # Likes that the node could not write. Each is a person's like that came
+      # back 503, and a stream of them is the database, not the people: the
+      # likes review panel (2026-09-21) found the counter emitted and read by
+      # nothing. `or vector(0)` on both sides for the reason FeedPublishesNothing
+      # gives — a series that has never been written is empty, not zero.
+      - alert: LikesCannotWrite
+        expr: (sum(rate(relay_like_total{result="storage_failed"}[10m])) or vector(0))
+              + (sum(rate(relay_unlike_total{result="storage_failed"}[10m])) or vector(0)) > 0
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Лайки не записываются"
+          description: "Десять минут подряд лайк или его снятие отвечают 503: узел не может писать в базу. Люди видят, что лайк не поставился."
+
       # A stolen signing key being walked through PINs at the transfer window.
       # Until 2026-09-21 that cost nothing at all; now it spends attempts, and
       # the counter is what makes the attempt visible. A handful of wrong PINs

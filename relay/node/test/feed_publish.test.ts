@@ -1688,3 +1688,35 @@ Deno.test({
     reset();
   },
 });
+
+Deno.test("an expired match is swept with its snapshots, a live one is not", async () => {
+  // Likes review panel, 2026-09-21: nothing swept matches, and each expired row
+  // kept two snapshots of other people's phrases with no term at all.
+  const { sweepExpiredMatches } = await import("../src/lib/match_sweeper.ts");
+  const a = await author();
+  const b = await author();
+  const make = async (interval: string) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO matches (id, pair_key, expires_at) VALUES ($1, $2, now() + $3::interval)`,
+      [id, `sweep-${id}`, interval],
+    );
+    for (const who of [a.identity_id, b.identity_id]) {
+      await database.queryOrThrow(
+        `INSERT INTO match_participants (match_id, identity, message_id, text_snapshot, mode)
+         VALUES ($1, $2, $3, 'снимок чужой фразы', 'alone')`,
+        [id, who, crypto.randomUUID()],
+      );
+    }
+    return id;
+  };
+  const dead = await make("-1 minute");
+  const alive = await make("1 hour");
+  const swept = await sweepExpiredMatches();
+  assert(swept >= 1, "the sweep reported nothing swept");
+  const left = await database.queryOrThrow<{ match_id: string }>(
+    `SELECT match_id FROM match_participants WHERE match_id = ANY($1::uuid[])`, [[dead, alive]],
+  );
+  assertEquals(left.filter((r) => r.match_id === dead).length, 0, "an expired match kept its snapshots");
+  assertEquals(left.filter((r) => r.match_id === alive).length, 2, "a live match lost its participants");
+});

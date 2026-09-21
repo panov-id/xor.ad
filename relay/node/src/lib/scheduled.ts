@@ -20,6 +20,7 @@ import { pruneObjects } from "../../tools/prune_objects.ts";
 import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
+import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
@@ -70,6 +71,10 @@ export const SWEEP_FEED_QUEUE = "sweep_feed_queue";
 // ended, and one job reporting both would report one number for two unrelated
 // facts.
 export const SWEEP_FEED_EXPIRED = "sweep_feed_expired";
+// Matches whose term ran out, with their snapshots of other people's phrases
+// (§8.5). Every minute, like the phrases they were made of: a snapshot that
+// outlives the phrase by an hour is text nobody may read for an hour.
+export const SWEEP_MATCHES = "sweep_matches";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -166,6 +171,11 @@ export function registerScheduledJobs(): void {
     // what people see — but a table that only shrinks once an hour is a table
     // that holds text nobody may read for an hour.
     await sweepExpiredPhrases();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
+  handle(SWEEP_MATCHES, async () => {
+    await sweepExpiredMatches();
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
@@ -268,4 +278,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));
 }

@@ -2220,7 +2220,7 @@ mistaken for a loss.
 Review panel, 2026-09-21, security lens. The §8.3 band is symmetric: an author
 aged `a ≤ 20` is visible to a viewer aged `v` exactly when `|a − v| ≤ 2`
 (`relay/node/src/lib/feed_geo.ts:80-93`, and the same arithmetic in SQL at
-`relay/node/src/routes/feed.ts:251-259`). So the set of viewers who see a
+`relay/node/src/routes/feed.ts`, the `bandSql` of `deliver()`). So the set of viewers who see a
 phrase is the interval `[a−2, a+2]`, and its midpoint is `a`. Five identities
 aged 13…22 — half of the hourly ceiling from one address
 (`relay/node/src/lib/rate_limit.ts:137-140`) — narrow the author's age to the
@@ -2265,7 +2265,7 @@ into it — never invented on the spot.
 Review panel, 2026-09-21, protocols lens. `GET /statements` answers with a
 hundred rows and has no cursor, in the code
 (`relay/node/src/routes/statements.ts:53-60`) or in the contract
-(`docs/api/openapi.yaml:2723-2742`). Since 2026-09-21 the delivery mark is
+(`docs/api/openapi.yaml`, the `/statements` path). Since 2026-09-21 the delivery mark is
 written only for the rows that went out, so there is no false record of
 delivery any more — but an author with a hundred and one statements will never
 see the hundred and first. Either an `after` cursor, as the feed has, or a

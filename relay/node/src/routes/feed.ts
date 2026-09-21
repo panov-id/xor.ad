@@ -209,7 +209,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
 
   // Counted per identity, not per address (§3 keeps both, and the fan-out this
   // closes is several identities behind one address — review panel 2026-09-21,
-  // open item feed.band.age.exact). Reading the feed had no limit of any kind
+  // open-work P1, decided 2026-09-21). Reading the feed had no limit of any kind
   // until now, which is what made walking a boundary by bisection free.
   const allowed = checkAll(FEED_READ_LIMITS, caller.identityId);
   if (!allowed.allowed) {

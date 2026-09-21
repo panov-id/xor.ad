@@ -21,6 +21,7 @@ import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
+import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
@@ -75,6 +76,9 @@ export const SWEEP_FEED_EXPIRED = "sweep_feed_expired";
 // (§8.5). Every minute, like the phrases they were made of: a snapshot that
 // outlives the phrase by an hour is text nobody may read for an hour.
 export const SWEEP_MATCHES = "sweep_matches";
+// Queued chat messages past chat.pending.ttl (§8.8). Every minute: the term is
+// counted in minutes and the rows are ciphertext held for someone else.
+export const SWEEP_PENDING = "sweep_pending";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -171,6 +175,11 @@ export function registerScheduledJobs(): void {
     // what people see — but a table that only shrinks once an hour is a table
     // that holds text nobody may read for an hour.
     await sweepExpiredPhrases();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
+  handle(SWEEP_PENDING, async () => {
+    await sweepExpiredPending();
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
@@ -279,4 +288,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(SWEEP_PENDING, {}, new Date(Date.now() + A_MINUTE_MS));
 }

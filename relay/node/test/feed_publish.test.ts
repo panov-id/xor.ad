@@ -1894,3 +1894,47 @@ Deno.test({
     assertEquals(big.status, 400, "a ciphertext over chat.ciphertext.bytes was taken");
   },
 });
+
+Deno.test({
+  name: "the queue keeps two hundred and pushes out the oldest in silence",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // limits.tsv chat.pending.max; §8.8: "overflow pushes out the oldest in
+    // silence" — a refusal would again say "they have been gone a long time".
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    const { a, b, chat } = await openChat();
+    const first = crypto.randomUUID();
+    const send = (id: string) =>
+      signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: id, ciphertext: ciphertext(16) });
+    reset();
+    assertEquals((await send(first)).status, 202);
+    for (let i = 0; i < 200; i++) {
+      if (i % 50 === 0) reset();
+      const r = await send(crypto.randomUUID());
+      assertEquals(r.body, { local_id: (r.body as { local_id: string }).local_id, accepted: true }, `message ${i + 2} was answered differently`);
+    }
+    const left = await queued(chat, b.session_id);
+    assertEquals(left.length, 200, `the queue holds ${left.length}`);
+    assert(!left.includes(first), "the oldest message was not the one pushed out");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a queued message older than its term is swept, a fresh one is not",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { sweepExpiredPending } = await import("../src/lib/pending_sweeper.ts");
+    const { a, b, chat } = await openChat();
+    const [old, fresh] = [crypto.randomUUID(), crypto.randomUUID()];
+    for (const id of [old, fresh]) {
+      await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: id, ciphertext: ciphertext() });
+    }
+    await database.queryOrThrow(
+      `UPDATE pending_deliveries SET created_at = now() - interval '261 minutes' WHERE local_id = $1`, [old]);
+    await sweepExpiredPending();
+    assertEquals(await queued(chat, b.session_id), [fresh], "the sweep took the wrong rows");
+  },
+});

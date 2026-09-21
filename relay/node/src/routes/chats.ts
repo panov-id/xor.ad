@@ -8,9 +8,9 @@
 // POST /chats/:id/received deletes the caller's own rows; ids that are not the
 // caller's are skipped in silence (SEC-19).
 //
-// Not here yet: the socket that hands a row over as it is written (the ticket
-// and chat/relay.ts), the queue's ceiling of chat.pending.max and its term of
-// chat.pending.ttl — the next pieces of step 5.
+// The queue keeps chat.pending.max per (chat, recipient) — enforced here — and
+// lives chat.pending.ttl — lib/pending_sweeper.ts. Not here yet: the socket
+// that hands a row over as it is written (the ticket and chat/relay.ts).
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
@@ -25,6 +25,7 @@ const UUID = /^[0-9a-fA-F-]{36}$/;
 // limits.tsv chat.ciphertext.bytes: the base64url text, not the bytes under it —
 // 256 emoji sealed and encoded come to 1404 (§8.6).
 const CIPHERTEXT_MAX = 2048;
+const PENDING_MAX = 200; // limits.tsv chat.pending.max
 
 async function send(req: Request, chatId: string): Promise<Response> {
   const caller = await callerOf(req);
@@ -63,6 +64,19 @@ async function send(req: Request, chatId: string): Promise<Response> {
         WHERE p.chat_id = $1 AND p.identity <> $2 AND p.gone_at IS NULL
        ON CONFLICT DO NOTHING`,
       [chatId, me, localId, sealed],
+    );
+    // limits.tsv chat.pending.max: two hundred per (chat, recipient); past that
+    // the oldest goes, in silence (§8.8) — a refusal would say "long gone".
+    await run(
+      `DELETE FROM pending_deliveries d
+        WHERE d.chat = $1
+          AND (d.recipient_session, d.local_id) IN (
+            SELECT recipient_session, local_id FROM (
+              SELECT recipient_session, local_id,
+                     row_number() OVER (PARTITION BY recipient_session ORDER BY created_at DESC, local_id DESC) AS n
+                FROM pending_deliveries WHERE chat = $1
+            ) ranked WHERE n > ${PENDING_MAX})`,
+      [chatId],
     );
     await run(`UPDATE chats SET last_activity_at = now() WHERE id = $1`, [chatId]);
     await run(

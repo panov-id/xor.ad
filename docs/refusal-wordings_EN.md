@@ -183,10 +183,17 @@ Your phrase has been hidden.
 What happened   hidden from the feed, 24 August
 Why             a decision on a notice of illegal content
 How decided     no automated check was used; a person decided
-Grounds         <the legal provision or the clause of the terms>
+Grounds         law: <provision>  or  terms: <clause>
 What next       reply to us, contact the Digital Services Coordinator,
                 go to court
 ```
+
+**The ground carries its type, owner's decision of 2026-09-21.** "law:" or
+"terms:" from `ground_kind`, then `ground_text`: Art. 17(3)(d) and (e) tell
+these two cases apart, and the author must see which one is theirs. Under the
+statement sits "got it", which collapses it into a "Restrictions: N" row at
+the top of "Me" rather than erasing it (screen 9 of the storefronts; frames
+U, V, W of the sheet `panel/design/sheets/screen-06-07-10.svg`).
 
 **The "How decided" line is two lines, not one — amended 2026-09-04 after the
 review panel.** A single variant stood here, "no automated check was used; a person

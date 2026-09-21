@@ -26,7 +26,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { clientAddress } from "../lib/client_ip.ts";
-import { checkAll, TRANSFER_CLAIM_LIMITS } from "../lib/rate_limit.ts";
+import { checkAll, TRANSFER_CLAIM_LIMITS, TRANSFER_INVITE_LIMITS } from "../lib/rate_limit.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkPin } from "../lib/pin_attempts.ts";
 import { base64urlToBytes, bytesToBase64url, importSignPublicKey, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
@@ -76,6 +76,17 @@ function stateOf(invite: InviteRow, now = Date.now()): string {
 async function createInvite(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+
+  // After the signature, before the PIN: an unsigned flood is refused by
+  // callerOf without spending this address's allowance, and a signed one stops
+  // here without spending anybody's attempt.
+  const verdict = checkAll(TRANSFER_INVITE_LIMITS, clientAddress(req).ip);
+  if (!verdict.allowed) {
+    inc("relay_transfer_total", { result: "address_limited" });
+    return refuse("rate_limited", "too many transfer windows from this address", 429, {}, {
+      "retry-after": String(verdict.retryAfterSeconds),
+    });
+  }
 
   const body = await readJson<{ lookup_id?: unknown; auth?: unknown }>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);

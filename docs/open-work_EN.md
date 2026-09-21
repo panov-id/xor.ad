@@ -2251,7 +2251,15 @@ and that is recorded as an accepted price rather than a closed hole. The
 trilateration fix (`db/027`) closed the other half: a phrase's centre can no
 longer be recovered.
 
-### P2. The transfer window has no per-address limit — open
+### P2. The transfer window has no per-address limit — closed 2026-09-21
+
+**Closed 2026-09-21:** `POST /sessions/invite` checks a per-address limit
+after the signature and before the PIN — `transfer.invite.hour` 10 and
+`transfer.invite.day` 30 (`docs/facts/limits.tsv`), the paper code's numbers:
+the same kind of act, one a person does once or twice. The test "opening
+transfer windows is limited per address" opens ten windows from one address,
+the eleventh gets 429, another address passes; it was red before the change.
+
 
 Same panel. `POST /sessions/invite` now spends a PIN attempt through the shared
 counter (`relay/node/src/lib/pin_attempts.ts`), but the route has no limit of

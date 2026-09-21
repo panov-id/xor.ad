@@ -87,7 +87,9 @@ async function call(method: string, path: string, init: {
   return { status: response.status, body: text ? JSON.parse(text) : null, headers: response.headers };
 }
 
-async function signedCall(key: CryptoKey, sessionId: string, method: string, path: string, body?: unknown) {
+async function signedCall(
+  key: CryptoKey, sessionId: string, method: string, path: string, body?: unknown, address?: string,
+) {
   const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
   const time = Math.floor(Date.now() / 1000);
   // The same URL `call` will build, because the signature covers the authority
@@ -106,6 +108,7 @@ async function signedCall(key: CryptoKey, sessionId: string, method: string, pat
   );
   return await call(method, path, {
     body,
+    address,
     headers: {
       "x-identity-session": sessionId,
       "x-identity-time": String(time),
@@ -381,4 +384,33 @@ Deno.test("guessing the PIN at the transfer window costs what guessing costs", a
   });
   assertEquals(early.status, 429, JSON.stringify(early.body));
   assert(early.headers.get("retry-after"), "the delay was not given as a header");
+});
+
+Deno.test("opening transfer windows is limited per address, as typing a code is", async () => {
+  // Open-work P2. The window spends a PIN attempt against its own device, but
+  // that counter is per device: an address with many stolen signing keys could
+  // open windows without end. The paper code's numbers, because the act is the
+  // same kind — a person does it once or twice (limits.tsv transfer.invite.*).
+  const address = "203.0.113.77";
+  const old = await device_with_identity();
+  for (let i = 0; i < 10; i++) {
+    const open = await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite", {
+      lookup_id: lookup(),
+      ...proof(PIN),
+    }, address);
+    assertEquals(open.status, 200, `window ${i + 1} of 10 was refused: ${JSON.stringify(open.body)}`);
+  }
+  const eleventh = await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite", {
+    lookup_id: lookup(),
+    ...proof(PIN),
+  }, address);
+  assertEquals(eleventh.status, 429, `the eleventh window in an hour opened: ${JSON.stringify(eleventh.body)}`);
+  assert(eleventh.headers.get("retry-after"), "the limit did not say when to come back");
+
+  // Another address is not held up by this one.
+  const elsewhere = await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite", {
+    lookup_id: lookup(),
+    ...proof(PIN),
+  });
+  assertEquals(elsewhere.status, 200, "one address's limit closed the route for another");
 });

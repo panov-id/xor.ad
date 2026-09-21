@@ -177,6 +177,15 @@ export const FEED_DENSITY_LIMITS: Limit[] = [
   { name: "feed-density", max: 100, windowMs: HOUR },
 ];
 
+// Opening a transfer window. The PIN counter behind it is per device, so an
+// address holding many stolen signing keys could open windows without end
+// (open-work P2). The paper code's numbers, because it is the same kind of act:
+// a person does it once or twice. limits.tsv transfer.invite.hour / .day.
+export const TRANSFER_INVITE_LIMITS: Limit[] = [
+  { name: "transfer-invite", max: 10, windowMs: HOUR },
+  { name: "transfer-invite-day", max: 30, windowMs: DAY },
+];
+
 export const TRANSFER_CLAIM_LIMITS: Limit[] = [
   { name: "transfer-claim", max: 60, windowMs: HOUR },
   { name: "transfer-claim-day", max: 200, windowMs: DAY },

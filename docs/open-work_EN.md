@@ -2270,3 +2270,29 @@ written only for the rows that went out, so there is no false record of
 delivery any more — but an author with a hundred and one statements will never
 see the hundred and first. Either an `after` cursor, as the feed has, or a
 written decision that a hundred is enough, with its reason.
+
+### P4. Database backups are not encrypted — open
+
+The Hetzner DPA accepted on 2026-09-21 marks, in its TOM appendix (p. 20),
+"Encryption of Data (at rest)" and "Encryption of Backups (at rest)" as the
+**Client's responsibility** — ours. The node's disk is not encrypted and that
+is an accepted price; the sharper half is that
+`relay/wizard/backup-postgres.sh:60` runs `pg_dump` and puts the result in
+object storage **in the clear**, and that dump is the whole database: names
+and ages of identities, vault key shares, the emails of Art. 16 notifiers, the
+panel's audit log.
+
+The copy leaves the node and lives with a third party, so this is not a
+theoretical gap: one leaked storage key hands over the entire database, and
+Art. 32 asks about exactly this.
+
+What to do about it:
+
+- encrypt the dump before it is sent (`age` or `openssl enc`), with a key the
+  wizard makes alongside `VAULT_SHARE_KEY` and a private half kept **off** the
+  node — otherwise the encryption protects against nothing at all;
+- and a restore drill, without fail: a backup nobody has restored is not a
+  backup (`backup-postgres.sh:51` already says the same thing).
+
+Until it is done, the Article 30 record says plainly against Hetzner that
+encryption at rest is ours rather than theirs.

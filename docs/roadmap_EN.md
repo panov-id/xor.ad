@@ -22,7 +22,7 @@ more. The legal section keeps its number (§2): both storefronts'
 | Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-21: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
 | Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
 | Legal and DSA | ~60% | Bunny transfer outside the EEA and the LAW-7 sweeper are open — §2 |
-| Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — tables without routes |
+| Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — consent without a chat |
 | Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
 | `depth` client (terminal, goes first) | 0% | no code in any repository |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
@@ -108,7 +108,7 @@ empty throughout.
 | 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`; P2 closed 2026-09-21; not rolled out | [ ] |
 | 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderator wired** — `publish()` is called only by hand, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; not rolled out | [ ] |
 | 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like` (2026-09-21): band, block, self-like without an oracle, a match on a mutual like; `DELETE` — a take-back until a match, else `spent`; a limit of 300 an hour; a sweep of expired matches every minute; missing — the offer's match, a two-connection race test | [ ] |
-| 4. Match and double consent | [~] `matches`, `match_participants`, `blocks` — migration `db/030`, `chat_id` without a key until `chats` (step 5); no routes | [ ] |
+| 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo (2026-09-21); `agreed` opens no chat until step 5, the ephemeral key is step 6 | [ ] |
 | 5. Chat: transport | [ ] `chat/relay.ts` answers 501; the `LISTEN`/`NOTIFY` bus works as of 2026-09-21 | [ ] |
 | 6. Encryption | [ ] | [ ] |
 | 7. Blocks, hiding, sweeping | [ ] | [ ] |

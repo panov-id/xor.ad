@@ -1796,10 +1796,11 @@ paths:
       tags: [chat]
       summary: Consent to talk
       x-summary-ru: Согласиться поговорить
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/matches.ts
       security: [{identitySignature: []}]
-      description: The chat opens when both have consented.
-      x-description-ru: Чат открывается, когда согласились оба.
+      description: "The chat opens when both have consented. Until chats exist (step 5) the answer is waiting or agreed and carries no chat_id; the ephemeral key of §8.13 is not taken yet (step 6). Consent clears one's own not now. A match that is not the caller's or is over answers 404 alike (2026-09-21)."
+      x-description-ru: "Чат открывается, когда согласились оба. Пока нет чатов (шаг 5), ответ — waiting или agreed, без chat_id; эфемерный ключ §8.13 ещё не принимается (шаг 6). Согласие снимает собственное «не сейчас». Чужой или истёкший мэтч — одинаково 404 (21.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -1809,7 +1810,9 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Consent recorded., x-description-ru: Согласие записано.}
+        "200": {description: "Consent recorded: waiting for the other side, or agreed.", x-description-ru: "Согласие записано: ждём вторую сторону либо согласились оба.", content: {application/json: {schema: {type: object, required: [state], properties: {state: {type: string, enum: [waiting, agreed]}}}}}}
+        "404": {description: "Not the caller's match, or it is over.", x-description-ru: "Не мэтч звонящего либо он истёк."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
   /inbox:
     get:
@@ -3012,7 +3015,8 @@ paths:
       tags: [chat]
       summary: "Not now"
       x-summary-ru: "Не сейчас"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/matches.ts
       security: [{identitySignature: []}]
       description: "Decline a match; written at once, can be undone while the undo row lives (screens 6, 7)."
       x-description-ru: "Отказаться от мэтча; записывается сразу, вернуть можно, пока живёт строка с отменой (экраны 6, 7)."
@@ -3026,14 +3030,17 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
+        "404": {description: "Not the caller's match, or it is over.", x-description-ru: "Не мэтч звонящего либо он истёк."}
+        "503": {$ref: "#/components/responses/Unavailable"}
     delete:
       tags: [chat]
       summary: "Undo the decline"
       x-summary-ru: "Вернуть отказ"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/matches.ts
       security: [{identitySignature: []}]
-      description: "Within the seconds of the undo row only."
-      x-description-ru: "Только в секунды строки с отменой."
+      description: "While the match lives: the undo row has no timer (screen 7, owner's decision 2026-09-18)."
+      x-description-ru: "Пока мэтч жив: у строки с отменой нет таймера (экран 7, решение владельца 18.09.2026)."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -3044,6 +3051,8 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
+        "404": {description: "Not the caller's match, or it is over.", x-description-ru: "Не мэтч звонящего либо он истёк."}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /vault/init:
     post:
       tags: [identity]

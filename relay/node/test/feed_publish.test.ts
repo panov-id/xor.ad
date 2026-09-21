@@ -34,6 +34,7 @@ await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
 await import("../src/routes/statements.ts");
 await import("../src/routes/likes.ts");
+await import("../src/routes/matches.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -1751,3 +1752,67 @@ Deno.test({
     reset();
   },
 });
+
+// ── Consent to a match (§8.5, screens 6 and 7) ─────────────────────────────────
+async function freshMatch() {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  await like(a, theirs);
+  const back = await like(b, mine);
+  assertEquals(stateOf(back), "matched", "the setup did not make a match");
+  return { a, b, id: (back.body as { match_id: string }).match_id };
+}
+const matchCall = (who: { pair: CryptoKeyPair; session_id: string }, method: string, path: string) =>
+  signedCall(who.pair.privateKey, who.session_id, method, path);
+
+Deno.test({
+  name: "consent waits for the other side, and both make it agreed",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+  const { a, b, id } = await freshMatch();
+  const first = await matchCall(a, "POST", `/matches/${id}/consent`);
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  assertEquals(first.body, { state: "waiting" });
+  const second = await matchCall(b, "POST", `/matches/${id}/consent`);
+  assertEquals(second.body, { state: "agreed" }, "both consented and the match did not say so");
+}});
+
+Deno.test({
+  name: "a match that is not yours, or is over, answers not found",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+  const { id } = await freshMatch();
+  const stranger = await author();
+  const other = await matchCall(stranger, "POST", `/matches/${id}/consent`);
+  assertEquals(other.status, 404, "a stranger consented to someone else's match");
+  const { a, id: gone } = await freshMatch();
+  await database.queryOrThrow(`UPDATE matches SET expires_at = now() - interval '1 minute' WHERE id = $1`, [gone]);
+  assertEquals((await matchCall(a, "POST", `/matches/${gone}/consent`)).status, 404, "an expired match took a consent");
+}});
+
+Deno.test({
+  name: "not now is written at once, can be undone, and consent clears it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+  const { a, id } = await freshMatch();
+  const declined = await matchCall(a, "POST", `/matches/${id}/decline`);
+  assertEquals(declined.status, 204, JSON.stringify(declined.body));
+  const row = async () => (await database.queryOrThrow<{ accepted_at: Date | null; declined_at: Date | null }>(
+    `SELECT accepted_at, declined_at FROM match_participants WHERE match_id = $1 AND identity = $2`,
+    [id, a.identity_id]))[0];
+  assert((await row()).declined_at, "not now was not written");
+  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`)).status, 204);
+  assertEquals((await row()).declined_at, null, "undoing not now left it written");
+  await matchCall(a, "POST", `/matches/${id}/decline`);
+  await matchCall(a, "POST", `/matches/${id}/consent`);
+  const after = await row();
+  assertEquals(after.declined_at, null, "consent after not now left the decline standing");
+  assert(after.accepted_at, "consent after not now was not written");
+}});

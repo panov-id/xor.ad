@@ -168,7 +168,7 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 | `POST /feed/:id/like` | likes a phrase or an offer; an offer's match is one-sided and needs no live phrase of your own; answers `liked` or `matched`; with no live phrase of your own (not an offer) — 409 `refused` (2026-09-21) | **spec** (agreed 2026-09-17) (§8.4) |
 | `DELETE /feed/:id/like` | takes a like back until a live match has come of it: `{state: 'unliked'}`, also when there was nothing to take; otherwise, and on an offer, `{state: 'spent'}` (2026-09-21) | **spec** (agreed 2026-09-17) (§8.4) |
 | `GET /likes` | everything this identity liked that is still alive: cards of the same shape as `GET /feed` — phrases and private authors' offers with `state` (`liked` \| `matched`) and tables — by the `?after` cursor and `{items, next}` (§6); screen 25 "My likes" | **spec** (proposed and agreed 2026-09-17) (§8.4, mechanics §11) |
-| `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented | **spec** (agreed 2026-09-17) (§8.5) |
+| `POST /matches/:id/consent` | consent to talk; the chat opens when both have consented; until chats exist (step 5) the answer is `waiting` or `agreed`, someone else's or an expired match — 404 (2026-09-21) | **spec** (agreed 2026-09-17) (§8.5) |
 | `GET /inbox` | offers and conversations in one response; a count only on offers | **spec** |
 | `POST /chats/:id/ticket` | a one-time ticket for the socket, short-lived | **spec** |
 | `POST /chats/alive` | a reconciliation: which chats are still alive; the client wipes the rest | **spec** |
@@ -177,7 +177,7 @@ created_at}` (`created_at` carries `visible_at`, 2026-09-15) — **a circle, not
 | `POST /chats/:id/messages` | send a ciphertext `{local_id, ciphertext}` — **202** `{local_id, accepted}`; the node stores it in `pending_deliveries`, moves `last_activity_at`, hands it to the other at once or on connection; could not — `{local_id, error}`; size — `max_ciphertext_bytes`; at most `chat.messages.minute` a minute per identity (SEC-18); order of refusals: 409 `stepped_away` (while away), then 404 in the same shape as for a chat that does not exist (not a member), then 429 (SEC-22, SEC-29) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8; panel, SEC-8) |
 | `POST /chats/:id/received` | confirm receipt `{ids}` — **204**; the node deletes what was delivered from `pending_deliveries` — only rows with your own `recipient_session` in this chat, foreign `ids` are silently skipped (SEC-19) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.8) |
 | `POST /matches/:id/decline` | "not now": the match decline is written at once (screens 6, 7; 2026-09-19) | **spec** |
-| `DELETE /matches/:id/decline` | undo the decline — only within the seconds of the undo row (2026-09-19) | **spec** |
+| `DELETE /matches/:id/decline` | undo the decline — while the match lives: the undo row has no timer (screen 7, owner's decision 2026-09-18) | **spec** |
 
 ### 4.4. The socket
 

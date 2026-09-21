@@ -54,7 +54,9 @@ Deno.test({
       const matchId = back.body.match_id!;
 
       assertEquals((await a.consent(matchId)).body, { state: "waiting" });
-      assertEquals((await b.consent(matchId)).body, { state: "agreed" });
+      const agreed = (await b.consent(matchId)).body as { state: string; chat_id?: string };
+      assertEquals(agreed.state, "agreed");
+      assert(agreed.chat_id, "agreement opened no chat");
     } finally {
       await sql.end();
     }

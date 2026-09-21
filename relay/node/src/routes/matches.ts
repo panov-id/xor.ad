@@ -8,8 +8,8 @@
 // be taken back.
 //
 // Not here yet, and said so:
-// - the chat. When both have consented the answer is {state: 'agreed'} and no
-//   chat_id: `chats` is step 5, and this route will open one there;
+// - the chat's transport: agreement opens the chat and answers its chat_id
+//   (step 5, db/031), but the room it is spoken in comes next;
 // - the ephemeral public key that consent carries in §8.5 — that is the
 //   encryption of step 6, and nothing reads it before then.
 //
@@ -83,9 +83,43 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
         WHERE match_id = $1 AND accepted_at IS NOT NULL`,
       [matchId],
     );
-    const agreed = both.n === 2;
-    inc("relay_match_total", { action: agreed ? "agreed" : "consent" });
-    return json({ state: agreed ? "agreed" : "waiting" }, 200, sunsetHeader());
+    if (both.n < 2) {
+      inc("relay_match_total", { action: "consent" });
+      return json({ state: "waiting" }, 200, sunsetHeader());
+    }
+
+    // Both agreed: the chat opens here, in the same transaction (§8.5, §8.6).
+    // One chat per pair — the unique pair_key says so; a second agreement on a
+    // match that already has its chat answers with that chat.
+    const [existing] = await run<{ chat_id: string | null; pair_key: string }>(
+      `SELECT chat_id, pair_key FROM matches WHERE id = $1`, [matchId],
+    );
+    if (existing.chat_id) {
+      return json({ state: "agreed", chat_id: existing.chat_id }, 200, sunsetHeader());
+    }
+    const chatId = crypto.randomUUID();
+    await run(`INSERT INTO chats (id, pair_key) VALUES ($1, $2)`, [chatId, existing.pair_key]);
+    await run(
+      `INSERT INTO chat_participants (chat_id, identity)
+       SELECT $1, identity FROM match_participants WHERE match_id = $2`,
+      [chatId, matchId],
+    );
+    // The header: each side's phrase, copied, with who liked it — the other one.
+    await run(
+      `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by)
+       SELECT $1, row_number() OVER (ORDER BY p.identity), coalesce(p.text_snapshot, ''), p.mode,
+              (SELECT o.identity FROM match_participants o WHERE o.match_id = p.match_id AND o.identity <> p.identity)
+         FROM match_participants p WHERE p.match_id = $2`,
+      [chatId, matchId],
+    );
+    await run(`UPDATE matches SET chat_id = $1 WHERE id = $2`, [chatId, matchId]);
+    await run(
+      `UPDATE identity_stats SET chats_opened = chats_opened + 1, updated_at = now()
+        WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)`,
+      [matchId],
+    );
+    inc("relay_match_total", { action: "agreed" });
+    return json({ state: "agreed", chat_id: chatId }, 200, sunsetHeader());
   }).catch((error) => {
     log("error", "match action failed", { error: String(error) });
     inc("relay_match_total", { action: "storage_failed" });

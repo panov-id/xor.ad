@@ -1779,7 +1779,18 @@ Deno.test({
   assertEquals(first.status, 200, JSON.stringify(first.body));
   assertEquals(first.body, { state: "waiting" });
   const second = await matchCall(b, "POST", `/matches/${id}/consent`);
-  assertEquals(second.body, { state: "agreed" }, "both consented and the match did not say so");
+  const agreed = second.body as { state: string; chat_id?: string };
+  assertEquals(agreed.state, "agreed", "both consented and the match did not say so");
+  // Step 5 (§8.5, §8.6): agreement opens the chat in the same transaction.
+  assert(agreed.chat_id, "both agreed and no chat was opened");
+  const people = await database.queryOrThrow<{ identity: string }>(
+    `SELECT identity FROM chat_participants WHERE chat_id = $1`, [agreed.chat_id]);
+  assertEquals(people.length, 2, "the chat does not hold both sides");
+  const starters = await database.queryOrThrow<{ text_snapshot: string }>(
+    `SELECT text_snapshot FROM chat_starters WHERE chat_id = $1 ORDER BY position`, [agreed.chat_id]);
+  assertEquals(starters.length, 2, "the chat's header does not carry both phrases");
+  const [linked] = await database.queryOrThrow<{ chat_id: string }>(`SELECT chat_id FROM matches WHERE id = $1`, [id]);
+  assertEquals(linked.chat_id, agreed.chat_id, "the match does not point at its chat");
 }});
 
 Deno.test({

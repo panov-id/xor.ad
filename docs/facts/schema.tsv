@@ -44,9 +44,9 @@ blocks	docs/chat_RU.md:2346	relay/node/db/030_likes_matches_blocks.sql	product
 brands	-	relay/node/db/001_control_state.sql	control
 chat_games	docs/chat_RU.md:444	-	product
 chat_key_wraps	docs/chat_RU.md:2568	-	product
-chat_participants	docs/chat_RU.md:2145	-	product
-chat_starters	docs/chat_RU.md:2156	-	product
-chats	docs/chat_RU.md:2136	-	product
+chat_participants	docs/chat_RU.md:2145	relay/node/db/031_chats.sql	product
+chat_starters	docs/chat_RU.md:2156	relay/node/db/031_chats.sql	product
+chats	docs/chat_RU.md:2136	relay/node/db/031_chats.sql	product
 dsa_notices	-	relay/node/db/005_dsa_notices.sql	control
 dsa_statements	-	relay/node/db/005_dsa_notices.sql	control
 feed_messages	docs/chat_RU.md:1464	relay/node/db/025_feed_and_stats.sql	product

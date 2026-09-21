@@ -153,9 +153,9 @@ export class Client {
     return this.#call("DELETE", `/feed/${phraseId}/like`);
   }
 
-  // POST /matches/:id/consent — waiting, or agreed when both have. The chat it
-  // opens is step 5; the ephemeral key §8.5 sends here is step 6.
-  consent(matchId: string): Promise<Answer<{ state: string }>> {
+  // POST /matches/:id/consent — waiting, or agreed with the chat_id it opened
+  // (step 5). The ephemeral key §8.5 sends here is step 6.
+  consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
     return this.#call("POST", `/matches/${matchId}/consent`);
   }
 

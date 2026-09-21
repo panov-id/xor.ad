@@ -36,6 +36,7 @@ await import("../src/routes/statements.ts");
 await import("../src/routes/likes.ts");
 await import("../src/routes/matches.ts");
 await import("../src/routes/chats.ts");
+await import("../src/routes/inbox.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -2057,5 +2058,44 @@ Deno.test({
     const by = Object.fromEntries(rows.map((r) => [r.identity, r.idle_ttl_minutes]));
     assertEquals(by[a.identity_id], 10);
     assertEquals(by[b.identity_id], 60, "one side's span moved the other's");
+  },
+});
+
+Deno.test({
+  name: "the inbox shows one's offers to talk and one's conversations, and says who is waiting",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // §8.12: nothing is stored for it — it is read from matches and chats.
+    const { a, b, id } = await freshMatch();
+    const inbox = async (who: typeof a) =>
+      (await matchCall(who, "GET", "/inbox")).body as { items: Array<Record<string, unknown>>; next?: string };
+    const mine = (await inbox(a)).items.find((i) => i.id === id);
+    assert(mine, "a live match is not in the inbox");
+    assertEquals(mine.kind, "match");
+    assertEquals(mine.state, "pending");
+    assertEquals(mine.waiting_for_you, false);
+    assertEquals((mine.phrase as { text: string }).text, "гуляю у залива", "the card does not carry the other side's phrase");
+    assertEquals(mine.name, "Аня");
+    assert(!("unread" in mine), "the node claims to know what was read");
+
+    await matchCall(b, "POST", `/matches/${id}/consent`);
+    assertEquals((await inbox(a)).items.find((i) => i.id === id)?.waiting_for_you, true, "the other side agreed and the card does not say so");
+
+    await matchCall(a, "POST", `/matches/${id}/decline`);
+    assertEquals((await inbox(a)).items.find((i) => i.id === id), undefined, "a declined offer stayed in one's own inbox");
+    assert((await inbox(b)).items.find((i) => i.id === id), "one side's 'not now' was shown to the other");
+
+    const agreed = await matchCall(a, "POST", `/matches/${id}/consent`);
+    const chatId = (agreed.body as { chat_id: string }).chat_id;
+    const after = (await inbox(a)).items;
+    assertEquals(after.find((i) => i.id === id), undefined, "a match that became a chat is still offered");
+    const chat = after.find((i) => i.id === chatId);
+    assertEquals(chat?.kind, "chat");
+    assertEquals(chat?.state, "open");
+    assert(typeof chat?.chat_expires_at === "number", "the chat row does not say when it ends for oneself");
+
+    const stranger = await author();
+    assertEquals((await inbox(stranger)).items.length, 0, "a stranger's inbox is not empty");
   },
 });

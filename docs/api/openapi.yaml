@@ -401,7 +401,7 @@ components:
         age: {type: integer}
         phrase: {type: object, properties: {text: {type: string}, mode: {type: string}}}
         waiting_for_you: {type: boolean}
-        unread: {type: boolean}
+        unread: {type: boolean, deprecated: true, description: "Not sent: the device counts what it has shown, the node knows nothing about reading (owner's decision 2026-09-17; the route built 2026-09-21 omits it).", x-description-ru: "Не отдаётся: точку «новое» считает устройство, узел о чтении не знает (решение владельца 17.09.2026; маршрут, построенный 21.09.2026, поля не шлёт)."}
         chat_expires_at: {type: integer, format: unix-seconds}
         state: {type: string, enum: [pending, open, ended]}
     IdentityCreate:
@@ -1825,7 +1825,8 @@ paths:
       tags: [chat]
       summary: Offers and conversations in one answer
       x-summary-ru: Предложения и беседы одним ответом
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/inbox.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}

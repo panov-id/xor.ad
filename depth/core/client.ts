@@ -190,6 +190,13 @@ export class Client {
     return this.#call("POST", `/chats/${chatId}/received`, { ids });
   }
 
+  // GET /inbox — offers to talk and conversations in one answer (§8.12).
+  async inbox(): Promise<Array<Record<string, unknown>>> {
+    const answer = await this.#call<{ items: Array<Record<string, unknown>> }>("GET", "/inbox");
+    if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
+    return answer.body.items;
+  }
+
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).
   closeChat(chatId: string): Promise<Answer<{ state: string }>> {
     return this.#call("DELETE", `/chats/${chatId}`);

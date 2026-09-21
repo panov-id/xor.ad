@@ -53,6 +53,7 @@ Deno.test({
       assertEquals(back.body.state, "matched", `B's like back did not make a match: ${JSON.stringify(back.body)}`);
       const matchId = back.body.match_id!;
 
+      assert((await a.inbox()).some((i) => i.id === matchId && i.kind === "match"), "the match is not in A's inbox");
       assertEquals((await a.consent(matchId)).body, { state: "waiting" });
       const agreed = (await b.consent(matchId)).body as { state: string; chat_id?: string };
       assertEquals(agreed.state, "agreed");

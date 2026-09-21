@@ -94,6 +94,10 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
     // window that matters. The races were reproduced in the container with two
     // hand-driven connections (§8.4, 2026-09-15); a test that drives two
     // connections step by step is what would prove these lines, and it is open.
+    // Two seconds for any lock, then 503 (likes panel, 2026-09-21): a flood of
+    // likes on one author must fail while the pool of four is still free,
+    // rather than hold every connection for the fifteen-second statement cap.
+    await run(`SET LOCAL lock_timeout = '2s'`);
     const pk = await pairKey(me, phrase.author);
     await run(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pk]);
     await run(
@@ -247,6 +251,10 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
       inc("relay_unlike_total", { result: "spent" });
       return json({ state: "spent" }, 200, sunsetHeader());
     }
+    // Two seconds for any lock, then 503 (likes panel, 2026-09-21): a flood of
+    // likes on one author must fail while the pool of four is still free,
+    // rather than hold every connection for the fifteen-second statement cap.
+    await run(`SET LOCAL lock_timeout = '2s'`);
     const pk = await pairKey(me, phrase.author);
     await run(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pk]);
     await run(

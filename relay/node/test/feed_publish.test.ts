@@ -1720,3 +1720,34 @@ Deno.test("an expired match is swept with its snapshots, a live one is not", asy
   assertEquals(left.filter((r) => r.match_id === dead).length, 0, "an expired match kept its snapshots");
   assertEquals(left.filter((r) => r.match_id === alive).length, 2, "a live match lost its participants");
 });
+
+Deno.test({
+  name: "a like that waits on a held author row gives up in seconds, not in fifteen",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Likes panel, 2026-09-21, operations lens: a flood of likes on one author
+    // queued on that author's identity_stats row, four connections waited out
+    // the fifteen-second statement timeout, and every other route waited for a
+    // connection. lock_timeout makes a like give up while the pool is still free.
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const b = await author();
+    await seedPhrase(a.identity_id, "кто на набережную?");
+    const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+    const got: { status?: number; took?: number } = {};
+    await database.transaction(async (tx) => {
+      await tx(`SET LOCAL statement_timeout = 0`);
+      await tx(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [b.identity_id]);
+      const started = Date.now();
+      const pending = like(a, theirs).then((r) => { got.status = r.status; got.took = Date.now() - started; });
+      await tx(`SELECT pg_sleep(4)`);
+      return { pending };
+    }).then(({ pending }) => pending);
+    assert(got.status !== undefined, "the like never answered");
+    assertEquals(got.status, 503, `a like waited out the held row and answered ${got.status} after ${got.took} ms`);
+    assert((got.took ?? 0) < 3500, `it gave up only after ${got.took} ms`);
+    reset();
+  },
+});

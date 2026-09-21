@@ -23,6 +23,7 @@ import { inc } from "../lib/metrics.ts";
 
 interface StatementRow {
   id: string;
+  created_at_cursor: string;
   restriction: string;
   until: Date | null;
   facts: string;
@@ -46,17 +47,43 @@ const APPEAL = {
   court: true,
 } as const;
 
+// A page, not a ceiling. The route used to stop at a hundred with no way past
+// it, so the hundred-and-first statement could never be read by any call — and
+// Article 17(1) is owed for every one (open-work P3, closed 2026-09-21).
+const PAGE = 100;
+
 async function myStatements(req: Request): Promise<Response> {
   const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;
 
+  // The same cursor as the feed's, for the same two reasons (routes/feed.ts):
+  // a pair, because statements written by one decision share created_at; and
+  // microseconds as digits, because a Date has none and postgres.js turns a
+  // string that looks like a timestamp into a Date on the way out.
+  const after = new URL(req.url).searchParams.get("after");
+  let cursorAt: string | null = null;
+  let cursorId: string | null = null;
+  if (after) {
+    const cut = after.lastIndexOf("_");
+    const at = cut < 0 ? "" : after.slice(0, cut);
+    const id = cut < 0 ? "" : after.slice(cut + 1);
+    if (!/^[0-9]{1,19}$/.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
+      return refuse("invalid_body", "after is not a cursor from this route", 400);
+    }
+    cursorAt = at;
+    cursorId = id;
+  }
+
   const rows = await query<StatementRow>(
-    `SELECT id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at
+    `SELECT id, restriction, until, facts, ground_kind, ground_text, automated_used, created_at,
+            (extract(epoch from created_at) * 1000000)::bigint::text AS created_at_cursor
        FROM dsa_statements
       WHERE recipient_identity = $1
-      ORDER BY created_at DESC
-      LIMIT 100`,
-    [caller.identityId],
+        AND ($2::bigint IS NULL OR (created_at, id) <
+              (timestamptz 'epoch' + $2::bigint * interval '1 microsecond', $3::uuid))
+      ORDER BY created_at DESC, id DESC
+      LIMIT ${PAGE}`,
+    [caller.identityId, cursorAt, cursorId],
   );
   if (rows === null) {
     inc("relay_statements_total", { result: "unavailable" });
@@ -71,8 +98,8 @@ async function myStatements(req: Request): Promise<Response> {
   // Only the rows this answer carried. The UPDATE used to be bounded by the
   // recipient alone, so an author with more than a hundred statements had the
   // hundred-and-first marked delivered without it ever being in a response —
-  // and, there being no cursor on this route, without any call that could ever
-  // show it. Under Art. 17 that is a record of delivery for something
+  // and, there being no cursor on this route then, without any call that could
+  // ever show it. Under Art. 17 that is a record of delivery for something
   // undelivered. Found by the protocols lens of the review panel, 2026-09-21.
   if (rows.length > 0) {
     await query(
@@ -83,7 +110,11 @@ async function myStatements(req: Request): Promise<Response> {
   }
 
   inc("relay_statements_total", { result: "served" });
+  // Offered only on a full page: a short one is the last, and a cursor past it
+  // would send a client round for nothing.
+  const last = rows[rows.length - 1];
   return json({
+    ...(rows.length === PAGE ? { next: `${last.created_at_cursor}_${last.id}` } : {}),
     items: rows.map((row) => ({
       id: row.id,
       restriction: row.restriction,

@@ -1341,3 +1341,52 @@ Deno.test("the density handle is limited per identity, a hundred an hour", async
   assertEquals(other.status, 200, "one identity's questions closed the handle for another");
   reset();
 });
+
+Deno.test("the hundred-and-first statement of reasons reaches its author", async () => {
+  // Article 17(1): every restriction is explained to the person it happened to.
+  // The route used to stop at a hundred with no cursor, so the hundred-and-first
+  // could never be read by any call (open-work P3). All of them are written by
+  // one statement here, so they share created_at to the microsecond — the page
+  // boundary has only the id to go on, which is what the pair is for.
+  const me = await author();
+  await database.queryOrThrow(
+    `INSERT INTO dsa_statements
+       (brand, target_id, recipient_identity, restriction, facts,
+        ground_kind, ground_text, automated_used)
+     SELECT 'alpha', gen_random_uuid()::text, $1, 'removed', 'Фраза ' || n,
+            'contractual', 'Условия, п. 8', false
+       FROM generate_series(1, 101) AS n`,
+    [me.identity_id],
+  );
+
+  const first = await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements");
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  const one = first.body as { items: Array<{ id: string }>; next?: string };
+  assertEquals(one.items.length, 100, "the page size changed; this case assumes a hundred");
+  assert(one.next, "a full page of statements came back without a cursor");
+
+  const second = await signedCall(
+    me.pair.privateKey, me.session_id, "GET", `/statements?after=${encodeURIComponent(one.next!)}`,
+  );
+  assertEquals(second.status, 200, JSON.stringify(second.body));
+  const two = second.body as { items: Array<{ id: string }>; next?: string };
+  assertEquals(two.items.length, 1, "the second page did not carry exactly the one left over");
+  assertEquals("next" in two, false, "the last page still offered a cursor");
+
+  const seen = new Set([...one.items, ...two.items].map((i) => i.id));
+  assertEquals(seen.size, 101, "a statement was shown twice or not at all");
+
+  const [undelivered] = await database.queryOrThrow<{ count: string }>(
+    `SELECT count(*)::text AS count FROM dsa_statements
+      WHERE recipient_identity = $1 AND delivered_at IS NULL`,
+    [me.identity_id],
+  );
+  assertEquals(undelivered.count, "0", "a statement that was read is not marked delivered");
+});
+
+Deno.test("a cursor that is not one from this route is refused", async () => {
+  const me = await author();
+  const bad = await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements?after=yesterday");
+  assertEquals(bad.status, 400);
+  assertEquals((bad.body as { error: { code: string } }).error.code, "invalid_body");
+});

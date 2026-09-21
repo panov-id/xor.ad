@@ -76,9 +76,9 @@ The percentages are estimates: they are not weighted by hours, because steps
   (`breach-procedure_EN.md`).
 - [x] Mail: Resend on staging and production, Mailpit on dev.
 - [~] DSA notice and decision register in the panel, `GET /statements` —
-  not whole in production until `day56` and the Article 16 intake ship; P3:
-  at most 100 rows with no cursor, so from the 101st statement of reasons the
-  author does not receive it (Art. 17(1)).
+  not whole in production until `day56` and the Article 16 intake ship. P3
+  closed 2026-09-21: the list has an `after` cursor, statements past the
+  hundredth are reachable.
 - [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
   `article-30-register_EN.md`. SCC or a replacement.
 - [ ] LAW-7: the abandoned-identity sweeper is not built — the register
@@ -118,7 +118,7 @@ Of the eleven tables in the first cut (§13), six exist: `identities`,
 `identity_stats`. Five do not: `likes`, `matches`, `match_participants`,
 `blocks`, `support_requests`.
 
-Chat code is written only on the owner's separate word.
+Chat code was cleared by the owner's word on 2026-09-21.
 
 ## 4. Storefronts and panel
 
@@ -134,13 +134,10 @@ Chat code is written only on the owner's separate word.
 ## 5. Review panel leftovers, 2026-09-21
 
 The first panel (`PANEL_2026-09-21_steps1-2.md`) is closed in full. The second
-(`PANEL_2026-09-21_day-fixes.md`) — 7 of 10 tasks. Open:
+(`PANEL_2026-09-21_day-fixes.md`) — 9 of 10 tasks: task 7 closed by
+`6dd62de`, task 8 by `ae65510` (2026-09-21). Open:
 
 - [ ] 5 — the `FeedPublishesNothing` alert and a promtool test in the gates.
-- [ ] 7 — a 30-minute timeout for `tools/prune_dsa_records.ts` and
-  `tools/migrate_control_state.ts`.
-- [ ] 8 — `pin_mismatch` and `no_first_pin_grant` instead of
-  `unauthorized`/409; a breaking contract change.
 
 ## Open questions
 

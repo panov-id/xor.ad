@@ -2260,7 +2260,14 @@ its own by address, unlike `POST /sessions/claim`
 `docs/facts/limits.tsv`, and a number comes from the registry or is entered
 into it — never invented on the spot.
 
-### P3. Statements past the hundredth cannot be reached — open
+### P3. Statements past the hundredth cannot be reached — closed 2026-09-21
+
+**Closed 2026-09-21:** `GET /statements` has an `after` cursor and a `next`
+field on a full page — the pair (created_at, id) in microseconds, as the feed
+has. The test "the hundred-and-first statement of reasons reaches its author"
+writes 101 statements sharing one `created_at` and sees the hundredth and the
+hundred-and-first on different pages; with a cursor that drops `id` it goes red.
+
 
 Review panel, 2026-09-21, protocols lens. `GET /statements` answers with a
 hundred rows and has no cursor, in the code

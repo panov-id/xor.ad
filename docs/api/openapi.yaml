@@ -749,8 +749,8 @@ components:
       in: query
       required: false
       schema: {type: string}
-      description: Opaque cursor from the previous answer's `next` (protocol §6). Encodes (visible_at, id); reveals nothing beyond what was already given out.
-      x-description-ru: Непрозрачный курсор из `next` предыдущего ответа (протокол §6). Кодирует (visible_at, id); не раскрывает ничего сверх уже выданного.
+      description: Opaque cursor from the previous answer's `next` (protocol §6). Encodes the row's time in microseconds and its id — (visible_at, id) on the feed, (created_at, id) on /statements (2026-09-21); reveals nothing beyond what was already given out.
+      x-description-ru: Непрозрачный курсор из `next` предыдущего ответа (протокол §6). Кодирует время строки в микросекундах и её id — (visible_at, id) у ленты, (created_at, id) у /statements (21.09.2026); не раскрывает ничего сверх уже выданного.
   headers:
     ProtocolSunset:
       schema: {type: integer}
@@ -2747,10 +2747,11 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
+        - {$ref: "#/components/parameters/After"}
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "200": {description: "The statements addressed to this identity, newest first, at most a hundred, as {items}. There is no cursor yet: a statement past the hundredth cannot be reached (open-work P3), and delivery is recorded only for the ones returned. Corrected 2026-09-21 — this said a bare array, which a client generated from the contract could not read.", x-description-ru: "Мотивировки этой личности, новые первыми, не больше ста, в виде {items}. Курсора пока нет: мотивировка дальше сотой недостижима (open-work P3), а вручение отмечается только отданным. Исправлено 21.09.2026 — здесь стоял голый массив, который клиент, сгенерированный по контракту, прочитать не мог.", content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/Statement"}}}}}}}
+        "200": {description: "The statements addressed to this identity, newest first, a hundred per page, as {items} and, on a full page only, next — the cursor for `after`, built from (created_at, id) (open-work P3, closed 2026-09-21; 'at most a hundred, no cursor' [retired]); delivery is recorded only for the ones returned. Corrected 2026-09-21 — this said a bare array, which a client generated from the contract could not read.", x-description-ru: "Мотивировки этой личности, новые первыми, по сто на страницу, в виде {items} и, только на полной странице, next — курсор для `after` из (created_at, id) (open-work P3, закрыт 21.09.2026; «не больше ста, курсора нет» [retired]); вручение отмечается только отданным. Исправлено 21.09.2026 — здесь стоял голый массив, который клиент, сгенерированный по контракту, прочитать не мог.", content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/Statement"}}, next: {type: string, description: "Present only on a full page.", x-description-ru: "Есть только на полной странице."}}}}}}
         "503": {description: "The node cannot answer right now; nothing was recorded as delivered.", x-description-ru: "Узел сейчас не может ответить; ничего не отмечено как врученное."}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}

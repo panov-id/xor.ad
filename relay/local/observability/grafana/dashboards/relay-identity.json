@@ -1,379 +1,495 @@
 {
-  "uid": "relay-identity",
-  "title": "Relay — личность и очередь",
-  "description": "Шаг 1 продукта и очередь узла. Каждая панель заведена под конкретный отказ, который до неё был не виден; описания читаются наведением.",
-  "tags": [
-    "relay",
-    "identity"
-  ],
-  "timezone": "browser",
-  "schemaVersion": 39,
-  "version": 1,
-  "refresh": "30s",
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
-  "panels": [
+ "uid": "relay-identity",
+ "title": "Relay — личность и очередь",
+ "description": "Шаг 1 продукта и очередь узла. Каждая панель заведена под конкретный отказ, который до неё был не виден; описания читаются наведением.",
+ "tags": [
+  "relay",
+  "identity"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "30s",
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "timeseries",
+   "title": "Регистрации личности",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
     {
-      "id": 1,
-      "type": "timeseries",
-      "title": "Регистрации личности",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 7
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (result) (rate(relay_identities_total[5m])) * 60",
-          "legendFormat": "{{result}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "По исходам. Всплеск too_young или storage_failed — это не рост, а дефект."
-    },
-    {
-      "id": 2,
-      "type": "timeseries",
-      "title": "Обмен на долю: ПИН",
-      "gridPos": {
-        "x": 12,
-        "y": 0,
-        "w": 12,
-        "h": 7
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (result) (rate(relay_vault_share_total[5m])) * 60",
-          "legendFormat": "{{result}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "wrong и locked — это чужие руки или забытый ПИН; unsealable — узел не открывает собственную долю, то есть ключ не тот."
-    },
-    {
-      "id": 3,
-      "type": "timeseries",
-      "title": "Заморозки сессий по причине",
-      "gridPos": {
-        "x": 0,
-        "y": 7,
-        "w": 8,
-        "h": 7
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (reason) (rate(relay_sessions_frozen_total[15m])) * 900",
-          "legendFormat": "{{reason}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "pin_limit — человек без входа до бумажного кода. transfer и closed — переезд и закрытие."
-    },
-    {
-      "id": 4,
-      "type": "timeseries",
-      "title": "Сожжённые доли",
-      "gridPos": {
-        "x": 8,
-        "y": 7,
-        "w": 8,
-        "h": 7
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(rate(relay_vault_shares_burned_total[15m])) * 900",
-          "legendFormat": "сожжено за 15 минут"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "Переезд личности сжигает долю прежнего устройства (§8.2). Число равно числу устройств, потерявших свою историю."
-    },
-    {
-      "id": 5,
-      "type": "timeseries",
-      "title": "Восстановление бумажным кодом",
-      "gridPos": {
-        "x": 16,
-        "y": 7,
-        "w": 8,
-        "h": 7
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (result) (rate(relay_recovery_claim_total[15m])) * 900",
-          "legendFormat": "{{result}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "no_match — промахи; pause_started — момент включения общего тормоза; same_device и new_device — успехи."
-    },
-    {
-      "id": 6,
-      "type": "stat",
-      "title": "Пауза приёма кодов, секунд",
-      "gridPos": {
-        "x": 0,
-        "y": 14,
-        "w": 6,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "relay_recovery_pause_seconds_left",
-          "legendFormat": "осталось"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "description": "Пока держится, честный бумажный код тоже не принимается. Цена названа в §8.2."
-    },
-    {
-      "id": 7,
-      "type": "timeseries",
-      "title": "Стоячие задачи очереди",
-      "gridPos": {
-        "x": 6,
-        "y": 14,
-        "w": 9,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "relay_jobs_standing",
-          "legendFormat": "{{kind}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "Ноль при наличии надгробия — цепочка умерла и сама не вернётся."
-    },
-    {
-      "id": 8,
-      "type": "timeseries",
-      "title": "Надгробия задач",
-      "gridPos": {
-        "x": 15,
-        "y": 14,
-        "w": 9,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "relay_jobs_tombstones",
-          "legendFormat": "{{kind}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "Задача выработала попытки. enqueueOnce её не заменит."
-    },
-    {
-      "id": 9,
-      "type": "timeseries",
-      "title": "Просрочка задач, секунд",
-      "gridPos": {
-        "x": 0,
-        "y": 20,
-        "w": 12,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "relay_jobs_oldest_due_seconds",
-          "legendFormat": "{{kind}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "description": "Сколько ждёт самая старая созревшая задача. Пусто — созревших нет."
-    },
-    {
-      "id": 10,
-      "type": "timeseries",
-      "title": "Уборщик личностей",
-      "gridPos": {
-        "x": 12,
-        "y": 20,
-        "w": 12,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (deadline) (increase(relay_identity_sweeper_total[1h]))",
-          "legendFormat": "{{deadline}}"
-        },
-        {
-          "refId": "B",
-          "expr": "time() - relay_identity_sweeper_last_pass_seconds",
-          "legendFormat": "секунд с последнего прохода"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "Три срока §8.2 по отдельности плюс возраст последнего прохода: проход должен быть раз в час."
-    },
-    {
-      "id": 11,
-      "type": "timeseries",
-      "title": "Очередь ст. 16",
-      "gridPos": {
-        "x": 0,
-        "y": 26,
-        "w": 12,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (brand) (relay_dsa_queue_open)",
-          "legendFormat": "открыто: {{brand}}"
-        },
-        {
-          "refId": "B",
-          "expr": "sum(rate(relay_dsa_decisions_total[6h])) * 21600",
-          "legendFormat": "решений за 6 часов"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "Незакрытые уведомления против темпа решений. У этой очереди срок регуляторный, а не операционный."
-    },
-    {
-      "id": 12,
-      "type": "timeseries",
-      "title": "Ответы узла по статусу",
-      "gridPos": {
-        "x": 12,
-        "y": 26,
-        "w": 12,
-        "h": 6
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PROM"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (status) (rate(relay_requests_total[5m])) * 60",
-          "legendFormat": "{{status}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "description": "Пятисотые здесь — тот же сигнал, что и алерт ServerErrors."
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_identities_total[5m])) * 60",
+     "legendFormat": "{{result}}"
     }
-  ]
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "По исходам. Всплеск too_young или storage_failed — это не рост, а дефект."
+  },
+  {
+   "id": 2,
+   "type": "timeseries",
+   "title": "Обмен на долю: ПИН",
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_vault_share_total[5m])) * 60",
+     "legendFormat": "{{result}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "wrong и locked — это чужие руки или забытый ПИН; unsealable — узел не открывает собственную долю, то есть ключ не тот."
+  },
+  {
+   "id": 3,
+   "type": "timeseries",
+   "title": "Заморозки сессий по причине",
+   "gridPos": {
+    "x": 0,
+    "y": 7,
+    "w": 8,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (reason) (rate(relay_sessions_frozen_total[15m])) * 900",
+     "legendFormat": "{{reason}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "pin_limit — человек без входа до бумажного кода. transfer и closed — переезд и закрытие."
+  },
+  {
+   "id": 4,
+   "type": "timeseries",
+   "title": "Сожжённые доли",
+   "gridPos": {
+    "x": 8,
+    "y": 7,
+    "w": 8,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(rate(relay_vault_shares_burned_total[15m])) * 900",
+     "legendFormat": "сожжено за 15 минут"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Переезд личности сжигает долю прежнего устройства (§8.2). Число равно числу устройств, потерявших свою историю."
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Восстановление бумажным кодом",
+   "gridPos": {
+    "x": 16,
+    "y": 7,
+    "w": 8,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_recovery_claim_total[15m])) * 900",
+     "legendFormat": "{{result}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "no_match — промахи; pause_started — момент включения общего тормоза; same_device и new_device — успехи."
+  },
+  {
+   "id": 6,
+   "type": "stat",
+   "title": "Пауза приёма кодов, секунд",
+   "gridPos": {
+    "x": 0,
+    "y": 14,
+    "w": 6,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "relay_recovery_pause_seconds_left",
+     "legendFormat": "осталось"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "description": "Пока держится, честный бумажный код тоже не принимается. Цена названа в §8.2."
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "Стоячие задачи очереди",
+   "gridPos": {
+    "x": 6,
+    "y": 14,
+    "w": 9,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "relay_jobs_standing",
+     "legendFormat": "{{kind}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Ноль при наличии надгробия — цепочка умерла и сама не вернётся."
+  },
+  {
+   "id": 8,
+   "type": "timeseries",
+   "title": "Надгробия задач",
+   "gridPos": {
+    "x": 15,
+    "y": 14,
+    "w": 9,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "relay_jobs_tombstones",
+     "legendFormat": "{{kind}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Задача выработала попытки. enqueueOnce её не заменит."
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "Просрочка задач, секунд",
+   "gridPos": {
+    "x": 0,
+    "y": 20,
+    "w": 12,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "relay_jobs_oldest_due_seconds",
+     "legendFormat": "{{kind}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "description": "Сколько ждёт самая старая созревшая задача. Пусто — созревших нет."
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "Уборщик личностей",
+   "gridPos": {
+    "x": 12,
+    "y": 20,
+    "w": 12,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (deadline) (increase(relay_identity_sweeper_total[1h]))",
+     "legendFormat": "{{deadline}}"
+    },
+    {
+     "refId": "B",
+     "expr": "time() - relay_identity_sweeper_last_pass_seconds",
+     "legendFormat": "секунд с последнего прохода"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Три срока §8.2 по отдельности плюс возраст последнего прохода: проход должен быть раз в час."
+  },
+  {
+   "id": 11,
+   "type": "timeseries",
+   "title": "Очередь ст. 16",
+   "gridPos": {
+    "x": 0,
+    "y": 26,
+    "w": 12,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (brand) (relay_dsa_queue_open)",
+     "legendFormat": "открыто: {{brand}}"
+    },
+    {
+     "refId": "B",
+     "expr": "sum(rate(relay_dsa_decisions_total[6h])) * 21600",
+     "legendFormat": "решений за 6 часов"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Незакрытые уведомления против темпа решений. У этой очереди срок регуляторный, а не операционный."
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "Ответы узла по статусу",
+   "gridPos": {
+    "x": 12,
+    "y": 26,
+    "w": 12,
+    "h": 6
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (status) (rate(relay_requests_total[5m])) * 60",
+     "legendFormat": "{{status}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Пятисотые здесь — тот же сигнал, что и алерт ServerErrors."
+  },
+  {
+   "id": 13,
+   "type": "timeseries",
+   "title": "Лента: исходы отправки",
+   "gridPos": {
+    "x": 0,
+    "y": 32,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_feed_total[5m])) * 60",
+     "legendFormat": "{{result}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Шаг 2 писал эти ряды с 21.09.2026, и до сегодняшнего дня их никто не рисовал. queued — принято в очередь; live_limit, hourly_limit, one_at_a_time, held — отказы по §8.3; paused и rate_limited — тормоза. Всплеск storage_failed это дефект, а не нагрузка."
+  },
+  {
+   "id": 14,
+   "type": "timeseries",
+   "title": "Лента: вердикты",
+   "gridPos": {
+    "x": 12,
+    "y": 32,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (verdict) (rate(relay_feed_verdict_total[5m])) * 900",
+     "legendFormat": "{{verdict}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Модератора нет (см. relay/node/src/lib/feed_verdict.ts), поэтому штатный исход каждой отправленной фразы — expired_unread через десять минут. Пока published держится на нуле, а expired_unread растёт, лента работает вхолостую: люди пишут, и этого никто не видит. Это же условие стоит в правиле FeedPublishesNothing."
+  },
+  {
+   "id": 15,
+   "type": "timeseries",
+   "title": "Перенос устройства",
+   "gridPos": {
+    "x": 0,
+    "y": 39,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_transfer_total[15m])) * 900",
+     "legendFormat": "{{result}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "invited → claimed → approved это нормальный путь. wrong_pin и locked приходят из общей проверки ПИНа (relay/node/src/lib/pin_attempts.ts) — до 21.09.2026 окно переноса не списывало попыток вовсе; ряд wrong_pin без locked это перебор, который ещё не упёрся в десятую. cancelled_by_second_claim — кто-то подсмотрел код через плечо."
+  },
+  {
+   "id": 16,
+   "type": "timeseries",
+   "title": "Мотивировки по ст. 17",
+   "gridPos": {
+    "x": 12,
+    "y": 39,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_statements_total[1h])) * 3600",
+     "legendFormat": "{{result}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "Единственный путь, которым автор без почты узнаёт, почему его фразы больше нет. unavailable здесь дороже обычного: это невыполненная обязанность по ст. 17, а не неудобство."
+  }
+ ]
 }

@@ -110,3 +110,43 @@ groups:
         annotations:
           summary: "Очередь ст. 16 не разбирается"
           description: "Есть незакрытые уведомления и ни одного решения за шесть часов. Сроки ответа — регуляторные. Возраст самого старого — relay_dsa_queue_oldest_seconds."
+
+      # The feed with no moderator behind it. publishPhrase() is called by the
+      # stale-queue sweeper after ten minutes and by nothing else, so a phrase
+      # that nobody read is deleted unread — which is the design until §8.14 is
+      # wired, and is also exactly what a broken moderator would look like. The
+      # difference is in the ratio, not in either number alone: phrases coming
+      # in and none going out.
+      #
+      # Warning, not critical: nothing is lost that was ever visible, and the
+      # answer is a person deciding, not a restart at three in the morning.
+      - alert: FeedPublishesNothing
+        expr: sum(rate(relay_feed_verdict_total{verdict="expired_unread"}[1h])) > 0
+              and sum(rate(relay_feed_verdict_total{verdict="published"}[1h])) == 0
+        for: 1h
+        labels: { severity: warning }
+        annotations:
+          summary: "Лента принимает фразы и не публикует ни одной"
+          description: "За час ни одного published и хотя бы один expired_unread: очередь есть, вердиктов нет. Пока модератора нет (§8.14), это ожидаемо — тревога существует, чтобы ожидаемое не спуталось с поломкой в тот день, когда модератор появится."
+
+      # A stolen signing key being walked through PINs at the transfer window.
+      # Until 2026-09-21 that cost nothing at all; now it spends attempts, and
+      # the counter is what makes the attempt visible. A handful of wrong PINs
+      # is somebody's memory; a stream of them from one node is not.
+      - alert: TransferPinGuessing
+        expr: sum(rate(relay_transfer_total{result="wrong_pin"}[15m])) * 900 > 20
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "ПИН на окне переноса подбирают"
+          description: "Больше двадцати неверных ПИНов за пятнадцать минут. Десятая попытка закрывает вход и замораживает сессию (§8.2) — если растёт и result=locked, защита сработала; если нет, попытки идут с разных сессий."
+
+      # Article 17 is a duty, not a feature: an author with no mailbox learns
+      # why their phrase went only through this route.
+      - alert: StatementsUnavailable
+        expr: sum(rate(relay_statements_total{result="unavailable"}[15m])) > 0
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Мотивировки по ст. 17 не отдаются"
+          description: "Маршрут отвечает 503. Это единственный путь, которым автор без почты узнаёт причину ограничения."

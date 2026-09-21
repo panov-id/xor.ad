@@ -208,8 +208,8 @@ All five slots            | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md
 # и мою же выборку, потому что искали «слоты», а там счёт фраз.
 третья из пяти            | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | третья из четырёх, 31.08.2026
 third of five             | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | third of four, 2026-08-31
-потолок за 64 минуты      | chat_RU.md chat-flows_RU.md | потолок за час, 31.08.2026
-64-minute ceiling         | chat_EN.md chat-flows_EN.md | hourly ceiling, 2026-08-31
+потолок за 64 минуты      | chat_RU.md chat-flows_RU.md protocol_RU.md test-map_RU.md | потолок за час, 31.08.2026
+64-minute ceiling         | chat_EN.md chat-flows_EN.md protocol_EN.md test-map_EN.md | hourly ceiling, 2026-08-31
 
 five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four slots free, 2026-08-30
 8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026

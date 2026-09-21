@@ -132,7 +132,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.3d | **The operating point lives in the node's config, not in code** (2026-08-28) | changing the false-block budget moves the threshold with no rebuild and no retraining | nothing to check |
 | 6.3e | **The number promised by the community rules matches the config** | the test reads the share from the config and from the published rules; a mismatch is red. This is exactly what diverged on 2026-08-27 and went unnoticed for half a day | nothing to check |
 | 6.4 | The fifth refusal **within an hour** gives 15 minutes in which nothing goes to checking; another refusal in the same hour — another 15 minutes; feed, likes on phrases and conversations keep working (edited 2026-09-14: "15 minutes without posting" [retired]) | five refusals → `POST /feed`, a table line, a name change and an offer like with a name not yet accepted refused, `GET /feed` 200; a sixth refusal in the same hour → a new pause; an expired queue wait does not touch the counter | nothing to check |
-| 6.4a | **A phrase goes to checking one at a time** (§8.3, 2026-09-14) | two parallel sends → one row in the queue, the second insert gets `23505` from `feed_one_waiting`; "four per hour" counts the waiting one | nothing to check |
+| 6.4a | **A phrase goes to checking one at a time** (§8.3, 2026-09-14) | test "while one phrase is being checked the next is not taken", feed_publish | **yes** |
 | 6.4b | **The table hold does not outlive the pause** (§8.3, 2026-09-14) | five refusals 50 minutes ago, empty queue → a line accepted; four refusals and one's own line in checking → a new one waits for the verdict | nothing to check |
 | 6.4c | **The first publication is written as a UTC date, "long ago" is 24 to 48 hours** (§8.3, 2026-09-14) | a publication at 23:58 UTC → a report a day later does not count, two days later it does; a publication on the offer's day does not count | nothing to check |
 | 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
@@ -140,10 +140,10 @@ through three different wrappers and cannot be counted by eye.
 | 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, twenty minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
-| 6.8 | Limits: ≤4 live phrases, ≤4 per hour (2026-08-28) | a fifth live one → refused; a fifth within the hour → refused | nothing to check |
-| 6.9 | Taking a phrase down frees the slot but not the 64-minute ceiling | take down and repost in a loop → the ceiling holds | nothing to check |
+| 6.8 | Limits: ≤4 live phrases, ≤4 per hour (2026-08-28) | tests "four an hour counts moments…" and "four live phrases is its own limit…", feed_publish | **yes** |
+| 6.9 | Taking a phrase down frees the slot but not the hourly ceiling | test "taking a phrase down frees the slot but not the hour", feed_publish | **yes** |
 | 6.10 | **A phrase longer than 128 characters is refused by the database, not the app** | an `INSERT` with 129 characters fails on the `CHECK` | nothing to check |
-| 6.11 | **A zone is one of five steps and nothing else** (rewritten 2026-08-31) | an `INSERT` with `area_radius = 50`, `437` and `20000` fails on the `CHECK`; 100, 300, 1000, 3000, 10000 pass | nothing to check |
+| 6.11 | **A zone is one of five steps and nothing else** (rewritten 2026-08-31) | test "a radius between the steps is refused…", feed_publish | **yes** |
 | 6.12 | A link in the text is stripped, and the person is told | a phrase with a link → the feed shows it without one, the author gets an explaining line | nothing to check |
 | 6.13 | A non-empty discount turns a phrase into a private offer | a like on it yields a match at once, with none back (§8.5) | nothing to check |
 
@@ -152,11 +152,11 @@ through three different wrappers and cannot be counted by eye.
 | № | What must be true | What proves it | State |
 |---|---|---|---|
 | 7.1 | Visibility is symmetric: I see you → you see me | a pair with crossing circles, both feeds | nothing to check |
-| 7.2 | `band(20) = [18,22]`, `band(21) = [19,∞)`: 20 and 21 meet, 19 and 22 do not | a table of ages, both feeds | nothing to check |
-| 7.3 | The band never widens, not even on an empty feed | empty result → the radius grew, the band did not | nothing to check |
+| 7.2 | `band(20) = [18,22]`, `band(21) = [19,∞)`: 20 and 21 meet, 19 and 22 do not | tests "the band is two worlds that touch at the edge" and "an adult's band has no upper edge…", feed_geo | **yes** |
+| 7.3 | The band never widens, not even on an empty feed | test "the band cuts the feed, and it is never widened to fill it", feed_publish | **yes** |
 | 7.4 | The user's filter is clamped into its band on write | an attempt to set it wider → the value is clamped in the database | nothing to check |
 | 7.5 | Widening the radius does not change the stored setting | after widening, `radius` in the profile is unchanged | nothing to check |
-| 7.6 | Cards from the widened radius are marked | a "further than you asked" flag in the response | nothing to check |
+| 7.6 | Cards from the widened radius are marked | test "an empty screen grows the radius, says so…", feed_publish | **yes** |
 | 7.7 | The quota: no more than one commercial card per ten ordinary | a feed with twenty offers → two in the response | nothing to check |
 | 7.8 | Own phrases, blocks and hidden ones are excluded | all three cases in one feed | nothing to check |
 | 7.8a | **Language is a filter of up to three, not a mix of shares** | a feed filtered to `ru` holds no Greek phrases; the response carries the "N more in other languages" count | nothing to check |
@@ -319,7 +319,7 @@ through three different wrappers and cannot be counted by eye.
 | 16.3 | A block closes the shared chat | the chat is gone for both | nothing to check |
 | 16.4 | A like under a block yields no match | mutual likes → no match | nothing to check |
 | 16.5 | A report closes nothing by itself | after the report the phrase is alive | nothing to check |
-| 16.5c | **Neither reporting nor blocking changes the author's quota** | before and after: the live-phrase ceiling is the same, so is the 64-minute one | nothing to check |
+| 16.5c | **Neither reporting nor blocking changes the author's quota** | before and after: the live-phrase ceiling is the same, so is the hourly one | nothing to check |
 | 16.6 | A report carries the reporter's words, not a copy of the conversation | the client uploads nothing, `snapshot_state = not_accessible` | nothing to check |
 | 16.7 | **A content report through support lands in the same register** | a message describing something illegal → a record in the notices register, not in the support table | nothing to check |
 | 16.8 | **The answer is shown in the app at the next visit, with no email** | a message with no address → the answer waits with the identity and appears on entry | nothing to check |

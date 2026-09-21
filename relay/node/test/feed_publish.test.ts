@@ -1170,3 +1170,43 @@ Deno.test("a widening asks through the box index, not through the whole table", 
     `the widening query does not reach the box index:\n${text}`,
   );
 });
+
+Deno.test("a capped density count still reaches the top step", async () => {
+  // The count now stops at the first number that decides the answer — a
+  // hundred and a million both read "hundreds" — because measured on a million
+  // phrases the full count cost twice the capped one, on a handle a slider
+  // calls on every move. The promise that must survive the cap: a hundred or
+  // more is still "hundreds". A cap one short of the last step would quietly
+  // turn every crowded place into "tens".
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  const { quantise } = await import("../src/lib/feed_geo.ts");
+  reset();
+  const me = await author();
+  const writer = await author();
+  const here = { lat: 55.75, lon: 37.62 };
+  const at = quantise(here, 1000);
+
+  for (let i = 0; i < 120; i++) {
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, 'толпа', 'alone', 'und', $3, $4, 1000, $5, $6,
+               now(), now() + interval '4 hours')`,
+      [crypto.randomUUID(), writer.identity_id, here.lat, here.lon, at.lat, at.lon],
+    );
+  }
+
+  const seen = await signedCall(
+    me.pair.privateKey,
+    me.session_id,
+    "GET",
+    `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`,
+  );
+  assertEquals(
+    (seen.body as { step: string }).step,
+    "hundreds",
+    "a hundred and twenty phrases in one place did not read as hundreds",
+  );
+  reset();
+});

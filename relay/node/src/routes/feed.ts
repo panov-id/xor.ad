@@ -463,6 +463,15 @@ const DENSITY_STEPS: Array<{ upTo: number; step: string }> = [
   { upTo: 14, step: "about_ten" },
   { upTo: 99, step: "tens" },
 ];
+// The count stops here, because the answer does. Every step above is decided
+// by the time the count reaches the last `upTo` + 1 — a hundred and a million
+// both read "hundreds" — so counting further is paying for a number nobody is
+// told. Measured 2026-09-21 on a million phrases (scripts/measure-feed-geo.sh):
+// the full count in a dense spot took 98.2 ms, the capped one 50.6 ms, and the
+// handle is what a slider calls on every move. Derived from the table rather
+// than written as 100, so a new step cannot leave the cap behind it.
+const DENSITY_CAP = DENSITY_STEPS[DENSITY_STEPS.length - 1].upTo + 1;
+
 export function densityStep(count: number): string {
   for (const { upTo, step } of DENSITY_STEPS) if (count <= upTo) return step;
   return "hundreds";
@@ -511,7 +520,13 @@ async function density(req: Request, url: URL): Promise<Response> {
   const mine = band(me.age);
   const box = boundingBox({ lat, lon }, radius + 10000);
   const counted = await query<{ n: string }>(
-    `SELECT count(*)::text AS n
+    // The inner query stops at DENSITY_CAP rows; the outer one counts what it
+    // got. Note what was *not* changed, and why: the box form that rescued the
+    // sparse feed does nothing for this handle — it has no ORDER BY, so there
+    // is no cursor walk to escape, and on the same million rows the box was
+    // slower here (93.9 ms against 81.8). Measured rather than copied across.
+    `SELECT count(*)::text AS n FROM (
+       SELECT 1
        FROM feed_messages f
        JOIN identities a ON a.id = f.author_identity
       WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
@@ -533,7 +548,9 @@ async function density(req: Request, url: URL): Promise<Response> {
         AND sqrt(
               pow((f.lat_published - $9) * 111320, 2) +
               pow((f.lon_published - $10) * 111320 * cos(radians((f.lat_published + $9) / 2)), 2)
-            ) <= f.area_radius + $11`,
+            ) <= f.area_radius + $11
+      LIMIT ${DENSITY_CAP}
+    ) AS capped`,
     [
       box.latMin, box.latMax, box.lonMin, box.lonMax,
       me.age, mine.low, mine.high,

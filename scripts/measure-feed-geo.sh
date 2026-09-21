@@ -166,6 +166,54 @@ psql -t -c "EXPLAIN (ANALYZE, BUFFERS, COSTS OFF) $SPARSE_BOX" \
   | grep -E "Index|Seq Scan|Bitmap|Sort|Limit|Execution Time|Rows Removed|Heap Blocks" \
   | sed 's/^[[:space:]]*/  /'
 
+# --- the density handle --------------------------------------------------------
+#
+# GET /feed/density counts what the feed would deliver and answers a step, and
+# the steps saturate: 100 and a million both read "hundreds". The data lens
+# suggested counting at most a hundred for that reason. Counted here, not
+# argued: the handle is what a slider calls on every move.
+read -r -d '' DENSITY <<'SQL' || true
+SELECT count(*)::text AS n
+  FROM feed_messages f
+  JOIN identities a ON a.id = f.author_identity
+ WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
+   AND f.lat_published BETWEEN 41.5854 AND 42.2146
+   AND f.lon_published BETWEEN 12.0774 AND 12.9226
+   AND (CASE WHEN a.age <= 20 THEN 30 BETWEEN greatest(13, a.age - 2) AND a.age + 2
+             ELSE 30 >= least(21, a.age - 2) END)
+   AND sqrt(pow((f.lat_published - 41.9) * 111320, 2) +
+            pow((f.lon_published - 12.5) * 111320 * cos(radians((f.lat_published + 41.9) / 2)), 2))
+       <= f.area_radius + 1000
+SQL
+
+# The capped form: the same predicate inside, a hundred at most. The answer only
+# ever needs to know whether it has reached a hundred.
+CAPPED="SELECT count(*)::text AS n FROM (${DENSITY/SELECT count(*)::text AS n/SELECT 1} LIMIT 100) AS t"
+
+plan() {  # plan <title> <query>
+  echo
+  echo "== $1 =="
+  psql -q -c "EXPLAIN (ANALYZE, COSTS OFF) $2" >/dev/null
+  psql -t -c "EXPLAIN (ANALYZE, COSTS OFF) $2" \
+    | grep -E "Index Scan|Bitmap Index Scan|Seq Scan|Execution Time|Rows Removed" \
+    | sed 's/^[[:space:]]*/  /'
+}
+
+plan "плотность, плотное место, как есть" "$DENSITY"
+plan "плотность, плотное место, не больше ста" "$CAPPED"
+
+SPARSE_DENSITY="${DENSITY//41.9/42.05}"
+SPARSE_DENSITY="${SPARSE_DENSITY//12.5/12.71}"
+SPARSE_DENSITY="${SPARSE_DENSITY//41.5854/41.7354}"
+SPARSE_DENSITY="${SPARSE_DENSITY//42.2146/42.3646}"
+SPARSE_DENSITY="${SPARSE_DENSITY//12.0774/12.2874}"
+SPARSE_DENSITY="${SPARSE_DENSITY//12.9226/13.1326}"
+plan "плотность, разрежённый край, как есть" "$SPARSE_DENSITY"
+
+SPARSE_DENSITY_BOX="${SPARSE_DENSITY/AND f.lat_published BETWEEN 41.7354 AND 42.3646
+   AND f.lon_published BETWEEN 12.2874 AND 13.1326/AND point(f.lon_published, f.lat_published) <@ box(point(12.2874, 41.7354), point(13.1326, 42.3646))}"
+plan "плотность, разрежённый край, через box" "$SPARSE_DENSITY_BOX"
+
 echo
 echo "== размеры =="
 psql -t -c "SELECT '  ' || indexrelname || '  ' || pg_size_pretty(pg_relation_size(indexrelid))

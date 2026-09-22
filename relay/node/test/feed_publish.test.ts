@@ -3292,3 +3292,12 @@ Deno.test({
     assert(letter.includes(String(alpha.new)) && letter.includes(String(alpha.frozen)), "the digest did not carry its numbers");
   },
 });
+
+Deno.test("the support digest does not send the team to a panel page that does not exist", async () => {
+  const { supportDigestBlocks } = await import("../src/lib/mailer.ts");
+  const letter = JSON.stringify(supportDigestBlocks({ new: 1, waiting: 1, frozen: 0 }));
+  const { match } = await import("../src/lib/router.ts");
+  if (letter.includes("panel")) {
+    assert(match("GET", "/admin/support"), "the digest points at the panel, and the panel has no support page");
+  }
+});

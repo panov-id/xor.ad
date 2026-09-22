@@ -189,6 +189,11 @@ export const LIKE_LIMITS: Limit[] = [
   { name: "like", max: 300, windowMs: HOUR },
 ];
 
+// Profile edits, per identity (limits.tsv profile.patch.day, OPS-13).
+export const PROFILE_PATCH_LIMITS: Limit[] = [
+  { name: "profile_patch", max: 10, windowMs: DAY },
+];
+
 // Messages in a chat, per identity (limits.tsv chat.messages.minute, SEC-18).
 // Hiding per identity (limits.tsv hidden.hour, OPS-13).
 export const HIDDEN_LIMITS: Limit[] = [

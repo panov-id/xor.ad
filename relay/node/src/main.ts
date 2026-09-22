@@ -34,6 +34,7 @@ import "./routes/chats.ts"; // step 5: a chat message through the node, and its 
 import "./routes/blocks.ts"; // step 7: blocks (§8.9)
 import "./routes/hidden.ts"; // and hiding a phrase for oneself
 import "./routes/feed_queue.ts"; // the moderator's queue of the feed, in the panel (§8.3)
+import "./routes/profile.ts"; // PATCH /identities/me: the profile edited, the name queued (§8.2)
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)
 
 type Handler = (req: Request) => Response | Promise<Response>;

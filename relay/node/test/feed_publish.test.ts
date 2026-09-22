@@ -40,6 +40,7 @@ await import("../src/routes/inbox.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/feed_queue.ts");
+await import("../src/routes/profile.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -2483,6 +2484,101 @@ Deno.test({
     const [who] = await database.queryOrThrow<{ name_state: string }>(
       `SELECT name_state FROM identities WHERE id = $1`, [other.identity_id]);
     assertEquals(who.name_state, "rejected", "publish quietly re-accepted a rejected name");
+    reset();
+  },
+});
+
+// ── PATCH /identities/me (§8.2, protocol §4.11) ──────────────────────────────
+const patchMe = (who: { pair: CryptoKeyPair; session_id: string }, body: unknown) =>
+  signedCall(who.pair.privateKey, who.session_id, "PATCH", "/identities/me", body);
+const profileOf = async (id: string) =>
+  (await database.queryOrThrow<Record<string, unknown>>(
+    `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max, languages
+       FROM identities WHERE id = $1`, [id]))[0];
+
+Deno.test({
+  name: "a new name waits for the queue, and comes out with the next phrase",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const who = await author();
+    const asked = await patchMe(who, { name: "Анна" });
+    assertEquals(asked.status, 202, JSON.stringify(asked.body));
+    assertEquals(await profileOf(who.identity_id), {
+      name: "Аня", name_pending: "Анна", name_state: "pending", age: 30,
+      filter_age_min: null, filter_age_max: null, languages: [],
+    });
+    // Nobody sees the new name yet: the queue does, beside the next phrase.
+    await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: "с новым именем" }));
+    const moderator = await panelAs("moderator");
+    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+      .find((i) => i.text === "с новым именем");
+    assert(row);
+    assertEquals(row.name, "Анна");
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна" })).status, 200);
+    assertEquals((await profileOf(who.identity_id)).name, "Анна");
+    // The unchanged name is not a change: nothing goes to the queue.
+    assertEquals((await patchMe(who, { name: "Анна" })).status, 200);
+    // Too long, and not a string.
+    assertEquals((await patchMe(who, { name: "а".repeat(25) })).status, 400);
+    assertEquals((await patchMe(who, { name: 7 })).status, 400);
+    reset();
+  },
+});
+
+Deno.test({
+  name: "the accepted name is frozen while a phrase lives or a chat is open",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const who = await author();
+    await livePhrase({ pair: who.pair.privateKey, session_id: who.session_id });
+    const frozen = await patchMe(who, { name: "Анна" });
+    assertEquals(frozen.status, 409, JSON.stringify(frozen.body));
+    assertEquals((frozen.body as { error: { code: string } }).error.code, "name_frozen");
+    // Other fields still move while the name is frozen.
+    assertEquals((await patchMe(who, { languages: ["ru", "en"] })).status, 200);
+    const { a } = await openChat();
+    const inChat = await patchMe(a, { name: "Борис" });
+    assertEquals((inChat.body as { error: { code: string } }).error.code, "name_frozen");
+    // A rejected name is never frozen: it is corrected whenever.
+    await database.queryOrThrow(`UPDATE identities SET name_state = 'rejected' WHERE id = $1`, [a.identity_id]);
+    assertEquals((await patchMe(a, { name: "Борис" })).status, 202);
+    reset();
+  },
+});
+
+Deno.test({
+  name: "age moves up across 20/21 and never down; the filter stays in the band; ten edits a day",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const teen = await author(20);
+    assertEquals((await patchMe(teen, { age: 21 })).status, 200);
+    const down = await patchMe(teen, { age: 20 });
+    assertEquals(down.status, 409);
+    assertEquals((down.body as { error: { code: string } }).error.code, "age_step_down");
+    // Inside the pool both ways.
+    assertEquals((await patchMe(teen, { age: 25 })).status, 200);
+    assertEquals((await patchMe(teen, { age: 22 })).status, 200);
+    assertEquals((await patchMe(teen, { age: 12 })).status, 400);
+    // The filter: a 22-year-old's band is [21, ∞).
+    assertEquals((await patchMe(teen, { filter_age_min: 25, filter_age_max: 30 })).status, 200);
+    const wide = await patchMe(teen, { filter_age_min: 19 });
+    assertEquals(wide.status, 409);
+    assertEquals((wide.body as { error: { code: string } }).error.code, "filter_out_of_band");
+    assertEquals((await patchMe(teen, { filter_age_min: 40, filter_age_max: 30 })).status, 400);
+    assertEquals((await patchMe(teen, { languages: ["a", "b", "c", "d"] })).status, 400);
+    assertEquals((await patchMe(teen, { filter_modes: ["alone"] })).status, 400, "filter_modes has no column yet and must say so");
+    // profile.patch.day: the ten above counted (refusals too), the next is 429.
+    const spent = await patchMe(teen, { languages: ["ru"] });
+    assertEquals(spent.status, 429, JSON.stringify(spent.body));
     reset();
   },
 });

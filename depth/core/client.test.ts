@@ -56,3 +56,20 @@ Deno.test("the two shapes of 409 are told apart", async () => {
   assertEquals(conflictOf({ status: 409, body: { error: { code: "stepped_away" } } }), "stepped_away");
   assertEquals(conflictOf({ status: 200, body: {} }), null);
 });
+
+Deno.test({
+  name: "a new name waits for the queue; the old one stands until then",
+  ignore: !node,
+  async fn() {
+    const client = new Client(node!, apiKey!);
+    await client.register({ name: "Аня", age: 30 }, { testOnly: true });
+    await client.confirmPaperCode();
+    const asked = await client.editProfile({ name: "Анна", languages: ["ru"] });
+    assertEquals(asked.status, 202, JSON.stringify(asked.body));
+    const body = asked.body as { name: string; name_pending?: string; languages: string[] };
+    assertEquals(body.name, "Аня");
+    assertEquals(body.name_pending, "Анна");
+    assertEquals(body.languages, ["ru"]);
+    assertEquals((await client.profile()).name, "Аня", "the old name did not stand while the new one waits");
+  },
+});

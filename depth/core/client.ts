@@ -140,6 +140,14 @@ export class Client {
     return answer.body;
   }
 
+  // PATCH /identities/me — any subset; a new name answers 202 and waits for
+  // the queue, the rest answers 200 with the profile as it stands (§8.2).
+  editProfile(patch: {
+    name?: string; age?: number; filter_age_min?: number | null; filter_age_max?: number | null; languages?: string[];
+  }): Promise<Answer> {
+    return this.#call("PATCH", "/identities/me", patch);
+  }
+
   // POST /feed — 202 means "being read", not "published" (§8.3).
   say(phrase: { text: string; mode: string; lat: number; lon: number; radius: Radius }): Promise<Answer> {
     return this.#call("POST", "/feed", {

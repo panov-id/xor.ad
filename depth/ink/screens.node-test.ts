@@ -13,6 +13,12 @@ const test = (name: string, fn: () => Promise<void>) => cases.push([name, fn]);
 const say_ = (line: string) => (process as unknown as { _rawDebug: (s: string) => void })._rawDebug(line);
 setTimeout(async () => {
   let failed = 0;
+  // A run with nothing in it is not a pass: an empty set used to print
+  // "провалено 0" and exit green (operations lens, 2026-09-22).
+  if (cases.length < 6) {
+    say_(`тестов должно быть не меньше шести, а собрано ${cases.length}`);
+    process.exit(1);
+  }
   for (const [name, fn] of cases) {
     try {
       await fn();
@@ -28,6 +34,7 @@ setTimeout(async () => {
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Location, Registration } from "./screens.ts";
+import { plain } from "./parts.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -106,4 +113,22 @@ test("every language renders the first screen without holes", async () => {
     assert.ok(frame.length > 50, `${lang}: the screen came out empty`);
     app.unmount();
   }
+});
+
+test("what the node sends cannot repaint the screen", async () => {
+  // A name carrying a cursor jump and a colour reset, and an OSC title change:
+  // both must come out as text, not as instructions to the terminal.
+  const nasty = "Марк\u001B[2J\u001B[H\u001B[31m\u001B]0;узел тут\u0007\u0000";
+  const clean = plain(nasty);
+  assert.equal(clean.includes("\u001B"), false, `an escape survived: ${JSON.stringify(clean)}`);
+  assert.match(clean, /^Марк/, "the name itself was eaten");
+  assert.equal(plain("x".repeat(900)).length, 400, "a long line is not cut to a screenful");
+  assert.equal(plain(undefined), "", "an absent value must not print as undefined");
+});
+
+test("a fresh terminal will not register while the PIN is a placeholder", async () => {
+  // The core's escape hatch is what the tests pass; the image must not.
+  const { Client } = await import("../core/client.ts");
+  const client = new Client("http://127.0.0.1:1", "k");
+  await assert.rejects(() => client.register({ name: "Аня", age: 27 }), /placeholders/);
 });

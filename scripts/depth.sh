@@ -29,5 +29,6 @@ docker build -q -t depth:local "$root/depth" >/dev/null
 # so there is nothing to mount and nothing left behind (§8.13 and the panel of
 # 2026-09-21). Quitting means a new identity next time.
 exec docker run --rm -it --network host \
-  -e DEPTH_NODE_URL -e DEPTH_API_KEY -e DEPTH_ORIGIN_TOKEN -e LANG -e LC_ALL -e DEPTH_LANG \
+  --read-only --cap-drop ALL --security-opt no-new-privileges \
+  -e DEPTH_NODE_URL -e DEPTH_API_KEY -e DEPTH_ORIGIN_TOKEN -e DEPTH_TEST_ONLY -e LANG -e LC_ALL -e DEPTH_LANG \
   depth:local

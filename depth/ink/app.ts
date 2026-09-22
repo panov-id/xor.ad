@@ -17,6 +17,14 @@ import { Chat, Inbox, Write } from "./rooms.ts";
 // longer anyway.
 const LENGTH = 146;
 
+// The core refuses to register while the PIN and the paper code are
+// placeholders, and it is right to: a person registered this way can never
+// unlock or recover (depth-core panel, 2026-09-21). The image therefore does
+// not register anyone unless the run says out loud that it is a test stand —
+// the shipped terminal used to pass the escape hatch itself (security lens,
+// 2026-09-22).
+const TEST_ONLY = process.env.DEPTH_TEST_ONLY === "1";
+
 type Where =
   | { screen: "register" }
   | { screen: "location" }
@@ -41,7 +49,7 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           error,
           onDone: (name, age) => {
             setError(undefined);
-            client.register({ name, age }, { testOnly: true })
+            client.register({ name, age }, { testOnly: TEST_ONLY })
               .then(() => client.confirmPaperCode())
               .then(() => setWhere({ screen: "location" }))
               .catch((e: Error) => fail(e.message));

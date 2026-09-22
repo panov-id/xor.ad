@@ -3,8 +3,6 @@
   "reg.intro": "Una identidad nueva. Vive mientras el terminal esté abierto: la clave no toca el disco y, al salir, serás otra persona.",
   "reg.name": "nombre",
   "reg.age": "edad",
-  "reg.paper.title": "Código en papel (anótalo: no volverá a aparecer en pantalla):",
-  "reg.paper.repeat": "repite el código",
   "reg.next": "seguir",
   "reg.stub": "el PIN y el código real son de momento sustitutos testOnly",
   "loc.title": "¿Dónde estás?",
@@ -51,5 +49,6 @@
   "common.close": "cerrar",
   "common.rowFields": "flechas arriba y abajo: entre campos",
   "common.rowActions": "flechas izquierda y derecha: la acción, enter: elegir",
-  "common.error": "Algo ha fallado: {message}"
+  "common.error": "Algo ha fallado: {message}",
+  "chat.broken": "un mensaje no se abrió: {message}"
 }

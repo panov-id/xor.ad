@@ -3,8 +3,6 @@
   "reg.intro": "Nowa tożsamość. Żyje, dopóki terminal jest otwarty: klucz nie trafia na dysk, a po wyjściu będziesz kimś innym.",
   "reg.name": "imię",
   "reg.age": "wiek",
-  "reg.paper.title": "Kod na papier (zapisz — na ekranie już się nie pojawi):",
-  "reg.paper.repeat": "powtórz kod",
   "reg.next": "dalej",
   "reg.stub": "PIN i prawdziwy kod są na razie zaślepkami testOnly",
   "loc.title": "Gdzie jesteś?",
@@ -51,5 +49,6 @@
   "common.close": "zamknij",
   "common.rowFields": "strzałki w górę i w dół — między polami",
   "common.rowActions": "strzałki w lewo i w prawo — działanie, enter — wybierz",
-  "common.error": "Coś poszło nie tak: {message}"
+  "common.error": "Coś poszło nie tak: {message}",
+  "chat.broken": "wiadomość się nie otworzyła: {message}"
 }

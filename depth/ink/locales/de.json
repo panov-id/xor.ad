@@ -3,8 +3,6 @@
   "reg.intro": "Eine neue Identität. Sie lebt, solange das Terminal offen ist: der Schlüssel landet nie auf der Platte, und nach dem Beenden bist du jemand anderes.",
   "reg.name": "Name",
   "reg.age": "Alter",
-  "reg.paper.title": "Papiercode (schreib ihn auf — auf dem Bildschirm kommt er nicht wieder):",
-  "reg.paper.repeat": "Code wiederholen",
   "reg.next": "weiter",
   "reg.stub": "PIN und echter Code sind vorerst testOnly-Platzhalter",
   "loc.title": "Wo bist du?",
@@ -51,5 +49,6 @@
   "common.close": "schließen",
   "common.rowFields": "Pfeile hoch und runter: zwischen den Feldern",
   "common.rowActions": "Pfeile links und rechts: die Aktion, Enter: wählen",
-  "common.error": "Etwas ist schiefgegangen: {message}"
+  "common.error": "Etwas ist schiefgegangen: {message}",
+  "chat.broken": "eine Nachricht ließ sich nicht öffnen: {message}"
 }

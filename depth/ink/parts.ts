@@ -148,3 +148,15 @@ export function Form(
     h(Menu, { actions, onPick, hint: actionsHint, active: active && onMenu }),
   );
 }
+
+// Anything the node hands over — a name, an age, a phrase, a decrypted line —
+// is drawn through this. The node is the adversary here (§8.13): an escape
+// sequence inside a name can repaint the screen, and the screen the person is
+// told to trust is the one holding the safety code (security lens,
+// 2026-09-22). Control characters and CSI/OSC sequences go; a printable ␛ is
+// shown as a dot so nothing silently disappears.
+// deno-lint-ignore no-control-regex
+const CONTROL = /\u001B\][^\u0007\u001B]*(?:\u0007|\u001B\\)|\u001B[@-Z\\-_]|\u001B\[[0-?]*[ -\/]*[@-~]|[\u0000-\u001F\u007F-\u009F]/g;
+export function plain(text: unknown, limit = 400): string {
+  return String(text ?? "").replace(CONTROL, "·").slice(0, limit);
+}

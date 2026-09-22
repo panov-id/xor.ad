@@ -10,11 +10,13 @@ import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Client } from "../core/client.ts";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu } from "./parts.ts";
+import { Form, Head, Menu, plain } from "./parts.ts";
 import type { Place } from "./screens.ts";
 
-// 4 · a phrase. The limit comes from the node (§8.3), not from here; the
-// counter shows what the node last said.
+// 4 · a phrase. The counter shows the number this client documents (146);
+// the node's own limit is what actually refuses (§8.3), and reading it from
+// the node is still to do — the two comments used to disagree (consistency
+// lens, 2026-09-22).
 export function Write(
   { say, client, place, limit, onDone, onBack, onError }: {
     say: Say;
@@ -104,7 +106,7 @@ export function Inbox(
           h(
             Text,
             { key: r.id, bold: i === at },
-            `${i === at ? "›" : " "} ${r.name ?? "?"}, ${r.age ?? "?"}   `,
+            `${i === at ? "›" : " "} ${plain(r.name ?? "?", 48)}, ${plain(r.age ?? "?", 3)}   `,
             r.kind === "chat"
               ? `${say("inbox.open")} · ${say("inbox.until", { time: time(r.chat_expires_at) })}`
               : say("inbox.match"),
@@ -154,7 +156,7 @@ export function Chat(
     onError: (message: string) => void;
   },
 ): ReactElement {
-  const [lines, setLines] = useState<Array<{ mine: boolean; text: string }>>([]);
+  const [lines, setLines] = useState<Array<{ mine: boolean; text: string; broken?: boolean }>>([]);
   const [draft, setDraft] = useState("");
   const [code, setCode] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(false);
@@ -171,8 +173,13 @@ export function Chat(
         const frame = await room.next(60_000).catch(() => null);
         if (!frame || frame.type !== "message") continue;
         const { id, ciphertext } = frame.data as { id: string; ciphertext: string };
-        const text = await client.read(chatId, ciphertext, id, matchId).catch((e: Error) => `· ${e.message}`);
-        setLines((all) => [...all, { mine: false, text }]);
+        // A frame that does not open is the node's doing, not the peer's: it
+        // must never be drawn as something they said (security lens,
+        // 2026-09-22).
+        const text = await client.read(chatId, ciphertext, id, matchId)
+          .then((line) => ({ text: line, broken: false }))
+          .catch((e: Error) => ({ text: e.message, broken: true }));
+        setLines((all) => [...all, { mine: false, ...text }]);
       }
     })().catch((e: Error) => onError(e.message));
     return () => {
@@ -184,11 +191,21 @@ export function Chat(
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
-    h(Head, { title: say("chat.title", { name, age }) }),
+    h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }) }),
     h(
       Box,
       { flexDirection: "column" },
-      ...lines.map((l, i) => h(Text, { key: i }, l.mine ? `${say("chat.send")}: ${l.text}` : `${name}: ${l.text}`)),
+      ...lines.map((l, i) =>
+        h(
+          Text,
+          { key: i, dimColor: l.broken === true },
+          l.broken === true
+            ? `· ${say("chat.broken", { message: plain(l.text, 120) })}`
+            : l.mine
+            ? `${say("chat.send")}: ${plain(l.text)}`
+            : `${plain(name, 48)}: ${plain(l.text)}`,
+        )
+      ),
     ),
     showCode
       ? h(

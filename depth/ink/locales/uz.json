@@ -3,8 +3,6 @@
   "reg.intro": "Yangi shaxs. U terminal ochiq turganda yashaydi: kalit diskka tushmaydi, chiqsang boshqa odam bo'lasan.",
   "reg.name": "ism",
   "reg.age": "yosh",
-  "reg.paper.title": "Qog'oz kodi (yozib ol — ekranda boshqa chiqmaydi):",
-  "reg.paper.repeat": "kodni takrorla",
   "reg.next": "davom",
   "reg.stub": "PIN va haqiqiy kod hozircha testOnly o'rnini bosuvchilar",
   "loc.title": "Qayerdasan?",
@@ -51,5 +49,6 @@
   "common.close": "yopish",
   "common.rowFields": "yuqori va past strelkalar — maydonlar orasida",
   "common.rowActions": "chap va o'ng strelkalar — harakat, enter — tanlash",
-  "common.error": "Nimadir noto'g'ri ketdi: {message}"
+  "common.error": "Nimadir noto'g'ri ketdi: {message}",
+  "chat.broken": "xabar ochilmadi: {message}"
 }

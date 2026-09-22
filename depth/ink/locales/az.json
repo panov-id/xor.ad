@@ -3,8 +3,6 @@
   "reg.intro": "Yeni şəxsiyyət. O, terminal açıq olduqca yaşayır: açar diskə düşmür, çıxsan başqa adam olacaqsan.",
   "reg.name": "ad",
   "reg.age": "yaş",
-  "reg.paper.title": "Kağız kodu (yaz — ekranda bir daha görünməyəcək):",
-  "reg.paper.repeat": "kodu təkrarla",
   "reg.next": "davam",
   "reg.stub": "PIN və əsl kod hələlik testOnly əvəzləyiciləridir",
   "loc.title": "Haradasan?",
@@ -51,5 +49,6 @@
   "common.close": "bağla",
   "common.rowFields": "yuxarı və aşağı oxlar — sahələr arasında",
   "common.rowActions": "sol və sağ oxlar — hərəkət, enter — seç",
-  "common.error": "Nəsə alınmadı: {message}"
+  "common.error": "Nəsə alınmadı: {message}",
+  "chat.broken": "mesaj açılmadı: {message}"
 }

@@ -10,7 +10,7 @@ import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Client, Radius } from "../core/client.ts";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu } from "./parts.ts";
+import { Form, Head, Menu, plain } from "./parts.ts";
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 
@@ -110,12 +110,12 @@ export function Feed(
       h(
         Text,
         { bold: i === at },
-        `${i === at ? "›" : " "} ${p.name ?? "?"}, ${p.age ?? "?"} · `,
+        `${i === at ? "›" : " "} ${plain(p.name ?? "?", 48)}, ${plain(p.age ?? "?", 3)} · `,
         say("feed.distance", { meters: p.distance_m ?? 0 }),
         " · ",
         say("feed.minutes", { minutes: p.minutes_ago ?? 0 }),
       ),
-      h(Text, null, `  ${p.text}`),
+      h(Text, null, `  ${plain(p.text, 200)}`),
     );
   return h(
     Box,
@@ -131,7 +131,7 @@ export function Feed(
     h(
       Text,
       { dimColor: true },
-      mine ? `${say("feed.yours", { text: mine.text })} · ${mine.state === "pending" ? say("feed.checking") : mine.state}` : say("feed.none"),
+      mine ? `${say("feed.yours", { text: plain(mine.text, 200) })} · ${mine.state === "pending" ? say("feed.checking") : mine.state}` : say("feed.none"),
     ),
     h(Menu, {
       actions: [

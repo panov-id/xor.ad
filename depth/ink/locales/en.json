@@ -3,8 +3,6 @@
   "reg.intro": "A new identity. It lives while the terminal is open: the key never touches the disk, and quitting makes you someone else.",
   "reg.name": "name",
   "reg.age": "age",
-  "reg.paper.title": "Paper code (write it down — it will not be shown again):",
-  "reg.paper.repeat": "repeat the code",
   "reg.next": "continue",
   "reg.stub": "the PIN and the real code are test-only stubs for now",
   "loc.title": "Where are you?",
@@ -51,5 +49,6 @@
   "common.close": "close",
   "common.rowFields": "arrows up and down move between fields",
   "common.rowActions": "left and right choose an action, enter picks it",
-  "common.error": "Something went wrong: {message}"
+  "common.error": "Something went wrong: {message}",
+  "chat.broken": "a message did not open: {message}"
 }

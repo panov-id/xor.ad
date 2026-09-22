@@ -5,9 +5,9 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 deno="denoland/deno:alpine-2.1.4"
-node_image="node:24-alpine"
+node_image="node:24.21.0-alpine"
 pg_image="postgres:16.13-alpine"
-label="depth-live-ui=1"
+label="depth-live-ui=$$"  # уникален: сметка по общему ярлыку убивала стенд соседнего прогона
 cache="-v depth-test-deno-cache:/deno-dir -e DENO_DIR=/deno-dir"
 network="depth-ui-net-$$"; db="depth-ui-db-$$"; node="depth-ui-node-$$"
 database_url="postgres://relay:test@postgres:5432/relay_test"
@@ -23,7 +23,7 @@ docker run -d --label "$label" --name "$db" --network "$network" --network-alias
   -e POSTGRES_USER=relay -e POSTGRES_PASSWORD=test -e POSTGRES_DB=relay_test "$pg_image" >/dev/null
 ready() { docker exec "$db" pg_isready -h 127.0.0.1 -U relay -d relay_test >/dev/null 2>&1; }
 for _ in $(seq 40); do ready && break; sleep 0.5; done
-ready || { echo "postgres did not become ready" >&2; exit 1; }
+ready || { echo "postgres did not become ready" >&2; docker logs "$db" 2>&1 | tail -20 >&2; exit 1; }
 
 # shellcheck disable=SC2086
 docker run --rm --network "$network" -e DATABASE_URL="$database_url" $cache \
@@ -43,11 +43,15 @@ up() { docker run --rm --network "$network" curlimages/curl:8.10.1 -sf http://no
 for _ in $(seq 60); do up && break; sleep 1; done
 up || { echo "the node did not come up" >&2; docker logs "$node" 2>&1 | tail -20 >&2; exit 1; }
 
-[ -d "$root/depth/node_modules" ] || docker run --rm -v "$root/depth":/d -w /d "$node_image" npm install --no-audit --no-fund >/dev/null
+mods="-v depth-node-modules:/repo/depth/node_modules"
+# shellcheck disable=SC2086
+timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$node_image" \
+  npm ci --no-audit --no-fund >/dev/null
 status=0
-docker run --rm --network "$network" \
+# shellcheck disable=SC2086
+timeout 600 docker run --rm --network "$network" $mods \
   -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" -e DEPTH_DATABASE_URL="$database_url" \
-  -e DEPTH_ORIGIN_TOKEN=depth-ui-origin \
+  -e DEPTH_ORIGIN_TOKEN=depth-ui-origin -e DEPTH_TEST_ONLY=1 \
   -v "$root":/repo -w /repo/depth "$node_image" \
   node --experimental-transform-types ink/live.node-test.ts || status=$?
 if [ "$status" -ne 0 ]; then echo "── node log (tail) ──" >&2; docker logs "$node" 2>&1 | tail -30 >&2; fi

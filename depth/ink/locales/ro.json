@@ -3,8 +3,6 @@
   "reg.intro": "O identitate nouă. Trăiește cât timp terminalul e deschis: cheia nu ajunge pe disc, iar dacă ieși devii altcineva.",
   "reg.name": "nume",
   "reg.age": "vârstă",
-  "reg.paper.title": "Codul pe hârtie (notează-l — nu va mai apărea pe ecran):",
-  "reg.paper.repeat": "repetă codul",
   "reg.next": "mai departe",
   "reg.stub": "PIN-ul și codul real sunt deocamdată substitute testOnly",
   "loc.title": "Unde ești?",
@@ -51,5 +49,6 @@
   "common.close": "închide",
   "common.rowFields": "săgețile sus și jos — între câmpuri",
   "common.rowActions": "săgețile stânga și dreapta — acțiunea, enter — alege",
-  "common.error": "Ceva n-a mers: {message}"
+  "common.error": "Ceva n-a mers: {message}",
+  "chat.broken": "un mesaj nu s-a deschis: {message}"
 }

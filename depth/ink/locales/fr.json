@@ -3,8 +3,6 @@
   "reg.intro": "Une nouvelle identité. Elle vit tant que le terminal est ouvert : la clé ne touche jamais le disque, et en quittant tu deviens quelqu'un d'autre.",
   "reg.name": "prénom",
   "reg.age": "âge",
-  "reg.paper.title": "Code sur papier (note-le : il ne reviendra pas à l'écran) :",
-  "reg.paper.repeat": "répète le code",
   "reg.next": "continuer",
   "reg.stub": "le PIN et le vrai code sont pour l'instant des bouchons testOnly",
   "loc.title": "Tu es où ?",
@@ -51,5 +49,6 @@
   "common.close": "fermer",
   "common.rowFields": "flèches haut et bas : entre les champs",
   "common.rowActions": "flèches gauche et droite : l'action, entrée : choisir",
-  "common.error": "Quelque chose a échoué : {message}"
+  "common.error": "Quelque chose a échoué : {message}",
+  "chat.broken": "un message ne s'est pas ouvert : {message}"
 }

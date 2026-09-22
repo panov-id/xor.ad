@@ -235,12 +235,14 @@ export class Client {
   // Seal a line and send it (§8.13 over POST /chats/:id/messages).
   async sayInChat(chatId: string, text: string, matchId?: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }>> {
     const conversation = await this.openConversation(chatId, matchId);
-    return this.sendMessage(chatId, crypto.randomUUID(), await conversation.seal(text));
+    const localId = crypto.randomUUID();
+    return this.sendMessage(chatId, localId, await conversation.seal(text, localId));
   }
 
   // Open an incoming frame's ciphertext with the peer's direction key.
-  async read(chatId: string, ciphertext: string, matchId?: string): Promise<string> {
-    return (await this.openConversation(chatId, matchId)).open(ciphertext);
+  // `localId` is the frame's id — the additional data the box was sealed under.
+  async read(chatId: string, ciphertext: string, localId: string, matchId?: string): Promise<string> {
+    return (await this.openConversation(chatId, matchId)).open(ciphertext, localId);
   }
 
   // Death of the chat (§8.13): both keys and the ephemeral pair are forgotten.

@@ -30,19 +30,21 @@ Deno.test("the direction is named by the sorted ids", () => {
 
 Deno.test("what one side seals the other opens, and the node sees none of it", async () => {
   const { a, b } = await pair();
-  const box = await a.seal("гуляю у реки, если кто рядом");
+  const id = crypto.randomUUID();
+  const box = await a.seal("гуляю у реки, если кто рядом", id);
   assert(!box.includes("реки"), "the ciphertext carries the text");
-  assertEquals(await b.open(box), "гуляю у реки, если кто рядом");
-  const back = await b.seal("иду");
-  assertEquals(await a.open(back), "иду");
+  assertEquals(await b.open(box, id), "гуляю у реки, если кто рядом");
+  const back = await b.seal("иду", id);
+  assertEquals(await a.open(back, id), "иду");
   // Two seals of one text differ: the nonce is fresh each time.
-  assert(await a.seal("x") !== await a.seal("x"));
+  assert(await a.seal("x", id) !== await a.seal("x", id));
 });
 
 Deno.test("a reflected message does not open: the sender's own key is not the peer's", async () => {
   const { a } = await pair();
-  const box = await a.seal("моё же");
-  await assertRejects(() => a.open(box));
+  const id = crypto.randomUUID();
+  const box = await a.seal("моё же", id);
+  await assertRejects(() => a.open(box, id));
 });
 
 Deno.test("a half that is not signed by the peer's long key is refused", async () => {
@@ -55,6 +57,18 @@ Deno.test("a half that is not signed by the peer's long key is refused", async (
   // The right half with the wrong chat id gives different keys: nothing opens.
   const other = await aEph.open(bHalf, bLong.publicSpki, MATCH, "another-chat", LOW, HIGH);
   const { b } = await pair();
-  const sealed = await b.seal("x");
-  await assertRejects(() => other.open(sealed));
+  const sealed = await b.seal("x", "id-1");
+  await assertRejects(() => other.open(sealed, "id-1"));
+});
+
+Deno.test("a box is bound to its local_id, and a replayed box does not open twice", async () => {
+  const { a, b } = await pair();
+  const id = crypto.randomUUID();
+  const box = await a.seal("один раз", id);
+  assertEquals(await b.open(box, id), "один раз");
+  // The node replays the frame: the nonce was seen, the box does not open again.
+  await assertRejects(() => b.open(box, id), Error, "seen");
+  // The node re-labels a box: the AAD does not match.
+  const other = await a.seal("другой", crypto.randomUUID());
+  await assertRejects(() => b.open(other, id));
 });

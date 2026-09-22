@@ -2780,5 +2780,12 @@ Deno.test({
     assertEquals(seenByA.me as string, a.identity_id);
     // The match the halves were signed for, so the peer can verify the binding.
     assertEquals(seenByA.match_id as string, id);
+    // The halves belong to the chat now, not to the match: a match gone (the
+    // sweeper, a later re-match) leaves the conversation its keys (step-6 panel).
+    await database.queryOrThrow(`DELETE FROM matches WHERE id = $1`, [id]);
+    const afterA = await inboxOf(a);
+    assert(afterA, "the chat left the inbox with its match");
+    assertEquals((afterA.peer as { ephemeral_public_key: string }).ephemeral_public_key, bHalf.ephemeral_public_key, "the peer's half went with the match");
+    assertEquals(afterA.match_id as string, id, "the match id went with the match");
   },
 });

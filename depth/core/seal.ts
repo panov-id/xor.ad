@@ -103,12 +103,21 @@ export class Ephemeral {
 }
 
 export class Conversation {
+  // Nonces already opened: the node can replay a frame, and a box that opened
+  // once does not open twice (step-6 panel, 2026-09-22).
+  #seen = new Set<string>();
+
   constructor(private readonly sealKey: CryptoKey, private readonly openKey: CryptoKey) {}
 
-  // nonce ‖ ciphertext, base64url — what POST /chats/:id/messages carries.
-  async seal(text: string): Promise<string> {
+  // nonce ‖ ciphertext, base64url — what POST /chats/:id/messages carries. The
+  // message's local_id is the additional data: a box the node re-labels under
+  // another id does not open.
+  async seal(text: string, localId: string): Promise<string> {
     const nonce = crypto.getRandomValues(new Uint8Array(NONCE_BYTES));
-    const box = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, this.sealKey, new TextEncoder().encode(text)));
+    const box = new Uint8Array(await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce, additionalData: new TextEncoder().encode(localId) },
+      this.sealKey, new TextEncoder().encode(text),
+    ));
     const out = new Uint8Array(nonce.length + box.length);
     out.set(nonce);
     out.set(box, nonce.length);
@@ -117,14 +126,17 @@ export class Conversation {
 
   // Opens with the peer's direction key only: our own message, reflected by
   // the node, does not open here (§8.13, the reason there are two keys).
-  async open(ciphertext: string): Promise<string> {
+  async open(ciphertext: string, localId: string): Promise<string> {
     const bytes = fromBase64url(ciphertext);
     if (bytes.length <= NONCE_BYTES) throw new Error("not a sealed message");
+    const nonce = base64url(bytes.subarray(0, NONCE_BYTES));
+    if (this.#seen.has(nonce)) throw new Error("a nonce seen before: the frame was replayed");
     const plain = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: bytes.subarray(0, NONCE_BYTES) },
+      { name: "AES-GCM", iv: bytes.subarray(0, NONCE_BYTES), additionalData: new TextEncoder().encode(localId) },
       this.openKey,
       bytes.subarray(NONCE_BYTES),
     );
+    this.#seen.add(nonce);
     return new TextDecoder().decode(plain);
   }
 }

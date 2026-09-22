@@ -178,8 +178,9 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     }
     const chatId = created.id;
     await run(
-      `INSERT INTO chat_participants (chat_id, identity)
-       SELECT $1, identity FROM match_participants WHERE match_id = $2`,
+      `INSERT INTO chat_participants (chat_id, identity, match_id, ephemeral_public_key, ephemeral_signature)
+       SELECT $1, identity, match_id, ephemeral_public_key, ephemeral_signature
+         FROM match_participants WHERE match_id = $2`,
       [chatId, matchId],
     );
     // The header: each side's phrase, copied, with who liked it — the other one.

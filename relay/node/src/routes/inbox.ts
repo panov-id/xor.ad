@@ -48,15 +48,13 @@ async function inbox(req: Request): Promise<Response> {
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
               + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends,
             them.id AS peer_id, them.identity_public_key AS peer_long,
-            m.id AS match_id,
-            mp.ephemeral_public_key AS peer_half, mp.ephemeral_signature AS peer_sig
+            -- The peer's ephemeral half (§8.13), the conversation's own since
+            -- db/036: a match gone does not take it.
+            o.match_id, o.ephemeral_public_key AS peer_half, o.ephemeral_signature AS peer_sig
        FROM chat_participants p
        JOIN chats c ON c.id = p.chat_id
        JOIN chat_participants o ON o.chat_id = c.id AND o.identity <> $1
        JOIN identities them ON them.id = o.identity
-       -- The peer's ephemeral half (§8.13), left on the match that opened the chat.
-       LEFT JOIN matches m ON m.chat_id = c.id
-       LEFT JOIN match_participants mp ON mp.match_id = m.id AND mp.identity = o.identity
       WHERE p.identity = $1 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})
       ORDER BY c.last_activity_at DESC LIMIT ${PAGE}`,
     [me],

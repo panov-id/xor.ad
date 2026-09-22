@@ -199,21 +199,22 @@ Deno.test({
       assertEquals(sent.status, 202, JSON.stringify(sent.body));
       const frame = await room.next();
       assertEquals(frame.type, "message");
-      const box = (frame.data as { ciphertext: string }).ciphertext;
+      const { id: frameId, ciphertext: box } = frame.data as { id: string; ciphertext: string };
       assert(!box.includes("моста"), "the text travelled in the clear");
-      assertEquals(await b.read(chatId, box), "встретимся у моста в семь");
+      assertEquals(await b.read(chatId, box, frameId), "встретимся у моста в семь");
       // What the node holds is the box, not the text.
       const [row] = await sql.unsafe(`SELECT ciphertext FROM pending_deliveries WHERE chat_id = $1 LIMIT 1`, [chatId]).catch(() => []);
       if (row) assert(!String(row.ciphertext).includes("моста"));
       // The sender cannot read their own box as incoming: two keys, not one (§8.13).
       let reflected = false;
-      try { await a.read(chatId, box, matchId); reflected = true; } catch { /* expected */ }
+      try { await a.read(chatId, box, frameId, matchId); reflected = true; } catch { /* expected */ }
       assert(!reflected, "a reflected message opened on the sender's side");
       // Back the other way.
       const aRoom = await a.openRoom(chatId);
       await b.sayInChat(chatId, "иду");
       const back = await aRoom.next();
-      assertEquals(await a.read(chatId, (back.data as { ciphertext: string }).ciphertext), "иду");
+      const backData = back.data as { id: string; ciphertext: string };
+      assertEquals(await a.read(chatId, backData.ciphertext, backData.id), "иду");
       room.close();
       aRoom.close();
     } finally {

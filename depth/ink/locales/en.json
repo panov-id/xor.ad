@@ -50,5 +50,6 @@
   "common.rowFields": "arrows up and down move between fields",
   "common.rowActions": "left and right choose an action, enter picks it",
   "common.error": "Something went wrong: {message}",
-  "chat.broken": "a message did not open: {message}"
+  "chat.broken": "a message did not open: {message}",
+  "chat.codeChanged": "the code has changed since you compared it — compare again"
 }

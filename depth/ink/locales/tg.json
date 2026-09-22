@@ -50,5 +50,6 @@
   "common.rowFields": "тирҳои боло ва поён — байни майдонҳо",
   "common.rowActions": "тирҳои чап ва рост — амал, enter — интихоб",
   "common.error": "Чизе нодуруст шуд: {message}",
-  "chat.broken": "паём кушода нашуд: {message}"
+  "chat.broken": "паём кушода нашуд: {message}",
+  "chat.codeChanged": "рамз аз муқоисаи охирин иваз шуд — дубора муқоиса кунед"
 }

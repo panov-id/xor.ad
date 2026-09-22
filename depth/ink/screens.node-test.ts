@@ -15,8 +15,8 @@ setTimeout(async () => {
   let failed = 0;
   // A run with nothing in it is not a pass: an empty set used to print
   // "провалено 0" and exit green (operations lens, 2026-09-22).
-  if (cases.length < 6) {
-    say_(`тестов должно быть не меньше шести, а собрано ${cases.length}`);
+  if (cases.length < 7) {
+    say_(`тестов должно быть не меньше семи, а собрано ${cases.length}`);
     process.exit(1);
   }
   for (const [name, fn] of cases) {
@@ -35,6 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
+import { Chat } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -131,4 +132,48 @@ test("a fresh terminal will not register while the PIN is a placeholder", async 
   const { Client } = await import("../core/client.ts");
   const client = new Client("http://127.0.0.1:1", "k");
   await assert.rejects(() => client.register({ name: "Аня", age: 27 }), /placeholders/);
+});
+
+test("a safety code that changed drops the \"compared\" mark", async () => {
+  // A stub node: the first conversation gives one code, the next another —
+  // which is what a long key becoming someone else's looks like from here.
+  const codes = ["1111 1111 1111 1111 1111", "1111 1111 1111 1111 1111", "2222 2222 2222 2222 2222"];
+  let at = 0;
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: codes[Math.min(at++, codes.length - 1)] }),
+    openRoom: () => Promise.resolve({ next: () => new Promise(() => {}), close: () => {} }),
+    read: () => Promise.resolve(""),
+    sayInChat: () => Promise.resolve({ status: 202, body: {} }),
+  };
+  const app = render(
+    h(Chat, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      chatId: "c",
+      name: "Марк",
+      age: 29,
+      limit: 146,
+      onBack: () => {},
+      onError: () => {},
+    }),
+  );
+  await settle(150);
+  // Into the row, onto "код", and open it; then say it matched.
+  await type(app, DOWN, RIGHT, ENTER);
+  await settle(200);
+  assert.match(app.lastFrame()!, /1111 1111/, "the code panel did not open");
+  await type(app, ENTER);
+  await settle(150);
+  assert.match(app.lastFrame()!, /код сверен/, "the mark was not set");
+
+  // Open it again — the cursor is still on "код" — and the node now hands
+  // over another code.
+  await type(app, ENTER);
+  await settle(250);
+  const frame = app.lastFrame()!;
+  assert.match(frame, /2222 2222/, "the panel kept showing the old code");
+  assert.match(frame, /код изменился/, "the change was not announced");
+  assert.equal(/код сверен/.test(frame), false, "\"compared\" survived a changed code");
+  app.unmount();
 });

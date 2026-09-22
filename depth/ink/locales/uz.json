@@ -50,5 +50,6 @@
   "common.rowFields": "yuqori va past strelkalar — maydonlar orasida",
   "common.rowActions": "chap va o'ng strelkalar — harakat, enter — tanlash",
   "common.error": "Nimadir noto'g'ri ketdi: {message}",
-  "chat.broken": "xabar ochilmadi: {message}"
+  "chat.broken": "xabar ochilmadi: {message}",
+  "chat.codeChanged": "kod oxirgi solishtirishdan beri o'zgardi — qaytadan solishtiring"
 }

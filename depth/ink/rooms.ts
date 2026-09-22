@@ -161,6 +161,27 @@ export function Chat(
   const [code, setCode] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(false);
   const [matched, setMatched] = useState(false);
+  const [changed, setChanged] = useState(false);
+
+  // Opening the panel asks the node again rather than trusting what this
+  // screen already holds. A rekey does not move the code — it is derived from
+  // the long keys, and those stay (§8.13) — but a long key that is suddenly
+  // someone else's does move it, and then "compared" is a lie. The review
+  // panel of 2026-09-22 asked for the mark to drop on a new epoch; the spec
+  // says the epoch is the wrong trigger, so it drops on a changed code.
+  const openCode = async () => {
+    setShowCode(true);
+    try {
+      const fresh = (await client.openConversation(chatId, matchId)).safetyCode;
+      if (code !== null && fresh !== code) {
+        setMatched(false);
+        setChanged(true);
+      }
+      setCode(fresh);
+    } catch (e) {
+      onError((e as Error).message);
+    }
+  };
 
   useEffect(() => {
     let room: { next: () => Promise<{ type: string; data: unknown }>; close: () => void } | null = null;
@@ -214,11 +235,15 @@ export function Chat(
         h(Text, { bold: true }, say("chat.code")),
         h(Text, null, code ?? "…"),
         h(Text, { dimColor: true }, say("chat.codeHint")),
+        changed ? h(Text, { color: "red" }, say("chat.codeChanged")) : null,
         h(Menu, {
           active: showCode,
           actions: [{ key: "ok", label: say("chat.codeMatched") }, { key: "close", label: say("common.close") }],
           onPick: (key) => {
-            if (key === "ok") setMatched(true);
+            if (key === "ok") {
+              setMatched(true);
+              setChanged(false);
+            }
             setShowCode(false);
           },
         }),
@@ -237,7 +262,7 @@ export function Chat(
       ],
       onPick: (key) => {
         if (key === "back") return onBack();
-        if (key === "code") return setShowCode(true);
+        if (key === "code") return void openCode();
         const text = draft.trim();
         setDraft("");
         client.sayInChat(chatId, text, matchId)

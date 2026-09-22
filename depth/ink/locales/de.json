@@ -50,5 +50,6 @@
   "common.rowFields": "Pfeile hoch und runter: zwischen den Feldern",
   "common.rowActions": "Pfeile links und rechts: die Aktion, Enter: wählen",
   "common.error": "Etwas ist schiefgegangen: {message}",
-  "chat.broken": "eine Nachricht ließ sich nicht öffnen: {message}"
+  "chat.broken": "eine Nachricht ließ sich nicht öffnen: {message}",
+  "chat.codeChanged": "der Code hat sich seit dem letzten Vergleich geändert — vergleicht ihn erneut"
 }

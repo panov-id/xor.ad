@@ -50,5 +50,6 @@
   "common.rowFields": "жоғары-төмен көрсеткілер — өрістер арасында",
   "common.rowActions": "сол-оң көрсеткілер — әрекет, enter — таңдау",
   "common.error": "Бірдеңе дұрыс болмады: {message}",
-  "chat.broken": "хабар ашылмады: {message}"
+  "chat.broken": "хабар ашылмады: {message}",
+  "chat.codeChanged": "код соңғы салыстырудан бері өзгерді — қайта салыстырыңдар"
 }

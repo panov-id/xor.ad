@@ -50,5 +50,6 @@
   "common.rowFields": "стрілки вгору та вниз — між полями",
   "common.rowActions": "стрілки вліво та вправо — дія, enter — вибрати",
   "common.error": "Щось пішло не так: {message}",
-  "chat.broken": "повідомлення не відкрилося: {message}"
+  "chat.broken": "повідомлення не відкрилося: {message}",
+  "chat.codeChanged": "код змінився з минулої звірки — звірте заново"
 }

@@ -50,5 +50,6 @@
   "common.rowFields": "flèches haut et bas : entre les champs",
   "common.rowActions": "flèches gauche et droite : l'action, entrée : choisir",
   "common.error": "Quelque chose a échoué : {message}",
-  "chat.broken": "un message ne s'est pas ouvert : {message}"
+  "chat.broken": "un message ne s'est pas ouvert : {message}",
+  "chat.codeChanged": "le code a changé depuis la dernière comparaison — comparez-le de nouveau"
 }

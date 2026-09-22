@@ -50,5 +50,6 @@
   "common.rowFields": "săgețile sus și jos — între câmpuri",
   "common.rowActions": "săgețile stânga și dreapta — acțiunea, enter — alege",
   "common.error": "Ceva n-a mers: {message}",
-  "chat.broken": "un mesaj nu s-a deschis: {message}"
+  "chat.broken": "un mesaj nu s-a deschis: {message}",
+  "chat.codeChanged": "codul s-a schimbat de la ultima comparare — comparați din nou"
 }

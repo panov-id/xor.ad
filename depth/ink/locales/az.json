@@ -50,5 +50,6 @@
   "common.rowFields": "yuxarı və aşağı oxlar — sahələr arasında",
   "common.rowActions": "sol və sağ oxlar — hərəkət, enter — seç",
   "common.error": "Nəsə alınmadı: {message}",
-  "chat.broken": "mesaj açılmadı: {message}"
+  "chat.broken": "mesaj açılmadı: {message}",
+  "chat.codeChanged": "kod son tutuşdurmadan bəri dəyişib — yenidən tutuşdurun"
 }

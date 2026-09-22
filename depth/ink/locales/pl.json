@@ -50,5 +50,6 @@
   "common.rowFields": "strzałki w górę i w dół — między polami",
   "common.rowActions": "strzałki w lewo i w prawo — działanie, enter — wybierz",
   "common.error": "Coś poszło nie tak: {message}",
-  "chat.broken": "wiadomość się nie otworzyła: {message}"
+  "chat.broken": "wiadomość się nie otworzyła: {message}",
+  "chat.codeChanged": "kod zmienił się od ostatniego porównania — porównajcie jeszcze raz"
 }

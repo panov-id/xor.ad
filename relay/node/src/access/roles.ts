@@ -29,12 +29,17 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     "dsa_notices.escalate",
     "feed_queue.read",
     "feed_queue.decide",
+    "support.read",
+    "support.answer",
   ],
   viewer: ["waitlist.read"],
   // A tenant's own administrator: full reach inside their brand, and no reach
   // into the platform. Deliberately not "*" — the wildcard would hand every
   // future platform permission to every tenant the day it is added.
   tenant_admin: [
+    // Their own brand's support requests (protocol §4.10a, 2026-09-22).
+    "support.read",
+    "support.answer",
     "waitlist.read",
     "panel_users.read",
     "panel_users.write",

@@ -382,19 +382,21 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Источник: <code>relay/node/src/routes/feed_queue.ts</code></p>
 </section>
 <section class="op" id="get-admin-support">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/support</code><span class="chip s-spec">спека</span> <span class="chip internal">служебное</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/support</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
 <p><strong>Обращения в поддержку — для команды</strong></p>
 <p>Протокол §4.10a (описано 22.09.2026). Свой бренд; платформа видит все. Ждущие ответа первыми, не больше 200; x-total-count — вся очередь. Личность автора не отдаётся.</p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права support.read</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/support_admin.ts</code></p>
 </section>
 <section class="op" id="post-admin-support--id--answer">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/support/{id}/answer</code><span class="chip s-spec">спека</span> <span class="chip internal">служебное</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/support/{id}/answer</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
 <p><strong>Ответить на обращение</strong></p>
-<p>Протокол §4.10a. {answer}, до 2000 символов; ставит answered_at и answer_seen = false, так что точка у человека загорается и на повторном ответе.</p>
+<p>Протокол §4.10a. {answer}, до 4000 символов (support.answer.length); ставит answered_at и answer_seen = false, так что точка у человека загорается и на повторном ответе.</p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Отвечено.</td><td></td></tr><tr><td><code>400</code></td><td>нет текста или длиннее 2000 символов</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права support.answer</td><td></td></tr><tr><td><code>404</code></td><td>нет такого обращения или оно чужого бренда</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Отвечено.</td><td></td></tr><tr><td><code>400</code></td><td>нет текста или длиннее 4000 символов</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права support.answer</td><td></td></tr><tr><td><code>404</code></td><td>нет такого обращения или оно чужого бренда</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/support_admin.ts</code></p>
 </section>
 <section class="op" id="get-admin-dsa-notices">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-notices</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>

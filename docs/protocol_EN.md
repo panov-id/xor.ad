@@ -332,10 +332,10 @@ Until 2026-09-22 the team could not see requests at all: the digest came as numb
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /admin/support` | requests of one's own brand (the platform — all, those without a brand too): `[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]`, waiting ones first, at most 200, `x-total-count` — the whole queue; **the author's identity is not given out** | **spec** (described 2026-09-22) |
-| `POST /admin/support/:id/answer` | an answer `{answer}` (up to 2000 characters): `answer`, `answered_at = now()`, `answer_seen = false` — the person's dot lights again on a repeated answer too (§13); another brand's — 404; an audit record without the text | **spec** (described 2026-09-22) |
+| `GET /admin/support` | requests of one's own brand (the platform — all, those without a brand too): `[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]`, waiting ones first, frozen sessions on top, at most 200, `x-total-count` — the whole queue; **the author's identity is not given out** | **built** 2026-09-22 (`routes/support_admin.ts`; the panel's Support page) |
+| `POST /admin/support/:id/answer` | an answer `{answer}` (up to 4000 characters, `support.answer.length`, the owner's decision of 2026-09-22): `answer`, `answered_at = now()`, `answer_seen = false` — the person's dot lights again on a repeated answer too (§13); another brand's — 404; an audit record without the text | **built** 2026-09-22 |
 
-**Turning a request into an Article 16 notice is open, and the reason is named.** The protocol says "the client's act" (the line above), chat spec §13 says "support recognised a complaint". A team's single press cannot do it: `dsa_notices.bona_fide` is required (`CHECK (bona_fide)`, Art. 16(2)(d)) — the good-faith statement is the notifier's own, and the team cannot sign it for the person. The owner decides.
+**Turning a request into an Article 16 notice — the owner's decision of 2026-09-22: by an answer linking to the screen-5 form.** The good-faith statement is the person's own, in the form; the request row stays. The text of such an answer is the owner's; the page has no button until the text exists. This said before "open, and the reason is named": [retired] The protocol says "the client's act" (the line above), chat spec §13 says "support recognised a complaint". A team's single press cannot do it: `dsa_notices.bona_fide` is required (`CHECK (bona_fide)`, Art. 16(2)(d)) — the good-faith statement is the notifier's own, and the team cannot sign it for the person. The owner decides.
 
 ### 4.11. Profile (chat spec §8.2, §8.3, screen 10)
 

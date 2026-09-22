@@ -282,9 +282,9 @@ export function supportDigestBlocks(line: { new: number; waiting: number; frozen
       value: `Written from a session frozen by the PIN limit: ${line.frozen}. ` +
         "Read these first — a frozen session may be the owner locked out of a taken identity.",
     },
-    // Not "they are in the panel": no panel page reads support requests yet
-    // (2026-09-22), and a letter must not point the team at a door that is not there.
-    { kind: "text", value: "The requests themselves are not in this letter." },
+    // The door exists since 2026-09-22 (GET /admin/support, the Support page);
+    // a test holds the letter to it.
+    { kind: "text", value: "The requests themselves are not in this letter: read and answer them on the Support page of the panel." },
   ];
 }
 

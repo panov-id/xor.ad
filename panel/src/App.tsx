@@ -20,6 +20,7 @@ import { AuthCallback } from "./pages/auth-callback";
 import { WaitlistList } from "./pages/waitlist/list";
 import { DsaNoticesList } from "./pages/dsa-notices/list";
 import { FeedQueueList } from "./pages/feed-queue/list";
+import { SupportList } from "./pages/support/list";
 import { PanelUsersList } from "./pages/panel-users/list";
 import { ClientErrorsList } from "./pages/logs/client-errors/list";
 import { AuditList } from "./pages/logs/audit/list";
@@ -51,6 +52,11 @@ function App() {
                 name: "feed_queue",
                 list: "/feed-queue",
                 meta: { label: "Feed queue" },
+              },
+              {
+                name: "support",
+                list: "/support",
+                meta: { label: "Support" },
               },
               {
                 name: "panel_users",
@@ -137,6 +143,14 @@ function App() {
                   element={
                     <Gated resource="feed_queue">
                       <FeedQueueList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/support"
+                  element={
+                    <Gated resource="support">
+                      <SupportList />
                     </Gated>
                   }
                 />

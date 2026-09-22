@@ -42,6 +42,7 @@ await import("../src/routes/hidden.ts");
 await import("../src/routes/feed_queue.ts");
 await import("../src/routes/profile.ts");
 await import("../src/routes/support.ts");
+await import("../src/routes/support_admin.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -3300,4 +3301,35 @@ Deno.test("the support digest does not send the team to a panel page that does n
   if (letter.includes("panel")) {
     assert(match("GET", "/admin/support"), "the digest points at the panel, and the panel has no support page");
   }
+});
+
+// ── Support, the team's side (protocol §4.10a) ────────────────────────────────
+Deno.test({
+  name: "the team reads its own brand's requests without the author, answers once or again, and a viewer cannot",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const text = `нужна помощь ${crypto.randomUUID().slice(0, 6)}`;
+    const no = ((await support(me, "POST", "/support", { body: text, nonce: nonce16() })).body as { public_no: string }).public_no;
+    const moderator = await panelAs("moderator", "alpha");
+    const list = await moderator("GET", "/admin/support");
+    assertEquals(list.status, 200, JSON.stringify(list.body));
+    const row = (list.body as Array<Record<string, unknown>>).find((r) => r.public_no === no);
+    assert(row, "the brand's moderator does not see the request");
+    assertEquals(row.body, text);
+    assert(!JSON.stringify(row).includes(me.identity_id), "the author's identity reached the panel");
+    const stranger = await panelAs("moderator", "some-other-brand");
+    assertEquals(((await stranger("GET", "/admin/support")).body as unknown[]).find((r) => (r as { public_no: string }).public_no === no), undefined);
+    assertEquals((await stranger("POST", `/admin/support/${row.id}/answer`, { answer: "чужое" })).status, 404);
+    assertEquals((await (await panelAs("viewer"))("GET", "/admin/support")).status, 403);
+    assertEquals((await moderator("POST", `/admin/support/${row.id}/answer`, { answer: "а".repeat(4001) })).status, 400);
+
+    assertEquals((await moderator("POST", `/admin/support/${row.id}/answer`, { answer: "попробуйте ещё раз" })).status, 200);
+    await support(me, "POST", `/support/${no}/seen`);
+    // A second answer lights the dot again (§13).
+    assertEquals((await moderator("POST", `/admin/support/${row.id}/answer`, { answer: "и вот ещё" })).status, 200);
+    const mine = ((await support(me, "GET", "/support")).body as Array<Record<string, unknown>>).find((r) => r.public_no === no)!;
+    assertEquals([mine.answer, mine.answer_seen], ["и вот ещё", false]);
+  },
 });

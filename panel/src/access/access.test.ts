@@ -31,6 +31,11 @@ describe("resource map", () => {
     expect(requiredPermission("feed_queue", "decide")).toBe("feed_queue.decide");
   });
 
+  it("support: reading and answering are two permissions (protocol §4.10a)", () => {
+    expect(requiredPermission("support", "list")).toBe("support.read");
+    expect(requiredPermission("support", "answer")).toBe("support.answer");
+  });
+
   // The omission this file's header promised to catch, and did not. Validating
   // the entries that exist says nothing about the page that was never entered:
   // dsa_notices was routed, gated and shipped with no pair here, so every role

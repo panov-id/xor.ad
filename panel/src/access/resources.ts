@@ -33,6 +33,9 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   "feed_queue.list": "feed_queue.read",
   // The verdict buttons: reading the queue is not deciding it (2026-09-22).
   "feed_queue.decide": "feed_queue.decide",
+  // Support, the team's side (protocol §4.10a, 2026-09-22).
+  "support.list": "support.read",
+  "support.answer": "support.answer",
 };
 
 export function requiredPermission(resource: string, action: string): Permission | undefined {

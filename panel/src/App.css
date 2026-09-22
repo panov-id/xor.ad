@@ -641,6 +641,17 @@ button:disabled {
 .text-muted {
   color: var(--ink-muted);
 }
+/* The support answer: a field under the request, the counter and the two
+   buttons on one line below it (mock-up support-queue-mockup, 2026-09-22). */
+.support-answer {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.support-answer textarea {
+  width: 100%;
+  min-height: 72px;
+}
 /* A heading and, at its right, a live figure about the page. */
 .page-head {
   display: flex;

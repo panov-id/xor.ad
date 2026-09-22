@@ -52,6 +52,9 @@ export const PERMISSIONS = [
   // DSA permissions on purpose — that queue is about what is already published.
   "feed_queue.read",
   "feed_queue.decide",
+  // Support requests, the team's side (protocol §4.10a, 2026-09-22).
+  "support.read",
+  "support.answer",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

@@ -12,7 +12,7 @@
 // - the node's share of the vault key is sent and not yet used to open a vault.
 
 import { base64url, generateSigningKey, signRequest, type SigningKey } from "./sign.ts";
-import { Conversation, Ephemeral } from "./seal.ts";
+import { Conversation, Ephemeral, verifyHalf } from "./seal.ts";
 
 const PROTOCOL_MAJOR = "1";
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
@@ -179,24 +179,28 @@ export class Client {
   // (step 5). Since 2026-09-22 it carries this side's ephemeral half for the
   // chat, signed by the long key (§8.13); the pair is kept here, in memory,
   // until the conversation is opened or the client is dropped.
-  #ephemeral = new Map<string, Ephemeral>();
-  #conversations = new Map<string, Conversation>();
+  // Each pair with the epoch it was published at — ours to remember, not the
+  // node's to tell. The node reports epochs in the inbox, and a node that
+  // could set them could roll a chat back to an old half whose signature
+  // still holds (step-6 reissue panel, 2026-09-22, security 1).
+  #ephemeral = new Map<string, { eph: Ephemeral; epoch: number }>();
+  #conversations = new Map<string, { conversation: Conversation; epoch: number }>();
 
   async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
     if (!this.#key) throw new Error("not registered: there is no key to sign with");
-    const eph = this.#ephemeral.get(matchId) ?? await Ephemeral.generate();
-    this.#ephemeral.set(matchId, eph);
+    const held = this.#ephemeral.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };
+    this.#ephemeral.set(matchId, held);
     const answer = await this.#call<{ state: string; chat_id?: string }>(
-      "POST", `/matches/${matchId}/consent`, await eph.publish(this.#key.privateKey, matchId),
+      "POST", `/matches/${matchId}/consent`, await held.eph.publish(this.#key.privateKey, matchId),
     );
     // The half belongs to the chat that opened, whichever match it came from.
-    if (answer.status === 200 && answer.body.chat_id) this.#ephemeral.set(answer.body.chat_id, eph);
+    if (answer.status === 200 && answer.body.chat_id) this.#ephemeral.set(answer.body.chat_id, held);
     return answer;
   }
 
   // The chat opened on the peer's consent, after ours answered "waiting":
   // the pair still sits under the match id, and the inbox says which chat.
-  #pairFor(chatId: string, matchId?: string): Ephemeral | undefined {
+  #pairFor(chatId: string, matchId?: string): { eph: Ephemeral; epoch: number } | undefined {
     const direct = this.#ephemeral.get(chatId);
     if (direct || !matchId) return direct;
     const viaMatch = this.#ephemeral.get(matchId);
@@ -205,31 +209,35 @@ export class Client {
   }
 
   // The conversation's keys, from the peer's half in the inbox and our own
-  // ephemeral pair from consent (§8.13). Throws when the peer consented
-  // without a half — that conversation is not encrypted, and nothing here
-  // pretends otherwise. `matchId` finds the pair when the chat opened on the
-  // other side's consent.
+  // pair (§8.13). The inbox is read every time: an epoch that moved — the
+  // other side asked for new keys — must stop us sealing under the old ones
+  // (panel, security 6). Both sides must stand at the epoch we published at;
+  // any other number, lower or higher, is refused rather than followed.
   async openConversation(chatId: string, matchId?: string): Promise<Conversation> {
-    const known = this.#conversations.get(chatId);
-    if (known) return known;
-    const eph = this.#pairFor(chatId, matchId);
-    if (!eph) throw new Error("no ephemeral pair for this chat: consent was not given from this client");
+    const held = this.#pairFor(chatId, matchId);
+    if (!held) throw new Error("no ephemeral pair for this chat: consent was not given from this client");
     const row = await this.#chatRow(chatId);
-    if (row.key_epoch !== row.peer.key_epoch) {
-      throw new Error("keys are being reissued: the conversation opens once both sides hold the same epoch");
+    if (row.key_epoch !== held.epoch || row.peer.key_epoch !== held.epoch) {
+      throw new Error(
+        row.peer.key_epoch > held.epoch
+          ? "the other side asked for new keys: agree before writing"
+          : "the node reports another epoch than the one this client published at",
+      );
     }
-    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature || (row.key_epoch === 0 && !row.match_id)) {
+    const known = this.#conversations.get(chatId);
+    if (known && known.epoch === held.epoch) return known.conversation;
+    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature || (held.epoch === 0 && !row.match_id)) {
       // Cannot happen against a node that requires the half; an older node
       // or a moved match leaves the conversation with no keys, and it says so.
       throw new Error("the peer's ephemeral half is missing: this conversation has no keys");
     }
-    const conversation = await eph.open(
+    const conversation = await held.eph.open(
       { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },
       row.peer.identity_public_key,
-      row.key_epoch === 0 ? { match: row.match_id! } : { chat: chatId, epoch: row.key_epoch },
+      held.epoch === 0 ? { match: row.match_id! } : { chat: chatId, epoch: held.epoch },
       chatId, row.me, row.peer.identity_id,
     );
-    this.#conversations.set(chatId, conversation);
+    this.#conversations.set(chatId, { conversation, epoch: held.epoch });
     return conversation;
   }
 
@@ -258,7 +266,8 @@ export class Client {
   // The key reissue of §8.13, one side at a time. A side that lost its pair
   // asks: a new ephemeral pair, published at the next epoch. The other side,
   // once its person agrees (the terminal's screen for that question is not
-  // built), answers at the same epoch. Old boxes stay shut for both.
+  // built — this method is that agreement, and nothing calls it on its own),
+  // answers at the same epoch. Old boxes stay shut for both.
   async #publishAt(chatId: string, epoch: number): Promise<Answer<{ state: string; epoch: number }>> {
     if (!this.#key) throw new Error("not registered: there is no key to sign with");
     const eph = await Ephemeral.generate();
@@ -267,7 +276,7 @@ export class Client {
       { epoch, ...(await eph.publish(this.#key.privateKey, { chat: chatId, epoch })) },
     );
     if (answer.status === 200) {
-      this.#ephemeral.set(chatId, eph);
+      this.#ephemeral.set(chatId, { eph, epoch });
       this.#conversations.delete(chatId);
     }
     return answer;
@@ -282,9 +291,23 @@ export class Client {
     return (await this.#chatRow(chatId)).rekey_requested;
   }
 
+  // Before agreeing, the request itself is checked: the other side's half
+  // must be signed by their long key for this chat at exactly the epoch after
+  // ours. A request the node made up — a row moved, an old half — is refused
+  // before anything is signed or thrown away (panel, security 2).
   async acceptRekey(chatId: string): Promise<Answer<{ state: string; epoch: number }>> {
+    const held = this.#ephemeral.get(chatId);
     const row = await this.#chatRow(chatId);
     if (!row.rekey_requested) throw new Error("the other side has not asked for new keys");
+    const mine = held?.epoch ?? row.key_epoch;
+    if (row.peer.key_epoch !== mine + 1) throw new Error("the request is not for the epoch after ours");
+    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature ||
+        !(await verifyHalf(
+          { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },
+          row.peer.identity_public_key, { chat: chatId, epoch: row.peer.key_epoch },
+        ))) {
+      throw new Error("the request for new keys is not signed by the other side");
+    }
     return this.#publishAt(chatId, row.peer.key_epoch);
   }
 

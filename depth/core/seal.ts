@@ -78,6 +78,21 @@ export interface EphemeralHalf {
   ephemeral_signature: string;
 }
 
+// A peer's half, checked against their long key for what it was signed as —
+// without deriving anything. Used before agreeing to a reissue.
+export async function verifyHalf(theirs: EphemeralHalf, theirLongSpki: string, binding: Binding): Promise<boolean> {
+  try {
+    const longKey = await crypto.subtle.importKey("spki", fromBase64url(theirLongSpki) as BufferSource, P256_SIGN, false, ["verify"]);
+    return await crypto.subtle.verify(
+      SIGN, longKey,
+      fromBase64url(theirs.ephemeral_signature) as BufferSource,
+      signedBytes(binding, fromBase64url(theirs.ephemeral_public_key)) as BufferSource,
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class Ephemeral {
   private constructor(private readonly pair: CryptoKeyPair, readonly publicSpki: string) {}
 

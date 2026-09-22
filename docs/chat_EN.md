@@ -2190,6 +2190,10 @@ CREATE TABLE chat_participants (
   last_own_message_at timestamptz,               -- their span counts from here; NULL — from chats.created_at (2026-09-14)
   away_marked boolean NOT NULL DEFAULT false,    -- the "stepped away" label for the peer: set by leaving, cleared by one's own message or move (§8.2, 2026-09-14)
   gone_at   timestamptz,                         -- the conversation ended for this participant
+  match_id  uuid,                                -- the match the consent half was signed for (§8.13; db/036, 2026-09-22)
+  ephemeral_public_key text,                     -- this side's current ephemeral half (§8.13): from consent, a new one after a reissue
+  ephemeral_signature  text,                     -- its signature by the long key: epoch 0 — over consent, later — over (chat_id, epoch)
+  key_epoch integer NOT NULL DEFAULT 0,          -- the epoch of this half (db/038, 2026-09-22); a reissue writes over it, no history of epochs
   PRIMARY KEY (chat_id, identity)
 );
 CREATE INDEX chat_participants_by_identity ON chat_participants (identity);  -- the step-away transaction and the identity sweeper go by identity (2026-09-14)
@@ -2641,7 +2645,7 @@ the old K       cannot be recovered by anything
 
 **What this does not fix.** If the long-term key was taken along with the paper, the reissue works for the attacker just the same — but that is the theft of a whole identity, not a hole in the reissue.
 
-**A schema consequence.** The ephemeral halves need somewhere to sit between the two presses — at consent that is `match_participants.ephemeral_public_key`; a reissue has no such place, and one has to be created.
+**A schema consequence — created 2026-09-22.** [retired] This said "a reissue has no such place, and one has to be created". The place is `chat_participants.{ephemeral_public_key, ephemeral_signature, key_epoch}` (db/036, db/038): the consent half is copied there when the chat opens, and a reissue writes over it and raises the epoch. There is no history of epochs, deliberately: past halves are of no use to anyone — the old keys are not restored. **The client remembers the epoch, not the node:** its own pair is kept with the epoch it was published at, and the peer's half is checked against that; a node that presents an old epoch with an old, honestly signed half is refused — otherwise a rollback to the lost device's key would read the new conversation (panel 2026-09-22, security lens). For the same reason agreeing to a reissue checks the request's signature before anything is signed.
 
 **Forward secrecy holds.** The ephemeral keys and `K` are wiped when the conversation dies, and the wraps go with it. Even someone who later obtains the identity's long-lived key cannot open an old conversation.
 

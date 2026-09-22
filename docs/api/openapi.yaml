@@ -404,9 +404,10 @@ components:
         unread: {type: boolean, deprecated: true, description: "Not sent: the device counts what it has shown, the node knows nothing about reading (owner's decision 2026-09-17; the route built 2026-09-21 omits it).", x-description-ru: "Не отдаётся: точку «новое» считает устройство, узел о чтении не знает (решение владельца 17.09.2026; маршрут, построенный 21.09.2026, поля не шлёт)."}
         chat_expires_at: {type: integer, format: unix-seconds}
         state: {type: string, enum: [pending, open, ended]}
+        match_id: {type: string, format: uuid, description: "On a chat row since 2026-09-22: the match the consent halves (epoch 0) were signed for (§8.13); the peer verifies that binding.", x-description-ru: "У строки чата с 22.09.2026: мэтч, для которого подписаны половины согласия (эпоха 0, §8.13); собеседник проверяет эту привязку."}
         me: {type: string, format: uuid, description: "On a chat row since 2026-09-22: one's own identity id, so the client knows which direction key is its own (§8.13, low→high by sorted ids).", x-description-ru: "У строки чата с 22.09.2026: свой identity id, чтобы клиент знал, какой из ключей направления его (§8.13, low→high по отсортированным id)."}
         key_epoch: {type: integer, description: "On a chat row since 2026-09-22: the epoch of one's own half (0 — from consent; more — after a key reissue).", x-description-ru: "У строки чата с 22.09.2026: эпоха своей половины (0 — от согласия; больше — после перевыпуска)."}
-        rekey_requested: {type: boolean, description: "On a chat row since 2026-09-22: the other side asked for new keys (§8.13) — the question to put to the person.", x-description-ru: "У строки чата с 22.09.2026: вторая сторона просит новые ключи (§8.13) — вопрос человеку."}
+        rekey_requested: {type: boolean, description: "On a chat row since 2026-09-22: peer.key_epoch > key_epoch — the other side asked for new keys (§8.13), the question to put to the person.", x-description-ru: "У строки чата с 22.09.2026: peer.key_epoch > key_epoch — вторая сторона просит новые ключи (§8.13), вопрос человеку."}
         peer:
           type: object
           description: "On a chat row since 2026-09-22 (§8.13): the peer's identity id and long public key (SPKI, base64url — what signed their half and what the safety code derives from), and their ephemeral half with its signature when they consented with one. No half: the conversation is not encrypted."
@@ -416,7 +417,7 @@ components:
             identity_public_key: {type: string}
             key_epoch: {type: integer}
             ephemeral_public_key: {type: string}
-            ephemeral_signature: {type: string}
+            ephemeral_signature: {type: string, description: "By the peer's long key over bytes that depend on peer.key_epoch: at 0 — \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI (consent); from 1 — \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI (reissue). A client binds it to the epoch it itself published at, never to the epoch the node reports.", x-description-ru: "Долгим ключом собеседника над байтами, зависящими от peer.key_epoch: 0 — \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI (согласие); от 1 — \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI (перевыпуск). Клиент привязывает её к эпохе, на которой публиковал сам, а не к той, что сообщает узел."}
     IdentityCreate:
       type: object
       required: [sign_pub, wrap_pub, name, age, auth_hash, share, recovery_lookup_id]

@@ -262,3 +262,49 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "a node cannot roll a chat back to an old half, nor fake a request for new keys",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId, matchId } = await chatBetween(sql);
+      await a.sayInChat(chatId, "эпоха 0", matchId);
+      // The consent halves, as the node holds them, before any reissue.
+      const epoch0 = await sql.unsafe(
+        `SELECT identity, ephemeral_public_key, ephemeral_signature FROM chat_participants WHERE chat_id = $1`, [chatId]);
+
+      // Faked request: the node sets a's row to epoch 1 with a's epoch-0 half,
+      // which is signed for consent, not for (chat, 1). b must not agree.
+      await sql.unsafe(`UPDATE chat_participants SET key_epoch = 1 WHERE chat_id = $1 AND identity = $2`, [chatId, a.identityId]);
+      let agreed = false;
+      try { await b.acceptRekey(chatId); agreed = true; } catch { /* expected */ }
+      assert(!agreed, "b agreed to a request for new keys the other side never signed");
+      await sql.unsafe(`UPDATE chat_participants SET key_epoch = 0 WHERE chat_id = $1 AND identity = $2`, [chatId, a.identityId]);
+
+      // A real reissue to epoch 1.
+      a.forget(chatId);
+      await a.requestRekey(chatId);
+      await b.acceptRekey(chatId);
+      await a.sayInChat(chatId, "эпоха 1");
+
+      // Rollback: the node puts both rows back to epoch 0 with the genuine
+      // consent halves — signatures that verify. The clients must refuse: they
+      // know they published at epoch 1.
+      for (const row of epoch0) {
+        await sql.unsafe(
+          `UPDATE chat_participants SET key_epoch = 0, ephemeral_public_key = $3, ephemeral_signature = $4
+            WHERE chat_id = $1 AND identity = $2`,
+          [chatId, row.identity, row.ephemeral_public_key, row.ephemeral_signature]);
+      }
+      let rolledBack = false;
+      try { await a.sayInChat(chatId, "после отката"); rolledBack = true; } catch { /* expected */ }
+      assert(!rolledBack, "a sealed under a half the node rolled back to");
+    } finally {
+      await sql.end();
+    }
+  },
+});

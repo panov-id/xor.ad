@@ -12,6 +12,7 @@
     "react": "19.1.0"
   },
   "devDependencies": {
-    "ink-testing-library": "4.0.0"
+    "ink-testing-library": "4.0.0",
+    "postgres": "3.4.4"
   }
 }

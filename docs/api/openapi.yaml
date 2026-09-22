@@ -1365,6 +1365,40 @@ paths:
         "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
         "409": {description: "Already decided, swept after moderation.queue.wait, or never existed.", x-description-ru: "Уже решено, выметено по moderation.queue.wait либо не существовало."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/support:
+    get:
+      tags: [admin]
+      summary: Support requests, for the team
+      x-summary-ru: Обращения в поддержку — для команды
+      x-status: spec
+      x-internal: true
+      security: [{panelSession: []}]
+      description: "Protocol §4.10a (described 2026-09-22). One's own brand; the platform sees all. Waiting ones first, at most 200; x-total-count is the whole queue. The author's identity is not given out."
+      x-description-ru: "Протокол §4.10a (описано 22.09.2026). Свой бренд; платформа видит все. Ждущие ответа первыми, не больше 200; x-total-count — вся очередь. Личность автора не отдаётся."
+      responses:
+        "200": {description: "[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]", x-description-ru: "[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]"}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no support.read", x-description-ru: "нет права support.read"}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/support/{id}/answer:
+    post:
+      tags: [admin]
+      summary: Answer a support request
+      x-summary-ru: Ответить на обращение
+      x-status: spec
+      x-internal: true
+      security: [{panelSession: []}]
+      description: "Protocol §4.10a. {answer}, up to 2000 characters; sets answered_at and answer_seen = false, so the person's dot lights again on a repeated answer too."
+      x-description-ru: "Протокол §4.10a. {answer}, до 2000 символов; ставит answered_at и answer_seen = false, так что точка у человека загорается и на повторном ответе."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: Answered., x-description-ru: Отвечено.}
+        "400": {description: no text or over 2000 characters, x-description-ru: нет текста или длиннее 2000 символов}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no support.answer", x-description-ru: "нет права support.answer"}
+        "404": {description: "no such request, or another brand's", x-description-ru: "нет такого обращения или оно чужого бренда"}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/dsa-notices:
     get:
       tags: [admin]

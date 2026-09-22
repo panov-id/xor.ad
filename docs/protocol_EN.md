@@ -326,6 +326,17 @@ While stepped away, **every** signed request except `DELETE /away`, `GET /identi
 
 Turning a request into an Article 16 notice is the client's act: the text is carried into the `POST /report` form and the request row is deleted in the same transaction (chat spec, the comment on `support_requests`).
 
+#### 4.10a. Support — the team's side (described 2026-09-22, the owner's decision: after the DSA queue)
+
+Until 2026-09-22 the team could not see requests at all: the digest came as numbers, and there was nothing to read with or answer with. Panel routes, a panel session, permissions `support.read` and `support.answer` (moderator; a storefront's administrator — their own brand).
+
+| Route | What it does | Origin |
+|---|---|---|
+| `GET /admin/support` | requests of one's own brand (the platform — all, those without a brand too): `[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]`, waiting ones first, at most 200, `x-total-count` — the whole queue; **the author's identity is not given out** | **spec** (described 2026-09-22) |
+| `POST /admin/support/:id/answer` | an answer `{answer}` (up to 2000 characters): `answer`, `answered_at = now()`, `answer_seen = false` — the person's dot lights again on a repeated answer too (§13); another brand's — 404; an audit record without the text | **spec** (described 2026-09-22) |
+
+**Turning a request into an Article 16 notice is open, and the reason is named.** The protocol says "the client's act" (the line above), chat spec §13 says "support recognised a complaint". A team's single press cannot do it: `dsa_notices.bona_fide` is required (`CHECK (bona_fide)`, Art. 16(2)(d)) — the good-faith statement is the notifier's own, and the team cannot sign it for the person. The owner decides.
+
 ### 4.11. Profile (chat spec §8.2, §8.3, screen 10)
 
 | Route | What it does | Origin |

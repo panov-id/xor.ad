@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900">
+<title>Panel · Support — the team reads and answers · light theme, 1280 px</title>
+<style>
+  text { font-family: "Inter", system-ui, sans-serif; font-size: 15px; fill: #14140f; }
+  .disp { font-family: "Unbounded", "Inter", sans-serif; font-size: 22px; font-weight: 600; }
+  .muted { fill: #5b5b55; }
+  .micro { font-size: 12px; fill: #5b5b55; }
+  .th { font-size: 12px; font-weight: 600; fill: #5b5b55; letter-spacing: .04em; }
+  .warn { fill: #8a5200; }
+  .onaccent { fill: #ffffff; font-weight: 600; }
+  .q { font-size: 14px; }
+  .qh { font-size: 14px; font-weight: 600; }
+  .line { stroke: #d9d9d4; stroke-width: 1; }
+</style>
+<rect width="1280" height="900" fill="#f2f2f0"/>
+
+<text x="40" y="56" class="disp">Support</text>
+<text x="40" y="82" class="muted">Requests people wrote from screen 14. Waiting ones first. The author's identity is not shown and not sent to the panel.</text>
+<text x="1240" y="56" text-anchor="end" class="micro">2 waiting · 1 from a frozen session</text>
+
+<rect x="44" y="108" width="1200" height="330" rx="6" fill="#14140f"/>
+<rect x="40" y="104" width="1200" height="330" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="60" y="130" class="th">WRITTEN</text>
+<text x="170" y="130" class="th">NUMBER</text>
+<text x="300" y="130" class="th">QUEUE</text>
+<text x="400" y="130" class="th">REQUEST</text>
+<text x="900" y="130" class="th">EMAIL</text>
+<line x1="41" y1="144" x2="1239" y2="144" class="line"/>
+
+<!-- row 1: from a frozen session — marked, read first -->
+<text x="60" y="176">09:14</text>
+<text x="170" y="176" style="font-family: monospace">8S37ZSX7RB</text>
+<rect x="300" y="160" width="64" height="24" rx="3" fill="none" stroke="#5b5b55"/><text x="332" y="177" text-anchor="middle" class="micro">sosed</text>
+<rect x="400" y="190" width="170" height="20" rx="3" fill="none" stroke="#b26a00"/><text x="485" y="204" text-anchor="middle" class="micro warn">frozen session — read first</text>
+<text x="400" y="176">меня заблокировало после ПИНа, а телефон не мой</text>
+<text x="900" y="176" class="muted">—</text>
+<rect x="1102" y="160" width="100" height="36" rx="6" fill="#14140f"/><rect x="1100" y="158" width="100" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/><text x="1150" y="181" text-anchor="middle" class="onaccent">Answer</text>
+<line x1="41" y1="226" x2="1239" y2="226" class="line"/>
+
+<!-- row 2: open answer box -->
+<text x="60" y="258">08:02</text>
+<text x="170" y="258" style="font-family: monospace">K4W9M2QXTN</text>
+<rect x="300" y="242" width="80" height="24" rx="3" fill="none" stroke="#5b5b55"/><text x="340" y="259" text-anchor="middle" class="micro">neighbro</text>
+<text x="400" y="258">the code on the paper does not work</text>
+<text x="900" y="258" class="muted">me@example.org</text>
+<rect x="400" y="276" width="800" height="72" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="414" y="300" class="muted">Answer — the person sees it on screen 14, and the dot lights again</text>
+<text x="1188" y="340" text-anchor="end" class="micro">0/2000</text>
+<rect x="1102" y="362" width="100" height="36" rx="6" fill="#14140f"/><rect x="1100" y="360" width="100" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/><text x="1150" y="383" text-anchor="middle" class="onaccent">Send</text>
+<text x="1086" y="383" text-anchor="end" class="muted">Cancel</text>
+
+<!-- answered, collapsed -->
+<rect x="44" y="468" width="1200" height="70" rx="6" fill="#14140f"/>
+<rect x="40" y="464" width="1200" height="70" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="60" y="496">yesterday</text>
+<text x="170" y="496" style="font-family: monospace">2HQ7V8R0PZ</text>
+<text x="400" y="496" class="muted">как поменять имя? · answered 17:40 · seen</text>
+<text x="60" y="520" class="micro">↑ answered requests, below the waiting ones</text>
+
+<text x="40" y="590" class="qh">Вопросы</text>
+<text x="40" y="618" class="q">1. Ответ — полем прямо в строке (как нарисовано) или отдельной карточкой справа, как у уведомлений DSA?</text>
+<text x="40" y="644" class="q">2. Отвеченные — ниже ждущих (как нарисовано) или отдельным фильтром «ждут / все»?</text>
+<text x="40" y="670" class="q">3. Метка «frozen session — read first» и сортировка таких наверх — нужны, или хватит метки без сортировки?</text>
+<text x="40" y="696" class="q">4. Предел ответа — те же 2000 символов, что у обращения, или свой?</text>
+<text x="40" y="722" class="q">5. Перевод в уведомление по ст. 16: команда не может дать заявление о добросовестности за человека (dsa_notices.bona_fide).</text>
+<text x="56" y="744" class="q">Вариант: кнопка «попросить подать жалобу» — ответ со ссылкой на форму экрана 5; или отложить. Нужен твой выбор.</text>
+<text x="40" y="770" class="q">6. Место в меню: рядом с «Feed queue»; видно ролям с support.read (админ, модератор, админ витрины — свой бренд).</text>
+</svg>

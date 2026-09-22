@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>Node API</h1><a href="index_RU.html">Русский</a></div>
-<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 135 operations, OpenAPI 3.1.0, 2026-09-17.</p>
+<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 137 operations, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Schemas</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).</p>
@@ -380,6 +380,21 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The verdict, applied once.</td><td></td></tr><tr><td><code>401</code></td><td>no panel session</td><td></td></tr><tr><td><code>403</code></td><td>no feed_queue.decide</td><td></td></tr><tr><td><code>404</code></td><td>A malformed id, or (a tenant&#x27;s moderator) not a phrase of their own brand.</td><td></td></tr><tr><td><code>409</code></td><td>Already decided, swept after moderation.queue.wait, or never existed.</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/feed_queue.ts</code></p>
+</section>
+<section class="op" id="get-admin-support">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/support</code><span class="chip s-spec">spec</span> <span class="chip internal">internal</span></div>
+<p><strong>Support requests, for the team</strong></p>
+<p>Protocol §4.10a (described 2026-09-22). One&#x27;s own brand; the platform sees all. Waiting ones first, at most 200; x-total-count is the whole queue. The author&#x27;s identity is not given out.</p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>[{id, public_no, brand, created_at, body, email, from_frozen, answer, answered_at}]</td><td></td></tr><tr><td><code>401</code></td><td>no panel session</td><td></td></tr><tr><td><code>403</code></td><td>no support.read</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
+</section>
+<section class="op" id="post-admin-support--id--answer">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/admin/support/{id}/answer</code><span class="chip s-spec">spec</span> <span class="chip internal">internal</span></div>
+<p><strong>Answer a support request</strong></p>
+<p>Protocol §4.10a. {answer}, up to 2000 characters; sets answered_at and answer_seen = false, so the person&#x27;s dot lights again on a repeated answer too.</p>
+<h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
+<h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Answered.</td><td></td></tr><tr><td><code>400</code></td><td>no text or over 2000 characters</td><td></td></tr><tr><td><code>401</code></td><td>no panel session</td><td></td></tr><tr><td><code>403</code></td><td>no support.answer</td><td></td></tr><tr><td><code>404</code></td><td>no such request, or another brand&#x27;s</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-admin-dsa-notices">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-notices</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>

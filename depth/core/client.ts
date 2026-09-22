@@ -71,11 +71,12 @@ export class Client {
     const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
     const headers: Record<string, string> = { "x-protocol-version": PROTOCOL_MAJOR, ...this.#edge };
     if (body !== undefined) headers["content-type"] = "application/json";
+    // The key goes on every call: it says which face, the signature which
+    // person, and a signed call without it lands unattributed (2026-09-22).
+    headers["x-api-key"] = this.apiKey;
     if (signed) {
       if (!this.#key) throw new Error("not registered: there is no key to sign with");
       Object.assign(headers, await signRequest(this.#key, this.#session, method, url, raw));
-    } else {
-      headers["x-api-key"] = this.apiKey;
     }
     const response = await fetch(url, { method, headers, body: body === undefined ? undefined : raw });
     const text = await response.text();

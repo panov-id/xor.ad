@@ -85,7 +85,7 @@ async function call(method: string, path: string, init: {
   return { status: response.status, body: text ? JSON.parse(text) : null, headers: response.headers };
 }
 
-async function signedCall(key: CryptoKey, sessionId: string, method: string, path: string, body?: unknown) {
+async function signedCall(key: CryptoKey, sessionId: string, method: string, path: string, body?: unknown, extra: Record<string, string> = {}) {
   const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
   const time = Math.floor(Date.now() / 1000);
   const target = new URL(`https://relay.test${path}`);
@@ -105,6 +105,7 @@ async function signedCall(key: CryptoKey, sessionId: string, method: string, pat
       "x-identity-session": sessionId,
       "x-identity-time": String(time),
       "x-identity-sign": auth.bytesToBase64url(signature),
+      ...extra,
     },
   });
 }
@@ -2685,6 +2686,31 @@ Deno.test({
     await database.queryOrThrow(`UPDATE feed_messages SET visible_at = NULL, expires_at = NULL WHERE id = $1`, [row.id]);
     assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна" })).status, 200);
     assertEquals((await profileOf(who.identity_id)).name_state, "accepted");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a signed send carries the storefront's key, and the phrase lands under its brand",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    // The client sends the key beside the signature: the key says which face,
+    // the signature says which person (§8, "brand comes from the key").
+    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "с лицом" }), { "x-api-key": KEY_ID });
+    assertEquals(sent.status, 202, JSON.stringify(sent.body));
+    const [row] = await database.queryOrThrow<{ brand: string }>(
+      `SELECT brand FROM feed_messages WHERE id = $1`, [(sent.body as { id: string }).id]);
+    assertEquals(row.brand, "alpha", "a phrase sent through a storefront's key was not attributed to it");
+    // Without a key: unattributed, as before — not refused.
+    const bare = await signedCall(me.pair.privateKey, me.session_id, "DELETE", `/feed/${(sent.body as { id: string }).id}`);
+    assertEquals(bare.status, 204, JSON.stringify(bare.body));
+    // A key nobody issued does not lend a face.
+    const forged = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "чужое лицо" }), { "x-api-key": "ak_pub_nobodyissuedthis0000" });
+    assertEquals(forged.status, 401, JSON.stringify(forged.body));
     reset();
   },
 });

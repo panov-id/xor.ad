@@ -27,6 +27,7 @@
 // way round.
 
 import { query } from "./db.ts";
+import { findPublishableKey } from "./api_key.ts";
 
 const A_DAY_MS = 24 * 60 * 60 * 1000;
 import { json } from "./http.ts";
@@ -170,10 +171,24 @@ export async function callerOf(
     });
   }
 
+  // The face, from the storefront's key beside the signature and from nowhere
+  // else (chat spec §8: the key says which face, the signature which person).
+  // No key is not a refusal — a terminal has no face, and the phrase lands
+  // unattributed — but a key nobody issued is: a face cannot be claimed by
+  // guessing. Until 2026-09-22 this was always null, and every phrase sent
+  // through a storefront sat in the platform's queue, out of its moderator's sight.
+  let brand: string | null = null;
+  const keyId = req.headers.get("x-api-key");
+  if (keyId) {
+    const key = await findPublishableKey(keyId);
+    if (!key || key.revoked_at) return refuse("unauthorized", "no usable storefront key", 401);
+    brand = key.brand;
+  }
+
   return {
     sessionId: row.session_id,
     identityId: row.identity_id,
-    brand: null,
+    brand,
     steppedAwayUntil: away,
     signupCompletedAt: row.signup_completed_at,
     frozenAt: row.frozen_at,

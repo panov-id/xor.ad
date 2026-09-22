@@ -53,6 +53,12 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
 
 - **The body enters as a hash, not whole** — otherwise the signature would be
   computed over a stream.
+- **The storefront's key goes beside the signature — since 2026-09-22.** `x-api-key`
+  on a signed request names the face (`caller.brand`), the signature the person
+  (chat spec §8: "the brand comes from the API key and from nowhere else"). No key
+  is not a refusal — a terminal has no face, the phrase lands `unattributed`; a key
+  nobody issued is a 401. Before, a signed caller never had a face, and every phrase
+  sent through a storefront sat in the platform's queue, out of its moderator's sight.
 - **The host enters the signature — since 2026-09-21.** [retired] It was not
   there at all before, and §2 said nothing about it: a signed request was
   accepted by **any** node of the pool where that session lives, and `api.sosed`

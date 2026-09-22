@@ -5,7 +5,7 @@ A snapshot of where the product stands as a whole. The detailed work tracker is
 [`chat_EN.md`](chat_EN.md). This file sits one level above both: which layers
 exist, which do not, and how that was checked. The snapshot was checked by a
 five-lens review panel —
-[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md).
+[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md); the 2026-09-22 summary was checked by the consistency lens, and what was built that day by the panels `reviews/PANEL_2026-09-22_*.md` (feed queue, profile, encryption, reissue, support).
 
 `[x]` done and verified, `[~]` partial, `[ ]` ahead. Every claim about a live
 environment carries a date and a method. The 7 July 2026 snapshot (Supabase,
@@ -19,10 +19,10 @@ more. The legal section keeps its number (§2): both storefronts'
 |---|---|---|
 | Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-22: both 200 |
 | Panel xor.panov.id | ~80% | 11 pages in `panel/src/pages` (2026-09-22: the feed queue, support); e2e 5, unit 32 |
-| Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-21: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
+| Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-22: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
 | Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
 | Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
-| Relay node: product, steps 1–4 of §13 | ~65% | step 1 and the profile edit; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half; the contract: 84 operations built, 53 spec (measured 2026-09-22, `check-openapi.sh`) |
+| Relay node: product, steps 1–4 of §13 | ~60% | step 1 and the profile edit; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half; the contract: 84 operations built, 53 spec (measured 2026-09-22, `check-openapi.sh`, by parsing the YAML — `grep` undercounts operations taken through anchors); support is outside the §13 steps: `POST/GET /support`, the team's side, `db/039`–`040` |
 | Relay node: product, steps 5–8 of §13 | ~40% | step 5 — transport, socket, delivery, close codes; step 6 — direction keys and the reissue; step 7 — blocks, hidden, sweepers; step 8 — not started (games), in place of notifications the inbox with a cursor and the daily support digest |
 | `depth` client (terminal, goes first) | ~30% | core `depth/core/`: signing, registration, profile, feed, like, consent, end-to-end encryption and the key reissue against a live node (31 tests); no rendering (Ink); the PIN and the paper code are placeholders under `testOnly` |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |

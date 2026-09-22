@@ -99,6 +99,20 @@ function ensureListeningRekey(): Promise<void> {
   return listeningRekey;
 }
 
+// `NOTIFY chat_sys` carries "<chat>|<json>": a system line for every room of
+// the chat — today the changed age of §8.2 ({kind: age_changed, age}).
+let listeningSys: Promise<void> | null = null;
+function ensureListeningSys(): Promise<void> {
+  listeningSys ??= listen("chat_sys", (payload) => {
+    const cut = payload.indexOf("|");
+    if (cut < 0) return;
+    let data: unknown;
+    try { data = JSON.parse(payload.slice(cut + 1)); } catch { return; }
+    for (const room of rooms.get(payload.slice(0, cut)) ?? []) frame(room, "sys", data);
+  });
+  return listeningSys;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     const [chat, localId] = payload.split(":");
@@ -182,6 +196,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   await ensureListeningFrozen();
   await ensureListeningClosed();
   await ensureListeningRekey();
+  await ensureListeningSys();
   const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();

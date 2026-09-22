@@ -1419,7 +1419,7 @@ list.
 
 Otherwise free age editing becomes the door into the sandbox and the whole band system is pointless. The rule is one-way and irreversible, which the UI must say before saving.
 
-When age changes, `filter_age_min/max` are re-clamped into the new band, and every open chat receives a system message — the peer sees that the age changed, and when:
+When age changes, `filter_age_min/max` are re-clamped into the new band, and every open chat receives a system message — the peer sees that the age changed, and when. **Built 2026-09-22, the owner's decision:** the node sends a `sys {kind: age_changed, age}` frame — the number with no ready text, the client words the line in the person's language (`routes/profile.ts`, in the same transaction as the edit; an end-to-end `depth` test). An open room gets the frame at once; whoever is not in the room sees the age in the inbox, where it already is:
 
 ```
 age changed   → "they changed their age: 39"

@@ -181,6 +181,21 @@ async function patchProfile(req: Request): Promise<Response> {
         WHERE id = $1`,
       [caller.identityId, age, min, max, body.languages === undefined ? null : body.languages],
     );
+    // §8.2: every open chat of this person hears a changed age, as a sys frame
+    // {kind: age_changed, age} — the number, and no text: the client words it
+    // in its own language (the owner's decision of 2026-09-22). In the same
+    // transaction, so a rolled-back edit is never announced. A peer who is not
+    // in the room sees the age in the inbox, where it already is.
+    if (age !== row.age) {
+      const open = await run<{ chat_id: string }>(
+        `SELECT p.chat_id FROM chat_participants p JOIN chats c ON c.id = p.chat_id
+          WHERE p.identity = $1 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})`,
+        [caller.identityId],
+      );
+      for (const { chat_id } of open) {
+        await run(`SELECT pg_notify('chat_sys', $1)`, [`${chat_id}|${JSON.stringify({ kind: "age_changed", age })}`]);
+      }
+    }
     inc("relay_profile_patch_total", { result: nameQueued ? "name_queued" : "applied" });
     // The profile as it now stands, the same shape GET gives (202 when the
     // name is still on its way, and name_pending says which).

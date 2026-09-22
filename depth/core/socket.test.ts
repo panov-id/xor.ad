@@ -335,3 +335,31 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "a changed age reaches the open room as a sys frame with the number, and no text",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await room.protocol();
+      const edited = await a.editProfile({ age: 31 });
+      assertEquals(edited.status, 200, JSON.stringify(edited.body));
+      const heard = await room.next();
+      assertEquals(heard.type, "sys", "the open room did not hear the change");
+      assertEquals(heard.data, { kind: "age_changed", age: 31 });
+      // The same age again is not a change: nothing is sent.
+      await a.editProfile({ age: 31 });
+      let extra = false;
+      try { await room.next(400); extra = true; } catch { /* nothing came: right */ }
+      assert(!extra, "an unchanged age sent a frame");
+      room.close();
+    } finally {
+      await sql.end();
+    }
+  },
+});

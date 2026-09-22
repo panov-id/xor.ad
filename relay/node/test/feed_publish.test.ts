@@ -2313,7 +2313,7 @@ Deno.test({
 // No model is wired (§8.14), so a person decides. The panel session is minted the
 // way lib/auth.ts redeem() mints it, and the operator's record is written where
 // authed() reads it on every request.
-async function panelAs(role: string, brand: string | null = null): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: any }>> {
+async function panelAs(role: string, brand: string | null = null): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: unknown }>> {
   const { sign } = await import("../src/lib/jwt.ts");
   const { sha256hex } = await import("../src/lib/hash.ts");
   const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");

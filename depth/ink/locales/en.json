@@ -1,6 +1,6 @@
 {
   "reg.title": "Operator.",
-  "reg.intro": "A new identity. It lives in this volume; delete the volume and this becomes someone else.",
+  "reg.intro": "A new identity. It lives while the terminal is open: the key never touches the disk, and quitting makes you someone else.",
   "reg.name": "name",
   "reg.age": "age",
   "reg.paper.title": "Paper code (write it down — it will not be shown again):",

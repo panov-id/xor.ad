@@ -1,6 +1,6 @@
 {
   "reg.title": "Operator.",
-  "reg.intro": "Yangi shaxs. U shu tomda yashaydi; tomni o'chirsang, bu boshqa odam bo'ladi.",
+  "reg.intro": "Yangi shaxs. U terminal ochiq turganda yashaydi: kalit diskka tushmaydi, chiqsang boshqa odam bo'lasan.",
   "reg.name": "ism",
   "reg.age": "yosh",
   "reg.paper.title": "Qog'oz kodi (yozib ol — ekranda boshqa chiqmaydi):",

@@ -1,6 +1,6 @@
 {
   "reg.title": "Operator.",
-  "reg.intro": "Une nouvelle identité. Elle vit dans ce volume ; supprime le volume et ce sera quelqu'un d'autre.",
+  "reg.intro": "Une nouvelle identité. Elle vit tant que le terminal est ouvert : la clé ne touche jamais le disque, et en quittant tu deviens quelqu'un d'autre.",
   "reg.name": "prénom",
   "reg.age": "âge",
   "reg.paper.title": "Code sur papier (note-le : il ne reviendra pas à l'écran) :",

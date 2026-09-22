@@ -1,6 +1,6 @@
 {
   "reg.title": "Operator.",
-  "reg.intro": "Una identidad nueva. Vive en este volumen; si lo borras, será otra persona.",
+  "reg.intro": "Una identidad nueva. Vive mientras el terminal esté abierto: la clave no toca el disco y, al salir, serás otra persona.",
   "reg.name": "nombre",
   "reg.age": "edad",
   "reg.paper.title": "Código en papel (anótalo: no volverá a aparecer en pantalla):",

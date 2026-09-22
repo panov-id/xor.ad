@@ -195,6 +195,7 @@ async function patchProfile(req: Request): Promise<Response> {
     return json({
       name: now.name,
       ...(now.name_pending ? { name_pending: now.name_pending } : {}),
+      name_state: now.name_state,
       age: now.age,
       ...(now.filter_age_min === null ? {} : { filter_age_min: now.filter_age_min }),
       ...(now.filter_age_max === null ? {} : { filter_age_max: now.filter_age_max }),

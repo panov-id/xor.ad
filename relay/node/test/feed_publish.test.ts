@@ -2480,7 +2480,11 @@ Deno.test({
     const second = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
       .find((i) => i.text === "имя отклонено");
     assert(second);
-    assertEquals((await moderator("POST", `/admin/feed-queue/${second.id}/publish`, { name: second.name })).status, 200);
+    // …and a phrase whose name is rejected does not go out at all: both must
+    // be accepted (§8.2, 2026-08-26).
+    const held = await moderator("POST", `/admin/feed-queue/${second.id}/publish`, { name: second.name });
+    assertEquals(held.status, 409, JSON.stringify(held.body));
+    assertEquals((held.body as { error: string }).error, "the name is rejected; the phrase waits for a new one");
     const [who] = await database.queryOrThrow<{ name_state: string }>(
       `SELECT name_state FROM identities WHERE id = $1`, [other.identity_id]);
     assertEquals(who.name_state, "rejected", "publish quietly re-accepted a rejected name");
@@ -2609,7 +2613,8 @@ Deno.test({
     await database.queryOrThrow(`DELETE FROM feed_messages WHERE author_identity = $1`, [who.identity_id]);
     for (let i = 0; i < 12; i++) {
       reset();
-      await database.queryOrThrow(`UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = $1`, [who.identity_id]);
+      // Back to accepted each round, so the rename is a fresh pending and the verdict applies.
+      await database.queryOrThrow(`UPDATE identities SET name_state = 'accepted', name_pending = NULL WHERE id = $1`, [who.identity_id]);
       // Four an hour would stop the fifth send: the moments are not the subject here.
       await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}', rejected_at_recent = '{}' WHERE identity = $1`, [who.identity_id]);
       const sent = await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: `гонка ${i}` }));
@@ -2623,6 +2628,63 @@ Deno.test({
       assert(b.status === 202 || b.status === 409, `the rename answered ${b.status}: ${JSON.stringify(b.body)}`);
       await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [id]);
     }
+    reset();
+  },
+});
+
+Deno.test({
+  name: "the moderator refuses a name: the phrase waits unswept, no match forms, a new name brings it back",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const who = await author();
+    await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: "имя не пройдёт" }));
+    const moderator = await panelAs("moderator");
+    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+      .find((i) => i.text === "имя не пройдёт");
+    assert(row);
+    const refused = await moderator("POST", `/admin/feed-queue/${row.id}/refuse-name`, { name: "Аня" });
+    assertEquals(refused.status, 200, JSON.stringify(refused.body));
+    // The name is rejected; the phrase is still there, and says so to its author.
+    assertEquals(await profileOf(who.identity_id), {
+      name: "Аня", name_pending: null, name_state: "rejected", age: 30,
+      filter_age_min: null, filter_age_max: null, languages: [],
+    });
+    const mine = await signedCall(who.pair.privateKey, who.session_id, "GET", "/identities/me");
+    assertEquals((mine.body as { name_state: string }).name_state, "rejected", "the profile does not say the name was refused");
+    // A second refusal of the same name: nothing to refuse again.
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/refuse-name`, { name: "Аня" })).status, 409);
+    // The sweeper leaves a phrase whose name is being fixed alone.
+    await database.queryOrThrow(`UPDATE feed_messages SET created_at = now() - interval '1 hour' WHERE id = $1`, [row.id]);
+    const verdict = await import("../src/lib/feed_verdict.ts");
+    await verdict.sweepStaleQueue();
+    const [still] = await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [row.id]);
+    assert(still, "the sweeper took a phrase that was waiting for its name");
+    // No match forms while the name is rejected (§8.2 — the second line of defence).
+    const them = await author();
+    const theirs = await seedPhrase(them.identity_id, "жду мэтча");
+    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '4 hours' WHERE id = $1`, [row.id]);
+    await like(who, theirs);
+    const back = await like(them, row.id as string);
+    assertEquals(stateOf(back), "liked", "a match formed with a rejected name");
+    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = NULL, expires_at = NULL WHERE id = $1`, [row.id]);
+    // The author sends a new name; it waits beside the phrase; publish takes both.
+    assertEquals((await patchMe(who, { name: "Анна" })).status, 202);
+    const again = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+      .find((i) => i.id === row.id);
+    assert(again, "the phrase left the queue");
+    assertEquals([again.name, again.name_state], ["Анна", "pending"]);
+    // Pending is not accepted either: `name` still holds the refused string,
+    // and a match would show it (profile panel 2026-09-22, security 3).
+    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '4 hours' WHERE id = $1`, [row.id]);
+    await database.queryOrThrow(`DELETE FROM likes WHERE liker_identity IN ($1, $2)`, [who.identity_id, them.identity_id]);
+    await like(who, theirs);
+    assertEquals(stateOf(await like(them, row.id as string)), "liked", "a match formed while the name was still pending");
+    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = NULL, expires_at = NULL WHERE id = $1`, [row.id]);
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна" })).status, 200);
+    assertEquals((await profileOf(who.identity_id)).name_state, "accepted");
     reset();
   },
 });

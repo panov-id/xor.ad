@@ -166,7 +166,7 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
           AND their_msg.visible_at IS NOT NULL AND their_msg.expires_at > now()
           AND my_msg.visible_at   IS NOT NULL AND my_msg.expires_at   > now()
           AND them.closed_at IS NULL AND me.closed_at IS NULL
-          AND them.name_state <> 'rejected' AND me.name_state <> 'rejected'
+          AND them.name_state = 'accepted' AND me.name_state = 'accepted'
         ORDER BY his_like.created_at DESC
         LIMIT 1`,
       [me, target],

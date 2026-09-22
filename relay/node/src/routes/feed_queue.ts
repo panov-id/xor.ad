@@ -17,7 +17,7 @@ import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
 import { query } from "../lib/db.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
-import { publishPhrase, refusePhrase } from "../lib/feed_verdict.ts";
+import { publishPhrase, refuseName, refusePhrase } from "../lib/feed_verdict.ts";
 import { recordAuditEvent } from "../lib/audit.ts";
 import { inc } from "../lib/metrics.ts";
 
@@ -50,7 +50,7 @@ route("GET", "/admin/feed-queue", async ({ req }) => {
   return json(items, 200, { "x-total-count": String(items.length) });
 });
 
-async function decide(req: Request, id: string, verdict: "publish" | "refuse"): Promise<Response> {
+async function decide(req: Request, id: string, verdict: "publish" | "refuse" | "refuse-name"): Promise<Response> {
   const access = await requirePermission(req, "feed_queue.decide");
   if (isDenied(access)) return access.response;
   if (!UUID.test(id)) return json({ error: "not found" }, 404);
@@ -66,23 +66,28 @@ async function decide(req: Request, id: string, verdict: "publish" | "refuse"): 
   // Publish carries the name the moderator saw; the verdict holds only if it
   // is still that name.
   let nameSeen: string | undefined;
-  if (verdict === "publish") {
+  if (verdict !== "refuse") {
     const body = await req.json().catch(() => null) as { name?: unknown } | null;
     if (typeof body?.name === "string") nameSeen = body.name;
   }
   const scope = { brand: access.user.brand, nameSeen };
-  let result: { applied: boolean; nameChanged?: boolean };
+  let result: { applied: boolean; nameChanged?: boolean; nameRejected?: boolean };
   try {
-    result = verdict === "publish" ? await publishPhrase(id, scope) : await refusePhrase(id, scope);
+    result = verdict === "publish"
+      ? await publishPhrase(id, scope)
+      : verdict === "refuse"
+      ? await refusePhrase(id, scope)
+      : await refuseName(id, scope);
   } catch {
     return json({ error: "unavailable" }, 503);
   }
   if (result.nameChanged) return json({ error: "the name changed since it was read" }, 409);
+  if (result.nameRejected) return json({ error: "the name is rejected; the phrase waits for a new one" }, 409);
   if (!result.applied) return json({ error: "already decided, swept, or never existed" }, 409);
   // Who and when; the phrase's text does not go into a second store.
   recordAuditEvent({
     actor: access.user,
-    action: `feed_queue.${verdict}`,
+    action: `feed_queue.${verdict.replace("-", "_")}`,
     target: id,
     outcome: "applied",
   });
@@ -92,3 +97,5 @@ async function decide(req: Request, id: string, verdict: "publish" | "refuse"): 
 
 route("POST", "/admin/feed-queue/:id/publish", ({ req, params }) => decide(req, params.id, "publish"));
 route("POST", "/admin/feed-queue/:id/refuse", ({ req, params }) => decide(req, params.id, "refuse"));
+// The name, not the phrase: the phrase stays and waits for a new name (§8.2).
+route("POST", "/admin/feed-queue/:id/refuse-name", ({ req, params }) => decide(req, params.id, "refuse-name"));

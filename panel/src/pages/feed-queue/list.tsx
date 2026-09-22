@@ -60,14 +60,14 @@ export const FeedQueueList = () => {
     if (arming && !rows.some((row) => row.id === arming)) setArming(null);
   }, [arming, rows]);
 
-  const decide = async (row: Waiting, verdict: "publish" | "refuse") => {
+  const decide = async (row: Waiting, verdict: "publish" | "refuse" | "refuse-name") => {
     setBusy(row.id);
     setError(null);
     try {
       // Publish names the name it is accepting; the node refuses if it moved.
       const response = await api(`/admin/feed-queue/${row.id}/${verdict}`, {
         method: "POST",
-        ...(verdict === "publish" ? { body: JSON.stringify({ name: row.name }) } : {}),
+        ...(verdict === "refuse" ? {} : { body: JSON.stringify({ name: row.name }) }),
       });
       if (response.status === 409) {
         // Decided by somebody else, swept, or the name moved under the read:
@@ -154,7 +154,8 @@ export const FeedQueueList = () => {
                     <button
                       type="button"
                       className="button-primary"
-                      disabled={busy === row.id}
+                      disabled={busy === row.id || row.name_state === "rejected"}
+                      title={row.name_state === "rejected" ? "The name is refused; the phrase waits for a new one." : undefined}
                       onClick={() => void decide(row, "publish")}
                     >
                       Publish
@@ -167,6 +168,18 @@ export const FeedQueueList = () => {
                     >
                       Refuse
                     </button>
+                    {row.name_state === "rejected" || row.name_state === "gone" ? null : (
+                      // The name, not the phrase: the phrase stays and waits
+                      // for a new name (§8.2). One press — nothing is deleted.
+                      <button
+                        type="button"
+                        className="button-danger"
+                        disabled={busy === row.id}
+                        onClick={() => void decide(row, "refuse-name")}
+                      >
+                        Refuse name
+                      </button>
+                    )}
                   </span>
                 ),
           },

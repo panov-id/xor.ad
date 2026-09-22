@@ -64,6 +64,8 @@ export interface Verdict {
   identityId: string | null;
   // The name is no longer the one the moderator saw; nothing was written.
   nameChanged?: boolean;
+  // The name stands refused; the phrase waits for a new one.
+  nameRejected?: boolean;
 }
 
 // Passed. The row becomes visible and gets its term in the same UPDATE — they
@@ -103,6 +105,11 @@ export async function publishPhrase(id: string, scope: VerdictScope = {}): Promi
       const goesOut = who?.name_pending ?? who?.name;
       if (scope.nameSeen !== undefined && who && goesOut !== scope.nameSeen) {
         return { applied: false, identityId: row.author_identity, nameChanged: true };
+      }
+      // Both must be accepted (§8.2, 2026-08-26): a phrase whose name was
+      // refused waits for a new name, and does not go out with the old one.
+      if (who?.name_state === "rejected") {
+        return { applied: false, identityId: row.author_identity, nameRejected: true };
       }
     }
     await run(
@@ -166,6 +173,41 @@ export async function refusePhrase(id: string, scope: VerdictScope = {}): Promis
   });
 }
 
+// The name is refused, not the phrase (§8.2): name_state becomes rejected, a
+// pending name is dropped, and the phrase stays in the queue — it waits for a
+// new name and goes out with it (2026-08-26). Nothing is deleted and no moment
+// is written: the pause of §8.3 counts refused phrases, and this is not one.
+// The queue shows the phrase with "name rejected" until the author sends
+// another name, which makes it pending again. Applies once: a name already
+// rejected, or not the one the moderator saw, answers as not applied.
+export async function refuseName(id: string, scope: VerdictScope = {}): Promise<Verdict> {
+  return await transaction<Verdict>(async (run) => {
+    const [row] = await run<{ author_identity: string | null }>(
+      `SELECT author_identity FROM feed_messages
+        WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
+        FOR UPDATE`,
+      [id, scope.brand ?? null],
+    );
+    if (!row || !row.author_identity) return { applied: false, identityId: null };
+    await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [row.author_identity]);
+    const [who] = await run<{ name: string; name_pending: string | null; name_state: string }>(
+      `SELECT name, name_pending, name_state FROM identities WHERE id = $1 FOR UPDATE`,
+      [row.author_identity],
+    );
+    if (!who || who.name_state === "rejected") return { applied: false, identityId: row.author_identity };
+    const goesOut = who.name_pending ?? who.name;
+    if (scope.nameSeen !== undefined && goesOut !== scope.nameSeen) {
+      return { applied: false, identityId: row.author_identity, nameChanged: true };
+    }
+    await run(
+      `UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = $1`,
+      [row.author_identity],
+    );
+    inc("relay_feed_verdict_total", { verdict: "name_refused" });
+    return { applied: true, identityId: row.author_identity };
+  });
+}
+
 // A phrase that waited past `moderation.queue.wait` is deleted, and **no moment
 // is written** — neither a publication nor a refusal happened. §8.3 says it in
 // one line: "a row whose checking wait expired is deleted and not counted as
@@ -179,9 +221,13 @@ export async function refusePhrase(id: string, scope: VerdictScope = {}): Promis
 export async function sweepStaleQueue(): Promise<number> {
   const rows = await queryOrThrow<{ count: string }>(
     `WITH gone AS (
-       DELETE FROM feed_messages
-        WHERE visible_at IS NULL
-          AND created_at < now() - interval '${QUEUE_WAIT_MINUTES} minutes'
+       DELETE FROM feed_messages f
+        WHERE f.visible_at IS NULL
+          AND f.created_at < now() - interval '${QUEUE_WAIT_MINUTES} minutes'
+          -- A phrase whose name was refused is not waiting on the node; it is
+          -- waiting on its author, and stays until a new name comes (§8.2).
+          AND NOT EXISTS (SELECT 1 FROM identities a
+                           WHERE a.id = f.author_identity AND a.name_state = 'rejected')
         RETURNING 1
      )
      SELECT count(*)::text AS count FROM gone`,

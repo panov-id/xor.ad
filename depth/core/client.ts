@@ -134,8 +134,8 @@ export class Client {
     if (answer.status !== 204) throw new Error(`the paper code was not confirmed: ${answer.status}`);
   }
 
-  async profile(): Promise<{ name: string; age: number }> {
-    const answer = await this.#call<{ name: string; age: number }>("GET", "/identities/me");
+  async profile(): Promise<{ name: string; name_state: "accepted" | "pending" | "rejected"; age: number }> {
+    const answer = await this.#call<{ name: string; name_state: "accepted" | "pending" | "rejected"; age: number }>("GET", "/identities/me");
     if (answer.status !== 200) throw new Error(`profile refused: ${answer.status}`);
     return answer.body;
   }

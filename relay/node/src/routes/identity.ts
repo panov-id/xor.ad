@@ -241,6 +241,7 @@ async function createIdentity(req: Request): Promise<Response> {
 interface ProfileRow {
   name: string;
   name_pending: string | null;
+  name_state: "accepted" | "pending" | "rejected";
   age: number;
   filter_age_min: number | null;
   filter_age_max: number | null;
@@ -255,7 +256,7 @@ async function readProfile(req: Request): Promise<Response> {
   if (caller instanceof Response) return caller;
 
   const rows = await query<ProfileRow>(
-    `SELECT name, name_pending, age, filter_age_min, filter_age_max, languages,
+    `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max, languages,
             stepped_away_until
        FROM identities WHERE id = $1`,
     [caller.identityId],
@@ -277,6 +278,10 @@ async function readProfile(req: Request): Promise<Response> {
   return json({
     name: row.name,
     ...(row.name_pending ? { name_pending: row.name_pending } : {}),
+    // Sent since 2026-09-22: a rejected name has no name_pending, and without
+    // this the client could not tell it from an accepted one (§8.2 says the
+    // refusal is shown with the reason and a way to fix it).
+    name_state: row.name_state,
     age: row.age,
     ...(row.filter_age_min === null ? {} : { filter_age_min: row.filter_age_min }),
     ...(row.filter_age_max === null ? {} : { filter_age_max: row.filter_age_max }),

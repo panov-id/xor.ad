@@ -19,6 +19,7 @@ services:
       # The phrases the runner sent to the stand for the feed-queue spec.
       FEED_QUEUE_REFUSE_TEXT: "${FEED_QUEUE_REFUSE_TEXT:-}"
       FEED_QUEUE_PUBLISH_TEXT: "${FEED_QUEUE_PUBLISH_TEXT:-}"
+      FEED_QUEUE_NAME_REFUSE_TEXT: "${FEED_QUEUE_NAME_REFUSE_TEXT:-}"
     volumes:
       - ./panel/tests/e2e:/tests/e2e
       - ./panel/tests/helpers:/tests/helpers

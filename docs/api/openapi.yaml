@@ -611,10 +611,11 @@ components:
       type: object
       # Always sent by GET /identities/me (routes/identity.ts readProfile); the
       # rest only when there is something to say (depth-core panel, 2026-09-21).
-      required: [name, age, languages]
+      required: [name, name_state, age, languages]
       properties:
         name: {type: string}
         name_pending: {type: string, description: A name awaiting the queue's verdict., x-description-ru: "Имя, ждущее вердикта очереди."}
+        name_state: {type: string, enum: [accepted, pending, rejected], description: "Sent since 2026-09-22: rejected means the queue refused the name and the phrase waits for a new one (chat spec §8.2) — shown with the reason and a way to fix it.", x-description-ru: "Отдаётся с 22.09.2026: rejected — очередь отклонила имя, фраза ждёт нового (спека чата §8.2); показывается с причиной и кнопкой правки."}
         age: {type: integer}
         filter_age_min: {type: integer}
         filter_age_max: {type: integer}
@@ -1306,7 +1307,31 @@ paths:
         "401": {description: no panel session, x-description-ru: нет сессии панели}
         "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
         "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
-        "409": {description: "Already decided, swept after moderation.queue.wait, never existed — or the name is no longer the one sent as {name}: read again.", x-description-ru: "Уже решено, выметено по moderation.queue.wait, не существовало — либо имя уже не то, что прислано в {name}: прочитать заново."}
+        "409": {description: "Already decided, swept after moderation.queue.wait, never existed — or the name is no longer the one sent as {name}: read again; or the name stands rejected and the phrase waits for a new one.", x-description-ru: "Уже решено, выметено по moderation.queue.wait, не существовало — либо имя уже не то, что прислано в {name}: прочитать заново; либо имя отклонено и фраза ждёт нового."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/feed-queue/{id}/refuse-name:
+    post:
+      tags: [admin]
+      summary: Refuse the name, not the phrase
+      x-summary-ru: Отклонить имя, а не фразу
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      description: "The name the moderator read beside the phrase is refused: name_state becomes rejected, a pending name is dropped, and the phrase stays in the queue, unswept, until its author sends a new name (chat spec §8.2, 2026-08-26). No moment is written. The body carries {name} as read."
+      x-description-ru: "Отклоняется имя, которое модератор прочёл рядом с фразой: name_state становится rejected, ждущее имя сбрасывается, фраза остаётся в очереди и не выметается, пока автор не пришлёт новое имя (спека чата §8.2, 26.08.2026). Момент не пишется. В теле — {name}, как прочитано."
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, properties: {name: {type: string}}}
+      responses:
+        "200": {description: "The name is refused; the phrase waits.", x-description-ru: "Имя отклонено; фраза ждёт."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
+        "409": {description: "Already refused, the phrase decided or swept, the author gone, or the name is no longer the one sent as {name}.", x-description-ru: "Уже отклонено, фраза решена или выметена, автора нет либо имя уже не то, что прислано в {name}."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/feed-queue/{id}/refuse:
     post:

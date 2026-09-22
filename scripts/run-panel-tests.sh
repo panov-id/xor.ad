@@ -14,9 +14,10 @@ export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
 # Two phrases for the feed-queue spec, sent through the front door with a
 # stamp so a rerun on the long-lived stand does not meet yesterday's rows.
 stamp="$(date +%s)"
-export FEED_QUEUE_REFUSE_TEXT="e2e refuse ${stamp}" FEED_QUEUE_PUBLISH_TEXT="e2e publish ${stamp}"
+export FEED_QUEUE_REFUSE_TEXT="e2e refuse ${stamp}" FEED_QUEUE_PUBLISH_TEXT="e2e publish ${stamp}" FEED_QUEUE_NAME_REFUSE_TEXT="e2e name ${stamp}"
 scripts/seed-local-phrase.sh "$FEED_QUEUE_REFUSE_TEXT" >/dev/null
 scripts/seed-local-phrase.sh "$FEED_QUEUE_PUBLISH_TEXT" >/dev/null
+scripts/seed-local-phrase.sh "$FEED_QUEUE_NAME_REFUSE_TEXT" >/dev/null
 docker compose -f docker-compose.panel-tests.yml build panel-tests
 docker compose -f docker-compose.panel-tests.yml run --rm panel-tests
 

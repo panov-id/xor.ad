@@ -21,7 +21,7 @@ rows="${1:-1000000}"
 name="feed-geo-probe-$$"
 image="denoland/deno:alpine-2.1.4"
 
-cleanup() { docker rm -f "$name" >/dev/null 2>&1 || true; }
+cleanup() { docker rm -fv "$name" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
 echo "== поднимаю Postgres 16 и применяю настоящие миграции =="

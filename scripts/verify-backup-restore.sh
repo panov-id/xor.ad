@@ -61,7 +61,7 @@ print(sorted(entries)[-1] if entries else "")
 echo "   $latest"
 
 work="$(mktemp -d)"
-trap 'rm -rf "$work"; docker rm -f relay-restore-check >/dev/null 2>&1 || true' EXIT
+trap 'rm -rf "$work"; docker rm -fv relay-restore-check >/dev/null 2>&1 || true' EXIT
 curl -fsS -H "AccessKey: ${storage_key}" \
   "https://${host}/${zone}/${prefix}/${latest}" -o "$work/dump.sql.gz"
 echo "   $(stat -c %s "$work/dump.sql.gz") bytes downloaded"

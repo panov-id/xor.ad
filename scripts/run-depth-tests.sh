@@ -26,13 +26,13 @@ database_url="postgres://relay:test@postgres:5432/relay_test"
 key_id="ak_pub_depthcoretest0001"
 
 cleanup() {
-  docker rm -f "$node" "$db" >/dev/null 2>&1 || true
+  docker rm -fv "$node" "$db" >/dev/null 2>&1 || true
   docker network rm "$network" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 
 # Leftovers of a run killed hard (SIGKILL skips the trap): by label, not by name.
-docker ps -aq --filter "label=$label" | xargs -r docker rm -f >/dev/null 2>&1 || true
+docker ps -aq --filter "label=$label" | xargs -r docker rm -fv >/dev/null 2>&1 || true
 docker network ls -q --filter "label=$label" | xargs -r docker network rm >/dev/null 2>&1 || true
 
 docker network create --label "$label" "$network" >/dev/null

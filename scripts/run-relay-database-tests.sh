@@ -26,7 +26,7 @@ container="relay-test-db-$$"
 database_url="postgres://relay:test@postgres:5432/relay_test"
 
 cleanup() {
-  docker rm -f "$container" >/dev/null 2>&1 || true
+  docker rm -fv "$container" >/dev/null 2>&1 || true
   docker network rm "$network" >/dev/null 2>&1 || true
 }
 # Torn down on success, on failure and on Ctrl-C alike: a leftover container would

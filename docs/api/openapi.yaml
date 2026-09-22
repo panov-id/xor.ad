@@ -1280,7 +1280,7 @@ paths:
       description: "The moderator's queue while no model is wired (chat spec §8.3, §8.14): text, mode, the name published with it and its state, how long it has waited — never the author's identity. A tenant's moderator sees their own brand only. Built 2026-09-22."
       x-description-ru: "Очередь модератора, пока модель не подключена (спека чата §8.3, §8.14): текст, режим, имя, с которым фраза выйдет, и его состояние, сколько ждёт — и никогда личность автора. Модератор тенанта видит только свой бренд. Построено 22.09.2026."
       responses:
-        "200": {description: "At most 200, oldest first, as {items}.", x-description-ru: "Не больше 200, старые первыми, в виде {items}."}
+        "200": {description: "At most 200, oldest first, a plain array with x-total-count.", x-description-ru: "Не больше 200, старые первыми, плоским массивом с x-total-count."}
         "401": {description: no panel session, x-description-ru: нет сессии панели}
         "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
         "503": {description: database unavailable, x-description-ru: база недоступна}

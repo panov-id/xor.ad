@@ -31,10 +31,17 @@ node_support=$(count_in "$support" '^\s*(Deno\.test|configured|stored)\(')
 node=$((node_all - node_support))
 
 e2e=$(count_in "$root/testing/e2e" '^\s*(test|Deno\.test)\(')
-total=$((node + e2e))
+# The panel: vitest cases (`it(`) beside the code, and the Playwright specs.
+# Neither was counted before 2026-09-22, so the map said "386" while 30-odd
+# cases ran under a different runner.
+panel_unit=$(count_in "$root/panel/src" '^\s*it\(')
+panel_e2e=$(count_in "$root/panel/tests/e2e" '^\s*test\(')
+total=$((node + e2e + panel_unit + panel_e2e))
 
 printf 'relay/node/test  %s\n' "$node"
 printf 'testing/e2e      %s\n' "$e2e"
+printf 'panel/src        %s\n' "$panel_unit"
+printf 'panel/tests/e2e  %s\n' "$panel_e2e"
 printf 'итого            %s\n' "$total"
 
 [ "${1:-}" = "--check" ] || exit 0
@@ -42,7 +49,7 @@ printf 'итого            %s\n' "$total"
 # The map states both numbers; a document that names a count it cannot support
 # is worse than one that names none, because it gets quoted.
 problems=0
-for pair in "relay/node/test|$node" "Итого|$total"; do
+for pair in "relay/node/test|$node" "panel/src|$panel_unit" "panel/tests/e2e|$panel_e2e" "Итого|$total"; do
   label="${pair%%|*}"; want="${pair#*|}"
   line=$(grep -F "$label" "$root/docs/test-map_RU.md" | head -1)
   if ! printf '%s' "$line" | grep -qE "\b$want\b"; then

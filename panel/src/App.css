@@ -599,6 +599,56 @@ button:disabled {
   border-color: var(--danger-line);
   color: var(--danger-ink);
 }
+/* The filled form, arrived with the feed queue (2026-09-22): the second press
+   of Refuse, in place, confirms. Danger ink on danger fill would say nothing,
+   so it prints in the accent's ink, like .button-primary. */
+.button-danger-filled {
+  background: var(--danger-line);
+  border-color: var(--danger-line);
+  color: var(--accent-ink);
+}
+.button-danger-filled:hover:not(:disabled) {
+  background: var(--danger-ink);
+}
+.button-danger-filled:focus-visible {
+  border-color: var(--accent-ink);
+}
+/* A row's pair of verdicts, and the question that replaces them. One line,
+   the row's own baseline, no wrapping between the two. */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+/* Below the panel's own breakpoint the table stacks, and a pair of buttons
+   that will not break overran the card's edge (seen 2026-09-22 at 390 px). */
+@media screen and (max-width: 751px) {
+  .row-actions {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+}
+/* "3 min 44 s" is one value; it does not break in two at a narrow column. */
+.waiting {
+  white-space: nowrap;
+}
+/* Ink for a value that is a warning by itself — the waiting time of a phrase
+   about to be swept unread. Same ink the warn badge prints in. */
+.text-warn {
+  color: var(--warn-ink);
+}
+.text-muted {
+  color: var(--ink-muted);
+}
+/* A heading and, at its right, a live figure about the page. */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
 /* A button inside a table row is not a button on a page. At the full 36 and
    carrying depth, twenty rows read as a field of floating buttons and the data
    stops being the subject — the action should be reachable without out-shouting

@@ -29,7 +29,7 @@ route("GET", "/admin/feed-queue", async ({ req }) => {
   const rows = await query<{
     id: string; brand: string; text: string; mode: string; name: string; name_state: string; waiting: string;
   }>(
-    `SELECT f.id, f.brand, f.text, f.mode, a.name, a.name_state,
+    `SELECT f.id, f.brand, f.text, f.mode, coalesce(a.name_pending, a.name) AS name, a.name_state,
             floor(extract(epoch from now() - f.created_at))::bigint::text AS waiting
        FROM feed_messages f
        JOIN identities a ON a.id = f.author_identity
@@ -39,12 +39,13 @@ route("GET", "/admin/feed-queue", async ({ req }) => {
     [access.user.brand],
   );
   if (rows === null) return json({ error: "unavailable" }, 503);
-  return json({
-    items: rows.map((r) => ({
-      id: r.id, brand: r.brand, text: r.text, mode: r.mode,
-      name: r.name, name_state: r.name_state, waiting_seconds: Number(r.waiting),
-    })),
-  });
+  // A plain array with x-total-count, the shape the panel's data provider
+  // reads for every resource.
+  const items = rows.map((r) => ({
+    id: r.id, brand: r.brand, text: r.text, mode: r.mode,
+    name: r.name, name_state: r.name_state, waiting_seconds: Number(r.waiting),
+  }));
+  return json(items, 200, { "x-total-count": String(items.length) });
 });
 
 async function decide(req: Request, id: string, verdict: "publish" | "refuse"): Promise<Response> {

@@ -2358,7 +2358,7 @@ Deno.test({
 
     const queue = await moderator("GET", "/admin/feed-queue");
     assertEquals(queue.status, 200, JSON.stringify(queue.body));
-    const row = (queue.body.items as Array<Record<string, unknown>>).find((i) => i.text === "жду вердикта человека");
+    const row = (queue.body as Array<Record<string, unknown>>).find((i) => i.text === "жду вердикта человека");
     assert(row, "a waiting phrase is not in the queue");
     assertEquals(row.name, "Аня", "the moderator does not see the name that goes out with the phrase");
     assert(!JSON.stringify(row).includes(me.identity_id), "the queue hands the moderator the author's identity");
@@ -2384,13 +2384,13 @@ Deno.test({
     const me = await author();
     await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "это отклонят" }));
     const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body.items as Array<Record<string, unknown>>)
+    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
       .find((i) => i.text === "это отклонят");
     assert(row, "a waiting phrase is not in the queue");
     assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/refuse`)).status, 200);
     const left = await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1 AND visible_at IS NOT NULL`, [row.id]);
     assertEquals(left.length, 0, "a refused phrase became visible");
-    const again = ((await moderator("GET", "/admin/feed-queue")).body.items as Array<Record<string, unknown>>);
+    const again = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>);
     assertEquals(again.find((i) => i.id === row.id), undefined, "a refused phrase stayed in the queue");
     reset();
   },
@@ -2411,7 +2411,7 @@ Deno.test({
     const stranger = await panelAs("moderator", "some-other-brand");
     const queue = await stranger("GET", "/admin/feed-queue");
     assertEquals(queue.status, 200, JSON.stringify(queue.body));
-    assertEquals((queue.body.items as Array<{ id: string }>).find((i) => i.id === row.id), undefined,
+    assertEquals((queue.body as Array<{ id: string }>).find((i) => i.id === row.id), undefined,
       "a tenant's moderator sees another brand's queue");
     assertEquals((await stranger("POST", `/admin/feed-queue/${row.id}/publish`)).status, 404);
     assertEquals((await stranger("POST", `/admin/feed-queue/${row.id}/refuse`)).status, 404);
@@ -2434,10 +2434,11 @@ Deno.test({
       `UPDATE identities SET name_state = 'pending', name_pending = 'Анна' WHERE id = $1`, [me.identity_id]);
     await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "имя ждёт вместе со мной" }));
     const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body.items as Array<Record<string, unknown>>)
+    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
       .find((i) => i.text === "имя ждёт вместе со мной");
     assert(row, "a waiting phrase is not in the queue");
     assertEquals(row.name_state, "pending", "the moderator is not told the name is unchecked");
+    assertEquals(row.name, "Анна", "the moderator is shown the old name, not the one that would go out");
     assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`)).status, 200);
     const [who] = await database.queryOrThrow<{ name: string; name_state: string; name_pending: string | null }>(
       `SELECT name, name_state, name_pending FROM identities WHERE id = $1`, [me.identity_id]);

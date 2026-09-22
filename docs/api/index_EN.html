@@ -349,7 +349,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Phrases waiting for a verdict before anybody sees them</strong></p>
 <p>The moderator&#x27;s queue while no model is wired (chat spec §8.3, §8.14): text, mode, the name published with it and its state, how long it has waited — never the author&#x27;s identity. A tenant&#x27;s moderator sees their own brand only. Built 2026-09-22.</p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>At most 200, oldest first, as {items}.</td><td></td></tr><tr><td><code>401</code></td><td>no panel session</td><td></td></tr><tr><td><code>403</code></td><td>no feed_queue.read</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>At most 200, oldest first, a plain array with x-total-count.</td><td></td></tr><tr><td><code>401</code></td><td>no panel session</td><td></td></tr><tr><td><code>403</code></td><td>no feed_queue.read</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/feed_queue.ts</code></p>
 </section>
 <section class="op" id="post-admin-feed-queue--id--publish">

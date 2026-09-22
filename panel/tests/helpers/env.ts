@@ -8,6 +8,11 @@ export const RELAY_URL = process.env.RELAY_URL ?? "http://localhost:62080";
 // The stand signs sessions with a throwaway secret, so a token minted from it is
 // only ever valid against that stand. Overridable for a stand configured otherwise.
 export const SESSION_SECRET = process.env.SESSION_SECRET ?? "local-panel-secret";
+// The token also names the environment it was minted for, and the node refuses
+// one minted for another (lib/auth.ts). Without this claim every request
+// answered 401 and the suite fell at global-setup (2026-09-22); the screenshot
+// sweep had met the same wall on 2026-09-08.
+export const ENV_NAME = process.env.NODE_ENV_NAME ?? "local";
 
 // Fixed test identities, seeded by global-setup.
 export const ADMIN_EMAIL = "test-admin@xor.ad";

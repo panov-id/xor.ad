@@ -37,6 +37,10 @@ export const PERMISSIONS = [
   // deciding, because it is a statement made about a person to the police and
   // not a decision about their content.
   "dsa_notices.escalate",
+  // The feed queue: phrases waiting for a verdict, and the verdict. Mirrors the
+  // relay's pair of the same names (2026-09-22).
+  "feed_queue.read",
+  "feed_queue.decide",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

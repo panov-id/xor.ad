@@ -30,6 +30,7 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   // refused every role, admin included. The screen existed and nobody could open
   // it. The test below now walks App.tsx so the next omission fails in CI.
   "dsa_notices.list": "dsa_notices.read",
+  "feed_queue.list": "feed_queue.read",
 };
 
 export function requiredPermission(resource: string, action: string): Permission | undefined {

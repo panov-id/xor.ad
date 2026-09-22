@@ -8,7 +8,7 @@
 // caller straight from the claims and never looks the user up — so a token
 // minted here is a full session, and the secret is the only thing gating it.
 
-import { SESSION_SECRET } from "./env";
+import { ENV_NAME, SESSION_SECRET } from "./env";
 
 const encoder = new TextEncoder();
 
@@ -31,6 +31,7 @@ export async function mintToken(
         role,
         // null = platform scope, which is what the panel suite exercises.
         brand: null,
+        env: ENV_NAME,
         exp: Math.floor(Date.now() / 1000) + ttlSeconds,
       }),
     ),

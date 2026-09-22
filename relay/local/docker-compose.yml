@@ -32,6 +32,10 @@ services:
       MAIL_TRANSPORT: smtp
       MAIL_SMTP_HOST: mailpit
       MAIL_SMTP_PORT: "1025"
+      # Without it every registration answers 503 "cannot store a vault share",
+      # and nothing that starts with an identity can be tried on the stand
+      # (found 2026-09-22 seeding the feed queue). A throwaway local key.
+      VAULT_SHARE_KEY: local-vault-share-key
       # Panel control plane. A throwaway local secret so /auth/* and /admin/*
       # can be exercised on the stand; magic links land on the panel dev server.
       SESSION_SECRET: local-panel-secret

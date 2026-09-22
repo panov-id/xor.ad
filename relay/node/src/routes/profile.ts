@@ -16,7 +16,9 @@
 //
 // The row is locked for the whole edit: the verdict in lib/feed_verdict.ts
 // reads name_pending under the same lock, so a change cannot slip between the
-// moderator's read and the click (review panel 2026-09-22, data lens).
+// moderator's read and the click (review panel 2026-09-22, data lens). Locks
+// go in the verdict's order — identity_stats first, identities second — or
+// the two deadlock on the same person (both lenses of the panel, 2026-09-22).
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
@@ -33,6 +35,13 @@ import { inc } from "../lib/metrics.ts";
 const NAME_GRAPHEMES = 24;
 const NAME_BYTES = 400;
 const LANGUAGES_MAX = 3;
+// No ceiling in the DDL (2026-08-28); this one keeps an integer overflow from
+// reaching it as a 500 after the day's token was spent.
+const AGE_MAX = 150;
+// What the moderator cannot see must not be in a name: controls, format
+// characters (zero-width joiners, direction overrides), line and paragraph
+// separators. The same rule registration should hold; noted, not done here.
+const INVISIBLE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const countGraphemes = (text: string): number => [...graphemes.segment(text)].length;
 
@@ -71,12 +80,17 @@ async function patchProfile(req: Request): Promise<Response> {
     if (typeof body.name !== "string" || body.name.trim().length === 0) {
       return refuse("invalid_body", "name must be a non-empty string", 400);
     }
-    if (countGraphemes(body.name) > NAME_GRAPHEMES || new TextEncoder().encode(body.name).length > NAME_BYTES) {
+    const wanted = body.name.normalize("NFC").trim().replace(/\s+/g, " ");
+    if (INVISIBLE.test(wanted) || wanted.length === 0) {
+      return refuse("invalid_body", "name has characters nobody can see", 400);
+    }
+    if (countGraphemes(wanted) > NAME_GRAPHEMES || new TextEncoder().encode(wanted).length > NAME_BYTES) {
       return refuse("invalid_body", `name is at most ${NAME_GRAPHEMES} characters`, 400);
     }
+    body.name = wanted;
   }
-  if (body.age !== undefined && (!isInt(body.age) || body.age < 13)) {
-    return refuse("invalid_body", "age must be a whole number of 13 or more", 400);
+  if (body.age !== undefined && (!isInt(body.age) || body.age < 13 || body.age > AGE_MAX)) {
+    return refuse("invalid_body", `age must be a whole number from 13 to ${AGE_MAX}`, 400);
   }
   for (const k of ["filter_age_min", "filter_age_max"] as const) {
     if (body[k] !== undefined && body[k] !== null && !isInt(body[k])) {
@@ -91,6 +105,9 @@ async function patchProfile(req: Request): Promise<Response> {
   }
 
   const answer = await transaction<Response>(async (run) => {
+    // identity_stats first — the verdict's order — and it doubles as the
+    // pause check for a new name below.
+    const refusal = await refusalFor(run, caller.identityId);
     const [row] = await run<Row>(
       `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max
          FROM identities WHERE id = $1 AND closed_at IS NULL FOR UPDATE`,
@@ -102,24 +119,38 @@ async function patchProfile(req: Request): Promise<Response> {
     if (body.age !== undefined && row.age >= 21 && age <= 20) {
       return refuse("age_step_down", "age does not go back across 21", 409);
     }
-    const min = body.filter_age_min === undefined ? row.filter_age_min : body.filter_age_min as number | null;
-    const max = body.filter_age_max === undefined ? row.filter_age_max : body.filter_age_max as number | null;
+    let min = body.filter_age_min === undefined ? row.filter_age_min : body.filter_age_min as number | null;
+    let max = body.filter_age_max === undefined ? row.filter_age_max : body.filter_age_max as number | null;
     if (min !== null && max !== null && min > max) {
       return refuse("invalid_body", "filter_age_min is above filter_age_max", 400);
     }
     const b = band(age);
-    if ((min !== null && min < b.low) || (max !== null && b.high !== null && max > b.high)) {
-      return refuse("filter_out_of_band", `the filter stays inside ${b.low}–${b.high ?? "∞"}`, 409, {
-        band_min: b.low, ...(b.high === null ? {} : { band_max: b.high }),
-      });
+    const outside = (min !== null && (min < b.low || (b.high !== null && min > b.high))) ||
+      (max !== null && (max < b.low || (b.high !== null && max > b.high)));
+    if (outside) {
+      if (body.filter_age_min === undefined && body.filter_age_max === undefined) {
+        // The person changed their age, not the filter: the old filter is
+        // clamped into the new band, as §8.2 says, rather than refused for
+        // something they did not send (panel 2026-09-22).
+        const clamp = (v: number) => Math.max(b.low, b.high === null ? v : Math.min(v, b.high));
+        min = min === null ? null : clamp(min);
+        max = max === null ? null : clamp(max);
+      } else {
+        return refuse("filter_out_of_band", `the filter stays inside ${b.low}–${b.high ?? "∞"}`, 409, {
+          band_min: b.low, ...(b.high === null ? {} : { band_max: b.high }),
+        });
+      }
     }
 
     let nameQueued = false;
     if (body.name !== undefined) {
-      const wanted = (body.name as string).trim();
+      const wanted = body.name as string;
       const already = row.name_state === "pending" ? row.name_pending === wanted : row.name === wanted;
       if (!already) {
-        if (row.name_state === "accepted") {
+        // Frozen in every state but rejected — §8.2 names the exception, not
+        // the rule, and a pending name beside a live phrase would otherwise
+        // change under a conversation (security lens, 2026-09-22).
+        if (row.name_state !== "rejected") {
           // Frozen while a phrase of yours lives or a chat of yours is open.
           const [busy] = await run<{ phrase: boolean; chat: boolean }>(
             `SELECT EXISTS (SELECT 1 FROM feed_messages f
@@ -134,7 +165,6 @@ async function patchProfile(req: Request): Promise<Response> {
         }
         // The same pause that stops a send stops a new name: both are text
         // for the queue (§8.3).
-        const refusal = await refusalFor(run, caller.identityId);
         if (refusal?.kind === "paused") {
           return refuse("paused", "too many refusals; the queue is paused", 429, {
             until: Math.floor(refusal.until.getTime() / 1000),

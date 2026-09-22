@@ -2582,3 +2582,47 @@ Deno.test({
     reset();
   },
 });
+
+Deno.test({
+  name: "a birthday clamps the old filter; invisible characters are not a name; the rename and the verdict do not deadlock",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const who = await author(20);
+    assertEquals((await patchMe(who, { filter_age_min: 18, filter_age_max: 22 })).status, 200);
+    const grown = await patchMe(who, { age: 21 });
+    assertEquals(grown.status, 200, JSON.stringify(grown.body));
+    const now = grown.body as { filter_age_min?: number; filter_age_max?: number };
+    // band(21) is [19, ∞): 18 rises to 19, 22 stays.
+    assertEquals([now.filter_age_min, now.filter_age_max], [19, 22], "the filter was not clamped into the new band");
+    assertEquals((await patchMe(who, { name: "Ан\u200bна" })).status, 400);
+    assertEquals((await patchMe(who, { name: "\u200b\u200b" })).status, 400);
+    assertEquals((await patchMe(who, { name: "  Анна   Мария " })).status, 202);
+    assertEquals((await profileOf(who.identity_id)).name_pending, "Анна Мария", "whitespace was not collapsed");
+
+    // The verdict (stats → identities) and the route, in parallel, many times:
+    // with the locks in opposite orders one side dies with 40P01 and the
+    // route answers 500 (both lenses, 2026-09-22).
+    const verdict = await import("../src/lib/feed_verdict.ts");
+    await database.queryOrThrow(`DELETE FROM feed_messages WHERE author_identity = $1`, [who.identity_id]);
+    for (let i = 0; i < 12; i++) {
+      reset();
+      await database.queryOrThrow(`UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = $1`, [who.identity_id]);
+      // Four an hour would stop the fifth send: the moments are not the subject here.
+      await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}', rejected_at_recent = '{}' WHERE identity = $1`, [who.identity_id]);
+      const sent = await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: `гонка ${i}` }));
+      assertEquals(sent.status, 202, JSON.stringify(sent.body));
+      const id = (sent.body as { id: string }).id;
+      const [a, b] = await Promise.all([
+        verdict.publishPhrase(id),
+        patchMe(who, { name: `Имя ${i}` }),
+      ]);
+      assert(a.applied, "the verdict did not apply");
+      assert(b.status === 202 || b.status === 409, `the rename answered ${b.status}: ${JSON.stringify(b.body)}`);
+      await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [id]);
+    }
+    reset();
+  },
+});

@@ -2761,11 +2761,11 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProfilePatch"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "400": {description: "invalid_body: an empty patch, a name that is not a string, is empty, carries invisible characters (controls, format characters, line separators) or exceeds name.length (24 graphemes, 400 bytes), an age outside 13–150, a filter bound that is not a whole number or null, filter_age_min above filter_age_max, more than three language codes, or filter_modes (not built); or an unsupported protocol version.", x-description-ru: "invalid_body: пустая правка, имя не строка, пустое, с невидимыми символами (управляющие, форматные, разделители строк) или длиннее name.length (24 графемы, 400 байт), возраст вне 13–150, граница фильтра не целое и не null, filter_age_min выше filter_age_max, больше трёх языков либо filter_modes (не построено); или неподдерживаемая версия протокола."}
+        "429": {description: "rate_limited: profile.patch.day (10) attempts spent, with retry-after; or paused: the queue's pause after five refusals, with {until} and retry-after.", x-description-ru: "rate_limited: истрачены попытки profile.patch.day (10), с retry-after; либо paused: пауза очереди после пяти отказов, с {until} и retry-after."}
         "200": {description: Saved., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
         "202": {description: "The name is queued; the profile as it stands, name_pending set.", x-description-ru: "Имя в очереди; профиль как есть, с name_pending.", content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
-        "409": {$ref: "#/components/responses/ApiError"}
+        "409": {description: "name_frozen (a phrase lives or a chat is open; a rejected name is never frozen), age_step_down (back across 21), filter_out_of_band (with band_min and band_max), stepped_away. An age change alone clamps the old filter into the new band instead (chat spec §8.2).", x-description-ru: "name_frozen (живёт фраза или открыт чат; отклонённое имя не замораживается), age_step_down (назад через 21), filter_out_of_band (с band_min и band_max), stepped_away. Смена одного возраста зажимает старый фильтр в новую полосу, а не отказывает (спека чата §8.2).", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
         "503": {$ref: "#/components/responses/Unavailable"}
   /recovery/reissue:
     post:

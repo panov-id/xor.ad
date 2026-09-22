@@ -609,7 +609,7 @@ components:
       required: [body, nonce]
       properties:
         nonce: {$ref: "#/components/schemas/Nonce"}
-        body: {type: string, maxLength: 1000}
+        body: {type: string, maxLength: 2000, description: "Graphemes, trimmed; support.body.length — the owner's decision of 2026-09-22 (this contract said 1000 before, a number no registry held).", x-description-ru: "Графемы, после обрезки пробелов; support.body.length — решение владельца 22.09.2026 (раньше здесь стояло 1000 — число, которого не было ни в одном реестре)."}
         email: {type: string, format: email}
     SupportRequest:
       type: object
@@ -619,8 +619,7 @@ components:
         body: {type: string, description: "What the person wrote — the list shows it (screen 14 A).", x-description-ru: "Что человек написал — список его показывает (экран 14 A)."}
         answer: {type: string}
         answered_at: {type: integer, format: unix-seconds}
-        answer_seen: {type: boolean}
-        read_at: {type: integer, format: unix-seconds, description: "When the answer was read (screen 14 H).", x-description-ru: "Когда ответ прочитан (экран 14 H)."}
+        answer_seen: {type: boolean, description: "The answer-waiting dot is out. read_at was here and is retired: the spec replaced seen_at with this flag on 2026-09-14 — the moment of reading is needed by no one.", x-description-ru: "Точка «ответ ждёт» погашена. Здесь стояло read_at, оно снято: спека заменила seen_at этим признаком 14.09.2026 — момент прочтения никому не нужен."}
     Profile:
       type: object
       # Always sent by GET /identities/me (routes/identity.ts readProfile); the
@@ -2766,10 +2765,11 @@ paths:
       tags: [support]
       summary: "A support request"
       x-summary-ru: "Обращение в поддержку"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/support.ts
       security: [{identitySignature: []}]
-      description: "{body, email?}; 201 {public_no} — 10 Crockford base32 characters at once. The fourth in a day — 429 with the storefront's support address in message (support.requests.day, support.frozen.day)."
-      x-description-ru: "{body, email?}; 201 {public_no} — 10 знаков Crockford base32 сразу. Четвёртое за сутки — 429 с адресом поддержки витрины в message (support.requests.day, support.frozen.day)."
+      description: "{body, email?, nonce}; 201 {public_no} — 10 Crockford base32 characters at once, drawn from the CSPRNG (a clash is drawn again); a repeated nonce answers the same number. body — at most 2000 characters. A session frozen by the PIN limit may write one a day. The fourth in a day — 429 with the storefront's support address in message (support.requests.day, support.frozen.day)."
+      x-description-ru: "{body, email?, nonce}; 201 {public_no} — 10 знаков Crockford base32 сразу, из CSPRNG (совпадение — новая попытка); повтор nonce отвечает тем же номером. body — до 2000 символов. Сессия, замороженная пределом ПИНа, может написать одно в сутки. Четвёртое за сутки — 429 с адресом поддержки витрины в message (support.requests.day, support.frozen.day)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -2778,14 +2778,16 @@ paths:
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {description: "invalid_body: no text, text over 2000 characters, an email that is not an address, or no 16-byte nonce; or an unsupported protocol version.", x-description-ru: "invalid_body: нет текста, текст длиннее 2000 символов, почта не адрес либо нет nonce в 16 байт; или неподдерживаемая версия протокола."}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "201": {description: The public number., x-description-ru: Публичный номер., content: {application/json: {schema: {type: object, properties: {public_no: {type: string}}}}}}
     get:
       tags: [support]
       summary: "Your own requests"
       x-summary-ru: "Свои обращения"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/support.ts
       security: [{identitySignature: []}]
       description: "By number without a signature the node answers nothing; a frozen session sees no list (screen 14)."
       x-description-ru: "По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14)."
@@ -2804,7 +2806,8 @@ paths:
       tags: [support]
       summary: "Clear the answer-waiting dot"
       x-summary-ru: "Погасить точку «ответ ждёт»"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/support.ts
       security: [{identitySignature: []}]
       description: "answer_seen = true (schema support_requests)."
       x-description-ru: "answer_seen = true (схема support_requests)."

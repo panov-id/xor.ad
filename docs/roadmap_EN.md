@@ -120,7 +120,8 @@ core without drawing, against a live node (since 2026-09-21).
 
 Of the eleven tables in the first cut (§13), ten exist — six before
 2026-09-21, and `likes`, `matches`, `match_participants`, `blocks` by
-migration `db/030`. One does not: `support_requests`.
+migration `db/030`. The eleventh,
+`support_requests`, by migration `db/039` (2026-09-22): all eleven exist.
 
 Chat code was cleared by the owner's word on 2026-09-21.
 

@@ -41,6 +41,7 @@ await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/feed_queue.ts");
 await import("../src/routes/profile.ts");
+await import("../src/routes/support.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -3091,5 +3092,110 @@ Deno.test({
     assertEquals(new Set(rest.items.map((i) => i.id)), new Set([chat, second.chat]));
     assertEquals(rest.next, undefined);
     reset();
+  },
+});
+
+// ── Support requests (protocol §4.10, schema support_requests; screen 14) ──────
+const nonce16 = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)));
+const support = (who: { pair: CryptoKeyPair; session_id: string }, method: string, path: string, body?: unknown) =>
+  signedCall(who.pair.privateKey, who.session_id, method, path, body, { "x-api-key": KEY_ID });
+
+Deno.test({
+  name: "a request gets a random number at once, lists as one's own, and a repeat of its nonce is the same request",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const nonce = nonce16();
+    const sent = await support(me, "POST", "/support", { body: "не приходит код", email: "me@example.org", nonce });
+    assertEquals(sent.status, 201, JSON.stringify(sent.body));
+    const no = (sent.body as { public_no: string }).public_no;
+    assert(/^[0-9A-HJKMNP-TV-Z]{10}$/.test(no), `not ten Crockford characters: ${no}`);
+    const again = await support(me, "POST", "/support", { body: "не приходит код", email: "me@example.org", nonce });
+    assertEquals([again.status, (again.body as { public_no: string }).public_no], [201, no], `a repeated nonce made a second request: ${again.status} ${JSON.stringify(again.body)}`);
+    const list = await support(me, "GET", "/support");
+    assertEquals(list.status, 200);
+    const mine = list.body as Array<Record<string, unknown>>;
+    assertEquals(mine.length, 1);
+    assertEquals(mine[0].public_no, no);
+    assertEquals([mine[0].body, mine[0].answer, mine[0].answer_seen], ["не приходит код", null, false]);
+    // Another person's list does not show it.
+    const other = await author();
+    assertEquals(((await support(other, "GET", "/support")).body as unknown[]).length, 0);
+    // Too long, empty, and no nonce.
+    assertEquals((await support(me, "POST", "/support", { body: "а".repeat(2001), nonce: nonce16() })).status, 400);
+    assertEquals((await support(me, "POST", "/support", { body: "   ", nonce: nonce16() })).status, 400);
+    assertEquals((await support(me, "POST", "/support", { body: "без nonce" })).status, 400);
+  },
+});
+
+Deno.test({
+  name: "the fourth request in a day is 429 with the storefront's support address",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    for (let i = 0; i < 3; i++) {
+      assertEquals((await support(me, "POST", "/support", { body: `обращение ${i}`, nonce: nonce16() })).status, 201);
+    }
+    const fourth = await support(me, "POST", "/support", { body: "четвёртое", nonce: nonce16() });
+    assertEquals(fourth.status, 429, JSON.stringify(fourth.body));
+    assert((fourth.body as { error: { message: string } }).error.message.includes("support@alpha.test"),
+      "the refusal did not name where to write instead");
+  },
+});
+
+Deno.test({
+  name: "an answer's dot goes out only for its owner; a stranger's or a made-up number is 204 and changes nothing",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const no = ((await support(me, "POST", "/support", { body: "вопрос", nonce: nonce16() })).body as { public_no: string }).public_no;
+    await database.queryOrThrow(`UPDATE support_requests SET answer = 'ответ', answered_at = now() WHERE public_no = $1`, [no]);
+    const stranger = await author();
+    assertEquals((await support(stranger, "POST", `/support/${no}/seen`)).status, 204);
+    const seenAfterStranger = await database.queryOrThrow<{ answer_seen: boolean }>(
+      `SELECT answer_seen FROM support_requests WHERE public_no = $1`, [no]);
+    assertEquals(seenAfterStranger[0].answer_seen, false, "a stranger put out someone else's dot");
+    assertEquals((await support(me, "POST", "/support/0000000000/seen")).status, 204);
+    assertEquals((await support(me, "POST", `/support/${no}/seen`)).status, 204);
+    const seen = await database.queryOrThrow<{ answer_seen: boolean }>(
+      `SELECT answer_seen FROM support_requests WHERE public_no = $1`, [no]);
+    assertEquals(seen[0].answer_seen, true);
+  },
+});
+
+Deno.test({
+  name: "a frozen session may write one request a day and sees no list",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    await database.queryOrThrow(
+      `UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit' WHERE id = $1`, [me.session_id]);
+    const first = await support(me, "POST", "/support", { body: "заблокировали", nonce: nonce16() });
+    assertEquals(first.status, 201, JSON.stringify(first.body));
+    const [row] = await database.queryOrThrow<{ from_frozen: boolean }>(
+      `SELECT from_frozen FROM support_requests WHERE public_no = $1`, [(first.body as { public_no: string }).public_no]);
+    assertEquals(row.from_frozen, true);
+    assertEquals((await support(me, "POST", "/support", { body: "ещё раз", nonce: nonce16() })).status, 429);
+    assertEquals((await support(me, "GET", "/support")).status, 401, "a frozen session was shown the list");
+  },
+});
+
+Deno.test({
+  name: "closing an identity cuts its support requests loose, as screen 14 promises",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const no = ((await support(me, "POST", "/support", { body: "закрываюсь", nonce: nonce16() })).body as { public_no: string }).public_no;
+    await database.queryOrThrow(`UPDATE identities SET closed_at = now() WHERE id = $1`, [me.identity_id]);
+    const { sweepIdentities } = await import("../src/lib/identity_sweeper.ts");
+    await sweepIdentities();
+    const [row] = await database.queryOrThrow<{ identity: string | null }>(
+      `SELECT identity FROM support_requests WHERE public_no = $1`, [no]);
+    assertEquals(row.identity, null, "a closed identity is still tied to its support request");
   },
 });

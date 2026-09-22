@@ -173,6 +173,7 @@ async function closeIdentities(): Promise<number> {
                             JOIN sessions s2 ON s2.id = v.session
                            WHERE s2.identity = i.id AND v.share_enc IS NOT NULL)
                 OR EXISTS (SELECT 1 FROM identity_appearance a WHERE a.identity = i.id)
+                OR EXISTS (SELECT 1 FROM support_requests r WHERE r.identity = i.id)
               )
             LIMIT ${BATCH}
          ), frozen AS (
@@ -189,6 +190,12 @@ async function closeIdentities(): Promise<number> {
          ), faces AS (
            DELETE FROM identity_appearance WHERE identity IN (SELECT id FROM closed)
            RETURNING identity
+         ), unlinked AS (
+           -- Screen 14 promises the tie between a person and their requests
+           -- goes at the press, not after the thirty days of ON DELETE SET NULL
+           -- (chat spec §8.2, 2026-09-14). The table came with db/039.
+           UPDATE support_requests SET identity = NULL WHERE identity IN (SELECT id FROM closed)
+           RETURNING id
          )
          SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen,
                 (SELECT count(*)::int FROM burned) AS burned,

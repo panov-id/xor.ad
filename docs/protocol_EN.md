@@ -320,9 +320,9 @@ While stepped away, **every** signed request except `DELETE /away`, `GET /identi
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /support` | a request `{body, email, nonce}` (`email` optional); **201** `{public_no}` — 10 Crockford base32 characters at once; the fourth in a day — **429** with the storefront's support address in `message` (`support.requests.day`, `support.frozen.day`) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (schema `support_requests`) |
-| `GET /support` | your own requests: `{public_no, created_at, answer, answered_at, answer_seen}`; by number without a signature the node answers nothing; a frozen session sees no list | **spec** (proposed 2026-09-16, agreed 2026-09-17) (screen 14) |
-| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** on a foreign or unknown number too (SEC-23) | **spec** (proposed 2026-09-16, agreed 2026-09-17) (schema, `answer_seen`) |
+| `POST /support` | a request `{body, email, nonce}` (`email` optional; `body` at most 2000 characters, `support.body.length`); **201** `{public_no}` — 10 Crockford base32 characters at once; the fourth in a day — **429** with the storefront's support address in `message` (`support.requests.day`, `support.frozen.day`) | **built** 2026-09-22, was: spec (agreed 2026-09-17) (schema `support_requests`) |
+| `GET /support` | your own requests: `[{public_no, created_at, body, answer, answered_at, answer_seen}]`; by number without a signature the node answers nothing; a frozen session sees no list | **built** 2026-09-22, was: spec (agreed 2026-09-17) (screen 14) |
+| `POST /support/:no/seen` | clear the "an answer is waiting" dot: `answer_seen = true`; **204** on a foreign or unknown number too (SEC-23) | **built** 2026-09-22, was: spec (agreed 2026-09-17) (schema, `answer_seen`) |
 
 Turning a request into an Article 16 notice is the client's act: the text is carried into the `POST /report` form and the request row is deleted in the same transaction (chat spec, the comment on `support_requests`).
 

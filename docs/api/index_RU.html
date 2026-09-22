@@ -357,7 +357,9 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Опубликовать фразу из очереди</strong></p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Вердикт, применён один раз.</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права feed_queue.decide</td><td></td></tr><tr><td><code>404</code></td><td>Не фраза своего бренда.</td><td></td></tr><tr><td><code>409</code></td><td>Уже решено, выметено по moderation.queue.wait либо не существовало.</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<h3>Тело запроса · <code>application/json</code></h3>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Вердикт, применён один раз.</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права feed_queue.decide</td><td></td></tr><tr><td><code>404</code></td><td>Кривой id либо (модератор тенанта) не фраза своего бренда.</td><td></td></tr><tr><td><code>409</code></td><td>Уже решено, выметено по moderation.queue.wait, не существовало — либо имя уже не то, что прислано в {name}: прочитать заново.</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/feed_queue.ts</code></p>
 </section>
 <section class="op" id="post-admin-feed-queue--id--refuse">
@@ -365,7 +367,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Отклонить фразу из очереди</strong></p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Вердикт, применён один раз.</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права feed_queue.decide</td><td></td></tr><tr><td><code>404</code></td><td>Не фраза своего бренда.</td><td></td></tr><tr><td><code>409</code></td><td>Уже решено, выметено по moderation.queue.wait либо не существовало.</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Вердикт, применён один раз.</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права feed_queue.decide</td><td></td></tr><tr><td><code>404</code></td><td>Кривой id либо (модератор тенанта) не фраза своего бренда.</td><td></td></tr><tr><td><code>409</code></td><td>Уже решено, выметено по moderation.queue.wait либо не существовало.</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/feed_queue.ts</code></p>
 </section>
 <section class="op" id="get-admin-dsa-notices">

@@ -26,7 +26,8 @@ type Waiting = {
   text: string;
   mode: string;
   name: string;
-  name_state: "accepted" | "pending" | "rejected";
+  // "gone": the author closed their identity while the phrase waited.
+  name_state: "accepted" | "pending" | "rejected" | "gone";
   waiting_seconds: number;
 };
 
@@ -63,9 +64,14 @@ export const FeedQueueList = () => {
     setBusy(row.id);
     setError(null);
     try {
-      const response = await api(`/admin/feed-queue/${row.id}/${verdict}`, { method: "POST" });
+      // Publish names the name it is accepting; the node refuses if it moved.
+      const response = await api(`/admin/feed-queue/${row.id}/${verdict}`, {
+        method: "POST",
+        ...(verdict === "publish" ? { body: JSON.stringify({ name: row.name }) } : {}),
+      });
       if (response.status === 409) {
-        // Decided by somebody else, or swept: not an error, just gone.
+        // Decided by somebody else, swept, or the name moved under the read:
+        // in every case the refetch below shows what is true now.
       } else if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         setError(body.error ?? `The verdict was refused (${response.status}).`);
@@ -117,13 +123,9 @@ export const FeedQueueList = () => {
             render: (row) => (
               <span className="row-actions">
                 {row.name}
-                {row.name_state !== "accepted"
-                  ? (
-                    <Badge tone="warn">
-                      {row.name_state === "pending" ? "name unchecked" : "name rejected"}
-                    </Badge>
-                  )
-                  : null}
+                {row.name_state === "pending" ? <Badge tone="warn">name unchecked</Badge> : null}
+                {row.name_state === "rejected" ? <Badge tone="danger">name rejected</Badge> : null}
+                {row.name_state === "gone" ? <Badge>author gone</Badge> : null}
               </span>
             ),
           },

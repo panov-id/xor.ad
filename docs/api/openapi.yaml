@@ -1295,12 +1295,18 @@ paths:
       security: [{panelSession: []}]
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        description: "The name the moderator read beside the phrase. Publish accepts the name with the phrase (chat spec §8.2), and only if it is still this one."
+        x-description-ru: "Имя, которое модератор прочёл рядом с фразой. Publish принимает имя вместе с фразой (спека чата §8.2), и только если оно всё ещё это."
+        content:
+          application/json:
+            schema: {type: object, properties: {name: {type: string}}}
       responses:
         "200": {description: "The verdict, applied once.", x-description-ru: "Вердикт, применён один раз."}
         "401": {description: no panel session, x-description-ru: нет сессии панели}
         "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: "Not a phrase of the moderator's own brand.", x-description-ru: "Не фраза своего бренда."}
-        "409": {description: "Already decided, swept after moderation.queue.wait, or never existed.", x-description-ru: "Уже решено, выметено по moderation.queue.wait либо не существовало."}
+        "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
+        "409": {description: "Already decided, swept after moderation.queue.wait, never existed — or the name is no longer the one sent as {name}: read again.", x-description-ru: "Уже решено, выметено по moderation.queue.wait, не существовало — либо имя уже не то, что прислано в {name}: прочитать заново."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/feed-queue/{id}/refuse:
     post:
@@ -1317,7 +1323,7 @@ paths:
         "200": {description: "The verdict, applied once.", x-description-ru: "Вердикт, применён один раз."}
         "401": {description: no panel session, x-description-ru: нет сессии панели}
         "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: "Not a phrase of the moderator's own brand.", x-description-ru: "Не фраза своего бренда."}
+        "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
         "409": {description: "Already decided, swept after moderation.queue.wait, or never existed.", x-description-ru: "Уже решено, выметено по moderation.queue.wait либо не существовало."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/dsa-notices:

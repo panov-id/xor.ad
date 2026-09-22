@@ -62,22 +62,48 @@ async function rememberMoment(
 export interface Verdict {
   applied: boolean;
   identityId: string | null;
+  // The name is no longer the one the moderator saw; nothing was written.
+  nameChanged?: boolean;
 }
 
 // Passed. The row becomes visible and gets its term in the same UPDATE — they
 // were a single NOT NULL column derived from each other once, which cannot both
 // be true at insert time (§8.3, and db/025 for the experiment).
-export async function publishPhrase(id: string): Promise<Verdict> {
+// `scope` is what the caller may decide: a brand for a tenant's moderator,
+// null for the platform. It is checked inside the transaction, on the locked
+// row, as the DSA verdict does — a fence checked before the lock is a fence
+// checked against a row that may have changed (security lens, 2026-09-22).
+//
+// `nameSeen` is the name the moderator read beside the phrase. The verdict
+// accepts the name only if it is still that string: a name changed between
+// the read and the click would otherwise be accepted unread (same lens).
+export interface VerdictScope {
+  brand?: string | null;
+  nameSeen?: string;
+}
+
+export async function publishPhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
     const [row] = await run<{ author_identity: string | null }>(
-      `SELECT author_identity FROM feed_messages WHERE id = $1 AND visible_at IS NULL FOR UPDATE`,
-      [id],
+      `SELECT author_identity FROM feed_messages
+        WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
+        FOR UPDATE`,
+      [id, scope.brand ?? null],
     );
     // Already decided, already swept, or never existed: a verdict arriving
     // twice must not publish twice or write a second moment.
     if (!row) return { applied: false, identityId: null };
     if (row.author_identity) {
       await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [row.author_identity]);
+      // The identity row too: the name is read and written under this lock.
+      const [who] = await run<{ name: string; name_pending: string | null; name_state: string }>(
+        `SELECT name, name_pending, name_state FROM identities WHERE id = $1 FOR UPDATE`,
+        [row.author_identity],
+      );
+      const goesOut = who?.name_pending ?? who?.name;
+      if (scope.nameSeen !== undefined && who && goesOut !== scope.nameSeen) {
+        return { applied: false, identityId: row.author_identity, nameChanged: true };
+      }
     }
     await run(
       `UPDATE feed_messages
@@ -91,10 +117,12 @@ export async function publishPhrase(id: string): Promise<Verdict> {
       // change; owner's decision of 2026-09-22 — one Publish, not two). A name
       // waiting in name_pending becomes the name; a rejected one is accepted
       // again, since the moderator has just read it beside the phrase.
+      // Only a name that was waiting: a rejected one has no name_pending and
+      // would come back as it was, which is not what "accepted" means.
       await run(
         `UPDATE identities
-            SET name = coalesce(name_pending, name), name_pending = NULL, name_state = 'accepted'
-          WHERE id = $1 AND name_state <> 'accepted'`,
+            SET name = name_pending, name_pending = NULL, name_state = 'accepted'
+          WHERE id = $1 AND name_state = 'pending'`,
         [row.author_identity],
       );
       await rememberMoment(run, row.author_identity, "published_at_recent", KEEP_PUBLISHED);
@@ -117,11 +145,13 @@ export async function publishPhrase(id: string): Promise<Verdict> {
 // phrase with a flag, and leaving it would hold the author's single waiting
 // slot for ever. The moment is what the refusal leaves behind, and it is what
 // the pause of §8.3 counts.
-export async function refusePhrase(id: string): Promise<Verdict> {
+export async function refusePhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
     const [row] = await run<{ author_identity: string | null }>(
-      `SELECT author_identity FROM feed_messages WHERE id = $1 AND visible_at IS NULL FOR UPDATE`,
-      [id],
+      `SELECT author_identity FROM feed_messages
+        WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
+        FOR UPDATE`,
+      [id, scope.brand ?? null],
     );
     if (!row) return { applied: false, identityId: null };
     if (row.author_identity) {

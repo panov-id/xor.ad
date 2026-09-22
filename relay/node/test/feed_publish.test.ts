@@ -2446,3 +2446,43 @@ Deno.test({
     reset();
   },
 });
+
+Deno.test({
+  name: "publish accepts only the name the moderator saw, and never a rejected one unread",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    await database.queryOrThrow(
+      `UPDATE identities SET name_state = 'pending', name_pending = 'Анна' WHERE id = $1`, [me.identity_id]);
+    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "имя сменится под рукой" }));
+    const moderator = await panelAs("moderator");
+    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+      .find((i) => i.text === "имя сменится под рукой");
+    assert(row);
+    // The name moves between the read and the click.
+    await database.queryOrThrow(`UPDATE identities SET name_pending = 'Анна-Мария' WHERE id = $1`, [me.identity_id]);
+    const stale = await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: row.name });
+    assertEquals(stale.status, 409, "a name that moved under the moderator's read was accepted");
+    const [still] = await database.queryOrThrow<{ visible_at: Date | null }>(
+      `SELECT visible_at FROM feed_messages WHERE id = $1`, [row.id]);
+    assertEquals(still.visible_at, null, "the phrase went out although its name did not hold");
+    // Read again, publish what is there now.
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна-Мария" })).status, 200);
+
+    // A rejected name stays rejected through a publish: nothing was waiting to be accepted.
+    const other = await author();
+    await database.queryOrThrow(`UPDATE identities SET name_state = 'rejected' WHERE id = $1`, [other.identity_id]);
+    await signedCall(other.pair.privateKey, other.session_id, "POST", "/feed", phrase({ text: "имя отклонено" }));
+    const second = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+      .find((i) => i.text === "имя отклонено");
+    assert(second);
+    assertEquals((await moderator("POST", `/admin/feed-queue/${second.id}/publish`, { name: second.name })).status, 200);
+    const [who] = await database.queryOrThrow<{ name_state: string }>(
+      `SELECT name_state FROM identities WHERE id = $1`, [other.identity_id]);
+    assertEquals(who.name_state, "rejected", "publish quietly re-accepted a rejected name");
+    reset();
+  },
+});

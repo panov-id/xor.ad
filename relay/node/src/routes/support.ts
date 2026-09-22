@@ -58,30 +58,58 @@ async function write(req: Request): Promise<Response> {
   const frozen = caller.frozenAt !== null;
 
   return await transaction<Response>(async (run) => {
+    // Everything under the identity's row lock: the count, so two at once do
+    // not both pass, and the nonce, so two with the same nonce do not both get
+    // past its check and the second end in a 503 instead of the stored 201
+    // (support panel, 2026-09-22).
+    await run(`INSERT INTO identity_stats (identity) VALUES ($1) ON CONFLICT DO NOTHING`, [caller.identityId]);
+    await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [caller.identityId]);
     // A repeat of the nonce is the same request: its stored answer.
     const [kept] = await run<{ route: string; response: { public_no: string } | null }>(
       `SELECT route, response FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, nonce]);
     if (kept) {
-      if (kept.route !== "POST /support") return refuse("invalid_body", "this nonce was used on another route", 409);
+      if (kept.route !== "POST /support" || !kept.response) {
+        return refuse("invalid_body", "this nonce was used on another route", 409);
+      }
       return json(kept.response, 201, sunsetHeader());
     }
-    // The count under the identity's row lock, so two at once do not both pass.
-    await run(`INSERT INTO identity_stats (identity) VALUES ($1) ON CONFLICT DO NOTHING`, [caller.identityId]);
-    await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [caller.identityId]);
-    const [today] = await run<{ all: number; frozen: number }>(
-      `SELECT count(*)::int AS all, count(*) FILTER (WHERE from_frozen)::int AS frozen
+    if (frozen) {
+      // Screen 14 (chat spec §8.2): a session frozen by the PIN limit may ask
+      // for help, and only while the identity has no other live session — that
+      // one writes instead. A device frozen by a transfer or a closure is not
+      // let in at all: support is not the way back into an identity it left.
+      const [state] = await run<{ reason: string | null; live: number }>(
+        `SELECT (SELECT frozen_reason FROM sessions WHERE id = $1) AS reason,
+                (SELECT count(*)::int FROM sessions WHERE identity = $2 AND frozen_at IS NULL) AS live`,
+        [caller.sessionId, caller.identityId],
+      );
+      if (state.reason !== "pin_limit" || state.live > 0) {
+        return refuse("unauthorized", "the request is not signed by a live session", 401);
+      }
+    }
+    const [today] = await run<{ all: number; frozen: number; free_all: string | null; free_frozen: string | null }>(
+      `SELECT count(*)::int AS all, count(*) FILTER (WHERE from_frozen)::int AS frozen,
+              ceil(extract(epoch from min(created_at) + interval '1 day' - now()))::text AS free_all,
+              ceil(extract(epoch from min(created_at) FILTER (WHERE from_frozen) + interval '1 day' - now()))::text AS free_frozen
          FROM support_requests WHERE identity = $1 AND created_at > now() - interval '1 day'`,
       [caller.identityId],
     );
-    if (today.all >= PER_DAY || (frozen && today.frozen >= FROZEN_PER_DAY)) {
+    const overAll = today.all >= PER_DAY;
+    const overFrozen = frozen && today.frozen >= FROZEN_PER_DAY;
+    if (overAll || overFrozen) {
       const [face] = caller.brand
         ? await run<{ domain: string }>(`SELECT domain FROM brands WHERE key = $1`, [caller.brand])
         : [];
+      // When the oldest request that counts leaves the day: protocol §6 wants
+      // Retry-After on every 429, and screen 14 names the time to the person.
+      const wait = Math.max(1, Number((overAll ? today.free_all : today.free_frozen) ?? 1));
       inc("relay_support_total", { result: "limited" });
       return refuse(
         "rate_limited",
         face ? `too many requests today; write to support@${face.domain}` : "too many requests today",
         429,
+        { until: Math.floor(Date.now() / 1000) + wait },
+        { "retry-after": String(wait) },
       );
     }
     let no = "";
@@ -136,13 +164,20 @@ async function seen(req: Request, no: string): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   if (NUMBER.test(no)) {
-    await transaction(async (run) => {
+    // A failed write is a 503, not a 204: the client would take the dot for
+    // out. 204 is for someone else's number or none — never for our failure.
+    const ok = await transaction(async (run) => {
       await run(
         `UPDATE support_requests SET answer_seen = true
           WHERE public_no = $1 AND identity = $2 AND answer IS NOT NULL`,
         [no, caller.identityId],
       );
-    }).catch((error) => log("error", "support seen failed", { error: String(error) }));
+      return true;
+    }).catch((error) => {
+      log("error", "support seen failed", { error: String(error) });
+      return false;
+    });
+    if (!ok) return refuse("unavailable", "the node cannot write right now", 503);
   }
   return new Response(null, { status: 204, headers: sunsetHeader() });
 }

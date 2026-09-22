@@ -126,7 +126,7 @@
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1" />
 <g data-kit="message-input" transform="translate(16,754)">
   <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
-  <g><text x="275" y="27" text-anchor="end" class="k-mono">0/1000</text></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0/2000</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
   <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
@@ -243,7 +243,7 @@
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1" />
 <g data-kit="message-input" transform="translate(16,754)">
   <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
-  <g><text x="275" y="27" text-anchor="end" class="k-mono">0/1000</text></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0/2000</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
   <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
@@ -275,7 +275,7 @@
 <text x="16" y="118" class="k-meta">Пока вход закрыт — одно обращение в сутки.</text><text x="16" y="136" class="k-meta">Прежние обращения и ответы</text><text x="16" y="154" class="k-meta">здесь не показываются.</text>
 <rect x="16" y="176" width="343" height="132" rx="8" style="fill:var(--panel-2)" />
 <text x="28" y="202" class="k-meta">что случилось</text>
-<text x="347" y="298" class="k-mono" text-anchor="end">0/1000</text>
+<text x="347" y="298" class="k-mono" text-anchor="end">0/2000</text>
 <text x="16" y="332" class="k-meta">ответ придёт сюда, в это приложение; оставьте</text>
 <text x="16" y="350" class="k-meta">почту, если можете потерять доступ к личности</text>
 <g data-kit="button-primary" transform="translate(16,376)">
@@ -1572,7 +1572,7 @@
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1" />
 <g data-kit="message-input" transform="translate(16,754)">
   <rect class="k-ctl" width="287" height="44" rx="8" style="fill:var(--panel-2)" />
-  <g><text x="275" y="27" text-anchor="end" class="k-mono">0/1000</text></g>
+  <g><text x="275" y="27" text-anchor="end" class="k-mono">0/2000</text></g>
   <g><g><g data-kit="button-send-empty" transform="translate(299,0)">
   <rect x="0.5" y="0.5" width="43" height="43" rx="8" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <g data-kit="icon-send" transform="translate(0,0)"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>

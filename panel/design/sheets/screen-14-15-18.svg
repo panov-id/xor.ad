@@ -35,7 +35,7 @@
 <text x="16" y="724" class="k-meta">ответ придёт сюда, в это приложение</text>
 <text x="16" y="742" class="k-meta">что случилось</text>
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1"/>
-<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-placeholder="" data-counter="0/1000"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-placeholder="" data-counter="0/2000"/>
 </g></g>
 <text x="48" y="988" class="cap">14A · Свои обращения с ответами</text>
 <text x="48" y="1008" class="capm">номер (mono) + дата в шапке</text><text x="48" y="1025" class="capm">карточки; ответ под чертой с</text>
@@ -112,7 +112,7 @@
 <text x="16" y="724" class="k-meta">ответ придёт сюда, в это приложение</text>
 <text x="16" y="742" class="k-meta">что случилось</text>
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1"/>
-<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-placeholder="" data-counter="0/1000"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-placeholder="" data-counter="0/2000"/>
 </g></g>
 <text x="1293" y="988" class="cap">14D · Пусто</text>
 <text x="1293" y="1008" class="capm">11:268 заголовок + строка, без действия; поле ввода</text>
@@ -127,7 +127,7 @@
 <text x="16" y="118" class="k-meta">Пока вход закрыт — одно обращение в сутки.</text><text x="16" y="136" class="k-meta">Прежние обращения и ответы</text><text x="16" y="154" class="k-meta">здесь не показываются.</text>
 <rect x="16" y="176" width="343" height="132" rx="8" style="fill:var(--panel-2)"/>
 <text x="28" y="202" class="k-meta">что случилось</text>
-<text x="347" y="298" class="k-mono" text-anchor="end">0/1000</text>
+<text x="347" y="298" class="k-mono" text-anchor="end">0/2000</text>
 <text x="16" y="332" class="k-meta">ответ придёт сюда, в это приложение; оставьте</text>
 <text x="16" y="350" class="k-meta">почту, если можете потерять доступ к личности</text>
 <use href="kit/components.svg#button-primary" x="16" y="376" data-w="343" data-label="отправить"/>
@@ -1079,7 +1079,7 @@
 <text x="16" y="724" class="k-meta">ответ придёт сюда, в это приложение</text>
 <text x="16" y="742" class="k-meta">что случилось</text>
 <line x1="0" y1="740" x2="375" y2="740" style="stroke:var(--border);stroke-width:1"/>
-<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-placeholder="" data-counter="0/1000"/>
+<use href="kit/components.svg#message-input" x="16" y="754" data-w="343" data-placeholder="" data-counter="0/2000"/>
 </g></g>
 <g class="k-dark" transform="translate(463,3838)">
 <rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>

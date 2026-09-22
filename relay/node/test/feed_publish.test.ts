@@ -3199,3 +3199,32 @@ Deno.test({
     assertEquals(row.identity, null, "a closed identity is still tied to its support request");
   },
 });
+
+Deno.test({
+  name: "support: the fourth answers with Retry-After; only a PIN-frozen session with no live sibling may write",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    for (let i = 0; i < 3; i++) await support(me, "POST", "/support", { body: `обращение ${i}`, nonce: nonce16() });
+    const fourth = await support(me, "POST", "/support", { body: "четвёртое", nonce: nonce16() });
+    assertEquals(fourth.status, 429);
+    const after = Number(fourth.headers.get("retry-after"));
+    assert(after > 0 && after <= 24 * 3600, `no usable Retry-After on the 429: ${fourth.headers.get("retry-after")}`);
+
+    // Frozen by a transfer: support is not open to it (screen 14; chat spec §8.2).
+    const moved = await author();
+    await database.queryOrThrow(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`, [moved.session_id]);
+    assertEquals((await support(moved, "POST", "/support", { body: "перенесли", nonce: nonce16() })).status, 401,
+      "a session frozen by a transfer wrote to support");
+
+    // Frozen by the PIN limit, but the identity has another live session: that one writes, not this.
+    const twice = await author();
+    await database.queryOrThrow(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit' WHERE id = $1`, [twice.session_id]);
+    await database.queryOrThrow(
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key) VALUES (gen_random_uuid(), $1, 'k', 'w')`,
+      [twice.identity_id]);
+    assertEquals((await support(twice, "POST", "/support", { body: "есть живая", nonce: nonce16() })).status, 401,
+      "a frozen session wrote to support while the identity had a live one");
+  },
+});

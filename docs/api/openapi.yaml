@@ -49,8 +49,8 @@ tags:
     description: Offers — the venue card in the feed, the redirect, complaints, the venue cabinet at adv.<storefront> (offers/SPEC_EN.md; protocol §4.13). Described 2026-09-19, not built.
     x-description-ru: Офферы — карточка заведения в ленте, переход, жалобы, кабинет заведения на adv.<витрина> (offers/SPEC_RU.md; протокол §4.13). Описано 19.09.2026, не построено.
   - name: support
-    description: Support requests (protocol §4.10). Proposed 2026-09-16, not built.
-    x-description-ru: Обращения в поддержку (протокол §4.10). Предложено 16.09.2026, не построено.
+    description: Support requests (protocol §4.10). Proposed 2026-09-16, built 2026-09-22 (routes/support.ts, db/039).
+    x-description-ru: Обращения в поддержку (протокол §4.10). Предложено 16.09.2026, построено 22.09.2026 (routes/support.ts, db/039).
 components:
   securitySchemes:
     publishableKey:
@@ -613,12 +613,13 @@ components:
         email: {type: string, format: email}
     SupportRequest:
       type: object
+      required: [public_no, created_at, body, answer, answered_at, answer_seen]
       properties:
         public_no: {type: string}
         created_at: {type: integer, format: unix-seconds}
         body: {type: string, description: "What the person wrote — the list shows it (screen 14 A).", x-description-ru: "Что человек написал — список его показывает (экран 14 A)."}
-        answer: {type: string}
-        answered_at: {type: integer, format: unix-seconds}
+        answer: {type: string, nullable: true, description: "null until support answers.", x-description-ru: "null, пока поддержка не ответила."}
+        answered_at: {type: integer, format: unix-seconds, nullable: true}
         answer_seen: {type: boolean, description: "The answer-waiting dot is out. read_at was here and is retired: the spec replaced seen_at with this flag on 2026-09-14 — the moment of reading is needed by no one.", x-description-ru: "Точка «ответ ждёт» погашена. Здесь стояло read_at, оно снято: спека заменила seen_at этим признаком 14.09.2026 — момент прочтения никому не нужен."}
     Profile:
       type: object
@@ -2779,9 +2780,9 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
         "400": {description: "invalid_body: no text, text over 2000 characters, an email that is not an address, or no 16-byte nonce; or an unsupported protocol version.", x-description-ru: "invalid_body: нет текста, текст длиннее 2000 символов, почта не адрес либо нет nonce в 16 байт; или неподдерживаемая версия протокола."}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "429": {description: "rate_limited: the fourth request in a day, or the second from a PIN-frozen session; message names the storefront's support address, Retry-After and until say when the oldest request that counts leaves the day.", x-description-ru: "rate_limited: четвёртое обращение за сутки либо второе из сессии, замороженной пределом ПИНа; в message — адрес поддержки витрины, Retry-After и until — когда самое старое из засчитанных выйдет из суток."}
         "503": {$ref: "#/components/responses/Unavailable"}
-        "201": {description: The public number., x-description-ru: Публичный номер., content: {application/json: {schema: {type: object, properties: {public_no: {type: string}}}}}}
+        "201": {description: The public number., x-description-ru: Публичный номер., content: {application/json: {schema: {type: object, required: [public_no], properties: {public_no: {type: string}}}}}}
     get:
       tags: [support]
       summary: "Your own requests"
@@ -2789,17 +2790,17 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/support.ts
       security: [{identitySignature: []}]
-      description: "By number without a signature the node answers nothing; a frozen session sees no list (screen 14)."
-      x-description-ru: "По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14)."
+      description: "By number without a signature the node answers nothing; a frozen session sees no list (screen 14). A plain array, newest first."
+      x-description-ru: "По номеру без подписи узел не отвечает ничего; замороженной сессии список не показывается (экран 14). Плоский массив, новые первыми."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       responses:
-        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/SupportRequest"}}}}}
   /support/{no}/seen:
     post:
@@ -2809,18 +2810,18 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/support.ts
       security: [{identitySignature: []}]
-      description: "answer_seen = true (schema support_requests)."
-      x-description-ru: "answer_seen = true (схема support_requests)."
+      description: "answer_seen = true (schema support_requests). 204 also on someone else's number, an unknown one, or one outside the alphabet (SEC-23); 503 when the write failed — never a 204 for the node's own failure."
+      x-description-ru: "answer_seen = true (схема support_requests). 204 и на чужой, несуществующий или вне алфавита номер (SEC-23); 503, если запись не удалась, — 204 на собственный сбой узла не отдаётся."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: "no", in: path, required: true, schema: {type: string}}
       responses:
-        "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "204": {description: Done., x-description-ru: Сделано.}
   /identities/me:
     get:

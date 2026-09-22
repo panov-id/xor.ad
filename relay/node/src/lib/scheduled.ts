@@ -12,7 +12,7 @@
 // anywhere — found by a review panel on 2026-09-08 and reproduced against a live
 // Postgres before this was changed.
 
-import { sweepSupport } from "./support_sweeper.ts";
+import { sendSupportDigests, sweepSupport } from "./support_sweeper.ts";
 import { enqueueOnce, handle } from "./jobs.ts";
 import { queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
@@ -208,7 +208,10 @@ export function registerScheduledJobs(): void {
   });
 
   handle(SWEEP_SUPPORT, async () => {
+    // The year first, then the day's digest: a request that just left its year
+    // is not counted as waiting.
     await sweepSupport();
+    await sendSupportDigests();
     return new Date(Date.now() + A_DAY_MS);
   });
 

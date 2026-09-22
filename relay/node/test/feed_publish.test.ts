@@ -3262,3 +3262,33 @@ Deno.test({
     assertEquals((await support(me, "GET", "/support")).status, 409);
   },
 });
+
+// ── The team's daily digest of support requests (chat spec §13) ────────────────
+Deno.test({
+  name: "the support digest counts per storefront — new, waiting, from a frozen session — and carries no request text",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const secret = `тайна-${crypto.randomUUID()}`;
+    const sent = await support(me, "POST", "/support", { body: secret, nonce: nonce16() });
+    assertEquals(sent.status, 201);
+    const [row] = await database.queryOrThrow<{ brand: string | null }>(
+      `SELECT brand FROM support_requests WHERE public_no = $1`, [(sent.body as { public_no: string }).public_no]);
+    assertEquals(row.brand, "alpha", "the request did not keep the storefront it came through");
+    const frozenOne = await author();
+    await database.queryOrThrow(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit' WHERE id = $1`, [frozenOne.session_id]);
+    assertEquals((await support(frozenOne, "POST", "/support", { body: "заморожен", nonce: nonce16() })).status, 201);
+
+    const { supportDigest } = await import("../src/lib/support_sweeper.ts");
+    const digest = await supportDigest();
+    const alpha = digest.find((d) => d.brand === "alpha");
+    assert(alpha, "no line for the storefront");
+    assert(alpha.new >= 2 && alpha.waiting >= 2 && alpha.frozen >= 1, JSON.stringify(alpha));
+
+    const { supportDigestBlocks } = await import("../src/lib/mailer.ts");
+    const letter = JSON.stringify(supportDigestBlocks(alpha));
+    assert(!letter.includes(secret), "the digest carried the text of a request");
+    assert(letter.includes(String(alpha.new)) && letter.includes(String(alpha.frozen)), "the digest did not carry its numbers");
+  },
+});

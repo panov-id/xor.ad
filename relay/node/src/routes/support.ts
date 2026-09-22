@@ -119,10 +119,10 @@ async function write(req: Request): Promise<Response> {
     let no = "";
     for (let attempt = 0; attempt < 5 && !no; attempt++) {
       const [made] = await run<{ public_no: string }>(
-        `INSERT INTO support_requests (public_no, identity, body, email, from_frozen)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO support_requests (public_no, identity, body, email, from_frozen, brand)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (public_no) DO NOTHING RETURNING public_no`,
-        [publicNo(), caller.identityId, text, email, frozen],
+        [publicNo(), caller.identityId, text, email, frozen, caller.brand],
       );
       if (made) no = made.public_no;
     }

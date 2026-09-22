@@ -269,6 +269,39 @@ export function noticeArrivedBlocks(opts: {
   ];
 }
 
+// The team's daily digest of support requests (chat spec §13): numbers only.
+// No request's text, no email, no number of a request — a letter per request
+// would turn the mailbox into a copy of a table that lives a year, and a
+// digest that quoted them would be the same copy once a day.
+export function supportDigestBlocks(line: { new: number; waiting: number; frozen: number }): Block[] {
+  return [
+    { kind: "text", value: "Support requests, the last day." },
+    { kind: "text", value: `New: ${line.new}. Waiting for an answer: ${line.waiting}.` },
+    {
+      kind: "text",
+      value: `Written from a session frozen by the PIN limit: ${line.frozen}. ` +
+        "Read these first — a frozen session may be the owner locked out of a taken identity.",
+    },
+    { kind: "text", value: "The requests themselves are in the panel, not in this letter." },
+  ];
+}
+
+export async function sendSupportDigest(
+  to: string,
+  brandKey: string,
+  line: { new: number; waiting: number; frozen: number },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = (await brandByKey(brandKey)) ?? resolveBrand(null);
+  return await deliver(
+    brand,
+    to,
+    `${brand.name}: support requests, the last day`,
+    "Support digest",
+    supportDigestBlocks(line),
+  );
+}
+
 // Best-effort, like the receipt: a mail failure must not lose a notice that is
 // already stored. What it must not do is fail silently, so the caller logs.
 export async function sendNoticeArrived(

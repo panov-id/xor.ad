@@ -12,10 +12,11 @@ import { Feed, Location, Registration } from "./screens.ts";
 import type { Place } from "./screens.ts";
 import { Chat, Inbox, Write } from "./rooms.ts";
 
-// The phrase's length is the node's to state (§8.3); until it has spoken, the
-// screen uses the number the client documents, and the node refuses anything
-// longer anyway.
-const LENGTH = 146;
+// The phrase's length is the node's to state (§8.3). Until GET /limits
+// answers, the screen uses this number — and it is the registry's 128
+// (limits.tsv phrase.length), not the 146 the terminal used to carry against
+// a node that refused at 128 (review panel, 2026-09-22).
+const LENGTH_UNTIL_THE_NODE_SPEAKS = 128;
 
 // The core refuses to register while the PIN and the paper code are
 // placeholders, and it is right to: a person registered this way can never
@@ -35,6 +36,7 @@ type Where =
 
 export function App({ say, client }: { say: Say; client: Client }): ReactElement {
   const [where, setWhere] = useState<Where>({ screen: "register" });
+  const [limit, setLimit] = useState(LENGTH_UNTIL_THE_NODE_SPEAKS);
   const [place, setPlace] = useState<Place | undefined>(undefined);
   const [mine, setMine] = useState<{ text: string; state: string } | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -51,6 +53,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
             setError(undefined);
             client.register({ name, age }, { testOnly: TEST_ONLY })
               .then(() => client.confirmPaperCode())
+              // The node's own numbers, once there is a session to ask with.
+              .then(() => client.limits().then((l) => setLimit(l.phrase_length)).catch(() => {}))
               .then(() => setWhere({ screen: "location" }))
               .catch((e: Error) => fail(e.message));
           },
@@ -73,7 +77,7 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           say,
           client,
           place: place!,
-          limit: LENGTH,
+          limit,
           onDone: (text) => { setMine({ text, state: "pending" }); feed(); },
           onBack: feed,
           onError: fail,
@@ -94,7 +98,7 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           matchId: where.matchId,
           name: where.name,
           age: where.age,
-          limit: LENGTH,
+          limit,
           onBack: () => setWhere({ screen: "inbox" }),
           onError: fail,
         });

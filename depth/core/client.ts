@@ -139,6 +139,16 @@ export class Client {
     if (answer.status !== 204) throw new Error(`the paper code was not confirmed: ${answer.status}`);
   }
 
+  // What the node will accept (§8.3). The client is open and hostile, so this
+  // is a courtesy, not a guard: the node refuses regardless. A face that
+  // carried its own number told people a sentence would fit and then watched
+  // the node refuse it (review panel, 2026-09-22).
+  async limits(): Promise<{ phrase_length: number; chat_ciphertext_chars: number }> {
+    const answer = await this.#call<{ phrase_length: number; chat_ciphertext_chars: number }>("GET", "/limits", undefined, false);
+    if (answer.status !== 200) throw new Error(`the node did not state its limits: ${answer.status}`);
+    return answer.body;
+  }
+
   async profile(): Promise<{ name: string; name_state: "accepted" | "pending" | "rejected"; age: number }> {
     const answer = await this.#call<{ name: string; name_state: "accepted" | "pending" | "rejected"; age: number }>("GET", "/identities/me");
     if (answer.status !== 200) throw new Error(`profile refused: ${answer.status}`);

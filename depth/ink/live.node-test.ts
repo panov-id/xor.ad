@@ -92,6 +92,15 @@ async function main() {
     await until(app, /signal/);
     out("ok   the location screen opened the feed");
 
+    // The counter must show the node's number, not one this client carries:
+    // the terminal used to say 146 while the node refused at 128.
+    const stated = (await new Client(node, apiKey).limits()).phrase_length;
+    await type(app, DOWN, "\u001B[C", ENTER); // the row: write a phrase
+    await until(app, new RegExp(`0/${stated}`), 20);
+    out(`ok   the phrase counter shows the node's own limit (${stated})`);
+    await type(app, DOWN, "\u001B[C", ENTER); // back to the feed
+    await until(app, /signal/);
+
     // The other side: the core, and a phrase put where the feed will find it.
     const peer = new Client(node, apiKey);
     await peer.register({ name: "Марк", age: 29 }, { testOnly: true });

@@ -821,6 +821,18 @@ paths:
       security: []
       responses:
         "200": {description: The node answers., x-description-ru: Узел отвечает., content: {application/json: {schema: {$ref: "#/components/schemas/Health"}}}}
+  /limits:
+    get:
+      tags: [node]
+      summary: What the node will accept
+      x-summary-ru: Что узел примет
+      x-status: built
+      x-source: relay/node/src/routes/limits.ts
+      security: []
+      description: "Chat spec §8.3: the numbers a face must show before a person types past them. Public, and enforced where the work happens regardless."
+      x-description-ru: "Спека чата §8.3: числа, которые лицо показывает до того, как человек наберёт лишнее. Публичный, и всё равно применяется там, где идёт работа."
+      responses:
+        "200": {description: "{phrase_length, chat_ciphertext_chars}", x-description-ru: "{phrase_length, chat_ciphertext_chars}"}
   /ready:
     get:
       tags: [node]

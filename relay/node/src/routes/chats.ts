@@ -25,7 +25,7 @@ import { TERM_PASSED } from "../lib/chat_sweeper.ts";
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // limits.tsv chat.ciphertext.bytes: the base64url text, not the bytes under it —
 // 256 emoji sealed and encoded come to 1404 (§8.6).
-const CIPHERTEXT_MAX = 2048;
+export const CIPHERTEXT_MAX = 2048;
 const PENDING_MAX = 200; // limits.tsv chat.pending.max
 
 async function send(req: Request, chatId: string): Promise<Response> {

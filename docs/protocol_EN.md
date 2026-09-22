@@ -420,6 +420,8 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | report threshold | 5% of a phrase's possible audience | the node's config |
 | floor of the report threshold | 3 people | the node's config |
 
+**The node states them itself: `GET /limits` (2026-09-22).** The public route answers `{phrase_length, chat_ciphertext_chars}` — the very numbers `POST /feed` and `POST /chats/:id/messages` refuse by. A face shows them before a person types rather than after the refusal: the terminal carried 146 in its own source while the node refused at 128, and the first to learn of it was the person who had finished the sentence (review panel, 2026-09-22). The route guarantees nothing on its own — the client is open, and the check stays where the work happens.
+
 **The seven "per identity" rows and the ticket lifetime were added 2026-09-16 (panel, OPS-13):** each limit's key is in its row; `Retry-After` for a daily or hourly counter is the seconds until the oldest counted event leaves the sliding window; **per-identity counters live in the node's memory and are not journaled** — a restart resets them and every node of the pool keeps its own, and that is accepted: none of them guards a secret (OPS-2, LAW-5 of pass 3); moves have no rate limit of their own — the move window holds them. **The last three rows are deploy-time parameters, not constants of the code**
 (decided 2026-08-27–2026-08-28, `route-to-code_EN.md`). The environment variable names are
 proposed here and need agreement: `MODERATION_FALSE_BLOCK_BUDGET`,

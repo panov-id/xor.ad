@@ -86,6 +86,17 @@ export async function publishPhrase(id: string): Promise<Verdict> {
       [id],
     );
     if (row.author_identity) {
+      // The name goes out with the phrase, so the same verdict covers both
+      // (§8.2: the name passes the queue at first publication and at every
+      // change; owner's decision of 2026-09-22 — one Publish, not two). A name
+      // waiting in name_pending becomes the name; a rejected one is accepted
+      // again, since the moderator has just read it beside the phrase.
+      await run(
+        `UPDATE identities
+            SET name = coalesce(name_pending, name), name_pending = NULL, name_state = 'accepted'
+          WHERE id = $1 AND name_state <> 'accepted'`,
+        [row.author_identity],
+      );
       await rememberMoment(run, row.author_identity, "published_at_recent", KEEP_PUBLISHED);
       // The first accepted publication, as a UTC date. It serves one rule only
       // — "the reporter has been publishing for a while" (offers spec §10.1) —

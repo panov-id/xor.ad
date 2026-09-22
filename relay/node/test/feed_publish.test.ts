@@ -2421,3 +2421,27 @@ Deno.test({
     reset();
   },
 });
+
+Deno.test({
+  name: "publishing a phrase accepts the name that goes out with it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    await database.queryOrThrow(
+      `UPDATE identities SET name_state = 'pending', name_pending = 'Анна' WHERE id = $1`, [me.identity_id]);
+    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "имя ждёт вместе со мной" }));
+    const moderator = await panelAs("moderator");
+    const row = ((await moderator("GET", "/admin/feed-queue")).body.items as Array<Record<string, unknown>>)
+      .find((i) => i.text === "имя ждёт вместе со мной");
+    assert(row, "a waiting phrase is not in the queue");
+    assertEquals(row.name_state, "pending", "the moderator is not told the name is unchecked");
+    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`)).status, 200);
+    const [who] = await database.queryOrThrow<{ name: string; name_state: string; name_pending: string | null }>(
+      `SELECT name, name_state, name_pending FROM identities WHERE id = $1`, [me.identity_id]);
+    assertEquals(who, { name: "Анна", name_state: "accepted", name_pending: null }, "Publish did not accept the name");
+    reset();
+  },
+});

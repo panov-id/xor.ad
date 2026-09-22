@@ -42,12 +42,13 @@ async function inbox(req: Request): Promise<Response> {
   );
   const chats = await query<{
     id: string; name: string; age: number; ends: string; created_at: Date; over: boolean;
-    peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null;
+    peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null; match_id: string | null;
   }>(
     `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
               + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends,
             them.id AS peer_id, them.identity_public_key AS peer_long,
+            m.id AS match_id,
             mp.ephemeral_public_key AS peer_half, mp.ephemeral_signature AS peer_sig
        FROM chat_participants p
        JOIN chats c ON c.id = p.chat_id
@@ -80,6 +81,8 @@ async function inbox(req: Request): Promise<Response> {
       // which direction key is whose. Absent half: the peer consented without
       // keys, and the conversation is not encrypted.
       me,
+      // The match the halves were signed for: the peer verifies the binding.
+      ...(c.match_id ? { match_id: c.match_id } : {}),
       peer: {
         identity_id: c.peer_id,
         identity_public_key: c.peer_long,

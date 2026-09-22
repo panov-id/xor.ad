@@ -8,8 +8,8 @@
 # угаданная пара хуже отсутствующей.
 #
 id	date	ru	en	subject_ru	subject_en
-chat.2026-08-12.1840	2026-08-12	xor.ad/docs/chat_RU.md:2711	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
-chat.2026-08-17.1840	2026-08-17	xor.ad/docs/chat_RU.md:2711	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
+chat.2026-08-12.1840	2026-08-12	xor.ad/docs/chat_RU.md:2714	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
+chat.2026-08-17.1840	2026-08-17	xor.ad/docs/chat_RU.md:2714	xor.ad/docs/chat_EN.md:1877	Определение «есть личность»	"Has an identity" is defined
 chat.2026-08-18.686	2026-08-18	xor.ad/docs/chat_RU.md:1311	xor.ad/docs/chat_EN.md:699	Он спрашивается при регистрации — возвращено 26.08.2026, отменяет пере	It is asked for at registration — restored 2026-08-26, overriding the 
 chat.2026-08-18.729	2026-08-18	xor.ad/docs/chat_RU.md:1356	xor.ad/docs/chat_EN.md:743	Счётчик попыток снят с личности — исправлено 18.08.2026.	The attempt counter has been taken off the identity — corrected 2026-0
 chat.2026-08-19.444	2026-08-19	xor.ad/docs/chat_RU.md:944	xor.ad/docs/chat_EN.md:456	ECDSA P-256, решено 19.08.2026 по замеру ниже.	ECDSA P-256, decided 2026-08-19 on the measurement below.
@@ -21,8 +21,8 @@ chat.2026-08-20.375	2026-08-20	xor.ad/docs/chat_RU.md:866	xor.ad/docs/chat_EN.md
 chat.2026-08-20.376	2026-08-20	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:386	Имя проходит ту же очередь модерации, что и фраза, — в момент первой п	The name goes through the same moderation queue as a phrase — at the f
 chat.2026-08-20.403	2026-08-20	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:520	Имя проходит ту же очередь модерации	The name goes through the same moderation queue
 chat.2026-08-20.770	2026-08-20	xor.ad/docs/chat_RU.md:1407	xor.ad/docs/chat_EN.md:785	Про имя такого сообщения нет и быть не может	There is no such message for a name, and there cannot be
-chat.2026-08-20.1897	2026-08-20	xor.ad/docs/chat_RU.md:2768	xor.ad/docs/chat_EN.md:1937	Окна с непроверенным именем нет — решено 20.08.2026.	There is no unchecked-name window — decided 2026-08-20.
-chat.2026-08-25.1389	2026-08-25	xor.ad/docs/chat_RU.md:2173	xor.ad/docs/chat_EN.md:1419	Но узел считает не символы, а байты.	The node, however, counts bytes and not characters.
+chat.2026-08-20.1897	2026-08-20	xor.ad/docs/chat_RU.md:2771	xor.ad/docs/chat_EN.md:1937	Окна с непроверенным именем нет — решено 20.08.2026.	There is no unchecked-name window — decided 2026-08-20.
+chat.2026-08-25.1389	2026-08-25	xor.ad/docs/chat_RU.md:2174	xor.ad/docs/chat_EN.md:1419	Но узел считает не символы, а байты.	The node, however, counts bytes and not characters.
 chat.2026-08-28.705	2026-08-28	xor.ad/docs/chat_RU.md:1332	xor.ad/docs/chat_EN.md:718	Код рождается на устройстве — записано 28.08.2026.	The code is born on the device — recorded 2026-08-28.
 chat.2026-08-28.817	2026-08-28	xor.ad/docs/chat_RU.md:1461	xor.ad/docs/chat_EN.md:832	области, которую человек выбирает сам	an area the person chooses themselves
 chat.2026-08-29.105	2026-08-29	xor.ad/docs/chat_RU.md:267	xor.ad/docs/chat_EN.md:105	Три из них — предложения, а не действия (29.08.2026).	Three of them are proposals rather than actions (2026-08-29).
@@ -123,16 +123,16 @@ chat.2026-09-11.706	2026-09-11	xor.ad/docs/chat_RU.md:748	xor.ad/docs/chat_EN.md
 chat.2026-09-11.1010	2026-09-11	xor.ad/docs/chat_RU.md:1098	xor.ad/docs/chat_EN.md:1023	**Заморозка сжигает долю хранилища — решено 11.09.2026.**	**Freezing burns the vault share — decided 2026-09-11.**
 chat.2026-09-11.1028	2026-09-11	xor.ad/docs/chat_RU.md:1116	xor.ad/docs/chat_EN.md:1041	**64 МБ и t=3 — замерено 11.09.2026, а не выбрано на глаз.**	**64 MB and t=3 are measured as of 2026-09-11, not guessed.**
 chat.2026-09-11.1182	2026-09-11	xor.ad/docs/chat_RU.md:1319	xor.ad/docs/chat_EN.md:1198	**Этим же закрыто вытеснение хранилища браузером — записано 11.09.2026.**	**This also covers the browser evicting the storage — written down 2026-09-11.**
-chat.2026-09-11.2520	2026-09-11	xor.ad/docs/chat_RU.md:2817	xor.ad/docs/chat_EN.md:2553	**Первая миграция несёт десять таблиц, а не двадцать четыре — решено 11.09.2026.**	**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
-chat.2026-09-12.2044	2026-09-12	xor.ad/docs/chat_RU.md:2288	xor.ad/docs/chat_EN.md:2064	**Состояния «доставлено» и «прочитано» не существует — решено 12.09.2026.**	**There is no "delivered" and no "read" state — decided 2026-09-12.**
-chat.2026-09-11.2255	2026-09-11	xor.ad/docs/chat_RU.md:2515	xor.ad/docs/chat_EN.md:2279	**Доставка при возвращении собеседника есть — решено 11.09.2026, уточнено	**Delivery when the other person returns does happen — decided 2026-09-11,
+chat.2026-09-11.2520	2026-09-11	xor.ad/docs/chat_RU.md:2820	xor.ad/docs/chat_EN.md:2553	**Первая миграция несёт десять таблиц, а не двадцать четыре — решено 11.09.2026.**	**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
+chat.2026-09-12.2044	2026-09-12	xor.ad/docs/chat_RU.md:2289	xor.ad/docs/chat_EN.md:2064	**Состояния «доставлено» и «прочитано» не существует — решено 12.09.2026.**	**There is no "delivered" and no "read" state — decided 2026-09-12.**
+chat.2026-09-11.2255	2026-09-11	xor.ad/docs/chat_RU.md:2516	xor.ad/docs/chat_EN.md:2279	**Доставка при возвращении собеседника есть — решено 11.09.2026, уточнено	**Delivery when the other person returns does happen — decided 2026-09-11,
 chat.2026-09-14.1206	2026-09-14	xor.ad/docs/chat_RU.md:1297	xor.ad/docs/chat_EN.md:1219	Десятая неверная попытка закрывает вход на этом устройстве до бумажного кода, но долю не сжигает — решено 14.09.2026	The tenth wrong attempt locks access on this device until the paper code, but does not burn the share — decided 2026-09-14
 protocol.2026-09-14.240	2026-09-14	xor.ad/docs/protocol_RU.md:486	xor.ad/docs/protocol_EN.md:253	С 14.09.2026 у паузы вторая цена, и она тоже принята.	Since 2026-09-14 the pause has a second price, and it is accepted too.
-chat.2026-09-14.2681	2026-09-14	xor.ad/docs/chat_RU.md:2849	xor.ad/docs/chat_EN.md:2717	Номер обращения случайный, ответ — только владельцу, предел — три в сутки со строкой почты — решено 14.09.2026	The request number is random, the answer goes only to its owner, the cap is three a day with an email line — decided 2026-09-14
+chat.2026-09-14.2681	2026-09-14	xor.ad/docs/chat_RU.md:2852	xor.ad/docs/chat_EN.md:2717	Номер обращения случайный, ответ — только владельцу, предел — три в сутки со строкой почты — решено 14.09.2026	The request number is random, the answer goes only to its owner, the cap is three a day with an email line — decided 2026-09-14
 legal-review-brief.2026-09-15.244	2026-09-15	xor.ad/docs/legal-review-brief_RU.md:278	xor.ad/docs/legal-review-brief_EN.md:248	в продукте с личностью — галочка, до которой нельзя публиковать	inside the product, with an identity, a checkbox that publishing waits for
 screens.2026-09-15.23	2026-09-15	sosed.place/docs/22-appearance_RU.md:23	sosed.place/docs/22-appearance_EN.md:23	Выбор хранится у личности на узле	The choice is kept with the identity on the node
 screens.2026-09-15.43	2026-09-15	sosed.place/docs/22-appearance_RU.md:43	sosed.place/docs/22-appearance_EN.md:43	Можно ли выбрать свой цвет	Can one pick one's own colour
-chat.2026-09-15.2564	2026-09-15	xor.ad/docs/chat_RU.md:2706	xor.ad/docs/chat_EN.md:2594	перебирает акцентный цвет по кругу набора витрины	cycles the accent colour round the storefront's set
+chat.2026-09-15.2564	2026-09-15	xor.ad/docs/chat_RU.md:2709	xor.ad/docs/chat_EN.md:2594	перебирает акцентный цвет по кругу набора витрины	cycles the accent colour round the storefront's set
 depth-client.2026-09-15.853	2026-09-15	xor.ad/docs/depth-client_RU.md:1159	xor.ad/docs/depth-client_EN.md:882	шестнадцать цветов эмулятора	the emulator's sixteen colours
 design-system-app.2026-09-15.120	2026-09-15	xor.ad/docs/design-system-app_RU.md:514	xor.ad/docs/design-system-app_EN.md:127	токены из него не берутся	and no tokens are taken from it
 chat.2026-09-15.762	2026-09-15	xor.ad/docs/chat_RU.md:803	xor.ad/docs/chat_EN.md:764	Оформление — по строке на лицо, а не колонки личности	Appearance — one row per face, not columns on the identity

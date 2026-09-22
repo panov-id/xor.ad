@@ -23,6 +23,17 @@ import { json } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sunsetHeader, verifyByLongKey } from "../lib/identity_auth.ts";
+
+// What the long key signs for a half (§8.13, bound 2026-09-22). The same
+// bytes on the peer's side, in depth/core/seal.ts.
+export const HALF_DOMAIN = "xor.ephemeral.v1\n";
+export function halfToSign(matchId: string, spki: Uint8Array): Uint8Array {
+  const prefix = new TextEncoder().encode(HALF_DOMAIN + matchId + "\n");
+  const out = new Uint8Array(prefix.length + spki.length);
+  out.set(prefix);
+  out.set(spki, prefix.length);
+  return out;
+}
 import { checkAll, LIKE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -45,27 +56,27 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
   if (!UUID.test(matchId)) return refuse("not_found", "no such match", 404);
   const me = caller.identityId;
 
-  // Consent may carry the ephemeral half; if it does, both fields and a
-  // signature that verifies. Without it the chat still opens — a client that
-  // has no keys yet can still talk in the clear, and says so (step 6 is
-  // being built in the terminal first).
+  // Consent carries the ephemeral half — always: the spec knows no chat in
+  // the clear (§8.13), so a consent without one is not a consent. The
+  // signature is over "xor.ephemeral.v1\n<match_id>\n" ‖ SPKI, not the bare
+  // SPKI: bound to this match, a half cannot be carried by the node into
+  // another match of the same identity, and the long key's two uses — request
+  // lines and halves — cannot collide (security lens, 2026-09-22).
   let half: { key: string; signature: string } | null = null;
   if (action === "consent") {
     const body = await req.json().catch(() => null) as Record<string, unknown> | null;
-    if (body && (body.ephemeral_public_key !== undefined || body.ephemeral_signature !== undefined)) {
-      const key = body.ephemeral_public_key;
-      const signature = body.ephemeral_signature;
-      if (typeof key !== "string" || typeof signature !== "string" || key.length > 256 || signature.length > 256) {
-        return refuse("invalid_body", "ephemeral_public_key and ephemeral_signature are base64url strings", 400);
-      }
-      const bytes = base64urlToBytes(key);
-      const [mine] = await query<{ identity_public_key: string }>(
-        `SELECT identity_public_key FROM identities WHERE id = $1`, [me]) ?? [];
-      if (!bytes || !mine || !(await verifyByLongKey(mine.identity_public_key, bytes, signature))) {
-        return refuse("invalid_body", "the ephemeral half is not signed by your long key", 400);
-      }
-      half = { key, signature };
+    const key = body?.ephemeral_public_key;
+    const signature = body?.ephemeral_signature;
+    if (typeof key !== "string" || typeof signature !== "string" || key.length > 256 || signature.length > 256) {
+      return refuse("invalid_body", "consent carries ephemeral_public_key and ephemeral_signature, base64url", 400);
     }
+    const bytes = base64urlToBytes(key);
+    const [mine] = await query<{ identity_public_key: string }>(
+      `SELECT identity_public_key FROM identities WHERE id = $1`, [me]) ?? [];
+    if (!bytes || !mine || !(await verifyByLongKey(mine.identity_public_key, halfToSign(matchId, bytes), signature))) {
+      return refuse("invalid_body", "the ephemeral half is not signed by your long key for this match", 400);
+    }
+    half = { key, signature };
   }
 
   const answer = await transaction<Response>(async (run) => {
@@ -105,13 +116,24 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
       return new Response(null, { status: 204, headers: sunsetHeader() });
     }
 
+    // The first half stands: the peer may already have derived with it. A
+    // retry with the same half is fine; a different one is refused, so a
+    // restarted client learns it has no pair for this chat rather than
+    // talking past the peer with keys nobody shares (both lenses, 2026-09-22).
+    const [stood] = await run<{ ephemeral_public_key: string | null }>(
+      `SELECT ephemeral_public_key FROM match_participants WHERE match_id = $1 AND identity = $2`,
+      [matchId, me],
+    );
+    if (stood?.ephemeral_public_key && stood.ephemeral_public_key !== half!.key) {
+      return refuse("half_published", "a different ephemeral half already stands for this match", 409);
+    }
     await run(
       `UPDATE match_participants
           SET accepted_at = coalesce(accepted_at, now()), declined_at = NULL,
-              ephemeral_public_key = coalesce($3, ephemeral_public_key),
-              ephemeral_signature = coalesce($4, ephemeral_signature)
+              ephemeral_public_key = coalesce(ephemeral_public_key, $3),
+              ephemeral_signature = coalesce(ephemeral_signature, $4)
         WHERE match_id = $1 AND identity = $2`,
-      [matchId, me, half?.key ?? null, half?.signature ?? null],
+      [matchId, me, half!.key, half!.signature],
     );
     const [both] = await run<{ n: number }>(
       `SELECT count(*)::int AS n FROM match_participants

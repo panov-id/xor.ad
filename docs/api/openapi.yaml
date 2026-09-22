@@ -261,7 +261,7 @@ components:
           properties:
             code:
               type: string
-              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, not_found, too_young, pin_locked, pin_mismatch, no_first_pin_grant]
+              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, half_published, not_found, too_young, pin_locked, pin_mismatch, no_first_pin_grant]
             message: {type: string}
             reason: {type: string}
             attempts_left: {type: integer, description: "On a wrong PIN — code pin_mismatch, 409 (2026-09-21) — how many are left before the lock (screen 12).", x-description-ru: "При неверном ПИН — код pin_mismatch, 409 (21.09.2026) — сколько осталось до замка (экран 12)."}
@@ -1898,16 +1898,26 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/matches.ts
       security: [{identitySignature: []}]
-      description: "The chat opens when both have consented. When both have consented the chat opens in the same transaction and agreed carries its chat_id (step 5, 2026-09-21); since 2026-09-22 it carries this side's ephemeral half of §8.13 — {ephemeral_public_key, ephemeral_signature}, a P-256 SPKI in base64url with a detached signature by the long key, checked here (a half that does not verify is invalid_body); without the half the chat still opens, unencrypted, and the inbox says so by omission. Consent clears one's own not now. A match that is not the caller's or is over answers 404 alike (2026-09-21)."
-      x-description-ru: "Чат открывается, когда согласились оба. Когда согласились оба, чат открывается той же транзакцией, и agreed несёт его chat_id (шаг 5, 21.09.2026); с 22.09.2026 несёт эфемерную половину этой стороны по §8.13 — {ephemeral_public_key, ephemeral_signature}: SPKI P-256 в base64url с отдельной подписью долгим ключом, проверяется здесь (не сходится — invalid_body); без половины чат всё равно открывается, нешифрованным, и инбокс говорит это отсутствием поля. Согласие снимает собственное «не сейчас». Чужой или истёкший мэтч — одинаково 404 (21.09.2026)."
+      description: "The chat opens when both have consented. When both have consented the chat opens in the same transaction and agreed carries its chat_id (step 5, 2026-09-21); since 2026-09-22 it carries this side's ephemeral half of §8.13 — {ephemeral_public_key, ephemeral_signature}, a P-256 SPKI in base64url with a detached signature by the long key over \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI, checked here and bound to this match; the half is mandatory (no chat in the clear), and a different half on a repeated consent is refused. Consent clears one's own not now. A match that is not the caller's or is over answers 404 alike (2026-09-21)."
+      x-description-ru: "Чат открывается, когда согласились оба. Когда согласились оба, чат открывается той же транзакцией, и agreed несёт его chat_id (шаг 5, 21.09.2026); с 22.09.2026 несёт эфемерную половину этой стороны по §8.13 — {ephemeral_public_key, ephemeral_signature}: SPKI P-256 в base64url с отдельной подписью долгим ключом над \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI, проверяется здесь и привязана к этому мэтчу; половина обязательна (чата в открытую нет), другая половина на повторном согласии отклоняется. Согласие снимает собственное «не сейчас». Чужой или истёкший мэтч — одинаково 404 (21.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ephemeral_public_key, ephemeral_signature]
+              properties:
+                ephemeral_public_key: {type: string, description: "P-256 ECDH public key, SPKI, base64url (≤256 chars).", x-description-ru: "Публичный ключ ECDH P-256, SPKI, base64url (≤256 знаков)."}
+                ephemeral_signature: {type: string, description: "ECDSA P-256/SHA-256 by the long key over \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI, base64url (≤256 chars).", x-description-ru: "ECDSA P-256/SHA-256 долгим ключом над \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI, base64url (≤256 знаков)."}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {description: "invalid_body: no half, a half that is not base64url or over 256 chars, or a signature that does not verify against the caller's long key for this match; or an unsupported protocol version.", x-description-ru: "invalid_body: нет половины, половина не base64url или длиннее 256 знаков, либо подпись не сходится с долгим ключом вызывающего для этого мэтча; или неподдерживаемая версия протокола."}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "Consent recorded: waiting for the other side, or agreed.", x-description-ru: "Согласие записано: ждём вторую сторону либо согласились оба.", content: {application/json: {schema: {type: object, required: [state], properties: {state: {type: string, enum: [waiting, agreed]}, chat_id: {type: string, format: uuid, description: "With agreed: the chat this agreement opened (step 5, 2026-09-21).", x-description-ru: "При agreed: чат, открытый этим согласием (шаг 5, 21.09.2026)."}}}}}}
         "404": {description: "Not the caller's match, or it is over.", x-description-ru: "Не мэтч звонящего либо он истёк."}

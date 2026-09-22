@@ -2065,7 +2065,8 @@ CREATE TABLE match_participants (
   accepted_at       timestamptz,        -- NULL = has not pressed "open chat" yet
   declined_at       timestamptz,        -- "not now" (2026-08-28): the refusal is visible to its own side only;
                                         -- written at once, cleared by an undo while the match lives
-  ephemeral_public_key text,            -- this side's ephemeral public half, signed with the long-term key (8.13)
+  ephemeral_public_key text,            -- this side's ephemeral public half (8.13)
+  ephemeral_signature  text,            -- its signature by the long key over "xor.ephemeral.v1\n<match_id>\n" ‖ SPKI — bound to the match, checked by the node (db/035, panel 2026-09-22)
   PRIMARY KEY (match_id, identity)
 );
 ```
@@ -2092,7 +2093,7 @@ mutual like     → INSERT matches + two match_participants rows
 one presses     → the "not checked" disclaimer — and that is all, no span here
                   → generates an EPHEMERAL pair for this chat (§8.13)
                   → UPDATE match_participants SET accepted_at = now(),
-                      ephemeral_public_key = :epk
+                      ephemeral_public_key = :epk, ephemeral_signature = :sig
 both press      → INSERT chats + chat_participants + chat_starters, matches.chat_id = <new>
                   both get chat_id and the system line "you both liked this — chat is open"
 expired         → the match quietly disappears; there was no chat
@@ -2589,6 +2590,8 @@ chat death   both K and the ephemeral keys are wiped, the wraps are deleted
              ─► old ciphertext can no longer be opened, by anyone
 ```
 
+**Built 2026-09-22 in the `depth` terminal (`depth/core/seal.ts`), and what the spec left unsaid is named:** the bytes signed are `"xor.ephemeral.v1\n<match_id>\n" ‖ SPKI` (bound to the match — panel 2026-09-22), the HKDF salt is `chat_id` as the UTF-8 of its text form, `info` are the strings with the arrow U+2192, on the wire `nonce ‖ ciphertext ‖ tag` in base64url; the half on consent is mandatory, without it consent is not taken (400), a different half on a repeated consent is 409 `half_published`. **Not built:** `chat_key_wraps` and the key reissue after a device change — a new device starts a chat without keys today.
+
 **Two keys, not one — decided 2026-08-21 from the review.** A single symmetric `K` shared by both used to stand here. Ciphertext then says nothing about who created it, and a dishonest node can hand a sender their own message back as an incoming one from the peer: the cryptography stays silent, the key being genuine. Splitting by direction closes that with one `info` string in HKDF — a side decrypts incoming traffic **only** with the other direction's key, and its own echo stops opening.
 
 **The `nonce` is written down because silence here costs more than a line.** WebCrypto has neither a default nor a counter: `iv` is mandatory and entirely on the caller. This spec settles such places everywhere else — it names P-256, `SHA-256`, the exact string to sign, `extractable: false`, the HKDF salt — and leaving the one unnamed hands the decision to the first implementation, which will live with it for years.
@@ -2650,13 +2653,13 @@ This does not undo the per-person count, because the count is about history and 
 
 **There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a transfer. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. At rest it is wrapped under the vault key like the other private halves, so a foreign script takes it only from an unlocked page; in `depth` the same vault key — the PIN with the node's share — protects the key file (web and `depth` are the same since 2026-09-15, §8.2).
 
-**Size.** The ciphertext of a 256-character phrase is up to ~1 KB with nonce, tag and base64. The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
+**Size.** The ciphertext of a 256-character phrase is up to ~1.4 KB with nonce, tag and base64 (1024 + 12 + 16 bytes → 1404 characters; §8.1 counts the same). The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
 
 **What it does not give — and this must be said plainly.**
 
 - **We serve the very script that encrypts.** That is the ceiling of any web application: a person trusts not the mathematics but our not swapping the code tomorrow. It is why Signal is an app rather than a page. The honest wording: **the server cannot read a conversation after the fact** — not through a breach, not through a seized database, not on request. That is a great deal, but it is not "we are physically incapable", and it must not be sold that way.
 - **That promise has a condition, and it is named in §8.2 (2026-08-21).** "A seized database" is safe exactly as long as the vault shares sit in it **encrypted under the node's key**, and the key does not travel in the dump. Without that condition a dump plus one device gave an offline PIN search and a read of the local history — precisely the reading-after-the-fact promised not to happen. The condition is met by the `vault_shares` schema, and the day it stops being met this line is the first one to remove.
-- **A message reflected by the node.** The chat key `K` is one and symmetric for both, so ciphertext by itself does not say who created it: a dishonest node can return a sender's own message as an incoming one. The safety code (below) does not catch that — it is about key substitution at the opening of a chat, whereas reflection works at any point in the life of an already-open one. It is closed by splitting the key per direction (§8.13 above), and until then this is an honest boundary.
+- **A message reflected by the node — closed 2026-09-22 by the two direction keys (`depth/core/seal.ts`, test "a reflected message does not open").** [retired] The chat key `K` is one and symmetric for both, so ciphertext by itself does not say who created it: a dishonest node can return a sender's own message as an incoming one. The safety code (below) does not catch that — it is about key substitution at the opening of a chat, whereas reflection works at any point in the life of an already-open one. It is closed by splitting the key per direction (§8.13 above), and until then this is an honest boundary.
 - **Metadata remains.** The node knows `chat_id`, both participants, when something moved and how long the messages were. What is encrypted is the content, not the fact of the conversation.
 - **Encryption does not protect you from the person you are talking to.** They have the plaintext on their screen: they can keep it and quote it in a report by their own hand. That is by design (§8.10) — otherwise there would be nothing to report with; the client will not upload the conversation on their behalf (2026-09-11).
 

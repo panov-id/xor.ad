@@ -187,7 +187,7 @@ export class Client {
     const eph = this.#ephemeral.get(matchId) ?? await Ephemeral.generate();
     this.#ephemeral.set(matchId, eph);
     const answer = await this.#call<{ state: string; chat_id?: string }>(
-      "POST", `/matches/${matchId}/consent`, await eph.publish(this.#key.privateKey),
+      "POST", `/matches/${matchId}/consent`, await eph.publish(this.#key.privateKey, matchId),
     );
     // The half belongs to the chat that opened, whichever match it came from.
     if (answer.status === 200 && answer.body.chat_id) this.#ephemeral.set(answer.body.chat_id, eph);
@@ -215,15 +215,18 @@ export class Client {
     const eph = this.#pairFor(chatId, matchId);
     if (!eph) throw new Error("no ephemeral pair for this chat: consent was not given from this client");
     const row = (await this.inbox()).find((i) => i.kind === "chat" && i.id === chatId) as {
-      me: string; peer: { identity_id: string; identity_public_key: string; ephemeral_public_key?: string; ephemeral_signature?: string };
+      me: string; match_id?: string;
+      peer: { identity_id: string; identity_public_key: string; ephemeral_public_key?: string; ephemeral_signature?: string };
     } | undefined;
     if (!row) throw new Error("the chat is not in the inbox");
-    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature) {
-      throw new Error("the peer consented without an ephemeral half: this conversation is not encrypted");
+    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature || !row.match_id) {
+      // Cannot happen against a node that requires the half; an older node
+      // or a moved match leaves the conversation with no keys, and it says so.
+      throw new Error("the peer's ephemeral half is missing: this conversation has no keys");
     }
     const conversation = await eph.open(
       { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },
-      row.peer.identity_public_key, chatId, row.me, row.peer.identity_id,
+      row.peer.identity_public_key, row.match_id, chatId, row.me, row.peer.identity_id,
     );
     this.#conversations.set(chatId, conversation);
     return conversation;

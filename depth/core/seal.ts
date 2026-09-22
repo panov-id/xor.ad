@@ -28,7 +28,21 @@ const SIGN = { name: "ECDSA", hash: "SHA-256" } as const;
 const P256_SIGN = { name: "ECDSA", namedCurve: "P-256" } as const;
 const NONCE_BYTES = 12;
 
+// What the long key signs for a half (§8.13, bound to the match since
+// 2026-09-22): "xor.ephemeral.v1\n<match_id>\n" ‖ SPKI. The node verifies the
+// same bytes, so a half cannot be carried into another match, and the long
+// key's two uses — request lines and halves — cannot collide.
+export const HALF_DOMAIN = "xor.ephemeral.v1\n";
+export function halfToSign(matchId: string, spki: Uint8Array): Uint8Array {
+  const prefix = new TextEncoder().encode(HALF_DOMAIN + matchId + "\n");
+  const out = new Uint8Array(prefix.length + spki.length);
+  out.set(prefix);
+  out.set(spki, prefix.length);
+  return out;
+}
+
 export function fromBase64url(value: string): Uint8Array {
+  if (!/^[A-Za-z0-9_-]*$/.test(value)) throw new Error("not base64url");
   const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - value.length % 4) % 4);
   const binary = atob(padded);
   const bytes = new Uint8Array(binary.length);
@@ -55,21 +69,22 @@ export class Ephemeral {
     return new Ephemeral(pair, base64url(spki));
   }
 
-  // The half as consent publishes it: the SPKI and its signature by the long key.
-  async publish(longKey: CryptoKey): Promise<EphemeralHalf> {
-    const signature = new Uint8Array(await crypto.subtle.sign(SIGN, longKey, fromBase64url(this.publicSpki) as BufferSource));
+  // The half as consent publishes it: the SPKI and its signature by the long
+  // key over the bound bytes for this match.
+  async publish(longKey: CryptoKey, matchId: string): Promise<EphemeralHalf> {
+    const signature = new Uint8Array(await crypto.subtle.sign(SIGN, longKey, halfToSign(matchId, fromBase64url(this.publicSpki)) as BufferSource));
     return { ephemeral_public_key: this.publicSpki, ephemeral_signature: base64url(signature) };
   }
 
   // Their half, checked against the long key we matched with, then the two
   // direction keys. Throws if the signature does not hold: a half the node
   // could have minted is not a half.
-  async open(theirs: EphemeralHalf, theirLongSpki: string, chatId: string, me: string, them: string): Promise<Conversation> {
+  async open(theirs: EphemeralHalf, theirLongSpki: string, matchId: string, chatId: string, me: string, them: string): Promise<Conversation> {
     const longKey = await crypto.subtle.importKey("spki", fromBase64url(theirLongSpki) as BufferSource, P256_SIGN, false, ["verify"]);
     const ok = await crypto.subtle.verify(
       SIGN, longKey,
       fromBase64url(theirs.ephemeral_signature) as BufferSource,
-      fromBase64url(theirs.ephemeral_public_key) as BufferSource,
+      halfToSign(matchId, fromBase64url(theirs.ephemeral_public_key)) as BufferSource,
     );
     if (!ok) throw new Error("the peer's ephemeral half is not signed by their long key");
     const theirPublic = await crypto.subtle.importKey("spki", fromBase64url(theirs.ephemeral_public_key) as BufferSource, ECDH, false, []);

@@ -1775,6 +1775,21 @@ async function freshMatch() {
 }
 const matchCall = (who: { pair: CryptoKeyPair; session_id: string }, method: string, path: string, body?: unknown) =>
   signedCall(who.pair.privateKey, who.session_id, method, path, body);
+// The ephemeral half of §8.13, signed over "xor.ephemeral.v1\n<match_id>\n" ‖ SPKI
+// so the node cannot carry it from one match to another (panel 2026-09-22).
+const HALF_DOMAIN = "xor.ephemeral.v1\n";
+async function halfFor(who: { pair: CryptoKeyPair }, matchId: string, spki?: string) {
+  const key = spki ?? auth.bytesToBase64url(new Uint8Array(await crypto.subtle.exportKey(
+    "spki", ((await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"])) as CryptoKeyPair).publicKey)));
+  const prefix = new TextEncoder().encode(HALF_DOMAIN + matchId + "\n");
+  const raw = auth.base64urlToBytes(key)!;
+  const bytes = new Uint8Array(prefix.length + raw.length);
+  bytes.set(prefix); bytes.set(raw, prefix.length);
+  const signature = new Uint8Array(await crypto.subtle.sign(SIGN, who.pair.privateKey, bytes));
+  return { ephemeral_public_key: key, ephemeral_signature: auth.bytesToBase64url(signature) };
+}
+const consent = async (who: { pair: CryptoKeyPair; session_id: string }, matchId: string) =>
+  matchCall(who, "POST", `/matches/${matchId}/consent`, await halfFor(who, matchId));
 
 Deno.test({
   name: "consent waits for the other side, and both make it agreed",
@@ -1782,10 +1797,10 @@ Deno.test({
   sanitizeOps: false,
   async fn() {
   const { a, b, id } = await freshMatch();
-  const first = await matchCall(a, "POST", `/matches/${id}/consent`);
+  const first = await consent(a, id);
   assertEquals(first.status, 200, JSON.stringify(first.body));
   assertEquals(first.body, { state: "waiting" });
-  const second = await matchCall(b, "POST", `/matches/${id}/consent`);
+  const second = await consent(b, id);
   const agreed = second.body as { state: string; chat_id?: string };
   assertEquals(agreed.state, "agreed", "both consented and the match did not say so");
   // Step 5 (§8.5, §8.6): agreement opens the chat in the same transaction.
@@ -1807,11 +1822,11 @@ Deno.test({
   async fn() {
   const { id } = await freshMatch();
   const stranger = await author();
-  const other = await matchCall(stranger, "POST", `/matches/${id}/consent`);
+  const other = await consent(stranger, id);
   assertEquals(other.status, 404, "a stranger consented to someone else's match");
   const { a, id: gone } = await freshMatch();
   await database.queryOrThrow(`UPDATE matches SET expires_at = now() - interval '1 minute' WHERE id = $1`, [gone]);
-  assertEquals((await matchCall(a, "POST", `/matches/${gone}/consent`)).status, 404, "an expired match took a consent");
+  assertEquals((await consent(a, gone)).status, 404, "an expired match took a consent");
 }});
 
 Deno.test({
@@ -1829,7 +1844,7 @@ Deno.test({
   assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`)).status, 204);
   assertEquals((await row()).declined_at, null, "undoing not now left it written");
   await matchCall(a, "POST", `/matches/${id}/decline`);
-  await matchCall(a, "POST", `/matches/${id}/consent`);
+  await consent(a, id);
   const after = await row();
   assertEquals(after.declined_at, null, "consent after not now left the decline standing");
   assert(after.accepted_at, "consent after not now was not written");
@@ -1838,8 +1853,8 @@ Deno.test({
 // ── Chat messages through the node (§8.8) ─────────────────────────────────────
 async function openChat() {
   const { a, b, id } = await freshMatch();
-  await matchCall(a, "POST", `/matches/${id}/consent`);
-  const agreed = await matchCall(b, "POST", `/matches/${id}/consent`);
+  await consent(a, id);
+  const agreed = await consent(b, id);
   return { a, b, chat: (agreed.body as { chat_id: string }).chat_id };
 }
 const ciphertext = (n = 64) => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(n)));
@@ -2084,14 +2099,14 @@ Deno.test({
     assertEquals(mine.name, "Аня");
     assert(!("unread" in mine), "the node claims to know what was read");
 
-    await matchCall(b, "POST", `/matches/${id}/consent`);
+    await consent(b, id);
     assertEquals((await inbox(a)).items.find((i) => i.id === id)?.waiting_for_you, true, "the other side agreed and the card does not say so");
 
     await matchCall(a, "POST", `/matches/${id}/decline`);
     assertEquals((await inbox(a)).items.find((i) => i.id === id), undefined, "a declined offer stayed in one's own inbox");
     assert((await inbox(b)).items.find((i) => i.id === id), "one side's 'not now' was shown to the other");
 
-    const agreed = await matchCall(a, "POST", `/matches/${id}/consent`);
+    const agreed = await consent(a, id);
     const chatId = (agreed.body as { chat_id: string }).chat_id;
     const after = (await inbox(a)).items;
     assertEquals(after.find((i) => i.id === id), undefined, "a match that became a chat is still offered");
@@ -2268,7 +2283,7 @@ Deno.test({
     await sweepChats();
     const items = ((await matchCall(b, "GET", "/inbox")).body as { items: Array<{ id: string }> }).items;
     assertEquals(items.find((i) => i.id === m.id), undefined, "the match came back into the blocked one's inbox");
-    const again = await matchCall(b, "POST", `/matches/${m.id}/consent`);
+    const again = await consent(b, m.id);
     assertEquals(again.status, 404, "consent was taken over a block");
     reset();
   },
@@ -2717,44 +2732,53 @@ Deno.test({
 
 // ── Step 6: the ephemeral halves ride on consent, the inbox hands them over ──
 Deno.test({
-  name: "consent carries a signed ephemeral half, and each side reads the other's from the inbox",
+  name: "consent needs a half bound to its match; the inbox hands each side the other's",
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const { a, b, id } = await freshMatch();
-    const half = (n: number) => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(n)));
-    // A half must come with its signature by the long key, and the node checks it:
-    // a half nobody signed is not a half.
-    const aHalf = half(91);
-    const forged = await matchCall(a, "POST", `/matches/${id}/consent`, { ephemeral_public_key: aHalf, ephemeral_signature: half(64) });
-    assertEquals(forged.status, 400, JSON.stringify(forged.body));
-    const signA = new Uint8Array(await crypto.subtle.sign(SIGN, a.pair.privateKey, auth.base64urlToBytes(aHalf)!));
-    const first = await matchCall(a, "POST", `/matches/${id}/consent`, { ephemeral_public_key: aHalf, ephemeral_signature: auth.bytesToBase64url(signA) });
+    // No half — no consent: the spec knows no unencrypted chat (§8.13).
+    const bare = await matchCall(a, "POST", `/matches/${id}/consent`);
+    assertEquals(bare.status, 400, JSON.stringify(bare.body));
+    // A half signed for another match is not a half for this one.
+    const elsewhere = await halfFor(a, crypto.randomUUID());
+    const moved = await matchCall(a, "POST", `/matches/${id}/consent`, elsewhere);
+    assertEquals(moved.status, 400, "a half signed for another match was taken");
+    // A half with a signature nobody made.
+    const forged = { ...(await halfFor(a, id)), ephemeral_signature: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(64))) };
+    assertEquals((await matchCall(a, "POST", `/matches/${id}/consent`, forged)).status, 400);
+
+    const aHalf = await halfFor(a, id);
+    const first = await matchCall(a, "POST", `/matches/${id}/consent`, aHalf);
     assertEquals(first.status, 200, JSON.stringify(first.body));
-    const bHalf = half(91);
-    const signB = new Uint8Array(await crypto.subtle.sign(SIGN, b.pair.privateKey, auth.base64urlToBytes(bHalf)!));
-    const agreed = await matchCall(b, "POST", `/matches/${id}/consent`, { ephemeral_public_key: bHalf, ephemeral_signature: auth.bytesToBase64url(signB) });
+    // The same half again is fine (a retry); a different one is refused — the
+    // peer may already have derived with the first.
+    assertEquals((await matchCall(a, "POST", `/matches/${id}/consent`, aHalf)).status, 200);
+    const other = await matchCall(a, "POST", `/matches/${id}/consent`, await halfFor(a, id));
+    assertEquals(other.status, 409, JSON.stringify(other.body));
+    assertEquals((other.body as { error: { code: string } }).error.code, "half_published");
+
+    const bHalf = await halfFor(b, id);
+    const agreed = await matchCall(b, "POST", `/matches/${id}/consent`, bHalf);
     assertEquals(stateOf(agreed), "agreed");
     const chatId = (agreed.body as { chat_id: string }).chat_id;
 
     const inboxOf = async (who: typeof a) => {
       const r = await matchCall(who, "GET", "/inbox");
-      const items = (r.body as { items: Array<Record<string, unknown>> }).items;
-      return items.find((i) => i.kind === "chat" && i.id === chatId) as Record<string, unknown>;
+      return (r.body as { items: Array<Record<string, unknown>> }).items.find((i) => i.kind === "chat" && i.id === chatId) as Record<string, unknown>;
     };
     const seenByA = await inboxOf(a);
     const seenByB = await inboxOf(b);
     assert(seenByA && seenByB, "the chat is not in both inboxes");
     const peerA = seenByA.peer as { ephemeral_public_key: string; ephemeral_signature: string; identity_public_key: string; identity_id: string };
-    const peerB = seenByB.peer as { ephemeral_public_key: string; ephemeral_signature: string; identity_public_key: string; identity_id: string };
-    assertEquals(peerA.ephemeral_public_key, bHalf, "a did not get b's half");
-    assertEquals(peerB.ephemeral_public_key, aHalf, "b did not get a's half");
-    assertEquals(peerA.ephemeral_signature, auth.bytesToBase64url(signB));
-    // The long public key, so the peer can verify the signature and derive the safety code.
+    assertEquals(peerA.ephemeral_public_key, bHalf.ephemeral_public_key, "a did not get b's half");
+    assertEquals(peerA.ephemeral_signature, bHalf.ephemeral_signature);
+    assertEquals((seenByB.peer as { ephemeral_public_key: string }).ephemeral_public_key, aHalf.ephemeral_public_key);
     const spkiB = new Uint8Array(await crypto.subtle.exportKey("spki", b.pair.publicKey));
     assertEquals(peerA.identity_public_key, auth.bytesToBase64url(spkiB));
-    // And which identity is "low" and which "high": the ids, for the direction keys.
     assertEquals(peerA.identity_id, b.identity_id);
     assertEquals(seenByA.me as string, a.identity_id);
+    // The match the halves were signed for, so the peer can verify the binding.
+    assertEquals(seenByA.match_id as string, id);
   },
 });

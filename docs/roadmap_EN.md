@@ -1,4 +1,4 @@
-# Roadmap — state as of 2026-09-21
+# Roadmap — state as of 2026-09-22
 
 A snapshot of where the product stands as a whole. The detailed work tracker is
 [`open-work_EN.md`](open-work_EN.md); the product build order is §13 of
@@ -17,14 +17,14 @@ more. The legal section keeps its number (§2): both storefronts'
 
 | Layer | Readiness | Verified by |
 |---|---|---|
-| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-21: both 200 |
-| Panel xor.panov.id | ~75% | `curl` 2026-09-21: 200; 9 pages in `panel/src/pages` |
+| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-22: both 200 |
+| Panel xor.panov.id | ~80% | 11 pages in `panel/src/pages` (2026-09-22: the feed queue, support); e2e 5, unit 32 |
 | Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-21: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
 | Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
 | Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
-| Relay node: product, steps 1–4 of §13 | ~25% | step 1 done on the server, step 2 without a moderator, 3 — like and take-back built, 4 — consent without a chat |
-| Relay node: product, steps 5–8 of §13 | 0% | `chat/relay.ts` is a stub answering 501 |
-| `depth` client (terminal, goes first) | ~12% | core `depth/core/` (2026-09-21): §2 signing, checked against the node's verifier; registration, profile, a phrase, the feed, a like, a match and consent between two terminals against a live node; no drawing (Ink) yet; placeholders — the PIN's Argon2id, the paper code and the node's share that opens no vault yet; registering with them needs the `testOnly` flag |
+| Relay node: product, steps 1–4 of §13 | ~65% | step 1 and the profile edit; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half; the contract: 84 operations built, 53 spec (measured 2026-09-22, `check-openapi.sh`) |
+| Relay node: product, steps 5–8 of §13 | ~40% | step 5 — transport, socket, delivery, close codes; step 6 — direction keys and the reissue; step 7 — blocks, hidden, sweepers; step 8 — not started (games), in place of notifications the inbox with a cursor and the daily support digest |
+| `depth` client (terminal, goes first) | ~30% | core `depth/core/`: signing, registration, profile, feed, like, consent, end-to-end encryption and the key reissue against a live node (31 tests); no rendering (Ink); the PIN and the paper code are placeholders under `testOnly` |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
 
 The percentages are estimates: they are not weighted by hours, because steps
@@ -118,10 +118,9 @@ core without drawing, against a live node (since 2026-09-21).
 | 8. Notifications and games | [ ] | [ ] |
 | 9. Web face | — | [ ] prototype exists, app does not |
 
-Of the eleven tables in the first cut (§13), ten exist — six before
-2026-09-21, and `likes`, `matches`, `match_participants`, `blocks` by
-migration `db/030`. The eleventh,
-`support_requests`, by migration `db/039` (2026-09-22): all eleven exist.
+All eleven tables of the first cut (§13) exist: six before 2026-09-21, `likes`,
+`matches`, `match_participants`, `blocks` by migration `db/030`, `support_requests`
+by `db/039` (2026-09-22). Migrations in `relay/node/db` — 37 (measured 2026-09-22).
 
 Chat code was cleared by the owner's word on 2026-09-21.
 

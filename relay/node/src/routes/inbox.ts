@@ -40,14 +40,22 @@ async function inbox(req: Request): Promise<Response> {
       ORDER BY m.created_at DESC LIMIT ${PAGE}`,
     [me],
   );
-  const chats = await query<{ id: string; name: string; age: number; ends: string; created_at: Date; over: boolean }>(
+  const chats = await query<{
+    id: string; name: string; age: number; ends: string; created_at: Date; over: boolean;
+    peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null;
+  }>(
     `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
-              + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends
+              + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends,
+            them.id AS peer_id, them.identity_public_key AS peer_long,
+            mp.ephemeral_public_key AS peer_half, mp.ephemeral_signature AS peer_sig
        FROM chat_participants p
        JOIN chats c ON c.id = p.chat_id
        JOIN chat_participants o ON o.chat_id = c.id AND o.identity <> $1
        JOIN identities them ON them.id = o.identity
+       -- The peer's ephemeral half (§8.13), left on the match that opened the chat.
+       LEFT JOIN matches m ON m.chat_id = c.id
+       LEFT JOIN match_participants mp ON mp.match_id = m.id AND mp.identity = o.identity
       WHERE p.identity = $1 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})
       ORDER BY c.last_activity_at DESC LIMIT ${PAGE}`,
     [me],
@@ -66,6 +74,17 @@ async function inbox(req: Request): Promise<Response> {
       kind: "chat", id: c.id, name: c.name, age: c.age,
       // Over for the other side: screen 7 shows "ended" — the fact, never their term.
       chat_expires_at: Number(c.ends), state: c.over ? "ended" : "open",
+      // What the client needs to open the conversation's keys (§8.13): the
+      // peer's ephemeral half with its signature, the long key that signed it
+      // (and from which the safety code is derived), and the ids that decide
+      // which direction key is whose. Absent half: the peer consented without
+      // keys, and the conversation is not encrypted.
+      me,
+      peer: {
+        identity_id: c.peer_id,
+        identity_public_key: c.peer_long,
+        ...(c.peer_half ? { ephemeral_public_key: c.peer_half, ephemeral_signature: c.peer_sig } : {}),
+      },
     })),
   ];
   return json({ items }, 200, sunsetHeader());

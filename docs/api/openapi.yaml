@@ -404,6 +404,16 @@ components:
         unread: {type: boolean, deprecated: true, description: "Not sent: the device counts what it has shown, the node knows nothing about reading (owner's decision 2026-09-17; the route built 2026-09-21 omits it).", x-description-ru: "Не отдаётся: точку «новое» считает устройство, узел о чтении не знает (решение владельца 17.09.2026; маршрут, построенный 21.09.2026, поля не шлёт)."}
         chat_expires_at: {type: integer, format: unix-seconds}
         state: {type: string, enum: [pending, open, ended]}
+        me: {type: string, format: uuid, description: "On a chat row since 2026-09-22: one's own identity id, so the client knows which direction key is its own (§8.13, low→high by sorted ids).", x-description-ru: "У строки чата с 22.09.2026: свой identity id, чтобы клиент знал, какой из ключей направления его (§8.13, low→high по отсортированным id)."}
+        peer:
+          type: object
+          description: "On a chat row since 2026-09-22 (§8.13): the peer's identity id and long public key (SPKI, base64url — what signed their half and what the safety code derives from), and their ephemeral half with its signature when they consented with one. No half: the conversation is not encrypted."
+          x-description-ru: "У строки чата с 22.09.2026 (§8.13): identity id собеседника, его долгий публичный ключ (SPKI, base64url — им подписана половина, из него выводится код безопасности) и его эфемерная половина с подписью, если он согласился с ней. Половины нет — разговор не шифруется."
+          properties:
+            identity_id: {type: string, format: uuid}
+            identity_public_key: {type: string}
+            ephemeral_public_key: {type: string}
+            ephemeral_signature: {type: string}
     IdentityCreate:
       type: object
       required: [sign_pub, wrap_pub, name, age, auth_hash, share, recovery_lookup_id]
@@ -1888,8 +1898,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/matches.ts
       security: [{identitySignature: []}]
-      description: "The chat opens when both have consented. When both have consented the chat opens in the same transaction and agreed carries its chat_id (step 5, 2026-09-21); the ephemeral key of §8.13 is not taken yet (step 6). Consent clears one's own not now. A match that is not the caller's or is over answers 404 alike (2026-09-21)."
-      x-description-ru: "Чат открывается, когда согласились оба. Когда согласились оба, чат открывается той же транзакцией, и agreed несёт его chat_id (шаг 5, 21.09.2026); эфемерный ключ §8.13 ещё не принимается (шаг 6). Согласие снимает собственное «не сейчас». Чужой или истёкший мэтч — одинаково 404 (21.09.2026)."
+      description: "The chat opens when both have consented. When both have consented the chat opens in the same transaction and agreed carries its chat_id (step 5, 2026-09-21); since 2026-09-22 it carries this side's ephemeral half of §8.13 — {ephemeral_public_key, ephemeral_signature}, a P-256 SPKI in base64url with a detached signature by the long key, checked here (a half that does not verify is invalid_body); without the half the chat still opens, unencrypted, and the inbox says so by omission. Consent clears one's own not now. A match that is not the caller's or is over answers 404 alike (2026-09-21)."
+      x-description-ru: "Чат открывается, когда согласились оба. Когда согласились оба, чат открывается той же транзакцией, и agreed несёт его chat_id (шаг 5, 21.09.2026); с 22.09.2026 несёт эфемерную половину этой стороны по §8.13 — {ephemeral_public_key, ephemeral_signature}: SPKI P-256 в base64url с отдельной подписью долгим ключом, проверяется здесь (не сходится — invalid_body); без половины чат всё равно открывается, нешифрованным, и инбокс говорит это отсутствием поля. Согласие снимает собственное «не сейчас». Чужой или истёкший мэтч — одинаково 404 (21.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}

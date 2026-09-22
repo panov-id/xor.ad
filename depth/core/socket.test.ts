@@ -33,7 +33,7 @@ async function chatBetween(sql: postgres.Sql) {
   const matchId = (await b.like(pa)).body.match_id!;
   await a.consent(matchId);
   const chatId = (await b.consent(matchId)).body.chat_id!;
-  return { a, b, chatId };
+  return { a, b, chatId, matchId };
 }
 
 const seal = () => {
@@ -178,6 +178,44 @@ Deno.test({
       await room.protocol();
       assertEquals((await a.blockByChat(chatId)).status, 204);
       assertEquals(await room.closedWithin(), 4003, "the blocked one's room stayed open (0 = still open after 5 s)");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
+Deno.test({
+  name: "two terminals talk in ciphertext: the peer reads it, the node's row does not, a reflection does not open",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId, matchId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      // a consented first ("waiting"), so its pair still sits under the match.
+      const sent = await a.sayInChat(chatId, "встретимся у моста в семь", matchId);
+      assertEquals(sent.status, 202, JSON.stringify(sent.body));
+      const frame = await room.next();
+      assertEquals(frame.type, "message");
+      const box = (frame.data as { ciphertext: string }).ciphertext;
+      assert(!box.includes("моста"), "the text travelled in the clear");
+      assertEquals(await b.read(chatId, box), "встретимся у моста в семь");
+      // What the node holds is the box, not the text.
+      const [row] = await sql.unsafe(`SELECT ciphertext FROM pending_deliveries WHERE chat_id = $1 LIMIT 1`, [chatId]).catch(() => []);
+      if (row) assert(!String(row.ciphertext).includes("моста"));
+      // The sender cannot read their own box as incoming: two keys, not one (§8.13).
+      let reflected = false;
+      try { await a.read(chatId, box, matchId); reflected = true; } catch { /* expected */ }
+      assert(!reflected, "a reflected message opened on the sender's side");
+      // Back the other way.
+      const aRoom = await a.openRoom(chatId);
+      await b.sayInChat(chatId, "иду");
+      const back = await aRoom.next();
+      assertEquals(await a.read(chatId, (back.data as { ciphertext: string }).ciphertext), "иду");
+      room.close();
+      aRoom.close();
     } finally {
       await sql.end();
     }

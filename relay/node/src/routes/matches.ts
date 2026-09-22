@@ -10,17 +10,19 @@
 // Not here yet, and said so:
 // - the chat's transport: agreement opens the chat and answers its chat_id
 //   (step 5, db/031), but the room it is spoken in comes next;
-// - the ephemeral public key that consent carries in §8.5 — that is the
-//   encryption of step 6, and nothing reads it before then.
+// The ephemeral half of §8.13 rides on consent since 2026-09-22: a P-256 ECDH
+// public key (SPKI, base64url) with a detached signature by the caller's long
+// key, checked here so the peer never receives a half the node could have
+// minted. The inbox hands each side the other's half.
 //
 // A match that is not the caller's, or is over, answers 404 alike: the caller
 // learns nothing about other people's matches either way.
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { transaction } from "../lib/db.ts";
+import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { sunsetHeader } from "../lib/identity_auth.ts";
+import { base64urlToBytes, sunsetHeader, verifyByLongKey } from "../lib/identity_auth.ts";
 import { checkAll, LIKE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -42,6 +44,29 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
   }
   if (!UUID.test(matchId)) return refuse("not_found", "no such match", 404);
   const me = caller.identityId;
+
+  // Consent may carry the ephemeral half; if it does, both fields and a
+  // signature that verifies. Without it the chat still opens — a client that
+  // has no keys yet can still talk in the clear, and says so (step 6 is
+  // being built in the terminal first).
+  let half: { key: string; signature: string } | null = null;
+  if (action === "consent") {
+    const body = await req.json().catch(() => null) as Record<string, unknown> | null;
+    if (body && (body.ephemeral_public_key !== undefined || body.ephemeral_signature !== undefined)) {
+      const key = body.ephemeral_public_key;
+      const signature = body.ephemeral_signature;
+      if (typeof key !== "string" || typeof signature !== "string" || key.length > 256 || signature.length > 256) {
+        return refuse("invalid_body", "ephemeral_public_key and ephemeral_signature are base64url strings", 400);
+      }
+      const bytes = base64urlToBytes(key);
+      const [mine] = await query<{ identity_public_key: string }>(
+        `SELECT identity_public_key FROM identities WHERE id = $1`, [me]) ?? [];
+      if (!bytes || !mine || !(await verifyByLongKey(mine.identity_public_key, bytes, signature))) {
+        return refuse("invalid_body", "the ephemeral half is not signed by your long key", 400);
+      }
+      half = { key, signature };
+    }
+  }
 
   const answer = await transaction<Response>(async (run) => {
     await run(`SET LOCAL lock_timeout = '2s'`);
@@ -81,9 +106,12 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     }
 
     await run(
-      `UPDATE match_participants SET accepted_at = coalesce(accepted_at, now()), declined_at = NULL
+      `UPDATE match_participants
+          SET accepted_at = coalesce(accepted_at, now()), declined_at = NULL,
+              ephemeral_public_key = coalesce($3, ephemeral_public_key),
+              ephemeral_signature = coalesce($4, ephemeral_signature)
         WHERE match_id = $1 AND identity = $2`,
-      [matchId, me],
+      [matchId, me, half?.key ?? null, half?.signature ?? null],
     );
     const [both] = await run<{ n: number }>(
       `SELECT count(*)::int AS n FROM match_participants

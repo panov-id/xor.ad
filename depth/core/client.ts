@@ -12,6 +12,7 @@
 // - the node's share of the vault key is sent and not yet used to open a vault.
 
 import { base64url, generateSigningKey, signRequest, type SigningKey } from "./sign.ts";
+import { Conversation, Ephemeral } from "./seal.ts";
 
 const PROTOCOL_MAJOR = "1";
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
@@ -175,9 +176,74 @@ export class Client {
   }
 
   // POST /matches/:id/consent — waiting, or agreed with the chat_id it opened
-  // (step 5). The ephemeral key §8.5 sends here is step 6.
-  consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
-    return this.#call("POST", `/matches/${matchId}/consent`);
+  // (step 5). Since 2026-09-22 it carries this side's ephemeral half for the
+  // chat, signed by the long key (§8.13); the pair is kept here, in memory,
+  // until the conversation is opened or the client is dropped.
+  #ephemeral = new Map<string, Ephemeral>();
+  #conversations = new Map<string, Conversation>();
+
+  async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
+    if (!this.#key) throw new Error("not registered: there is no key to sign with");
+    const eph = this.#ephemeral.get(matchId) ?? await Ephemeral.generate();
+    this.#ephemeral.set(matchId, eph);
+    const answer = await this.#call<{ state: string; chat_id?: string }>(
+      "POST", `/matches/${matchId}/consent`, await eph.publish(this.#key.privateKey),
+    );
+    // The half belongs to the chat that opened, whichever match it came from.
+    if (answer.status === 200 && answer.body.chat_id) this.#ephemeral.set(answer.body.chat_id, eph);
+    return answer;
+  }
+
+  // The chat opened on the peer's consent, after ours answered "waiting":
+  // the pair still sits under the match id, and the inbox says which chat.
+  #pairFor(chatId: string, matchId?: string): Ephemeral | undefined {
+    const direct = this.#ephemeral.get(chatId);
+    if (direct || !matchId) return direct;
+    const viaMatch = this.#ephemeral.get(matchId);
+    if (viaMatch) this.#ephemeral.set(chatId, viaMatch);
+    return viaMatch;
+  }
+
+  // The conversation's keys, from the peer's half in the inbox and our own
+  // ephemeral pair from consent (§8.13). Throws when the peer consented
+  // without a half — that conversation is not encrypted, and nothing here
+  // pretends otherwise. `matchId` finds the pair when the chat opened on the
+  // other side's consent.
+  async openConversation(chatId: string, matchId?: string): Promise<Conversation> {
+    const known = this.#conversations.get(chatId);
+    if (known) return known;
+    const eph = this.#pairFor(chatId, matchId);
+    if (!eph) throw new Error("no ephemeral pair for this chat: consent was not given from this client");
+    const row = (await this.inbox()).find((i) => i.kind === "chat" && i.id === chatId) as {
+      me: string; peer: { identity_id: string; identity_public_key: string; ephemeral_public_key?: string; ephemeral_signature?: string };
+    } | undefined;
+    if (!row) throw new Error("the chat is not in the inbox");
+    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature) {
+      throw new Error("the peer consented without an ephemeral half: this conversation is not encrypted");
+    }
+    const conversation = await eph.open(
+      { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },
+      row.peer.identity_public_key, chatId, row.me, row.peer.identity_id,
+    );
+    this.#conversations.set(chatId, conversation);
+    return conversation;
+  }
+
+  // Seal a line and send it (§8.13 over POST /chats/:id/messages).
+  async sayInChat(chatId: string, text: string, matchId?: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }>> {
+    const conversation = await this.openConversation(chatId, matchId);
+    return this.sendMessage(chatId, crypto.randomUUID(), await conversation.seal(text));
+  }
+
+  // Open an incoming frame's ciphertext with the peer's direction key.
+  async read(chatId: string, ciphertext: string, matchId?: string): Promise<string> {
+    return (await this.openConversation(chatId, matchId)).open(ciphertext);
+  }
+
+  // Death of the chat (§8.13): both keys and the ephemeral pair are forgotten.
+  forget(chatId: string): void {
+    this.#conversations.delete(chatId);
+    this.#ephemeral.delete(chatId);
   }
 
   // "Not now", and taking it back while the match lives (screen 7).

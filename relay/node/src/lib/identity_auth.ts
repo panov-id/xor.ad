@@ -31,6 +31,19 @@ export const TIME_WINDOW_SECONDS = 5 * 60;
 const P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
 const SIGN = { name: "ECDSA", hash: "SHA-256" } as const;
 
+// A detached signature by the identity's long key over raw bytes — the
+// ephemeral half of §8.13 is published this way. False on any malformed input.
+export async function verifyByLongKey(spkiBase64url: string, bytes: Uint8Array, signatureBase64url: string): Promise<boolean> {
+  const key = await importSignPublicKey(spkiBase64url);
+  const signature = base64urlToBytes(signatureBase64url);
+  if (!key || !signature) return false;
+  try {
+    return await crypto.subtle.verify(SIGN, key, signature as BufferSource, bytes as BufferSource);
+  } catch {
+    return false;
+  }
+}
+
 export type AuthFailure =
   | "missing_headers"
   | "malformed_time"

@@ -3247,3 +3247,18 @@ Deno.test({
     assertEquals(left.map((r) => r.public_no), [recent], "a request outlived its year, or one inside it went");
   },
 });
+
+Deno.test({
+  name: "a person who stepped away can still write to support (owner's decision of 2026-09-22)",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    await database.queryOrThrow(
+      `UPDATE identities SET stepped_away_until = now() + interval '1 day' WHERE id = $1`, [me.identity_id]);
+    const sent = await support(me, "POST", "/support", { body: "я отошёл, но нужна помощь", nonce: nonce16() });
+    assertEquals(sent.status, 201, JSON.stringify(sent.body));
+    // Only writing: the list stays behind the step-away like every other route.
+    assertEquals((await support(me, "GET", "/support")).status, 409);
+  },
+});

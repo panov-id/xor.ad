@@ -43,7 +43,11 @@ function publicNo(): string {
 }
 
 async function write(req: Request): Promise<Response> {
-  const caller = await callerOf(req, { allowFrozen: true });
+  // A person who stepped away may still ask for help — the owner's decision of
+  // 2026-09-22: the away may have been set by whoever took the identity, and
+  // the channel to a person is not cut (DSA Art. 12(1)). Writing only; the
+  // list stays behind the step-away like every other route.
+  const caller = await callerOf(req, { allowFrozen: true, allowSteppedAway: true });
   if (caller instanceof Response) return caller;
   const body = await readJson<{ body?: unknown; email?: unknown; nonce?: unknown }>(req);
   const text = typeof body?.body === "string" ? body.body.trim() : "";

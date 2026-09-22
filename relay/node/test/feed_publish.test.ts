@@ -3018,3 +3018,40 @@ Deno.test({
     reset();
   },
 });
+
+// ── The inbox cursor (step-7 panel #5; protocol §6: ?after, {items, next}) ─────
+Deno.test({
+  name: "the inbox pages past a hundred with a cursor, and a foreign cursor is refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const me = await author();
+    // 101 offers to talk, each with a partner of its own, a microsecond apart.
+    await database.queryOrThrow(
+      `WITH n AS (SELECT g, gen_random_uuid() AS partner, gen_random_uuid() AS match FROM generate_series(1, 101) g)
+       , who AS (INSERT INTO identities (id, name, age, identity_public_key) SELECT partner, 'п' || g, 30, 'k' FROM n)
+       , m AS (INSERT INTO matches (id, pair_key, created_at, expires_at)
+               SELECT match, 'page-' || match, now() - g * interval '1 microsecond', now() + interval '1 hour' FROM n)
+       INSERT INTO match_participants (match_id, identity, message_id, text_snapshot, mode)
+       SELECT match, $1::uuid, gen_random_uuid(), 'моя', 'alone' FROM n
+       UNION ALL
+       SELECT match, partner, gen_random_uuid(), 'его ' || g, 'alone' FROM n`,
+      [me.identity_id]);
+    const page = async (after?: string) =>
+      await signedCall(me.pair.privateKey, me.session_id, "GET", `/inbox${after ? `?after=${encodeURIComponent(after)}` : ""}`);
+    const first = await page();
+    const firstBody = first.body as { items: Array<{ id: string }>; next?: string };
+    assertEquals(firstBody.items.length, 100);
+    assert(firstBody.next, "a full page gave no cursor to the next one");
+    const second = await page(firstBody.next);
+    const secondBody = second.body as { items: Array<{ id: string }>; next?: string };
+    assertEquals(secondBody.items.length, 1, "the second page did not hold the one left");
+    assertEquals(secondBody.next, undefined, "the last page offered a cursor");
+    const ids = new Set([...firstBody.items, ...secondBody.items].map((i) => i.id));
+    assertEquals(ids.size, 101, "a row was repeated or lost between pages");
+    assertEquals((await page("not-a-cursor")).status, 400);
+    reset();
+  },
+});

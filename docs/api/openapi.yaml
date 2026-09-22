@@ -1941,10 +1941,10 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
         - {$ref: "#/components/parameters/After"}
       responses:
+        "400": {description: "invalid_body: after is not a cursor this inbox gave (m_ or c_, microseconds, id); or an unsupported protocol version.", x-description-ru: "invalid_body: after — не курсор, выданный этим инбоксом (m_ или c_, микросекунды, id); или неподдерживаемая версия протокола."}
         "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: A page — a count only on offers; next cursor (protocol §6)., x-description-ru: Страница — счётчик только на предложениях; следующий курсор (протокол §6)., content: {application/json: {schema: {type: object, properties: {items: {type: array, items: {$ref: "#/components/schemas/InboxItem"}}, next: {type: string}}}}}}
   /chats/{id}/ticket:
@@ -2056,7 +2056,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Closed., x-description-ru: Закрыта.}
+        "200": {description: "Closed, for both: {state: closed}.", x-description-ru: "Закрыта у обоих: {state: closed}.", content: {application/json: {schema: {type: object, required: [state], properties: {state: {type: string, enum: [closed]}}}}}}
     patch:
       tags: [chat]
       summary: Your own span handle
@@ -2079,7 +2079,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Saved., x-description-ru: Сохранено.}
+        "200": {description: "Saved: {span} — the minutes now set for one's own side.", x-description-ru: "Сохранено: {span} — минуты, теперь заданные своей стороне.", content: {application/json: {schema: {type: object, required: [span], properties: {span: {type: integer, enum: [10, 30, 60, 260]}}}}}}
   /tables:
     post:
       tags: [tables]

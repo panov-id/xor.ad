@@ -17,6 +17,7 @@
 // conversation is over; 4004 no xor.p1; 1011 the node failed; 1000 replaced.
 
 import { listen, queryOrThrow } from "../lib/db.ts";
+import { config } from "../config.ts";
 import { sha256hex } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -96,9 +97,37 @@ function ensureListening(): Promise<void> {
   return listening;
 }
 
+// Every room, closed with 1001 "going away": the node is stopping, and a
+// client that sees 1001 reconnects to whatever answers next rather than
+// waiting on a socket that will never speak (step-5 panel, 2026-09-21).
+export function closeAllRooms(): number {
+  let closed = 0;
+  for (const set of rooms.values()) {
+    for (const room of set) {
+      room.socket.close(1001, "the node is going away");
+      closed++;
+    }
+  }
+  rooms.clear();
+  return closed;
+}
+
+// The registry, for a test that has no server to open a room through.
+export function roomsForTest(): Map<string, Set<Room>> {
+  return rooms;
+}
+
 export async function relayUpgrade(req: Request): Promise<Response> {
   if ((req.headers.get("upgrade") ?? "").toLowerCase() !== "websocket") {
     return new Response("a websocket upgrade is expected here", { status: 426 });
+  }
+  // A browser names its origin, and only a listed one gets as far as the
+  // ticket. A terminal names none and is not a browser. Same list as CORS
+  // (lib/cors.ts); empty means the local stand and reflects anything.
+  const origin = req.headers.get("origin");
+  if (origin && config.allowedOrigins.length > 0 && !config.allowedOrigins.includes(origin)) {
+    inc("relay_chat_rooms_total", { result: "bad_origin" });
+    return new Response("this origin is not allowed here", { status: 403 });
   }
   // `xor.p1, ticket.<t>` (protocol §4.4, §6): the version by name, the ticket
   // behind its prefix. The answer names the version only.

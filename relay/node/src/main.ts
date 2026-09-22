@@ -17,7 +17,7 @@ import { cspReport } from "./routes/csp_report.ts";
 import { rememberRemote } from "./lib/client_ip.ts";
 // Registers its own routes on import, like the admin module does.
 import "./routes/dsa.ts";
-import { relayUpgrade } from "./chat/relay.ts";
+import { closeAllRooms, relayUpgrade } from "./chat/relay.ts";
 import { match, metricLabel } from "./lib/router.ts";
 import { withoutAddresses } from "./lib/mailer.ts";
 import { startWorker } from "./lib/jobs.ts";
@@ -67,6 +67,20 @@ startWorker();
 armScheduledJobs().catch((error) =>
   log("error", "could not arm the scheduled jobs", { error: String(error) })
 );
+
+// A stop is announced to every open room first: 1001, so the terminals come
+// back on their own. The signal then ends the process as it would have.
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  try {
+    Deno.addSignalListener(signal, () => {
+      const closed = closeAllRooms();
+      log("info", "stopping: rooms closed with 1001", { signal, closed });
+      Deno.exit(0);
+    });
+  } catch {
+    // Not every platform has every signal; the server still runs.
+  }
+}
 
 Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
   // The only place the connection's own address is known.

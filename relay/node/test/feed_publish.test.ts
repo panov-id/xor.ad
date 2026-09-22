@@ -2789,3 +2789,31 @@ Deno.test({
     assertEquals(afterA.match_id as string, id, "the match id went with the match");
   },
 });
+
+// ── Step-5 tails with a database (panel 2026-09-21) ────────────────────────────
+Deno.test({
+  name: "the pending sweeper has its index, and the chat sweeper ends conversations in batches, all of them",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const [index] = await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_indexes WHERE tablename = 'pending_deliveries' AND indexdef LIKE '%(created_at)%'`);
+    assertEquals(index.n, 1, "pending_deliveries has no index on created_at");
+
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const chats: string[] = [];
+    for (let i = 0; i < 3; i++) chats.push((await openChat()).chat);
+    // Every side's term is over.
+    await database.queryOrThrow(
+      `UPDATE chat_participants SET last_own_message_at = now() - interval '2 days' WHERE chat_id = ANY($1::uuid[])`, [chats]);
+    const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
+    // A batch smaller than the work: one call still finishes it.
+    const swept = await sweepChats({ batch: 2 });
+    assertEquals(swept.ended, 6, "not every side was ended");
+    assertEquals(swept.deleted, 3, "not every conversation was deleted");
+    const [left] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM chats WHERE id = ANY($1::uuid[])`, [chats]);
+    assertEquals(left.n, 0);
+    reset();
+  },
+});

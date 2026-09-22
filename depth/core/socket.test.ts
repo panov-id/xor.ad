@@ -222,3 +222,43 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "a terminal that lost its keys gets new ones from the other side, and old boxes stay shut",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId, matchId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await a.sayInChat(chatId, "до потери", matchId);
+      const before = (await room.next()).data as { id: string; ciphertext: string };
+      assertEquals(await b.read(chatId, before.ciphertext, before.id), "до потери");
+
+      // The pair is gone — a new device, a restart — and nothing opens.
+      a.forget(chatId);
+      let sealed = false;
+      try { await a.sayInChat(chatId, "без ключей"); sealed = true; } catch { /* expected */ }
+      assert(!sealed, "a terminal without its pair sealed a message");
+
+      // Ask, and the other side agrees (§8.13: the human is asked there; the
+      // terminal's own screen for that question is not built).
+      assertEquals((await a.requestRekey(chatId)).body, { state: "waiting", epoch: 1 });
+      assert(await b.rekeyRequested(chatId), "b was not told keys are being reissued");
+      assertEquals((await b.acceptRekey(chatId)).body, { state: "agreed", epoch: 1 });
+
+      await a.sayInChat(chatId, "после перевыпуска");
+      const after = (await room.next()).data as { id: string; ciphertext: string };
+      assertEquals(await b.read(chatId, after.ciphertext, after.id), "после перевыпуска");
+      // The old box does not open under the new keys: nothing restores the old K.
+      let reopened = false;
+      try { await b.read(chatId, before.ciphertext, before.id); reopened = true; } catch { /* expected */ }
+      assert(!reopened, "a box from before the reissue opened under the new keys");
+      room.close();
+    } finally {
+      await sql.end();
+    }
+  },
+});

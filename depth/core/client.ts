@@ -214,19 +214,20 @@ export class Client {
     if (known) return known;
     const eph = this.#pairFor(chatId, matchId);
     if (!eph) throw new Error("no ephemeral pair for this chat: consent was not given from this client");
-    const row = (await this.inbox()).find((i) => i.kind === "chat" && i.id === chatId) as {
-      me: string; match_id?: string;
-      peer: { identity_id: string; identity_public_key: string; ephemeral_public_key?: string; ephemeral_signature?: string };
-    } | undefined;
-    if (!row) throw new Error("the chat is not in the inbox");
-    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature || !row.match_id) {
+    const row = await this.#chatRow(chatId);
+    if (row.key_epoch !== row.peer.key_epoch) {
+      throw new Error("keys are being reissued: the conversation opens once both sides hold the same epoch");
+    }
+    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature || (row.key_epoch === 0 && !row.match_id)) {
       // Cannot happen against a node that requires the half; an older node
       // or a moved match leaves the conversation with no keys, and it says so.
       throw new Error("the peer's ephemeral half is missing: this conversation has no keys");
     }
     const conversation = await eph.open(
       { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },
-      row.peer.identity_public_key, row.match_id, chatId, row.me, row.peer.identity_id,
+      row.peer.identity_public_key,
+      row.key_epoch === 0 ? { match: row.match_id! } : { chat: chatId, epoch: row.key_epoch },
+      chatId, row.me, row.peer.identity_id,
     );
     this.#conversations.set(chatId, conversation);
     return conversation;
@@ -243,6 +244,48 @@ export class Client {
   // `localId` is the frame's id — the additional data the box was sealed under.
   async read(chatId: string, ciphertext: string, localId: string, matchId?: string): Promise<string> {
     return (await this.openConversation(chatId, matchId)).open(ciphertext, localId);
+  }
+
+  async #chatRow(chatId: string): Promise<{
+    me: string; match_id?: string; key_epoch: number; rekey_requested: boolean;
+    peer: { identity_id: string; identity_public_key: string; key_epoch: number; ephemeral_public_key?: string; ephemeral_signature?: string };
+  }> {
+    const row = (await this.inbox()).find((i) => i.kind === "chat" && i.id === chatId);
+    if (!row) throw new Error("the chat is not in the inbox");
+    return row as never;
+  }
+
+  // The key reissue of §8.13, one side at a time. A side that lost its pair
+  // asks: a new ephemeral pair, published at the next epoch. The other side,
+  // once its person agrees (the terminal's screen for that question is not
+  // built), answers at the same epoch. Old boxes stay shut for both.
+  async #publishAt(chatId: string, epoch: number): Promise<Answer<{ state: string; epoch: number }>> {
+    if (!this.#key) throw new Error("not registered: there is no key to sign with");
+    const eph = await Ephemeral.generate();
+    const answer = await this.#call<{ state: string; epoch: number }>(
+      "POST", `/chats/${chatId}/rekey`,
+      { epoch, ...(await eph.publish(this.#key.privateKey, { chat: chatId, epoch })) },
+    );
+    if (answer.status === 200) {
+      this.#ephemeral.set(chatId, eph);
+      this.#conversations.delete(chatId);
+    }
+    return answer;
+  }
+
+  async requestRekey(chatId: string): Promise<Answer<{ state: string; epoch: number }>> {
+    const row = await this.#chatRow(chatId);
+    return this.#publishAt(chatId, Math.max(row.key_epoch, row.peer.key_epoch) + 1);
+  }
+
+  async rekeyRequested(chatId: string): Promise<boolean> {
+    return (await this.#chatRow(chatId)).rekey_requested;
+  }
+
+  async acceptRekey(chatId: string): Promise<Answer<{ state: string; epoch: number }>> {
+    const row = await this.#chatRow(chatId);
+    if (!row.rekey_requested) throw new Error("the other side has not asked for new keys");
+    return this.#publishAt(chatId, row.peer.key_epoch);
   }
 
   // Death of the chat (§8.13): both keys and the ephemeral pair are forgotten.

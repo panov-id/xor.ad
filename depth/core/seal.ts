@@ -41,6 +41,24 @@ export function halfToSign(matchId: string, spki: Uint8Array): Uint8Array {
   return out;
 }
 
+// A half published by the key reissue (§8.13) is bound to the chat and the
+// epoch instead: "xor.rekey.v1\n<chat_id>\n<epoch>\n" ‖ SPKI. The node checks
+// the same bytes (routes/chats.ts rekeyToSign).
+export const REKEY_DOMAIN = "xor.rekey.v1\n";
+export function rekeyToSign(chatId: string, epoch: number, spki: Uint8Array): Uint8Array {
+  const prefix = new TextEncoder().encode(`${REKEY_DOMAIN}${chatId}\n${epoch}\n`);
+  const out = new Uint8Array(prefix.length + spki.length);
+  out.set(prefix);
+  out.set(spki, prefix.length);
+  return out;
+}
+
+// What a half was signed as: the match it was consented in, or the chat and
+// epoch it was reissued at.
+export type Binding = { match: string } | { chat: string; epoch: number };
+const signedBytes = (binding: Binding, spki: Uint8Array): Uint8Array =>
+  "match" in binding ? halfToSign(binding.match, spki) : rekeyToSign(binding.chat, binding.epoch, spki);
+
 export function fromBase64url(value: string): Uint8Array {
   if (!/^[A-Za-z0-9_-]*$/.test(value)) throw new Error("not base64url");
   const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - value.length % 4) % 4);
@@ -71,20 +89,22 @@ export class Ephemeral {
 
   // The half as consent publishes it: the SPKI and its signature by the long
   // key over the bound bytes for this match.
-  async publish(longKey: CryptoKey, matchId: string): Promise<EphemeralHalf> {
-    const signature = new Uint8Array(await crypto.subtle.sign(SIGN, longKey, halfToSign(matchId, fromBase64url(this.publicSpki)) as BufferSource));
+  async publish(longKey: CryptoKey, binding: string | Binding): Promise<EphemeralHalf> {
+    const bound: Binding = typeof binding === "string" ? { match: binding } : binding;
+    const signature = new Uint8Array(await crypto.subtle.sign(SIGN, longKey, signedBytes(bound, fromBase64url(this.publicSpki)) as BufferSource));
     return { ephemeral_public_key: this.publicSpki, ephemeral_signature: base64url(signature) };
   }
 
   // Their half, checked against the long key we matched with, then the two
   // direction keys. Throws if the signature does not hold: a half the node
   // could have minted is not a half.
-  async open(theirs: EphemeralHalf, theirLongSpki: string, matchId: string, chatId: string, me: string, them: string): Promise<Conversation> {
+  async open(theirs: EphemeralHalf, theirLongSpki: string, binding: string | Binding, chatId: string, me: string, them: string): Promise<Conversation> {
+    const bound: Binding = typeof binding === "string" ? { match: binding } : binding;
     const longKey = await crypto.subtle.importKey("spki", fromBase64url(theirLongSpki) as BufferSource, P256_SIGN, false, ["verify"]);
     const ok = await crypto.subtle.verify(
       SIGN, longKey,
       fromBase64url(theirs.ephemeral_signature) as BufferSource,
-      halfToSign(matchId, fromBase64url(theirs.ephemeral_public_key)) as BufferSource,
+      signedBytes(bound, fromBase64url(theirs.ephemeral_public_key)) as BufferSource,
     );
     if (!ok) throw new Error("the peer's ephemeral half is not signed by their long key");
     const theirPublic = await crypto.subtle.importKey("spki", fromBase64url(theirs.ephemeral_public_key) as BufferSource, ECDH, false, []);

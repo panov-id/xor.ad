@@ -2817,3 +2817,62 @@ Deno.test({
     reset();
   },
 });
+
+// ── Step 6: the key reissued after a device lost it (§8.13) ────────────────────
+const REKEY_DOMAIN = "xor.rekey.v1\n";
+async function rekeyHalf(who: { pair: CryptoKeyPair }, chatId: string, epoch: number) {
+  const key = auth.bytesToBase64url(new Uint8Array(await crypto.subtle.exportKey(
+    "spki", ((await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"])) as CryptoKeyPair).publicKey)));
+  const prefix = new TextEncoder().encode(`${REKEY_DOMAIN}${chatId}\n${epoch}\n`);
+  const raw = auth.base64urlToBytes(key)!;
+  const bytes = new Uint8Array(prefix.length + raw.length);
+  bytes.set(prefix); bytes.set(raw, prefix.length);
+  const signature = new Uint8Array(await crypto.subtle.sign(SIGN, who.pair.privateKey, bytes));
+  return { epoch, ephemeral_public_key: key, ephemeral_signature: auth.bytesToBase64url(signature) };
+}
+
+Deno.test({
+  name: "a side that lost its keys asks for new ones; the other agrees; both hold the next epoch",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    const rowOf = async (who: typeof a) => {
+      const r = await matchCall(who, "GET", "/inbox");
+      return (r.body as { items: Array<Record<string, unknown>> }).items.find((i) => i.kind === "chat" && i.id === chat) as Record<string, unknown>;
+    };
+    assertEquals((await rowOf(a)).key_epoch, 0);
+
+    // A half signed for another epoch, or by nobody, is not a half.
+    const wrongEpoch = { ...(await rekeyHalf(a, chat, 2)), epoch: 1 };
+    assertEquals((await matchCall(a, "POST", `/chats/${chat}/rekey`, wrongEpoch)).status, 400);
+    const forged = { ...(await rekeyHalf(a, chat, 1)), ephemeral_signature: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(64))) };
+    assertEquals((await matchCall(a, "POST", `/chats/${chat}/rekey`, forged)).status, 400);
+
+    const aNew = await rekeyHalf(a, chat, 1);
+    const asked = await matchCall(a, "POST", `/chats/${chat}/rekey`, aNew);
+    assertEquals(asked.status, 200, JSON.stringify(asked.body));
+    assertEquals(asked.body, { state: "waiting", epoch: 1 });
+    // Running further ahead than the other side is refused.
+    const ahead = await matchCall(a, "POST", `/chats/${chat}/rekey`, await rekeyHalf(a, chat, 2));
+    assertEquals(ahead.status, 409, JSON.stringify(ahead.body));
+
+    // The other side sees the request, and the new half, in its inbox.
+    const seenByB = await rowOf(b);
+    assertEquals(seenByB.rekey_requested, true, "b was not told keys are being reissued");
+    const peerOfB = seenByB.peer as { key_epoch: number; ephemeral_public_key: string };
+    assertEquals([peerOfB.key_epoch, peerOfB.ephemeral_public_key], [1, aNew.ephemeral_public_key]);
+
+    const bNew = await rekeyHalf(b, chat, 1);
+    const agreed = await matchCall(b, "POST", `/chats/${chat}/rekey`, bNew);
+    assertEquals(agreed.body, { state: "agreed", epoch: 1 });
+    const afterA = await rowOf(a);
+    assertEquals(afterA.key_epoch, 1);
+    assertEquals(afterA.rekey_requested, false);
+    assertEquals((afterA.peer as { ephemeral_public_key: string }).ephemeral_public_key, bNew.ephemeral_public_key);
+
+    // Not a member: the same 404 as a chat that does not exist.
+    const { a: stranger } = await freshMatch();
+    assertEquals((await matchCall(stranger, "POST", `/chats/${chat}/rekey`, await rekeyHalf(stranger, chat, 2))).status, 404);
+  },
+});

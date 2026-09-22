@@ -43,6 +43,7 @@ async function inbox(req: Request): Promise<Response> {
   const chats = await query<{
     id: string; name: string; age: number; ends: string; created_at: Date; over: boolean;
     peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null; match_id: string | null;
+    my_epoch: number; peer_epoch: number;
   }>(
     `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
@@ -50,7 +51,8 @@ async function inbox(req: Request): Promise<Response> {
             them.id AS peer_id, them.identity_public_key AS peer_long,
             -- The peer's ephemeral half (§8.13), the conversation's own since
             -- db/036: a match gone does not take it.
-            o.match_id, o.ephemeral_public_key AS peer_half, o.ephemeral_signature AS peer_sig
+            o.match_id, o.ephemeral_public_key AS peer_half, o.ephemeral_signature AS peer_sig,
+            p.key_epoch AS my_epoch, o.key_epoch AS peer_epoch
        FROM chat_participants p
        JOIN chats c ON c.id = p.chat_id
        JOIN chat_participants o ON o.chat_id = c.id AND o.identity <> $1
@@ -81,7 +83,12 @@ async function inbox(req: Request): Promise<Response> {
       me,
       // The match the halves were signed for: the peer verifies the binding.
       ...(c.match_id ? { match_id: c.match_id } : {}),
+      // The epoch of one's own half, and whether the other side has asked for
+      // new keys (§8.13 reissue): the question to put to the person.
+      key_epoch: c.my_epoch,
+      rekey_requested: c.peer_epoch > c.my_epoch,
       peer: {
+        key_epoch: c.peer_epoch,
         identity_id: c.peer_id,
         identity_public_key: c.peer_long,
         ...(c.peer_half ? { ephemeral_public_key: c.peer_half, ephemeral_signature: c.peer_sig } : {}),

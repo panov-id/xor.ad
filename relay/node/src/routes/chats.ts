@@ -16,7 +16,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
+import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader, verifyByLongKey } from "../lib/identity_auth.ts";
 import { checkAll, CHAT_MESSAGE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -272,6 +272,98 @@ async function span(req: Request, chatId: string): Promise<Response> {
   return json({ span: body.span }, 200, sunsetHeader());
 }
 
+// POST /chats/:id/rekey — the key reissued after a device lost its pair
+// (§8.13). The side without keys publishes a new half at the next epoch; the
+// other side, once its person agrees, answers with its own at the same epoch;
+// then both derive the new keys. Each half is signed by the long key over
+// "xor.rekey.v1\n<chat_id>\n<epoch>\n" ‖ SPKI — bound to this chat and epoch,
+// so the node can neither mint one nor move one. What went before stays shut:
+// nothing restores the old keys.
+//
+// One step at a time: a side may start the next epoch only when both hold the
+// same one, and may answer only the epoch the other side started. Anything
+// else is 409 — the node does not let two reissues race each other.
+// Not built: a frame telling the other side's open room; it learns from the
+// inbox (rekey_requested), which is what a returning device reads first.
+export const REKEY_DOMAIN = "xor.rekey.v1\n";
+export function rekeyToSign(chatId: string, epoch: number, spki: Uint8Array): Uint8Array {
+  const prefix = new TextEncoder().encode(`${REKEY_DOMAIN}${chatId}\n${epoch}\n`);
+  const out = new Uint8Array(prefix.length + spki.length);
+  out.set(prefix);
+  out.set(spki, prefix.length);
+  return out;
+}
+
+async function rekey(req: Request, chatId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
+  // The same budget as tickets and messages: a reissue is one more write on
+  // the chat, and nothing here needs a number of its own.
+  const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    return refuse("rate_limited", "too many chat actions this minute", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
+  const body = await readJson<{ epoch?: unknown; ephemeral_public_key?: unknown; ephemeral_signature?: unknown }>(req);
+  const epoch = body?.epoch;
+  const key = body?.ephemeral_public_key;
+  const signature = body?.ephemeral_signature;
+  if (typeof epoch !== "number" || !Number.isInteger(epoch) || epoch < 1 || epoch > 1_000_000 ||
+      typeof key !== "string" || typeof signature !== "string" || key.length > 256 || signature.length > 256) {
+    return refuse("invalid_body", "a rekey carries epoch, ephemeral_public_key and ephemeral_signature", 400);
+  }
+  const bytes = base64urlToBytes(key);
+  if (!bytes) return refuse("invalid_body", "ephemeral_public_key is not base64url", 400);
+
+  const answer = await transaction<Response>(async (run) => {
+    // Both rows, in identity order — the order every writer of this table
+    // takes them in (step-7 panel, 2026-09-21: lock order by identity).
+    const rows = await run<{ identity: string; key_epoch: number; gone_at: Date | null; long: string; over: boolean }>(
+      `SELECT p.identity, p.key_epoch, p.gone_at, i.identity_public_key AS long,
+              (${TERM_PASSED}) AS over
+         FROM chat_participants p
+         JOIN chats c ON c.id = p.chat_id
+         JOIN identities i ON i.id = p.identity
+        WHERE p.chat_id = $1
+        ORDER BY p.identity
+        FOR UPDATE OF p`,
+      [chatId],
+    );
+    const me = rows.find((r) => r.identity === caller.identityId);
+    const other = rows.find((r) => r.identity !== caller.identityId);
+    if (!me || !other || me.gone_at || me.over) return refuse("not_found", "no such chat", 404);
+    const [blocked] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM blocks
+        WHERE (blocker_identity = $1 AND blocked_identity = $2) OR (blocker_identity = $2 AND blocked_identity = $1)`,
+      [me.identity, other.identity],
+    );
+    if (blocked.n > 0) return refuse("not_found", "no such chat", 404);
+    if (!(await verifyByLongKey(me.long, rekeyToSign(chatId, epoch, bytes), signature))) {
+      return refuse("invalid_body", "the half is not signed by your long key for this chat and epoch", 400);
+    }
+    const starting = me.key_epoch === other.key_epoch && epoch === me.key_epoch + 1;
+    const answering = other.key_epoch === me.key_epoch + 1 && epoch === other.key_epoch;
+    if (!starting && !answering) {
+      return refuse("rekey_out_of_step", `the next epoch here is ${Math.max(me.key_epoch, other.key_epoch) + (me.key_epoch === other.key_epoch ? 1 : 0)}`, 409);
+    }
+    await run(
+      `UPDATE chat_participants
+          SET key_epoch = $3, ephemeral_public_key = $4, ephemeral_signature = $5
+        WHERE chat_id = $1 AND identity = $2`,
+      [chatId, me.identity, epoch, key, signature],
+    );
+    inc("relay_chat_rekey_total", { step: starting ? "asked" : "agreed" });
+    return json({ state: answering ? "agreed" : "waiting", epoch }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "rekey failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return answer;
+}
+
+route("POST", "/chats/:id/rekey", (c) => rekey(c.req, c.params.id));
 route("POST", "/chats/alive", (c) => alive(c.req));
 route("PATCH", "/chats/:id", (c) => span(c.req, c.params.id));
 route("DELETE", "/chats/:id", (c) => close(c.req, c.params.id));

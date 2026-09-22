@@ -261,7 +261,7 @@ components:
           properties:
             code:
               type: string
-              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, half_published, not_found, too_young, pin_locked, pin_mismatch, no_first_pin_grant]
+              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, half_published, rekey_out_of_step, not_found, too_young, pin_locked, pin_mismatch, no_first_pin_grant]
             message: {type: string}
             reason: {type: string}
             attempts_left: {type: integer, description: "On a wrong PIN — code pin_mismatch, 409 (2026-09-21) — how many are left before the lock (screen 12).", x-description-ru: "При неверном ПИН — код pin_mismatch, 409 (21.09.2026) — сколько осталось до замка (экран 12)."}
@@ -405,6 +405,8 @@ components:
         chat_expires_at: {type: integer, format: unix-seconds}
         state: {type: string, enum: [pending, open, ended]}
         me: {type: string, format: uuid, description: "On a chat row since 2026-09-22: one's own identity id, so the client knows which direction key is its own (§8.13, low→high by sorted ids).", x-description-ru: "У строки чата с 22.09.2026: свой identity id, чтобы клиент знал, какой из ключей направления его (§8.13, low→high по отсортированным id)."}
+        key_epoch: {type: integer, description: "On a chat row since 2026-09-22: the epoch of one's own half (0 — from consent; more — after a key reissue).", x-description-ru: "У строки чата с 22.09.2026: эпоха своей половины (0 — от согласия; больше — после перевыпуска)."}
+        rekey_requested: {type: boolean, description: "On a chat row since 2026-09-22: the other side asked for new keys (§8.13) — the question to put to the person.", x-description-ru: "У строки чата с 22.09.2026: вторая сторона просит новые ключи (§8.13) — вопрос человеку."}
         peer:
           type: object
           description: "On a chat row since 2026-09-22 (§8.13): the peer's identity id and long public key (SPKI, base64url — what signed their half and what the safety code derives from), and their ephemeral half with its signature when they consented with one. No half: the conversation is not encrypted."
@@ -412,6 +414,7 @@ components:
           properties:
             identity_id: {type: string, format: uuid}
             identity_public_key: {type: string}
+            key_epoch: {type: integer}
             ephemeral_public_key: {type: string}
             ephemeral_signature: {type: string}
     IdentityCreate:
@@ -1966,6 +1969,40 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "The ticket, for Sec-WebSocket-Protocol on GET /chat; spent on use, dead after expires_in seconds (ticket.lifetime).", x-description-ru: "Билет для Sec-WebSocket-Protocol на GET /chat; гасится при использовании, умирает через expires_in секунд (ticket.lifetime).", content: {application/json: {schema: {type: object, required: [ticket, expires_in], properties: {ticket: {type: string}, expires_in: {type: integer}}}}}}
         "404": {description: "Not the caller's chat, or it is over.", x-description-ru: "Не беседа звонящего либо она кончилась."}
+  /chats/{id}/rekey:
+    post:
+      tags: [chat]
+      summary: Reissue the conversation's keys after a device lost its pair
+      x-summary-ru: Перевыпустить ключи беседы после потери пары устройством
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
+      security: [{identitySignature: []}]
+      description: "§8.13, built 2026-09-22. The side without keys publishes a new ephemeral half at the next epoch; the other side, once its person agrees, answers at the same epoch; both then derive new keys, and nothing restores the old ones. Each half is signed by the long key over \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI. One step at a time: start only when both hold the same epoch, answer only the epoch the other side started — otherwise 409 rekey_out_of_step. The other side learns from GET /inbox (rekey_requested); no socket frame yet. Shares the chat budget (chat.messages.minute)."
+      x-description-ru: "§8.13, построено 22.09.2026. Сторона без ключей публикует новую эфемерную половину на следующей эпохе; вторая, когда её человек согласен, отвечает на той же; обе выводят новые ключи, прежние не восстанавливаются ничем. Каждая половина подписана долгим ключом над \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI. По шагу за раз: начинать — только когда эпохи равны, отвечать — только на начатую другой стороной, иначе 409 rekey_out_of_step. Вторая сторона узнаёт из GET /inbox (rekey_requested); кадра сокета пока нет. Бюджет общий с беседой (chat.messages.minute)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [epoch, ephemeral_public_key, ephemeral_signature]
+              properties:
+                epoch: {type: integer, minimum: 1}
+                ephemeral_public_key: {type: string, description: "P-256 ECDH public key, SPKI, base64url (≤256 chars).", x-description-ru: "Публичный ключ ECDH P-256, SPKI, base64url (≤256 знаков)."}
+                ephemeral_signature: {type: string, description: "ECDSA P-256/SHA-256 by the long key over the bytes above, base64url (≤256 chars).", x-description-ru: "ECDSA P-256/SHA-256 долгим ключом над байтами выше, base64url (≤256 знаков)."}
+      responses:
+        "200": {description: "{state: waiting | agreed, epoch}.", x-description-ru: "{state: waiting | agreed, epoch}."}
+        "400": {description: "invalid_body: a missing or malformed epoch or half, or a signature that does not verify for this chat and epoch; or an unsupported protocol version.", x-description-ru: "invalid_body: нет или кривая эпоха либо половина, подпись не сходится для этой беседы и эпохи; или неподдерживаемая версия протокола."}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {description: "Not the caller's chat, over, or blocked between the two.", x-description-ru: "Не беседа звонящего, кончилась или между двоими блок."}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /chats/alive:
     post:
       tags: [chat]

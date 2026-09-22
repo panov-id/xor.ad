@@ -12,7 +12,7 @@
 // - the node's share of the vault key is sent and not yet used to open a vault.
 
 import { base64url, generateSigningKey, signRequest, type SigningKey } from "./sign.ts";
-import { Conversation, Ephemeral, verifyHalf } from "./seal.ts";
+import { Conversation, Ephemeral, safetyCode, verifyHalf } from "./seal.ts";
 
 const PROTOCOL_MAJOR = "1";
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
@@ -237,6 +237,8 @@ export class Client {
       held.epoch === 0 ? { match: row.match_id! } : { chat: chatId, epoch: held.epoch },
       chatId, row.me, row.peer.identity_id,
     );
+    // From the very row whose long key verified the half: one read, one key.
+    conversation.bindSafetyCode(await safetyCode(this.#key!.publicSpki, row.peer.identity_public_key));
     this.#conversations.set(chatId, { conversation, epoch: held.epoch });
     return conversation;
   }

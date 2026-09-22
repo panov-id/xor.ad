@@ -76,6 +76,6 @@ tables	docs/chat_RU.md:320	-	product
 table_likes	docs/chat_RU.md:1930	-	product
 vault_shares	docs/chat_RU.md:1246	relay/node/db/022_identity_and_sessions.sql	product
 venues	docs/offers/SPEC_RU.md:247	-	product
-support_requests	docs/chat_RU.md:2839	relay/node/db/039_support_requests.sql	product
+support_requests	docs/chat_RU.md:2841	relay/node/db/039_support_requests.sql	product
 identity_appearance	docs/chat_RU.md:806	relay/node/db/022_identity_and_sessions.sql	product
 nonces	docs/chat_RU.md:1039	relay/node/db/022_identity_and_sessions.sql	product

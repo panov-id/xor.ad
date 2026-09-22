@@ -363,3 +363,22 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "both terminals see one safety code, bound to the conversation they opened",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId, matchId } = await chatBetween(sql);
+      const mine = (await a.openConversation(chatId, matchId)).safetyCode;
+      const theirs = (await b.openConversation(chatId, matchId)).safetyCode;
+      assertEquals(mine, theirs, "the two sides of one conversation see different codes");
+      assert(/^\d{4} \d{4} \d{4}$/.test(mine), `not a safety code: ${mine}`);
+    } finally {
+      await sql.end();
+    }
+  },
+});

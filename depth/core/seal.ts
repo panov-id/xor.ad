@@ -141,6 +141,18 @@ export class Conversation {
   // Nonces already opened: the node can replay a frame, and a box that opened
   // once does not open twice (step-6 panel, 2026-09-22).
   #seen = new Set<string>();
+  #safety: string | null = null;
+
+  // The safety code of this conversation's two long keys, bound once by the
+  // client that opened it (see safetyCode above).
+  get safetyCode(): string {
+    if (this.#safety === null) throw new Error("the safety code was not bound to this conversation");
+    return this.#safety;
+  }
+  bindSafetyCode(code: string): void {
+    if (this.#safety !== null) throw new Error("the safety code is bound once");
+    this.#safety = code;
+  }
 
   constructor(private readonly sealKey: CryptoKey, private readonly openKey: CryptoKey) {}
 
@@ -174,4 +186,49 @@ export class Conversation {
     this.#seen.add(nonce);
     return new TextDecoder().decode(plain);
   }
+}
+
+// The safety code (§8.13, "a key swapped by us"): the node hands out the
+// public halves, so it could slip in its own; comparing this code in person or
+// by voice is what catches that. It is derived from the two identities' LONG
+// keys only — never the ephemeral halves — so it survives a rekey and changes
+// only when an identity's key does. Twelve digits in groups of four
+// (owner's decision, 2026-09-22).
+//   P = the key's point, uncompressed (65 bytes) — one encoding per key, and an
+//       SPKI that is not a P-256 point is refused rather than hashed
+//   code = SHA-256("xor.safety.v1\n" ‖ min(P_a, P_b) ‖ max(P_a, P_b))
+//          first 8 bytes as an unsigned integer, mod 10^12, zero-padded
+// The client computes it where the conversation is opened, from the same key
+// that verified the peer's half (Client.openConversation): a code taken from
+// another read could match while the conversation runs under a planted key
+// (security lens, 2026-09-22).
+export const SAFETY_DOMAIN = "xor.safety.v1\n";
+const POINT_BYTES = 65;
+
+async function longKeyPoint(spki: string): Promise<Uint8Array> {
+  const key = await crypto.subtle.importKey("spki", fromBase64url(spki) as BufferSource, P256_SIGN, true, ["verify"]);
+  const point = new Uint8Array(await crypto.subtle.exportKey("raw", key));
+  if (point.length !== POINT_BYTES || point[0] !== 4) throw new Error("a long key that is not an uncompressed P-256 point");
+  return point;
+}
+
+export async function safetyCode(longSpkiA: string, longSpkiB: string): Promise<string> {
+  const x = await longKeyPoint(longSpkiA);
+  const y = await longKeyPoint(longSpkiB);
+  const [first, second] = compareBytes(x, y) <= 0 ? [x, y] : [y, x];
+  const prefix = new TextEncoder().encode(SAFETY_DOMAIN);
+  const input = new Uint8Array(prefix.length + 2 * POINT_BYTES);
+  input.set(prefix, 0);
+  input.set(first, prefix.length);
+  input.set(second, prefix.length + POINT_BYTES);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", input as BufferSource));
+  let n = 0n;
+  for (const byte of digest.subarray(0, 8)) n = (n << 8n) | BigInt(byte);
+  const digits = (n % 1_000_000_000_000n).toString().padStart(12, "0");
+  return `${digits.slice(0, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}`;
+}
+
+function compareBytes(x: Uint8Array, y: Uint8Array): number {
+  for (let i = 0; i < Math.min(x.length, y.length); i++) if (x[i] !== y[i]) return x[i] - y[i];
+  return x.length - y.length;
 }

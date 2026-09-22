@@ -7,13 +7,15 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="node:24.21.0-alpine"  # точная версия: минор, ездящий между прогонами, — это тест, который никто не менял
-# Dependencies live in a Docker volume, installed from the lockfile every run:
-# a directory in the working tree was written by the container's root and was
-# reused even after package.json moved (operations lens, 2026-09-22).
-mods="-v depth-node-modules:/repo/depth/node_modules"
+# Dependencies live in a Docker volume named after the lockfile, and are
+# installed once per lockfile: `npm ci` wipes node_modules, so two runs sharing
+# one volume tore each other's tree apart — measured 22.09.2026, both runs died
+# with ENOTEMPTY. A marker inside the volume says the tree matches this lock.
+lock_hash="$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"
+mods="-v depth-node-modules-$lock_hash:/repo/depth/node_modules"
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
-  npm ci --no-audit --no-fund >/dev/null
+  sh -c '[ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund && touch node_modules/.lock-ok; }' >/dev/null
 # Крышка времени: зависший рендер иначе вешает и эти ворота, и check-all.
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \

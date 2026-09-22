@@ -43,10 +43,15 @@ up() { docker run --rm --network "$network" curlimages/curl:8.10.1 -sf http://no
 for _ in $(seq 60); do up && break; sleep 1; done
 up || { echo "the node did not come up" >&2; docker logs "$node" 2>&1 | tail -20 >&2; exit 1; }
 
-mods="-v depth-node-modules:/repo/depth/node_modules"
+# Dependencies live in a Docker volume named after the lockfile, and are
+# installed once per lockfile: `npm ci` wipes node_modules, so two runs sharing
+# one volume tore each other's tree apart — measured 22.09.2026, both runs died
+# with ENOTEMPTY. A marker inside the volume says the tree matches this lock.
+lock_hash="$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"
+mods="-v depth-node-modules-$lock_hash:/repo/depth/node_modules"
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$node_image" \
-  npm ci --no-audit --no-fund >/dev/null
+  sh -c '[ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund && touch node_modules/.lock-ok; }' >/dev/null
 status=0
 # shellcheck disable=SC2086
 timeout 600 docker run --rm --network "$network" $mods \

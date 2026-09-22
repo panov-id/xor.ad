@@ -25,6 +25,12 @@ describe("resource map", () => {
     expect(requiredPermission("invented", "list")).toBeUndefined();
   });
 
+  it("the feed queue's verdict buttons ask for feed_queue.decide, not the right to read", () => {
+    // A role that may read the queue but not decide would otherwise see buttons
+    // that answer 403 (feed-queue panel, 2026-09-22, security 12).
+    expect(requiredPermission("feed_queue", "decide")).toBe("feed_queue.decide");
+  });
+
   // The omission this file's header promised to catch, and did not. Validating
   // the entries that exist says nothing about the page that was never entered:
   // dsa_notices was routed, gated and shipped with no pair here, so every role

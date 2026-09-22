@@ -2329,7 +2329,7 @@ Deno.test({
 // No model is wired (§8.14), so a person decides. The panel session is minted the
 // way lib/auth.ts redeem() mints it, and the operator's record is written where
 // authed() reads it on every request.
-async function panelAs(role: string, brand: string | null = null): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: unknown }>> {
+async function panelAs(role: string, brand: string | null = null): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: unknown; headers: Headers }>> {
   const { sign } = await import("../src/lib/jwt.ts");
   const { sha256hex } = await import("../src/lib/hash.ts");
   const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
@@ -2355,7 +2355,7 @@ async function panelAs(role: string, brand: string | null = null): Promise<(meth
       url,
     });
     const text = await response.text();
-    return { status: response.status, body: text ? JSON.parse(text) : null };
+    return { status: response.status, body: text ? JSON.parse(text) : null, headers: response.headers };
   };
 }
 
@@ -2927,6 +2927,94 @@ Deno.test({
     const [live] = await database.queryOrThrow<{ n: number }>(
       `SELECT count(*)::int AS n FROM chat_participants WHERE chat_id = $1 AND gone_at IS NULL`, [fresh]);
     assertEquals(live.n, 2);
+    reset();
+  },
+});
+
+// ── Small tails of the 21–22.09 panels, with a database ────────────────────────
+Deno.test({
+  name: "the queue's x-total-count counts the whole queue, not the page of 200",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // 201 waiting phrases of a brand of their own: one author each, as the
+    // one-waiting-per-author index requires.
+    const brand = `tail-${crypto.randomUUID().slice(0, 8)}`;
+    await database.queryOrThrow(
+      `WITH ids AS (SELECT gen_random_uuid() AS id FROM generate_series(1, 201))
+       , who AS (INSERT INTO identities (id, name, age, identity_public_key) SELECT id, 'x', 30, 'k' FROM ids RETURNING id)
+       INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius)
+       SELECT gen_random_uuid(), $1, id, 'в очереди', 'alone', 'und', 60.17, 24.94, 1000 FROM who`,
+      [brand]);
+    const moderator = await panelAs("moderator", brand);
+    const queue = await moderator("GET", "/admin/feed-queue");
+    assertEquals((queue.body as unknown[]).length, 200);
+    assertEquals(queue.headers.get("x-total-count"), "201", "the count was the page, not the queue");
+  },
+});
+
+Deno.test({
+  name: "a waiting phrase whose author is gone still shows in the queue, marked",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const [row] = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius)
+       VALUES (gen_random_uuid(), 'gone-brand', NULL, 'автора нет', 'alone', 'und', 60.17, 24.94, 1000) RETURNING id`);
+    // A brand of its own: the 200-long page of the platform queue is someone else's test.
+    const moderator = await panelAs("moderator", "gone-brand");
+    const seen = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+      .find((i) => i.id === row.id);
+    assert(seen, "an authorless waiting phrase is invisible to the moderator");
+    assertEquals(seen.name_state, "gone");
+  },
+});
+
+Deno.test({
+  name: "registration refuses a name with characters nobody can see",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const pair = await crypto.subtle.generateKey(P256, true, ["sign", "verify"]);
+    const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
+    const answer = await call("POST", "/identities", {
+      headers: { "x-api-key": KEY_ID },
+      body: {
+        sign_pub: auth.bytesToBase64url(spki),
+        wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+        name: "Ан\u200bя",
+        age: 30,
+        auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
+        share: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))),
+        recovery_lookup_id: crypto.randomUUID(),
+      },
+    });
+    assertEquals(answer.status, 400, JSON.stringify(answer.body));
+  },
+});
+
+Deno.test({
+  name: "PATCH /identities/me: the pause stops a new name; [] clears languages; null clears a bound",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const who = await author();
+    assertEquals((await patchMe(who, { languages: ["ru", "en"], filter_age_min: 30 })).status, 200);
+    assertEquals((await patchMe(who, { languages: [] })).status, 200);
+    assertEquals((await profileOf(who.identity_id)).languages, [], "[] did not clear the languages");
+    assertEquals((await patchMe(who, { filter_age_min: null })).status, 200);
+    assertEquals((await profileOf(who.identity_id)).filter_age_min, null, "null did not clear the bound");
+    // Five refusals in the hour: the queue's pause, and a name is text for the queue.
+    await database.queryOrThrow(
+      `UPDATE identity_stats SET rejected_at_recent = ARRAY[now(), now(), now(), now(), now()] WHERE identity = $1`,
+      [who.identity_id]);
+    const paused = await patchMe(who, { name: "Анна" });
+    assertEquals(paused.status, 429, JSON.stringify(paused.body));
+    assertEquals((paused.body as { error: { code: string } }).error.code, "paused");
+    // The pause is about text for the queue, not the rest of the profile.
+    assertEquals((await patchMe(who, { languages: ["ru"] })).status, 200);
     reset();
   },
 });

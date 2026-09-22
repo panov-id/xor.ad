@@ -21,6 +21,7 @@
 // the two deadlock on the same person (both lenses of the panel, 2026-09-22).
 
 import { route } from "../lib/router.ts";
+import { cleanName } from "../lib/names.ts";
 import { json } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
@@ -38,10 +39,6 @@ const LANGUAGES_MAX = 3;
 // No ceiling in the DDL (2026-08-28); this one keeps an integer overflow from
 // reaching it as a 500 after the day's token was spent.
 const AGE_MAX = 150;
-// What the moderator cannot see must not be in a name: controls, format
-// characters (zero-width joiners, direction overrides), line and paragraph
-// separators. The same rule registration should hold; noted, not done here.
-const INVISIBLE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const countGraphemes = (text: string): number => [...graphemes.segment(text)].length;
 
@@ -80,8 +77,8 @@ async function patchProfile(req: Request): Promise<Response> {
     if (typeof body.name !== "string" || body.name.trim().length === 0) {
       return refuse("invalid_body", "name must be a non-empty string", 400);
     }
-    const wanted = body.name.normalize("NFC").trim().replace(/\s+/g, " ");
-    if (INVISIBLE.test(wanted) || wanted.length === 0) {
+    const wanted = cleanName(body.name);
+    if (wanted === null) {
       return refuse("invalid_body", "name has characters nobody can see", 400);
     }
     if (countGraphemes(wanted) > NAME_GRAPHEMES || new TextEncoder().encode(wanted).length > NAME_BYTES) {

@@ -31,6 +31,7 @@ import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
+import { cleanName } from "../lib/names.ts";
 
 // §8.2 and docs/facts/limits.tsv (`name.length`, enforced by: the node): the
 // limit is **24 graphemes**, and the node is named as what holds it.
@@ -149,10 +150,13 @@ async function createIdentity(req: Request): Promise<Response> {
     return refuse("too_young", "this place is for 13 and over", 422);
   }
 
-  const name = body.name;
-  if (typeof name !== "string" || name.length < 1) {
+  if (typeof body.name !== "string" || body.name.length < 1) {
     return refuse("invalid_body", "the name is missing", 400);
   }
+  // The same cleaning PATCH /identities/me does (lib/names.ts): what nobody
+  // can see is not let in at the door either.
+  const name = cleanName(body.name);
+  if (name === null) return refuse("invalid_body", "the name has characters nobody can see", 400);
   // Two ceilings, and the refusal says which one was hit. They are not the same
   // limit in different units: 24 graphemes of a four-person family emoji are
   // 600 bytes (measured 2026-09-21), so the byte ceiling refuses before the

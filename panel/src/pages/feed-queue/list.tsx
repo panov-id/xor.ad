@@ -14,7 +14,7 @@
 // it back.
 
 import { useEffect, useState } from "react";
-import { useList } from "@refinedev/core";
+import { useCan, useList } from "@refinedev/core";
 import { Badge } from "../../components/badge";
 import { DataTable } from "../../components/data-table";
 import { EmptyState } from "../../components/states";
@@ -48,6 +48,10 @@ export const FeedQueueList = () => {
     queryOptions: { refetchInterval: REFRESH_EVERY_MS, refetchIntervalInBackground: false },
   });
   const rows = result?.data ?? [];
+  // Reading the queue and deciding it are two permissions; a reader sees the
+  // phrases and no buttons that would answer 403 (feed-queue panel, 2026-09-22).
+  const { data: decideAccess } = useCan({ resource: "feed_queue", action: "decide" });
+  const mayDecide = decideAccess?.can === true;
 
   // The row whose Refuse was pressed once; a second press sends.
   const [arming, setArming] = useState<string | null>(null);
@@ -135,7 +139,9 @@ export const FeedQueueList = () => {
             key: "id",
             label: "",
             render: (row) =>
-              arming === row.id
+              !mayDecide
+                ? null
+                : arming === row.id
                 ? (
                   <span className="row-actions">
                     <span className="text-muted">Refuse for good?</span>{" "}

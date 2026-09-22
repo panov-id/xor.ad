@@ -349,7 +349,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Фразы, ждущие вердикта до того, как их кто-либо увидит</strong></p>
 <p>Очередь модератора, пока модель не подключена (спека чата §8.3, §8.14): текст, режим, имя, с которым фраза выйдет, и его состояние, сколько ждёт — и никогда личность автора. Модератор тенанта видит только свой бренд. Построено 22.09.2026.</p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Не больше 200, старые первыми, плоским массивом с x-total-count.</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права feed_queue.read</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Не больше 200, старые первыми, плоским массивом; x-total-count считает всю очередь, а не страницу (22.09.2026).</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права feed_queue.read</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/feed_queue.ts</code></p>
 </section>
 <section class="op" id="post-admin-feed-queue--id--publish">

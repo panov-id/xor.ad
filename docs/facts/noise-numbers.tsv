@@ -108,4 +108,4 @@ value	unit	kind	why	example
 61	min	sample.data	вход теста границы срока первого ПИН: 61 минута — отказ, 59 — приём	xor.ad/docs/open-work_RU.md:1438
 1404	chars	measurement	длина шифротекста фразы в 256 символов после base64url: 1024 + 12 nonce + 16 тег (§8.1, §8.13 сходятся)	xor.ad/docs/chat_EN.md:2656
 1,4	KB	prose.figure	то же число словами в §8.13 RU («~1,4 КБ»); в §8.1 оно как «1.4 КБ»	xor.ad/docs/chat_RU.md:2625
-8	bytes	prose.figure	длина среза хеша в выводе кода безопасности, не предел	xor.ad/docs/chat_EN.md:2672
+16	bytes	prose.figure	длина среза хеша в выводе кода безопасности, не предел	xor.ad/docs/chat_EN.md:2672

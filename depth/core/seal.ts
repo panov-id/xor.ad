@@ -192,12 +192,13 @@ export class Conversation {
 // public halves, so it could slip in its own; comparing this code in person or
 // by voice is what catches that. It is derived from the two identities' LONG
 // keys only — never the ephemeral halves — so it survives a rekey and changes
-// only when an identity's key does. Twelve digits in groups of four
-// (owner's decision, 2026-09-22).
+// only when an identity's key does. Twenty digits in five groups of four
+// (owner's decision, 2026-09-22): twelve were ~40 bits, which a node that
+// swaps keys can grind in days; twenty are ~66 (security lens, same day).
 //   P = the key's point, uncompressed (65 bytes) — one encoding per key, and an
 //       SPKI that is not a P-256 point is refused rather than hashed
 //   code = SHA-256("xor.safety.v1\n" ‖ min(P_a, P_b) ‖ max(P_a, P_b))
-//          first 8 bytes as an unsigned integer, mod 10^12, zero-padded
+//          first 16 bytes as an unsigned integer, mod 10^20, zero-padded
 // The client computes it where the conversation is opened, from the same key
 // that verified the peer's half (Client.openConversation): a code taken from
 // another read could match while the conversation runs under a planted key
@@ -223,9 +224,9 @@ export async function safetyCode(longSpkiA: string, longSpkiB: string): Promise<
   input.set(second, prefix.length + POINT_BYTES);
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", input as BufferSource));
   let n = 0n;
-  for (const byte of digest.subarray(0, 8)) n = (n << 8n) | BigInt(byte);
-  const digits = (n % 1_000_000_000_000n).toString().padStart(12, "0");
-  return `${digits.slice(0, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}`;
+  for (const byte of digest.subarray(0, 16)) n = (n << 8n) | BigInt(byte);
+  const digits = (n % 100_000_000_000_000_000_000n).toString().padStart(20, "0");
+  return digits.match(/\d{4}/g)!.join(" ");
 }
 
 function compareBytes(x: Uint8Array, y: Uint8Array): number {

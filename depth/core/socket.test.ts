@@ -376,7 +376,7 @@ Deno.test({
       const mine = (await a.openConversation(chatId, matchId)).safetyCode;
       const theirs = (await b.openConversation(chatId, matchId)).safetyCode;
       assertEquals(mine, theirs, "the two sides of one conversation see different codes");
-      assert(/^\d{4} \d{4} \d{4}$/.test(mine), `not a safety code: ${mine}`);
+      assert(/^\d{4} \d{4} \d{4} \d{4} \d{4}$/.test(mine), `not a safety code: ${mine}`);
     } finally {
       await sql.end();
     }

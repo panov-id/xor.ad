@@ -19,4 +19,3 @@ __pycache__/
 # DPA Hetzner). Сами файлы лежат в docs/ на диске; в историю не идут.
 docs/*.pdf
 /depth/node_modules/
-/depth/package-lock.json

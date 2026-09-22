@@ -3055,3 +3055,41 @@ Deno.test({
     reset();
   },
 });
+
+Deno.test({
+  name: "the inbox cursor crosses from offers to conversations without losing a row",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const { a, chat } = await openChat();
+    const second = await openChat();
+    // a in a second conversation too: move b's chat of the second pair onto a.
+    await database.queryOrThrow(
+      `UPDATE chat_participants SET identity = $1 WHERE chat_id = $2 AND identity = $3`,
+      [a.identity_id, second.chat, second.a.identity_id]);
+    // Exactly a page of offers to talk before them.
+    await database.queryOrThrow(
+      `WITH n AS (SELECT g, gen_random_uuid() AS partner, gen_random_uuid() AS match FROM generate_series(1, 100) g)
+       , who AS (INSERT INTO identities (id, name, age, identity_public_key) SELECT partner, 'п' || g, 30, 'k' FROM n)
+       , m AS (INSERT INTO matches (id, pair_key, created_at, expires_at)
+               SELECT match, 'cross-' || match, now() - g * interval '1 microsecond', now() + interval '1 hour' FROM n)
+       INSERT INTO match_participants (match_id, identity, message_id, text_snapshot, mode)
+       SELECT match, $1::uuid, gen_random_uuid(), 'моя', 'alone' FROM n
+       UNION ALL
+       SELECT match, partner, gen_random_uuid(), 'его ' || g, 'alone' FROM n`,
+      [a.identity_id]);
+    const page = async (after?: string) => (await signedCall(a.pair.privateKey, a.session_id, "GET",
+      `/inbox${after ? `?after=${encodeURIComponent(after)}` : ""}`)).body as { items: Array<{ id: string; kind: string }>; next?: string };
+    const first = await page();
+    assertEquals(first.items.length, 100);
+    assert(first.items.every((i) => i.kind === "match"), "the first page mixed runs");
+    assert(first.next, "a page of offers with conversations behind it gave no cursor");
+    const rest = await page(first.next);
+    assertEquals(rest.items.map((i) => i.kind), ["chat", "chat"], "the conversations did not follow the offers");
+    assertEquals(new Set(rest.items.map((i) => i.id)), new Set([chat, second.chat]));
+    assertEquals(rest.next, undefined);
+    reset();
+  },
+});

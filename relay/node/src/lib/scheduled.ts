@@ -12,6 +12,7 @@
 // anywhere — found by a review panel on 2026-09-08 and reproduced against a live
 // Postgres before this was changed.
 
+import { sweepSupport } from "./support_sweeper.ts";
 import { enqueueOnce, handle } from "./jobs.ts";
 import { queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
@@ -64,6 +65,8 @@ export const PRUNE_NONCES = "prune_nonces";
 // the name docs/facts/limits.tsv gives as their enforcer, and until 2026-09-20
 // the name pointed at nothing at all.
 export const SWEEP_IDENTITIES = "sweep_identities";
+// Support requests past their year (chat spec §13; support.retention).
+export const SWEEP_SUPPORT = "sweep_support";
 // Phrases that waited past `moderation.queue.wait` without a verdict. §8.3:
 // such a row is deleted and does not count as queued — so the author's slot
 // frees and their pause does not grow because the node was slow.
@@ -204,6 +207,11 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
+  handle(SWEEP_SUPPORT, async () => {
+    await sweepSupport();
+    return new Date(Date.now() + A_DAY_MS);
+  });
+
   handle(SWEEP_IDENTITIES, async () => {
     // Hourly, not daily: the shortest of the three deadlines is an hour, and a
     // once-a-night pass would hold abandoned signups for a day at worst — rows
@@ -294,6 +302,7 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_NONCES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
+  await enqueueOnce(SWEEP_SUPPORT, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));

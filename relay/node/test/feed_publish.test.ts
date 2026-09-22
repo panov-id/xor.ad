@@ -3228,3 +3228,22 @@ Deno.test({
       "a frozen session wrote to support while the identity had a live one");
   },
 });
+
+Deno.test({
+  name: "a support request is kept a year from created_at, and not a day longer",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const old = ((await support(me, "POST", "/support", { body: "давнее", nonce: nonce16() })).body as { public_no: string }).public_no;
+    const recent = ((await support(me, "POST", "/support", { body: "недавнее", nonce: nonce16() })).body as { public_no: string }).public_no;
+    await database.queryOrThrow(`UPDATE support_requests SET created_at = now() - interval '1 year 1 day' WHERE public_no = $1`, [old]);
+    await database.queryOrThrow(`UPDATE support_requests SET created_at = now() - interval '364 days' WHERE public_no = $1`, [recent]);
+    const { sweepSupport } = await import("../src/lib/support_sweeper.ts");
+    const swept = await sweepSupport();
+    assert(swept >= 1, "the sweeper deleted nothing");
+    const left = await database.queryOrThrow<{ public_no: string }>(
+      `SELECT public_no FROM support_requests WHERE public_no = ANY($1::text[])`, [[old, recent]]);
+    assertEquals(left.map((r) => r.public_no), [recent], "a request outlived its year, or one inside it went");
+  },
+});

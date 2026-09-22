@@ -1,0 +1,102 @@
+// The terminal face: which screen is on, and nothing else. Every fact it
+// holds — the identity, the point, the phrase, the conversation — lives in
+// this process and dies with it (§8.13, and the owner's decision about the
+// point, 2026-09-22).
+
+import { createElement as h, useState } from "react";
+import type { ReactElement } from "react";
+import { Box, Text } from "ink";
+import { Client } from "../core/client.ts";
+import type { Say } from "./strings.ts";
+import { Feed, Location, Registration } from "./screens.ts";
+import type { Place } from "./screens.ts";
+import { Chat, Inbox, Write } from "./rooms.ts";
+
+// The phrase's length is the node's to state (§8.3); until it has spoken, the
+// screen uses the number the client documents, and the node refuses anything
+// longer anyway.
+const LENGTH = 146;
+
+type Where =
+  | { screen: "register" }
+  | { screen: "location" }
+  | { screen: "feed" }
+  | { screen: "write" }
+  | { screen: "inbox" }
+  | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number };
+
+export function App({ say, client }: { say: Say; client: Client }): ReactElement {
+  const [where, setWhere] = useState<Where>({ screen: "register" });
+  const [place, setPlace] = useState<Place | undefined>(undefined);
+  const [mine, setMine] = useState<{ text: string; state: string } | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const fail = (message: string) => setError(say("common.error", { message }));
+
+  const feed = () => setWhere({ screen: "feed" });
+  const body = (() => {
+    switch (where.screen) {
+      case "register":
+        return h(Registration, {
+          say,
+          error,
+          onDone: (name, age) => {
+            setError(undefined);
+            client.register({ name, age }, { testOnly: true })
+              .then(() => client.confirmPaperCode())
+              .then(() => setWhere({ screen: "location" }))
+              .catch((e: Error) => fail(e.message));
+          },
+        });
+      case "location":
+        return h(Location, { say, place, onDone: (next) => { setPlace(next); feed(); } });
+      case "feed":
+        return h(Feed, {
+          say,
+          client,
+          place: place!,
+          mine,
+          onWrite: () => setWhere({ screen: "write" }),
+          onInbox: () => setWhere({ screen: "inbox" }),
+          onPoint: () => setWhere({ screen: "location" }),
+          onError: fail,
+        });
+      case "write":
+        return h(Write, {
+          say,
+          client,
+          place: place!,
+          limit: LENGTH,
+          onDone: (text) => { setMine({ text, state: "pending" }); feed(); },
+          onBack: feed,
+          onError: fail,
+        });
+      case "inbox":
+        return h(Inbox, {
+          say,
+          client,
+          onOpen: (chatId, matchId, name, age) => setWhere({ screen: "chat", chatId, matchId, name, age }),
+          onBack: feed,
+          onError: fail,
+        });
+      case "chat":
+        return h(Chat, {
+          say,
+          client,
+          chatId: where.chatId,
+          matchId: where.matchId,
+          name: where.name,
+          age: where.age,
+          limit: LENGTH,
+          onBack: () => setWhere({ screen: "inbox" }),
+          onError: fail,
+        });
+    }
+  })();
+
+  return h(
+    Box,
+    { flexDirection: "column" },
+    body,
+    error && where.screen !== "register" ? h(Text, { color: "red" }, error) : null,
+  );
+}

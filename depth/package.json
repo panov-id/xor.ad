@@ -1,0 +1,17 @@
+{
+  "name": "depth",
+  "private": true,
+  "type": "module",
+  "description": "The terminal face of xor.ad: Ink screens over the core in depth/core.",
+  "scripts": {
+    "start": "node --experimental-transform-types ink/main.ts",
+    "test": "node --experimental-transform-types --test ink/*.node-test.ts"
+  },
+  "dependencies": {
+    "ink": "6.0.1",
+    "react": "19.1.0"
+  },
+  "devDependencies": {
+    "ink-testing-library": "4.0.0"
+  }
+}

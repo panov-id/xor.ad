@@ -60,7 +60,10 @@ export class Client {
   #edge: Record<string, string> = {};
 
   constructor(private readonly base: string, private readonly apiKey: string) {
-    const token = Deno.env.get("DEPTH_ORIGIN_TOKEN");
+    // Deno in the tests, Node under the terminal face: the same variable, and
+    // neither runtime's absence may throw here.
+    const env = globalThis as { Deno?: { env: { get(name: string): string | undefined } }; process?: { env: Record<string, string | undefined> } };
+    const token = env.Deno ? env.Deno.env.get("DEPTH_ORIGIN_TOKEN") : env.process?.env.DEPTH_ORIGIN_TOKEN;
     if (token) {
       const r = crypto.getRandomValues(new Uint8Array(3));
       this.#edge = { "x-origin-token": token, "x-client-ip": `10.${r[0]}.${r[1]}.${r[2]}` };

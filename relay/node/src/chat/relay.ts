@@ -87,6 +87,18 @@ function ensureListeningClosed(): Promise<void> {
   return listeningClosed;
 }
 
+// §8.13 reissue: `NOTIFY chat_rekey` carries "<chat>:<epoch>"; every room of
+// the chat gets a `rekey` frame, so an open conversation learns that the
+// other side asked for new keys, or agreed, without polling its inbox.
+let listeningRekey: Promise<void> | null = null;
+function ensureListeningRekey(): Promise<void> {
+  listeningRekey ??= listen("chat_rekey", (payload) => {
+    const [chat, epoch] = payload.split(":");
+    for (const room of rooms.get(chat) ?? []) frame(room, "rekey", { epoch: Number(epoch) });
+  });
+  return listeningRekey;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     const [chat, localId] = payload.split(":");
@@ -169,6 +181,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   await ensureListening();
   await ensureListeningFrozen();
   await ensureListeningClosed();
+  await ensureListeningRekey();
   const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();

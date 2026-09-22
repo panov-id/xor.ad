@@ -1978,8 +1978,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/chats.ts
       security: [{identitySignature: []}]
-      description: "§8.13, built 2026-09-22. The side without keys publishes a new ephemeral half at the next epoch; the other side, once its person agrees, answers at the same epoch; both then derive new keys, and nothing restores the old ones. Each half is signed by the long key over \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI. One step at a time: start only when both hold the same epoch, answer only the epoch the other side started — otherwise 409 rekey_out_of_step. The other side learns from GET /inbox (rekey_requested); no socket frame yet. Shares the chat budget (chat.messages.minute)."
-      x-description-ru: "§8.13, построено 22.09.2026. Сторона без ключей публикует новую эфемерную половину на следующей эпохе; вторая, когда её человек согласен, отвечает на той же; обе выводят новые ключи, прежние не восстанавливаются ничем. Каждая половина подписана долгим ключом над \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI. По шагу за раз: начинать — только когда эпохи равны, отвечать — только на начатую другой стороной, иначе 409 rekey_out_of_step. Вторая сторона узнаёт из GET /inbox (rekey_requested); кадра сокета пока нет. Бюджет общий с беседой (chat.messages.minute)."
+      description: "§8.13, built 2026-09-22. The side without keys publishes a new ephemeral half at the next epoch; the other side, once its person agrees, answers at the same epoch; both then derive new keys, and nothing restores the old ones. Each half is signed by the long key over \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI. One step at a time: start only when both hold the same epoch, answer only the epoch the other side started — otherwise 409 rekey_out_of_step. Every open room of the chat gets a rekey frame {epoch}; a device that was away learns from GET /inbox (rekey_requested). On agreed, whatever waited under the old keys in the delivery queue is deleted — no one can open it any more. Shares the chat budget (chat.messages.minute)."
+      x-description-ru: "§8.13, построено 22.09.2026. Сторона без ключей публикует новую эфемерную половину на следующей эпохе; вторая, когда её человек согласен, отвечает на той же; обе выводят новые ключи, прежние не восстанавливаются ничем. Каждая половина подписана долгим ключом над \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI. По шагу за раз: начинать — только когда эпохи равны, отвечать — только на начатую другой стороной, иначе 409 rekey_out_of_step. Все открытые комнаты беседы получают кадр rekey {epoch}; отсутствовавшее устройство узнаёт из GET /inbox (rekey_requested). На agreed ждущее в очереди доставки под старыми ключами удаляется — открыть его больше некому. Бюджет общий с беседой (chat.messages.minute)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -1997,7 +1997,17 @@ paths:
                 ephemeral_public_key: {type: string, description: "P-256 ECDH public key, SPKI, base64url (≤256 chars).", x-description-ru: "Публичный ключ ECDH P-256, SPKI, base64url (≤256 знаков)."}
                 ephemeral_signature: {type: string, description: "ECDSA P-256/SHA-256 by the long key over the bytes above, base64url (≤256 chars).", x-description-ru: "ECDSA P-256/SHA-256 долгим ключом над байтами выше, base64url (≤256 знаков)."}
       responses:
-        "200": {description: "{state: waiting | agreed, epoch}.", x-description-ru: "{state: waiting | agreed, epoch}."}
+        "200":
+          description: "{state: waiting | agreed, epoch}."
+          x-description-ru: "{state: waiting | agreed, epoch}."
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, epoch]
+                properties:
+                  state: {type: string, enum: [waiting, agreed]}
+                  epoch: {type: integer, minimum: 1}
         "400": {description: "invalid_body: a missing or malformed epoch or half, or a signature that does not verify for this chat and epoch; or an unsupported protocol version.", x-description-ru: "invalid_body: нет или кривая эпоха либо половина, подпись не сходится для этой беседы и эпохи; или неподдерживаемая версия протокола."}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "404": {description: "Not the caller's chat, over, or blocked between the two.", x-description-ru: "Не беседа звонящего, кончилась или между двоими блок."}

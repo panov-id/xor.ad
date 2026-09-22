@@ -283,8 +283,8 @@ async function span(req: Request, chatId: string): Promise<Response> {
 // One step at a time: a side may start the next epoch only when both hold the
 // same one, and may answer only the epoch the other side started. Anything
 // else is 409 — the node does not let two reissues race each other.
-// Not built: a frame telling the other side's open room; it learns from the
-// inbox (rekey_requested), which is what a returning device reads first.
+// The other side's open rooms get a `rekey` frame {epoch} (NOTIFY chat_rekey);
+// a device that was away learns from the inbox (rekey_requested).
 export const REKEY_DOMAIN = "xor.rekey.v1\n";
 export function rekeyToSign(chatId: string, epoch: number, spki: Uint8Array): Uint8Array {
   const prefix = new TextEncoder().encode(`${REKEY_DOMAIN}${chatId}\n${epoch}\n`);
@@ -354,6 +354,13 @@ async function rekey(req: Request, chatId: string): Promise<Response> {
         WHERE chat_id = $1 AND identity = $2`,
       [chatId, me.identity, epoch, key, signature],
     );
+    // Agreed: whatever waited under the old keys can never be opened by
+    // anyone — the old keys are gone on both sides — so it goes now rather
+    // than failing on each device that fetches it (rekey panel, 2026-09-22).
+    if (answering) await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+    // Every open room of the chat hears it, in the same transaction: the
+    // other side learns of a request without waiting for its inbox.
+    await run(`SELECT pg_notify('chat_rekey', $1)`, [`${chatId}:${epoch}`]);
     inc("relay_chat_rekey_total", { step: starting ? "asked" : "agreed" });
     return json({ state: answering ? "agreed" : "waiting", epoch }, 200, sunsetHeader());
   }).catch((error) => {

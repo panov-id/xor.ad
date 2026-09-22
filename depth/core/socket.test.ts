@@ -250,7 +250,11 @@ Deno.test({
       assertEquals((await b.acceptRekey(chatId)).body, { state: "agreed", epoch: 1 });
 
       await a.sayInChat(chatId, "после перевыпуска");
-      const after = (await room.next()).data as { id: string; ciphertext: string };
+      // The reissue itself arrives as frames too (type "rekey"); the message is after them.
+      let next = await room.next();
+      while (next.type === "rekey") next = await room.next();
+      assertEquals(next.type, "message");
+      const after = next.data as { id: string; ciphertext: string };
       assertEquals(await b.read(chatId, after.ciphertext, after.id), "после перевыпуска");
       // The old box does not open under the new keys: nothing restores the old K.
       let reopened = false;
@@ -303,6 +307,29 @@ Deno.test({
       let rolledBack = false;
       try { await a.sayInChat(chatId, "после отката"); rolledBack = true; } catch { /* expected */ }
       assert(!rolledBack, "a sealed under a half the node rolled back to");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
+Deno.test({
+  name: "an open room hears that the other side asked for new keys",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await room.protocol();
+      a.forget(chatId);
+      await a.requestRekey(chatId);
+      const heard = await room.next();
+      assertEquals(heard.type, "rekey", "the open room was not told about the request");
+      assertEquals((heard.data as { epoch: number }).epoch, 1);
+      room.close();
     } finally {
       await sql.end();
     }

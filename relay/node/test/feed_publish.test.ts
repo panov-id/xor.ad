@@ -2876,3 +2876,57 @@ Deno.test({
     assertEquals((await matchCall(stranger, "POST", `/chats/${chat}/rekey`, await rekeyHalf(stranger, chat, 2))).status, 404);
   },
 });
+
+// ── Reissue tails (panel 2026-09-22, rekey) ────────────────────────────────────
+Deno.test({
+  name: "agreeing to new keys clears what waited under the old ones",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const { a, b, chat } = await openChat();
+    // b writes while a is away: the box waits for a, under the old keys.
+    const sent = await matchCall(b, "POST", `/chats/${chat}/messages`, { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    assertEquals(sent.status, 202, JSON.stringify(sent.body));
+    const waiting = async () => (await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pending_deliveries WHERE chat = $1`, [chat]))[0].n;
+    assertEquals(await waiting(), 1);
+    await matchCall(a, "POST", `/chats/${chat}/rekey`, await rekeyHalf(a, chat, 1));
+    assertEquals(await waiting(), 1, "a request alone must not throw anything away");
+    await matchCall(b, "POST", `/chats/${chat}/rekey`, await rekeyHalf(b, chat, 1));
+    assertEquals(await waiting(), 0, "boxes under the old keys outlived the reissue");
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a pair whose conversation ended for both gets a new one, not the dead one",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const { a, b, chat } = await openChat();
+    // Over for both, and the sweeper has not come yet: the row is still there.
+    await database.queryOrThrow(`UPDATE chat_participants SET gone_at = now() WHERE chat_id = $1`, [chat]);
+    await database.queryOrThrow(`DELETE FROM matches WHERE chat_id = $1`, [chat]);
+    reset();
+    const mine = await seedPhrase(a.identity_id, "снова у реки");
+    const theirs = await seedPhrase(b.identity_id, "снова у залива");
+    // b's like from openChat still stands, so a's like on b's new phrase is
+    // already mutual: the match forms there.
+    const again = await like(a, theirs);
+    const made = stateOf(again) === "matched" ? again : await like(b, mine);
+    assertEquals(stateOf(made), "matched", `the pair could not match again after their conversation ended: ${JSON.stringify(made.body)}`);
+    const id = (made.body as { match_id: string }).match_id;
+    await consent(a, id);
+    const agreed = await consent(b, id);
+    const fresh = (agreed.body as { chat_id: string }).chat_id;
+    assert(fresh && fresh !== chat, "the pair was put back into the conversation that had ended for both");
+    const [live] = await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM chat_participants WHERE chat_id = $1 AND gone_at IS NULL`, [fresh]);
+    assertEquals(live.n, 2);
+    reset();
+  },
+});

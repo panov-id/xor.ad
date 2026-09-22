@@ -163,8 +163,21 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
         ORDER BY identity FOR UPDATE`,
       [matchId],
     );
+    // A chat of the pair that is over for both and not yet swept is not a
+    // chat to join: it goes first, and the pair gets a new one. Joining it put
+    // two people back into a conversation that had ended for both, with the
+    // rooms already closed (rekey panel, 2026-09-22 — found reading the kept
+    // branch below).
+    await run(
+      `DELETE FROM chats c
+        WHERE c.pair_key = $1
+          AND NOT EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)`,
+      [existing.pair_key],
+    );
     // One chat per pair: an existing one (a chat that outlived an older match of
     // the pair) is joined rather than duplicated, never a unique-key failure.
+    // After the delete above it is a live chat, which the like forbids a new
+    // match beside (likes.ts, chatLives) — so this branch is a guard, not a path.
     const [created] = await run<{ id: string }>(
       `INSERT INTO chats (id, pair_key) VALUES ($1, $2)
        ON CONFLICT (pair_key) DO NOTHING RETURNING id`,

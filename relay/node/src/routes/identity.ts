@@ -275,10 +275,24 @@ async function readProfile(req: Request): Promise<Response> {
   const row = rows[0];
   if (!row) return refuse("unauthorized", "the request is not signed by a live session", 401);
 
+  // One's own live phrases (protocol §4.11, agreed 17.09.2026): published ones
+  // with their end, and the ones still waiting for the queue with none — a step
+  // away takes both (§8.2), and its price is counted from this list
+  // (23.09.2026). quota and table still wait for what they belong to.
+  const phrases = await query<{ id: string; expires_at: Date | null }>(
+    `SELECT id, expires_at FROM feed_messages
+      WHERE author_identity = $1 AND (visible_at IS NULL OR expires_at > now())
+      ORDER BY created_at`,
+    [caller.identityId],
+  );
+  if (phrases === null) {
+    inc("relay_profile_total", { result: "unavailable" });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  }
+
   inc("relay_profile_total", { result: "served" });
-  // Only what step 1 can honestly answer. quota, phrases and table belong to the
-  // feed and the tables, and neither exists yet — a zero there would be a number
-  // the node made up, which is worse than a field the client knows is missing.
+  // Only what the node can honestly answer: quota and table belong to things
+  // that do not exist yet — a zero there would be a number the node made up.
   return json({
     name: row.name,
     ...(row.name_pending ? { name_pending: row.name_pending } : {}),
@@ -290,6 +304,10 @@ async function readProfile(req: Request): Promise<Response> {
     ...(row.filter_age_min === null ? {} : { filter_age_min: row.filter_age_min }),
     ...(row.filter_age_max === null ? {} : { filter_age_max: row.filter_age_max }),
     languages: row.languages ?? [],
+    phrases: phrases.map((f) => ({
+      id: f.id,
+      ...(f.expires_at ? { expires_at: Math.floor(f.expires_at.getTime() / 1000) } : {}),
+    })),
     ...(row.stepped_away_until
       ? { stepped_away_until: Math.floor(row.stepped_away_until.getTime() / 1000) }
       : {}),

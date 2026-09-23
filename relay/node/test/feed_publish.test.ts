@@ -3583,3 +3583,39 @@ Deno.test({
     }
   },
 });
+
+// The profile lists one's own live phrases (protocol §4.11): the step away's
+// price is counted from it, so it has to hold exactly what a step away takes.
+Deno.test({
+  name: "the profile lists one's own live phrases, waiting ones included, and nobody else's",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    const other = await author();
+    const live = await seedPhrase(me.identity_id, "живая фраза");
+    await seedPhrase(other.identity_id, "чужая фраза");
+    const waiting = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+         lat_published, lon_published)
+       VALUES ($1, 'xor', $2, 'ждёт очереди', 'alone', 'und', 60.17, 24.94, 1000, 60.17, 24.94)`,
+      [waiting, me.identity_id],
+    );
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+         lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, 'истёкшая', 'alone', 'und', 60.17, 24.94, 1000, 60.17, 24.94,
+               now() - interval '5 hours', now() - interval '1 hour')`,
+      [crypto.randomUUID(), me.identity_id],
+    );
+    const profile = async () =>
+      ((await matchCall(me, "GET", "/identities/me")).body as { phrases: Array<{ id: string; expires_at?: number }> }).phrases;
+    const list = await profile();
+    assertEquals(list.map((p) => p.id).sort(), [live, waiting].sort(), "the profile's phrases are not exactly one's own live ones");
+    assert(typeof list.find((p) => p.id === live)?.expires_at === "number", "a published phrase came without its end");
+    assertEquals(list.find((p) => p.id === waiting)?.expires_at, undefined, "a phrase waiting for the queue came with an end");
+    assertEquals((await matchCall(me, "POST", "/away", { span: "short", nonce: awayNonce() })).status, 200);
+    assertEquals((await profile()).length, 0, "the profile still lists phrases a step away took");
+  },
+});

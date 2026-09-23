@@ -77,5 +77,13 @@
   "statements.law": "ley:",
   "statements.terms": "condiciones:",
   "statements.appeal": "respondernos, acudir al coordinador de servicios digitales, acudir a los tribunales",
-  "statements.gotIt": "entendido"
+  "statements.gotIt": "entendido",
+  "liked.title": "me gusta",
+  "liked.empty": "nada marcado con me gusta",
+  "liked.at": "me gusta {time}",
+  "liked.offer": "propuesta de hablar",
+  "liked.toOffer": "a la propuesta",
+  "liked.undone": "retirado",
+  "liked.undo": "deshacer",
+  "liked.more": "mostrar más"
 }

@@ -77,5 +77,13 @@
   "statements.law": "закон:",
   "statements.terms": "умовы:",
   "statements.appeal": "адказаць нам, звярнуцца да каардынатара лічбавых паслуг, звярнуцца ў суд",
-  "statements.gotIt": "зразумела"
+  "statements.gotIt": "зразумела",
+  "liked.title": "спадабанае",
+  "liked.empty": "спадабанага няма",
+  "liked.at": "лайк {time}",
+  "liked.offer": "прапанова пагаварыць",
+  "liked.toOffer": "да прапановы",
+  "liked.undone": "знята",
+  "liked.undo": "вярнуць",
+  "liked.more": "паказаць яшчэ"
 }

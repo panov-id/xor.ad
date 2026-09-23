@@ -1848,10 +1848,11 @@ paths:
       tags: [feed]
       summary: "Everything you liked that is still alive"
       x-summary-ru: "Всё лайкнутое, что ещё живо"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/likes.ts
       security: [{identitySignature: []}]
-      description: "Cards of the same shape as GET /feed: phrases and private authors' offers with state (liked | matched) and tables; by the after cursor (protocol §4.3; screen 25; the owner's decision of 2026-09-17, agreed 2026-09-17)."
-      x-description-ru: "Карточки той же формы, что в GET /feed: фразы и офферы частников со state (liked | matched) и столы; курсором after (протокол §4.3; экран 25; решение владельца 17.09.2026, утверждено 17.09.2026)."
+      description: "Cards of the same shape as GET /feed, plus state (liked | matched — matched when a live match came out of the phrase, and DELETE /feed/{id}/like then answers spent) and liked_at; newest like first, 30 a page, by the after cursor; phrases of either side of a block and expired ones drop out (protocol §4.3; screen 25; agreed 2026-09-17). Built 2026-09-23 for phrases; tables and the one-sided match of an offer are not built, so an offer is liked here until it is."
+      x-description-ru: "Карточки той же формы, что в GET /feed, плюс state (liked | matched — matched, когда из фразы вышел живой мэтч, и DELETE /feed/{id}/like тогда отвечает spent) и liked_at; новые лайки сверху, по 30, курсором after; фразы по обе стороны блока и истёкшие выпадают (протокол §4.3; экран 25; утверждено 17.09.2026). Построено 23.09.2026 для фраз; столов и одностороннего мэтча оффера нет, поэтому оффер здесь liked, пока их нет."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -1860,8 +1861,9 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {description: "invalid_body: after is not a cursor this list gave; or an unsupported protocol version.", x-description-ru: "invalid_body: after — не курсор, выданный этим списком; или неподдерживаемая версия протокола.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: A page of liked cards and the next cursor., x-description-ru: Страница лайкнутых карточек и следующий курсор., content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
   /feed/{id}:
     delete:

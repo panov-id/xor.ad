@@ -77,5 +77,13 @@
   "statements.law": "мыйзам:",
   "statements.terms": "шарттар:",
   "statements.appeal": "бизге жооп берүү, санариптик кызматтар координаторуна кайрылуу, сотко кайрылуу",
-  "statements.gotIt": "түшүнүктүү"
+  "statements.gotIt": "түшүнүктүү",
+  "liked.title": "жактырылгандар",
+  "liked.empty": "жактырылган жок",
+  "liked.at": "лайк {time}",
+  "liked.offer": "сүйлөшүү сунушу",
+  "liked.toOffer": "сунушка",
+  "liked.undone": "алынды",
+  "liked.undo": "кайтаруу",
+  "liked.more": "дагы көрсөтүү"
 }

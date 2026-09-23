@@ -12,7 +12,7 @@ import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, Registration } from "./screens.ts";
 import type { Place } from "./screens.ts";
-import { Chat, Hidden, Inbox, Statements, Write } from "./rooms.ts";
+import { Chat, Hidden, Inbox, Liked, Statements, Write } from "./rooms.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -36,6 +36,7 @@ type Where =
   | { screen: "inbox" }
   | { screen: "hidden" }
   | { screen: "statements" }
+  | { screen: "liked" }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number };
 
 export function App({ say, client }: { say: Say; client: Client }): ReactElement {
@@ -88,6 +89,7 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           onInbox: () => setWhere({ screen: "inbox" }),
           onPoint: () => setWhere({ screen: "location" }),
           onHidden: () => setWhere({ screen: "hidden" }),
+          onLiked: () => setWhere({ screen: "liked" }),
           restrictions: statements?.length ?? 0,
           onRestrictions: () => setWhere({ screen: "statements" }),
           onError: fail,
@@ -104,6 +106,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
         });
       case "statements":
         return h(Statements, { say, lang: languageOf(process.env), items: statements ?? [], onDone: feed });
+      case "liked":
+        return h(Liked, { say, client, onInbox: () => setWhere({ screen: "inbox" }), onBack: feed, onError: fail });
       case "hidden":
         return h(Hidden, { say, client, onBack: feed, onError: fail });
       case "inbox":

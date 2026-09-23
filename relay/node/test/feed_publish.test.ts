@@ -3333,3 +3333,101 @@ Deno.test({
     assertEquals([mine.answer, mine.answer_seen], ["и вот ещё", false]);
   },
 });
+
+// ── GET /likes (depth-client §4.10, screen 25): a liked phrase leaves the feed ──
+const feedIds = async (who: { pair: CryptoKeyPair; session_id: string }) => {
+  const r = await signedCall(who.pair.privateKey, who.session_id, "GET", "/feed?lat=60.17&lon=24.94&radius=1000");
+  assertEquals(r.status, 200, JSON.stringify(r.body));
+  return (r.body as { items: Array<{ id: string }> }).items.map((i) => i.id);
+};
+const likesOf = async (who: { pair: CryptoKeyPair; session_id: string }, after?: string) => {
+  const r = await signedCall(who.pair.privateKey, who.session_id, "GET", after ? `/likes?after=${after}` : "/likes");
+  assertEquals(r.status, 200, JSON.stringify(r.body));
+  return r.body as { items: Array<{ id: string; state: string; text: string; liked_at: number }>; next: string | null };
+};
+
+Deno.test({ name: "a liked phrase leaves my feed, not anybody else's, and waits in my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const c = await author();
+  await seedPhrase(a.identity_id, "кто на набережную?");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  assert((await feedIds(a)).includes(theirs), "the fixture phrase is not in the feed to begin with");
+
+  assertEquals(stateOf(await like(a, theirs)), "liked");
+  assertEquals((await feedIds(a)).includes(theirs), false, "a liked phrase stayed in the liker's feed");
+  assert((await feedIds(c)).includes(theirs), "a like took the phrase out of somebody else's feed");
+  const list = await likesOf(a);
+  assertEquals(list.items.map((i) => [i.id, i.state, i.text]), [[theirs, "liked", "гуляю у залива"]]);
+  assertEquals((await likesOf(c)).items.length, 0, "another person's likes leaked into this list");
+  reset();
+});
+
+Deno.test({ name: "a like that became a match is listed as matched, on both sides", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?", "company");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  await like(a, theirs);
+  assertEquals(stateOf(await like(b, mine)), "matched");
+  assertEquals((await likesOf(a)).items.map((i) => [i.id, i.state]), [[theirs, "matched"]]);
+  assertEquals((await likesOf(b)).items.map((i) => [i.id, i.state]), [[mine, "matched"]]);
+  reset();
+});
+
+Deno.test({ name: "a like taken back returns the phrase to the feed, and a block takes it out of the list", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const c = await author();
+  await seedPhrase(a.identity_id, "кто на набережную?");
+  const fromB = await seedPhrase(b.identity_id, "гуляю у залива");
+  const fromC = await seedPhrase(c.identity_id, "ищу компанию на пробежку");
+  await like(a, fromB);
+  await like(a, fromC);
+  assertEquals((await likesOf(a)).items.map((i) => i.id), [fromC, fromB], "not newest like first");
+
+  await signedCall(a.pair.privateKey, a.session_id, "DELETE", `/feed/${fromB}/like`);
+  assert((await feedIds(a)).includes(fromB), "a like taken back did not return the phrase to the feed");
+  assertEquals((await likesOf(a)).items.map((i) => i.id), [fromC]);
+
+  await signedCall(c.pair.privateKey, c.session_id, "POST", "/blocks", { feed: await seedPhrase(a.identity_id, "ещё одна"), nonce: nonce() });
+  assertEquals((await likesOf(a)).items.length, 0, "a phrase of somebody who blocked me stayed in my likes");
+  reset();
+});
+
+Deno.test({ name: "the likes list pages by the time of the like, and refuses a cursor it did not give", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const ids: string[] = [];
+  for (let i = 0; i < 32; i++) {
+    const id = await seedPhrase(b.identity_id, `фраза ${i}`);
+    ids.push(id);
+    // Straight into the table: the like rules are tested above, and 32 likes
+    // through the route would spend the hour's allowance.
+    await database.queryOrThrow(
+      `INSERT INTO likes (liker_identity, feed_message_id, created_at) VALUES ($1, $2, now() - ($3 || ' seconds')::interval)`,
+      [a.identity_id, id, String(100 - i)],
+    );
+  }
+  const first = await likesOf(a);
+  assertEquals(first.items.length, 30);
+  assert(first.next, "a full page came back without a cursor");
+  const second = await likesOf(a, first.next!);
+  const seen = [...first.items, ...second.items].map((i) => i.id);
+  assertEquals(seen.length, 32, "the second page lost or repeated likes");
+  assertEquals(new Set(seen).size, 32);
+  assertEquals(seen[0], ids[31], "the newest like is not first");
+  assertEquals(second.next, null, "a short page still offered a cursor");
+
+  const bad = await signedCall(a.pair.privateKey, a.session_id, "GET", "/likes?after=yesterday");
+  assertEquals(bad.status, 400);
+  reset();
+});

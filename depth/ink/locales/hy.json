@@ -77,5 +77,13 @@
   "statements.law": "օրենք՝",
   "statements.terms": "պայմաններ՝",
   "statements.appeal": "պատասխանել մեզ, դիմել թվային ծառայությունների համակարգողին, դիմել դատարան",
-  "statements.gotIt": "հասկանալի է"
+  "statements.gotIt": "հասկանալի է",
+  "liked.title": "հավանածներ",
+  "liked.empty": "հավանած չկա",
+  "liked.at": "հավանել {time}",
+  "liked.offer": "զրուցելու առաջարկ",
+  "liked.toOffer": "դեպի առաջարկ",
+  "liked.undone": "հանված է",
+  "liked.undo": "վերադարձնել",
+  "liked.more": "ցույց տալ ավելին"
 }

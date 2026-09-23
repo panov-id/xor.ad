@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Chat, Hidden, Statements } from "./rooms.ts";
+import { Chat, Hidden, Liked, Statements } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -302,5 +302,80 @@ test("folded statements stay in the feed as a red count, and none means no row",
   const none = feed(0);
   await settle(100);
   assert.doesNotMatch(none.lastFrame()!, /Ограничений/, "a feed with nothing restricted shows a count");
+  none.unmount();
+});
+
+// What I liked (§4.10): the only place a like is taken back from.
+const card = (id: string, text: string, state: "liked" | "matched" = "liked") =>
+  ({ id, text, like_count: 4, state, liked_at: 1_758_600_000 });
+
+test("a like is taken back from the liked list, and can be undone", async () => {
+  const calls: string[] = [];
+  const client = {
+    likes: () => Promise.resolve({ items: [card("p1", "пекарня на углу")], next: null }),
+    unlike: (id: string) => { calls.push(`unlike ${id}`); return Promise.resolve({ status: 200, body: { state: "unliked" } }); },
+    like: (id: string) => { calls.push(`like ${id}`); return Promise.resolve({ status: 200, body: { state: "liked" } }); },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Liked, { say, client: client as any, onInbox: () => {}, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /пекарня на углу/, "the liked phrase is not on the screen");
+  await type(app, ENTER);
+  await settle();
+  assert.deepEqual(calls, ["unlike p1"], "'take the like back' did not reach the node");
+  assert.match(app.lastFrame()!, /снято/, "the taken-back card left no trace to undo from");
+  await type(app, ENTER);
+  await settle();
+  assert.deepEqual(calls, ["unlike p1", "like p1"], "'undo' did not like it again");
+  assert.doesNotMatch(app.lastFrame()!, /снято/);
+  app.unmount();
+});
+
+test("a like that became an offer to talk is not taken back: it leads to the inbox", async () => {
+  let inbox = 0;
+  let unliked = 0;
+  const client = {
+    likes: () => Promise.resolve({ items: [card("p2", "до моря утром", "matched")], next: null }),
+    unlike: () => { unliked++; return Promise.resolve({ status: 200, body: { state: "spent" } }); },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Liked, { say, client: client as any, onInbox: () => inbox++, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /предложение поговорить/, "a matched like is not shown as an offer to talk");
+  await type(app, ENTER);
+  assert.equal(inbox, 1, "the offer did not lead to the inbox");
+  assert.equal(unliked, 0, "a spent like was sent to be taken back");
+  app.unmount();
+});
+
+test("the liked list takes the next page when asked, and says so when it is empty", async () => {
+  const pages: Array<string | undefined> = [];
+  const client = {
+    likes: (after?: string) => {
+      pages.push(after);
+      return Promise.resolve(after
+        ? { items: [card("p4", "вторая страница")], next: null }
+        : { items: [card("p3", "первая страница")], next: "123_abc" });
+    },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Liked, { say, client: client as any, onInbox: () => {}, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  await type(app, RIGHT, ENTER);
+  await settle();
+  assert.deepEqual(pages, [undefined, "123_abc"], "'show more' did not ask for the next page");
+  assert.match(app.lastFrame()!, /вторая страница/);
+  assert.match(app.lastFrame()!, /первая страница/, "the next page replaced the first instead of adding to it");
+  app.unmount();
+
+  const empty = { likes: () => Promise.resolve({ items: [], next: null }) };
+  // deno-lint-ignore no-explicit-any
+  const none = render(h(Liked, { say, client: empty as any, onInbox: () => {}, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  assert.match(none.lastFrame()!, /лайкнутого нет/);
   none.unmount();
 });

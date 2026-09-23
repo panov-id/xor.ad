@@ -38,9 +38,9 @@ value	unit	kind	why	example
 10	MB	measurement	встречено в: to one region/node, single-writer, ≤100 GB, 10 MB/s, NO managed backups or	xor.ad/docs/backend-portable-bunny_EN.md:75
 10	s	prose.figure	встречено в: Batched every 10 seconds, like quotas: a page view is a request a visitor	xor.ad/docs/open-work_EN.md:410
 11	min	sample.data	встречено в: | 13.1 | **У каждого свой срок, и он считается от своего последнего сообщения** | Петя 10 мин, К	xor.ad/docs/test-map_RU.md:258
-128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:1233
+128	MB	measurement	встречено в: 128 MB 3 308 85.5 h	xor.ad/docs/depth-client_EN.md:1242
 15	KB	measurement	встречено в: 15 KB). The item described a state that was gone by the time it was re-read.	xor.ad/docs/open-work_EN.md:1256
-16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:1230
+16	MB	measurement	встречено в: 16 MB 2 21 5.9 h on one core	xor.ad/docs/depth-client_EN.md:1239
 180	KB	measurement	встречено в: now has `rel="preload"`. Image weight is moderate (the hero, at 180 KB, is the	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:203
 1	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:361
 1	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
@@ -49,7 +49,7 @@ value	unit	kind	why	example
 20	s	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
 236	KB	measurement	встречено в: 236 KB. No keys and no secrets are in them, but publishing the design of an	xor.ad/docs/open-work_EN.md:872
 24	chars	prose.figure	поле июльского прототипа в символах; действующий предел — name.length в графемах, см. open.tsv: app.july.prototype	xor.ad/docs/app-prototype-spec_EN.md:49
-256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:1234
+256	MB	measurement	встречено в: 256 MB 3 693 192.6 h	xor.ad/docs/depth-client_EN.md:1243
 25	graphemes	sample.data	вход теста: на графему длиннее предела имени	xor.ad/docs/test-map_EN.md:56
 26	KB	measurement	встречено в: (26 KB) in sosed — one file each, their own unicode-range only, added as	xor.ad/docs/open-work_EN.md:316
 2.8	s	prose.figure	встречено в: of 2.8 seconds per line is more noticeable here than in the feed.	xor.ad/docs/chat-flows_EN.md:775
@@ -57,7 +57,7 @@ value	unit	kind	why	example
 2	min	sample.data	встречено в: Note over A,B: the code expired after 2 minutes, no move happened	xor.ad/docs/chat-flows_EN.md:144
 300	s	measurement	срок кеша html на краю сети: параметр раздачи, не обязательство перед человеком	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:184
 30	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
-32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:1231
+32	MB	measurement	встречено в: 32 MB 3 70 19.4 h	xor.ad/docs/depth-client_EN.md:1240
 32	min	sample.data	встречено в: alive -- "yes" --> rate{"64 likes<br/>in 32 minutes?"}	xor.ad/docs/chat-flows_EN.md:329
 3	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:361
 3	min	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55

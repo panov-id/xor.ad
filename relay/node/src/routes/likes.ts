@@ -17,13 +17,13 @@
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { transaction } from "../lib/db.ts";
+import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { band } from "../lib/feed_geo.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
-import { checkAll, LIKE_LIMITS } from "../lib/rate_limit.ts";
+import { checkAll, FEED_READ_LIMITS, LIKE_LIMITS } from "../lib/rate_limit.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // A ceiling for "no ceiling": the band above 20 is open upwards (feed_geo.band),
@@ -316,7 +316,116 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
   return answer;
 }
 
+// GET /likes — what this identity liked that is still alive (chat spec §8.4,
+// protocol §4.3; screen 25 of the storefronts, depth-client §4.10). Since
+// 17.09.2026 a liked phrase leaves the feed, so this list is the only place a
+// like can be taken back from.
+//
+// Cards of the feed's own shape, plus `state` and `liked_at`, in the order of
+// the like, newest first. `matched` when a live match came out of this phrase
+// with me in it — then DELETE /feed/:id/like answers `spent`, and the card is
+// an offer to talk. An offer's one-sided match is not built (see the top of
+// this file), so an offer is `liked` here until it is.
+//
+// It goes by itself, as the feed does: an expired or taken-down phrase, and
+// the phrases of anyone on either side of a block (§8.9). Counted against the
+// same per-identity reads as the feed — it is reading the feed by another door.
+const LIKES_PAGE = 30; // limits.tsv feed.page.size
+
+interface LikedRow {
+  id: string;
+  text: string;
+  mode: string;
+  lang: string;
+  lat_published: number;
+  lon_published: number;
+  area_radius: number;
+  like_count: number;
+  visible_at: Date;
+  discount_value: string | null;
+  conditions: string | null;
+  liked_at: Date;
+  liked_at_cursor: string;
+  matched: boolean;
+}
+
+async function myLikes(req: Request, url: URL): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  const allowed = checkAll(FEED_READ_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    return refuse("rate_limited", "too many reads of the feed", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
+
+  // The feed's cursor, for the feed's reasons (routes/feed.ts): microseconds as
+  // digits — never a Date, never a timestamp-looking string — and the id to
+  // split likes made in the same microsecond.
+  const after = url.searchParams.get("after");
+  let cursorAt: string | null = null;
+  let cursorId: string | null = null;
+  if (after) {
+    const cut = after.lastIndexOf("_");
+    const at = cut < 0 ? "" : after.slice(0, cut);
+    const id = cut < 0 ? "" : after.slice(cut + 1);
+    if (!/^[0-9]{1,19}$/.test(at) || !UUID.test(id)) {
+      return refuse("invalid_body", "after is not a cursor from this list", 400);
+    }
+    cursorAt = at;
+    cursorId = id;
+  }
+
+  const rows = await query<LikedRow>(
+    `SELECT f.id, f.text, f.mode, f.lang, f.lat_published, f.lon_published, f.area_radius,
+            f.like_count, f.visible_at, f.discount_value, f.conditions,
+            l.created_at AS liked_at,
+            (extract(epoch from l.created_at) * 1000000)::bigint::text AS liked_at_cursor,
+            EXISTS (SELECT 1 FROM matches m
+                      JOIN match_participants p ON p.match_id = m.id AND p.message_id = f.id
+                      JOIN match_participants q ON q.match_id = m.id AND q.identity = $1
+                     WHERE m.expires_at > now()) AS matched
+       FROM likes l
+       JOIN feed_messages f ON f.id = l.feed_message_id
+      WHERE l.liker_identity = $1
+        AND f.visible_at IS NOT NULL AND f.expires_at > now()
+        AND NOT EXISTS (SELECT 1 FROM blocks b
+                         WHERE (b.blocker_identity = $1 AND b.blocked_identity = f.author_identity)
+                            OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $1))
+        AND ($2::bigint IS NULL OR (l.created_at, f.id) <
+              (timestamptz 'epoch' + $2::bigint * interval '1 microsecond', $3::uuid))
+      ORDER BY l.created_at DESC, f.id DESC
+      LIMIT ${LIKES_PAGE}`,
+    [caller.identityId, cursorAt, cursorId],
+  );
+  if (rows === null) {
+    inc("relay_likes_list_total", { result: "unavailable" });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  }
+  inc("relay_likes_list_total", { result: "served" });
+  const last = rows[rows.length - 1];
+  return json({
+    items: rows.map((row) => ({
+      kind: "phrase",
+      id: row.id,
+      text: row.text,
+      mode: row.mode,
+      lang: row.lang,
+      lat: row.lat_published,
+      lon: row.lon_published,
+      area_radius: row.area_radius,
+      like_count: row.like_count,
+      created_at: Math.floor(row.visible_at.getTime() / 1000),
+      ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
+      state: row.matched ? "matched" : "liked",
+      liked_at: Math.floor(row.liked_at.getTime() / 1000),
+    })),
+    next: rows.length === LIKES_PAGE && last ? `${last.liked_at_cursor}_${last.id}` : null,
+  }, 200, sunsetHeader());
+}
+
+route("GET", "/likes", (c) => myLikes(c.req, c.url));
 route("POST", "/feed/:id/like", (c) => likePhrase(c.req, c.params.id));
 route("DELETE", "/feed/:id/like", (c) => unlikePhrase(c.req, c.params.id));
 
-export { likePhrase, unlikePhrase };
+export { likePhrase, myLikes, unlikePhrase };

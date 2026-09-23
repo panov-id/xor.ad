@@ -77,5 +77,13 @@
   "statements.law": "закон:",
   "statements.terms": "условия:",
   "statements.appeal": "ответить нам, обратиться к координатору цифровых услуг, обратиться в суд",
-  "statements.gotIt": "понятно"
+  "statements.gotIt": "понятно",
+  "liked.title": "лайкнутое",
+  "liked.empty": "лайкнутого нет",
+  "liked.at": "лайк {time}",
+  "liked.offer": "предложение поговорить",
+  "liked.toOffer": "к предложению",
+  "liked.undone": "снято",
+  "liked.undo": "вернуть",
+  "liked.more": "показать ещё"
 }

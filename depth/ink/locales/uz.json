@@ -77,5 +77,13 @@
   "statements.law": "qonun:",
   "statements.terms": "shartlar:",
   "statements.appeal": "bizga javob berish, raqamli xizmatlar koordinatoriga murojaat qilish, sudga murojaat qilish",
-  "statements.gotIt": "tushunarli"
+  "statements.gotIt": "tushunarli",
+  "liked.title": "yoqtirilganlar",
+  "liked.empty": "yoqtirilgan yo'q",
+  "liked.at": "layk {time}",
+  "liked.offer": "gaplashish taklifi",
+  "liked.toOffer": "taklifga",
+  "liked.undone": "olib tashlandi",
+  "liked.undo": "qaytarish",
+  "liked.more": "yana ko'rsatish"
 }

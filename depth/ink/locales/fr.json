@@ -77,5 +77,13 @@
   "statements.law": "loi :",
   "statements.terms": "conditions :",
   "statements.appeal": "nous répondre, saisir le coordinateur pour les services numériques, saisir un tribunal",
-  "statements.gotIt": "compris"
+  "statements.gotIt": "compris",
+  "liked.title": "aimé",
+  "liked.empty": "rien d'aimé",
+  "liked.at": "aimé à {time}",
+  "liked.offer": "proposition de parler",
+  "liked.toOffer": "vers la proposition",
+  "liked.undone": "retiré",
+  "liked.undo": "annuler",
+  "liked.more": "afficher plus"
 }

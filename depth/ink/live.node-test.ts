@@ -29,7 +29,7 @@ const DOWN = "\u001B[B", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
 // names what it wants instead.
-const FEED_ROW = ["like", "hide", "block", "write", "inbox", "point", "hidden", "exit"];
+const FEED_ROW = ["like", "hide", "block", "write", "inbox", "point", "hidden", "liked", "exit"];
 
 async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
   const steps = FEED_ROW.indexOf(action);
@@ -169,9 +169,14 @@ async function main() {
     assert.ok(back.body.match_id, "the like from the screen never reached the node");
     out("ok   the like from the screen made a match");
 
-    // 5 · consent from both sides, and the conversation opens on the screen.
+    // 5 · the liked phrase is on the "liked" screen, served by GET /likes, and
+    // stands there as an offer to talk now that a match came out of it; its
+    // one action leads to the inbox (§4.10).
     await peer.consent(back.body.match_id!);
-    await pickInFeed(app, "inbox");
+    await pickInFeed(app, "liked");
+    await until(app, /предложение поговорить/, 20);
+    out("ok   the liked screen shows the match that came out of the like");
+    await type(app, ENTER);
     await until(app, /входящие/);
     await type(app, ENTER);
     await until(app, /Марк/, 30);

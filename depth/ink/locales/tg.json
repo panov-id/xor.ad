@@ -77,5 +77,13 @@
   "statements.law": "қонун:",
   "statements.terms": "шартҳо:",
   "statements.appeal": "ба мо ҷавоб додан, ба ҳамоҳангсози хизматҳои рақамӣ муроҷиат кардан, ба суд муроҷиат кардан",
-  "statements.gotIt": "фаҳмо"
+  "statements.gotIt": "фаҳмо",
+  "liked.title": "писандидаҳо",
+  "liked.empty": "писандида нест",
+  "liked.at": "лайк {time}",
+  "liked.offer": "пешниҳоди суҳбат",
+  "liked.toOffer": "ба пешниҳод",
+  "liked.undone": "бардошта шуд",
+  "liked.undo": "баргардондан",
+  "liked.more": "боз нишон додан"
 }

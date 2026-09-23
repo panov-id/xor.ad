@@ -964,6 +964,15 @@ would be nowhere to take the like back.
   phrases and tables — along with your phrases: coming back, a person finds this empty.
 - Empty — the line `nothing liked`, as on storefront screen 11.
 
+**Built 2026-09-23 for phrases** (`depth/ink/rooms.ts`, `Liked`; the node — `GET /likes` in
+`relay/node/src/routes/likes.ts`, and `GET /feed` no longer serves what was liked). The
+terminal has no letter keys (owner's decision 2026-09-22, navigation is arrows and enter), so
+the mockup's `l` and `u` are the menu items "take the like back" and "undo"; "taken back"
+stands in the card's place until the person leaves the screen. A match card is `(*)`, "offer
+to talk", and its item leads to the inbox. "Show more" takes the next page. The node has no
+tables and no one-sided offer match yet, so neither is here yet.
+
+
 ### 4.11. Me — `me`
 
 `m` from anywhere. The fourth navigation item of §9 of the spec (`Me`), which the terminal

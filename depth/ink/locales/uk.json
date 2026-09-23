@@ -77,5 +77,13 @@
   "statements.law": "закон:",
   "statements.terms": "умови:",
   "statements.appeal": "відповісти нам, звернутися до координатора цифрових послуг, звернутися до суду",
-  "statements.gotIt": "зрозуміло"
+  "statements.gotIt": "зрозуміло",
+  "liked.title": "вподобане",
+  "liked.empty": "вподобаного немає",
+  "liked.at": "лайк {time}",
+  "liked.offer": "пропозиція поговорити",
+  "liked.toOffer": "до пропозиції",
+  "liked.undone": "знято",
+  "liked.undo": "повернути",
+  "liked.more": "показати ще"
 }

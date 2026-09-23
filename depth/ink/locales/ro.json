@@ -77,5 +77,13 @@
   "statements.law": "lege:",
   "statements.terms": "condiții:",
   "statements.appeal": "să ne răspundeți, să vă adresați coordonatorului serviciilor digitale, să vă adresați instanței",
-  "statements.gotIt": "am înțeles"
+  "statements.gotIt": "am înțeles",
+  "liked.title": "apreciate",
+  "liked.empty": "nimic apreciat",
+  "liked.at": "apreciat la {time}",
+  "liked.offer": "propunere de a vorbi",
+  "liked.toOffer": "la propunere",
+  "liked.undone": "retras",
+  "liked.undo": "anulează",
+  "liked.more": "arată mai mult"
 }

@@ -676,12 +676,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Источник: <code>relay/node/src/routes/feed.ts</code></p>
 </section>
 <section class="op" id="get-likes">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/likes</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/likes</code><span class="chip s-built">построено</span></div>
 <p><strong>Всё лайкнутое, что ещё живо</strong></p>
-<p>Карточки той же формы, что в GET /feed: фразы и офферы частников со state (liked | matched) и столы; курсором after (протокол §4.3; экран 25; решение владельца 17.09.2026, утверждено 17.09.2026).</p>
+<p>Карточки той же формы, что в GET /feed, плюс state (liked | matched — matched, когда из фразы вышел живой мэтч, и DELETE /feed/{id}/like тогда отвечает spent) и liked_at; новые лайки сверху, по 30, курсором after; фразы по обе стороны блока и истёкшие выпадают (протокол §4.3; экран 25; утверждено 17.09.2026). Построено 23.09.2026 для фраз; столов и одностороннего мэтча оффера нет, поэтому оффер здесь liked, пока их нет.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница лайкнутых карточек и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td>invalid_body: after — не курсор, выданный этим списком; или неподдерживаемая версия протокола.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница лайкнутых карточек и следующий курсор.</td><td><a href="#schema-feedpage"><code>FeedPage</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/likes.ts</code></p>
 </section>
 <section class="op" id="delete-feed--id">
 <div class="op-head"><span class="method m-delete">delete</span><code class="path">/feed/{id}</code><span class="chip s-built">построено</span></div>

@@ -8,7 +8,7 @@
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import type { Client, Statement } from "../core/client.ts";
+import type { Client, Liked as LikedCard, Statement } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
 import type { Place } from "./screens.ts";
@@ -408,6 +408,106 @@ export function Statements(
     h(Menu, {
       actions: [{ key: "done", label: say("statements.gotIt") }],
       onPick: () => onDone(),
+      hint: say("common.rowActions"),
+    }),
+  );
+}
+
+// What I liked (§4.10, screen 25 of the storefronts). Since 17.09.2026 a like
+// takes the card out of the feed, and this is the only place to take it back.
+// Taking it back leaves "taken back · undo" in the card's place until the
+// person moves on; a card an offer to talk came out of cannot be taken back
+// (the node answers `spent`) and leads to the inbox instead.
+export function Liked(
+  { say, client, onInbox, onBack, onError }: {
+    say: Say;
+    client: Client;
+    onInbox: () => void;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [rows, setRows] = useState<Array<LikedCard & { undone?: boolean }> | null>(null);
+  const [next, setNext] = useState<string | null>(null);
+  const [at, setAt] = useState(0);
+  useEffect(() => {
+    client.likes()
+      .then((page) => { setRows(page.items); setNext(page.next); })
+      .catch((e: Error) => onError(e.message));
+  }, []);
+  useInput((_input, key) => {
+    const count = rows?.length ?? 0;
+    if (count === 0) return;
+    if (key.upArrow) setAt((i) => (i - 1 + count) % count);
+    if (key.downArrow) setAt((i) => (i + 1) % count);
+  });
+  const chosen = rows?.[at];
+  const mark = (id: string, undone: boolean) =>
+    setRows((list) => (list ?? []).map((r) => (r.id === id ? { ...r, undone } : r)));
+  const time = (seconds: number) => new Date(seconds * 1000).toTimeString().slice(0, 5);
+  const line = (r: LikedCard & { undone?: boolean }, i: number) =>
+    h(
+      Box,
+      { key: r.id, flexDirection: "column" },
+      h(Text, { bold: i === at, dimColor: r.undone }, `${i === at ? "›" : " "} ${r.state === "matched" ? "(*)" : "+"} ${plain(r.text, 200)}`),
+      h(
+        Text,
+        { dimColor: true },
+        r.undone
+          ? `    ${say("liked.undone")}`
+          : r.state === "matched"
+          ? `    ${say("liked.offer")}`
+          : `    + ${r.like_count}   ${say("liked.at", { time: time(r.liked_at) })}`,
+      ),
+    );
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("liked.title") }),
+    rows === null
+      ? h(Text, { dimColor: true }, "…")
+      : rows.length === 0
+      ? h(Text, { dimColor: true }, say("liked.empty"))
+      : h(Box, { flexDirection: "column", gap: 1 }, ...rows.map(line)),
+    h(Menu, {
+      actions: [
+        chosen?.state === "matched"
+          ? { key: "offer", label: say("liked.toOffer") }
+          : chosen?.undone
+          ? { key: "undo", label: say("liked.undo") }
+          : { key: "unlike", label: say("feed.unlike"), disabled: !chosen },
+        ...(next ? [{ key: "more", label: say("liked.more") }] : []),
+        { key: "back", label: say("common.back") },
+      ],
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (key === "more" && next) {
+          return void client.likes(next)
+            .then((page) => { setRows((list) => [...(list ?? []), ...page.items]); setNext(page.next); })
+            .catch((e: Error) => onError(e.message));
+        }
+        if (!chosen) return;
+        if (key === "offer") return onInbox();
+        if (key === "unlike") {
+          return void client.unlike(chosen.id)
+            .then((answer) => {
+              // Spent between the list and the press: it became an offer to talk.
+              if (answer.body.state === "spent") {
+                return setRows((list) => (list ?? []).map((r) => (r.id === chosen.id ? { ...r, state: "matched" as const } : r)));
+              }
+              mark(chosen.id, true);
+            })
+            .catch((e: Error) => onError(e.message));
+        }
+        if (key === "undo") {
+          return void client.like(chosen.id)
+            .then((answer) => {
+              if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+              mark(chosen.id, false);
+            })
+            .catch((e: Error) => onError(e.message));
+        }
+      },
       hint: say("common.rowActions"),
     }),
   );

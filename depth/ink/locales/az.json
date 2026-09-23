@@ -77,5 +77,13 @@
   "statements.law": "qanun:",
   "statements.terms": "şərtlər:",
   "statements.appeal": "bizə cavab vermək, rəqəmsal xidmətlər koordinatoruna müraciət etmək, məhkəməyə müraciət etmək",
-  "statements.gotIt": "aydındır"
+  "statements.gotIt": "aydındır",
+  "liked.title": "bəyənilənlər",
+  "liked.empty": "bəyənilən yoxdur",
+  "liked.at": "bəyənmə {time}",
+  "liked.offer": "danışmaq təklifi",
+  "liked.toOffer": "təklifə",
+  "liked.undone": "geri götürüldü",
+  "liked.undo": "qaytar",
+  "liked.more": "daha çox göstər"
 }

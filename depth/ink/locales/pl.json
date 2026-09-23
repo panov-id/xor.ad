@@ -77,5 +77,13 @@
   "statements.law": "prawo:",
   "statements.terms": "warunki:",
   "statements.appeal": "odpowiedzieć nam, zwrócić się do koordynatora ds. usług cyfrowych, zwrócić się do sądu",
-  "statements.gotIt": "rozumiem"
+  "statements.gotIt": "rozumiem",
+  "liked.title": "polubione",
+  "liked.empty": "nic nie polubiono",
+  "liked.at": "polubiono {time}",
+  "liked.offer": "propozycja rozmowy",
+  "liked.toOffer": "do propozycji",
+  "liked.undone": "cofnięto",
+  "liked.undo": "przywróć",
+  "liked.more": "pokaż więcej"
 }

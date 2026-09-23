@@ -77,5 +77,13 @@
   "statements.law": "Gesetz:",
   "statements.terms": "Bedingungen:",
   "statements.appeal": "uns antworten, den Koordinator für digitale Dienste anrufen, ein Gericht anrufen",
-  "statements.gotIt": "verstanden"
+  "statements.gotIt": "verstanden",
+  "liked.title": "gelikt",
+  "liked.empty": "nichts gelikt",
+  "liked.at": "gelikt {time}",
+  "liked.offer": "Angebot zu reden",
+  "liked.toOffer": "zum Angebot",
+  "liked.undone": "zurückgenommen",
+  "liked.undo": "rückgängig",
+  "liked.more": "mehr zeigen"
 }

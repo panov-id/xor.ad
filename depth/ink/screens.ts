@@ -84,7 +84,7 @@ type Phrase = { id: string; text: string; name?: string; age?: number; distance_
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, restrictions = 0, onWrite, onInbox, onPoint, onHidden, onRestrictions, onError }: {
+  { say, client, place, mine, restrictions = 0, onWrite, onInbox, onPoint, onHidden, onLiked, onRestrictions, onError }: {
     say: Say;
     client: Client;
     place: Place;
@@ -95,6 +95,7 @@ export function Feed(
     onInbox: () => void;
     onPoint: () => void;
     onHidden: () => void;
+    onLiked?: () => void;
     onRestrictions?: () => void;
     onError: (message: string) => void;
   },
@@ -141,13 +142,14 @@ export function Feed(
     ),
     h(Menu, {
       actions: [
-        { key: "like", label: chosen?.liked === true ? say("feed.unlike") : say("feed.like"), disabled: !chosen },
+        { key: "like", label: say("feed.like"), disabled: !chosen },
         { key: "hide", label: say("feed.hide"), disabled: !chosen },
         { key: "block", label: say("block.item"), disabled: !chosen },
         { key: "write", label: say("feed.write") },
         { key: "inbox", label: say("feed.inbox") },
         { key: "point", label: say("feed.point") },
         { key: "hidden", label: say("feed.hidden") },
+        { key: "liked", label: say("liked.title") },
         ...(restrictions > 0 ? [{ key: "restrictions", label: say("statements.count", { n: restrictions }) }] : []),
         { key: "exit", label: say("common.exit") },
       ],
@@ -156,6 +158,7 @@ export function Feed(
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
         if (key === "hidden") return onHidden();
+        if (key === "liked") return onLiked?.();
         if (key === "restrictions") return onRestrictions?.();
         if (key === "exit") return process.exit(0);
         if (!chosen) return;
@@ -174,9 +177,13 @@ export function Feed(
             .then(() => setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id)))
             .catch((e: Error) => onError(e.message));
         }
-        const act = chosen.liked === true ? client.unlike(chosen.id) : client.like(chosen.id);
-        act
-          .then(() => setItems((list) => (list ?? []).map((p) => (p.id === chosen.id ? { ...p, liked: !p.liked } : p))))
+        // What I liked is not in my feed (§4.10): the card leaves at once, and
+        // "liked" in the menu is where it can be taken back.
+        client.like(chosen.id)
+          .then((answer) => {
+            if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+            setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id));
+          })
           .catch((e: Error) => onError(e.message));
       },
       hint: say("common.rowActions"),

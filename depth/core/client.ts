@@ -58,6 +58,16 @@ export interface Statement {
   created_at: number;
 }
 
+// A card of GET /likes: the feed's own shape, with how the like stands.
+// `matched` means an offer to talk came out of it, and the like is spent.
+export interface Liked {
+  id: string;
+  text: string;
+  like_count: number;
+  state: "liked" | "matched";
+  liked_at: number;
+}
+
 export class Client {
   #key: SigningKey | null = null;
   // The private half of the wrapping pair. Kept, not dropped: anything sealed to
@@ -395,6 +405,16 @@ export class Client {
   // 204 whatever happened, so a handle that is gone tells the caller nothing.
   unhide(handle: string): Promise<Answer> {
     return this.#call("DELETE", `/hidden/${handle}`);
+  }
+
+  // GET /likes — what I liked that is still alive, newest like first, thirty
+  // at a time (§4.10). A liked phrase is not in the feed any more, so this is
+  // where a like is taken back from.
+  async likes(after?: string): Promise<{ items: Liked[]; next: string | null }> {
+    const path = after ? `/likes?after=${encodeURIComponent(after)}` : "/likes";
+    const answer = await this.#call<{ items: Liked[]; next: string | null }>("GET", path);
+    if (answer.status !== 200) throw new Error(`the likes refused: ${answer.status}`);
+    return answer.body;
   }
 
   // GET /statements — the Article 17 statements of reasons addressed to me

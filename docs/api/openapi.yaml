@@ -261,7 +261,7 @@ components:
           properties:
             code:
               type: string
-              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, half_published, rekey_out_of_step, not_found, too_young, pin_locked, pin_mismatch, no_first_pin_grant]
+              enum: [rate_limited, protocol_version_unsupported, invalid_body, unauthorized, unavailable, already_seated, not_your_turn, illegal_move, stale_seq, nothing_to_undo, pending_exists, stepped_away, name_frozen, paused, age_step_down, filter_out_of_band, refused, half_published, rekey_out_of_step, not_found, too_young, pin_locked, pin_mismatch, no_first_pin_grant, no_face]
             message: {type: string}
             reason: {type: string}
             attempts_left: {type: integer, description: "On a wrong PIN — code pin_mismatch, 409 (2026-09-21) — how many are left before the lock (screen 12).", x-description-ru: "При неверном ПИН — код pin_mismatch, 409 (21.09.2026) — сколько осталось до замка (экран 12)."}
@@ -468,9 +468,9 @@ components:
     Appearance:
       type: object
       properties:
-        theme: {type: string, enum: [light, dark, system]}
-        contrast: {type: string, enum: [normal, raised, maximum]}
-        accent: {type: string, enum: [terra, amber, turquoise, azure, violet, carmine]}
+        theme: {type: string, nullable: true, enum: [light, dark, system, null]}
+        contrast: {type: string, nullable: true, enum: [normal, raised, maximum, null]}
+        accent: {type: string, nullable: true, enum: [terra, amber, turquoise, azure, violet, carmine, null]}
     ChatSpan:
       type: object
       required: [span]
@@ -1629,7 +1629,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {description: "invalid_body: not a JSON object, an unknown field, or a value outside the sets; or an unsupported protocol version.", x-description-ru: "invalid_body: не объект JSON, незнакомое поле или значение вне наборов; или неподдерживаемая версия протокола.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: "Saved; the choice as kept.", x-description-ru: "Сохранено; выбор в том виде, в каком хранится.", content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
   /sessions/claim:

@@ -1322,6 +1322,15 @@ Deno.test("the appearance refuses what it cannot keep, and writes nothing", asyn
   });
   assertEquals(bare.status, 401);
 
+  // A time away refuses everything but four routes (protocol §4.9), and this is not one.
+  await database.queryOrThrow(
+    `UPDATE identities SET stepped_away_until = now() + interval '1 hour' WHERE id = $1`,
+    [me.identity],
+  );
+  const away = await put({ theme: "dark" });
+  assertEquals(away.status, 409, "the appearance answered during a time away");
+  assertEquals((away.body as { error: { code: string } }).error.code, "stepped_away");
+
   const rows = await database.queryOrThrow(`SELECT 1 FROM identity_appearance WHERE identity = $1`, [me.identity]);
   assertEquals(rows.length, 0, "a refused request left a row behind");
 });

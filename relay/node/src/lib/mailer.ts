@@ -468,7 +468,7 @@ export function nightPathSummaryBlocks(summary: { hour: Date; held: number; show
     {
       kind: "text",
       value: `In the hour from ${from}, ${summary.held} more reports of illegal content arrived ` +
-        `beyond the ${summary.shown} sent to you one by one.`,
+        `beyond the first ${summary.shown} of that hour.`,
     },
     { kind: "text", value: "Open the DSA queue in the panel to see them." },
   ];

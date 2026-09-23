@@ -34,8 +34,9 @@ type Appearance = Record<Field, string | null>;
 const EMPTY: Appearance = { theme: null, contrast: null, accent: null };
 
 async function faceOf(req: Request) {
-  // A person stepped away may still change how the screen looks.
-  const caller = await callerOf(req, { allowSteppedAway: true });
+  // Not among the exceptions to a time away (protocol §4.9 names four, by the
+  // owner's decision): a person stepped away gets 409 stepped_away here too.
+  const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   if (!caller.brand) {
     return refuse("no_face", "appearance is kept per storefront; this request names none", 409);

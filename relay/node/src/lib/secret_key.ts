@@ -32,7 +32,7 @@ export interface SecretKey {
   // here while the panel showed it as if it applied.
   quota_events_per_day?: number | null;
   // Page views have their own (db/009), and /v1/pageview reads it since
-  // 23.09.2026 — before that the column was accepted by the panel and read by no one.
+  // 23.09.2026 — before that PATCH /admin/secret-keys/:id/quota accepted it and nothing read it.
   quota_pageviews_per_day?: number | null;
 }
 

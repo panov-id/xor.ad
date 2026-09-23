@@ -53,8 +53,11 @@ async function authenticate(req: Request): Promise<SecretKey | Response> {
   // another — and behind carrier-grade NAT or a cloud egress that is a single
   // address carrying several tenants' clients. `callerBucket` only checks the
   // shape of the key, never resolves it, so this still happens before
-  // authentication; junk and absence share one bucket each, which is what stops
-  // a flood minting fresh buckets.
+  // authentication; junk and absence share one bucket each. A made-up id of the
+  // right shape does get a bucket of its own — through x-api-key before
+  // 23.09.2026, and through the bearer since — so what bounds a flood of those
+  // is the limiter evicting the emptiest buckets first (lib/rate_limit.ts), not
+  // the shape check (review panel 23.09.2026).
   const verdict = checkAll(V1_LIMITS, callerBucket(req));
   if (!verdict.allowed) {
     inc("relay_v1_total", { route: "any", result: "address_limited" });
@@ -89,7 +92,8 @@ async function authenticate(req: Request): Promise<SecretKey | Response> {
 //
 // Page views count in their own family against their own column, as on the
 // publishable path (lib/tenant.ts). Until 23.09.2026 /v1/pageview spent the
-// events allowance and quota_pageviews_per_day, which the panel lets you set,
+// events allowance and quota_pageviews_per_day, which the admin API sets (the
+// panel does not offer it yet),
 // limited nothing here.
 async function overAllowance(caller: SecretKey, route: string): Promise<Response | null> {
   const pageviews = route === "pageview";

@@ -1597,10 +1597,11 @@ paths:
       tags: [identity]
       summary: "Read the appearance"
       x-summary-ru: "Прочитать оформление"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/appearance.ts
       security: [{identitySignature: []}]
-      description: "The choice kept on the node (screen 22); the device copy draws the first frame."
-      x-description-ru: "Выбор, хранящийся на узле (экран 22); копия на устройстве рисует первый кадр."
+      description: "The choice kept on the node for the face named by the storefront key (screen 22); the device copy draws the first frame. Nothing chosen yet is every field null — the storefront's default. Without a storefront key there is no face: 409 no_face. Built 2026-09-23."
+      x-description-ru: "Выбор, хранящийся на узле для лица из ключа витрины (экран 22); копия на устройстве рисует первый кадр. Ничего не выбрано — все поля null, умолчание витрины. Без ключа витрины лица нет: 409 no_face. Построено 23.09.2026."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -1608,27 +1609,29 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: The appearance., x-description-ru: Оформление., content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
     put:
       tags: [identity]
       summary: The identity's appearance for this face
       x-summary-ru: Оформление личности для этого лица
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/appearance.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
-      description: One row per face named by the API key — theme, contrast step, an accent from that face's set.
-      x-description-ru: Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.
+      description: "One row per face named by the storefront key — theme, contrast step, accent. Replaces the whole choice: a field left out or null is the storefront's default. A value outside the sets or an unknown field is 400 invalid_body; without a storefront key, 409 no_face. Built 2026-09-23; the accent is checked against the kit's six, not yet against a per-face set."
+      x-description-ru: "Строка на лицо из ключа витрины — тема, ступень контраста, акцент. Заменяет выбор целиком: поле не передано или null — умолчание витрины. Значение вне наборов или незнакомое поле — 400 invalid_body; без ключа витрины — 409 no_face. Построено 23.09.2026; акцент сверяется с шестью кита, а не с набором лица."
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
-        "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: Saved., x-description-ru: Сохранено.}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: "Saved; the choice as kept.", x-description-ru: "Сохранено; выбор в том виде, в каком хранится.", content: {application/json: {schema: {$ref: "#/components/schemas/Appearance"}}}}
   /sessions/claim:
     post:
       tags: [identity]

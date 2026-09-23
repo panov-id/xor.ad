@@ -504,22 +504,24 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Closed.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-appearance">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-built">built</span></div>
 <p><strong>Read the appearance</strong></p>
-<p>The choice kept on the node (screen 22); the device copy draws the first frame.</p>
+<p>The choice kept on the node for the face named by the storefront key (screen 22); the device copy draws the first frame. Nothing chosen yet is every field null — the storefront&#x27;s default. Without a storefront key there is no face: 409 no_face. Built 2026-09-23.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The appearance.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The appearance.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/appearance.ts</code></p>
 </section>
 <section class="op" id="put-identities-appearance">
-<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-built">built</span></div>
 <p><strong>The identity&#x27;s appearance for this face</strong></p>
-<p>One row per face named by the API key — theme, contrast step, an accent from that face&#x27;s set.</p>
+<p>One row per face named by the storefront key — theme, contrast step, accent. Replaces the whole choice: a field left out or null is the storefront&#x27;s default. A value outside the sets or an unknown field is 400 invalid_body; without a storefront key, 409 no_face. Built 2026-09-23; the accent is checked against the kit&#x27;s six, not yet against a per-face set.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-appearance"><code>Appearance</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Saved; the choice as kept.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/appearance.ts</code></p>
 </section>
 <section class="op" id="post-sessions-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-built">built</span></div>

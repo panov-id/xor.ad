@@ -41,6 +41,7 @@ const database = await import("../src/lib/db.ts");
 const { openShare } = await import("../src/lib/vault_share.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 await import("../src/routes/identity.ts"); // registers the routes as a side effect
+await import("../src/routes/appearance.ts");
 
 const KEY_ID = "ak_pub_identityroutestest01";
 
@@ -114,6 +115,7 @@ async function signedCall(
   method: string,
   path: string,
   body?: unknown,
+  headers: Record<string, string> = {},
 ) {
   const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
   const time = Math.floor(Date.now() / 1000);
@@ -137,6 +139,7 @@ async function signedCall(
       "x-identity-session": sessionId,
       "x-identity-time": String(time),
       "x-identity-sign": auth.bytesToBase64url(signature),
+      ...headers,
     },
   });
 }
@@ -1236,4 +1239,89 @@ Deno.test("a signed caller cannot tell a real paper code from a wrong one", asyn
     [victim.created.identity_id],
   );
   assertEquals(victimRow.closed_at, null, "probing somebody's code disturbed their identity");
+});
+
+// The appearance: one row per face, the face from the storefront key and from
+// nothing the body says (chat spec §8.2, screen 22; built 23.09.2026).
+
+const BETA_KEY = "ak_pub_identityroutesbeta01";
+await database.queryOrThrow(
+  `INSERT INTO brands (key, name, domain, sender, upper)
+     VALUES ('beta', 'Beta', 'beta.test', 'b <b@beta.test>', 'BETA')
+     ON CONFLICT (key) DO NOTHING`,
+);
+await database.queryOrThrow(
+  `INSERT INTO api_keys (id, brand, origins) VALUES ($1, 'beta', '{}') ON CONFLICT (id) DO NOTHING`,
+  [BETA_KEY],
+);
+
+async function finishedIdentity() {
+  const { answer, pair } = await register();
+  const created = answer.body as { identity_id: string; session_id: string };
+  await signedCall(pair.privateKey, created.session_id, "POST", "/recovery/confirm", {
+    recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
+  });
+  return { key: pair.privateKey, session: created.session_id, identity: created.identity_id };
+}
+
+Deno.test("the appearance is saved and read back for the face that set it", async () => {
+  const me = await finishedIdentity();
+  const alpha = { "x-api-key": KEY_ID };
+  const empty = await signedCall(me.key, me.session, "GET", "/identities/appearance", undefined, alpha);
+  assertEquals(empty.status, 200);
+  assertEquals(empty.body, { theme: null, contrast: null, accent: null }, "nothing chosen is every default");
+
+  const choice = { theme: "dark", contrast: "raised", accent: "turquoise" };
+  const saved = await signedCall(me.key, me.session, "PUT", "/identities/appearance", choice, alpha);
+  assertEquals(saved.status, 200);
+  assertEquals(saved.body, choice);
+  const read = await signedCall(me.key, me.session, "GET", "/identities/appearance", undefined, alpha);
+  assertEquals(read.body, choice, "what was saved is not what is read");
+
+  // PUT replaces: a field left out goes back to the storefront's default.
+  await signedCall(me.key, me.session, "PUT", "/identities/appearance", { accent: "amber" }, alpha);
+  const replaced = await signedCall(me.key, me.session, "GET", "/identities/appearance", undefined, alpha);
+  assertEquals(replaced.body, { theme: null, contrast: null, accent: "amber" }, "PUT merged instead of replacing");
+});
+
+Deno.test("a choice made on one face does not repaint another", async () => {
+  const me = await finishedIdentity();
+  await signedCall(me.key, me.session, "PUT", "/identities/appearance", { accent: "violet" }, { "x-api-key": KEY_ID });
+  await signedCall(me.key, me.session, "PUT", "/identities/appearance", { accent: "azure" }, { "x-api-key": BETA_KEY });
+  const alpha = await signedCall(me.key, me.session, "GET", "/identities/appearance", undefined, { "x-api-key": KEY_ID });
+  const beta = await signedCall(me.key, me.session, "GET", "/identities/appearance", undefined, { "x-api-key": BETA_KEY });
+  assertEquals((alpha.body as { accent: string }).accent, "violet", "the second face overwrote the first");
+  assertEquals((beta.body as { accent: string }).accent, "azure");
+  const rows = await database.queryOrThrow<{ brand: string }>(
+    `SELECT brand FROM identity_appearance WHERE identity = $1 ORDER BY brand`,
+    [me.identity],
+  );
+  assertEquals(rows.map((r) => r.brand), ["alpha", "beta"], "not one row per face");
+});
+
+Deno.test("the appearance refuses what it cannot keep, and writes nothing", async () => {
+  const me = await finishedIdentity();
+  const alpha = { "x-api-key": KEY_ID };
+  const put = (body: unknown, headers: Record<string, string> = alpha) =>
+    signedCall(me.key, me.session, "PUT", "/identities/appearance", body, headers);
+
+  // Names the kit retired on 20.09.2026, and a field nobody reads.
+  for (const body of [{ accent: "gold" }, { contrast: "max" }, { theme: 1 }, { colour: "azure" }, [1]]) {
+    const refused = await put(body);
+    assertEquals(refused.status, 400, `accepted ${JSON.stringify(body)}`);
+  }
+  // The terminal sends no storefront key: it has no face to keep a choice for.
+  const faceless = await put({ theme: "dark" }, {});
+  assertEquals(faceless.status, 409);
+  assertEquals((faceless.body as { error: { code: string } }).error.code, "no_face");
+
+  // No signature: the session id alone opens nothing.
+  const bare = await call("PUT", "/identities/appearance", {
+    body: { theme: "dark" },
+    headers: { "x-identity-session": me.session, ...alpha },
+  });
+  assertEquals(bare.status, 401);
+
+  const rows = await database.queryOrThrow(`SELECT 1 FROM identity_appearance WHERE identity = $1`, [me.identity]);
+  assertEquals(rows.length, 0, "a refused request left a row behind");
 });

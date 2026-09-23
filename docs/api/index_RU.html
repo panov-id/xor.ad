@@ -504,22 +504,24 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Закрыта.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="get-identities-appearance">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/identities/appearance</code><span class="chip s-built">построено</span></div>
 <p><strong>Прочитать оформление</strong></p>
-<p>Выбор, хранящийся на узле (экран 22); копия на устройстве рисует первый кадр.</p>
+<p>Выбор, хранящийся на узле для лица из ключа витрины (экран 22); копия на устройстве рисует первый кадр. Ничего не выбрано — все поля null, умолчание витрины. Без ключа витрины лица нет: 409 no_face. Построено 23.09.2026.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Оформление.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Оформление.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/appearance.ts</code></p>
 </section>
 <section class="op" id="put-identities-appearance">
-<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-put">put</span><code class="path">/identities/appearance</code><span class="chip s-built">построено</span></div>
 <p><strong>Оформление личности для этого лица</strong></p>
-<p>Строка на лицо из API-ключа — тема, ступень контраста, акцент из набора лица.</p>
+<p>Строка на лицо из ключа витрины — тема, ступень контраста, акцент. Заменяет выбор целиком: поле не передано или null — умолчание витрины. Значение вне наборов или незнакомое поле — 400 invalid_body; без ключа витрины — 409 no_face. Построено 23.09.2026; акцент сверяется с шестью кита, а не с набором лица.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-appearance"><code>Appearance</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Сохранено.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Сохранено; выбор в том виде, в каком хранится.</td><td><a href="#schema-appearance"><code>Appearance</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/appearance.ts</code></p>
 </section>
 <section class="op" id="post-sessions-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-built">построено</span></div>

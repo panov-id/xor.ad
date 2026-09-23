@@ -3624,3 +3624,56 @@ Deno.test({
     assertEquals((await profile()).length, 0, "the profile still lists phrases a step away took");
   },
 });
+
+// Lock order (review panel of the step away, 23.09.2026, data lens): the verdict
+// and the consent used to take their row first and the counters second, the
+// opposite of the like, the step away and the profile. A transaction that holds
+// the counters and then wants the row — as a step away does — deadlocked with
+// them. Both must now finish, one after the other.
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+Deno.test({ name: "the verdict waits on the author's counters before the phrase, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await author();
+  const waiting = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+       lat_published, lon_published)
+     VALUES ($1, 'xor', $2, 'ждёт вердикта', 'alone', 'und', 60.17, 24.94, 1000, 60.17, 24.94)`,
+    [waiting, me.identity_id],
+  );
+  const { publishPhrase } = await import("../src/lib/feed_verdict.ts");
+  const holder = database.transaction(async (run) => {
+    await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [me.identity_id]);
+    await pause(300);
+    await run(`SELECT 1 FROM feed_messages WHERE id = $1 FOR UPDATE`, [waiting]);
+  });
+  await pause(50);
+  const verdict = publishPhrase(waiting);
+  const [held, decided] = await Promise.allSettled([holder, verdict]);
+  assertEquals(held.status, "fulfilled", `the counter holder died: ${JSON.stringify(held)}`);
+  assertEquals(decided.status, "fulfilled", `the verdict died: ${JSON.stringify(decided)}`);
+  assertEquals((decided as PromiseFulfilledResult<{ applied: boolean }>).value.applied, true);
+});
+
+Deno.test({ name: "consent waits on the pair's counters before the match, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await freshMatch();
+  // The other side first: only the consent that opens the chat locks the
+  // counters, so that is the one to race (the first one only waits).
+  assertEquals((await consent(b, id)).status, 200);
+  const holder = database.transaction(async (run) => {
+    await run(
+      `SELECT 1 FROM identity_stats WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
+        ORDER BY identity FOR UPDATE`,
+      [id],
+    );
+    await pause(300);
+    await run(`SELECT 1 FROM matches WHERE id = $1 FOR UPDATE`, [id]);
+  });
+  await pause(50);
+  const agreed = consent(a, id);
+  const [held, answered] = await Promise.allSettled([holder, agreed]);
+  assertEquals(held.status, "fulfilled", `the counter holder died: ${JSON.stringify(held)}`);
+  assertEquals(answered.status, "fulfilled");
+  assertEquals((answered as PromiseFulfilledResult<{ status: number }>).value.status, 200,
+    "the consent answered something else than a consent — a deadlock is a 503");
+});

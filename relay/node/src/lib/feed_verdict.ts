@@ -84,19 +84,43 @@ export interface VerdictScope {
   nameSeen?: string;
 }
 
+// The waiting phrase and its author's counters, locked in the order every
+// other writer of those counters takes them — identity_stats first, then the
+// rows (likes.ts, profile.ts, away.ts). The verdict used to take the phrase's
+// row first, and a step away at the same moment then deadlocked with it: one
+// side answered 503 (review panel of the step away, 23.09.2026, data lens).
+// The author is read unlocked, then locked, then the row is taken and checked
+// again: a verdict that raced another one finds nothing waiting any more.
+async function lockWaiting(
+  run: Run,
+  id: string,
+  scope: VerdictScope,
+): Promise<{ author_identity: string | null } | undefined> {
+  const [peek] = await run<{ author_identity: string | null }>(
+    `SELECT author_identity FROM feed_messages
+      WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)`,
+    [id, scope.brand ?? null],
+  );
+  if (!peek) return undefined;
+  if (peek.author_identity) {
+    await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [peek.author_identity]);
+  }
+  const [row] = await run<{ author_identity: string | null }>(
+    `SELECT author_identity FROM feed_messages
+      WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
+      FOR UPDATE`,
+    [id, scope.brand ?? null],
+  );
+  return row;
+}
+
 export async function publishPhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
-    const [row] = await run<{ author_identity: string | null }>(
-      `SELECT author_identity FROM feed_messages
-        WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
-        FOR UPDATE`,
-      [id, scope.brand ?? null],
-    );
+    const row = await lockWaiting(run, id, scope);
     // Already decided, already swept, or never existed: a verdict arriving
     // twice must not publish twice or write a second moment.
     if (!row) return { applied: false, identityId: null };
     if (row.author_identity) {
-      await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [row.author_identity]);
       // The identity row too: the name is read and written under this lock.
       const [who] = await run<{ name: string; name_pending: string | null; name_state: string }>(
         `SELECT name, name_pending, name_state FROM identities WHERE id = $1 FOR UPDATE`,
@@ -154,16 +178,8 @@ export async function publishPhrase(id: string, scope: VerdictScope = {}): Promi
 // the pause of §8.3 counts.
 export async function refusePhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
-    const [row] = await run<{ author_identity: string | null }>(
-      `SELECT author_identity FROM feed_messages
-        WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
-        FOR UPDATE`,
-      [id, scope.brand ?? null],
-    );
+    const row = await lockWaiting(run, id, scope);
     if (!row) return { applied: false, identityId: null };
-    if (row.author_identity) {
-      await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [row.author_identity]);
-    }
     await run(`DELETE FROM feed_messages WHERE id = $1 AND visible_at IS NULL`, [id]);
     if (row.author_identity) {
       await rememberMoment(run, row.author_identity, "rejected_at_recent", KEEP_REFUSED);
@@ -182,14 +198,8 @@ export async function refusePhrase(id: string, scope: VerdictScope = {}): Promis
 // rejected, or not the one the moderator saw, answers as not applied.
 export async function refuseName(id: string, scope: VerdictScope = {}): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
-    const [row] = await run<{ author_identity: string | null }>(
-      `SELECT author_identity FROM feed_messages
-        WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
-        FOR UPDATE`,
-      [id, scope.brand ?? null],
-    );
+    const row = await lockWaiting(run, id, scope);
     if (!row || !row.author_identity) return { applied: false, identityId: null };
-    await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [row.author_identity]);
     const [who] = await run<{ name: string; name_pending: string | null; name_state: string }>(
       `SELECT name, name_pending, name_state FROM identities WHERE id = $1 FOR UPDATE`,
       [row.author_identity],

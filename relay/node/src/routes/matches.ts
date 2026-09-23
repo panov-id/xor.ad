@@ -81,7 +81,18 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
 
   const answer = await transaction<Response>(async (run) => {
     await run(`SET LOCAL lock_timeout = '2s'`);
-    // The match row first, locked, so two consents at once see each other.
+    // The pair's counters first, in order, as the like, the step away and the
+    // profile take them — the match row used to come first, and a step away
+    // of either person at the same moment deadlocked with it (review panel of
+    // the step away, 23.09.2026, data lens). Only if the caller is in it.
+    await run(
+      `SELECT 1 FROM identity_stats
+        WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
+          AND EXISTS (SELECT 1 FROM match_participants WHERE match_id = $1 AND identity = $2)
+        ORDER BY identity FOR UPDATE`,
+      [matchId, me],
+    );
+    // Then the match row, locked, so two consents at once see each other.
     const [live] = await run<{ id: string }>(
       `SELECT m.id FROM matches m
          JOIN match_participants p ON p.match_id = m.id AND p.identity = $2

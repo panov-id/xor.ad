@@ -16,5 +16,12 @@ COPY ink ./ink
 # lens, 2026-09-22). The image carries no mounts, so nothing else changes.
 USER node
 
+# The storefront key is public by decision and by construction: it names the
+# brand, grants nothing, and is not hashed anywhere (protocol §5, 2026-09-22).
+# Baking one in at build time lets a person run the terminal with no setup;
+# leaving it empty means the run must supply it.
+ARG DEPTH_API_KEY=""
+ARG DEPTH_NODE_URL=""
+ENV DEPTH_API_KEY=$DEPTH_API_KEY DEPTH_NODE_URL=$DEPTH_NODE_URL
 ENV NODE_ENV=production NODE_NO_WARNINGS=1
 ENTRYPOINT ["node", "--experimental-transform-types", "ink/main.ts"]

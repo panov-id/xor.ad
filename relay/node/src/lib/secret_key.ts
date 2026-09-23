@@ -31,12 +31,15 @@ export interface SecretKey {
   // never reads it: /v1 checks it on every request, and it was silently absent
   // here while the panel showed it as if it applied.
   quota_events_per_day?: number | null;
+  // Page views have their own (db/009), and /v1/pageview reads it since
+  // 23.09.2026 — before that the column was accepted by the panel and read by no one.
+  quota_pageviews_per_day?: number | null;
 }
 
 // The columns every read of a key returns. Written once: a limit missing from one
 // of three near-identical SELECTs is exactly how it came to be unenforced.
 const COLUMNS = `id, brand, name, scopes, created_by, created_at, last_used_at,
-                 revoked_at, quota_events_per_day::int`;
+                 revoked_at, quota_events_per_day::int, quota_pageviews_per_day::int`;
 
 // Same shape as the publishable one, different prefix: both are recognisable at
 // a glance in a log line, which is when it matters most.

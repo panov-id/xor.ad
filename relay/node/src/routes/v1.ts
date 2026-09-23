@@ -19,7 +19,7 @@ import { acceptPageview } from "./pageview.ts";
 import { acceptClientError } from "./client_error.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { inc } from "../lib/metrics.ts";
-import { EVENTS, exceeded, record, secondsUntilReset } from "../lib/quota.ts";
+import { EVENTS, exceeded, PAGEVIEWS, record, secondsUntilReset } from "../lib/quota.ts";
 import { callerBucket } from "../lib/client_ip.ts";
 import { checkAll, V1_LIMITS } from "../lib/rate_limit.ts";
 
@@ -86,19 +86,27 @@ async function authenticate(req: Request): Promise<SecretKey | Response> {
 // own failure is not charged twice. `/v1/me` is deliberately outside this: it
 // writes nothing, and charging a caller for asking how its key is configured
 // would spend the allowance on the one call that exists to check the others.
+//
+// Page views count in their own family against their own column, as on the
+// publishable path (lib/tenant.ts). Until 23.09.2026 /v1/pageview spent the
+// events allowance and quota_pageviews_per_day, which the panel lets you set,
+// limited nothing here.
 async function overAllowance(caller: SecretKey, route: string): Promise<Response | null> {
-  if (await exceeded(caller.id, caller.quota_events_per_day ?? null)) {
+  const pageviews = route === "pageview";
+  const counter = pageviews ? PAGEVIEWS : EVENTS;
+  const limit = pageviews ? caller.quota_pageviews_per_day ?? null : caller.quota_events_per_day ?? null;
+  if (await exceeded(caller.id, limit, counter)) {
     const retryAfter = secondsUntilReset();
     inc("relay_v1_total", { route, result: "rate_limited" });
     return apiError(
       "rate_limited",
       "daily quota exceeded",
       429,
-      { limit: caller.quota_events_per_day, retry_after: retryAfter },
+      { limit, retry_after: retryAfter },
       { "retry-after": String(retryAfter) },
     );
   }
-  record(caller.id, EVENTS);
+  record(caller.id, counter);
   return null;
 }
 

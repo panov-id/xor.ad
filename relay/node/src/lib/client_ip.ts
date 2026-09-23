@@ -102,11 +102,24 @@ export function callerBucket(req: Request): string {
   // waitlist and on Article 16 notices, which is a limiter switched off from
   // outside. Anything that is not a publishable key id shares one bucket, the
   // same way a caller with no key at all does.
-  const presented = req.headers.get("x-api-key");
-  const key = presented && KEY_ID.test(presented) ? presented : presented ? "malformed" : "keyless";
-  return `${clientAddress(req).ip}|${key}`;
+  //
+  // /v1 sends its key as `Authorization: Bearer <id>.<secret>`, not x-api-key.
+  // Until 23.09.2026 only x-api-key was read, so every /v1 caller behind one
+  // address counted in the one "keyless" bucket — the thing this function
+  // exists to prevent. Only the id before the dot goes into the name; the
+  // secret never does, and nothing is resolved.
+  const publishable = req.headers.get("x-api-key");
+  if (publishable) return `${clientAddress(req).ip}|${KEY_ID.test(publishable) ? publishable : "malformed"}`;
+  const bearer = req.headers.get("authorization");
+  if (bearer) {
+    const id = bearer.replace(/^Bearer\s+/i, "").trim().split(".")[0];
+    return `${clientAddress(req).ip}|${SECRET_KEY_ID.test(id) ? id : "malformed"}`;
+  }
+  return `${clientAddress(req).ip}|keyless`;
 }
 
-// The shape publishable ids are minted in (lib/api_key.ts). Kept here rather
-// than imported so the limiter never pulls in key lookup — this runs before it.
+// The shapes key ids are minted in (lib/api_key.ts, lib/secret_key.ts). Kept
+// here rather than imported so the limiter never pulls in key lookup — this
+// runs before it.
 const KEY_ID = /^ak_pub_[a-z0-9]{16,64}$/;
+const SECRET_KEY_ID = /^ak_live_[a-z0-9]{16,64}$/;

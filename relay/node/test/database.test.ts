@@ -385,7 +385,7 @@ Deno.test({
   async fn() {
     const minted = await secretKeys.createSecretKey("alpha", "burst", ["pageviews.write"], null);
     await callAs(PLATFORM, "PATCH", `/admin/secret-keys/${minted.key.id}/quota`, {
-      quota_events_per_day: 2,
+      quota_pageviews_per_day: 2,
     });
 
     const view = { path: "/", lang: "en" };
@@ -401,6 +401,40 @@ Deno.test({
   },
 });
 
+// Page views on /v1 spend their own allowance (23.09.2026). They used to spend
+// the events one, so quota_pageviews_per_day — which the panel sets — limited
+// nothing here, and a page-view loop on the tenant's server closed its error
+// reports and sign-ups for the rest of the day.
+Deno.test({
+  name: "on /v1 page views and events count against their own allowances",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const minted = await secretKeys.createSecretKey(
+      "alpha",
+      "two families",
+      ["pageviews.write", "client_errors.write"],
+      null,
+    );
+    // One field per request: the route refuses two rather than half-apply them.
+    for (const allowance of [{ quota_pageviews_per_day: 1 }, { quota_events_per_day: 5 }]) {
+      const set = await callAs(PLATFORM, "PATCH", `/admin/secret-keys/${minted.key.id}/quota`, allowance);
+      assertEquals(set.status, 200, `the allowance was not set: ${JSON.stringify(allowance)}`);
+    }
+    const resolved = await secretKeys.resolveSecretKey(minted.secret);
+    assertEquals(resolved?.quota_pageviews_per_day, 1, "the resolver does not read the page-view allowance");
+
+    const view = { path: "/", lang: "en" };
+    assertEquals((await callWithKey(minted.secret, "POST", "/v1/pageview", view)).status, 200);
+    const second = await callWithKey(minted.secret, "POST", "/v1/pageview", view);
+    assertEquals(second.status, 429, "the page-view allowance did not limit /v1/pageview");
+    assertEquals(second.body.error.limit, 1, "the refusal names the events limit, not the page-view one");
+
+    const report = await callWithKey(minted.secret, "POST", "/v1/client-error", { message: "boom" });
+    assert(report.status < 300, `running out of page views closed the error reports too: ${report.status}`);
+  },
+});
+
 Deno.test({
   name: "asking how a key is configured is free",
   sanitizeOps: false,
@@ -408,7 +442,7 @@ Deno.test({
   async fn() {
     const minted = await secretKeys.createSecretKey("alpha", "me only", ["pageviews.write"], null);
     await callAs(PLATFORM, "PATCH", `/admin/secret-keys/${minted.key.id}/quota`, {
-      quota_events_per_day: 1,
+      quota_pageviews_per_day: 1,
     });
 
     // Several times over the limit: /v1/me writes nothing, and spending the

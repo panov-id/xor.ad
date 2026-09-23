@@ -67,6 +67,24 @@ configured("the bucket is the address and the key together", () => {
 // header would be a free bucket per request — and fifty thousand of those used
 // to wipe every counter on the node. Anything that is not a key id shares one
 // bucket, and two different pieces of junk must not get two.
+// /v1 carries its key as `Authorization: Bearer <id>.<secret>`. Until 23.09.2026
+// the bucket read only x-api-key, so every /v1 caller behind one address shared
+// "keyless". The id goes into the name; the secret never does.
+configured("a /v1 caller counts in the bucket of its own secret key", () => {
+  const address = "203.0.113.11";
+  const v1 = (id: string, secret = "s".repeat(64)) =>
+    new Request("https://relay.test/v1/pageview", {
+      method: "POST",
+      headers: { "x-forwarded-for": address, authorization: `Bearer ${id}.${secret}` },
+    });
+  const A = "ak_live_" + "a".repeat(32);
+  const B = "ak_live_" + "b".repeat(32);
+  assert(callerBucket(v1(A)) !== callerBucket(v1(B)), "two secret keys behind one address share a bucket");
+  assertEquals(callerBucket(v1(A)), `${address}|${A}`);
+  assertEquals(callerBucket(v1(A, "t".repeat(64))), callerBucket(v1(A)), "the secret must not be part of the bucket");
+  assertEquals(callerBucket(v1(crypto.randomUUID())), `${address}|malformed`, "junk after Bearer bought a bucket");
+});
+
 configured("junk in the key header does not buy a bucket of its own", () => {
   const address = "203.0.113.9";
   const first = callerBucket(request(address, crypto.randomUUID()));

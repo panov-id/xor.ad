@@ -51,5 +51,14 @@
   "common.rowActions": "săgețile stânga și dreapta — acțiunea, enter — alege",
   "common.error": "Ceva n-a mers: {message}",
   "chat.broken": "un mesaj nu s-a deschis: {message}",
-  "chat.codeChanged": "codul s-a schimbat de la ultima comparare — comparați din nou"
+  "chat.codeChanged": "codul s-a schimbat de la ultima comparare — comparați din nou",
+  "feed.hide": "ascunde",
+  "feed.hidden": "ascunse",
+  "hidden.title": "fraze ascunse",
+  "hidden.empty": "nimic ascuns",
+  "hidden.restore": "adu înapoi",
+  "block.item": "blochează",
+  "block.confirm": "sigur blochezi?",
+  "block.what": "conversația se încheie pentru amândoi, iar o blocare ridicată nu se mai pune",
+  "chat.end": "încheie conversația"
 }

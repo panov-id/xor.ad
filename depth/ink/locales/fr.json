@@ -51,5 +51,14 @@
   "common.rowActions": "flèches gauche et droite : l'action, entrée : choisir",
   "common.error": "Quelque chose a échoué : {message}",
   "chat.broken": "un message ne s'est pas ouvert : {message}",
-  "chat.codeChanged": "le code a changé depuis la dernière comparaison — comparez-le de nouveau"
+  "chat.codeChanged": "le code a changé depuis la dernière comparaison — comparez-le de nouveau",
+  "feed.hide": "masquer",
+  "feed.hidden": "masquées",
+  "hidden.title": "phrases masquées",
+  "hidden.empty": "rien n'est masqué",
+  "hidden.restore": "rétablir",
+  "block.item": "bloquer",
+  "block.confirm": "bloquer, vraiment ?",
+  "block.what": "la conversation se termine pour vous deux, et un blocage levé ne se remet pas",
+  "chat.end": "terminer la conversation"
 }

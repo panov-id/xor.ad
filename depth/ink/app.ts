@@ -10,7 +10,7 @@ import { Client } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, Registration } from "./screens.ts";
 import type { Place } from "./screens.ts";
-import { Chat, Inbox, Write } from "./rooms.ts";
+import { Chat, Hidden, Inbox, Write } from "./rooms.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -32,6 +32,7 @@ type Where =
   | { screen: "feed" }
   | { screen: "write" }
   | { screen: "inbox" }
+  | { screen: "hidden" }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number };
 
 export function App({ say, client }: { say: Say; client: Client }): ReactElement {
@@ -70,6 +71,7 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           onWrite: () => setWhere({ screen: "write" }),
           onInbox: () => setWhere({ screen: "inbox" }),
           onPoint: () => setWhere({ screen: "location" }),
+          onHidden: () => setWhere({ screen: "hidden" }),
           onError: fail,
         });
       case "write":
@@ -82,6 +84,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           onBack: feed,
           onError: fail,
         });
+      case "hidden":
+        return h(Hidden, { say, client, onBack: feed, onError: fail });
       case "inbox":
         return h(Inbox, {
           say,

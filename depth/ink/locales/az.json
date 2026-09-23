@@ -51,5 +51,14 @@
   "common.rowActions": "sol və sağ oxlar — hərəkət, enter — seç",
   "common.error": "Nəsə alınmadı: {message}",
   "chat.broken": "mesaj açılmadı: {message}",
-  "chat.codeChanged": "kod son tutuşdurmadan bəri dəyişib — yenidən tutuşdurun"
+  "chat.codeChanged": "kod son tutuşdurmadan bəri dəyişib — yenidən tutuşdurun",
+  "feed.hide": "gizlət",
+  "feed.hidden": "gizlədilmiş",
+  "hidden.title": "gizlədilmiş sözlər",
+  "hidden.empty": "heç nə gizlədilməyib",
+  "hidden.restore": "qaytar",
+  "block.item": "blokla",
+  "block.confirm": "həqiqətən bloklayırsan?",
+  "block.what": "söhbət hər ikinizdə bağlanır, götürülmüş blok isə yenidən qoyulmur",
+  "chat.end": "söhbəti bitir"
 }

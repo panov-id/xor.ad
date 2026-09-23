@@ -51,5 +51,14 @@
   "common.rowActions": "chap va o'ng strelkalar — harakat, enter — tanlash",
   "common.error": "Nimadir noto'g'ri ketdi: {message}",
   "chat.broken": "xabar ochilmadi: {message}",
-  "chat.codeChanged": "kod oxirgi solishtirishdan beri o'zgardi — qaytadan solishtiring"
+  "chat.codeChanged": "kod oxirgi solishtirishdan beri o'zgardi — qaytadan solishtiring",
+  "feed.hide": "yashirish",
+  "feed.hidden": "yashirilgan",
+  "hidden.title": "yashirilgan so'zlar",
+  "hidden.empty": "hech narsa yashirilmagan",
+  "hidden.restore": "qaytarish",
+  "block.item": "bloklash",
+  "block.confirm": "rostdan bloklaysizmi?",
+  "block.what": "suhbat ikkalangiz uchun ham tugaydi, olib tashlangan blok qaytadan qo'yilmaydi",
+  "chat.end": "suhbatni tugatish"
 }

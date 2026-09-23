@@ -51,5 +51,14 @@
   "common.rowActions": "flechas izquierda y derecha: la acción, enter: elegir",
   "common.error": "Algo ha fallado: {message}",
   "chat.broken": "un mensaje no se abrió: {message}",
-  "chat.codeChanged": "el código ha cambiado desde la última comparación: comparadlo otra vez"
+  "chat.codeChanged": "el código ha cambiado desde la última comparación: comparadlo otra vez",
+  "feed.hide": "ocultar",
+  "feed.hidden": "ocultas",
+  "hidden.title": "frases ocultas",
+  "hidden.empty": "no hay nada oculto",
+  "hidden.restore": "recuperar",
+  "block.item": "bloquear",
+  "block.confirm": "¿seguro que bloqueas?",
+  "block.what": "la conversación termina para los dos, y un bloqueo retirado no se vuelve a poner",
+  "chat.end": "terminar la conversación"
 }

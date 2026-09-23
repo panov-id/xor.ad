@@ -51,5 +51,14 @@
   "common.rowActions": "strzałki w lewo i w prawo — działanie, enter — wybierz",
   "common.error": "Coś poszło nie tak: {message}",
   "chat.broken": "wiadomość się nie otworzyła: {message}",
-  "chat.codeChanged": "kod zmienił się od ostatniego porównania — porównajcie jeszcze raz"
+  "chat.codeChanged": "kod zmienił się od ostatniego porównania — porównajcie jeszcze raz",
+  "feed.hide": "ukryj",
+  "feed.hidden": "ukryte",
+  "hidden.title": "ukryte zdania",
+  "hidden.empty": "nic nie jest ukryte",
+  "hidden.restore": "przywróć",
+  "block.item": "zablokuj",
+  "block.confirm": "na pewno zablokować?",
+  "block.what": "rozmowa skończy się dla obojga, a zdjęta blokada nie wraca",
+  "chat.end": "zakończ rozmowę"
 }

@@ -84,7 +84,7 @@ type Phrase = { id: string; text: string; name?: string; age?: number; distance_
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, onWrite, onInbox, onPoint, onError }: {
+  { say, client, place, mine, onWrite, onInbox, onPoint, onHidden, onError }: {
     say: Say;
     client: Client;
     place: Place;
@@ -92,11 +92,13 @@ export function Feed(
     onWrite: () => void;
     onInbox: () => void;
     onPoint: () => void;
+    onHidden: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
   const [items, setItems] = useState<Phrase[] | null>(null);
   const [at, setAt] = useState(0);
+  const [blocking, setBlocking] = useState(false);
   useEffect(() => {
     client.feed(place)
       .then((answer) => setItems(answer.items as Phrase[]))
@@ -136,17 +138,36 @@ export function Feed(
     h(Menu, {
       actions: [
         { key: "like", label: chosen?.liked === true ? say("feed.unlike") : say("feed.like"), disabled: !chosen },
+        { key: "hide", label: say("feed.hide"), disabled: !chosen },
+        { key: "block", label: say("block.item"), disabled: !chosen },
         { key: "write", label: say("feed.write") },
         { key: "inbox", label: say("feed.inbox") },
         { key: "point", label: say("feed.point") },
+        { key: "hidden", label: say("feed.hidden") },
         { key: "exit", label: say("common.exit") },
       ],
       onPick: (key) => {
         if (key === "write") return onWrite();
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
+        if (key === "hidden") return onHidden();
         if (key === "exit") return process.exit(0);
         if (!chosen) return;
+        // Hiding is mine alone and can be taken back (§8.9); blocking ends the
+        // conversation for both and cannot be set again once lifted (§4.8) —
+        // so the second one asks twice, in the row itself.
+        if (key === "hide") {
+          return void client.hide(chosen.id)
+            .then(() => setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id)))
+            .catch((e: Error) => onError(e.message));
+        }
+        if (key === "block") {
+          if (!blocking) return setBlocking(true);
+          setBlocking(false);
+          return void client.blockByPhrase(chosen.id)
+            .then(() => setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id)))
+            .catch((e: Error) => onError(e.message));
+        }
         const act = chosen.liked === true ? client.unlike(chosen.id) : client.like(chosen.id);
         act
           .then(() => setItems((list) => (list ?? []).map((p) => (p.id === chosen.id ? { ...p, liked: !p.liked } : p))))
@@ -154,7 +175,9 @@ export function Feed(
       },
       hint: say("common.rowActions"),
     }),
-    h(Text, { dimColor: true }, `↑↓  ${say("feed.write")} · ${at + 1}/${items?.length ?? 0}`),
+    blocking
+      ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`)
+      : h(Text, { dimColor: true }, `↑↓ · ${at + 1}/${items?.length ?? 0}`),
     h(FeedKeys, { count: items?.length ?? 0, onMove: setAt }),
   );
 }

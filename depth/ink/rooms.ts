@@ -162,6 +162,7 @@ export function Chat(
   const [showCode, setShowCode] = useState(false);
   const [matched, setMatched] = useState(false);
   const [changed, setChanged] = useState(false);
+  const [blocking, setBlocking] = useState(false);
 
   // Opening the panel asks the node again rather than trusting what this
   // screen already holds. A rekey does not move the code — it is derived from
@@ -250,6 +251,7 @@ export function Chat(
       )
       : null,
     matched ? h(Text, { dimColor: true }, `✓ ${say("chat.matched")}`) : null,
+    blocking ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`) : null,
     h(Text, { dimColor: true }, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
     h(Form, {
       active: !showCode,
@@ -258,11 +260,27 @@ export function Chat(
       actions: [
         { key: "send", label: say("chat.send"), disabled: draft.trim() === "" },
         { key: "code", label: say("chat.codeItem") },
+        { key: "end", label: say("chat.end") },
+        { key: "block", label: say("block.item") },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {
         if (key === "back") return onBack();
         if (key === "code") return void openCode();
+        // Ending is mutual and plain; blocking is mutual and final, so it is
+        // the one that asks twice (§4.8, the owner's shape of 2026-09-22).
+        if (key === "end") {
+          return void client.closeChat(chatId)
+            .then(() => onBack())
+            .catch((e: Error) => onError(e.message));
+        }
+        if (key === "block") {
+          if (!blocking) return setBlocking(true);
+          setBlocking(false);
+          return void client.blockByChat(chatId)
+            .then(() => onBack())
+            .catch((e: Error) => onError(e.message));
+        }
         const text = draft.trim();
         setDraft("");
         client.sayInChat(chatId, text, matchId)
@@ -270,6 +288,65 @@ export function Chat(
           .catch((e: Error) => onError(e.message));
       },
       actionsHint: say("common.rowActions"),
+    }),
+  );
+}
+
+// 7 · what I hid. Hiding is mine alone and the node forgets it the moment the
+// phrase expires, so this list is short by construction (§8.9).
+export function Hidden(
+  { say, client, onBack, onError }: {
+    say: Say;
+    client: Client;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [rows, setRows] = useState<Array<{ id: string; text: string }> | null>(null);
+  const [at, setAt] = useState(0);
+  const load = () =>
+    client.hidden()
+      .then((list) => setRows(list))
+      .catch((e: Error) => onError(e.message));
+  useEffect(() => void load(), []);
+  useInput((_input, key) => {
+    const count = rows?.length ?? 0;
+    if (count === 0) return;
+    if (key.upArrow) setAt((i) => (i - 1 + count) % count);
+    if (key.downArrow) setAt((i) => (i + 1) % count);
+  });
+  const chosen = rows?.[at];
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("hidden.title") }),
+    rows === null
+      ? h(Text, { dimColor: true }, "…")
+      : rows.length === 0
+      ? h(Text, { dimColor: true }, say("hidden.empty"))
+      : h(
+        Box,
+        { flexDirection: "column" },
+        ...rows.map((r, i) =>
+          h(Text, { key: r.id, bold: i === at }, `${i === at ? "›" : " "} ${plain(r.text, 200)}`)
+        ),
+      ),
+    h(Menu, {
+      actions: [
+        { key: "back-it", label: say("hidden.restore"), disabled: !chosen },
+        { key: "back", label: say("common.back") },
+      ],
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (!chosen) return;
+        client.unhide(chosen.id)
+          .then(() => {
+            setAt(0);
+            return load();
+          })
+          .catch((e: Error) => onError(e.message));
+      },
+      hint: say("common.rowActions"),
     }),
   );
 }

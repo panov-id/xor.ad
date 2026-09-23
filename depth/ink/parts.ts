@@ -24,8 +24,11 @@ export function Menu(
   // process (caught by the screens' own test, 2026-09-22).
   useInput((_input, key) => {
     if (!active || actions.length === 0) return;
-    if (key.leftArrow) setAt((i) => (i - 1 + actions.length) % actions.length);
-    if (key.rightArrow) setAt((i) => (i + 1) % actions.length);
+    // The row stops at its ends rather than wrapping: with "выход" last, a
+    // wrap put quitting one keypress away from the first action, and a person
+    // reaching left for "лайк" would land on it (23.09.2026).
+    if (key.leftArrow) setAt((i) => Math.max(0, i - 1));
+    if (key.rightArrow) setAt((i) => Math.min(actions.length - 1, i + 1));
     if (key.return) {
       const action = actions[Math.min(at, actions.length - 1)];
       if (action && action.disabled !== true) onPick(action.key);

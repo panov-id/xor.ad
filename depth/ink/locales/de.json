@@ -51,5 +51,14 @@
   "common.rowActions": "Pfeile links und rechts: die Aktion, Enter: wählen",
   "common.error": "Etwas ist schiefgegangen: {message}",
   "chat.broken": "eine Nachricht ließ sich nicht öffnen: {message}",
-  "chat.codeChanged": "der Code hat sich seit dem letzten Vergleich geändert — vergleicht ihn erneut"
+  "chat.codeChanged": "der Code hat sich seit dem letzten Vergleich geändert — vergleicht ihn erneut",
+  "feed.hide": "ausblenden",
+  "feed.hidden": "ausgeblendet",
+  "hidden.title": "ausgeblendete Sätze",
+  "hidden.empty": "nichts ist ausgeblendet",
+  "hidden.restore": "zurückholen",
+  "block.item": "blockieren",
+  "block.confirm": "wirklich blockieren?",
+  "block.what": "das Gespräch endet für euch beide, und eine aufgehobene Blockierung lässt sich nicht erneut setzen",
+  "chat.end": "das Gespräch beenden"
 }

@@ -15,8 +15,8 @@ setTimeout(async () => {
   let failed = 0;
   // A run with nothing in it is not a pass: an empty set used to print
   // "провалено 0" and exit green (operations lens, 2026-09-22).
-  if (cases.length < 7) {
-    say_(`тестов должно быть не меньше семи, а собрано ${cases.length}`);
+  if (cases.length < 9) {
+    say_(`тестов должно быть не меньше девяти, а собрано ${cases.length}`);
     process.exit(1);
   }
   for (const [name, fn] of cases) {
@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Chat } from "./rooms.ts";
+import { Chat, Hidden } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -175,5 +175,70 @@ test("a safety code that changed drops the \"compared\" mark", async () => {
   assert.match(frame, /2222 2222/, "the panel kept showing the old code");
   assert.match(frame, /код изменился/, "the change was not announced");
   assert.equal(/код сверен/.test(frame), false, "\"compared\" survived a changed code");
+  app.unmount();
+});
+
+test("blocking asks twice, and says what it costs", async () => {
+  let blocked = 0;
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "1111 1111 1111 1111 1111" }),
+    openRoom: () => Promise.resolve({ next: () => new Promise(() => {}), close: () => {} }),
+    read: () => Promise.resolve(""),
+    blockByChat: () => {
+      blocked++;
+      return Promise.resolve({ status: 204, body: {} });
+    },
+  };
+  let back = 0;
+  const app = render(
+    h(Chat, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      chatId: "c",
+      name: "Марк",
+      age: 29,
+      limit: 128,
+      onBack: () => back++,
+      onError: () => {},
+    }),
+  );
+  await settle(150);
+  // Into the row, along to "заблокировать": send, код, закончить беседу, block.
+  await type(app, DOWN, RIGHT, RIGHT, RIGHT, ENTER);
+  await settle(150);
+  assert.equal(blocked, 0, "one press blocked without asking");
+  assert.match(app.lastFrame()!, /точно заблокировать/, "the screen did not ask");
+  assert.match(app.lastFrame()!, /беседа закроется у обоих/, "the screen did not say what it costs");
+  await type(app, ENTER);
+  await settle(200);
+  assert.equal(blocked, 1, "the second press did not block");
+  assert.equal(back, 1, "the screen stayed in a conversation that is over");
+  app.unmount();
+});
+
+test("a hidden phrase can be brought back from the list", async () => {
+  let rows = [{ id: "h1", kind: "feed", text: "гуляю у реки" }];
+  const client = {
+    hidden: () => Promise.resolve(rows),
+    unhide: (handle: string) => {
+      rows = rows.filter((r) => r.id !== handle);
+      return Promise.resolve({ status: 204, body: {} });
+    },
+  };
+  const app = render(
+    h(Hidden, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      onBack: () => {},
+      onError: () => {},
+    }),
+  );
+  await settle(200);
+  assert.match(app.lastFrame()!, /гуляю у реки/, "the hidden phrase is not on the screen");
+  await type(app, ENTER);
+  await settle(250);
+  assert.match(app.lastFrame()!, /ничего не скрыто/, "the phrase did not leave the list");
   app.unmount();
 });

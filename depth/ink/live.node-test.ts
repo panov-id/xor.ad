@@ -24,7 +24,23 @@ const databaseUrl = process.env.DEPTH_DATABASE_URL!;
 const out = (line: string) => (process as unknown as { _rawDebug: (s: string) => void })._rawDebug(line);
 
 const settle = (ms = 120) => new Promise((done) => setTimeout(done, ms));
-const DOWN = "\u001B[B", ENTER = "\r";
+const DOWN = "\u001B[B", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
+
+// The feed's row of actions, in the order the screen draws it. Counting
+// presses by hand broke the moment two actions were inserted, so the test
+// names what it wants instead.
+const FEED_ROW = ["like", "hide", "block", "write", "inbox", "point", "hidden", "exit"];
+
+async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
+  const steps = FEED_ROW.indexOf(action);
+  if (steps < 0) throw new Error(`no such action in the feed's row: ${action}`);
+  // The row remembers where it was left, so walk to its start first: the
+  // helper used to count from zero and landed on "выход", which quit the
+  // program mid-run (measured 23.09.2026).
+  for (let i = 0; i < FEED_ROW.length; i++) await type(app, LEFT);
+  for (let i = 0; i < steps; i++) await type(app, RIGHT);
+  await type(app, ENTER);
+}
 
 async function type(app: { stdin: { write: (s: string) => void } }, ...keys: string[]) {
   for (const key of keys) {
@@ -95,10 +111,10 @@ async function main() {
     // The counter must show the node's number, not one this client carries:
     // the terminal used to say 146 while the node refused at 128.
     const stated = (await new Client(node, apiKey).limits()).phrase_length;
-    await type(app, DOWN, "\u001B[C", ENTER); // the row: write a phrase
+    await pickInFeed(app, "write");
     await until(app, new RegExp(`0/${stated}`), 20);
     out(`ok   the phrase counter shows the node's own limit (${stated})`);
-    await type(app, DOWN, "\u001B[C", ENTER); // back to the feed
+    await type(app, DOWN, RIGHT, ENTER); // the phrase screen: back
     await until(app, /signal/);
 
     // The other side: the core, and a phrase put where the feed will find it.
@@ -115,11 +131,24 @@ async function main() {
     );
 
     // 3 · the feed shows it. The screen reloads when the point is set again.
-    await type(app, DOWN, "\u001B[C", "\u001B[C", "\u001B[C", ENTER); // the row: change the point
+    await pickInFeed(app, "point");
     await until(app, /Где ты/);
     await type(app, DOWN, DOWN, DOWN, ENTER);  // straight on: the point is still filled in
     await until(app, /пробежку/, 30);
     out("ok   a live phrase reached the feed screen");
+
+    // Hiding from the row, and back from the hidden list: the person's own
+    // feed only, and reversible (§8.9).
+    await pickInFeed(app, "hide");
+    await settle(400);
+    assert.equal(/пробежку/.test(app.lastFrame() ?? ""), false, "a hidden phrase stayed on the screen");
+    await pickInFeed(app, "hidden");
+    await until(app, /пробежку/, 20);
+    await type(app, DOWN, ENTER); // bring it back
+    await settle(400);
+    await type(app, RIGHT, ENTER); // the hidden list: back
+    await until(app, /пробежку/, 20);
+    out("ok   a phrase hidden from the feed came back from the hidden list");
 
     // 4 · a like each way makes a match. The screen likes the peer's phrase;
     // the peer likes a phrase put in for this identity, because a phrase
@@ -134,7 +163,7 @@ async function main() {
          59.9343, 30.3351, now(), now() + interval '3 hours')`,
       [minePhrase, me.id],
     );
-    await type(app, ENTER); // the row stands on "like"
+    await pickInFeed(app, "like");
     await settle(500);
     const back = await peer.like(minePhrase);
     assert.ok(back.body.match_id, "the like from the screen never reached the node");
@@ -142,7 +171,7 @@ async function main() {
 
     // 5 · consent from both sides, and the conversation opens on the screen.
     await peer.consent(back.body.match_id!);
-    await type(app, "\u001B[C", "\u001B[C", ENTER); // the row: inbox
+    await pickInFeed(app, "inbox");
     await until(app, /входящие/);
     await type(app, ENTER);
     await until(app, /Марк/, 30);

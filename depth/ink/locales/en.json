@@ -51,5 +51,14 @@
   "common.rowActions": "left and right choose an action, enter picks it",
   "common.error": "Something went wrong: {message}",
   "chat.broken": "a message did not open: {message}",
-  "chat.codeChanged": "the code has changed since you compared it — compare again"
+  "chat.codeChanged": "the code has changed since you compared it — compare again",
+  "feed.hide": "hide",
+  "feed.hidden": "hidden",
+  "hidden.title": "hidden phrases",
+  "hidden.empty": "nothing is hidden",
+  "hidden.restore": "bring it back",
+  "block.item": "block",
+  "block.confirm": "block, really?",
+  "block.what": "the conversation ends for both of you, and a lifted block cannot be set again",
+  "chat.end": "end the conversation"
 }

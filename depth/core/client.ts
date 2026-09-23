@@ -362,6 +362,28 @@ export class Client {
     return this.#call("POST", "/blocks", { feed: phraseId, nonce: base64url(random(16)) });
   }
 
+  // POST /hidden — a phrase leaves my own feed and nobody else's, and its
+  // author never learns (§8.9). The answer is an opaque handle, not the
+  // phrase's id: taking it back goes by that handle.
+  async hide(phraseId: string): Promise<string> {
+    const answer = await this.#call<{ id: string }>("POST", "/hidden", { feed: phraseId });
+    if (answer.status !== 200) throw new Error(`hiding refused: ${answer.status}`);
+    return answer.body.id;
+  }
+
+  // GET /hidden — what I hid, newest first, as handles with their text.
+  async hidden(): Promise<Array<{ id: string; kind: string; text: string }>> {
+    const answer = await this.#call<Array<{ id: string; kind: string; text: string }>>("GET", "/hidden");
+    if (answer.status !== 200) throw new Error(`the hidden list refused: ${answer.status}`);
+    return answer.body;
+  }
+
+  // DELETE /hidden/:id — the phrase comes back to my feed while it is alive.
+  // 204 whatever happened, so a handle that is gone tells the caller nothing.
+  unhide(handle: string): Promise<Answer> {
+    return this.#call("DELETE", `/hidden/${handle}`);
+  }
+
   // GET /inbox — offers to talk and conversations in one answer (§8.12).
   async inbox(): Promise<Array<Record<string, unknown>>> {
     const answer = await this.#call<{ items: Array<Record<string, unknown>> }>("GET", "/inbox");

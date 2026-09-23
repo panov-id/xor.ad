@@ -811,7 +811,7 @@ although `tab` led exactly there.
   1h of YOUR silence", red with a `mm:ss` remainder in the last quarter; there is no `t` key —
   the menu item "your span: an hour" steps through 10 minutes → 30 minutes → an hour →
   "while we're talking" and sends the choice (`PATCH /chats/:id`). One's own span and end come
-  from `GET /inbox` (`span`, `chat_expires_at`); a chat opened straight from consent counts an
+  from `GET /inbox` (`my_span`, `chat_expires_at`); a chat opened straight from consent counts an
   hour from opening. The live walk changes the span against the node and checks it in the
   database.
 - **The tombstone — built 2026-09-23.** The node closes the room with 4003 when the

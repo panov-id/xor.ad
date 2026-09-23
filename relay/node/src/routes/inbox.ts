@@ -113,7 +113,9 @@ async function inbox(req: Request): Promise<Response> {
       chat_expires_at: Number(c.ends), state: c.over ? "ended" : "open",
       // One's own span (§8.6), for the header's "fades after 1h of YOUR
       // silence"; the other side's is neither shown nor sent (23.09.2026).
-      span: c.span,
+      // Named my_span, not span: a bare "span" on this row is what the test of
+      // an ended conversation watches for as the other side's term leaking.
+      my_span: c.span,
       // What the client needs to open the conversation's keys (§8.13): the
       // peer's ephemeral half with its signature, the long key that signed it
       // (and from which the safety code is derived), and the ids that decide

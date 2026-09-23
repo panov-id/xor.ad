@@ -43,6 +43,7 @@ await import("../src/routes/feed_queue.ts");
 await import("../src/routes/profile.ts");
 await import("../src/routes/support.ts");
 await import("../src/routes/support_admin.ts");
+await import("../src/routes/away.ts");
 
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
@@ -2083,8 +2084,8 @@ Deno.test({
     // The inbox says each side its own span, for the header's "fades after …"
     // (23.09.2026) — never the other's.
     const spanIn = async (who: typeof a) =>
-      ((await matchCall(who, "GET", "/inbox")).body as { items: Array<{ id: string; span?: number }> })
-        .items.find((i) => i.id === chat)?.span;
+      ((await matchCall(who, "GET", "/inbox")).body as { items: Array<{ id: string; my_span?: number }> })
+        .items.find((i) => i.id === chat)?.my_span;
     assertEquals(await spanIn(a), 10, "the inbox does not carry one's own span");
     assertEquals(await spanIn(b), 60, "the inbox gave one side the other's span");
   },
@@ -3508,4 +3509,77 @@ Deno.test({ name: "density leaves out what the viewer liked or hid, and only for
   assertEquals(await density(a), "none", "density still counts what A liked or hid");
   assertEquals(await density(c), before, "A's like and hide changed somebody else's density");
   reset();
+});
+
+// ── Stepping away (chat §8.2, protocol §4.9) ─────────────────────────────────────
+const awayNonce = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)));
+
+Deno.test({
+  name: "stepping away takes one's phrases and given likes, marks one's conversations, and closes the product",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    const c = await author();
+    const theirs = await seedPhrase(c.identity_id, "ищу компанию на пробежку");
+    assertEquals(stateOf(await like(a, theirs)), "liked");
+    assertEquals(await likeCount(theirs), 1);
+    const [before] = await database.queryOrThrow<{ likes_received: number }>(
+      `SELECT likes_received FROM identity_stats WHERE identity = $1`, [c.identity_id]);
+
+    const t0 = Math.floor(Date.now() / 1000);
+    const away = await matchCall(a, "POST", "/away", { span: "short", nonce: awayNonce() });
+    assertEquals(away.status, 200, JSON.stringify(away.body));
+    const until = (away.body as { until: number }).until;
+    assert(Math.abs(until - (t0 + 20 * 60)) <= 5, `the short span is not twenty minutes: ${until - t0}s`);
+
+    const count = async (sql: string, arg: string) =>
+      Number((await database.queryOrThrow<{ n: string }>(sql, [arg]))[0].n);
+    assertEquals(await count(`SELECT count(*)::text AS n FROM feed_messages WHERE author_identity = $1`, a.identity_id), 0,
+      "one's phrases survived the step away");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM likes WHERE liker_identity = $1`, a.identity_id), 0,
+      "one's given likes survived the step away");
+    assertEquals(await likeCount(theirs), 0, "the liked phrase kept the count of a like that is gone");
+    const [after] = await database.queryOrThrow<{ likes_received: number }>(
+      `SELECT likes_received FROM identity_stats WHERE identity = $1`, [c.identity_id]);
+    assertEquals(Number(after.likes_received), Number(before.likes_received) - 1, "the author's received count did not move back");
+    assert(await count(`SELECT count(*)::text AS n FROM feed_messages WHERE author_identity = $1`, b.identity_id) > 0,
+      "the other side's phrases went with one's own");
+    const [mark] = await database.queryOrThrow<{ away_marked: boolean }>(
+      `SELECT away_marked FROM chat_participants WHERE chat_id = $1 AND identity = $2`, [chat, a.identity_id]);
+    assertEquals(mark.away_marked, true, "the conversation was not marked away");
+
+    // Nothing of the product while away, but the profile and the way back.
+    const inbox = await matchCall(a, "GET", "/inbox");
+    assertEquals(inbox.status, 409);
+    assertEquals((inbox.body as { error: { code: string } }).error.code, "stepped_away");
+    assertEquals((await matchCall(a, "GET", "/identities/me")).status, 200);
+    assertEquals((await matchCall(a, "DELETE", "/away")).status, 204);
+    assertEquals((await matchCall(a, "GET", "/inbox")).status, 200, "coming back did not open the product again");
+  },
+});
+
+Deno.test({
+  name: "stepping away puts out a match that has not become a conversation, for the other side too",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, id } = await freshMatch();
+    assertEquals((await matchCall(a, "POST", "/away", { span: "hour", nonce: awayNonce() })).status, 200);
+    const theirs = (await matchCall(b, "GET", "/inbox")).body as { items: Array<{ id: string }> };
+    assertEquals(theirs.items.find((i) => i.id === id), undefined, "the match stayed in the other side's inbox");
+    assertEquals((await consent(b, id)).status, 404, "the other side could still agree to a match that is out");
+  },
+});
+
+Deno.test({
+  name: "a step away needs a span it knows and a nonce",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    for (const body of [{ span: "night", nonce: awayNonce() }, { span: "short" }, { span: "short", nonce: "x" }]) {
+      assertEquals((await matchCall(me, "POST", "/away", body)).status, 400, `accepted ${JSON.stringify(body)}`);
+    }
+  },
 });

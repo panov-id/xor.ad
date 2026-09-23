@@ -63,7 +63,7 @@ type Row = {
   age?: number;
   state?: string;
   chat_expires_at?: number;
-  span?: number;
+  my_span?: number;
 };
 
 // 5 · the inbox: matches waiting for consent, and chats already open.
@@ -170,7 +170,7 @@ export function Inbox(
             .catch((e: Error) => onError(e.message));
         }
         if (chosen.kind === "chat") {
-          return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0, chosen.span, chosen.chat_expires_at);
+          return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0, chosen.my_span, chosen.chat_expires_at);
         }
         client.consent(chosen.match_id ?? chosen.id)
           .then((answer) => {

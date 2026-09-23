@@ -37,6 +37,7 @@ import "./routes/hidden.ts"; // and hiding a phrase for oneself
 import "./routes/feed_queue.ts"; // the moderator's queue of the feed, in the panel (§8.3)
 import "./routes/profile.ts"; // PATCH /identities/me: the profile edited, the name queued (§8.2)
 import "./routes/appearance.ts"; // GET/PUT /identities/appearance: theme, contrast, accent per face (screen 22)
+import "./routes/away.ts"; // POST/DELETE /away: stepping away and coming back (§8.2)
 import "./routes/support.ts";
 import "./routes/support_admin.ts"; // GET /admin/support, answer: the team's side (protocol §4.10a) // POST/GET /support, /support/:no/seen: screen 14 (protocol §4.10)
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)

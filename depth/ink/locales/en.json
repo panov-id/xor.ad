@@ -120,5 +120,10 @@
   "away.until": "until {time} · {minutes} min left",
   "away.back": "come back",
   "away.sure": "you wanted a break; are you sure?",
-  "chat.peerAway": "stepped away"
+  "chat.peerAway": "stepped away",
+  "write.paused": "Five refusals in an hour — paused until {time}. The decision is automatic.\nUntil then nothing goes to checking:\nphrases, table lines, a name change, an offer like while the name is not accepted, a hangman word.\nAnother refusal this hour — another 15 minutes.\nThe feed, likes on phrases and conversations work.\nGround: the Terms, §8 and §15. The pause ends by itself; if you disagree — the Digital Services Coordinator or a court.",
+  "write.hourly": "Four phrases already said this hour. The next one can go at {time}.",
+  "write.rapid": "Too many sends in a row.",
+  "write.hold": "Checking what you sent earlier — the new one goes after the verdict.",
+  "write.live": "Four phrases are already live. The next slot frees at {time}."
 }

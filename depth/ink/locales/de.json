@@ -120,5 +120,10 @@
   "away.until": "bis {time} · noch {minutes} Min.",
   "away.back": "zurückkommen",
   "away.sure": "Sie wollten eine Pause — wirklich zurück?",
-  "chat.peerAway": "weg"
+  "chat.peerAway": "weg",
+  "write.paused": "Fünf Ablehnungen in einer Stunde — Pause bis {time}. Die Entscheidung ist automatisch.\nBis dahin geht nichts in die Prüfung:\nPhrasen, Tischbeiträge, Namensänderung, Like auf ein Angebot, solange der Name nicht angenommen ist, ein Galgenmännchen-Wort.\nNoch eine Ablehnung in dieser Stunde — wieder 15 Minuten.\nFeed, Likes auf Phrasen und Gespräche funktionieren.\nGrundlage: die Bedingungen, §8 und §15. Die Pause endet von selbst; bei Widerspruch — der Koordinator für digitale Dienste oder ein Gericht.",
+  "write.hourly": "Vier Phrasen in dieser Stunde sind schon gesagt. Die nächste geht um {time}.",
+  "write.rapid": "Zu viele Sendungen hintereinander.",
+  "write.hold": "Die vorige wird geprüft — die neue geht nach dem Urteil.",
+  "write.live": "Vier Phrasen sind schon live. Der nächste Platz wird um {time} frei."
 }

@@ -120,5 +120,10 @@
   "away.until": "do {time} · zostało {minutes} min",
   "away.back": "wróć",
   "away.sure": "chciałeś przerwy — na pewno wracamy?",
-  "chat.peerAway": "odszedł"
+  "chat.peerAway": "odszedł",
+  "write.paused": "Pięć odmów w godzinę — pauza do {time}. Decyzja automatyczna.\nDo tego czasu nic nie idzie do sprawdzenia:\nfrazy, wypowiedzi przy stole, zmiana imienia, polubienie oferty, dopóki imię nie jest przyjęte, słowo do wisielca.\nKolejna odmowa w tej godzinie — znów 15 minut.\nStrumień, polubienia fraz i rozmowy działają.\nPodstawa — regulamin, §8 i §15. Pauza skończy się sama; jeśli się nie zgadzasz — koordynator ds. usług cyfrowych lub sąd.",
+  "write.hourly": "Cztery frazy w tej godzinie już padły. Następną można o {time}.",
+  "write.rapid": "Za dużo wysyłek pod rząd.",
+  "write.hold": "Sprawdzamy poprzednią — nowa pójdzie po werdykcie.",
+  "write.live": "Cztery frazy już żyją. Najbliższa zwolni się o {time}."
 }

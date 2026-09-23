@@ -120,5 +120,10 @@
   "away.until": "{time} gacha · {minutes} daq qoldi",
   "away.back": "qaytish",
   "away.sure": "tanaffus xohlagandingiz — rostdan qaytamizmi?",
-  "chat.peerAway": "chetga chiqdi"
+  "chat.peerAway": "chetga chiqdi",
+  "write.paused": "Bir soatda beshta rad — {time} gacha pauza. Qaror avtomatik.\nShu vaqtgacha tekshiruvga hech narsa ketmaydi:\niboralar, stoldagi replikalar, ismni o'zgartirish, ism qabul qilinmaguncha taklifga layk, dor o'yini uchun so'z.\nShu soatdagi navbatdagi rad — yana 15 daqiqa.\nLenta, iboralarga layklar va suhbatlar ishlaydi.\nAsos — kelishuv, §8 va §15. Pauza o'zi tugaydi; rozi bo'lmasangiz — raqamli xizmatlar koordinatori yoki sud.",
+  "write.hourly": "Shu soatda to'rtta ibora aytib bo'lindi. Keyingisi {time} da mumkin.",
+  "write.rapid": "Ketma-ket juda ko'p yuborish.",
+  "write.hold": "Oldingisini tekshiryapmiz — yangisi hukmdan keyin ketadi.",
+  "write.live": "To'rtta ibora allaqachon tirik. Eng yaqini {time} da bo'shaydi."
 }

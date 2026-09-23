@@ -30,11 +30,33 @@ export function Write(
 ): ReactElement {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  // What the node answered when it did not take the phrase (refusal-wordings
+  // §3–§5). The text stays in the field: a refusal of a moment is not a reason
+  // to make anyone type it again.
+  const [refused, setRefused] = useState<string | null>(null);
+  const hhmm = (seconds: unknown) =>
+    typeof seconds === "number" && Number.isFinite(seconds) ? new Date(seconds * 1000).toTimeString().slice(0, 5) : "?";
+  const refusal = async (answer: { status: number; body: unknown }): Promise<string | null> => {
+    const error = (answer.body as { error?: { code?: string; until?: number; next_slot?: number; checking?: unknown; live?: unknown } })?.error;
+    if (answer.status === 429 && error?.until !== undefined) return say("write.paused", { time: hhmm(error.until) });
+    if (answer.status === 429 && error?.next_slot !== undefined) return say("write.hourly", { time: hhmm(error.next_slot) });
+    if (answer.status === 429) return say("write.rapid");
+    if (answer.status === 409 && error?.checking !== undefined) return say("write.hold");
+    if (answer.status === 409 && error?.live !== undefined) {
+      // The node does not say when a slot frees; one's own phrases do.
+      const ends = ((await client.profile().catch(() => null))?.phrases ?? [])
+        .map((p) => p.expires_at)
+        .filter((n): n is number => typeof n === "number");
+      return say("write.live", { time: ends.length ? hhmm(Math.min(...ends)) : "?" });
+    }
+    return null;
+  };
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
     h(Head, { title: say("write.title"), lines: [say("write.hint")] }),
     h(Text, { dimColor: true }, say("chat.counter", { used: [...text].length, limit })),
+    refused ? h(Text, { color: "red" }, refused) : null,
     h(Form, {
       fields: [{ key: "text", label: say("write.title"), value: text }],
       onChange: (_key, value) => setText(value.slice(0, limit)),
@@ -45,8 +67,16 @@ export function Write(
       onPick: (key) => {
         if (key === "back") return onBack();
         setBusy(true);
+        setRefused(null);
         client.say({ text: text.trim(), mode: "alone", lat: place.lat, lon: place.lon, radius: place.radius })
-          .then(() => onDone(text.trim()))
+          .then(async (answer) => {
+            // Until 23.09.2026 any answer counted as sent, and a refusal showed
+            // as "being checked" — the terminal telling a lie on the node's behalf.
+            if (answer.status === 200 || answer.status === 202) return onDone(text.trim());
+            const why = await refusal(answer);
+            if (why) return setRefused(why);
+            onError(`the phrase was refused: ${answer.status}`);
+          })
           .catch((e: Error) => onError(e.message))
           .finally(() => setBusy(false));
       },

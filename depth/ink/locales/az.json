@@ -120,5 +120,10 @@
   "away.until": "{time} qədər · {minutes} dəq qaldı",
   "away.back": "qayıt",
   "away.sure": "fasilə istəyirdiniz — doğrudan qayıdırıq?",
-  "chat.peerAway": "uzaqlaşdı"
+  "chat.peerAway": "uzaqlaşdı",
+  "write.paused": "Bir saatda beş imtina — {time} qədər fasilə. Qərar avtomatikdir.\nO vaxta qədər yoxlamaya heç nə getmir:\nifadələr, masada replikalar, adın dəyişdirilməsi, ad qəbul olunmayana qədər təklifə bəyənmə, dar ağacı üçün söz.\nBu saatda növbəti imtina — yenə 15 dəqiqə.\nLent, ifadə bəyənmələri və söhbətlər işləyir.\nƏsas — razılaşma, §8 və §15. Fasilə özü bitəcək; razı deyilsinizsə — rəqəmsal xidmətlər koordinatoru və ya məhkəmə.",
+  "write.hourly": "Bu saatda dörd ifadə artıq deyilib. Növbətisi {time} mümkündür.",
+  "write.rapid": "Ardıcıl çox göndərmə.",
+  "write.hold": "Əvvəlkini yoxlayırıq — yenisi qərardan sonra gedəcək.",
+  "write.live": "Dörd ifadə artıq yaşayır. Ən yaxını {time} boşalacaq."
 }

@@ -120,5 +120,10 @@
   "away.until": "până la {time} · au rămas {minutes} min",
   "away.back": "revin",
   "away.sure": "voiați o pauză — sigur revenim?",
-  "chat.peerAway": "lipsește"
+  "chat.peerAway": "lipsește",
+  "write.paused": "Cinci refuzuri într-o oră — pauză până la {time}. Decizia este automată.\nPână atunci nimic nu merge la verificare:\nfraze, replici la masă, schimbarea numelui, apreciere la o ofertă cât numele nu e acceptat, cuvânt la spânzurătoarea.\nÎncă un refuz în această oră — din nou 15 minute.\nFluxul, aprecierile frazelor și conversațiile funcționează.\nTemei: condițiile, §8 și §15. Pauza se încheie singură; dacă nu sunteți de acord — coordonatorul serviciilor digitale sau o instanță.",
+  "write.hourly": "Patru fraze deja spuse în această oră. Următoarea poate pleca la {time}.",
+  "write.rapid": "Prea multe trimiteri la rând.",
+  "write.hold": "Verificăm ce ați trimis înainte — cea nouă pleacă după verdict.",
+  "write.live": "Patru fraze sunt deja active. Următorul loc se eliberează la {time}."
 }

@@ -702,6 +702,15 @@ later — a refusal with a reason, not in silence. The client must show that sta
 a maximum near 12; the terminal must not pretend to an instant answer that does
 not exist.
 
+**Refusals at sending — built 2026-09-23** (`depth/ink/rooms.ts`, `Write`). Before, the
+terminal counted any answer of the node as sent, and a refusal showed as "being checked". Now a
+refusal is said in the words of `refusal-wordings_EN.md`, as a red line, and the text stays in
+the field: the pause after five refusals — the whole §4 block with its end (`until`); four this
+hour — "The next one can go at HH:MM" (`next_slot`); four live — "The next slot frees at HH:MM",
+the hour taken from the earliest `expires_at` of one's own phrases in `GET /identities/me` (the
+node does not send it); one's previous still being checked — "Checking what you sent earlier —
+the new one goes after the verdict."; the node's per-address rate — "Too many sends in a row.".
+
 ### 4.6. Conversations — `chats`
 
 `tab` from the feed. Two tabs, as on storefront screen 7; rewritten 2026-09-17 — only a

@@ -120,5 +120,10 @@
   "away.until": "jusqu'à {time} · reste {minutes} min",
   "away.back": "revenir",
   "away.sure": "vous vouliez une pause — on revient vraiment ?",
-  "chat.peerAway": "absent"
+  "chat.peerAway": "absent",
+  "write.paused": "Cinq refus en une heure — pause jusqu'à {time}. La décision est automatique.\nJusque-là rien ne part en vérification :\nphrases, répliques à table, changement de prénom, like d'une offre tant que le prénom n'est pas accepté, mot du pendu.\nUn autre refus dans l'heure — encore 15 minutes.\nLe fil, les likes des phrases et les conversations fonctionnent.\nFondement : les conditions, §8 et §15. La pause finit d'elle-même ; en cas de désaccord — le coordinateur pour les services numériques ou un tribunal.",
+  "write.hourly": "Quatre phrases déjà dites cette heure. La suivante pourra partir à {time}.",
+  "write.rapid": "Trop d'envois d'affilée.",
+  "write.hold": "Nous vérifions l'envoi précédent — le nouveau partira après le verdict.",
+  "write.live": "Quatre phrases sont déjà en ligne. La prochaine place se libère à {time}."
 }

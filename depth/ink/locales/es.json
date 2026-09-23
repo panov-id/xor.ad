@@ -120,5 +120,10 @@
   "away.until": "hasta las {time} · quedan {minutes} min",
   "away.back": "volver",
   "away.sure": "querías un descanso — ¿seguro que volvemos?",
-  "chat.peerAway": "ausente"
+  "chat.peerAway": "ausente",
+  "write.paused": "Cinco rechazos en una hora — pausa hasta las {time}. La decisión es automática.\nHasta entonces nada va a revisión:\nfrases, réplicas en la mesa, cambio de nombre, me gusta a una oferta mientras el nombre no esté aceptado, palabra del ahorcado.\nOtro rechazo en esta hora — otros 15 minutos.\nEl feed, los me gusta de frases y las conversaciones funcionan.\nFundamento: las condiciones, §8 y §15. La pausa termina sola; si no estás de acuerdo — el coordinador de servicios digitales o un tribunal.",
+  "write.hourly": "Ya has dicho cuatro frases esta hora. La siguiente podrá salir a las {time}.",
+  "write.rapid": "Demasiados envíos seguidos.",
+  "write.hold": "Revisamos lo anterior — lo nuevo saldrá tras el veredicto.",
+  "write.live": "Ya hay cuatro frases en vivo. El próximo hueco se libera a las {time}."
 }

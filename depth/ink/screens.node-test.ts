@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Away, Blocked, Chat, Hidden, Inbox, Liked, Me, Statements, StepAway } from "./rooms.ts";
+import { Away, Blocked, Chat, Hidden, Inbox, Liked, Me, Statements, StepAway, Write } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -681,5 +681,53 @@ test("a peer who stepped away is marked over the input, until their first line",
   wake();
   await settle(150);
   assert.doesNotMatch(app.lastFrame()!, /отошёл/, "the mark stayed after the other side's own line");
+  app.unmount();
+});
+
+// A refused phrase is said to be refused, with the node's own reason and time,
+// and stays in the field (refusal-wordings §3–§5). Until 23.09.2026 every
+// answer counted as sent.
+test("a phrase the node refuses is said to be refused, and stays in the field", async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const answers = [
+    { status: 409, body: { error: { code: "refused", live: 4 } } },
+    { status: 429, body: { error: { code: "rate_limited", next_slot: now + 600 } } },
+    { status: 409, body: { error: { code: "refused", checking: 1 } } },
+    { status: 429, body: { error: { code: "rate_limited", until: now + 900 } } },
+    { status: 202, body: { id: "p9", state: "pending" } },
+  ];
+  const done: string[] = [];
+  const client = {
+    say: () => Promise.resolve(answers.shift()!),
+    profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34, phrases: [{ id: "a", expires_at: now + 3600 }, { id: "b", expires_at: now + 1200 }] }),
+  };
+  const app = render(h(Write, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    limit: 128,
+    onDone: (t: string) => done.push(t), onBack: () => {}, onError: () => {},
+  }));
+  await settle();
+  await type(app, ..."гуляю у реки".split(""), DOWN, ENTER);
+  await settle(150);
+  const hhmm = (s: number) => new Date(s * 1000).toTimeString().slice(0, 5);
+  assert.match(app.lastFrame()!, new RegExp(`Четыре фразы уже живут\\. Ближайшая освободится в ${hhmm(now + 1200)}\\.`),
+    "four live phrases were not said with the soonest free slot");
+  assert.match(app.lastFrame()!, /гуляю у реки/, "the refused text left the field");
+  assert.deepEqual(done, [], "a refused phrase counted as sent");
+  await type(app, ENTER);
+  await settle(150);
+  assert.match(app.lastFrame()!, new RegExp(`Следующую можно в ${hhmm(now + 600)}`), "the hour's ceiling was not said");
+  await type(app, ENTER);
+  await settle(150);
+  assert.match(app.lastFrame()!, /Проверяем прошлое — новое уйдёт после вердикта\./);
+  await type(app, ENTER);
+  await settle(150);
+  assert.match(app.lastFrame()!, new RegExp(`Пять отказов за час — пауза до ${hhmm(now + 900)}`), "the pause was not said");
+  await type(app, ENTER);
+  await settle(150);
+  assert.deepEqual(done, ["гуляю у реки"], "an accepted phrase did not count as sent");
   app.unmount();
 });

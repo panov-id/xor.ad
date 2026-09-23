@@ -69,7 +69,7 @@ feed.phrase.span	4	часа	жизнь фразы в ленте — 4 часа 2
 away.span.short	20	минут	короткая ступень отлучки	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/20-step-away_RU.md,sosed.place/docs/20-step-away_EN.md,neighbro.place/docs/20-step-away_RU.md,neighbro.place/docs/20-step-away_EN.md,sosed.place/docs/10-settings-screen_RU.md,sosed.place/docs/10-settings-screen_EN.md,neighbro.place/docs/10-settings-screen_RU.md,neighbro.place/docs/10-settings-screen_EN.md	запрос
 away.span.hour	1	час	средняя ступень отлучки	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	запрос
 away.span.long	4	часа	длинная ступень отлучки, заменила «до утра» и «8 часов» 14.09.2026	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md,sosed.place/docs/20-step-away_RU.md,sosed.place/docs/20-step-away_EN.md,neighbro.place/docs/20-step-away_RU.md,neighbro.place/docs/20-step-away_EN.md,sosed.place/docs/10-settings-screen_RU.md,sosed.place/docs/10-settings-screen_EN.md,neighbro.place/docs/10-settings-screen_RU.md,neighbro.place/docs/10-settings-screen_EN.md	запрос
-dsa.reply.target	72	часа	срок решения и ответа заявителю	узел	xor.ad/docs/dsa/SPEC_RU.md,xor.ad/docs/dsa/SPEC_EN.md	watchdogs.unbuilt
+dsa.reply.target	72	часа	срок решения и ответа заявителю	узел	xor.ad/docs/dsa/SPEC_RU.md,xor.ad/docs/dsa/SPEC_EN.md	dsa_notice_age
 offer.card.device.retention	90	дней	сколько карточка живёт на устройстве после оффера	клиент	xor.ad/docs/offers/SPEC_RU.md,xor.ad/docs/offers/SPEC_EN.md	
 transfer.code.length	9	символов	длина кода переноса личности, Crockford base32	клиент	xor.ad/docs/chat-flows_RU.md,xor.ad/docs/chat-flows_EN.md	
 panel.label.clip	42	символов	обрезка метки в таблице панели	панель	xor.ad/docs/panel-refactor_RU.md,xor.ad/docs/panel-refactor_EN.md	

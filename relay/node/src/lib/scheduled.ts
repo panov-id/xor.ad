@@ -23,6 +23,7 @@ import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
 import { watchNoticeAge } from "./dsa_watchdog.ts";
 import { reportTombstones } from "./tombstone_watch.ts";
+import { DSA_NOTICE_NOTIFY, retryArrivalLetters } from "./notice_notify.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepChats } from "./chat_sweeper.ts";
@@ -281,6 +282,12 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_HOUR_MS);
   });
 
+  // Watchdog С2: arrival letters that did not leave, every ten minutes.
+  handle(DSA_NOTICE_NOTIFY, async () => {
+    await retryArrivalLetters();
+    return new Date(Date.now() + 10 * A_MINUTE_MS);
+  });
+
   handle(DSA_NOTICE_AGE, async () => {
     const result = await watchNoticeAge();
     log("info", "watched the age of unresolved notices", { ...result });
@@ -347,6 +354,7 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(SWEEP_SUPPORT, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(DSA_NOTICE_AGE, {}, new Date(Date.now() + A_HOUR_MS));
+  await enqueueOnce(DSA_NOTICE_NOTIFY, {}, new Date(Date.now() + 10 * A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));

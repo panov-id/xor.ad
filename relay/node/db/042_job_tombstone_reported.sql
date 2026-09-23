@@ -4,6 +4,9 @@
 -- tombstone about once a day after the hourly re-arm, and each of those is news;
 -- the same one every hour is not. The stamp says the letter about this row left.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS reported_at timestamptz;
+-- The lease of a pass that is writing the letter: taken in one short statement,
+-- so no transaction stays open while mail goes (lib/tombstone_watch.ts).
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS report_leased_until timestamptz;
 
 -- Tombstones already lying there when this arrives are old news, not urgent:
 -- without this the first pass after the rollout would send a letter about every

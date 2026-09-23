@@ -125,6 +125,15 @@ docker run --rm --network "$network" \
   deno test --allow-env --allow-net --allow-read --allow-write test/job_rearm.test.ts "$@"
 
 echo
+echo "== arrival retry suite (watchdog С2: a failed arrival letter is retried, not logged)"
+# Its own file: it points mail at a dead SMTP port for the whole process, which
+# no other suite should inherit.
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/notice_notify.test.ts "$@"
+
+echo
 echo "== session freeze suite (chat spec §8.2: the row and the notification)"
 # Its own file for its own reason: it opens raw LISTENing connections, and the
 # driver throws when one is handed a notification — a fact this suite asserts on

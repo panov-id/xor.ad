@@ -7,6 +7,7 @@ if (!Deno.env.get("DATABASE_URL")) {
 }
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("NODE_ENV_NAME", "test");
+Deno.env.set("RELAY_DB_TIMEOUT_MS", "2000");
 
 const { queryOrThrow } = await import("../src/lib/db.ts");
 const { armScheduledJobs, rearmPass, PRUNE_DSA } = await import("../src/lib/scheduled.ts");
@@ -81,4 +82,32 @@ Deno.test({ name: "with nobody to tell, the tombstone stays unreported", ...pool
   assertEquals(result.unsent >= 1, true);
   const [row] = await queryOrThrow<{ reported_at: Date | null }>(`SELECT reported_at FROM jobs WHERE id = $1`, [id]);
   assertEquals(row.reported_at, null, "a tombstone nobody heard about was marked as told");
+});
+
+Deno.test({ name: "a job's payload is stored as an object a handler can read", ...pool }, async () => {
+  // enqueue used to hand postgres.js a string for a jsonb parameter, and it was
+  // encoded twice: jsonb_typeof 'string', payload->>'id' NULL (23.09.2026).
+  const { enqueue } = await import("../src/lib/jobs.ts");
+  const kind = `payload-probe-${crypto.randomUUID()}`;
+  await enqueue(kind, { id: "abc", days: 3 });
+  const [row] = await queryOrThrow<{ t: string; id: string | null }>(
+    `SELECT jsonb_typeof(payload) AS t, payload->>'id' AS id FROM jobs WHERE kind = $1`,
+    [kind],
+  );
+  assertEquals(row, { t: "object", id: "abc" }, "the payload went in as a JSON string");
+});
+
+Deno.test({ name: "a slow letter about a tombstone does not undo the report", ...pool }, async () => {
+  const id = await tombstone(PRUNE_DSA);
+  Deno.env.set("DSA_ESCALATION_EMAILS", "ops@example.org");
+  await reportTombstones(PRUNE_DSA, async () => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return true;
+  });
+  Deno.env.delete("DSA_ESCALATION_EMAILS");
+  const [row] = await queryOrThrow<{ reported: boolean }>(
+    `SELECT reported_at IS NOT NULL AS reported FROM jobs WHERE id = $1`,
+    [id],
+  );
+  assertEquals(row.reported, true, "a letter slower than the idle limit rolled the report back");
 });

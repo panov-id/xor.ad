@@ -48,6 +48,8 @@ export function withoutAddresses(text: string): string {
   return text.replace(/[\w.+-]+@[\w.-]+\.\w+/g, "<address>");
 }
 
+const RESEND_TIMEOUT_MS = 20_000;
+
 async function viaResend(
   from: string, to: string, subject: string, html: string, text: string, brandKey: string,
 ) {
@@ -63,6 +65,9 @@ async function viaResend(
     method: "POST",
     headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
     body: JSON.stringify({ from, to: [to], subject, html, text }),
+    // A provider that hangs is a failure, not a wait: the watchdogs retry a
+    // failure, and nothing retries a request that never returns.
+    signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
   });
   if (!res.ok) {
     log("error", "resend rejected a letter", {
@@ -430,6 +435,29 @@ export async function sendJobTombstone(
   const brand = resolveBrand(null);
   const subject = `${brand.name}: the job ${tombstone.kind} gave up`;
   return await deliver(brand, to, subject, subject, jobTombstoneBlocks(tombstone));
+}
+
+// Watchdog С2's end: the letter about a new report never reached the support
+// inbox. A reference and a count — nothing of the report itself.
+export function arrivalUnsentBlocks(notice: { id: string; kind: string; attempts: number }): Block[] {
+  return [
+    {
+      kind: "text",
+      value: `A report of illegal content arrived and the letter to the support inbox failed ` +
+        `${notice.attempts} times. Nobody may know it is waiting.`,
+    },
+    { kind: "text", value: `Reference: ${notice.id.slice(0, 8)}. Target: ${notice.kind}. Open the notice in the panel and take it.` },
+  ];
+}
+
+export async function sendArrivalUnsent(
+  to: string,
+  notice: { id: string; kind: string; attempts: number },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = resolveBrand(null);
+  const subject = `${brand.name}: nobody was told about a report of illegal content`;
+  return await deliver(brand, to, subject, subject, arrivalUnsentBlocks(notice));
 }
 
 export async function sendNoticeDecision(

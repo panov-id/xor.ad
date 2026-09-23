@@ -48,6 +48,12 @@ export function handle(kind: string, handler: Handler): void {
 // Schedule one. `at` in the future is how a recurring job re-arms itself: the
 // handler enqueues its own next run, so there is no separate scheduler to keep
 // in step with the queue.
+// `$2::text::jsonb`, not `$2::jsonb`: handed a string for a jsonb parameter,
+// postgres.js encodes it as JSON a second time, and the row held the string
+// "{\"id\":…}" — jsonb_typeof 'string', payload->>'id' NULL, and a handler that
+// read `payload.id` got undefined. Every caller passes {}, so nothing noticed
+// until a draft of watchdog С2 queued a job per notice (23.09.2026). Rows
+// written before this hold the string "{}"; no handler reads a field of it.
 export async function enqueue(
   kind: string,
   payload: Record<string, unknown> = {},
@@ -55,7 +61,7 @@ export async function enqueue(
 ): Promise<void> {
   if (!databaseEnabled()) return;
   await query(
-    `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, $2::jsonb, $3)`,
+    `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, $2::text::jsonb, $3)`,
     [kind, JSON.stringify(payload), at.toISOString()],
   );
 }
@@ -70,7 +76,7 @@ async function enqueueOrThrow(
   at: Date,
 ): Promise<void> {
   await queryOrThrow(
-    `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, $2::jsonb, $3)`,
+    `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, $2::text::jsonb, $3)`,
     [kind, JSON.stringify(payload), at.toISOString()],
   );
 }

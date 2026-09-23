@@ -65,7 +65,7 @@ The percentages are estimates: they are not weighted by hours, because steps
 - [x] Watchdog W3 — queue jobs that ran out of attempts are re-armed every hour,
   and a node started without its database arms them without a restart; a
   `prune_dsa_records` tombstone is a letter to `DSA_ESCALATION_EMAILS`, one per
-  tombstone (`scheduled.ts` `rearmPass`, `lib/tombstone_watch.ts`, `db/042`, 4 tests
+  tombstone (`scheduled.ts` `rearmPass`, `lib/tombstone_watch.ts`, `db/042`, 6 tests
   against Postgres, 2026-09-23). Not shipped.
 - [~] Alerts: `relay/local/observability/alerts.yml` and the gate
   `scripts/check-metrics-exist.sh`, runbook `runbook-node-down_*.md`; not
@@ -94,6 +94,11 @@ The percentages are estimates: they are not weighted by hours, because steps
   against Postgres (2026-09-23, panel `reviews/PANEL_2026-09-23_watchdog-c1.md`).
   Missing — a fallback transport for the escalation, and the
   `DSA_ESCALATION_EMAILS` addresses are not set on the boxes; not shipped.
+- [~] Watchdog W2 — an arrival letter that did not leave is retried by a
+  standing job every 10 minutes; after 8 failures, a letter to
+  `DSA_ESCALATION_EMAILS`; every new notice is copied there at once (the night
+  path). `lib/notice_notify.ts`, `db/043`, 12 tests against Postgres
+  (2026-09-23). Missing — the fallback transport; not shipped.
 - [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
   `article-30-register_EN.md`. SCC or a replacement.
 - [x] LAW-7: the abandoned-identity sweeper — built 2026-09-20

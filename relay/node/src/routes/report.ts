@@ -15,6 +15,7 @@ import { resolveTenantSoft } from "../lib/tenant.ts";
 import { sendNoticeArrived, sendNoticeReceipt, withoutAddresses } from "../lib/mailer.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { markArrivalSent, sendNightPathCopies } from "../lib/notice_notify.ts";
 import { captureTarget } from "../lib/dsa_snapshot.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, REPORT_LIMITS } from "../lib/rate_limit.ts";
@@ -293,12 +294,18 @@ export async function report(req: Request): Promise<Response> {
       receivedVia: arrivedVia,
       brand: face.key,
     });
-    if (!notified) {
-      log("info", "nobody was mailed about this notice", { id, transport: config.mail.transport });
-    }
+    // Watchdog С2: the row remembers the letter left; one that did not is
+    // retried by the dsa_notice_notify job, not left as a log line.
+    if (notified) await markArrivalSent(id);
+    else log("info", "nobody was mailed about this notice", { id, transport: config.mail.transport });
   } catch (error) {
     log("error", "moderator notification not sent", { id, error: withoutAddresses(String(error)) });
   }
+
+  // And the night path: the same reference to the personal addresses, at once
+  // (watchdog С2, lib/notice_notify.ts).
+  // Not awaited: a provider that hangs must not hold the notifier's 202.
+  void sendNightPathCopies({ id, kind, queue: examinedBy ? "tenant" : "platform", receivedVia: arrivedVia });
 
   return json({ ok: true, id, acknowledged }, 202);
 }

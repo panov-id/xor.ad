@@ -1,9 +1,9 @@
 # Watchdogs: so that nothing lies silent — specification, 2026-09-15
 
 Stage 1 of `docs/reviews/PLAN_2026-09-14_legal-mechanics_v1_EN.md` and S1 of the road to drawing.
-**This is a specification, not code** — except W1 and W3: they were built on 2026-09-23
-(`relay/node/src/lib/dsa_watchdog.ts`, `relay/node/src/lib/tombstone_watch.ts`, migrations `db/041` and
-`db/042`), and their sections below describe what was built. Node code in `relay/` is outside the hardening process's
+**This is a specification, not code** — except W1, W2 and W3: they were built on 2026-09-23
+(`relay/node/src/lib/dsa_watchdog.ts`, `relay/node/src/lib/notice_notify.ts`,
+`relay/node/src/lib/tombstone_watch.ts`, migrations `db/041`–`db/043`), and their sections below describe what was built. Node code in `relay/` is outside the hardening process's
 standing permission; this records what to watch, on which signal and where to, so that nothing is
 left to choose when the work starts.
 
@@ -49,13 +49,25 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W2. A notification failure — a retry, not a log line
 
-- On `!notified` or an exception from `sendNoticeArrived`, a job `dsa_notice_notify` with the same
-  number is enqueued; retries follow the queue's quadratic backoff (`lib/jobs.ts`).
-- Out of attempts — a letter to `DSA_ESCALATION_EMAILS` over the fallback transport (variable
-  `MAIL_FALLBACK_TRANSPORT`), with no notice content.
+- The notice row remembers whether the letter about it left (`db/043`: `arrival_sent_at`,
+  `arrival_attempts`, `arrival_escalated_at`); the route sets `arrival_sent_at` only when the letter
+  left. A standing job `dsa_notice_notify` retries every 10 minutes the unsent letters of unresolved
+  notices older than five minutes. The rows are leased in one short statement (`FOR UPDATE SKIP
+  LOCKED`, `arrival_leased_until` for 10 minutes, the attempt counted when taken); the letters go
+  outside any transaction — the pool closes a session idle in a transaction past
+  `RELAY_DB_TIMEOUT_MS`, and a moderator's decision locks the same row and must not wait on mail
+  (review panel 2026-09-23). Round robin: never tried first, then the longest untried. The first shape — "a job `dsa_notice_notify` per notice" — the queue cannot hold:
+  `jobs_standing` (`db/020`) is unique on the job kind, and a second unsent letter would not have been
+  queued at all (found by the W2 suite, 2026-09-23).
+- Out of attempts (8, `MAX_ATTEMPTS`) — a letter to `DSA_ESCALATION_EMAILS` over the fallback transport
+  (variable `MAIL_FALLBACK_TRANSPORT`), with no notice content, one per notice; with nobody to tell
+  there is no stamp and the retries go on. **There is no fallback transport yet** — the letter goes
+  over the main one (`mail.fallback.transport`).
 - **The letter about every new notice goes to `DSA_ESCALATION_EMAILS` at once as well**, over the fallback
   transport, with the number and the target kind only — the night path for a threat to life
-  (`dsa/SPEC_EN.md` §5; decided 2026-09-15 after the final panel, OPS-8).
+  (`dsa/SPEC_EN.md` §5; decided 2026-09-15 after the final panel, OPS-8). Built over the main transport,
+  without a retry.
+- Notices written before `db/043` count as told by the migration — too late to retry them.
 - The notice itself is never lost: the letter stays a side effect after the write.
 
 ## W3. Job tombstones
@@ -72,8 +84,9 @@ The platform's promises rest on people and jobs, and they can break without a so
 - A `prune_dsa_records` tombstone — an urgent letter to `DSA_ESCALATION_EMAILS`: that job's period
   is promised in the privacy policy. A letter per **new** tombstone (by `id`, the `reported_at`
   column), not per pass: an always-failing job, once re-armed, yields a new tombstone about once a
-  day. The rows are taken in a `FOR UPDATE SKIP LOCKED` transaction and stamped only after the letter
-  left; a pass that fails rolls back and the letter goes again. Tombstones already lying there before
+  day. The rows are leased in one short statement (`FOR UPDATE SKIP LOCKED`, `report_leased_until`),
+  the letters go outside any transaction, and the stamp goes on after a letter reached at least one
+  address; the lease of a pass that died runs out and the letter goes again. Tombstones already lying there before
   `db/042` are marked as told by the migration — they are old news.
 - Tombstones of other jobs — a line in the team's daily digest (the same digest as support's,
   `chat_EN.md` §13). **Not built**: the digest today goes per face and about support only; other
@@ -139,8 +152,8 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdogs W2, W5, W6 and W7 are not built — items `watchdogs.unbuilt` (W2, legal) and `backup.silent.failure` (W7, operations)
-  in `docs/facts/open.tsv`. W3 lacks the digest line about other tombstones — `watchdogs.jobs.unbuilt`.
+- Watchdogs W5, W6 and W7 are not built — item `backup.silent.failure` (W7, operations) in `docs/facts/open.tsv`.
+  W2 is built without the fallback transport — `watchdogs.unbuilt`. W3 lacks the digest line about other tombstones — `watchdogs.jobs.unbuilt`.
 - The external pinger service is not chosen — `node.external.pinger`.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; a letter per notice rather
   than one summary a pass — `watchdog.letters.flood` (review panel 2026-09-23).

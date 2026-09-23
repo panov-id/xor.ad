@@ -79,11 +79,14 @@
   "statements.appeal": "να μας απαντήσετε, να απευθυνθείτε στον συντονιστή ψηφιακών υπηρεσιών, να προσφύγετε στο δικαστήριο",
   "statements.gotIt": "κατάλαβα",
   "liked.title": "μου αρέσουν",
-  "liked.empty": "τίποτα δεν σας αρέσει ακόμα",
+  "liked.empty": "κανένα like ακόμα",
   "liked.at": "μου αρέσει {time}",
   "liked.offer": "πρόταση για κουβέντα",
   "liked.toOffer": "στην πρόταση",
   "liked.undone": "αποσύρθηκε",
   "liked.undo": "αναίρεση",
-  "liked.more": "περισσότερα"
+  "liked.more": "περισσότερα",
+  "blocked.count": "Αποκλεισμένοι: {n}",
+  "blocked.since": "αποκλεισμός από {date}",
+  "blocked.lift": "άρση"
 }

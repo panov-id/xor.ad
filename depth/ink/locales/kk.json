@@ -85,5 +85,8 @@
   "liked.toOffer": "ұсынысқа",
   "liked.undone": "алынды",
   "liked.undo": "қайтару",
-  "liked.more": "тағы көрсету"
+  "liked.more": "тағы көрсету",
+  "blocked.count": "Бұғатталған: {n}",
+  "blocked.since": "{date} бастап бұғатталған",
+  "blocked.lift": "алып тастау"
 }

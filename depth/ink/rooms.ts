@@ -359,6 +359,8 @@ export function Hidden(
 // run: a run is the "next entry" §7 speaks of, and nothing is kept on disk to
 // remember that it was read (§8.13). "Got it" folds it into the red
 // "Restrictions: N" row of the feed; it is never erased.
+const RESTRICTIONS: readonly string[] = ["removed", "hidden", "offer_taken_down", "access_restricted"];
+
 export function Statements(
   { say, lang, items, onDone }: {
     say: Say;
@@ -373,14 +375,21 @@ export function Statements(
     if (key.upArrow) setAt((i) => (i - 1 + items.length) % items.length);
     if (key.downArrow) setAt((i) => (i + 1) % items.length);
   });
-  const day = (seconds: number) =>
-    new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
-      .format(new Date(seconds * 1000));
+  // The node's numbers and names are checked before they are drawn: an unknown
+  // restriction would otherwise print itself through say()'s fallback, escape
+  // sequences and all, and a date that is not a number throws inside Intl and
+  // takes the screen down with it (security lens, 23.09.2026).
+  const day = (seconds: unknown) =>
+    typeof seconds === "number" && Number.isFinite(seconds)
+      ? new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+        .format(new Date(seconds * 1000))
+      : "?";
   const s = items[at];
+  const kind = RESTRICTIONS.includes(s.restriction) ? say(`statements.${s.restriction}`) : plain(s.restriction, 40);
   const row = (label: string, value: string) =>
     h(Box, { key: label }, h(Box, { width: 16, flexShrink: 0 }, h(Text, { dimColor: true }, label)), h(Text, null, value));
   const what = [
-    say(`statements.${s.restriction}`),
+    kind,
     day(s.created_at),
     ...(s.until ? [say("statements.until", { date: day(s.until) })] : []),
   ].join(", ");
@@ -444,7 +453,8 @@ export function Liked(
   const chosen = rows?.[at];
   const mark = (id: string, undone: boolean) =>
     setRows((list) => (list ?? []).map((r) => (r.id === id ? { ...r, undone } : r)));
-  const time = (seconds: number) => new Date(seconds * 1000).toTimeString().slice(0, 5);
+  const time = (seconds: unknown) =>
+    typeof seconds === "number" && Number.isFinite(seconds) ? new Date(seconds * 1000).toTimeString().slice(0, 5) : "?";
   const line = (r: LikedCard & { undone?: boolean }, i: number) =>
     h(
       Box,
@@ -457,7 +467,7 @@ export function Liked(
           ? `    ${say("liked.undone")}`
           : r.state === "matched"
           ? `    ${say("liked.offer")}`
-          : `    + ${r.like_count}   ${say("liked.at", { time: time(r.liked_at) })}`,
+          : `    + ${Number(r.like_count) || 0}   ${say("liked.at", { time: time(r.liked_at) })}`,
       ),
     );
   return h(
@@ -475,7 +485,11 @@ export function Liked(
           ? { key: "offer", label: say("liked.toOffer") }
           : chosen?.undone
           ? { key: "undo", label: say("liked.undo") }
-          : { key: "unlike", label: say("feed.unlike"), disabled: !chosen },
+          // An offer's like is spent at once (§4.4): the node answers `spent`
+          // to any take-back, and its one-sided match is not built yet, so
+          // there is nowhere to lead either — the action stays, greyed
+          // (review panel 23.09.2026).
+          : { key: "unlike", label: say("feed.unlike"), disabled: !chosen || chosen.offer !== undefined },
         ...(next ? [{ key: "more", label: say("liked.more") }] : []),
         { key: "back", label: say("common.back") },
       ],
@@ -507,6 +521,74 @@ export function Liked(
             })
             .catch((e: Error) => onError(e.message));
         }
+      },
+      hint: say("common.rowActions"),
+    }),
+  );
+}
+
+// My blocks (§4.11, screen 10 of the storefronts): a line per block, "blocked
+// since <date> · lift", no names and no phrases. Lifting cannot be set again
+// through the same conversation (§4.8), and the node answers 204 whatever the
+// handle was, so the list is read again rather than trusted. The feed offers
+// this screen only while there is something on it; when the last block is
+// lifted the screen goes back by itself, so "Blocked: 0" is never drawn — an
+// open question for the storefronts (Q-48), not one for the terminal to answer.
+export function Blocked(
+  { say, lang, client, onBack, onError }: {
+    say: Say;
+    lang: string;
+    client: Client;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [rows, setRows] = useState<Array<{ id: string; since: number }> | null>(null);
+  const [at, setAt] = useState(0);
+  const load = () =>
+    client.blocks()
+      .then((list) => {
+        if (list.length === 0) return onBack();
+        setRows(list);
+        setAt((i) => Math.min(i, list.length - 1));
+      })
+      .catch((e: Error) => onError(e.message));
+  useEffect(() => void load(), []);
+  useInput((_input, key) => {
+    const count = rows?.length ?? 0;
+    if (count < 2) return;
+    if (key.upArrow) setAt((i) => (i - 1 + count) % count);
+    if (key.downArrow) setAt((i) => (i + 1) % count);
+  });
+  const day = (seconds: unknown) =>
+    typeof seconds === "number" && Number.isFinite(seconds)
+      ? new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric" }).format(new Date(seconds * 1000))
+      : "?";
+  const chosen = rows?.[at];
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("blocked.count", { n: rows?.length ?? 0 }) }),
+    rows === null
+      ? h(Text, { dimColor: true }, "…")
+      : h(
+        Box,
+        { flexDirection: "column" },
+        ...rows.map((r, i) =>
+          h(Text, { key: r.id, bold: i === at }, `${i === at ? "›" : " "} ${say("blocked.since", { date: day(r.since) })}`)
+        ),
+      ),
+    h(Menu, {
+      actions: [
+        { key: "lift", label: say("blocked.lift"), disabled: !chosen },
+        { key: "back", label: say("common.back") },
+      ],
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (!chosen) return;
+        client.unblock(chosen.id)
+          .then(() => load())
+          .catch((e: Error) => onError(e.message));
       },
       hint: say("common.rowActions"),
     }),

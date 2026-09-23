@@ -85,5 +85,8 @@
   "liked.toOffer": "сунушка",
   "liked.undone": "алынды",
   "liked.undo": "кайтаруу",
-  "liked.more": "дагы көрсөтүү"
+  "liked.more": "дагы көрсөтүү",
+  "blocked.count": "Бөгөттөлгөн: {n}",
+  "blocked.since": "{date} баштап бөгөттөлгөн",
+  "blocked.lift": "алып салуу"
 }

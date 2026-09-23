@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Chat, Hidden, Liked, Statements } from "./rooms.ts";
+import { Blocked, Chat, Hidden, Liked, Statements } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -378,4 +378,93 @@ test("the liked list takes the next page when asked, and says so when it is empt
   await settle();
   assert.match(none.lastFrame()!, /лайкнутого нет/);
   none.unmount();
+});
+
+// My blocks (§4.11, screen 10): no names, no phrases, and lifting goes back to the node.
+test("a block is lifted from the list, and lifting the last one leaves the screen", async () => {
+  let rows = [{ id: "b1", since: Date.UTC(2026, 8, 20) / 1000 }, { id: "b2", since: Date.UTC(2026, 8, 10) / 1000 }];
+  const lifted: string[] = [];
+  let back = 0;
+  const client = {
+    blocks: () => Promise.resolve(rows),
+    unblock: (id: string) => {
+      lifted.push(id);
+      rows = rows.filter((r) => r.id !== id);
+      return Promise.resolve({ status: 204, body: {} });
+    },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Blocked, { say, lang: "ru", client: client as any, onBack: () => back++, onError: () => {} }));
+  await settle();
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /Заблокировано: 2/);
+  assert.match(frame, /блокировка от 20 сентября 2026/, "the block's date is not on the screen");
+  await type(app, DOWN, ENTER);
+  await settle();
+  assert.deepEqual(lifted, ["b2"], "the arrows did not choose which block to lift");
+  assert.match(app.lastFrame()!, /Заблокировано: 1/, "the list was not read again after lifting");
+  await type(app, ENTER);
+  await settle();
+  assert.deepEqual(lifted, ["b2", "b1"]);
+  assert.equal(back, 1, "an empty list stayed on the screen as 'Blocked: 0'");
+  app.unmount();
+});
+
+test("the feed offers the blocked list only while there is something on it", async () => {
+  const client = { feed: () => Promise.resolve({ items: [] }) };
+  const feed = (blocked: number) =>
+    render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      blocked,
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onHidden: () => {}, onError: () => {},
+    }));
+  const some = feed(3);
+  await settle();
+  await type(some, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT);
+  assert.match(some.lastFrame()!, /Заблокировано: 3/, "the blocked list is not offered from the feed");
+  some.unmount();
+  const none = feed(0);
+  await settle();
+  await type(none, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT);
+  assert.doesNotMatch(none.lastFrame()!, /Заблокировано/, "'Blocked: 0' was offered");
+  none.unmount();
+});
+
+test("a long row of actions wraps by whole labels, never inside a word", async () => {
+  const client = { feed: () => Promise.resolve({ items: [] }) };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    blocked: 3,
+    restrictions: 2,
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onHidden: () => {}, onError: () => {},
+  }));
+  await settle();
+  const frame = app.lastFrame()!;
+  for (const label of ["заблокировать", "лайкнутое", "Заблокировано: 3", "Ограничений: 2", "сменить точку"]) {
+    assert.ok(frame.includes(label), `the label "${label}" was broken across lines`);
+  }
+  app.unmount();
+});
+
+test("an offer's like is not offered to be taken back", async () => {
+  let unliked = 0;
+  const client = {
+    likes: () => Promise.resolve({ items: [{ ...card("o1", "кофе со скидкой"), offer: { discount_value: "−10 %" } }], next: null }),
+    unlike: () => { unliked++; return Promise.resolve({ status: 200, body: { state: "spent" } }); },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Liked, { say, client: client as any, onInbox: () => {}, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /кофе со скидкой/);
+  await type(app, ENTER);
+  assert.equal(unliked, 0, "an offer's spent like was sent to be taken back");
+  app.unmount();
 });

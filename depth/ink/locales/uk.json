@@ -85,5 +85,8 @@
   "liked.toOffer": "до пропозиції",
   "liked.undone": "знято",
   "liked.undo": "повернути",
-  "liked.more": "показати ще"
+  "liked.more": "показати ще",
+  "blocked.count": "Заблоковано: {n}",
+  "blocked.since": "блокування від {date}",
+  "blocked.lift": "зняти"
 }

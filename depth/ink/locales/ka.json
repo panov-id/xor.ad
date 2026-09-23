@@ -85,5 +85,8 @@
   "liked.toOffer": "შეთავაზებაზე",
   "liked.undone": "მოხსნილია",
   "liked.undo": "დაბრუნება",
-  "liked.more": "მეტის ჩვენება"
+  "liked.more": "მეტის ჩვენება",
+  "blocked.count": "დაბლოკილია: {n}",
+  "blocked.since": "დაბლოკილია {date}-დან",
+  "blocked.lift": "მოხსნა"
 }

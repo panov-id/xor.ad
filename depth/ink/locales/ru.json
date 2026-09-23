@@ -85,5 +85,8 @@
   "liked.toOffer": "к предложению",
   "liked.undone": "снято",
   "liked.undo": "вернуть",
-  "liked.more": "показать ещё"
+  "liked.more": "показать ещё",
+  "blocked.count": "Заблокировано: {n}",
+  "blocked.since": "блокировка от {date}",
+  "blocked.lift": "снять"
 }

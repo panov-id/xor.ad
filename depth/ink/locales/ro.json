@@ -85,5 +85,8 @@
   "liked.toOffer": "la propunere",
   "liked.undone": "retras",
   "liked.undo": "anulează",
-  "liked.more": "arată mai mult"
+  "liked.more": "arată mai mult",
+  "blocked.count": "Blocate: {n}",
+  "blocked.since": "blocat din {date}",
+  "blocked.lift": "ridică"
 }

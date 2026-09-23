@@ -66,6 +66,9 @@ export interface Liked {
   like_count: number;
   state: "liked" | "matched";
   liked_at: number;
+  // A private author's offer: its like cannot be taken back (the node answers
+  // `spent`), whatever the state says.
+  offer?: { discount_value: string; conditions?: string | null };
 }
 
 export class Client {
@@ -203,12 +206,12 @@ export class Client {
   }
 
   like(phraseId: string): Promise<Answer<{ state: string; match_id?: string }>> {
-    return this.#call("POST", `/feed/${phraseId}/like`);
+    return this.#call("POST", `/feed/${encodeURIComponent(phraseId)}/like`);
   }
 
   // DELETE /feed/:id/like — unliked, or spent once a match came of that phrase.
   unlike(phraseId: string): Promise<Answer<{ state: string }>> {
-    return this.#call("DELETE", `/feed/${phraseId}/like`);
+    return this.#call("DELETE", `/feed/${encodeURIComponent(phraseId)}/like`);
   }
 
   // POST /matches/:id/consent — waiting, or agreed with the chat_id it opened
@@ -227,7 +230,7 @@ export class Client {
     const held = this.#ephemeral.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };
     this.#ephemeral.set(matchId, held);
     const answer = await this.#call<{ state: string; chat_id?: string }>(
-      "POST", `/matches/${matchId}/consent`, await held.eph.publish(this.#key.privateKey, matchId),
+      "POST", `/matches/${encodeURIComponent(matchId)}/consent`, await held.eph.publish(this.#key.privateKey, matchId),
     );
     // The half belongs to the chat that opened, whichever match it came from.
     if (answer.status === 200 && answer.body.chat_id) this.#ephemeral.set(answer.body.chat_id, held);
@@ -310,7 +313,7 @@ export class Client {
     if (!this.#key) throw new Error("not registered: there is no key to sign with");
     const eph = await Ephemeral.generate();
     const answer = await this.#call<{ state: string; epoch: number }>(
-      "POST", `/chats/${chatId}/rekey`,
+      "POST", `/chats/${encodeURIComponent(chatId)}/rekey`,
       { epoch, ...(await eph.publish(this.#key.privateKey, { chat: chatId, epoch })) },
     );
     if (answer.status === 200) {
@@ -357,21 +360,21 @@ export class Client {
 
   // "Not now", and taking it back while the match lives (screen 7).
   decline(matchId: string): Promise<Answer> {
-    return this.#call("POST", `/matches/${matchId}/decline`);
+    return this.#call("POST", `/matches/${encodeURIComponent(matchId)}/decline`);
   }
 
   undoDecline(matchId: string): Promise<Answer> {
-    return this.#call("DELETE", `/matches/${matchId}/decline`);
+    return this.#call("DELETE", `/matches/${encodeURIComponent(matchId)}/decline`);
   }
 
   // POST /chats/:id/messages — a ciphertext (base64url) under a local_id the
   // sender keeps; 202 {local_id, accepted} whoever is on the other end (§8.8).
   sendMessage(chatId: string, localId: string, ciphertext: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }>> {
-    return this.#call("POST", `/chats/${chatId}/messages`, { local_id: localId, ciphertext });
+    return this.#call("POST", `/chats/${encodeURIComponent(chatId)}/messages`, { local_id: localId, ciphertext });
   }
 
   received(chatId: string, ids: string[]): Promise<Answer> {
-    return this.#call("POST", `/chats/${chatId}/received`, { ids });
+    return this.#call("POST", `/chats/${encodeURIComponent(chatId)}/received`, { ids });
   }
 
   // POST /blocks — by what one can see: a phrase or a conversation, never an
@@ -379,6 +382,20 @@ export class Client {
   // block that was lifted (protocol §2, §4.8).
   blockByChat(chatId: string): Promise<Answer> {
     return this.#call("POST", "/blocks", { chat: chatId, nonce: base64url(random(16)) });
+  }
+
+  // GET /blocks — my blocks as opaque handles with the moment they were set,
+  // newest first. No names and no phrases: the list must not lead back to the
+  // person (§8.9, decided 16.09.2026).
+  async blocks(): Promise<Array<{ id: string; since: number }>> {
+    const answer = await this.#call<Array<{ id: string; since: number }>>("GET", "/blocks");
+    if (answer.status !== 200) throw new Error(`the blocks list refused: ${answer.status}`);
+    return answer.body;
+  }
+
+  // DELETE /blocks/:id — lift a block. 204 for any handle, mine or not (SEC-14).
+  unblock(handle: string): Promise<Answer> {
+    return this.#call("DELETE", `/blocks/${encodeURIComponent(handle)}`);
   }
 
   blockByPhrase(phraseId: string): Promise<Answer> {
@@ -404,8 +421,12 @@ export class Client {
   // DELETE /hidden/:id — the phrase comes back to my feed while it is alive.
   // 204 whatever happened, so a handle that is gone tells the caller nothing.
   unhide(handle: string): Promise<Answer> {
-    return this.#call("DELETE", `/hidden/${handle}`);
+    return this.#call("DELETE", `/hidden/${encodeURIComponent(handle)}`);
   }
+
+  // Every id a path carries came from the node, and the node is the adversary
+  // (§8.13): encoded, so "../hidden/x" cannot make me sign a request to another
+  // route (security lens, 23.09.2026).
 
   // GET /likes — what I liked that is still alive, newest like first, thirty
   // at a time (§4.10). A liked phrase is not in the feed any more, so this is
@@ -444,12 +465,12 @@ export class Client {
 
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).
   closeChat(chatId: string): Promise<Answer<{ state: string }>> {
-    return this.#call("DELETE", `/chats/${chatId}`);
+    return this.#call("DELETE", `/chats/${encodeURIComponent(chatId)}`);
   }
 
   // POST /chats/:id/ticket — one ticket, one socket, thirty seconds.
   async ticket(chatId: string): Promise<string> {
-    const answer = await this.#call<{ ticket: string }>("POST", `/chats/${chatId}/ticket`);
+    const answer = await this.#call<{ ticket: string }>("POST", `/chats/${encodeURIComponent(chatId)}/ticket`);
     if (answer.status !== 200) throw new Error(`no ticket: ${answer.status} ${JSON.stringify(answer.body)}`);
     return answer.body.ticket;
   }

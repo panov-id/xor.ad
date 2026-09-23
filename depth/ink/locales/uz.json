@@ -85,5 +85,8 @@
   "liked.toOffer": "taklifga",
   "liked.undone": "olib tashlandi",
   "liked.undo": "qaytarish",
-  "liked.more": "yana ko'rsatish"
+  "liked.more": "yana ko'rsatish",
+  "blocked.count": "Bloklangan: {n}",
+  "blocked.since": "{date} dan bloklangan",
+  "blocked.lift": "olib tashlash"
 }

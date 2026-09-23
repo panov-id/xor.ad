@@ -81,9 +81,12 @@
   "liked.title": "gelikt",
   "liked.empty": "nichts gelikt",
   "liked.at": "gelikt {time}",
-  "liked.offer": "Angebot zu reden",
-  "liked.toOffer": "zum Angebot",
+  "liked.offer": "Gesprächsangebot",
+  "liked.toOffer": "zum Gesprächsangebot",
   "liked.undone": "zurückgenommen",
   "liked.undo": "rückgängig",
-  "liked.more": "mehr zeigen"
+  "liked.more": "mehr zeigen",
+  "blocked.count": "Blockiert: {n}",
+  "blocked.since": "blockiert seit {date}",
+  "blocked.lift": "aufheben"
 }

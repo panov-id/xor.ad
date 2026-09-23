@@ -590,7 +590,10 @@ looking. The terminal was showing phrases only.
 - **What you liked is not in the feed — the owner's decision of 2026-09-17** (storefront
   screen 3). `l` takes the card out of `signal`: the **node** filters the feed by its own
   `likes` and `table_likes` (`GET /feed`, `protocol_EN.md` §4.2), not the client. In the
-  card's place, for a few seconds, the line `liked · [u] undo`; after that it is in `liked`
+  card's place, for a few seconds, the line `liked · [u] undo` [built differently on
+  2026-09-23: the terminal removes the card at once and there is no "undo" line in the feed —
+  the like is taken back on the `liked` screen, while still on it (review panel
+  2026-09-23)]; after that it is in `liked`
   (4.10), and taking the like back is done there — until an offer to talk has come out of
   it. [retired] Before, the card stayed in the feed after `l` with a filled-in counter, and
   the like was taken back with a second `l`. The price is the web's: for an active person
@@ -970,7 +973,9 @@ terminal has no letter keys (owner's decision 2026-09-22, navigation is arrows a
 the mockup's `l` and `u` are the menu items "take the like back" and "undo"; "taken back"
 stands in the card's place until the person leaves the screen. A match card is `(*)`, "offer
 to talk", and its item leads to the inbox. "Show more" takes the next page. The node has no
-tables and no one-sided offer match yet, so neither is here yet.
+tables and no one-sided offer match yet, so neither is here yet; on a private author's offer
+"take the like back" is greyed, because the node answers `spent` to it. Opening a phrase
+full screen with `enter` (4.4.1) is not built either.
 
 
 ### 4.11. Me — `me`
@@ -1010,11 +1015,20 @@ only named here — their terminal mechanics are not described (§9).
 The terminal has no e-mail, so the statement (`GET /statements`, `dsa/SPEC_EN.md` §7) is
 delivered here. Until the terminal has a `me` screen it lives by the feed: on the first entry
 to the feed in a run the restrictions are shown whole, in a red frame, one at a time, the up
-and down arrows between them; the five lines are those of `refusal-wordings_EN.md` §6,
+and down arrows between them; the five lines are those of `refusal-wordings_EN.md` §6
+(without the heading "Your phrase has been hidden.", since what was restricted need not be
+a phrase),
 including the two different "How decided" lines by `automated_used` and "law:" or "terms:"
 by `ground_kind`. "Got it" folds them into a red "Restrictions: N" row above the feed — also
 a menu item that opens them again. Nothing is kept on disk (§6), so the next run is again the
 "next entry" of §7, and the statements are shown again.
+
+**Blocked — built 2026-09-23** (`depth/ink/rooms.ts`, `Blocked`; `GET /blocks`,
+`DELETE /blocks/:id`). A line per block — "blocked since <date>", no names and no phrases,
+as on screen 10 of the storefronts; the item "lift". "Blocked: N" is in the feed's menu only
+while there are blocks, and after the last one is lifted the screen goes back by itself — the
+terminal never draws "Blocked: 0" and does not answer the storefronts' Q-48. The number is
+read again each time the feed is entered.
 
 ---
 

@@ -12,7 +12,7 @@ import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, Registration } from "./screens.ts";
 import type { Place } from "./screens.ts";
-import { Chat, Hidden, Inbox, Liked, Statements, Write } from "./rooms.ts";
+import { Blocked, Chat, Hidden, Inbox, Liked, Statements, Write } from "./rooms.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -37,6 +37,7 @@ type Where =
   | { screen: "hidden" }
   | { screen: "statements" }
   | { screen: "liked" }
+  | { screen: "blocked" }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number };
 
 export function App({ say, client }: { say: Say; client: Client }): ReactElement {
@@ -58,6 +59,13 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
         if (items.length > 0) setWhere({ screen: "statements" });
       })
       .catch((e: Error) => fail(e.message));
+  }, [where.screen]);
+  // How many blocks I hold, read again each time the feed is entered: a block
+  // set from the feed or the chat, or lifted on its own screen, changes it.
+  const [blockCount, setBlockCount] = useState(0);
+  useEffect(() => {
+    if (where.screen !== "feed") return;
+    client.blocks().then((list) => setBlockCount(list.length)).catch(() => {});
   }, [where.screen]);
 
   const feed = () => setWhere({ screen: "feed" });
@@ -90,6 +98,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           onPoint: () => setWhere({ screen: "location" }),
           onHidden: () => setWhere({ screen: "hidden" }),
           onLiked: () => setWhere({ screen: "liked" }),
+          blocked: blockCount,
+          onBlocked: () => setWhere({ screen: "blocked" }),
           restrictions: statements?.length ?? 0,
           onRestrictions: () => setWhere({ screen: "statements" }),
           onError: fail,
@@ -106,6 +116,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
         });
       case "statements":
         return h(Statements, { say, lang: languageOf(process.env), items: statements ?? [], onDone: feed });
+      case "blocked":
+        return h(Blocked, { say, lang: languageOf(process.env), client, onBack: feed, onError: fail });
       case "liked":
         return h(Liked, { say, client, onInbox: () => setWhere({ screen: "inbox" }), onBack: feed, onError: fail });
       case "hidden":

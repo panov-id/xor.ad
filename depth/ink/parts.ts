@@ -38,9 +38,12 @@ export function Menu(
   return h(
     Box,
     { flexDirection: "column" },
+    // Wrapped by whole actions: the feed's row outgrew a hundred columns, and
+      // Ink then broke labels mid-word ("заблокиров / ать") — measured in the
+      // screens' test, 23.09.2026.
     h(
       Box,
-      { gap: 2 },
+      { columnGap: 2, flexWrap: "wrap" },
       ...actions.map((a) =>
         h(
           Text,
@@ -157,9 +160,11 @@ export function Form(
 // sequence inside a name can repaint the screen, and the screen the person is
 // told to trust is the one holding the safety code (security lens,
 // 2026-09-22). Control characters and CSI/OSC sequences go; a printable ␛ is
-// shown as a dot so nothing silently disappears.
+// shown as a dot so nothing silently disappears. The bidirectional controls go
+// too: an embedded right-to-left override lets a phrase reorder its own tail
+// on the screen (security lens, 23.09.2026).
 // deno-lint-ignore no-control-regex
-const CONTROL = /\u001B\][^\u0007\u001B]*(?:\u0007|\u001B\\)|\u001B[@-Z\\-_]|\u001B\[[0-?]*[ -\/]*[@-~]|[\u0000-\u001F\u007F-\u009F]/g;
+const CONTROL = /\u001B\][^\u0007\u001B]*(?:\u0007|\u001B\\)|\u001B[@-Z\\-_]|\u001B\[[0-?]*[ -\/]*[@-~]|[\u0000-\u001F\u007F-\u009F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
 export function plain(text: unknown, limit = 400): string {
   return String(text ?? "").replace(CONTROL, "·").slice(0, limit);
 }

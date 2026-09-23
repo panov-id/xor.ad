@@ -85,5 +85,8 @@
   "liked.toOffer": "təklifə",
   "liked.undone": "geri götürüldü",
   "liked.undo": "qaytar",
-  "liked.more": "daha çox göstər"
+  "liked.more": "daha çox göstər",
+  "blocked.count": "Bloklanıb: {n}",
+  "blocked.since": "{date} tarixindən bloklanıb",
+  "blocked.lift": "götür"
 }

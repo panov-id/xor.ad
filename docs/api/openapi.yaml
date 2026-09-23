@@ -210,6 +210,7 @@ components:
         watching: {type: integer, description: Table only., x-description-ru: Только у стола.}
         name: {type: string, description: "Table only, and only after the queue's verdict (2026-09-17).", x-description-ru: "Только у стола и только после вердикта очереди (17.09.2026)."}
         state: {type: string, enum: [liked, matched], description: "Only in GET /likes, on a phrase or a private author's offer (2026-09-17).", x-description-ru: "Только в GET /likes, у фразы и оффера частника (17.09.2026)."}
+        liked_at: {type: integer, description: "Only in GET /likes: Unix seconds of the like, which is the list's order (2026-09-23).", x-description-ru: "Только в GET /likes: Unix-секунды лайка, по ним список и упорядочен (23.09.2026)."}
         id: {type: string, format: uuid}
         text: {type: string, maxLength: 128}
         mode: {type: string}

@@ -3427,7 +3427,78 @@ Deno.test({ name: "the likes list pages by the time of the like, and refuses a c
   assertEquals(seen[0], ids[31], "the newest like is not first");
   assertEquals(second.next, null, "a short page still offered a cursor");
 
-  const bad = await signedCall(a.pair.privateKey, a.session_id, "GET", "/likes?after=yesterday");
-  assertEquals(bad.status, 400);
+  for (const junk of ["yesterday", `9999999999999999999_${crypto.randomUUID()}`, `1_${"-".repeat(36)}`]) {
+    const bad = await signedCall(a.pair.privateKey, a.session_id, "GET", `/likes?after=${junk}`);
+    assertEquals(bad.status, 400, `the cursor ${junk} was not refused as a bad cursor`);
+  }
+  reset();
+});
+
+// The feed's own lesson (routes/feed.ts): a cursor that loses the microseconds
+// drops rows at a page boundary. Thirty-two likes inside one millisecond, apart
+// by microseconds, must all come back once across two pages (data lens, 23.09.2026).
+Deno.test({ name: "likes inside one millisecond page without losing one", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const ids: string[] = [];
+  for (let i = 0; i < 32; i++) ids.push(await seedPhrase(b.identity_id, `в одну миллисекунду ${i}`));
+  // One statement, so one now(): row by row, each insert had its own
+  // transaction's clock and the likes spread over several milliseconds,
+  // which let a millisecond cursor pass this test (seen 23.09.2026).
+  await database.queryOrThrow(
+    `INSERT INTO likes (liker_identity, feed_message_id, created_at)
+     SELECT $1, id, date_trunc('milliseconds', now()) + (n * 10) * interval '1 microsecond'
+       FROM unnest($2::uuid[]) WITH ORDINALITY AS t(id, n)`,
+    [a.identity_id, ids],
+  );
+  const first = await likesOf(a);
+  const second = await likesOf(a, first.next!);
+  const seen = [...first.items, ...second.items].map((i) => i.id);
+  assertEquals(new Set(seen).size, 32, `likes were lost or repeated across the page boundary: ${seen.length} seen`);
+  reset();
+});
+
+// Density reads what the feed would deliver (routes/feed.ts): what the viewer
+// liked or hid is gone from their feed, so it is gone from their density too —
+// and only from theirs (review panel 23.09.2026).
+Deno.test({ name: "density leaves out what the viewer liked or hid, and only for them", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const here = { lat: -33.87, lon: 151.21 };
+  const { quantise } = await import("../src/lib/feed_geo.ts");
+  const at = quantise(here, 1000);
+  const a = await author();
+  const b = await author();
+  const c = await author();
+  const put = async (who: string, text: string) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, $3, 'alone', 'und', $4, $5, 1000, $6, $7, now(), now() + interval '3 hours')`,
+      [id, who, text, here.lat, here.lon, at.lat, at.lon],
+    );
+    return id;
+  };
+  // A's own live phrase, which a like needs, is elsewhere: in this circle it
+  // would keep A's density at "few" whatever A liked.
+  await seedPhrase(a.identity_id, "своя фраза А");
+  const liked = await put(b.identity_id, "фраза для лайка");
+  const hidden = await put(b.identity_id, "фраза для скрытия");
+  const density = async (who: typeof a) => {
+    const got = await signedCall(who.pair.privateKey, who.session_id, "GET",
+      `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`);
+    assertEquals(got.status, 200, JSON.stringify(got.body));
+    return (got.body as { step: string }).step;
+  };
+  const before = await density(a);
+  assert(before !== "none", "the fixture phrases are not in A's density to begin with");
+  assertEquals(stateOf(await like(a, liked)), "liked");
+  await signedCall(a.pair.privateKey, a.session_id, "POST", "/hidden", { feed: hidden });
+  assertEquals(await density(a), "none", "density still counts what A liked or hid");
+  assertEquals(await density(c), before, "A's like and hide changed somebody else's density");
   reset();
 });

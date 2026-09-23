@@ -85,5 +85,8 @@
   "liked.toOffer": "ба пешниҳод",
   "liked.undone": "бардошта шуд",
   "liked.undo": "баргардондан",
-  "liked.more": "боз нишон додан"
+  "liked.more": "боз нишон додан",
+  "blocked.count": "Манъшуда: {n}",
+  "blocked.since": "манъ аз {date}",
+  "blocked.lift": "бардоштан"
 }

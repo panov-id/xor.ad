@@ -84,7 +84,7 @@ type Phrase = { id: string; text: string; name?: string; age?: number; distance_
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, restrictions = 0, onWrite, onInbox, onPoint, onHidden, onLiked, onRestrictions, onError }: {
+  { say, client, place, mine, restrictions = 0, blocked = 0, onWrite, onInbox, onPoint, onHidden, onLiked, onBlocked, onRestrictions, onError }: {
     say: Say;
     client: Client;
     place: Place;
@@ -96,6 +96,9 @@ export function Feed(
     onPoint: () => void;
     onHidden: () => void;
     onLiked?: () => void;
+    // My blocks; the item is offered only while there are any.
+    blocked?: number;
+    onBlocked?: () => void;
     onRestrictions?: () => void;
     onError: (message: string) => void;
   },
@@ -150,6 +153,7 @@ export function Feed(
         { key: "point", label: say("feed.point") },
         { key: "hidden", label: say("feed.hidden") },
         { key: "liked", label: say("liked.title") },
+        ...(blocked > 0 ? [{ key: "blocked", label: say("blocked.count", { n: blocked }) }] : []),
         ...(restrictions > 0 ? [{ key: "restrictions", label: say("statements.count", { n: restrictions }) }] : []),
         { key: "exit", label: say("common.exit") },
       ],
@@ -159,6 +163,7 @@ export function Feed(
         if (key === "point") return onPoint();
         if (key === "hidden") return onHidden();
         if (key === "liked") return onLiked?.();
+        if (key === "blocked") return onBlocked?.();
         if (key === "restrictions") return onRestrictions?.();
         if (key === "exit") return process.exit(0);
         if (!chosen) return;

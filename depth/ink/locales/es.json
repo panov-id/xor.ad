@@ -85,5 +85,8 @@
   "liked.toOffer": "a la propuesta",
   "liked.undone": "retirado",
   "liked.undo": "deshacer",
-  "liked.more": "mostrar más"
+  "liked.more": "mostrar más",
+  "blocked.count": "Bloqueados: {n}",
+  "blocked.since": "bloqueado desde el {date}",
+  "blocked.lift": "quitar"
 }

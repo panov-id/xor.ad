@@ -267,7 +267,10 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     const cut = after.lastIndexOf("_");
     const at = cut < 0 ? "" : after.slice(0, cut);
     const id = cut < 0 ? "" : after.slice(cut + 1);
-    if (!/^[0-9]{1,19}$/.test(at) || !/^[0-9a-fA-F-]{36}$/.test(id)) {
+    // Sixteen digits of microseconds reach the year 2286; nineteen passed the
+    // test and overflowed bigint in the database, which answered 503 and wrote
+    // a "query failed" line for a caller's typo (review panel 23.09.2026).
+    if (!/^[0-9]{1,16}$/.test(at) || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       return refuse("invalid_body", "after is not a cursor from this feed", 400);
     }
     cursorAt = at;
@@ -561,6 +564,14 @@ async function density(req: Request, url: URL): Promise<Response> {
         AND NOT EXISTS (SELECT 1 FROM blocks b
                        WHERE (b.blocker_identity = $12::uuid AND b.blocked_identity = f.author_identity)
                         OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $12::uuid))
+        -- What the viewer hid or liked is not in their feed, so it is not in
+        -- their "who is here" either: otherwise the handle says "a few" over a
+        -- feed that is empty for them (review panel 23.09.2026; hidden was
+        -- missing since the hidden list was built, liked since 3fd4faa).
+        AND NOT EXISTS (SELECT 1 FROM hidden_messages h
+                         WHERE h.identity = $12::uuid AND h.feed_message_id = f.id)
+        AND NOT EXISTS (SELECT 1 FROM likes l
+                         WHERE l.liker_identity = $12::uuid AND l.feed_message_id = f.id)
         -- The published centre here too: the handle answers a coarser question
         -- than the feed, but its none/few boundary is still a yes-or-no about
         -- one circle, and a yes-or-no about the exact centre is the same

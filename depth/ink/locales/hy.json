@@ -60,5 +60,22 @@
   "block.item": "արգելափակել",
   "block.confirm": "հաստա՞տ արգելափակել",
   "block.what": "զրույցը կավարտվի երկուսիդ համար, և հանված արգելափակումը նորից չի դրվում",
-  "chat.end": "ավարտել զրույցը"
+  "chat.end": "ավարտել զրույցը",
+  "statements.count": "Սահմանափակումներ՝ {n}",
+  "statements.what": "Ինչ է տեղի ունեցել",
+  "statements.why": "Ինչու",
+  "statements.how": "Ինչպես է որոշվել",
+  "statements.ground": "Հիմք",
+  "statements.next": "Ինչ հետո",
+  "statements.removed": "ջնջված է",
+  "statements.hidden": "թաքցված է ժապավենից",
+  "statements.offer_taken_down": "առաջարկը հանված է",
+  "statements.access_restricted": "մուտքը սահմանափակված է",
+  "statements.until": "մինչև {date}",
+  "statements.human": "ավտոմատ ստուգում չի կիրառվել. որոշումը կայացրել է մարդը",
+  "statements.automated": "թաքցված է ավտոմատ՝ տարբեր մարդկանց բողոքների քանակով. մարդու որոշում չի եղել — գրեք մեզ, և այն կդիտի մարդը",
+  "statements.law": "օրենք՝",
+  "statements.terms": "պայմաններ՝",
+  "statements.appeal": "պատասխանել մեզ, դիմել թվային ծառայությունների համակարգողին, դիմել դատարան",
+  "statements.gotIt": "հասկանալի է"
 }

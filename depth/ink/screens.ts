@@ -84,15 +84,18 @@ type Phrase = { id: string; text: string; name?: string; age?: number; distance_
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, onWrite, onInbox, onPoint, onHidden, onError }: {
+  { say, client, place, mine, restrictions = 0, onWrite, onInbox, onPoint, onHidden, onRestrictions, onError }: {
     say: Say;
     client: Client;
     place: Place;
     mine?: { text: string; state: string };
+    // Article 17 statements addressed to me; folded, they are this red row.
+    restrictions?: number;
     onWrite: () => void;
     onInbox: () => void;
     onPoint: () => void;
     onHidden: () => void;
+    onRestrictions?: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -125,6 +128,7 @@ export function Feed(
     h(Head, {
       title: say("feed.header", { lat: place.lat, lon: place.lon, radius: place.radius, from: 18, to: 99 }),
     }),
+    restrictions > 0 ? h(Text, { color: "red" }, say("statements.count", { n: restrictions })) : null,
     items === null
       ? h(Text, { dimColor: true }, "…")
       : items.length === 0
@@ -144,6 +148,7 @@ export function Feed(
         { key: "inbox", label: say("feed.inbox") },
         { key: "point", label: say("feed.point") },
         { key: "hidden", label: say("feed.hidden") },
+        ...(restrictions > 0 ? [{ key: "restrictions", label: say("statements.count", { n: restrictions }) }] : []),
         { key: "exit", label: say("common.exit") },
       ],
       onPick: (key) => {
@@ -151,6 +156,7 @@ export function Feed(
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
         if (key === "hidden") return onHidden();
+        if (key === "restrictions") return onRestrictions?.();
         if (key === "exit") return process.exit(0);
         if (!chosen) return;
         // Hiding is mine alone and can be taken back (§8.9); blocking ends the

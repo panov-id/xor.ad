@@ -60,5 +60,22 @@
   "block.item": "blochează",
   "block.confirm": "sigur blochezi?",
   "block.what": "conversația se încheie pentru amândoi, iar o blocare ridicată nu se mai pune",
-  "chat.end": "încheie conversația"
+  "chat.end": "încheie conversația",
+  "statements.count": "Restricții: {n}",
+  "statements.what": "Ce s-a întâmplat",
+  "statements.why": "De ce",
+  "statements.how": "Cum s-a decis",
+  "statements.ground": "Temei",
+  "statements.next": "Ce urmează",
+  "statements.removed": "eliminat",
+  "statements.hidden": "ascuns din flux",
+  "statements.offer_taken_down": "ofertă retrasă",
+  "statements.access_restricted": "acces restricționat",
+  "statements.until": "până la {date}",
+  "statements.human": "nu s-a folosit nicio verificare automată; a decis un om",
+  "statements.automated": "ascuns automat, după numărul de reclamații de la persoane diferite; nu a decis niciun om — scrieți-ne și un om va verifica",
+  "statements.law": "lege:",
+  "statements.terms": "condiții:",
+  "statements.appeal": "să ne răspundeți, să vă adresați coordonatorului serviciilor digitale, să vă adresați instanței",
+  "statements.gotIt": "am înțeles"
 }

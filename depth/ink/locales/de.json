@@ -60,5 +60,22 @@
   "block.item": "blockieren",
   "block.confirm": "wirklich blockieren?",
   "block.what": "das Gespräch endet für euch beide, und eine aufgehobene Blockierung lässt sich nicht erneut setzen",
-  "chat.end": "das Gespräch beenden"
+  "chat.end": "das Gespräch beenden",
+  "statements.count": "Einschränkungen: {n}",
+  "statements.what": "Was passiert ist",
+  "statements.why": "Warum",
+  "statements.how": "Wie entschieden wurde",
+  "statements.ground": "Grundlage",
+  "statements.next": "Wie weiter",
+  "statements.removed": "entfernt",
+  "statements.hidden": "aus dem Feed ausgeblendet",
+  "statements.offer_taken_down": "Angebot entfernt",
+  "statements.access_restricted": "Zugang eingeschränkt",
+  "statements.until": "bis {date}",
+  "statements.human": "keine automatische Prüfung wurde eingesetzt; ein Mensch hat entschieden",
+  "statements.automated": "automatisch ausgeblendet, nach der Zahl der Beschwerden verschiedener Personen; kein Mensch hat entschieden — schreiben Sie uns, und ein Mensch sieht es sich an",
+  "statements.law": "Gesetz:",
+  "statements.terms": "Bedingungen:",
+  "statements.appeal": "uns antworten, den Koordinator für digitale Dienste anrufen, ein Gericht anrufen",
+  "statements.gotIt": "verstanden"
 }

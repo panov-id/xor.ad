@@ -60,5 +60,22 @@
   "block.item": "заблокувати",
   "block.confirm": "точно заблокувати?",
   "block.what": "бесіда закриється в обох, і знятий блок назад не ставиться",
-  "chat.end": "закінчити бесіду"
+  "chat.end": "закінчити бесіду",
+  "statements.count": "Обмежень: {n}",
+  "statements.what": "Що сталося",
+  "statements.why": "Чому",
+  "statements.how": "Як вирішували",
+  "statements.ground": "Підстава",
+  "statements.next": "Що далі",
+  "statements.removed": "видалено",
+  "statements.hidden": "приховано зі стрічки",
+  "statements.offer_taken_down": "офер знято",
+  "statements.access_restricted": "доступ обмежено",
+  "statements.until": "до {date}",
+  "statements.human": "автоматична перевірка не застосовувалася; рішення ухвалила людина",
+  "statements.automated": "приховано автоматично, за кількістю скарг від різних людей; рішення людини не було — напишіть нам, і його перегляне людина",
+  "statements.law": "закон:",
+  "statements.terms": "умови:",
+  "statements.appeal": "відповісти нам, звернутися до координатора цифрових послуг, звернутися до суду",
+  "statements.gotIt": "зрозуміло"
 }

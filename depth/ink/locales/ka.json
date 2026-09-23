@@ -60,5 +60,22 @@
   "block.item": "დაბლოკვა",
   "block.confirm": "ნამდვილად დაბლოკო?",
   "block.what": "საუბარი ორივესთვის დასრულდება, მოხსნილი ბლოკი კი აღარ დაიდება",
-  "chat.end": "საუბრის დასრულება"
+  "chat.end": "საუბრის დასრულება",
+  "statements.count": "შეზღუდვები: {n}",
+  "statements.what": "რა მოხდა",
+  "statements.why": "რატომ",
+  "statements.how": "როგორ გადაწყდა",
+  "statements.ground": "საფუძველი",
+  "statements.next": "რა შემდეგ",
+  "statements.removed": "წაიშალა",
+  "statements.hidden": "დაიმალა ლენტიდან",
+  "statements.offer_taken_down": "შეთავაზება მოიხსნა",
+  "statements.access_restricted": "წვდომა შეიზღუდა",
+  "statements.until": "{date}-მდე",
+  "statements.human": "ავტომატური შემოწმება არ გამოყენებულა; გადაწყვეტილება ადამიანმა მიიღო",
+  "statements.automated": "დაიმალა ავტომატურად, სხვადასხვა ადამიანის საჩივრების რაოდენობის მიხედვით; ადამიანის გადაწყვეტილება არ ყოფილა — მოგვწერეთ და მას ადამიანი ნახავს",
+  "statements.law": "კანონი:",
+  "statements.terms": "პირობები:",
+  "statements.appeal": "გვიპასუხეთ, მიმართეთ ციფრული სერვისების კოორდინატორს, მიმართეთ სასამართლოს",
+  "statements.gotIt": "გასაგებია"
 }

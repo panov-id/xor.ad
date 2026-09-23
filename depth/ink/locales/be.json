@@ -60,5 +60,22 @@
   "block.item": "заблакаваць",
   "block.confirm": "дакладна заблакаваць?",
   "block.what": "размова зачыніцца ў абодвух, і зняты блок назад не ставіцца",
-  "chat.end": "скончыць размову"
+  "chat.end": "скончыць размову",
+  "statements.count": "Абмежаванняў: {n}",
+  "statements.what": "Што адбылося",
+  "statements.why": "Чаму",
+  "statements.how": "Як вырашалі",
+  "statements.ground": "Падстава",
+  "statements.next": "Што далей",
+  "statements.removed": "выдалена",
+  "statements.hidden": "схавана са стужкі",
+  "statements.offer_taken_down": "афер зняты",
+  "statements.access_restricted": "доступ абмежаваны",
+  "statements.until": "да {date}",
+  "statements.human": "аўтаматычная праверка не прымянялася; рашэнне прыняў чалавек",
+  "statements.automated": "схавана аўтаматычна, па колькасці скаргаў ад розных людзей; рашэння чалавека не было — напішыце нам, і яго пагледзіць чалавек",
+  "statements.law": "закон:",
+  "statements.terms": "умовы:",
+  "statements.appeal": "адказаць нам, звярнуцца да каардынатара лічбавых паслуг, звярнуцца ў суд",
+  "statements.gotIt": "зразумела"
 }

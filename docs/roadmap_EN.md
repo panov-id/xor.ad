@@ -119,7 +119,9 @@ The percentages are estimates: they are not weighted by hours, because steps
 - [~] The Article 17 statement-of-reasons screen for an author without
   email — drawn 2026-09-21 (frames U, V, W of
   `panel/design/sheets/screen-06-07-10.svg`, the owner's decisions in screens
-  9 and 14 of the storefronts); no client shows it yet.
+  9 and 14 of the storefronts). Built in the terminal on 2026-09-23
+  (`depth/ink/rooms.ts`, `Statements`; three screen tests, seen red);
+  no web client yet.
 
 ## 3. Product: build order (§13 of the chat spec)
 

@@ -8,7 +8,7 @@
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
-import type { Client } from "../core/client.ts";
+import type { Client, Statement } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
 import type { Place } from "./screens.ts";
@@ -346,6 +346,68 @@ export function Hidden(
           })
           .catch((e: Error) => onError(e.message));
       },
+      hint: say("common.rowActions"),
+    }),
+  );
+}
+
+// The Article 17 statements of reasons (dsa/SPEC §7, the wording of
+// refusal-wordings §6; frames U, V, W of panel/design/sheets/screen-06-07-10.svg).
+// Not a refusal but the explanation of a restriction on something already
+// published — and with no e-mail on file, this screen is the only place it
+// reaches the person. It opens by itself when the feed is first reached in a
+// run: a run is the "next entry" §7 speaks of, and nothing is kept on disk to
+// remember that it was read (§8.13). "Got it" folds it into the red
+// "Restrictions: N" row of the feed; it is never erased.
+export function Statements(
+  { say, lang, items, onDone }: {
+    say: Say;
+    lang: string;
+    items: Statement[];
+    onDone: () => void;
+  },
+): ReactElement {
+  const [at, setAt] = useState(0);
+  useInput((_input, key) => {
+    if (items.length < 2) return;
+    if (key.upArrow) setAt((i) => (i - 1 + items.length) % items.length);
+    if (key.downArrow) setAt((i) => (i + 1) % items.length);
+  });
+  const day = (seconds: number) =>
+    new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+      .format(new Date(seconds * 1000));
+  const s = items[at];
+  const row = (label: string, value: string) =>
+    h(Box, { key: label }, h(Box, { width: 16, flexShrink: 0 }, h(Text, { dimColor: true }, label)), h(Text, null, value));
+  const what = [
+    say(`statements.${s.restriction}`),
+    day(s.created_at),
+    ...(s.until ? [say("statements.until", { date: day(s.until) })] : []),
+  ].join(", ");
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, {
+      title: say("statements.count", { n: items.length }),
+      lines: items.length > 1 ? [`${at + 1} / ${items.length}`] : undefined,
+    }),
+    h(
+      Box,
+      { flexDirection: "column", borderStyle: "single", borderColor: "red", paddingX: 1 },
+      row(say("statements.what"), what),
+      row(say("statements.why"), plain(s.facts, 600)),
+      // Two paths, two lines (§6, 04.09.2026): a notice is decided by a person,
+      // the complaint threshold hides on its own — and must say so.
+      row(say("statements.how"), say(s.automated_used ? "statements.automated" : "statements.human")),
+      row(
+        say("statements.ground"),
+        `${say(s.ground_kind === "legal" ? "statements.law" : "statements.terms")} ${plain(s.ground_text, 400)}`,
+      ),
+      row(say("statements.next"), say("statements.appeal")),
+    ),
+    h(Menu, {
+      actions: [{ key: "done", label: say("statements.gotIt") }],
+      onPick: () => onDone(),
       hint: say("common.rowActions"),
     }),
   );

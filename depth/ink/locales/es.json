@@ -60,5 +60,22 @@
   "block.item": "bloquear",
   "block.confirm": "¿seguro que bloqueas?",
   "block.what": "la conversación termina para los dos, y un bloqueo retirado no se vuelve a poner",
-  "chat.end": "terminar la conversación"
+  "chat.end": "terminar la conversación",
+  "statements.count": "Restricciones: {n}",
+  "statements.what": "Qué ha pasado",
+  "statements.why": "Por qué",
+  "statements.how": "Cómo se decidió",
+  "statements.ground": "Fundamento",
+  "statements.next": "Qué sigue",
+  "statements.removed": "eliminado",
+  "statements.hidden": "oculto del feed",
+  "statements.offer_taken_down": "oferta retirada",
+  "statements.access_restricted": "acceso restringido",
+  "statements.until": "hasta el {date}",
+  "statements.human": "no se usó ninguna comprobación automatizada; decidió una persona",
+  "statements.automated": "ocultado automáticamente, por el número de quejas de personas distintas; ninguna persona decidió — escríbenos y una persona lo revisará",
+  "statements.law": "ley:",
+  "statements.terms": "condiciones:",
+  "statements.appeal": "respondernos, acudir al coordinador de servicios digitales, acudir a los tribunales",
+  "statements.gotIt": "entendido"
 }

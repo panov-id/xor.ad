@@ -60,5 +60,22 @@
   "block.item": "заблокировать",
   "block.confirm": "точно заблокировать?",
   "block.what": "беседа закроется у обоих, и снятый блок обратно не ставится",
-  "chat.end": "закончить беседу"
+  "chat.end": "закончить беседу",
+  "statements.count": "Ограничений: {n}",
+  "statements.what": "Что произошло",
+  "statements.why": "Почему",
+  "statements.how": "Как решали",
+  "statements.ground": "Основание",
+  "statements.next": "Что дальше",
+  "statements.removed": "удалено",
+  "statements.hidden": "скрыто из ленты",
+  "statements.offer_taken_down": "оффер снят",
+  "statements.access_restricted": "доступ ограничен",
+  "statements.until": "до {date}",
+  "statements.human": "автоматическая проверка не применялась; решение принял человек",
+  "statements.automated": "скрыто автоматически, по числу жалоб от разных людей; решения человека не было — напишите нам, и его посмотрит человек",
+  "statements.law": "закон:",
+  "statements.terms": "условия:",
+  "statements.appeal": "ответить нам, обратиться к координатору цифровых услуг, обратиться в суд",
+  "statements.gotIt": "понятно"
 }

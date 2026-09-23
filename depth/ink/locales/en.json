@@ -60,5 +60,22 @@
   "block.item": "block",
   "block.confirm": "block, really?",
   "block.what": "the conversation ends for both of you, and a lifted block cannot be set again",
-  "chat.end": "end the conversation"
+  "chat.end": "end the conversation",
+  "statements.count": "Restrictions: {n}",
+  "statements.what": "What happened",
+  "statements.why": "Why",
+  "statements.how": "How decided",
+  "statements.ground": "Grounds",
+  "statements.next": "What next",
+  "statements.removed": "removed",
+  "statements.hidden": "hidden from the feed",
+  "statements.offer_taken_down": "offer taken down",
+  "statements.access_restricted": "access restricted",
+  "statements.until": "until {date}",
+  "statements.human": "no automated check was used; a person decided",
+  "statements.automated": "hidden automatically, by the number of complaints from different people; no person decided — write to us and a person will look",
+  "statements.law": "law:",
+  "statements.terms": "terms:",
+  "statements.appeal": "reply to us, contact the Digital Services Coordinator, go to court",
+  "statements.gotIt": "got it"
 }

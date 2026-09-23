@@ -60,5 +60,22 @@
   "block.item": "бұғаттау",
   "block.confirm": "шынымен бұғаттайсың ба?",
   "block.what": "әңгіме екеуіңде де жабылады, ал алынған бұғат қайта қойылмайды",
-  "chat.end": "әңгімені аяқтау"
+  "chat.end": "әңгімені аяқтау",
+  "statements.count": "Шектеулер: {n}",
+  "statements.what": "Не болды",
+  "statements.why": "Неге",
+  "statements.how": "Қалай шешілді",
+  "statements.ground": "Негіздеме",
+  "statements.next": "Әрі қарай",
+  "statements.removed": "жойылды",
+  "statements.hidden": "таспадан жасырылды",
+  "statements.offer_taken_down": "ұсыныс алынды",
+  "statements.access_restricted": "қолжетімділік шектелді",
+  "statements.until": "{date} дейін",
+  "statements.human": "автоматты тексеру қолданылмады; шешімді адам қабылдады",
+  "statements.automated": "әртүрлі адамдардың шағымдар санына қарай автоматты түрде жасырылды; адам шешімі болған жоқ — бізге жазыңыз, оны адам қарайды",
+  "statements.law": "заң:",
+  "statements.terms": "шарттар:",
+  "statements.appeal": "бізге жауап беру, цифрлық қызметтер үйлестірушісіне жүгіну, сотқа жүгіну",
+  "statements.gotIt": "түсінікті"
 }

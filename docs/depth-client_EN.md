@@ -997,6 +997,16 @@ age: 39` (§8.2 of the spec), and the terminal says so before saving. The "hidde
 erases the list of closed hints from `prefs.json` (§6). "Support" and "what happened" are
 only named here — their terminal mechanics are not described (§9).
 
+**The Article 17 statement of reasons — built 2026-09-23** (`depth/ink/rooms.ts`, `Statements`).
+The terminal has no e-mail, so the statement (`GET /statements`, `dsa/SPEC_EN.md` §7) is
+delivered here. Until the terminal has a `me` screen it lives by the feed: on the first entry
+to the feed in a run the restrictions are shown whole, in a red frame, one at a time, the up
+and down arrows between them; the five lines are those of `refusal-wordings_EN.md` §6,
+including the two different "How decided" lines by `automated_used` and "law:" or "terms:"
+by `ground_kind`. "Got it" folds them into a red "Restrictions: N" row above the feed — also
+a menu item that opens them again. Nothing is kept on disk (§6), so the next run is again the
+"next entry" of §7, and the statements are shown again.
+
 ---
 
 ## 4a. Stickers

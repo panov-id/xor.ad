@@ -60,5 +60,22 @@
   "block.item": "blokla",
   "block.confirm": "həqiqətən bloklayırsan?",
   "block.what": "söhbət hər ikinizdə bağlanır, götürülmüş blok isə yenidən qoyulmur",
-  "chat.end": "söhbəti bitir"
+  "chat.end": "söhbəti bitir",
+  "statements.count": "Məhdudiyyətlər: {n}",
+  "statements.what": "Nə baş verdi",
+  "statements.why": "Niyə",
+  "statements.how": "Necə qərar verildi",
+  "statements.ground": "Əsas",
+  "statements.next": "Bundan sonra",
+  "statements.removed": "silindi",
+  "statements.hidden": "lentdən gizlədildi",
+  "statements.offer_taken_down": "təklif götürüldü",
+  "statements.access_restricted": "giriş məhdudlaşdırıldı",
+  "statements.until": "{date} tarixinədək",
+  "statements.human": "avtomatik yoxlama tətbiq edilmədi; qərarı insan verdi",
+  "statements.automated": "müxtəlif insanlardan gələn şikayətlərin sayına görə avtomatik gizlədildi; insan qərarı olmayıb — bizə yazın, ona insan baxacaq",
+  "statements.law": "qanun:",
+  "statements.terms": "şərtlər:",
+  "statements.appeal": "bizə cavab vermək, rəqəmsal xidmətlər koordinatoruna müraciət etmək, məhkəməyə müraciət etmək",
+  "statements.gotIt": "aydındır"
 }

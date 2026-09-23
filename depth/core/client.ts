@@ -45,6 +45,19 @@ export function conflictOf(answer: Answer): "reacceptance" | string | null {
   return typeof code === "string" ? code : "conflict";
 }
 
+// One Article 17 statement, as GET /statements gives it. `until` absent means
+// indefinitely; the appeal routes are the same three for everyone.
+export interface Statement {
+  id: string;
+  restriction: "removed" | "hidden" | "offer_taken_down" | "access_restricted";
+  until?: number;
+  facts: string;
+  ground_kind: "legal" | "contractual";
+  ground_text: string;
+  automated_used: boolean;
+  created_at: number;
+}
+
 export class Client {
   #key: SigningKey | null = null;
   // The private half of the wrapping pair. Kept, not dropped: anything sealed to
@@ -382,6 +395,24 @@ export class Client {
   // 204 whatever happened, so a handle that is gone tells the caller nothing.
   unhide(handle: string): Promise<Answer> {
     return this.#call("DELETE", `/hidden/${handle}`);
+  }
+
+  // GET /statements — the Article 17 statements of reasons addressed to me
+  // (dsa/SPEC §7): there is usually no e-mail, so the app is where they are
+  // read. Pages of a hundred, followed to the end; ten pages is a thousand
+  // restrictions on one person, and past that the cursor is not trusted.
+  async statements(): Promise<Statement[]> {
+    const all: Statement[] = [];
+    let after: string | undefined;
+    for (let page = 0; page < 10; page++) {
+      const path = after ? `/statements?after=${encodeURIComponent(after)}` : "/statements";
+      const answer = await this.#call<{ items: Statement[]; next?: string }>("GET", path);
+      if (answer.status !== 200) throw new Error(`the statements refused: ${answer.status}`);
+      all.push(...answer.body.items);
+      if (!answer.body.next) break;
+      after = answer.body.next;
+    }
+    return all;
   }
 
   // GET /inbox — offers to talk and conversations in one answer (§8.12).

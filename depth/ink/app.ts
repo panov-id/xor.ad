@@ -3,14 +3,16 @@
 // this process and dies with it (§8.13, and the owner's decision about the
 // point, 2026-09-22).
 
-import { createElement as h, useState } from "react";
+import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import { Client } from "../core/client.ts";
+import type { Statement } from "../core/client.ts";
+import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, Registration } from "./screens.ts";
 import type { Place } from "./screens.ts";
-import { Chat, Hidden, Inbox, Write } from "./rooms.ts";
+import { Chat, Hidden, Inbox, Statements, Write } from "./rooms.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -33,6 +35,7 @@ type Where =
   | { screen: "write" }
   | { screen: "inbox" }
   | { screen: "hidden" }
+  | { screen: "statements" }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number };
 
 export function App({ say, client }: { say: Say; client: Client }): ReactElement {
@@ -42,6 +45,19 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
   const [mine, setMine] = useState<{ text: string; state: string } | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const fail = (message: string) => setError(say("common.error", { message }));
+  // Read once a run, when the feed is first reached: with no e-mail on file,
+  // the app is where an Article 17 statement is delivered (dsa/SPEC §7), and
+  // the first time they arrive they are shown whole, not as a count.
+  const [statements, setStatements] = useState<Statement[] | null>(null);
+  useEffect(() => {
+    if (where.screen !== "feed" || statements !== null) return;
+    client.statements()
+      .then((items) => {
+        setStatements(items);
+        if (items.length > 0) setWhere({ screen: "statements" });
+      })
+      .catch((e: Error) => fail(e.message));
+  }, [where.screen]);
 
   const feed = () => setWhere({ screen: "feed" });
   const body = (() => {
@@ -72,6 +88,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           onInbox: () => setWhere({ screen: "inbox" }),
           onPoint: () => setWhere({ screen: "location" }),
           onHidden: () => setWhere({ screen: "hidden" }),
+          restrictions: statements?.length ?? 0,
+          onRestrictions: () => setWhere({ screen: "statements" }),
           onError: fail,
         });
       case "write":
@@ -84,6 +102,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           onBack: feed,
           onError: fail,
         });
+      case "statements":
+        return h(Statements, { say, lang: languageOf(process.env), items: statements ?? [], onDone: feed });
       case "hidden":
         return h(Hidden, { say, client, onBack: feed, onError: fail });
       case "inbox":

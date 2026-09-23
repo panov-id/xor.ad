@@ -60,5 +60,22 @@
   "block.item": "bloklash",
   "block.confirm": "rostdan bloklaysizmi?",
   "block.what": "suhbat ikkalangiz uchun ham tugaydi, olib tashlangan blok qaytadan qo'yilmaydi",
-  "chat.end": "suhbatni tugatish"
+  "chat.end": "suhbatni tugatish",
+  "statements.count": "Cheklovlar: {n}",
+  "statements.what": "Nima bo'ldi",
+  "statements.why": "Nega",
+  "statements.how": "Qanday hal qilindi",
+  "statements.ground": "Asos",
+  "statements.next": "Keyin nima",
+  "statements.removed": "o'chirildi",
+  "statements.hidden": "lentadan yashirildi",
+  "statements.offer_taken_down": "taklif olib tashlandi",
+  "statements.access_restricted": "kirish cheklandi",
+  "statements.until": "{date} gacha",
+  "statements.human": "avtomatik tekshiruv qo'llanilmadi; qarorni inson qabul qildi",
+  "statements.automated": "turli odamlarning shikoyatlari soniga ko'ra avtomatik yashirildi; inson qarori bo'lmagan — bizga yozing, uni inson ko'rib chiqadi",
+  "statements.law": "qonun:",
+  "statements.terms": "shartlar:",
+  "statements.appeal": "bizga javob berish, raqamli xizmatlar koordinatoriga murojaat qilish, sudga murojaat qilish",
+  "statements.gotIt": "tushunarli"
 }

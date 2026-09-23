@@ -60,5 +60,22 @@
   "block.item": "манъ кардан",
   "block.confirm": "дар ҳақиқат манъ мекунӣ?",
   "block.what": "сӯҳбат барои ҳар дуи шумо тамом мешавад ва манъи бардошташуда дубора гузошта намешавад",
-  "chat.end": "сӯҳбатро тамом кардан"
+  "chat.end": "сӯҳбатро тамом кардан",
+  "statements.count": "Маҳдудиятҳо: {n}",
+  "statements.what": "Чӣ шуд",
+  "statements.why": "Чаро",
+  "statements.how": "Чӣ тавр ҳал шуд",
+  "statements.ground": "Асос",
+  "statements.next": "Минбаъд",
+  "statements.removed": "нест карда шуд",
+  "statements.hidden": "аз навор пинҳон карда шуд",
+  "statements.offer_taken_down": "пешниҳод бардошта шуд",
+  "statements.access_restricted": "дастрасӣ маҳдуд шуд",
+  "statements.until": "то {date}",
+  "statements.human": "санҷиши худкор истифода нашуд; қарорро инсон қабул кард",
+  "statements.automated": "ба таври худкор пинҳон карда шуд, аз рӯи шумораи шикоятҳо аз одамони гуногун; қарори инсон набуд — ба мо нависед, онро инсон мебинад",
+  "statements.law": "қонун:",
+  "statements.terms": "шартҳо:",
+  "statements.appeal": "ба мо ҷавоб додан, ба ҳамоҳангсози хизматҳои рақамӣ муроҷиат кардан, ба суд муроҷиат кардан",
+  "statements.gotIt": "фаҳмо"
 }

@@ -60,5 +60,22 @@
   "block.item": "αποκλεισμός",
   "block.confirm": "σίγουρα αποκλεισμός;",
   "block.what": "η συνομιλία τελειώνει και για τους δυο σας, και ένας αποκλεισμός που ήρθη δεν ξαναμπαίνει",
-  "chat.end": "τέλος συνομιλίας"
+  "chat.end": "τέλος συνομιλίας",
+  "statements.count": "Περιορισμοί: {n}",
+  "statements.what": "Τι συνέβη",
+  "statements.why": "Γιατί",
+  "statements.how": "Πώς αποφασίστηκε",
+  "statements.ground": "Βάση",
+  "statements.next": "Τι ακολουθεί",
+  "statements.removed": "διαγράφηκε",
+  "statements.hidden": "κρύφτηκε από τη ροή",
+  "statements.offer_taken_down": "η προσφορά αποσύρθηκε",
+  "statements.access_restricted": "η πρόσβαση περιορίστηκε",
+  "statements.until": "έως {date}",
+  "statements.human": "δεν χρησιμοποιήθηκε αυτοματοποιημένος έλεγχος· αποφάσισε άνθρωπος",
+  "statements.automated": "κρύφτηκε αυτόματα, με βάση τον αριθμό καταγγελιών από διαφορετικούς ανθρώπους· δεν αποφάσισε άνθρωπος — γράψτε μας και θα το δει άνθρωπος",
+  "statements.law": "νόμος:",
+  "statements.terms": "όροι:",
+  "statements.appeal": "να μας απαντήσετε, να απευθυνθείτε στον συντονιστή ψηφιακών υπηρεσιών, να προσφύγετε στο δικαστήριο",
+  "statements.gotIt": "κατάλαβα"
 }

@@ -60,5 +60,22 @@
   "block.item": "bloquer",
   "block.confirm": "bloquer, vraiment ?",
   "block.what": "la conversation se termine pour vous deux, et un blocage levé ne se remet pas",
-  "chat.end": "terminer la conversation"
+  "chat.end": "terminer la conversation",
+  "statements.count": "Restrictions : {n}",
+  "statements.what": "Ce qui s'est passé",
+  "statements.why": "Pourquoi",
+  "statements.how": "Comment cela a été décidé",
+  "statements.ground": "Fondement",
+  "statements.next": "Et ensuite",
+  "statements.removed": "supprimé",
+  "statements.hidden": "masqué du fil",
+  "statements.offer_taken_down": "offre retirée",
+  "statements.access_restricted": "accès restreint",
+  "statements.until": "jusqu'au {date}",
+  "statements.human": "aucun contrôle automatisé n'a été utilisé ; une personne a décidé",
+  "statements.automated": "masqué automatiquement, selon le nombre de signalements de personnes différentes ; aucune personne n'a décidé — écrivez-nous et une personne examinera",
+  "statements.law": "loi :",
+  "statements.terms": "conditions :",
+  "statements.appeal": "nous répondre, saisir le coordinateur pour les services numériques, saisir un tribunal",
+  "statements.gotIt": "compris"
 }

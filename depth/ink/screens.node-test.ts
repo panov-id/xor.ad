@@ -33,9 +33,9 @@ setTimeout(async () => {
 }, 0);
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { Location, Registration } from "./screens.ts";
+import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Chat, Hidden } from "./rooms.ts";
+import { Chat, Hidden, Statements } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -241,4 +241,66 @@ test("a hidden phrase can be brought back from the list", async () => {
   await settle(250);
   assert.match(app.lastFrame()!, /ничего не скрыто/, "the phrase did not leave the list");
   app.unmount();
+});
+
+// The Article 17 statement (refusal-wordings §6, frames U, V, W).
+const decided = {
+  id: "s1", restriction: "hidden" as const, facts: "решение по уведомлению о незаконном содержании",
+  ground_kind: "legal" as const, ground_text: "ст. 5 закона о рекламе", automated_used: false,
+  created_at: Date.UTC(2026, 7, 24) / 1000,
+};
+const threshold = {
+  id: "s2", restriction: "hidden" as const, facts: "скрыто по жалобам",
+  ground_kind: "contractual" as const, ground_text: "п. 4 правил", automated_used: true,
+  created_at: Date.UTC(2026, 8, 1) / 1000, until: Date.UTC(2026, 9, 1) / 1000,
+};
+
+test("a statement shows all five lines §6 asks for, and 'got it' folds it", async () => {
+  let done = 0;
+  const app = render(h(Statements, { say, lang: "ru", items: [decided], onDone: () => done++ }));
+  await settle();
+  const frame = app.lastFrame()!;
+  for (const line of [/Ограничений: 1/, /Что произошло/, /скрыто из ленты, 24 августа 2026/, /Почему/,
+    /решение по уведомлению/, /решение принял человек/, /закон: ст\. 5 закона о рекламе/,
+    /координатору цифровых услуг/]) {
+    assert.match(frame, line, `missing on the screen: ${line}`);
+  }
+  await type(app, ENTER);
+  assert.equal(done, 1, "'got it' did not fold the statement");
+  app.unmount();
+});
+
+test("a threshold hiding says no person decided, and the arrows walk between statements", async () => {
+  const app = render(h(Statements, { say, lang: "ru", items: [decided, threshold], onDone: () => {} }));
+  await settle();
+  assert.match(app.lastFrame()!, /1 \/ 2/);
+  await type(app, DOWN);
+  const frame = app.lastFrame()!;
+  assert.match(frame, /2 \/ 2/, "the down arrow did not move to the second statement");
+  assert.match(frame, /скрыто автоматически/, "a threshold hiding claimed a person decided");
+  assert.doesNotMatch(frame, /решение принял человек/);
+  assert.match(frame, /условия: п\. 4 правил/, "a breach of the terms was shown as a law");
+  assert.match(frame, /до 1 октября 2026/, "the end of the restriction is missing");
+  app.unmount();
+});
+
+test("folded statements stay in the feed as a red count, and none means no row", async () => {
+  const client = { feed: () => Promise.resolve({ items: [] }) };
+  const feed = (restrictions: number) =>
+    render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      restrictions,
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onHidden: () => {}, onError: () => {},
+    }));
+  const with2 = feed(2);
+  await settle(100);
+  assert.match(with2.lastFrame()!, /Ограничений: 2/, "the folded statements vanished from the feed");
+  with2.unmount();
+  const none = feed(0);
+  await settle(100);
+  assert.doesNotMatch(none.lastFrame()!, /Ограничений/, "a feed with nothing restricted shows a count");
+  none.unmount();
 });

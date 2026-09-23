@@ -60,5 +60,22 @@
   "block.item": "бөгөттөө",
   "block.confirm": "чын эле бөгөттөйсүңбү?",
   "block.what": "маек экөөңөрдө тең жабылат, алынган бөгөт кайра коюлбайт",
-  "chat.end": "маекти аяктоо"
+  "chat.end": "маекти аяктоо",
+  "statements.count": "Чектөөлөр: {n}",
+  "statements.what": "Эмне болду",
+  "statements.why": "Эмне үчүн",
+  "statements.how": "Кантип чечилди",
+  "statements.ground": "Негиз",
+  "statements.next": "Андан ары",
+  "statements.removed": "өчүрүлдү",
+  "statements.hidden": "тасмадан жашырылды",
+  "statements.offer_taken_down": "сунуш алынды",
+  "statements.access_restricted": "кирүү чектелди",
+  "statements.until": "{date} чейин",
+  "statements.human": "автоматтык текшерүү колдонулган жок; чечимди адам кабыл алды",
+  "statements.automated": "ар кандай адамдардын даттануулардын санына жараша автоматтык түрдө жашырылды; адамдын чечими болгон жок — бизге жазыңыз, аны адам карайт",
+  "statements.law": "мыйзам:",
+  "statements.terms": "шарттар:",
+  "statements.appeal": "бизге жооп берүү, санариптик кызматтар координаторуна кайрылуу, сотко кайрылуу",
+  "statements.gotIt": "түшүнүктүү"
 }

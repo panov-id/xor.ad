@@ -60,5 +60,22 @@
   "block.item": "zablokuj",
   "block.confirm": "na pewno zablokować?",
   "block.what": "rozmowa skończy się dla obojga, a zdjęta blokada nie wraca",
-  "chat.end": "zakończ rozmowę"
+  "chat.end": "zakończ rozmowę",
+  "statements.count": "Ograniczenia: {n}",
+  "statements.what": "Co się stało",
+  "statements.why": "Dlaczego",
+  "statements.how": "Jak zdecydowano",
+  "statements.ground": "Podstawa",
+  "statements.next": "Co dalej",
+  "statements.removed": "usunięto",
+  "statements.hidden": "ukryto w strumieniu",
+  "statements.offer_taken_down": "oferta zdjęta",
+  "statements.access_restricted": "dostęp ograniczony",
+  "statements.until": "do {date}",
+  "statements.human": "nie zastosowano automatycznej kontroli; decyzję podjął człowiek",
+  "statements.automated": "ukryto automatycznie, według liczby skarg od różnych osób; nie było decyzji człowieka — napisz do nas, a obejrzy to człowiek",
+  "statements.law": "prawo:",
+  "statements.terms": "warunki:",
+  "statements.appeal": "odpowiedzieć nam, zwrócić się do koordynatora ds. usług cyfrowych, zwrócić się do sądu",
+  "statements.gotIt": "rozumiem"
 }

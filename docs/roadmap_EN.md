@@ -97,7 +97,8 @@ The percentages are estimates: they are not weighted by hours, because steps
 - [~] Watchdog W2 — an arrival letter that did not leave is retried by a
   standing job every 10 minutes; after 8 failures, a letter to
   `DSA_ESCALATION_EMAILS`; every new notice is copied there at once (the night
-  path). `lib/notice_notify.ts`, `db/043`, 12 tests against Postgres
+  path, at most 6 an hour, the rest as one summary after the hour; owner, 2026-09-23).
+  `lib/notice_notify.ts`, `db/043`–`044`, 15 tests against Postgres
   (2026-09-23). Missing — the fallback transport; not shipped.
 - [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
   `article-30-register_EN.md`. SCC or a replacement.

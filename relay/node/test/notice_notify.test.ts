@@ -22,7 +22,7 @@ Deno.env.set(
 const { queryOrThrow, transaction } = await import("../src/lib/db.ts");
 const { reloadConfig } = await import("../src/config.ts");
 const { report } = await import("../src/routes/report.ts");
-const { DSA_NOTICE_NOTIFY, MAX_ATTEMPTS, retryArrivalLetters, sendNightPathCopies } = await import(
+const { DSA_NOTICE_NOTIFY, MAX_ATTEMPTS, NIGHT_PATH_PER_HOUR, retryArrivalLetters, sendNightPathCopies, sendNightPathSummaries } = await import(
   "../src/lib/notice_notify.ts"
 );
 
@@ -112,6 +112,7 @@ Deno.test({ name: "a decided notice needs no arrival letter any more", ...pool }
 });
 
 Deno.test({ name: "the night path copies a new notice to every personal address", ...pool }, async () => {
+  await queryOrThrow(`DELETE FROM night_path_hours`);
   Deno.env.set("DSA_ESCALATION_EMAILS", "one@example.org, two@example.org");
   const to: string[] = [];
   const sent = await sendNightPathCopies(
@@ -229,4 +230,60 @@ Deno.test({ name: "one refusing address does not repeat the escalation to the re
   await retryArrivalLetters(() => Promise.resolve(false), escalate);
   Deno.env.delete("DSA_ESCALATION_EMAILS");
   assertEquals(told.filter((t) => t === "good@example.org").length, 1, "the escalation went again to who had it");
+});
+
+// The night path's ceiling (owner, 23.09.2026).
+
+Deno.test({ name: "the night path copies the first few of an hour and holds back the rest", ...pool }, async () => {
+  await queryOrThrow(`DELETE FROM night_path_hours`);
+  Deno.env.set("DSA_ESCALATION_EMAILS", "ops@example.org");
+  let letters = 0;
+  for (let i = 0; i < NIGHT_PATH_PER_HOUR + 2; i++) {
+    await sendNightPathCopies({ id: crypto.randomUUID(), kind: "other", queue: "platform", receivedVia: "alpha" }, () => {
+      letters++;
+      return Promise.resolve(true);
+    });
+  }
+  Deno.env.delete("DSA_ESCALATION_EMAILS");
+  assertEquals(letters, NIGHT_PATH_PER_HOUR, "the ceiling let more than its number through");
+  const [hour] = await queryOrThrow<{ sent: number }>(`SELECT sent FROM night_path_hours`);
+  assertEquals(hour.sent, NIGHT_PATH_PER_HOUR + 2, "the held-back notices were not counted");
+});
+
+Deno.test({ name: "an hour over the ceiling is summed up once, after it ends", ...pool }, async () => {
+  await queryOrThrow(`DELETE FROM night_path_hours`);
+  await queryOrThrow(
+    `INSERT INTO night_path_hours (hour, sent) VALUES
+       (date_trunc('hour', now()) - interval '2 hours', $1 + 3),
+       (date_trunc('hour', now()), $1 + 5)`,
+    [NIGHT_PATH_PER_HOUR],
+  );
+  Deno.env.set("DSA_ESCALATION_EMAILS", "ops@example.org");
+  const summaries: number[] = [];
+  const record = (_to: string, s: { held: number }) => {
+    summaries.push(s.held);
+    return Promise.resolve(true);
+  };
+  await sendNightPathSummaries(record);
+  await sendNightPathSummaries(record);
+  Deno.env.delete("DSA_ESCALATION_EMAILS");
+  // The past hour once, with what it held back; the current hour not yet.
+  assertEquals(summaries, [3], "the summary was missing, repeated, or sent before its hour was over");
+});
+
+Deno.test({ name: "a summary that did not leave goes on the next pass", ...pool }, async () => {
+  await queryOrThrow(`DELETE FROM night_path_hours`);
+  await queryOrThrow(
+    `INSERT INTO night_path_hours (hour, sent) VALUES (date_trunc('hour', now()) - interval '3 hours', $1 + 1)`,
+    [NIGHT_PATH_PER_HOUR],
+  );
+  Deno.env.set("DSA_ESCALATION_EMAILS", "ops@example.org");
+  await sendNightPathSummaries(() => Promise.resolve(false));
+  let sent = 0;
+  await sendNightPathSummaries(() => {
+    sent++;
+    return Promise.resolve(true);
+  });
+  Deno.env.delete("DSA_ESCALATION_EMAILS");
+  assertEquals(sent, 1, "a summary that failed once was never sent");
 });

@@ -260,7 +260,8 @@ threat to life from any other (§5.1: there is no label by design), the letter a
 new notice goes at once to the personal addresses in `DSA_ESCALATION_EMAILS` as well, over
 the fallback transport `MAIL_FALLBACK_TRANSPORT`, with no notice content — the number and
 the target kind (`watchdogs_EN.md`, W2). The person who opens it decides whether it is an
-Art. 18 case.
+Art. 18 case. The ceiling is 6 per hour (owner, 2026-09-23): what goes beyond it is one summary
+after the hour.
 
 #### Who to inform — details, found 2026-09-08
 

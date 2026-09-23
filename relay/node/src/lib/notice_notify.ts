@@ -16,7 +16,7 @@ import { brandByKey } from "./brand_registry.ts";
 import { enabled as databaseEnabled, query } from "./db.ts";
 import { escalationAddresses } from "./dsa_watchdog.ts";
 import { log } from "./log.ts";
-import { sendArrivalUnsent, sendNoticeArrived, withoutAddresses } from "./mailer.ts";
+import { sendArrivalUnsent, sendNightPathSummary, sendNoticeArrived, withoutAddresses } from "./mailer.ts";
 
 export const DSA_NOTICE_NOTIFY = "dsa_notice_notify";
 export const MAX_ATTEMPTS = 8;
@@ -124,12 +124,31 @@ export async function retryArrivalLetters(
 // read in the morning. The spec wants the fallback transport here; there is
 // none yet (mail.fallback.transport), so it goes by the main one. Best-effort:
 // the support letter is the one with a retry.
+//
+// With a ceiling (owner, 23.09.2026): the first NIGHT_PATH_PER_HOUR notices of
+// an hour are copied one by one, the rest are counted and go as one summary
+// after the hour (sendNightPathSummaries). Anyone can file a notice, and the
+// only limit before this was per address, in memory: a stream of reports would
+// have been a stream of letters to people's own inboxes, spending the quota the
+// watchdogs' letters need (review panel С2).
+export const NIGHT_PATH_PER_HOUR = 6;
+
 export async function sendNightPathCopies(
   opts: { id: string; kind: string; queue: "platform" | "tenant"; receivedVia: string | null },
   send: Arrival = sendNoticeArrived,
 ): Promise<number> {
+  const people = escalationAddresses();
+  if (people.length === 0) return 0;
+  // One statement decides the place, so two nodes cannot both hand out the sixth.
+  const counted = await query<{ sent: number }>(
+    `INSERT INTO night_path_hours (hour, sent) VALUES (date_trunc('hour', now()), 1)
+     ON CONFLICT (hour) DO UPDATE SET sent = night_path_hours.sent + 1
+     RETURNING sent`,
+  );
+  // No answer from the database is not a reason to stay silent about a notice.
+  if (counted !== null && counted[0].sent > NIGHT_PATH_PER_HOUR) return 0;
   let sent = 0;
-  for (const address of escalationAddresses()) {
+  for (const address of people) {
     try {
       if (await send(address, opts)) sent++;
       else log("error", "the night-path copy of a notice did not leave", { id: opts.id });
@@ -138,4 +157,44 @@ export async function sendNightPathCopies(
     }
   }
   return sent;
+}
+
+type Summary = typeof sendNightPathSummary;
+
+// After the hour: one letter for what the ceiling held back. Leased like the
+// retries — one short statement, the letter outside any transaction, stamped
+// once it reached anyone.
+export async function sendNightPathSummaries(send: Summary = sendNightPathSummary): Promise<number> {
+  const people = escalationAddresses();
+  if (people.length === 0) return 0;
+  const hours = await query<{ hour: Date; held: number }>(
+    `UPDATE night_path_hours h SET summary_leased_until = now() + $2::interval
+      WHERE h.hour IN (
+        SELECT hour FROM night_path_hours
+         WHERE hour < date_trunc('hour', now()) AND sent > $1 AND summarized_at IS NULL
+           AND (summary_leased_until IS NULL OR summary_leased_until <= now())
+         ORDER BY hour
+         LIMIT 24
+         FOR UPDATE SKIP LOCKED
+      )
+      RETURNING h.hour, h.sent - $1 AS held`,
+    [NIGHT_PATH_PER_HOUR, LEASE],
+  );
+  if (hours === null) throw new Error("could not read the night path's hours");
+  let summarized = 0;
+  for (const { hour, held } of hours) {
+    let told = false;
+    for (const address of people) {
+      if (await send(address, { hour: new Date(hour), held, shown: NIGHT_PATH_PER_HOUR })) told = true;
+    }
+    await query(
+      `UPDATE night_path_hours SET summary_leased_until = now(),
+              summarized_at = CASE WHEN $2 THEN now() ELSE summarized_at END
+        WHERE hour = $1`,
+      [hour, told],
+    );
+    if (told) summarized++;
+    else log("error", "the night-path summary did not leave", { hour: new Date(hour).toISOString(), held });
+  }
+  return summarized;
 }

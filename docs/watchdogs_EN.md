@@ -66,7 +66,12 @@ The platform's promises rest on people and jobs, and they can break without a so
 - **The letter about every new notice goes to `DSA_ESCALATION_EMAILS` at once as well**, over the fallback
   transport, with the number and the target kind only — the night path for a threat to life
   (`dsa/SPEC_EN.md` §5; decided 2026-09-15 after the final panel, OPS-8). Built over the main transport,
-  without a retry.
+  without a retry. **The ceiling is 6 per hour** (owner, 2026-09-23): the first six notices of an hour
+  are copied one by one, the rest are counted and go as one summary after the hour ends ("N more
+  beyond the six"). The counter is a row per hour in `night_path_hours` (`db/044`), shared by the
+  pool; one statement hands out the places. Without a ceiling a stream of reports from many
+  addresses would be a stream of letters to personal inboxes and a drain on the quota the watchdogs'
+  letters share (W2 review panel).
 - Notices written before `db/043` count as told by the migration — too late to retry them.
 - The notice itself is never lost: the letter stays a side effect after the write.
 

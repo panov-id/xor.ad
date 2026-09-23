@@ -92,6 +92,7 @@ chat.pending.max	200	сообщений	потолок очереди недос
 chat.pending.ttl	260	минут	предельный срок жизни строки очереди, дальше её уносит уборщик	узел	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	sweep_pending
 watchdog.notice.remind	24	часа	возраст неразобранного уведомления по ст. 16, после которого напоминание (сторож С1)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	dsa_notice_age
 watchdog.notice.escalate	48	часов	возраст неразобранного уведомления по ст. 16, после которого эскалация на личные адреса (сторож С1)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	dsa_notice_age
+dsa.night_path.hour	6	за час	копий нового уведомления на личные адреса DSA_ESCALATION_EMAILS в час, остальные — одной сводкой после часа (решение владельца 23.09.2026; сторож С2)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md,xor.ad/docs/dsa/SPEC_RU.md,xor.ad/docs/dsa/SPEC_EN.md	dsa_notice_notify
 claim.miss.shared	50	промахов	неверных кодов переноса за час на узел до паузы, как у восстановления (15.09.2026, SEC-4)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
 claim.miss.pause	15	минут	пауза приёма кодов переноса при достижении общего порога (15.09.2026, SEC-4)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	запрос
 identities.create.hour	10	запросов	заведений личности в час по адресу (15.09.2026, SEC-9)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/api/openapi.yaml	

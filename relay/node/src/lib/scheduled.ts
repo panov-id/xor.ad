@@ -23,7 +23,7 @@ import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
 import { watchNoticeAge } from "./dsa_watchdog.ts";
 import { reportTombstones } from "./tombstone_watch.ts";
-import { DSA_NOTICE_NOTIFY, retryArrivalLetters } from "./notice_notify.ts";
+import { DSA_NOTICE_NOTIFY, retryArrivalLetters, sendNightPathSummaries } from "./notice_notify.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepChats } from "./chat_sweeper.ts";
@@ -285,6 +285,8 @@ export function registerScheduledJobs(): void {
   // Watchdog С2: arrival letters that did not leave, every ten minutes.
   handle(DSA_NOTICE_NOTIFY, async () => {
     await retryArrivalLetters();
+    // And what the night path's ceiling held back, once its hour is over.
+    await sendNightPathSummaries();
     return new Date(Date.now() + 10 * A_MINUTE_MS);
   });
 

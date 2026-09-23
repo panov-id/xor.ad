@@ -460,6 +460,30 @@ export async function sendArrivalUnsent(
   return await deliver(brand, to, subject, subject, arrivalUnsentBlocks(notice));
 }
 
+// The night path's ceiling: what an hour held back beyond the letters sent one
+// by one. A count and a pointer — no notice, no reference.
+export function nightPathSummaryBlocks(summary: { hour: Date; held: number; shown: number }): Block[] {
+  const from = summary.hour.toISOString().slice(0, 13).replace("T", " ") + ":00 UTC";
+  return [
+    {
+      kind: "text",
+      value: `In the hour from ${from}, ${summary.held} more reports of illegal content arrived ` +
+        `beyond the ${summary.shown} sent to you one by one.`,
+    },
+    { kind: "text", value: "Open the DSA queue in the panel to see them." },
+  ];
+}
+
+export async function sendNightPathSummary(
+  to: string,
+  summary: { hour: Date; held: number; shown: number },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = resolveBrand(null);
+  const subject = `${brand.name}: ${summary.held} more reports of illegal content in one hour`;
+  return await deliver(brand, to, subject, subject, nightPathSummaryBlocks(summary));
+}
+
 export async function sendNoticeDecision(
   to: string,
   // Nullable: a notice can arrive naming no storefront (migration 007), and the

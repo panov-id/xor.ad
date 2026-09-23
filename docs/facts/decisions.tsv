@@ -41,7 +41,7 @@ chat.2026-08-31.861	2026-08-31	xor.ad/docs/chat_RU.md:1524	xor.ad/docs/chat_EN.m
 chat.2026-08-31.865	2026-08-31	xor.ad/docs/chat_RU.md:1536	xor.ad/docs/chat_EN.md:880	Как считается клетка — записано 31.08.2026, потому что наивная реализа	How the cell is computed — written down on 2026-08-31, because a naive
 chat.2026-08-31.880	2026-08-31	xor.ad/docs/chat_RU.md:1551	xor.ad/docs/chat_EN.md:895	Насколько — посчитано 31.08.2026, и прежняя формулировка «общее с сотн	By how much was computed on 2026-08-31, and the earlier wording "share
 SPEC.2026-08-28.124	2026-08-28	xor.ad/docs/dsa/SPEC_RU.md:133	xor.ad/docs/dsa/SPEC_EN.md:128	Стол добавлен 28.08.2026 — следствие, а не новое решение.	The table was added on 2026-08-28 — a consequence, not a new decision.
-SPEC.2026-08-29.207	2026-08-29	xor.ad/docs/dsa/SPEC_RU.md:303	xor.ad/docs/dsa/SPEC_EN.md:215	Записано 29.08.2026, и это вывод не юриста.	Recorded 2026-08-29, and this is not a lawyer's conclusion.
+SPEC.2026-08-29.207	2026-08-29	xor.ad/docs/dsa/SPEC_RU.md:304	xor.ad/docs/dsa/SPEC_EN.md:215	Записано 29.08.2026, и это вывод не юриста.	Recorded 2026-08-29, and this is not a lawyer's conclusion.
 SPEC.2026-08-27.482	2026-08-27	xor.ad/docs/offers/SPEC_RU.md:544	xor.ad/docs/offers/SPEC_EN.md:505	В ленте с 27.08.2026 три сущности	Since 2026-08-27 the feed holds three things
 SPEC.2026-08-29.280	2026-08-29	xor.ad/docs/offers/SPEC_RU.md:342	xor.ad/docs/offers/SPEC_EN.md:289	Срок — единственное ограничение со своим полем (правка 29.08.2026).	The term is the one limit with a field of its own (edit of 2026-08-29)
 app-prototype-spec.2026-08-26.144	2026-08-26	xor.ad/docs/app-prototype-spec_RU.md:144	xor.ad/docs/app-prototype-spec_EN.md:144	свой у каждого	each person's own
@@ -168,4 +168,4 @@ chat.2026-09-20.firstpin	2026-09-20	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.m
 chat.2026-09-21.densitywindow	2026-09-21	xor.ad/docs/chat_RU.md:1802	xor.ad/docs/chat_EN.md:1835	окно — час, решение владельца 21.09.2026	owner's decision of 2026-09-21
 chat.2026-09-22.nameverdict	2026-09-22	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:876	Один вердикт на оба — решение владельца 22.09.2026	One verdict for both — the owner's decision of 2026-09-22
 chat.2026-09-22.firstname	2026-09-22	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:876	Имя при регистрации принимается сразу, в очередь идёт каждая смена — решение владельца 22.09.2026	The name is accepted at registration, and every change goes to the queue — the owner's decision of 2026-09-22
-depth.2026-09-23.step7	2026-09-23	xor.ad/docs/roadmap_RU.md:130	xor.ad/docs/roadmap_EN.md:137	в ленте «скрыть» и «заблокировать», экран скрытого с возвратом	"hide" and "block" in the feed, the hidden list with a way back
+depth.2026-09-23.step7	2026-09-23	xor.ad/docs/roadmap_RU.md:131	xor.ad/docs/roadmap_EN.md:138	в ленте «скрыть» и «заблокировать», экран скрытого с возвратом	"hide" and "block" in the feed, the hidden list with a way back

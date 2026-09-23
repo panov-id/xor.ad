@@ -171,6 +171,8 @@ async function publish(req: Request): Promise<Response> {
 
 // docs/facts/limits.tsv: `feed.page.size` (30) and `feed.radius.ceiling` (25 km).
 const PAGE_SIZE = 30;
+// limits.tsv likes.soon.threshold: from here on a phrase is "about to go".
+export const SOON_MINUTES = 65;
 const RADIUS_CEILING = 25000;
 
 interface FeedRow {
@@ -186,6 +188,7 @@ interface FeedRow {
   conditions: string | null;
   visible_at: Date;
   visible_at_cursor: string;
+  soon: boolean;
   author_age: number;
 }
 
@@ -334,7 +337,8 @@ async function deliver(req: Request, url: URL): Promise<Response> {
               f.area_radius, f.like_count,
               (extract(epoch from f.visible_at) * 1000000)::bigint::text
                 AS visible_at_cursor,
-              f.discount_value, f.conditions, f.visible_at, a.age AS author_age
+              f.discount_value, f.conditions, f.visible_at, a.age AS author_age,
+              f.expires_at <= now() + (${SOON_MINUTES} * interval '1 minute') AS soon
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
         WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
@@ -415,6 +419,10 @@ async function deliver(req: Request, url: URL): Promise<Response> {
       like_count: row.like_count,
       created_at: Math.floor(row.visible_at.getTime() / 1000),
       ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
+      // The last 65 minutes as a word, never as a number: another person's
+      // remaining time does not leave the node (§8.11; limits.tsv
+      // likes.soon.threshold; flag and not a time — owner, 23.09.2026).
+      ...(row.soon ? { soon: true } : {}),
       // "Farther than you asked", and only when it is true. The viewer's own
       // setting is not changed by this: an empty screen gets a temporary
       // answer, not a silent edit of somebody's preferences (§8.3).

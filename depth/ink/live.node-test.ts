@@ -29,7 +29,7 @@ const DOWN = "\u001B[B", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
 // names what it wants instead.
-const FEED_ROW = ["like", "hide", "block", "write", "inbox", "point", "me", "exit"];
+const FEED_ROW = ["open", "like", "hide", "block", "write", "inbox", "point", "me", "exit"];
 
 async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
   const steps = FEED_ROW.indexOf(action);

@@ -133,5 +133,9 @@
   "me.cancel": "Ləğv et",
   "profile.nameFrozen": "Adınız yalnız təmiz vərəqdən dəyişir: ifadəniz yaşadıqca və ya söhbət açıq olduqca, o dondurulub.",
   "profile.ageDown": "21+ zolağından geri keçmirlər. Yaş zolaq daxilində düzəldilir, 20/21 sərhədi isə yalnız yuxarı keçilir.",
-  "profile.patchDay": "Bu gün üçün profil düzəlişləri kifayətdir — sabah yenə olar."
+  "profile.patchDay": "Bu gün üçün profil düzəlişləri kifayətdir — sabah yenə olar.",
+  "card.hint": "sağa — bəyən, sola — gizlət; gizlədiləni me-də qaytararsınız · [enter] aydındır",
+  "card.soon": "tezliklə yox olacaq",
+  "card.keys": "→ bəyən · ← gizlət · ↑↓ vərəqlə · enter geri",
+  "card.hidden": "gizlədildi"
 }

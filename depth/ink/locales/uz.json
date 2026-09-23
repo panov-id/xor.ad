@@ -133,5 +133,9 @@
   "me.cancel": "Bekor qilish",
   "profile.nameFrozen": "Ismingiz faqat toza varaqdan o'zgaradi: iborangiz tirik yoki suhbat ochiq ekan, u muzlatilgan.",
   "profile.ageDown": "21+ tasmasidan orqaga o'tilmaydi. Yosh tasma ichida tuzatiladi, 20/21 chegarasi esa faqat yuqoriga o'tiladi.",
-  "profile.patchDay": "Bugun uchun profil tuzatishlari yetarli — ertaga yana mumkin."
+  "profile.patchDay": "Bugun uchun profil tuzatishlari yetarli — ertaga yana mumkin.",
+  "card.hint": "o'ngga — layk, chapga — yashirish; yashirilganni me da qaytarasiz · [enter] tushunarli",
+  "card.soon": "tez orada yo'qoladi",
+  "card.keys": "→ layk · ← yashirish · ↑↓ varaqlash · enter orqaga",
+  "card.hidden": "yashirildi"
 }

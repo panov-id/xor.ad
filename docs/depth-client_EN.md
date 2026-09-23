@@ -648,6 +648,15 @@ whole width — one card, no neighbours:
 - The node does not know whether a card was opened full screen: the like and the hide are
   the same as from the card, and viewing time is written nowhere.
 
+**Built 2026-09-23 from the feed** (`depth/ink/screens.ts`, `Card`). The way in is the item
+"open" in the feed's menu. The mockup's letters became arrows and enter (owner's decision
+2026-09-22): `→` like, `←` hide, `↑↓` scroll, `enter` back; on an offer `→` only scrolls. The
+first arrow only explains, and the process remembers it rather than `prefs.json`: the terminal
+has no volume (§6, 2026-09-22), so a new run explains again. "Disappearing soon" comes from the
+`soon` flag the node sends in the last 65 minutes instead of a time (`GET /feed`, `GET /likes`;
+owner's decision 2026-09-23: a flag, not an end). There is no `hidden · [u] undo` line — the
+hidden come back on `me`. Not built: the card from `liked`, tables, one's own end as a number.
+
 ### 4.5. Posting — `speak`
 
 ```

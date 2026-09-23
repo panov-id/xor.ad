@@ -133,5 +133,9 @@
   "me.cancel": "Cancel",
   "profile.nameFrozen": "Your name changes only on a clean slate: while a phrase of yours is live or a conversation is open, it is frozen.",
   "profile.ageDown": "There is no way back from the 21+ band. Age is edited within the band; the 20/21 line is crossed only upwards.",
-  "profile.patchDay": "Enough profile edits for today — tomorrow you can again."
+  "profile.patchDay": "Enough profile edits for today — tomorrow you can again.",
+  "card.hint": "right — like, left — hide; hidden things come back in me · [enter] got it",
+  "card.soon": "disappearing soon",
+  "card.keys": "→ like · ← hide · ↑↓ scroll · enter back",
+  "card.hidden": "hidden"
 }

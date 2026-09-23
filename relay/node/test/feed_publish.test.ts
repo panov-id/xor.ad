@@ -3677,3 +3677,41 @@ Deno.test({ name: "consent waits on the pair's counters before the match, and do
   assertEquals((answered as PromiseFulfilledResult<{ status: number }>).value.status, 200,
     "the consent answered something else than a consent — a deadlock is a 503");
 });
+
+// "About to go" (§8.11, depth-client §4.4.1; owner 23.09.2026: a flag, not a
+// time): the last 65 minutes of someone else's phrase come as soon: true, in
+// the feed and in the likes, and the remaining time itself never does.
+Deno.test({ name: "a phrase in its last 65 minutes is marked soon, and its end is never sent", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const here = { lat: 35.68, lon: 139.69 };
+  const { quantise } = await import("../src/lib/feed_geo.ts");
+  const at = quantise(here, 1000);
+  const viewer = await author();
+  const writer = await author();
+  await seedPhrase(viewer.identity_id, "своя живая, для лайка");
+  const put = async (text: string, left: string) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+         lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'xor', $2, $3, 'alone', 'und', $4, $5, 1000, $6, $7, now(), now() + $8::interval)`,
+      [id, writer.identity_id, text, here.lat, here.lon, at.lat, at.lon, left],
+    );
+    return id;
+  };
+  const going = await put("скоро уйдёт", "30 minutes");
+  const staying = await put("ещё поживёт", "3 hours");
+  const feed = await signedCall(viewer.pair.privateKey, viewer.session_id, "GET",
+    `/feed?lat=${here.lat}&lon=${here.lon}&radius=1000`);
+  const items = (feed.body as { items: Array<Record<string, unknown>> }).items;
+  assertEquals(items.find((i) => i.id === going)?.soon, true, "a phrase in its last hour is not marked soon");
+  assertEquals(items.find((i) => i.id === staying)?.soon, undefined, "a phrase with hours left is marked soon");
+  assert(items.every((i) => !("expires_at" in i)), "the feed sent someone else's end as a time");
+  assertEquals(stateOf(await like(viewer, going)), "liked");
+  const likes = (await signedCall(viewer.pair.privateKey, viewer.session_id, "GET", "/likes")).body as
+    { items: Array<Record<string, unknown>> };
+  assertEquals(likes.items.find((i) => i.id === going)?.soon, true, "the likes do not say a liked phrase is about to go");
+  assert(likes.items.every((i) => !("expires_at" in i)), "the likes sent someone else's end as a time");
+  reset();
+});

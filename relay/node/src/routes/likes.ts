@@ -24,6 +24,7 @@ import { band } from "../lib/feed_geo.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { checkAll, FEED_READ_LIMITS, LIKE_LIMITS } from "../lib/rate_limit.ts";
+import { SOON_MINUTES } from "./feed.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // A ceiling for "no ceiling": the band above 20 is open upwards (feed_geo.band),
@@ -347,6 +348,7 @@ interface LikedRow {
   liked_at: Date;
   liked_at_cursor: string;
   matched: boolean;
+  soon: boolean;
 }
 
 async function myLikes(req: Request, url: URL): Promise<Response> {
@@ -384,6 +386,7 @@ async function myLikes(req: Request, url: URL): Promise<Response> {
             f.like_count, f.visible_at, f.discount_value, f.conditions,
             l.created_at AS liked_at,
             (extract(epoch from l.created_at) * 1000000)::bigint::text AS liked_at_cursor,
+            f.expires_at <= now() + (${SOON_MINUTES} * interval '1 minute') AS soon,
             EXISTS (SELECT 1 FROM matches m
                       JOIN match_participants p ON p.match_id = m.id AND p.message_id = f.id
                       JOIN match_participants q ON q.match_id = m.id AND q.identity = $1
@@ -421,6 +424,7 @@ async function myLikes(req: Request, url: URL): Promise<Response> {
       created_at: Math.floor(row.visible_at.getTime() / 1000),
       ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
       state: row.matched ? "matched" : "liked",
+      ...(row.soon ? { soon: true } : {}),
       liked_at: Math.floor(row.liked_at.getTime() / 1000),
     })),
     next: rows.length === LIKES_PAGE && last ? `${last.liked_at_cursor}_${last.id}` : null,

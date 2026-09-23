@@ -80,7 +80,10 @@ export function Location(
   );
 }
 
-type Phrase = { id: string; text: string; name?: string; age?: number; distance_m?: number; minutes_ago?: number; liked?: boolean };
+type Phrase = {
+  id: string; text: string; name?: string; age?: number; distance_m?: number; minutes_ago?: number; liked?: boolean;
+  like_count?: number; soon?: boolean; offer?: unknown;
+};
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
@@ -101,12 +104,34 @@ export function Feed(
   const [items, setItems] = useState<Phrase[] | null>(null);
   const [at, setAt] = useState(0);
   const [blocking, setBlocking] = useState(false);
+  const [card, setCard] = useState(false);
   useEffect(() => {
     client.feed(place)
       .then((answer) => setItems(answer.items as Phrase[]))
       .catch((e: Error) => onError(e.message));
   }, [place.lat, place.lon, place.radius]);
   const chosen = items?.[at];
+  const drop = (id: string) => setItems((list) => (list ?? []).filter((p) => p.id !== id));
+  if (card && items && items.length > 0) {
+    return h(Card, {
+      say,
+      items,
+      at: Math.min(at, items.length - 1),
+      onMove: setAt,
+      onLike: (p) =>
+        client.like(p.id)
+          .then((answer) => {
+            if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+            drop(p.id);
+          })
+          .catch((e: Error) => onError(e.message)),
+      onHide: (p) =>
+        client.hide(p.id)
+          .then(() => drop(p.id))
+          .catch((e: Error) => onError(e.message)),
+      onClose: () => setCard(false),
+    });
+  }
   const line = (p: Phrase, i: number) =>
     h(
       Box,
@@ -139,6 +164,7 @@ export function Feed(
     ),
     h(Menu, {
       actions: [
+        { key: "open", label: say("inbox.enter"), disabled: !chosen },
         { key: "like", label: say("feed.like"), disabled: !chosen },
         { key: "hide", label: say("feed.hide"), disabled: !chosen },
         { key: "block", label: say("block.item"), disabled: !chosen },
@@ -153,6 +179,7 @@ export function Feed(
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
         if (key === "me") return onMe?.();
+        if (key === "open") return chosen && setCard(true);
         if (key === "exit") return process.exit(0);
         if (!chosen) return;
         // Hiding is mine alone and can be taken back (§8.9); blocking ends the
@@ -197,4 +224,69 @@ function FeedKeys({ count, onMove }: { count: number; onMove: (fn: (at: number) 
     if (key.downArrow) onMove((at) => (at + 1) % count);
   });
   return h(Box, null);
+}
+
+// 4.4.1 · one card on the whole screen (storefront screen 23). → likes, ← hides,
+// ↑↓ go through the feed, enter goes back — the mockup's letters are arrows and
+// enter here, the owner's shape of 2026-09-22. The first → or ← does nothing but
+// explain; that it was explained lives in this process only: the terminal
+// keeps no volume (§6, 22.09.2026), so a new run explains once more.
+// Someone else's remaining time is a word in the last 65 minutes, never a
+// number — the node sends a flag, not a time (§8.11; owner, 23.09.2026).
+let explained = false;
+
+export function Card(
+  { say, items, at, onMove, onLike, onHide, onClose }: {
+    say: Say;
+    items: Phrase[];
+    at: number;
+    onMove: (fn: (i: number) => number) => void;
+    onLike: (p: Phrase) => void;
+    onHide: (p: Phrase) => void;
+    onClose: () => void;
+  },
+): ReactElement {
+  const [hint, setHint] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const p = items[at];
+  useInput((_input, key) => {
+    if (key.return) {
+      if (hint) {
+        explained = true;
+        return setHint(false);
+      }
+      return onClose();
+    }
+    if (key.upArrow || key.downArrow) {
+      setNote(null);
+      return onMove((i) => (key.downArrow ? Math.min(items.length - 1, i + 1) : Math.max(0, i - 1)));
+    }
+    if (key.leftArrow || key.rightArrow) {
+      if (!explained) return setHint(true);
+      if (!p) return;
+      if (key.leftArrow) {
+        setNote(say("card.hidden"));
+        return onHide(p);
+      }
+      // An offer's like makes an offer to talk at once and cannot be taken
+      // back, so → only goes on past it (§4.4.1).
+      if (p.offer !== undefined) return onMove((i) => Math.min(items.length - 1, i + 1));
+      setNote(null);
+      onLike(p);
+    }
+  });
+  const rule = "─".repeat(56);
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Text, { dimColor: true }, rule),
+    p ? h(Text, null, `   ${plain(p.text, 400)}`) : h(Text, { dimColor: true }, "…"),
+    p
+      ? h(Text, { dimColor: true }, `   + ${Number(p.like_count) || 0}${p.soon === true ? ` · ${say("card.soon")}` : ""}`)
+      : null,
+    h(Text, { dimColor: true }, rule),
+    hint ? h(Text, { color: "yellow" }, say("card.hint")) : null,
+    note ? h(Text, { dimColor: true }, note) : null,
+    h(Text, { dimColor: true }, `${say("card.keys")} · ${at + 1}/${items.length}`),
+  );
 }

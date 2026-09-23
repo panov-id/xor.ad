@@ -133,5 +133,9 @@
   "me.cancel": "Abbrechen",
   "profile.nameFrozen": "Ihr Name ändert sich nur bei leerem Blatt: Solange eine Phrase von Ihnen live oder ein Gespräch offen ist, ist er eingefroren.",
   "profile.ageDown": "Aus dem Band 21+ gibt es keinen Weg zurück. Das Alter wird innerhalb des Bandes korrigiert; die Grenze 20/21 wird nur nach oben überschritten.",
-  "profile.patchDay": "Genug Profiländerungen für heute — morgen geht es wieder."
+  "profile.patchDay": "Genug Profiländerungen für heute — morgen geht es wieder.",
+  "card.hint": "rechts — Like, links — ausblenden; Ausgeblendetes holen Sie in me zurück · [enter] verstanden",
+  "card.soon": "verschwindet bald",
+  "card.keys": "→ Like · ← ausblenden · ↑↓ blättern · enter zurück",
+  "card.hidden": "ausgeblendet"
 }

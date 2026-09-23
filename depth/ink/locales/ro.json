@@ -133,5 +133,9 @@
   "me.cancel": "Anulează",
   "profile.nameFrozen": "Numele se schimbă doar de la zero: cât timp o frază a dvs. e activă sau o conversație e deschisă, e înghețat.",
   "profile.ageDown": "Din banda 21+ nu se revine. Vârsta se corectează în interiorul benzii; pragul 20/21 se trece doar în sus.",
-  "profile.patchDay": "Destule modificări de profil pentru azi — mâine se poate din nou."
+  "profile.patchDay": "Destule modificări de profil pentru azi — mâine se poate din nou.",
+  "card.hint": "dreapta — apreciere, stânga — ascunde; ce e ascuns revine în me · [enter] am înțeles",
+  "card.soon": "dispare curând",
+  "card.keys": "→ apreciere · ← ascunde · ↑↓ derulare · enter înapoi",
+  "card.hidden": "ascuns"
 }

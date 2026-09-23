@@ -803,3 +803,48 @@ test("an age crossing 20/21 upwards is asked first, and going back down is refus
   assert.match(back.lastFrame()!, /Из полосы 21\+ обратно не переходят\./, "going down across 20/21 was not refused in words");
   back.unmount();
 });
+
+// 4.4.1 · a card on the whole screen: the first arrow explains, then → likes
+// and ← hides; someone else's end is a word only when the node says "soon".
+test("the full-screen card explains its arrows once, then likes, hides and goes back", async () => {
+  const calls: string[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [
+      { id: "p1", text: "первая фраза", like_count: 3, soon: true },
+      { id: "p2", text: "вторая фраза", like_count: 0 },
+      { id: "o1", text: "кофе со скидкой", like_count: 1, offer: { discount_value: "−10 %" } },
+    ] }),
+    like: (id: string) => { calls.push(`like ${id}`); return Promise.resolve({ status: 200, body: { state: "liked" } }); },
+    hide: (id: string) => { calls.push(`hide ${id}`); return Promise.resolve("h"); },
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+  }));
+  await settle(150);
+  await type(app, ENTER);
+  assert.match(app.lastFrame()!, /первая фраза/);
+  assert.match(app.lastFrame()!, /\+ 3 · скоро исчезнет/, "a phrase marked soon is not said to be going");
+  assert.doesNotMatch(app.lastFrame()!, /вторая фраза/, "the card shows its neighbours");
+  await type(app, RIGHT);
+  assert.deepEqual(calls, [], "the first arrow acted instead of explaining");
+  assert.match(app.lastFrame()!, /вправо — лайк, влево — скрыть/);
+  await type(app, ENTER, RIGHT);
+  await settle();
+  assert.deepEqual(calls, ["like p1"], "→ did not like after the explanation");
+  assert.match(app.lastFrame()!, /вторая фраза/, "the liked card stayed on the screen");
+  assert.doesNotMatch(app.lastFrame()!, /скоро исчезнет/, "a phrase with time left was said to be going");
+  await type(app, LEFT);
+  await settle();
+  assert.deepEqual(calls, ["like p1", "hide p2"]);
+  assert.match(app.lastFrame()!, /скрыто/);
+  assert.match(app.lastFrame()!, /кофе со скидкой/);
+  await type(app, RIGHT);
+  assert.deepEqual(calls, ["like p1", "hide p2"], "→ liked an offer, whose like cannot be taken back");
+  await type(app, ENTER);
+  assert.match(app.lastFrame()!, /signal/, "enter did not go back to the feed");
+  app.unmount();
+});

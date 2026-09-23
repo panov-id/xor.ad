@@ -133,5 +133,9 @@
   "me.cancel": "Annuler",
   "profile.nameFrozen": "Votre prénom ne change que sur une page blanche : tant qu'une de vos phrases est en ligne ou qu'une conversation est ouverte, il est figé.",
   "profile.ageDown": "On ne revient pas de la tranche 21+. L'âge se corrige dans la tranche ; la limite 20/21 ne se franchit que vers le haut.",
-  "profile.patchDay": "Assez de modifications du profil pour aujourd'hui — demain, c'est à nouveau possible."
+  "profile.patchDay": "Assez de modifications du profil pour aujourd'hui — demain, c'est à nouveau possible.",
+  "card.hint": "à droite — aimer, à gauche — masquer ; ce qui est masqué revient dans me · [enter] compris",
+  "card.soon": "va bientôt disparaître",
+  "card.keys": "→ aimer · ← masquer · ↑↓ défiler · enter retour",
+  "card.hidden": "masqué"
 }

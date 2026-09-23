@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 минут",
   "chat.spanLong30": "30 минут",
   "chat.spanLong60": "бір сағат",
-  "chat.spanLong260": "сөйлескенше"
+  "chat.spanLong260": "сөйлескенше",
+  "chat.expired": "Мерзім бітті, хат алмасу енді жоқ.",
+  "chat.ended": "Әңгіме аяқталды.",
+  "chat.toFeed": "Таспаға оралу"
 }

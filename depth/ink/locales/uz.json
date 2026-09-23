@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 daqiqa",
   "chat.spanLong30": "30 daqiqa",
   "chat.spanLong60": "bir soat",
-  "chat.spanLong260": "gaplashguncha"
+  "chat.spanLong260": "gaplashguncha",
+  "chat.expired": "Muddat tugadi, yozishma endi yo'q.",
+  "chat.ended": "Suhbat tugadi.",
+  "chat.toFeed": "Lentaga qaytish"
 }

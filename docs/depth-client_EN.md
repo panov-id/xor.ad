@@ -814,6 +814,16 @@ although `tab` led exactly there.
   from `GET /inbox` (`span`, `chat_expires_at`); a chat opened straight from consent counts an
   hour from opening. The live walk changes the span against the node and checks it in the
   database.
+- **The tombstone — built 2026-09-23.** The node closes the room with 4003 when the
+  conversation is over (closed, blocked, a span ran out); it sends no reason, so the terminal
+  tells by its own clock: one's own span ran out — "The span ran out; the conversation is
+  gone.", otherwise — "The conversation has ended." (`refusal-wordings_EN.md`). One's own clock
+  reaching zero gives the first even without the room closing. The screen is wiped at once,
+  the conversation's keys are forgotten, and the one item is "Back to the feed". The live walk
+  closes the conversation from the other side and waits for the tombstone.
+- **Hidden** (4.11, the row "hidden · N" on `me`) — the list of what was hidden with "bring it
+  back" (`GET /hidden`, `DELETE /hidden/:id`); the node's routes 2026-09-21, the screen
+  2026-09-23 (commit `38f5116`, together with blocking from the feed).
 - The silence counter appears in the **last quarter of your own span** and is reset
   by any **of your own** delivered messages. The old `min(20 min, ttl/3)` rule is
   retired along with the pick at consent.
@@ -991,7 +1001,7 @@ full screen with `enter` (4.4.1) is not built either.
 
 ### 4.11. Me — `me`
 
-`m` from anywhere. The fourth navigation item of §9 of the spec (`Me`), which the terminal
+`m` from anywhere [built differently on 2026-09-23: there are no letter keys, the way in is the item "me" in the feed's menu, see below]. The fourth navigation item of §9 of the spec (`Me`), which the terminal
 did not have; added 2026-09-17. The screen is a list, one row per item; the rules are
 storefront screen 10:
 

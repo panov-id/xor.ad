@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 minut",
   "chat.spanLong30": "30 minut",
   "chat.spanLong60": "godzina",
-  "chat.spanLong260": "dopóki rozmawiamy"
+  "chat.spanLong260": "dopóki rozmawiamy",
+  "chat.expired": "Termin minął, rozmowy już nie ma.",
+  "chat.ended": "Rozmowa się skończyła.",
+  "chat.toFeed": "Wróć do strumienia"
 }

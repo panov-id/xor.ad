@@ -95,7 +95,7 @@
   "me.title": "eu",
   "me.name": "nume",
   "me.age": "vârstă",
-  "chat.fades": "se stinge după {span} din TĂCEREA ta",
+  "chat.fades": "se stinge după {span} din tăcerea TA",
   "chat.span": "termenul meu: {span}",
   "chat.spanShort10": "10 min",
   "chat.spanShort30": "30 min",
@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 minute",
   "chat.spanLong30": "30 de minute",
   "chat.spanLong60": "o oră",
-  "chat.spanLong260": "cât vorbim"
+  "chat.spanLong260": "cât vorbim",
+  "chat.expired": "Termenul a expirat; conversația nu mai există.",
+  "chat.ended": "Conversația s-a încheiat.",
+  "chat.toFeed": "Înapoi la flux"
 }

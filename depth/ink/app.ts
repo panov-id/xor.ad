@@ -149,6 +149,7 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           endsAt: where.endsAt,
           limit,
           onBack: () => setWhere({ screen: "inbox" }),
+          onFeed: feed,
           onError: fail,
         });
     }

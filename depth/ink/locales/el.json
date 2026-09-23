@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 λεπτά",
   "chat.spanLong30": "30 λεπτά",
   "chat.spanLong60": "μία ώρα",
-  "chat.spanLong260": "όσο μιλάμε"
+  "chat.spanLong260": "όσο μιλάμε",
+  "chat.expired": "Η προθεσμία έληξε· η συζήτηση δεν υπάρχει πια.",
+  "chat.ended": "Η συζήτηση τελείωσε.",
+  "chat.toFeed": "Πίσω στη ροή"
 }

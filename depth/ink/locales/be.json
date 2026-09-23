@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 хвілін",
   "chat.spanLong30": "30 хвілін",
   "chat.spanLong60": "гадзіна",
-  "chat.spanLong260": "пакуль гаворым"
+  "chat.spanLong260": "пакуль гаворым",
+  "chat.expired": "Тэрмін скончыўся, перапіскі больш няма.",
+  "chat.ended": "Размова скончылася.",
+  "chat.toFeed": "Вярнуцца ў стужку"
 }

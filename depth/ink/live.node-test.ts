@@ -219,6 +219,12 @@ async function main() {
                              WHERE p.chat_id = ${peerChat.chat_id} AND i.name = 'Аня'`;
     assert.equal(Number(mine?.span), 260, "the span changed on the screen but not on the node");
     out("ok   the chat's own span went to the node");
+
+    // 8 · the other side ends the conversation: the node closes the room with
+    // 4003 and the screen becomes the tombstone (chat §5, protocol §4.4).
+    await peer.closeChat(peerChat.chat_id);
+    await until(app, /Беседа закончилась\./, 20);
+    out("ok   a conversation ended by the other side became a tombstone");
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

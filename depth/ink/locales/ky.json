@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 мүнөт",
   "chat.spanLong30": "30 мүнөт",
   "chat.spanLong60": "бир саат",
-  "chat.spanLong260": "сүйлөшкөнчө"
+  "chat.spanLong260": "сүйлөшкөнчө",
+  "chat.expired": "Мөөнөт бүттү, кат алышуу мындан ары жок.",
+  "chat.ended": "Маек бүттү.",
+  "chat.toFeed": "Тасмага кайтуу"
 }

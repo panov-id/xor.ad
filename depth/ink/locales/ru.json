@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 минут",
   "chat.spanLong30": "30 минут",
   "chat.spanLong60": "час",
-  "chat.spanLong260": "пока говорим"
+  "chat.spanLong260": "пока говорим",
+  "chat.expired": "Срок вышел, переписки больше нет.",
+  "chat.ended": "Беседа закончилась.",
+  "chat.toFeed": "Вернуться в ленту"
 }

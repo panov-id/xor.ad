@@ -536,3 +536,61 @@ test("the chat says its own span, counts down its last quarter, and changes it",
   assert.match(late.lastFrame()!, /гаснет после 1ч ВАШЕГО молчания · (9:5\d|10:00)/, "the last quarter does not count down");
   late.unmount();
 });
+
+// The tombstone (chat §5, protocol §4.4): a room closed with 4003 while one's
+// own clock runs is "ended"; one's own clock reaching zero is "expired". Either
+// way what was on the screen goes, the keys are forgotten, and the way out is the feed.
+function roomThatCloses() {
+  let close: (code: number) => void = () => {};
+  const closed = new Promise<number>((r) => (close = r));
+  return { room: { next: () => new Promise(() => {}), close: () => {}, closed }, close: (code: number) => close(code) };
+}
+
+test("a conversation closed by the node becomes a tombstone that leads to the feed", async () => {
+  const { room, close } = roomThatCloses();
+  const forgotten: string[] = [];
+  let toFeed = 0;
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+    openRoom: () => Promise.resolve(room),
+    forget: (id: string) => forgotten.push(id),
+    sayInChat: () => Promise.resolve(),
+  };
+  const app = render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "c1", name: "Аня", age: 34, limit: 256, span: 60, endsAt: Math.floor(Date.now() / 1000) + 3000,
+    onBack: () => {}, onFeed: () => toFeed++, onError: () => {},
+  }));
+  await settle(150);
+  assert.match(app.lastFrame()!, /гаснет после/);
+  close(4003);
+  await settle(150);
+  const frame = app.lastFrame()!;
+  assert.match(frame, /Беседа закончилась\./, "a closed conversation still looks open");
+  assert.doesNotMatch(frame, /гаснет после|отправить/, "the tombstone still offers to write");
+  assert.deepEqual(forgotten, ["c1"], "the keys of an ended conversation were kept");
+  await type(app, ENTER);
+  assert.equal(toFeed, 1, "the tombstone does not lead back to the feed");
+  app.unmount();
+});
+
+test("one's own span running out is the other tombstone, even with the room still open", async () => {
+  const { room } = roomThatCloses();
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+    openRoom: () => Promise.resolve(room),
+    forget: () => {},
+  };
+  const app = render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "c2", name: "Аня", age: 34, limit: 256, span: 10, endsAt: Math.floor(Date.now() / 1000) + 1,
+    onBack: () => {}, onError: () => {},
+  }));
+  await new Promise((r) => setTimeout(r, 2300));
+  assert.match(app.lastFrame()!, /Срок вышел, переписки больше нет\./, "one's own term ran out and the chat stayed");
+  app.unmount();
+});

@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 dəqiqə",
   "chat.spanLong30": "30 dəqiqə",
   "chat.spanLong60": "bir saat",
-  "chat.spanLong260": "danışdıqca"
+  "chat.spanLong260": "danışdıqca",
+  "chat.expired": "Müddət bitdi, yazışma artıq yoxdur.",
+  "chat.ended": "Söhbət bitdi.",
+  "chat.toFeed": "Lentə qayıt"
 }

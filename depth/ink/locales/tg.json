@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 дақиқа",
   "chat.spanLong30": "30 дақиқа",
   "chat.spanLong60": "як соат",
-  "chat.spanLong260": "то гап мезанем"
+  "chat.spanLong260": "то гап мезанем",
+  "chat.expired": "Мӯҳлат тамом шуд, мукотиба дигар нест.",
+  "chat.ended": "Суҳбат ба охир расид.",
+  "chat.toFeed": "Ба навор баргаштан"
 }

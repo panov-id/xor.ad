@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 Minuten",
   "chat.spanLong30": "30 Minuten",
   "chat.spanLong60": "eine Stunde",
-  "chat.spanLong260": "solange wir reden"
+  "chat.spanLong260": "solange wir reden",
+  "chat.expired": "Die Frist ist abgelaufen; das Gespräch ist weg.",
+  "chat.ended": "Das Gespräch ist beendet.",
+  "chat.toFeed": "Zurück zum Feed"
 }

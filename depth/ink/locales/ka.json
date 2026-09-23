@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 წუთი",
   "chat.spanLong30": "30 წუთი",
   "chat.spanLong60": "საათი",
-  "chat.spanLong260": "სანამ ვსაუბრობთ"
+  "chat.spanLong260": "სანამ ვსაუბრობთ",
+  "chat.expired": "ვადა ამოიწურა, მიმოწერა აღარ არის.",
+  "chat.ended": "საუბარი დასრულდა.",
+  "chat.toFeed": "ლენტში დაბრუნება"
 }

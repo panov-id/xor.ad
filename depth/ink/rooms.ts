@@ -5,7 +5,7 @@
 // off the screen. "Compared" lives until the process exits, like everything
 // else here — nothing about a conversation is written to disk (§8.13).
 
-import { createElement as h, useEffect, useState } from "react";
+import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Client, Liked as LikedCard, Statement } from "../core/client.ts";
@@ -193,7 +193,7 @@ const SPANS = [10, 30, 60, 260] as const;
 type Span = (typeof SPANS)[number];
 
 export function Chat(
-  { say, client, chatId, matchId, name, age, limit, span: startSpan, endsAt: startEnds, onBack, onError }: {
+  { say, client, chatId, matchId, name, age, limit, span: startSpan, endsAt: startEnds, onBack, onFeed, onError }: {
     say: Say;
     client: Client;
     chatId: string;
@@ -206,6 +206,8 @@ export function Chat(
     span?: number;
     endsAt?: number;
     onBack: () => void;
+    // The tombstone's one way out (refusal-wordings: "Back to the feed").
+    onFeed?: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -219,13 +221,35 @@ export function Chat(
   const [span, setSpan] = useState<Span>((SPANS as readonly number[]).includes(startSpan ?? 0) ? startSpan as Span : 60);
   // When the chat ends for me: my last own message plus my span. The node
   // counts the same way and sends nothing (§5), so the screen keeps the clock.
-  const [endsAt, setEndsAt] = useState<number>(() => startEnds ?? Math.floor(Date.now() / 1000) + span * 60);
+  // Checked like any number from the node: a string would make the clock NaN
+  // and hide the end, a 0 would paint it red at once (security lens, 23.09.2026).
+  const [endsAt, setEndsAt] = useState<number>(() =>
+    typeof startEnds === "number" && Number.isFinite(startEnds) && startEnds > 0
+      ? startEnds
+      : Math.floor(Date.now() / 1000) + span * 60
+  );
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  const endsAtRef = useRef(endsAt);
+  endsAtRef.current = endsAt;
   useEffect(() => {
     const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(tick);
   }, []);
   const left = Math.max(0, endsAt - now);
+  // The tombstone (chat §5, protocol §4.4): the node closes the room with 4003
+  // when the conversation is over — closed by hand, by a block, or by a term —
+  // and one's own clock reaching zero is the same end seen from here. What
+  // was on the screen goes at once; the words say which end it was.
+  const [over, setOver] = useState<"expired" | "ended" | null>(null);
+  const end = (why: "expired" | "ended") => {
+    setOver((was) => was ?? why);
+    setLines([]);
+    setDraft("");
+    client.forget(chatId);
+  };
+  useEffect(() => {
+    if (left === 0 && over === null) end("expired");
+  }, [left]);
   // The silence counter lives in the last quarter of one's own span (§5).
   const counting = left <= (span * 60) / 4;
   const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
@@ -257,6 +281,13 @@ export function Chat(
       const conversation = await client.openConversation(chatId, matchId);
       setCode(conversation.safetyCode);
       room = await client.openRoom(chatId);
+      // 4003 is the only close that means "over"; its reason is not sent, so
+      // one's own clock tells a term from a hand (protocol §4.4).
+      void (room as unknown as { closed: Promise<number> }).closed.then((code) => {
+        if (!live || code !== 4003) return;
+        live = false;
+        end(Math.floor(Date.now() / 1000) >= endsAtRef.current ? "expired" : "ended");
+      });
       while (live) {
         const frame = await room.next(60_000).catch(() => null);
         if (!frame || frame.type !== "message") continue;
@@ -276,6 +307,19 @@ export function Chat(
     };
   }, [chatId]);
 
+  if (over) {
+    return h(
+      Box,
+      { flexDirection: "column", gap: 1 },
+      h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }) }),
+      h(Text, { color: "red" }, say(over === "expired" ? "chat.expired" : "chat.ended")),
+      h(Menu, {
+        actions: [{ key: "feed", label: say("chat.toFeed") }],
+        onPick: () => (onFeed ?? onBack)(),
+        hint: say("common.rowActions"),
+      }),
+    );
+  }
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
@@ -342,10 +386,12 @@ export function Chat(
         if (key === "span") {
           const next = SPANS[(SPANS.indexOf(span) + 1) % SPANS.length];
           return void client.setChatSpan(chatId, next)
-            .then(() => {
-              // The end moves with the span, from the same last own message.
-              setEndsAt((end) => end - span * 60 + next * 60);
-              setSpan(next);
+            .then((kept) => {
+              // What the node kept, not what was asked; and the end moves with
+              // it, from the same last own message.
+              const now = (SPANS as readonly number[]).includes(kept) ? kept as Span : next;
+              setEndsAt((end) => end - span * 60 + now * 60);
+              setSpan(now);
             })
             .catch((e: Error) => onError(e.message));
         }

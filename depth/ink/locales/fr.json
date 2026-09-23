@@ -104,5 +104,8 @@
   "chat.spanLong10": "10 minutes",
   "chat.spanLong30": "30 minutes",
   "chat.spanLong60": "une heure",
-  "chat.spanLong260": "tant qu'on parle"
+  "chat.spanLong260": "tant qu'on parle",
+  "chat.expired": "Le délai est écoulé ; la conversation n'existe plus.",
+  "chat.ended": "La conversation est terminée.",
+  "chat.toFeed": "Retour au fil"
 }

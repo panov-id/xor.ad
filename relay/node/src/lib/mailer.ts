@@ -54,19 +54,24 @@ async function viaResend(
   // Send from the brand's own Resend account (its domain is verified there);
   // fall back to the default key for brands without a dedicated account.
   const key = config.resend.keysByBrand[brandKey] || config.resend.key;
-  if (!key) return;
+  // Both refusals throw. They used to log and return, and every caller counted
+  // the letter as sent: a missing key or a 401 read as delivered, and the DSA
+  // watchdog believed it had warned someone (review panel, 23.09.2026). Both
+  // callers catch, so a refusal is a "failed" count, never a 500.
+  if (!key) throw new Error(`no Resend key for brand ${brandKey}`);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
     body: JSON.stringify({ from, to: [to], subject, html, text }),
   });
   if (!res.ok) {
-    log("error", "welcome mail rejected", {
+    log("error", "resend rejected a letter", {
       transport: "resend",
       status: res.status,
       brand: brandKey,
       fault: await providerFault(res),
     });
+    throw new Error(`Resend refused the letter: ${res.status}`);
   }
 }
 
@@ -361,6 +366,42 @@ export function decisionOutcome(
   return decision === "upheld"
     ? "We agreed with your report, and the content has been restricted."
     : "We did not agree with your report, and the content stays.";
+}
+
+// Watchdog С1: a notice nobody has answered, at 24 hours and again at 48.
+// It carries a reference and an age — no reason text, no notifier — because it
+// goes to a shared inbox first and to personal addresses second.
+export function noticeAgingBlocks(
+  notice: { id: string; kind: string; age_hours: number; stage: "remind" | "escalate" },
+): Block[] {
+  // Not "the second letter": a notice first seen past 48 hours — a backlog on
+  // the first rollout, a node that was down — skips the reminder.
+  const urgency = notice.stage === "escalate"
+    ? "It has been waiting two days, and it now goes to the people named for this."
+    : "It has been waiting a day.";
+  return [
+    {
+      kind: "text",
+      value: `A report of illegal content is still unanswered after ${notice.age_hours} hours. ${urgency}`,
+    },
+    { kind: "text", value: `Reference: ${notice.id.slice(0, 8)}. Target: ${notice.kind}.` },
+    {
+      kind: "text",
+      value: "Article 16(6) asks for a timely decision. Open the notice in the panel and take it.",
+    },
+  ];
+}
+
+export async function sendNoticeAging(
+  to: string,
+  notice: { id: string; kind: string; brand?: string | null; age_hours: number; stage: "remind" | "escalate" },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = (notice.brand ? await brandByKey(notice.brand) : undefined) ?? resolveBrand(null);
+  const subject = notice.stage === "escalate"
+    ? `${brand.name}: a report has been unanswered for two days`
+    : `${brand.name}: a report has been unanswered for a day`;
+  return await deliver(brand, to, subject, subject, noticeAgingBlocks(notice));
 }
 
 export async function sendNoticeDecision(

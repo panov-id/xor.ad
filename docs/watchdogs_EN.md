@@ -1,7 +1,9 @@
 # Watchdogs: so that nothing lies silent — specification, 2026-09-15
 
 Stage 1 of `docs/reviews/PLAN_2026-09-14_legal-mechanics_v1_EN.md` and S1 of the road to drawing.
-**This is a specification, not code.** Node code in `relay/` is outside the hardening process's
+**This is a specification, not code** — except W1: it was built on 2026-09-23
+(`relay/node/src/lib/dsa_watchdog.ts`, migration `db/041`), and its section below describes what was
+built. Node code in `relay/` is outside the hardening process's
 standing permission; this records what to watch, on which signal and where to, so that nothing is
 left to choose when the work starts.
 
@@ -19,17 +21,29 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W1. The age of unresolved notices
 
-- **Gauge.** `GET /metrics` serves `relay_dsa_oldest_unresolved_seconds` — the age of the oldest
-  notice in `received` or `in_review`; zero when there is none.
+- **Gauge.** `GET /metrics` serves `relay_dsa_queue_oldest_seconds{brand}` — the age of the oldest
+  notice without a decision (`decided_at IS NULL`), per face (`lib/queue_metrics.ts`); a face with no
+  such notice has no label. Until 2026-09-23 this named `relay_dsa_oldest_unresolved_seconds`, which
+  the code never had.
 - **Threshold.** Over 24 hours — a reminder; over 48 hours — an escalation. 72 hours is the DSA
   spec's internal target, not a norm; the thresholds sit before it.
 - **Who sends.** A scheduler job `dsa_notice_age`, hourly, re-arming itself like the others.
   **One letter per threshold**: the notice gets `reminded_at` and `escalated_at`, and no repeat goes —
   a letter every hour would make the channel unreadable (added 2026-09-15 after the review panel).
+  The stamp goes on as the row is taken (`FOR UPDATE SKIP LOCKED`, the condition repeated in the
+  `UPDATE`) — two passes never take one row — and **comes off when the letter did not leave**: the
+  next pass, in 10 minutes rather than an hour, sends it again. A letter goes at least once; a second
+  copy is the price of not losing the one that mattered (review panel 2026-09-23,
+  `docs/reviews/PANEL_2026-09-23_watchdog-c1.md`).
 - **Where to.** The reminder — to the `support@` of the face the notice came through (as the
-  new-notice letter does); the escalation — to the personal addresses in `DSA_ESCALATION_EMAILS`,
-  not a shared inbox, and over the fallback transport `MAIL_FALLBACK_TRANSPORT`: the main one may have
-  failed for the same reason as in W2.
+  new-notice letter does: `brand`, else `received_via`); the escalation — to the personal addresses in
+  `DSA_ESCALATION_EMAILS` (the wizard passes it to the node from `secrets.env`), not a shared inbox,
+  and over the fallback transport `MAIL_FALLBACK_TRANSPORT`: the main one may have failed for the same
+  reason as in W2. **There is no fallback transport yet** — the escalation goes over the main one;
+  it needs a second mail account (`mail.fallback.transport`). An empty `DSA_ESCALATION_EMAILS` means
+  the escalation reaches nobody, and the node logs that at `error` every 10 minutes.
+- **The first rollout.** Every accumulated unresolved notice older than 48 hours gets an escalation —
+  up to 200 a pass, oldest first.
 - **What the letter holds.** The notice number, the target kind, the age. No complaint text, no
   notifier data.
 
@@ -114,6 +128,8 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdogs W1–W3, W5, W6 and W7 are not built — items `watchdogs.unbuilt` (W1–W2, legal), `backup.silent.failure` (W7, operations) and
+- Watchdogs W2, W3, W5, W6 and W7 are not built — items `watchdogs.unbuilt` (W2, legal), `backup.silent.failure` (W7, operations) and
   `watchdogs.jobs.unbuilt` (W3, operations) in `docs/facts/open.tsv`.
 - The external pinger service is not chosen — `node.external.pinger`.
+- W1: no fallback transport for the escalation — `mail.fallback.transport`; a letter per notice rather
+  than one summary a pass — `watchdog.letters.flood` (review panel 2026-09-23).

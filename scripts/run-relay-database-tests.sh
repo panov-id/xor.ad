@@ -107,6 +107,15 @@ docker run --rm --network "$network" \
   deno test --allow-env --allow-net --allow-read --allow-write test/identity_sweeper.test.ts "$@"
 
 echo
+echo "== DSA watchdog suite (watchdog С1: unanswered notices at 24 and 48 hours)"
+# Its own file: the picking and the stamping are one statement, so the only
+# honest test is against Postgres, and it sets MAIL_TRANSPORT before import.
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/dsa_watchdog.test.ts "$@"
+
+echo
 echo "== session freeze suite (chat spec §8.2: the row and the notification)"
 # Its own file for its own reason: it opens raw LISTENing connections, and the
 # driver throws when one is handed a notification — a fact this suite asserts on

@@ -21,6 +21,7 @@ import { pruneObjects } from "../../tools/prune_objects.ts";
 import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
+import { watchNoticeAge } from "./dsa_watchdog.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepChats } from "./chat_sweeper.ts";
@@ -67,6 +68,10 @@ export const PRUNE_NONCES = "prune_nonces";
 export const SWEEP_IDENTITIES = "sweep_identities";
 // Support requests past their year (chat spec §13; support.retention).
 export const SWEEP_SUPPORT = "sweep_support";
+// Watchdog С1 (docs/watchdogs_RU.md): notices under Article 16 that nobody has
+// answered. The letter about a new notice goes once, and nothing watched what
+// happened next — so a missed letter meant a deadline running out in silence.
+export const DSA_NOTICE_AGE = "dsa_notice_age";
 // Phrases that waited past `moderation.queue.wait` without a verdict. §8.3:
 // such a row is deleted and does not count as queued — so the author's slot
 // frees and their pause does not grow because the node was slow.
@@ -275,6 +280,16 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_HOUR_MS);
   });
 
+  handle(DSA_NOTICE_AGE, async () => {
+    const result = await watchNoticeAge();
+    log("info", "watched the age of unresolved notices", { ...result });
+    // Hourly after a pass that warned everyone. A letter that did not leave
+    // brings the pass back in ten minutes rather than an hour, without
+    // throwing: a throw spends the queue's attempts, and eight spent attempts
+    // make a tombstone that ends the chain (watchdog С3 is not built).
+    return new Date(Date.now() + (result.unsent ? 10 * A_MINUTE_MS : A_HOUR_MS));
+  });
+
   handle(PRUNE_MAGIC, async () => {
     const result = await pruneMagicLinks();
     // Come straight back while there is more, rather than leaving the rest for
@@ -306,6 +321,7 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_TOMBSTONES, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(SWEEP_IDENTITIES, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(SWEEP_SUPPORT, {}, new Date(Date.now() + A_DAY_MS));
+  await enqueueOnce(DSA_NOTICE_AGE, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));

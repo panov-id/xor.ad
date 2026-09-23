@@ -22,6 +22,7 @@ the one whose absence makes a prod deploy fail with the wrong explanation.
 
   storage    BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY, BUNNY_STORAGE_HOST?
   mail       RESEND_API_KEY, RESEND_KEYS?, WELCOME_FROM?, PANEL_SENDER?
+  dsa        DSA_ESCALATION_EMAILS (personal addresses for watchdog С1)
   dns        BUNNY_API_KEY
   provider   HETZNER_TOKEN (or the provider in use)
   ssh        SSH_PUBLIC_KEY
@@ -174,6 +175,10 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         "RESEND_API_KEY": os.environ.get("RESEND_API_KEY", ""),
         "RESEND_KEYS": os.environ.get("RESEND_KEYS", ""),  # {brand: apiKey} per-brand accounts
         "WELCOME_FROM": os.environ.get("WELCOME_FROM", ""),
+        # Watchdog С1's escalation: personal addresses, comma-separated. Empty
+        # means an unanswered notice past 48 hours warns nobody, and the node
+        # says so in its log every ten minutes (lib/dsa_watchdog.ts).
+        "DSA_ESCALATION_EMAILS": os.environ.get("DSA_ESCALATION_EMAILS", ""),
         # Panel control plane: shared signing secret + per-env panel URL for the
         # magic-link email; PANEL_SENDER is the (panov.id-verified) from address.
         # Per environment, never shared. One secret across dev, staging and

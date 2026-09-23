@@ -107,5 +107,18 @@
   "chat.spanLong260": "solange wir reden",
   "chat.expired": "Die Frist ist abgelaufen; das Gespräch ist weg.",
   "chat.ended": "Das Gespräch ist beendet.",
-  "chat.toFeed": "Zurück zum Feed"
+  "chat.toFeed": "Zurück zum Feed",
+  "away.item": "weggehen",
+  "away.pick": "wählen Sie eine Dauer — wir rechnen aus, was sie kostet",
+  "away.short": "20 Minuten",
+  "away.hour": "eine Stunde",
+  "away.long": "4 Stunden",
+  "away.price": "Phrasen verschwinden: {phrases} · Likes werden zurückgenommen: {likes} · Gespräche überstehen es nicht: {chats} von {of}",
+  "away.warning": "Ihre Phrasen verschwinden samt ihren Likes, Ihre Likes auf fremden Phrasen und Tischen werden zurückgenommen, und Gesprächsangebote verfallen. Gespräche laufen nach ihren eigenen Fristen: Diese Pause überstehen nur jene, deren Frist ab Ihrer letzten Nachricht länger ist als die Pause — wie viele genau, steht oben. Wenn Sie an einem Tisch sitzen, stehen Sie auf — das Spiel geht ohne Sie weiter. Eine Phrase, die noch auf ihre Prüfung wartet, verschwindet mit den übrigen. Das stündliche Veröffentlichungslimit und die Pause nach Ablehnungen überstehen die Pause: Wenn Sie zurückkommen, haben Sie vier freie Plätze, aber keine neue Stunde.",
+  "away.go": "Weggehen",
+  "away.line": "Sie sind weg. Phrasen sind entfernt, Gespräche warten.",
+  "away.until": "bis {time} · noch {minutes} Min.",
+  "away.back": "zurückkommen",
+  "away.sure": "Sie wollten eine Pause — wirklich zurück?",
+  "chat.peerAway": "weg"
 }

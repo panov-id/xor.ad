@@ -225,6 +225,25 @@ async function main() {
     await peer.closeChat(peerChat.chat_id);
     await until(app, /Беседа закончилась\./, 20);
     out("ok   a conversation ended by the other side became a tombstone");
+
+    // 9 · stepping away against the node (§8.2): from the tombstone to the
+    // feed, "me" → "step away" (after liked and hidden), twenty minutes, and
+    // back again with the second press the away screen asks for.
+    await type(app, ENTER);
+    await until(app, /signal/, 20);
+    await pickInFeed(app, "me");
+    await until(app, /отойти/, 20);
+    await type(app, DOWN, DOWN, ENTER);
+    await until(app, /выберите срок/, 20);
+    await type(app, DOWN, ENTER);
+    await until(app, /Вы отошли\./, 20);
+    const [awayRow] = await sql`SELECT stepped_away_until > now() AS away FROM identities WHERE id = ${me.id}`;
+    assert.equal(awayRow?.away, true, "the screen says away and the node does not");
+    await type(app, ENTER, ENTER);
+    await until(app, /signal/, 20);
+    const [backRow] = await sql`SELECT stepped_away_until <= now() AS back FROM identities WHERE id = ${me.id}`;
+    assert.equal(backRow?.back, true, "coming back on the screen did not reach the node");
+    out("ok   stepping away and coming back went to the node");
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

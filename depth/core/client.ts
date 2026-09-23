@@ -71,6 +71,16 @@ export interface Liked {
   offer?: { discount_value: string; conditions?: string | null };
 }
 
+// GET /identities/me as the terminal reads it. `phrases` are one's own live
+// ones, a waiting one without its end; `stepped_away_until` only while away.
+export interface Profile {
+  name: string;
+  name_state: "accepted" | "pending" | "rejected";
+  age: number;
+  phrases?: Array<{ id: string; expires_at?: number }>;
+  stepped_away_until?: number;
+}
+
 export class Client {
   #key: SigningKey | null = null;
   // The private half of the wrapping pair. Kept, not dropped: anything sealed to
@@ -175,8 +185,8 @@ export class Client {
     return answer.body;
   }
 
-  async profile(): Promise<{ name: string; name_state: "accepted" | "pending" | "rejected"; age: number }> {
-    const answer = await this.#call<{ name: string; name_state: "accepted" | "pending" | "rejected"; age: number }>("GET", "/identities/me");
+  async profile(): Promise<Profile> {
+    const answer = await this.#call<Profile>("GET", "/identities/me");
     if (answer.status !== 200) throw new Error(`profile refused: ${answer.status}`);
     return answer.body;
   }
@@ -364,6 +374,21 @@ export class Client {
     const answer = await this.#call<{ span: number }>("PATCH", `/chats/${encodeURIComponent(chatId)}`, { span });
     if (answer.status !== 200) throw new Error(`the span refused: ${answer.status}`);
     return answer.body.span;
+  }
+
+  // POST /away — step away for a span of limits.tsv away.span.*; one
+  // transaction takes one's phrases, given likes and matches (§8.2). The
+  // answer is when it ends.
+  async stepAway(span: "short" | "hour" | "long"): Promise<number> {
+    const answer = await this.#call<{ until: number }>("POST", "/away", { span, nonce: base64url(random(16)) });
+    if (answer.status !== 200) throw new Error(`stepping away refused: ${answer.status}`);
+    return answer.body.until;
+  }
+
+  // DELETE /away — come back early.
+  async comeBack(): Promise<void> {
+    const answer = await this.#call("DELETE", "/away");
+    if (answer.status !== 204) throw new Error(`coming back refused: ${answer.status}`);
   }
 
   // "Not now", and taking it back while the match lives (screen 7).

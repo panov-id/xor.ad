@@ -107,5 +107,18 @@
   "chat.spanLong260": "cât vorbim",
   "chat.expired": "Termenul a expirat; conversația nu mai există.",
   "chat.ended": "Conversația s-a încheiat.",
-  "chat.toFeed": "Înapoi la flux"
+  "chat.toFeed": "Înapoi la flux",
+  "away.item": "a lipsi",
+  "away.pick": "alegeți o durată — calculăm cât costă",
+  "away.short": "20 de minute",
+  "away.hour": "o oră",
+  "away.long": "4 ore",
+  "away.price": "fraze care dispar: {phrases} · aprecieri retrase: {likes} · conversații care nu supraviețuiesc: {chats} din {of}",
+  "away.warning": "Frazele dvs. vor dispărea împreună cu aprecierile lor, aprecierile dvs. pe frazele și mesele altora vor fi retrase, iar propunerile de a vorbi vor arde. Conversațiile trăiesc după propriile termene: această pauză o vor supraviețui doar cele al căror termen, socotit de la ultimul dvs. mesaj, e mai lung decât pauza — câte anume, scrie mai sus. Dacă stați la o masă, vă veți ridica de la ea — jocul continuă fără dvs. O frază care încă așteaptă verificarea va dispărea împreună cu celelalte. Limita orară de publicare și pauza după refuzuri supraviețuiesc pauzei: la întoarcere veți avea patru locuri libere, dar nu o oră nouă.",
+  "away.go": "Lipsesc",
+  "away.line": "Lipsiți. Frazele sunt retrase, conversațiile așteaptă.",
+  "away.until": "până la {time} · au rămas {minutes} min",
+  "away.back": "revin",
+  "away.sure": "voiați o pauză — sigur revenim?",
+  "chat.peerAway": "lipsește"
 }

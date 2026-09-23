@@ -107,5 +107,18 @@
   "chat.spanLong260": "dopóki rozmawiamy",
   "chat.expired": "Termin minął, rozmowy już nie ma.",
   "chat.ended": "Rozmowa się skończyła.",
-  "chat.toFeed": "Wróć do strumienia"
+  "chat.toFeed": "Wróć do strumienia",
+  "away.item": "odejść",
+  "away.pick": "wybierz czas — policzymy, ile kosztuje",
+  "away.short": "20 minut",
+  "away.hour": "godzina",
+  "away.long": "4 godziny",
+  "away.price": "fraz zniknie: {phrases} · polubień zostanie cofniętych: {likes} · rozmów nie przetrwa: {chats} z {of}",
+  "away.warning": "Twoje frazy znikną razem z polubieniami, twoje polubienia na cudzych frazach i stołach zostaną cofnięte, a propozycje rozmowy przepadną. Rozmowy żyją według własnych terminów: tę przerwę przetrwają tylko te, których termin jest dłuższy niż przerwa, licząc od twojej ostatniej wypowiedzi — ile dokładnie, napisano wyżej. Jeśli siedzisz przy stole — wstaniesz od niego, gra potoczy się bez ciebie. Fraza, która wciąż czeka na sprawdzenie, zniknie razem z pozostałymi. Godzinny limit publikacji i pauza po odmowach przetrwają przerwę: po powrocie dostaniesz cztery wolne miejsca, ale nie nową godzinę.",
+  "away.go": "Odejdź",
+  "away.line": "Odszedłeś. Frazy zdjęte, rozmowy czekają.",
+  "away.until": "do {time} · zostało {minutes} min",
+  "away.back": "wróć",
+  "away.sure": "chciałeś przerwy — na pewno wracamy?",
+  "chat.peerAway": "odszedł"
 }

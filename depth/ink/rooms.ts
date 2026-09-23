@@ -218,6 +218,7 @@ export function Chat(
   const [matched, setMatched] = useState(false);
   const [changed, setChanged] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [peerAway, setPeerAway] = useState(false);
   const [span, setSpan] = useState<Span>((SPANS as readonly number[]).includes(startSpan ?? 0) ? startSpan as Span : 60);
   // When the chat ends for me: my last own message plus my span. The node
   // counts the same way and sends nothing (§5), so the screen keeps the clock.
@@ -290,7 +291,15 @@ export function Chat(
       });
       while (live) {
         const frame = await room.next(60_000).catch(() => null);
-        if (!frame || frame.type !== "message") continue;
+        if (!frame) continue;
+        // The other side stepped away (§8.2): a mark over the input, which stays
+        // live; their first line here takes it off.
+        if (frame.type === "sys" && (frame.data as { kind?: string })?.kind === "peer_stepped_away") {
+          setPeerAway(true);
+          continue;
+        }
+        if (frame.type !== "message") continue;
+        setPeerAway(false);
         const { id, ciphertext } = frame.data as { id: string; ciphertext: string };
         // A frame that does not open is the node's doing, not the peer's: it
         // must never be drawn as something they said (security lens,
@@ -367,6 +376,7 @@ export function Chat(
       : null,
     matched ? h(Text, { dimColor: true }, `✓ ${say("chat.matched")}`) : null,
     blocking ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`) : null,
+    peerAway ? h(Text, { color: "yellow" }, say("chat.peerAway")) : null,
     h(Text, { dimColor: true }, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
     h(Form, {
       active: !showCode,
@@ -734,7 +744,7 @@ export function Blocked(
 // hints, support and the console are not here yet: their terminal mechanics or
 // their refusal texts do not exist (§4.11, §9). No `m` key: the terminal moves
 // by arrows and enter only (owner, 2026-09-22), so "me" is an item of the feed.
-export type MeRow = "statements" | "liked" | "hidden" | "blocked";
+export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away";
 export function Me(
   { say, client, restrictions, onOpen, onBack, onError }: {
     say: Say;
@@ -761,6 +771,7 @@ export function Me(
     // Offered only while there is something to lift: "Blocked: 0" is the
     // storefronts' open question (Q-48), not the terminal's to answer.
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }) }] : []),
+    { key: "away", label: say("away.item") },
   ];
   useInput((_input, key) => {
     if (key.upArrow) setAt((i) => (i - 1 + rows.length) % rows.length);
@@ -789,6 +800,126 @@ export function Me(
     h(Menu, {
       actions: [{ key: "open", label: say("inbox.enter") }, { key: "back", label: say("common.back") }],
       onPick: (key) => (key === "back" ? onBack() : chosen && onOpen(chosen.key)),
+      hint: say("common.rowActions"),
+    }),
+  );
+}
+
+// Stepping away (chat §8.2; screen 20 of the storefronts, sosed.place
+// docs/20-step-away). Nothing is preselected: the price appears once a span is
+// chosen, and "step away" stays dead until then, so a double press does not
+// send anyone away for an hour. The price is numbers after labels — the
+// terminal's voice, decided by the owner on 23.09.2026 — counted on the spot:
+// one's live phrases (GET /identities/me), the likes one gave (GET /likes), and
+// the conversations whose own end comes before the break does (GET /inbox).
+export const AWAY_MINUTES = { short: 20, hour: 60, long: 240 } as const;
+type AwaySpan = keyof typeof AWAY_MINUTES;
+const AWAY_ORDER: AwaySpan[] = ["short", "hour", "long"];
+
+export function StepAway(
+  { say, client, onGone, onBack, onError }: {
+    say: Say;
+    client: Client;
+    onGone: (until: number) => void;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [chosen, setChosen] = useState<number>(-1);
+  const [counts, setCounts] = useState<{ phrases: number; likes: number; ends: number[] } | null>(null);
+  useEffect(() => {
+    (async () => {
+      const profile = await client.profile();
+      let likes = 0;
+      let after: string | undefined;
+      for (let page = 0; page < 20; page++) {
+        const got = await client.likes(after);
+        likes += got.items.length;
+        if (!got.next) break;
+        after = got.next;
+      }
+      const inbox = await client.inbox();
+      const ends = inbox
+        .filter((r) => r.kind === "chat" && r.state !== "ended")
+        .map((r) => Number(r.chat_expires_at))
+        .filter((n) => Number.isFinite(n));
+      setCounts({ phrases: profile.phrases?.length ?? 0, likes, ends });
+    })().catch((e: Error) => onError(e.message));
+  }, []);
+  useInput((_input, key) => {
+    if (key.upArrow) setChosen((i) => (i <= 0 ? AWAY_ORDER.length - 1 : i - 1));
+    if (key.downArrow) setChosen((i) => (i + 1) % AWAY_ORDER.length);
+  });
+  const span = chosen >= 0 ? AWAY_ORDER[chosen] : null;
+  const price = () => {
+    if (!span || !counts) return say("away.pick");
+    const back = Math.floor(Date.now() / 1000) + AWAY_MINUTES[span] * 60;
+    return say("away.price", {
+      phrases: counts.phrases,
+      likes: counts.likes,
+      chats: counts.ends.filter((end) => end < back).length,
+      of: counts.ends.length,
+    });
+  };
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("away.item") }),
+    h(
+      Box,
+      { flexDirection: "column" },
+      ...AWAY_ORDER.map((s, i) =>
+        h(Text, { key: s, bold: i === chosen }, `${i === chosen ? "›" : " "} ${say(`away.${s}`)}`)
+      ),
+    ),
+    h(Text, span ? { color: "yellow" } : { dimColor: true }, price()),
+    h(Text, { dimColor: true }, say("away.warning")),
+    h(Menu, {
+      actions: [{ key: "go", label: say("away.go"), disabled: span === null }, { key: "back", label: say("common.back") }],
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (!span) return;
+        client.stepAway(span).then(onGone).catch((e: Error) => onError(e.message));
+      },
+      hint: say("common.rowActions"),
+    }),
+  );
+}
+
+// While away (screen 20): nothing of the product, one line, the hour it ends
+// and what is left, and a way back that asks once more.
+export function Away(
+  { say, client, until, onBack, onError }: {
+    say: Say;
+    client: Client;
+    until: number;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  const [asking, setAsking] = useState(false);
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(tick);
+  }, []);
+  useEffect(() => {
+    if (now >= until) onBack();
+  }, [now]);
+  const at = new Date(until * 1000).toTimeString().slice(0, 5);
+  const left = Math.max(1, Math.ceil((until - now) / 60));
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Text, null, say("away.line")),
+    h(Text, { dimColor: true }, say("away.until", { time: at, minutes: left })),
+    asking ? h(Text, { color: "yellow" }, say("away.sure")) : null,
+    h(Menu, {
+      actions: [{ key: "back", label: say("away.back") }],
+      onPick: () => {
+        if (!asking) return setAsking(true);
+        client.comeBack().then(onBack).catch((e: Error) => onError(e.message));
+      },
       hint: say("common.rowActions"),
     }),
   );

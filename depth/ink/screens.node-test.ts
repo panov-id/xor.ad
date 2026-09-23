@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Blocked, Chat, Hidden, Inbox, Liked, Me, Statements } from "./rooms.ts";
+import { Away, Blocked, Chat, Hidden, Inbox, Liked, Me, Statements, StepAway } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -592,5 +592,94 @@ test("one's own span running out is the other tombstone, even with the room stil
   }));
   await new Promise((r) => setTimeout(r, 2300));
   assert.match(app.lastFrame()!, /Срок вышел, переписки больше нет\./, "one's own term ran out and the chat stayed");
+  app.unmount();
+});
+
+// Stepping away (screen 20): nothing preselected, the price counted on the spot
+// from the node's own lists, and a way back that asks once more.
+test("stepping away shows its price only once a span is chosen, and goes only then", async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const went: string[] = [];
+  let gone = 0;
+  const client = {
+    profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34, phrases: [{ id: "p1" }, { id: "p2", expires_at: now + 3000 }] }),
+    likes: (after?: string) => Promise.resolve(after ? { items: [card("l3", "c")], next: null } : { items: [card("l1", "a"), card("l2", "b")], next: "x_y" }),
+    inbox: () => Promise.resolve([
+      { kind: "chat", id: "c1", chat_expires_at: now + 10 * 60, state: "open" },
+      { kind: "chat", id: "c2", chat_expires_at: now + 200 * 60, state: "open" },
+      { kind: "match", id: "m1" },
+    ]),
+    stepAway: (span: string) => { went.push(span); return Promise.resolve(now + 1200); },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(StepAway, { say, client: client as any, onGone: () => gone++, onBack: () => {}, onError: () => {} }));
+  await settle(150);
+  assert.match(app.lastFrame()!, /выберите срок — посчитаем, что он стоит/, "a span looks preselected");
+  await type(app, ENTER);
+  assert.deepEqual(went, [], "'step away' went without a chosen span");
+  await type(app, DOWN);
+  assert.match(app.lastFrame()!, /фраз исчезнет: 2 · лайков снимется: 3 · бесед не переживут: 1 из 2/,
+    "the price is not counted from the phrases, the likes and the conversations");
+  await type(app, DOWN);
+  assert.match(app.lastFrame()!, /бесед не переживут: 1 из 2/);
+  await type(app, DOWN);
+  assert.match(app.lastFrame()!, /бесед не переживут: 2 из 2/, "a longer span did not cost more conversations");
+  await type(app, ENTER);
+  await settle();
+  assert.deepEqual(went, ["long"], "'step away' did not go for the chosen span");
+  assert.equal(gone, 1);
+  app.unmount();
+});
+
+test("the away screen says until when, and coming back asks once more", async () => {
+  let back = 0;
+  let calls = 0;
+  const until = Math.floor(Date.now() / 1000) + 41 * 60;
+  const client = { comeBack: () => { calls++; return Promise.resolve(); } };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Away, { say, client: client as any, until, onBack: () => back++, onError: () => {} }));
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /Вы отошли\. Фразы сняты, беседы ждут\./);
+  assert.match(frame, /до \d\d:\d\d · осталось 4[01] мин/, "the away screen does not say until when");
+  assert.doesNotMatch(frame, /signal|входящие/, "the away screen shows the product");
+  await type(app, ENTER);
+  assert.equal(calls, 0, "coming back did not ask first");
+  assert.match(app.lastFrame()!, /вы хотели перерыв, точно возвращаемся\?/);
+  await type(app, ENTER);
+  await settle();
+  assert.equal(calls, 1);
+  assert.equal(back, 1, "coming back did not leave the away screen");
+  app.unmount();
+});
+
+test("a peer who stepped away is marked over the input, until their first line", async () => {
+  const frames: Array<{ type: string; seq: number; data: unknown }> = [
+    { type: "sys", seq: 1, data: { kind: "peer_stepped_away" } },
+  ];
+  let wake: () => void = () => {};
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+    openRoom: () => Promise.resolve({
+      next: () => frames.length > 0 ? Promise.resolve(frames.shift()!) : new Promise((r) => (wake = () => r(frames.shift()!))),
+      close: () => {},
+      closed: new Promise(() => {}),
+    }),
+    read: () => Promise.resolve("я вернулся"),
+  };
+  const app = render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "c3", name: "Аня", age: 34, limit: 256, span: 60, endsAt: Math.floor(Date.now() / 1000) + 3000,
+    onBack: () => {}, onError: () => {},
+  }));
+  await settle(150);
+  assert.match(app.lastFrame()!, /отошёл/, "the other side's step away is not marked");
+  assert.match(app.lastFrame()!, /отправить/, "the input died while the other side is away");
+  frames.push({ type: "message", seq: 2, data: { id: "x", ciphertext: "y" } });
+  wake();
+  await settle(150);
+  assert.doesNotMatch(app.lastFrame()!, /отошёл/, "the mark stayed after the other side's own line");
   app.unmount();
 });

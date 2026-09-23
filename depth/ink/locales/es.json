@@ -107,5 +107,18 @@
   "chat.spanLong260": "mientras hablamos",
   "chat.expired": "El plazo terminó; la conversación ya no existe.",
   "chat.ended": "La conversación terminó.",
-  "chat.toFeed": "Volver al feed"
+  "chat.toFeed": "Volver al feed",
+  "away.item": "ausentarse",
+  "away.pick": "elige una duración — calcularemos lo que cuesta",
+  "away.short": "20 minutos",
+  "away.hour": "una hora",
+  "away.long": "4 horas",
+  "away.price": "frases que desaparecerán: {phrases} · me gusta retirados: {likes} · conversaciones que no sobrevivirán: {chats} de {of}",
+  "away.warning": "Tus frases desaparecerán junto con sus me gusta, tus me gusta en frases y mesas ajenas se retirarán y las propuestas de hablar se quemarán. Las conversaciones viven según sus propios plazos: esta pausa solo la sobrevivirán aquellas cuyo plazo sea más largo que la pausa contando desde tu último mensaje — cuántas exactamente, se indica arriba. Si estás sentado a una mesa, te levantarás de ella — el juego seguirá sin ti. Una frase que aún espera su revisión desaparecerá con las demás. El límite horario de publicaciones y la pausa tras los rechazos sobreviven a la pausa: al volver tendrás cuatro plazas libres, pero no una hora nueva.",
+  "away.go": "Ausentarse",
+  "away.line": "Te has ausentado. Las frases están retiradas, las conversaciones esperan.",
+  "away.until": "hasta las {time} · quedan {minutes} min",
+  "away.back": "volver",
+  "away.sure": "querías un descanso — ¿seguro que volvemos?",
+  "chat.peerAway": "ausente"
 }

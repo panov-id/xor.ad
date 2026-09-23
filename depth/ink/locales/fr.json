@@ -107,5 +107,18 @@
   "chat.spanLong260": "tant qu'on parle",
   "chat.expired": "Le délai est écoulé ; la conversation n'existe plus.",
   "chat.ended": "La conversation est terminée.",
-  "chat.toFeed": "Retour au fil"
+  "chat.toFeed": "Retour au fil",
+  "away.item": "s'absenter",
+  "away.pick": "choisissez une durée — nous calculerons ce qu'elle coûte",
+  "away.short": "20 minutes",
+  "away.hour": "une heure",
+  "away.long": "4 heures",
+  "away.price": "phrases qui disparaîtront : {phrases} · likes retirés : {likes} · conversations qui ne survivront pas : {chats} sur {of}",
+  "away.warning": "Vos phrases disparaîtront avec leurs likes, vos likes sur les phrases et tables des autres seront retirés, et les propositions de parler brûleront. Les conversations vivent selon leurs propres délais : cette pause ne sera survécue que par celles dont le délai dépasse la pause, à compter de votre dernier message — combien exactement, c'est indiqué plus haut. Si vous êtes assis à une table, vous la quitterez — la partie continuera sans vous. Une phrase qui attend encore sa vérification disparaîtra avec les autres. La limite horaire de publication et la pause après les refus survivent à la pause : à votre retour, vous aurez quatre places libres, mais pas une nouvelle heure.",
+  "away.go": "S'absenter",
+  "away.line": "Vous vous êtes absenté. Les phrases sont retirées, les conversations attendent.",
+  "away.until": "jusqu'à {time} · reste {minutes} min",
+  "away.back": "revenir",
+  "away.sure": "vous vouliez une pause — on revient vraiment ?",
+  "chat.peerAway": "absent"
 }

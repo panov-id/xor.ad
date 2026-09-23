@@ -107,5 +107,18 @@
   "chat.spanLong260": "while we're talking",
   "chat.expired": "The span ran out; the conversation is gone.",
   "chat.ended": "The conversation has ended.",
-  "chat.toFeed": "Back to the feed"
+  "chat.toFeed": "Back to the feed",
+  "away.item": "step away",
+  "away.pick": "choose a duration — we will count what it costs",
+  "away.short": "20 minutes",
+  "away.hour": "an hour",
+  "away.long": "4 hours",
+  "away.price": "phrases to vanish: {phrases} · likes to be taken back: {likes} · conversations not to survive: {chats} of {of}",
+  "away.warning": "Your phrases will vanish along with their likes, your likes on others' phrases and tables will be taken back, and offers to talk will burn. Conversations run on their own timers: this break is survived only by those whose span outlasts it, counting from your last message — how many, it says above. If you are sitting at a table, you will stand up from it — the game goes on without you. A phrase still waiting for its check will vanish with the rest. The hourly posting limit and the pause after refusals outlast the break: when you come back you get four free places, not a fresh hour.",
+  "away.go": "Step away",
+  "away.line": "You have stepped away. Phrases are down, conversations are waiting.",
+  "away.until": "until {time} · {minutes} min left",
+  "away.back": "come back",
+  "away.sure": "you wanted a break; are you sure?",
+  "chat.peerAway": "stepped away"
 }

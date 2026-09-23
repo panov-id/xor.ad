@@ -107,5 +107,18 @@
   "chat.spanLong260": "danışdıqca",
   "chat.expired": "Müddət bitdi, yazışma artıq yoxdur.",
   "chat.ended": "Söhbət bitdi.",
-  "chat.toFeed": "Lentə qayıt"
+  "chat.toFeed": "Lentə qayıt",
+  "away.item": "uzaqlaşmaq",
+  "away.pick": "müddəti seçin — dəyərini hesablayaq",
+  "away.short": "20 dəqiqə",
+  "away.hour": "bir saat",
+  "away.long": "4 saat",
+  "away.price": "yox olacaq ifadələr: {phrases} · götürüləcək bəyənmələr: {likes} · davam etməyəcək söhbətlər: {chats} / {of}",
+  "away.warning": "İfadələriniz bəyənmələri ilə birlikdə yox olacaq, başqalarının ifadələrinə və masalarına qoyduğunuz bəyənmələr götürüləcək, danışmaq təklifləri isə yanacaq. Söhbətlər öz müddətləri ilə yaşayır: bu fasiləyə yalnız son replikanız nəzərə alınmaqla müddəti fasilədən uzun olanlar davam gətirəcək — dəqiq neçəsi yuxarıda deyilib. Masada oturursunuzsa — ondan qalxacaqsınız, oyun sizsiz davam edəcək. Hələ yoxlanmanı gözləyən ifadə qalanları ilə birlikdə yox olacaq. Saatlıq dərc limiti və imtinalardan sonrakı fasilə fasiləyə davam gətirir: qayıdanda dörd boş yer alacaqsınız, amma yeni saat yox.",
+  "away.go": "Uzaqlaş",
+  "away.line": "Siz uzaqlaşdınız. İfadələr götürüldü, söhbətlər gözləyir.",
+  "away.until": "{time} qədər · {minutes} dəq qaldı",
+  "away.back": "qayıt",
+  "away.sure": "fasilə istəyirdiniz — doğrudan qayıdırıq?",
+  "chat.peerAway": "uzaqlaşdı"
 }

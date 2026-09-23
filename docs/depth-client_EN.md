@@ -1057,8 +1057,23 @@ enter (2026-09-22). On top, the name and age from `GET /identities/me`, read-onl
 that open the screens already built: the red "Restrictions: N" (if any), "liked", "hidden · N",
 "Blocked: N" (if any). These items left the feed's menu — the row no longer fit a hundred
 columns. Not built: editing the name, age and languages (the `name_frozen` refusal has no
-terminal text), appearance, the silence and area defaults, hints, stepping away, support, the
-console.
+terminal text), appearance, the silence and area defaults, hints, support, the console.
+
+**Stepping away — built 2026-09-23** (`depth/ink/rooms.ts`, `StepAway`, `Away`; the node —
+`routes/away.ts`). The last row of `me` is "step away". The choice screen: 20 minutes, an hour,
+4 hours, nothing preselected, the line "choose a duration — we will count what it costs", "Step
+away" dead until a choice; the warning is screen 20's words. **The price is numbers after labels,
+in the terminal's voice (owner's decision, 2026-09-23):** "phrases to vanish: 3 · likes to be
+taken back: 5 · conversations not to survive: 2 of 7"; the storefronts keep their inflected
+sentence (`sosed.place/docs/20-step-away_EN.md`). Phrases come from `phrases` in
+`GET /identities/me`, likes by paging `GET /likes`, conversations are those whose own end
+(`chat_expires_at`) comes before the break's. While away — "You have stepped away. Phrases are
+down, conversations are waiting.", "until 15:02 · 41 min left" and "come back" with a second press
+on "you wanted a break; are you sure?"; when the span is over the screen goes to the feed by
+itself. In a conversation the other side sees "stepped away" over the input on the
+`peer_stepped_away` frame, the input stays live, and their first line takes the mark off. Not
+built: the mark in the answer to opening a conversation (the node sends it only as an event),
+tables, closing the sockets on stepping away.
 
 ---
 

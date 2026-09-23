@@ -107,5 +107,18 @@
   "chat.spanLong260": "gaplashguncha",
   "chat.expired": "Muddat tugadi, yozishma endi yo'q.",
   "chat.ended": "Suhbat tugadi.",
-  "chat.toFeed": "Lentaga qaytish"
+  "chat.toFeed": "Lentaga qaytish",
+  "away.item": "chetga chiqish",
+  "away.pick": "muddatni tanlang — narxini hisoblaymiz",
+  "away.short": "20 daqiqa",
+  "away.hour": "bir soat",
+  "away.long": "4 soat",
+  "away.price": "yo'qoladigan iboralar: {phrases} · olib tashlanadigan layklar: {likes} · chidamaydigan suhbatlar: {chats} / {of}",
+  "away.warning": "Iboralaringiz layklari bilan birga yo'qoladi, boshqalarning iboralari va stollariga qo'ygan layklaringiz olib tashlanadi, gaplashish takliflari esa yonib ketadi. Suhbatlar o'z muddatlari bilan yashaydi: bu tanaffusga faqat oxirgi replikangizni hisobga olganda muddati tanaffusdan uzunroq bo'lganlari chidaydi — aniq nechtasi yuqorida aytilgan. Agar stol atrofida o'tirgan bo'lsangiz — undan turasiz, o'yin sizsiz davom etadi. Hali tekshiruvni kutayotgan ibora qolganlari bilan birga yo'qoladi. Soatlik e'lon chegarasi va rad etishlardan keyingi pauza tanaffusga chidaydi: qaytganingizda to'rtta bo'sh o'rin olasiz, lekin yangi soat emas.",
+  "away.go": "Chetga chiqish",
+  "away.line": "Siz chetga chiqdingiz. Iboralar olib tashlandi, suhbatlar kutmoqda.",
+  "away.until": "{time} gacha · {minutes} daq qoldi",
+  "away.back": "qaytish",
+  "away.sure": "tanaffus xohlagandingiz — rostdan qaytamizmi?",
+  "chat.peerAway": "chetga chiqdi"
 }

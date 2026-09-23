@@ -97,6 +97,18 @@ Deno.test({ name: "a job's payload is stored as an object a handler can read", .
   assertEquals(row, { t: "object", id: "abc" }, "the payload went in as a JSON string");
 });
 
+Deno.test({ name: "a standing job's payload is an object too", ...pool }, async () => {
+  // enqueueOnce goes through enqueueOrThrow, which had the same cast.
+  const { enqueueOnce } = await import("../src/lib/jobs.ts");
+  const kind = `payload-once-${crypto.randomUUID()}`;
+  await enqueueOnce(kind, { days: 3 });
+  const [row] = await queryOrThrow<{ t: string; days: string | null }>(
+    `SELECT jsonb_typeof(payload) AS t, payload->>'days' AS days FROM jobs WHERE kind = $1`,
+    [kind],
+  );
+  assertEquals(row, { t: "object", days: "3" }, "a standing job's payload went in as a JSON string");
+});
+
 Deno.test({ name: "a slow letter about a tombstone does not undo the report", ...pool }, async () => {
   const id = await tombstone(PRUNE_DSA);
   Deno.env.set("DSA_ESCALATION_EMAILS", "ops@example.org");

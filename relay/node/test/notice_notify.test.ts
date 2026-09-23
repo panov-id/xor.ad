@@ -173,7 +173,19 @@ Deno.test({ name: "a moderator deciding a notice does not wait on the mail", ...
     }
     return true;
   });
-  await sending;
+  // Bounded: if the pass never takes the notice, this is red, not a hung suite
+  // (the verifier's run of 23.09.2026 hung here for nine minutes).
+  let timer = 0;
+  const reachedInTime = await Promise.race([
+    sending.then(() => true),
+    new Promise<boolean>((resolve) => timer = setTimeout(() => resolve(false), 5000)),
+  ]);
+  clearTimeout(timer);
+  if (!reachedInTime) {
+    release();
+    await pass;
+  }
+  assertEquals(reachedInTime, true, "the pass never took the notice");
   // What routes/dsa.ts does to decide: lock the row. It must not wait on a letter.
   const locked = await transaction(async (run) => {
     await run(`SET LOCAL lock_timeout = '500ms'`);

@@ -106,9 +106,16 @@ function ensureListeningSys(): Promise<void> {
   listeningSys ??= listen("chat_sys", (payload) => {
     const cut = payload.indexOf("|");
     if (cut < 0) return;
-    let data: unknown;
+    let data: Record<string, unknown>;
     try { data = JSON.parse(payload.slice(cut + 1)); } catch { return; }
-    for (const room of rooms.get(payload.slice(0, cut)) ?? []) frame(room, "sys", data);
+    // `except`: sessions the line is not for — one's own devices, when it is
+    // one's own step away (routes/away.ts). Never sent on.
+    const except = Array.isArray(data.except) ? new Set(data.except as string[]) : null;
+    delete data.except;
+    for (const room of rooms.get(payload.slice(0, cut)) ?? []) {
+      if (except?.has(room.session)) continue;
+      frame(room, "sys", data);
+    }
   });
   return listeningSys;
 }

@@ -3526,6 +3526,10 @@ Deno.test({
     assertEquals(await likeCount(theirs), 1);
     const [before] = await database.queryOrThrow<{ likes_received: number }>(
       `SELECT likes_received FROM identity_stats WHERE identity = $1`, [c.identity_id]);
+    const given = async () => Number((await database.queryOrThrow<{ likes_given: number }>(
+      `SELECT likes_given FROM identity_stats WHERE identity = $1`, [a.identity_id]))[0].likes_given);
+    const givenBefore = await given();
+    assert(givenBefore >= 2, "the fixture gave fewer likes than it meant to");
 
     const t0 = Math.floor(Date.now() / 1000);
     const away = await matchCall(a, "POST", "/away", { span: "short", nonce: awayNonce() });
@@ -3543,6 +3547,7 @@ Deno.test({
     const [after] = await database.queryOrThrow<{ likes_received: number }>(
       `SELECT likes_received FROM identity_stats WHERE identity = $1`, [c.identity_id]);
     assertEquals(Number(after.likes_received), Number(before.likes_received) - 1, "the author's received count did not move back");
+    assertEquals(await given(), givenBefore - 2, "one's own given count did not move back by the likes taken");
     assert(await count(`SELECT count(*)::text AS n FROM feed_messages WHERE author_identity = $1`, b.identity_id) > 0,
       "the other side's phrases went with one's own");
     const [mark] = await database.queryOrThrow<{ away_marked: boolean }>(

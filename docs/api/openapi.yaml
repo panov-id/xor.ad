@@ -2787,8 +2787,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/away.ts
       security: [{identitySignature: []}]
-      description: "span short/hour/long (away.span.*). In one transaction the phrases go with their likes and so do the likes you gave (likes, table_likes; 2026-09-18), matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}."
-      x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками и поставленные лайки (likes, table_likes; 18.09.2026), гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}."
+      description: "span short/hour/long (away.span.*). In one transaction the phrases go with their likes and so do the likes you gave (likes, table_likes; 2026-09-18), matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}. Built 2026-09-23 without what the node does not have: tables, table_likes, games, the seat; sockets are not closed (protocol §4.9)."
+      x-description-ru: "span short/hour/long (away.span.*). Одной транзакцией снимаются фразы с лайками и поставленные лайки (likes, table_likes; 18.09.2026), гаснут мэтчи, удаляются партии, место освобождается, во все беседы уходит peer_stepped_away (спека чата §8.2). Отвечает {until}. Построено 23.09.2026 без того, чего на узле нет: столов, table_likes, партий, места; сокеты не закрываются (протокол §4.9)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -2796,9 +2796,10 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Away"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "409": {$ref: "#/components/responses/NonceReused"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "409": {description: "stepped_away: already away — a second press or a repeat after a lost answer; the profile says until when. Or the nonce was used on another route.", x-description-ru: "stepped_away: уже в отлучке — второе нажатие или повтор после потерянного ответа; до когда — в профиле. Либо nonce уже был на другом маршруте.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "400": {description: "invalid_body: span not short/hour/long, or a nonce that is not 16 bytes of base64url; or an unsupported protocol version.", x-description-ru: "invalid_body: span не short/hour/long или nonce не 16 байт base64url; или неподдерживаемая версия протокола.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: Until when., x-description-ru: До когда., content: {application/json: {schema: {type: object, properties: {until: {type: integer, format: unix-seconds}}}}}}
     delete:
       tags: [safety]
@@ -2817,6 +2818,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "204": {description: Done., x-description-ru: Сделано.}
   /support:
     post:
@@ -2888,8 +2890,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
-      description: "name, name_pending, age, filters, languages, stepped_away_until (screen 10)."
-      x-description-ru: "name, name_pending, age, фильтры, языки, stepped_away_until (экран 10)."
+      description: "name, name_pending, age, filters, languages, stepped_away_until, phrases — one's own live ones, a waiting one without expires_at (screen 10; phrases since 2026-09-23)."
+      x-description-ru: "name, name_pending, age, фильтры, языки, stepped_away_until, phrases — свои живые, ждущая без expires_at (экран 10; phrases с 23.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}

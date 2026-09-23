@@ -1082,7 +1082,8 @@ on "you wanted a break; are you sure?"; when the span is over the screen goes to
 itself. In a conversation the other side sees "stepped away" over the input on the
 `peer_stepped_away` frame, the input stays live, and their first line takes the mark off. Not
 built: the mark in the answer to opening a conversation (the node sends it only as an event),
-tables, closing the sockets on stepping away.
+tables, closing the sockets on stepping away, the offer to step away after an hour (the hour
+counter on the client, chat spec §8.2).
 
 ---
 

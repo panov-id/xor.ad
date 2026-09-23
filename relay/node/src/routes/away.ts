@@ -37,7 +37,21 @@ import { log } from "../lib/log.ts";
 export const AWAY_SPANS = { short: 20, hour: 60, long: 240 } as const;
 type SpanName = keyof typeof AWAY_SPANS;
 
+class AwayRetry extends Error {}
+
 async function stepAway(req: Request): Promise<Response> {
+  // A like on a new author racing the step away is rare; three tries cover it.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await stepAwayOnce(req.clone());
+    } catch (error) {
+      if (!(error instanceof AwayRetry)) throw error;
+    }
+  }
+  return refuse("unavailable", "the node cannot write right now", 503);
+}
+
+async function stepAwayOnce(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   const body = await req.json().catch(() => null) as { span?: unknown; nonce?: unknown } | null;
@@ -70,28 +84,49 @@ async function stepAway(req: Request): Promise<Response> {
 
     // The counters of everyone whose phrase one liked, and one's own, locked
     // in one order — the order the like and the take-back use (likes.ts), or
-    // the two deadlock on the same people.
-    const liked = await run<{ feed_message_id: string; author: string }>(
-      `SELECT l.feed_message_id, f.author_identity AS author
+    // the two deadlock on the same people. Then the liked phrases' rows, so
+    // the expiry sweep (which holds a phrase and cascades into its likes)
+    // cannot meet us the other way round.
+    const guess = await run<{ author: string }>(
+      `SELECT DISTINCT f.author_identity AS author
          FROM likes l JOIN feed_messages f ON f.id = l.feed_message_id
-        WHERE l.liker_identity = $1`,
+        WHERE l.liker_identity = $1 AND f.author_identity IS NOT NULL`,
       [me],
     );
+    const lockedAuthors = new Set(guess.map((g) => g.author));
     await run(`SET LOCAL lock_timeout = '2s'`);
     await run(
       `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
-      [[me, ...new Set(liked.map((l) => l.author))]],
+      [[me, ...lockedAuthors]],
+    );
+    await run(
+      `SELECT 1 FROM feed_messages WHERE id IN (SELECT feed_message_id FROM likes WHERE liker_identity = $1)
+        ORDER BY id FOR UPDATE`,
+      [me],
     );
 
-    // The likes one gave, taken back with their counts.
+    // The likes one gave, taken back with their counts — counted from what the
+    // DELETE itself removed, not from the list read before the locks: a like
+    // or a take-back from one's other device between the two used to be
+    // counted wrong for somebody else (review panel 23.09.2026, both lenses).
+    const liked = await run<{ feed_message_id: string; author: string | null }>(
+      `WITH gone AS (DELETE FROM likes WHERE liker_identity = $1 RETURNING feed_message_id)
+       SELECT g.feed_message_id, f.author_identity AS author
+         FROM gone g JOIN feed_messages f ON f.id = g.feed_message_id`,
+      [me],
+    );
+    if (liked.some((l) => l.author !== null && !lockedAuthors.has(l.author))) {
+      // A like on a new author landed between the guess and the lock: that
+      // author's counter is not held. Start again rather than write it unheld.
+      throw new AwayRetry();
+    }
     if (liked.length > 0) {
-      await run(`DELETE FROM likes WHERE liker_identity = $1`, [me]);
       await run(
         `UPDATE feed_messages SET like_count = greatest(like_count - 1, 0) WHERE id = ANY($1::uuid[])`,
         [liked.map((l) => l.feed_message_id)],
       );
       const byAuthor = new Map<string, number>();
-      for (const l of liked) byAuthor.set(l.author, (byAuthor.get(l.author) ?? 0) + 1);
+      for (const l of liked) if (l.author) byAuthor.set(l.author, (byAuthor.get(l.author) ?? 0) + 1);
       for (const [author, n] of byAuthor) {
         await run(
           `UPDATE identity_stats SET likes_received = greatest(likes_received - $2, 0), updated_at = now()
@@ -115,7 +150,9 @@ async function stepAway(req: Request): Promise<Response> {
     // A match that already became a conversation is left: the conversation
     // lives by its own clocks.
     await run(
-      `UPDATE matches SET expires_at = least(expires_at, now())
+      // A second back: a consent that started before this transaction checks
+      // `expires_at > now()` with its own, earlier now() (review panel).
+      `UPDATE matches SET expires_at = least(expires_at, now() - interval '1 second')
         WHERE chat_id IS NULL AND id IN (SELECT match_id FROM match_participants WHERE identity = $1)`,
       [me],
     );
@@ -126,8 +163,14 @@ async function stepAway(req: Request): Promise<Response> {
         WHERE identity = $1 AND gone_at IS NULL RETURNING chat_id`,
       [me],
     );
+    // Not to one's own rooms: another device of the same person has the
+    // conversation open too, and must not be told its own person stepped
+    // away. The node drops `except` before the frame leaves (chat/relay.ts).
+    const sessions = (await run<{ id: string }>(`SELECT id FROM sessions WHERE identity = $1`, [me])).map((s) => s.id);
     for (const { chat_id } of chats) {
-      await run(`SELECT pg_notify('chat_sys', $1)`, [`${chat_id}|${JSON.stringify({ kind: "peer_stepped_away" })}`]);
+      await run(`SELECT pg_notify('chat_sys', $1)`, [
+        `${chat_id}|${JSON.stringify({ kind: "peer_stepped_away", except: sessions })}`,
+      ]);
     }
 
     const [until] = await run<{ until: string }>(
@@ -144,6 +187,7 @@ async function stepAway(req: Request): Promise<Response> {
     inc("relay_away_total", { span: body.span as string });
     return json(answer, 200, sunsetHeader());
   }).catch((error) => {
+    if (error instanceof AwayRetry) throw error;
     log("error", "stepping away failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });

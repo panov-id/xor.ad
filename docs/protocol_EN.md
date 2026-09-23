@@ -237,10 +237,10 @@ itself, 4000–4999 are the application's. Hence:
 | `seat` | someone sat down, stood up, was removed or became a spectator: `{playing, watching}` — counts, not identities | §6.1 |
 | `proposal` | an offer to play again, a draw or an undo, and the answer to it: `{id, kind, class, set, answer}` | §6 |
 | `confirm` | the countdown of confirming a new game: `{confirmed, of, until}`; for two, `confirmed`/`of` are not sent | §6 |
-| `peer_stepped_away` | the other person stepped away: `{}` — no span; nobody's timestamps leave the node | §8.2 "stepped away" |
+| `peer_stepped_away` | [retired 2026-09-23: built not as a type of its own but as a `sys` line with `kind: peer_stepped_away`, see below] the other person stepped away: `{}` — no span; nobody's timestamps leave the node | §8.2 "stepped away" |
 | `rekey` | the other side asked for new keys for the conversation, or agreed: `{epoch}` (§8.13, 2026-09-22) — the client rereads `GET /inbox` and asks the person |
 | `name_verdict` | the queue's verdict on a name change: `{accepted, reason}` — only to the socket of your own session; on a table name the same with `table: id` (2026-09-17) | §8.2, §6.1 |
-| `sys` | a system line of the conversation, not encrypted: `{kind, text}`, `kind` is `chat_opened`, `game_offer`, `age_changed`, `move` (chat spec §6 and §8.6); added 2026-09-16, CON-14. **`age_changed` is built (2026-09-22) without `text`:** `{kind: age_changed, age}` — the number, the client words the line in its own language (the owner's decision) | §6, §8.2 |
+| `sys` | a system line of the conversation, not encrypted: `{kind, text}`, `kind` is `chat_opened`, `game_offer`, `age_changed`, `move`, `peer_stepped_away` (chat spec §6 and §8.6; `peer_stepped_away` since 2026-09-23, with no fields, never sent to the sessions of the one who stepped away); added 2026-09-16, CON-14. **`age_changed` is built (2026-09-22) without `text`:** `{kind: age_changed, age}` — the number, the client words the line in its own language (the owner's decision) | §6, §8.2 |
 | `closed` | the reason before code 4002/4003: `{code}` | this section |
 
 The frame envelope is `{type, seq, data}`; `seq` grows on the socket and lets the client notice a gap and re-read the state with a `GET`; `GET /tables/:id` and `GET /chats/:id/game` return the open proposal and the running countdown (`pending`) along with the board, so after code 1001 the state comes back whole (2026-09-16, OPS-12). The protocol version rides in `Sec-WebSocket-Protocol` next to the ticket: `xor.p1, ticket.<ticket>`; an unsupported one gets code 4004.

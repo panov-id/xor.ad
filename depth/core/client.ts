@@ -380,8 +380,16 @@ export class Client {
   // transaction takes one's phrases, given likes and matches (§8.2). The
   // answer is when it ends.
   async stepAway(span: "short" | "hour" | "long"): Promise<number> {
-    const answer = await this.#call<{ until: number }>("POST", "/away", { span, nonce: base64url(random(16)) });
-    if (answer.status !== 200) throw new Error(`stepping away refused: ${answer.status}`);
+    const answer = await this.#call<{ until: number; error?: { code?: string } }>(
+      "POST", "/away", { span, nonce: base64url(random(16)) },
+    );
+    // A lost answer and a second press both meet 409 stepped_away: the step
+    // away did happen, and the profile says until when (review panel 23.09.2026).
+    if (answer.status === 409 && answer.body?.error?.code === "stepped_away") {
+      const until = (await this.profile()).stepped_away_until;
+      if (typeof until === "number" && Number.isFinite(until)) return until;
+    }
+    if (answer.status !== 200 || !Number.isFinite(answer.body.until)) throw new Error(`stepping away refused: ${answer.status}`);
     return answer.body.until;
   }
 

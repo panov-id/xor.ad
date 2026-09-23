@@ -382,3 +382,34 @@ Deno.test({
     }
   },
 });
+
+// Stepping away (§8.2): the other side's open room hears it as a sys line with
+// no trace of who else is listening; one's own open room hears nothing — it is
+// not news to oneself (review panel 23.09.2026).
+Deno.test({
+  name: "a step away reaches the other side's room, and not one's own",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId } = await chatBetween(sql);
+      const theirs = await b.openRoom(chatId);
+      const mine = await a.openRoom(chatId);
+      await theirs.protocol();
+      await mine.protocol();
+      await a.stepAway("short");
+      const heard = await theirs.next();
+      assertEquals(heard.type, "sys", "the other side's room did not hear the step away");
+      assertEquals(heard.data, { kind: "peer_stepped_away" }, "the line carried more than its kind");
+      let own = false;
+      try { await mine.next(400); own = true; } catch { /* nothing came: right */ }
+      assert(!own, "one's own room was told its own person stepped away");
+      theirs.close();
+      mine.close();
+    } finally {
+      await sql.end();
+    }
+  },
+});

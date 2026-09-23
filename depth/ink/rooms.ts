@@ -856,6 +856,7 @@ export function StepAway(
   },
 ): ReactElement {
   const [chosen, setChosen] = useState<number>(-1);
+  const [going, setGoing] = useState(false);
   const [counts, setCounts] = useState<{ phrases: number; likes: number; ends: number[] } | null>(null);
   useEffect(() => {
     (async () => {
@@ -905,11 +906,15 @@ export function StepAway(
     h(Text, span ? { color: "yellow" } : { dimColor: true }, price()),
     h(Text, { dimColor: true }, say("away.warning")),
     h(Menu, {
-      actions: [{ key: "go", label: say("away.go"), disabled: span === null }, { key: "back", label: say("common.back") }],
+      actions: [{ key: "go", label: say("away.go"), disabled: span === null || going }, { key: "back", label: say("common.back") }],
       onPick: (key) => {
         if (key === "back") return onBack();
-        if (!span) return;
-        client.stepAway(span).then(onGone).catch((e: Error) => onError(e.message));
+        if (!span || going) return;
+        setGoing(true);
+        client.stepAway(span).then(onGone).catch((e: Error) => {
+          setGoing(false);
+          onError(e.message);
+        });
       },
       hint: say("common.rowActions"),
     }),

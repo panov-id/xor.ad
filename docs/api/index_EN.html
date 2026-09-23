@@ -577,7 +577,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-identities-me">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-built">built</span></div>
 <p><strong>Your own profile</strong></p>
-<p>name, name_pending, age, filters, languages, stepped_away_until (screen 10).</p>
+<p>name, name_pending, age, filters, languages, stepped_away_until, phrases — one&#x27;s own live ones, a waiting one without expires_at (screen 10; phrases since 2026-09-23).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The profile.</td><td><a href="#schema-profile"><code>Profile</code></a></td></tr></table></div>
@@ -1119,12 +1119,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-away">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/away</code><span class="chip s-built">built</span></div>
 <p><strong>Step away</strong></p>
-<p>span short/hour/long (away.span.*). In one transaction the phrases go with their likes and so do the likes you gave (likes, table_likes; 2026-09-18), matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}.</p>
+<p>span short/hour/long (away.span.*). In one transaction the phrases go with their likes and so do the likes you gave (likes, table_likes; 2026-09-18), matches die, games are deleted, the seat is freed, every conversation gets peer_stepped_away (chat spec §8.2). Answers {until}. Built 2026-09-23 without what the node does not have: tables, table_likes, games, the seat; sockets are not closed (protocol §4.9).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-away"><code>Away</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Until when.</td><td><code>object</code></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>stepped_away: already away — a second press or a repeat after a lost answer; the profile says until when. Or the nonce was used on another route.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>400</code></td><td>invalid_body: span not short/hour/long, or a nonce that is not 16 bytes of base64url; or an unsupported protocol version.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Until when.</td><td><code>object</code></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/away.ts</code></p>
 </section>
 <section class="op" id="delete-away">
@@ -1133,7 +1133,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>stepped_away_until = now(); the mark at the other end is lifted by your first line, not by this request (chat spec §8.2).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/away.ts</code></p>
 </section>
 <h2 id="tag-offers">offers</h2>

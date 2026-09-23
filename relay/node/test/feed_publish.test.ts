@@ -3642,12 +3642,17 @@ Deno.test({ name: "the verdict waits on the author's counters before the phrase,
     [waiting, me.identity_id],
   );
   const { publishPhrase } = await import("../src/lib/feed_verdict.ts");
+  // The holder says when it has the counters, rather than a pause that a slow
+  // run could outlast into a false green (panel, data lens).
+  let gotCounters!: () => void;
+  const counters = new Promise<void>((r) => (gotCounters = r));
   const holder = database.transaction(async (run) => {
     await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [me.identity_id]);
+    gotCounters();
     await pause(300);
     await run(`SELECT 1 FROM feed_messages WHERE id = $1 FOR UPDATE`, [waiting]);
   });
-  await pause(50);
+  await counters;
   const verdict = publishPhrase(waiting);
   const [held, decided] = await Promise.allSettled([holder, verdict]);
   assertEquals(held.status, "fulfilled", `the counter holder died: ${JSON.stringify(held)}`);
@@ -3657,19 +3662,22 @@ Deno.test({ name: "the verdict waits on the author's counters before the phrase,
 
 Deno.test({ name: "consent waits on the pair's counters before the match, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await freshMatch();
-  // The other side first: only the consent that opens the chat locks the
-  // counters, so that is the one to race (the first one only waits).
+  // The other side first: the consent that opens the chat is the one that
+  // writes counters, so that is the one to race.
   assertEquals((await consent(b, id)).status, 200);
+  let gotCounters!: () => void;
+  const counters = new Promise<void>((r) => (gotCounters = r));
   const holder = database.transaction(async (run) => {
     await run(
       `SELECT 1 FROM identity_stats WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
         ORDER BY identity FOR UPDATE`,
       [id],
     );
+    gotCounters();
     await pause(300);
     await run(`SELECT 1 FROM matches WHERE id = $1 FOR UPDATE`, [id]);
   });
-  await pause(50);
+  await counters;
   const agreed = consent(a, id);
   const [held, answered] = await Promise.allSettled([holder, agreed]);
   assertEquals(held.status, "fulfilled", `the counter holder died: ${JSON.stringify(held)}`);

@@ -100,7 +100,11 @@ async function stepAwayOnce(req: Request): Promise<Response> {
       [[me, ...lockedAuthors]],
     );
     await run(
-      `SELECT 1 FROM feed_messages WHERE id IN (SELECT feed_message_id FROM likes WHERE liker_identity = $1)
+      // Live ones only: an expired phrase the sweep has not taken yet is the
+      // sweep's to lock, in its own order, and its likes go with it by cascade
+      // — locking it here met the sweep the other way round (panel, data lens).
+      `SELECT 1 FROM feed_messages
+        WHERE id IN (SELECT feed_message_id FROM likes WHERE liker_identity = $1) AND expires_at > now()
         ORDER BY id FOR UPDATE`,
       [me],
     );

@@ -2479,7 +2479,7 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
 | Level | Available |
 |---|---|
-| Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time |
+| Feed | `feed_message.id`, text, `mode`, circle (centre **rounded to a cell** — §8.3 — + radius), `like_count`, time; in a phrase's last 65 minutes, a `soon` flag instead of its end (2026-09-23) |
 | Match | `match_id`, peer's phrase + `mode`, name, age, the remainders of both phrases (since 2026-09-14; "timer" [retired]) — the one exception to "when other phrases expire" below: the span of a phrase that has already led to a mutual like is disclosed to its counterpart |
 | Chat | `chat_id`, `chat_starters`, name, age, `idle_ttl_minutes`, `last_activity_at` |
 | Never | anyone else's `identity_id`, private keys, **authorship of feed phrases**, who liked, chat counts, conversation text, **when other phrases expire** — with a caveat: polling the feed still gives away when a phrase appears, and the public 4:20 give its end (2026-09-15, final panel SEC-7) |

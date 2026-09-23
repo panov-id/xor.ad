@@ -635,14 +635,14 @@ whole width — one card, no neighbours:
 - **The arrows repeat the web's gesture:** `→` is whatever reversible action the card has
   (a like on a phrase, a bookmark on a table; on a private person's offer `→` only pages,
   because its like breeds an offer to talk at once and cannot be taken back); `←` hides. A
-  slip is undone by the same `hidden · [u] undo` line as in the feed. `Space`, `↓`, `j` go
+  slip is undone by the same `hidden · [u] undo` line as in the feed [retired 2026-09-23: there is no undo line, the hidden come back on `me` — see "Built" below]. `Space`, `↓`, `j` go
   forward; `↑`, `k` go back. `Shift+Space` is not bound: most emulators send the same byte
   for it as for `Space`. **A table is never joined with an arrow** — only with `enter`,
   because that stands you up from the previous table.
 - **The first press of `←` or `→` does not act, it explains** (storefront screen 24, since
   2026-09-17 for keys too): the line `right — like, left — hide; hidden things come back in
   me · [enter] got it` over the card; until `enter`, neither a like nor a hide. That it has
-  been shown, the terminal remembers in `prefs.json` (§6).
+  been shown, the terminal remembers in `prefs.json` (§6) [retired 2026-09-23: there is no volume, the process remembers — see "Built" below].
 - The remainder of someone else's phrase is not shown as a number (§8.11 of the spec): in
   the last 65 minutes — the words `disappearing soon`. Your own phrase keeps the number.
 - The node does not know whether a card was opened full screen: the like and the hide are
@@ -1196,6 +1196,11 @@ sake of a long link, and left with it.
 ---
 
 ## 6. Storage
+
+**There is no volume yet (owner's decision, 2026-09-22):** an identity lives for one run and
+no volume is mounted, so nothing listed below is written to disk today — neither the keys nor
+`prefs.json`; closed hints are remembered by the process (4.4.1). Below is the shape for when a
+volume comes.
 
 **In the volume:** keys (`identity.age`, under the vault key), the accepted terms revision
 with its date, and `prefs.json` — the interface language (§9) and the list of closed hints

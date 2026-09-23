@@ -84,14 +84,18 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     // The pair's counters first, in order, as the like, the step away and the
     // profile take them — the match row used to come first, and a step away
     // of either person at the same moment deadlocked with it (review panel of
-    // the step away, 23.09.2026, data lens). Only if the caller is in it.
-    await run(
-      `SELECT 1 FROM identity_stats
-        WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
-          AND EXISTS (SELECT 1 FROM match_participants WHERE match_id = $1 AND identity = $2)
-        ORDER BY identity FOR UPDATE`,
-      [matchId, me],
-    );
+    // the step away, 23.09.2026, data lens). Only if the caller is in it, and
+    // only for a consent: "not now" and its undo write no counters, and
+    // queueing them behind a stream of likes turned them into 503s (panel).
+    if (action === "consent") {
+      await run(
+        `SELECT 1 FROM identity_stats
+          WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
+            AND EXISTS (SELECT 1 FROM match_participants WHERE match_id = $1 AND identity = $2)
+          ORDER BY identity FOR UPDATE`,
+        [matchId, me],
+      );
+    }
     // Then the match row, locked, so two consents at once see each other.
     const [live] = await run<{ id: string }>(
       `SELECT m.id FROM matches m
@@ -165,15 +169,8 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     if (existing.chat_id) {
       return json({ state: "agreed", chat_id: existing.chat_id }, 200, sunsetHeader());
     }
-    // The two identity_stats rows in order first, as the like takes them (§8.4):
-    // an UPDATE … IN (subquery) locks in scan order and could deadlock against a
-    // like of the same two people (step 5 panel, 2026-09-21, data lens).
-    await run(
-      `SELECT 1 FROM identity_stats
-        WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
-        ORDER BY identity FOR UPDATE`,
-      [matchId],
-    );
+    // The two identity_stats rows are already held, taken in order at the top
+    // of this transaction (step 5 panel, 2026-09-21; step away panel, 2026-09-23).
     // A chat of the pair that is over for both and not yet swept is not a
     // chat to join: it goes first, and the pair gets a new one. Joining it put
     // two people back into a conversation that had ended for both, with the

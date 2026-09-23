@@ -970,6 +970,9 @@ export function Away(
 // node decides and says why not; the words for its refusals were approved by
 // the owner on 23.09.2026 (refusal-wordings §5). Crossing 20/21 upwards is
 // asked before saving, since it cannot be undone (§8.2).
+const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+const graphemes = (text: string, max: number) => [...segmenter.segment(text)].slice(0, max).map((s) => s.segment).join("");
+
 export function EditProfile(
   { say, client, field, current, onDone, onBack, onError }: {
     say: Say;
@@ -981,7 +984,9 @@ export function EditProfile(
     onError: (message: string) => void;
   },
 ): ReactElement {
-  const [value, setValue] = useState(current);
+  // What the node sent is drawn through plain() like everywhere else: a name
+  // pending in the queue is the node's text too (security lens, 23.09.2026).
+  const [value, setValue] = useState(plain(current, 64));
   const [asking, setAsking] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
   const hhmm = (seconds: unknown) =>
@@ -996,7 +1001,7 @@ export function EditProfile(
         if (error?.code === "name_frozen") return setRefused(say("profile.nameFrozen"));
         if (error?.code === "age_step_down") return setRefused(say("profile.ageDown"));
         if (error?.code === "paused") return setRefused(say("write.paused", { time: hhmm(error.until) }));
-        if (answer.status === 429) return setRefused(say("profile.patchDay"));
+        if (error?.code === "rate_limited") return setRefused(say("profile.patchDay"));
         onError(`the profile edit was refused: ${answer.status}`);
       })
       .catch((e: Error) => onError(e.message));
@@ -1018,7 +1023,10 @@ export function EditProfile(
       })
       : h(Form, {
         fields: [{ key: field, label: say(field === "name" ? "me.name" : "me.age"), value }],
-        onChange: (_key, next) => setValue(field === "age" ? next.replace(/[^0-9]/g, "").slice(0, 3) : next.slice(0, 64)),
+        // The name is cut at the node's own 24 graphemes (limits.tsv name.length),
+        // so a name too long never leaves to come back as a bare error.
+        onChange: (_key, next) =>
+          setValue(field === "age" ? next.replace(/[^0-9]/g, "").slice(0, 3) : graphemes(next, 24)),
         actions: [
           { key: "save", label: say("me.save"), disabled: value.trim() === "" || value.trim() === current },
           { key: "back", label: say("common.back") },

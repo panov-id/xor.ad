@@ -133,7 +133,7 @@ legal-review-brief.2026-09-15.244	2026-09-15	xor.ad/docs/legal-review-brief_RU.m
 screens.2026-09-15.23	2026-09-15	sosed.place/docs/22-appearance_RU.md:23	sosed.place/docs/22-appearance_EN.md:23	Выбор хранится у личности на узле	The choice is kept with the identity on the node
 screens.2026-09-15.43	2026-09-15	sosed.place/docs/22-appearance_RU.md:43	sosed.place/docs/22-appearance_EN.md:43	Можно ли выбрать свой цвет	Can one pick one's own colour
 chat.2026-09-15.2564	2026-09-15	xor.ad/docs/chat_RU.md:2723	xor.ad/docs/chat_EN.md:2594	перебирает акцентный цвет по кругу набора витрины	cycles the accent colour round the storefront's set
-depth-client.2026-09-15.853	2026-09-15	xor.ad/docs/depth-client_RU.md:1258	xor.ad/docs/depth-client_EN.md:882	шестнадцать цветов эмулятора	the emulator's sixteen colours
+depth-client.2026-09-15.853	2026-09-15	xor.ad/docs/depth-client_RU.md:1262	xor.ad/docs/depth-client_EN.md:882	шестнадцать цветов эмулятора	the emulator's sixteen colours
 design-system-app.2026-09-15.120	2026-09-15	xor.ad/docs/design-system-app_RU.md:514	xor.ad/docs/design-system-app_EN.md:127	токены из него не берутся	and no tokens are taken from it
 chat.2026-09-15.762	2026-09-15	xor.ad/docs/chat_RU.md:803	xor.ad/docs/chat_EN.md:764	Оформление — по строке на лицо, а не колонки личности	Appearance — one row per face, not columns on the identity
 screens.2026-09-15.41	2026-09-15	sosed.place/docs/23-phrase-viewer_RU.md:46	sosed.place/docs/23-phrase-viewer_EN.md:41	~~Что делает свайп~~	~~What a swipe does~~

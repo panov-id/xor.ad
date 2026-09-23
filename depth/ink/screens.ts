@@ -111,7 +111,14 @@ export function Feed(
       .catch((e: Error) => onError(e.message));
   }, [place.lat, place.lon, place.radius]);
   const chosen = items?.[at];
-  const drop = (id: string) => setItems((list) => (list ?? []).filter((p) => p.id !== id));
+  const drop = (id: string) => {
+    setItems((list) => {
+      const left = (list ?? []).filter((p) => p.id !== id);
+      // The cursor follows the shorter list, or ↑ would do nothing for a while.
+      setAt((i) => Math.max(0, Math.min(i, left.length - 1)));
+      return left;
+    });
+  };
   if (card && items && items.length > 0) {
     return h(Card, {
       say,
@@ -248,6 +255,9 @@ export function Card(
 ): ReactElement {
   const [hint, setHint] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  // A second arrow before the first answer came back would like or hide the
+  // same phrase twice (security lens, 23.09.2026).
+  const [busy, setBusy] = useState<string | null>(null);
   const p = items[at];
   useInput((_input, key) => {
     if (key.return) {
@@ -263,15 +273,17 @@ export function Card(
     }
     if (key.leftArrow || key.rightArrow) {
       if (!explained) return setHint(true);
-      if (!p) return;
+      if (!p || busy === p.id) return;
       if (key.leftArrow) {
         setNote(say("card.hidden"));
+        setBusy(p.id);
         return onHide(p);
       }
       // An offer's like makes an offer to talk at once and cannot be taken
       // back, so → only goes on past it (§4.4.1).
       if (p.offer !== undefined) return onMove((i) => Math.min(items.length - 1, i + 1));
       setNote(null);
+      setBusy(p.id);
       onLike(p);
     }
   });

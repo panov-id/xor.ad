@@ -91,5 +91,8 @@
   "blocked.lift": "lift",
   "inbox.notNow": "not now",
   "inbox.declined": "declined",
-  "inbox.undo": "undo"
+  "inbox.undo": "undo",
+  "me.title": "me",
+  "me.name": "name",
+  "me.age": "age"
 }

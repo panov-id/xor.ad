@@ -91,5 +91,8 @@
   "blocked.lift": "lever",
   "inbox.notNow": "pas maintenant",
   "inbox.declined": "refusé",
-  "inbox.undo": "annuler"
+  "inbox.undo": "annuler",
+  "me.title": "moi",
+  "me.name": "prénom",
+  "me.age": "âge"
 }

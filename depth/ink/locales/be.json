@@ -91,5 +91,8 @@
   "blocked.lift": "зняць",
   "inbox.notNow": "не цяпер",
   "inbox.declined": "адхілена",
-  "inbox.undo": "вярнуць"
+  "inbox.undo": "вярнуць",
+  "me.title": "я",
+  "me.name": "імя",
+  "me.age": "узрост"
 }

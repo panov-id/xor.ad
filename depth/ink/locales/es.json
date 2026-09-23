@@ -91,5 +91,8 @@
   "blocked.lift": "quitar",
   "inbox.notNow": "ahora no",
   "inbox.declined": "rechazado",
-  "inbox.undo": "deshacer"
+  "inbox.undo": "deshacer",
+  "me.title": "yo",
+  "me.name": "nombre",
+  "me.age": "edad"
 }

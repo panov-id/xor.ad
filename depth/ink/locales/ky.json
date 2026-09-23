@@ -91,5 +91,8 @@
   "blocked.lift": "алып салуу",
   "inbox.notNow": "азыр эмес",
   "inbox.declined": "четке кагылды",
-  "inbox.undo": "кайтаруу"
+  "inbox.undo": "кайтаруу",
+  "me.title": "мен",
+  "me.name": "аты",
+  "me.age": "жашы"
 }

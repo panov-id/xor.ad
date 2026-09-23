@@ -637,3 +637,70 @@ export function Blocked(
     }),
   );
 }
+
+// Me (§4.11, screen 10 of the storefronts), the rows that stand on something
+// built: the profile as the node keeps it, and the lists that used to crowd the
+// feed's row — restrictions on top, in red (refusal-wordings §6), then liked,
+// hidden and blocked. Editing the profile, languages, appearance, defaults,
+// hints, support and the console are not here yet: their terminal mechanics or
+// their refusal texts do not exist (§4.11, §9). No `m` key: the terminal moves
+// by arrows and enter only (owner, 2026-09-22), so "me" is an item of the feed.
+export type MeRow = "statements" | "liked" | "hidden" | "blocked";
+export function Me(
+  { say, client, restrictions, onOpen, onBack, onError }: {
+    say: Say;
+    client: Client;
+    restrictions: number;
+    onOpen: (row: MeRow) => void;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [profile, setProfile] = useState<{ name: string; age: number } | null>(null);
+  const [hidden, setHidden] = useState<number | null>(null);
+  const [blocked, setBlocked] = useState(0);
+  const [at, setAt] = useState(0);
+  useEffect(() => {
+    client.profile().then((p) => setProfile({ name: p.name, age: p.age })).catch((e: Error) => onError(e.message));
+    client.hidden().then((list) => setHidden(list.length)).catch(() => {});
+    client.blocks().then((list) => setBlocked(list.length)).catch(() => {});
+  }, []);
+  const rows: Array<{ key: MeRow; label: string; red?: boolean }> = [
+    ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true }] : []),
+    { key: "liked", label: say("liked.title") },
+    { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}` },
+    // Offered only while there is something to lift: "Blocked: 0" is the
+    // storefronts' open question (Q-48), not the terminal's to answer.
+    ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }) }] : []),
+  ];
+  useInput((_input, key) => {
+    if (key.upArrow) setAt((i) => (i - 1 + rows.length) % rows.length);
+    if (key.downArrow) setAt((i) => (i + 1) % rows.length);
+  });
+  const chosen = rows[Math.min(at, rows.length - 1)];
+  const field = (label: string, value: string) =>
+    h(Box, { key: label }, h(Box, { width: 12, flexShrink: 0 }, h(Text, { dimColor: true }, label)), h(Text, null, value));
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("me.title") }),
+    h(
+      Box,
+      { flexDirection: "column" },
+      field(say("me.name"), profile ? plain(profile.name, 48) : "…"),
+      field(say("me.age"), profile ? plain(profile.age, 3) : "…"),
+    ),
+    h(
+      Box,
+      { flexDirection: "column" },
+      ...rows.map((row, i) =>
+        h(Text, { key: row.key, bold: row.key === chosen?.key, color: row.red ? "red" : undefined }, `${row.key === chosen?.key ? "›" : " "} ${row.label}`)
+      ),
+    ),
+    h(Menu, {
+      actions: [{ key: "open", label: say("inbox.enter") }, { key: "back", label: say("common.back") }],
+      onPick: (key) => (key === "back" ? onBack() : chosen && onOpen(chosen.key)),
+      hint: say("common.rowActions"),
+    }),
+  );
+}

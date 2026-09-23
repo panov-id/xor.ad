@@ -91,5 +91,8 @@
   "blocked.lift": "հանել",
   "inbox.notNow": "ոչ հիմա",
   "inbox.declined": "մերժված է",
-  "inbox.undo": "վերադարձնել"
+  "inbox.undo": "վերադարձնել",
+  "me.title": "ես",
+  "me.name": "անուն",
+  "me.age": "տարիք"
 }

@@ -91,5 +91,8 @@
   "blocked.lift": "άρση",
   "inbox.notNow": "όχι τώρα",
   "inbox.declined": "απορρίφθηκε",
-  "inbox.undo": "αναίρεση"
+  "inbox.undo": "αναίρεση",
+  "me.title": "εγώ",
+  "me.name": "όνομα",
+  "me.age": "ηλικία"
 }

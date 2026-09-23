@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Blocked, Chat, Hidden, Inbox, Liked, Statements } from "./rooms.ts";
+import { Blocked, Chat, Hidden, Inbox, Liked, Me, Statements } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -284,24 +284,25 @@ test("a threshold hiding says no person decided, and the arrows walk between sta
   app.unmount();
 });
 
-test("folded statements stay in the feed as a red count, and none means no row", async () => {
-  const client = { feed: () => Promise.resolve({ items: [] }) };
-  const feed = (restrictions: number) =>
-    render(h(Feed, {
-      say,
-      // deno-lint-ignore no-explicit-any
-      client: client as any,
-      place: { lat: 55.75, lon: 37.62, radius: 1000 },
-      restrictions,
-      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onHidden: () => {}, onError: () => {},
-    }));
-  const with2 = feed(2);
-  await settle(100);
-  assert.match(with2.lastFrame()!, /Ограничений: 2/, "the folded statements vanished from the feed");
+test("folded statements stay on 'me' as a red count, and none means no row", async () => {
+  const client = {
+    profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34 }),
+    hidden: () => Promise.resolve([]),
+    blocks: () => Promise.resolve([]),
+  };
+  const me = (restrictions: number) =>
+    // deno-lint-ignore no-explicit-any
+    render(h(Me, { say, client: client as any, restrictions, onOpen: () => {}, onBack: () => {}, onError: () => {} }));
+  const with2 = me(2);
+  await settle();
+  await settle();
+  assert.match(with2.lastFrame()!, /Ограничений: 2/, "the folded statements vanished from 'me'");
+  assert.match(with2.lastFrame()!, /Аня/, "the profile is not on 'me'");
   with2.unmount();
-  const none = feed(0);
-  await settle(100);
-  assert.doesNotMatch(none.lastFrame()!, /Ограничений/, "a feed with nothing restricted shows a count");
+  const none = me(0);
+  await settle();
+  await settle();
+  assert.doesNotMatch(none.lastFrame()!, /Ограничений/, "'me' with nothing restricted shows a count");
   none.unmount();
 });
 
@@ -411,25 +412,28 @@ test("a block is lifted from the list, and lifting the last one leaves the scree
   app.unmount();
 });
 
-test("the feed offers the blocked list only while there is something on it", async () => {
-  const client = { feed: () => Promise.resolve({ items: [] }) };
-  const feed = (blocked: number) =>
-    render(h(Feed, {
-      say,
-      // deno-lint-ignore no-explicit-any
-      client: client as any,
-      place: { lat: 55.75, lon: 37.62, radius: 1000 },
-      blocked,
-      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onHidden: () => {}, onError: () => {},
-    }));
-  const some = feed(3);
+test("'me' offers the blocked list only while there is something on it, and opens what is chosen", async () => {
+  let blocks = [{ id: "b1", since: 1 }, { id: "b2", since: 2 }, { id: "b3", since: 3 }];
+  const client = {
+    profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34 }),
+    hidden: () => Promise.resolve([{ id: "h", kind: "feed", text: "x" }]),
+    blocks: () => Promise.resolve(blocks),
+  };
+  const opened: string[] = [];
+  // deno-lint-ignore no-explicit-any
+  const some = render(h(Me, { say, client: client as any, restrictions: 0, onOpen: (r: string) => opened.push(r), onBack: () => {}, onError: () => {} }));
   await settle();
-  await type(some, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT);
-  assert.match(some.lastFrame()!, /Заблокировано: 3/, "the blocked list is not offered from the feed");
+  await settle();
+  assert.match(some.lastFrame()!, /Заблокировано: 3/, "the blocked list is not offered from 'me'");
+  assert.match(some.lastFrame()!, /скрытое · 1/, "the hidden count is not on 'me'");
+  await type(some, DOWN, DOWN, ENTER);
+  assert.deepEqual(opened, ["blocked"], "the arrows and enter did not open the chosen row");
   some.unmount();
-  const none = feed(0);
+  blocks = [];
+  // deno-lint-ignore no-explicit-any
+  const none = render(h(Me, { say, client: client as any, restrictions: 0, onOpen: () => {}, onBack: () => {}, onError: () => {} }));
   await settle();
-  await type(none, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT);
+  await settle();
   assert.doesNotMatch(none.lastFrame()!, /Заблокировано/, "'Blocked: 0' was offered");
   none.unmount();
 });
@@ -441,13 +445,11 @@ test("a long row of actions wraps by whole labels, never inside a word", async (
     // deno-lint-ignore no-explicit-any
     client: client as any,
     place: { lat: 55.75, lon: 37.62, radius: 1000 },
-    blocked: 3,
-    restrictions: 2,
-    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onHidden: () => {}, onError: () => {},
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
   }));
   await settle();
   const frame = app.lastFrame()!;
-  for (const label of ["заблокировать", "лайкнутое", "Заблокировано: 3", "Ограничений: 2", "сменить точку"]) {
+  for (const label of ["заблокировать", "сменить точку", "написать", "входящие"]) {
     assert.ok(frame.includes(label), `the label "${label}" was broken across lines`);
   }
   app.unmount();

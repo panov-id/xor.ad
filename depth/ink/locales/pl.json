@@ -91,5 +91,8 @@
   "blocked.lift": "zdejmij",
   "inbox.notNow": "nie teraz",
   "inbox.declined": "odrzucono",
-  "inbox.undo": "cofnij"
+  "inbox.undo": "cofnij",
+  "me.title": "ja",
+  "me.name": "imię",
+  "me.age": "wiek"
 }

@@ -91,5 +91,8 @@
   "blocked.lift": "бардоштан",
   "inbox.notNow": "ҳоло не",
   "inbox.declined": "рад шуд",
-  "inbox.undo": "баргардондан"
+  "inbox.undo": "баргардондан",
+  "me.title": "ман",
+  "me.name": "ном",
+  "me.age": "синну сол"
 }

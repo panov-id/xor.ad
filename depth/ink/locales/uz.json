@@ -91,5 +91,8 @@
   "blocked.lift": "olib tashlash",
   "inbox.notNow": "hozir emas",
   "inbox.declined": "rad etildi",
-  "inbox.undo": "qaytarish"
+  "inbox.undo": "qaytarish",
+  "me.title": "men",
+  "me.name": "ism",
+  "me.age": "yosh"
 }

@@ -29,7 +29,7 @@ const DOWN = "\u001B[B", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
 // names what it wants instead.
-const FEED_ROW = ["like", "hide", "block", "write", "inbox", "point", "hidden", "liked", "exit"];
+const FEED_ROW = ["like", "hide", "block", "write", "inbox", "point", "me", "exit"];
 
 async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
   const steps = FEED_ROW.indexOf(action);
@@ -142,11 +142,16 @@ async function main() {
     await pickInFeed(app, "hide");
     await settle(400);
     assert.equal(/пробежку/.test(app.lastFrame() ?? ""), false, "a hidden phrase stayed on the screen");
-    await pickInFeed(app, "hidden");
+    // "me" now holds the lists (§4.11): liked is its first row, hidden the second.
+    await pickInFeed(app, "me");
+    await until(app, /скрытое · 1/, 20);
+    await type(app, DOWN, ENTER);
     await until(app, /пробежку/, 20);
     await type(app, DOWN, ENTER); // bring it back
     await settle(400);
-    await type(app, RIGHT, ENTER); // the hidden list: back
+    await type(app, RIGHT, ENTER); // the hidden list: back to "me"
+    await until(app, /скрытое/, 20);
+    await type(app, RIGHT, ENTER); // "me": back to the feed
     await until(app, /пробежку/, 20);
     out("ok   a phrase hidden from the feed came back from the hidden list");
 
@@ -173,7 +178,9 @@ async function main() {
     // stands there as an offer to talk now that a match came out of it; its
     // one action leads to the inbox (§4.10).
     await peer.consent(back.body.match_id!);
-    await pickInFeed(app, "liked");
+    await pickInFeed(app, "me");
+    await until(app, /лайкнутое/, 20);
+    await type(app, ENTER);
     await until(app, /предложение поговорить/, 20);
     out("ok   the liked screen shows the match that came out of the like");
     await type(app, ENTER);

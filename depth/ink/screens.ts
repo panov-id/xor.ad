@@ -84,22 +84,17 @@ type Phrase = { id: string; text: string; name?: string; age?: number; distance_
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, restrictions = 0, blocked = 0, onWrite, onInbox, onPoint, onHidden, onLiked, onBlocked, onRestrictions, onError }: {
+  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onError }: {
     say: Say;
     client: Client;
     place: Place;
     mine?: { text: string; state: string };
-    // Article 17 statements addressed to me; folded, they are this red row.
-    restrictions?: number;
     onWrite: () => void;
     onInbox: () => void;
     onPoint: () => void;
-    onHidden: () => void;
-    onLiked?: () => void;
-    // My blocks; the item is offered only while there are any.
-    blocked?: number;
-    onBlocked?: () => void;
-    onRestrictions?: () => void;
+    // "Me" holds what used to crowd this row: restrictions, liked, hidden,
+    // blocked (§4.11; the row outgrew a hundred columns on 23.09.2026).
+    onMe?: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -132,7 +127,6 @@ export function Feed(
     h(Head, {
       title: say("feed.header", { lat: place.lat, lon: place.lon, radius: place.radius, from: 18, to: 99 }),
     }),
-    restrictions > 0 ? h(Text, { color: "red" }, say("statements.count", { n: restrictions })) : null,
     items === null
       ? h(Text, { dimColor: true }, "…")
       : items.length === 0
@@ -151,20 +145,14 @@ export function Feed(
         { key: "write", label: say("feed.write") },
         { key: "inbox", label: say("feed.inbox") },
         { key: "point", label: say("feed.point") },
-        { key: "hidden", label: say("feed.hidden") },
-        { key: "liked", label: say("liked.title") },
-        ...(blocked > 0 ? [{ key: "blocked", label: say("blocked.count", { n: blocked }) }] : []),
-        ...(restrictions > 0 ? [{ key: "restrictions", label: say("statements.count", { n: restrictions }) }] : []),
+        { key: "me", label: say("me.title") },
         { key: "exit", label: say("common.exit") },
       ],
       onPick: (key) => {
         if (key === "write") return onWrite();
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
-        if (key === "hidden") return onHidden();
-        if (key === "liked") return onLiked?.();
-        if (key === "blocked") return onBlocked?.();
-        if (key === "restrictions") return onRestrictions?.();
+        if (key === "me") return onMe?.();
         if (key === "exit") return process.exit(0);
         if (!chosen) return;
         // Hiding is mine alone and can be taken back (§8.9); blocking ends the

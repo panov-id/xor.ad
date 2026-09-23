@@ -91,5 +91,8 @@
   "blocked.lift": "götür",
   "inbox.notNow": "indi yox",
   "inbox.declined": "rədd edildi",
-  "inbox.undo": "geri qaytar"
+  "inbox.undo": "geri qaytar",
+  "me.title": "mən",
+  "me.name": "ad",
+  "me.age": "yaş"
 }

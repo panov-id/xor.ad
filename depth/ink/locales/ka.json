@@ -91,5 +91,8 @@
   "blocked.lift": "მოხსნა",
   "inbox.notNow": "ახლა არა",
   "inbox.declined": "უარყოფილია",
-  "inbox.undo": "დაბრუნება"
+  "inbox.undo": "დაბრუნება",
+  "me.title": "მე",
+  "me.name": "სახელი",
+  "me.age": "ასაკი"
 }

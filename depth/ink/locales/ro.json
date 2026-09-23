@@ -91,5 +91,8 @@
   "blocked.lift": "ridică",
   "inbox.notNow": "nu acum",
   "inbox.declined": "refuzat",
-  "inbox.undo": "anulează"
+  "inbox.undo": "anulează",
+  "me.title": "eu",
+  "me.name": "nume",
+  "me.age": "vârstă"
 }

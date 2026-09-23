@@ -1017,22 +1017,31 @@ only named here — their terminal mechanics are not described (§9).
 
 **The Article 17 statement of reasons — built 2026-09-23** (`depth/ink/rooms.ts`, `Statements`).
 The terminal has no e-mail, so the statement (`GET /statements`, `dsa/SPEC_EN.md` §7) is
-delivered here. Until the terminal has a `me` screen it lives by the feed: on the first entry
+delivered here. On the first entry
 to the feed in a run the restrictions are shown whole, in a red frame, one at a time, the up
 and down arrows between them; the five lines are those of `refusal-wordings_EN.md` §6
 (without the heading "Your phrase has been hidden.", since what was restricted need not be
 a phrase),
 including the two different "How decided" lines by `automated_used` and "law:" or "terms:"
-by `ground_kind`. "Got it" folds them into a red "Restrictions: N" row above the feed — also
-a menu item that opens them again. Nothing is kept on disk (§6), so the next run is again the
+by `ground_kind`. "Got it" folds them back into the feed, and the red "Restrictions: N" row
+is the first row of the `me` screen, which opens them again (since 2026-09-23; before `me`
+the row stood above the feed). Nothing is kept on disk (§6), so the next run is again the
 "next entry" of §7, and the statements are shown again.
 
 **Blocked — built 2026-09-23** (`depth/ink/rooms.ts`, `Blocked`; `GET /blocks`,
 `DELETE /blocks/:id`). A line per block — "blocked since <date>", no names and no phrases,
-as on screen 10 of the storefronts; the item "lift". "Blocked: N" is in the feed's menu only
-while there are blocks, and after the last one is lifted the screen goes back by itself — the
-terminal never draws "Blocked: 0" and does not answer the storefronts' Q-48. The number is
-read again each time the feed is entered.
+as on screen 10 of the storefronts; the item "lift". "Blocked: N" is a row of the `me` screen
+only while there are blocks, and after the last one is lifted the screen goes back by itself —
+the terminal never draws "Blocked: 0" and does not answer the storefronts' Q-48.
+
+**The `me` screen — built 2026-09-23 in a small form** (`depth/ink/rooms.ts`, `Me`). It is
+reached by the item "me" in the feed's menu: there is no `m` key, navigation is arrows and
+enter (2026-09-22). On top, the name and age from `GET /identities/me`, read-only; below, rows
+that open the screens already built: the red "Restrictions: N" (if any), "liked", "hidden · N",
+"Blocked: N" (if any). These items left the feed's menu — the row no longer fit a hundred
+columns. Not built: editing the name, age and languages (the `name_frozen` refusal has no
+terminal text), appearance, the silence and area defaults, hints, stepping away, support, the
+console.
 
 ---
 

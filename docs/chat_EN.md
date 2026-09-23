@@ -1714,6 +1714,14 @@ where it sits is the whole of the choice.
 
 Visibility is **circle intersection** plus the age band (8.2): if I can see you, you can see me.
 
+**The circle chooses what is delivered; it is not a boundary of access (owner's decision,
+2026-09-23).** The viewer's point is stated by the client and the node does not check it:
+whoever names a point reads the phrases around it. So a like and a hide by a known `id`
+(§8.4, §8.9) check no distance — a check against a point that can be named freely would
+close nothing and would break the contract. Accepted as a risk: a phrase's text and coarse
+cell are open to whoever is handed its `id` by someone who has it in their feed (review panel
+2026-09-23, S1). Only a check of location could close this, and the product has none.
+
 ```sql
 SELECT f.id, f.text, f.mode,
        grid_round_lat(f.lat, f.area_radius)        AS lat,   -- outwards: the grid node,

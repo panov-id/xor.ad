@@ -515,7 +515,7 @@ the feed mechanic.
 
 | What | Period | Then |
 |---|---|---|
-| Notice and snapshot | 1 year | deleted; an anonymous monthly counter remains — the number of notices per target kind, without the receipt hash and without people. The counter is not in the code yet: `prune_dsa_records` only deletes (item `dsa.notice.counter`) |
+| Notice and snapshot | 1 year | deleted; an anonymous monthly counter remains — the number of notices per target kind, without the receipt hash and without people. Built 2026-09-23: the `dsa_notice_counts` table (`relay/node/db/045_dsa_notice_counts.sql`), which `prune_dsa_records` adds to in the same statement that deletes |
 | Statement of reasons | 1 year | deleted |
 | Notifier's name and email | with the notice | deleted |
 

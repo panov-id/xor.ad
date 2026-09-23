@@ -80,3 +80,4 @@ support_requests	docs/chat_RU.md:2841	relay/node/db/039_support_requests.sql	pro
 identity_appearance	docs/chat_RU.md:806	relay/node/db/022_identity_and_sessions.sql	product
 nonces	docs/chat_RU.md:1039	relay/node/db/022_identity_and_sessions.sql	product
 night_path_hours	-	relay/node/db/044_night_path_hours.sql	control
+dsa_notice_counts	-	relay/node/db/045_dsa_notice_counts.sql	control

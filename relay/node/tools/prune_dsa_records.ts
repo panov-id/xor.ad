@@ -116,11 +116,23 @@ export async function pruneDsaRecords(
       );
       statements += attached.length;
 
-      const gone = await tx<{ count: string }>(
-        `DELETE FROM dsa_notices WHERE id = ANY($1) RETURNING 1 AS count`,
+      // One statement deletes and counts (db/045): a notice is either still a
+      // row or already in the monthly count, never neither — a failure between
+      // two statements would have been exactly the loss the count exists for.
+      const gone = await tx<{ gone: string }>(
+        `WITH gone AS (
+           DELETE FROM dsa_notices WHERE id = ANY($1) RETURNING created_at, target_kind
+         ), counted AS (
+           INSERT INTO dsa_notice_counts (month, target_kind, notices)
+           SELECT date_trunc('month', created_at AT TIME ZONE 'UTC')::date, target_kind, count(*)
+             FROM gone GROUP BY 1, 2
+           ON CONFLICT (month, target_kind)
+             DO UPDATE SET notices = dsa_notice_counts.notices + EXCLUDED.notices
+         )
+         SELECT count(*)::text AS gone FROM gone`,
         [ids],
       );
-      notices += gone.length;
+      notices += Number(gone[0].gone);
 
       // A short batch means this was the last one: nothing is left to take.
       return ids.length < batch;

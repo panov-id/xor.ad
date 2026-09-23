@@ -1646,6 +1646,50 @@ Deno.test({
   },
 });
 
+// What the prune leaves behind is a count (dsa/SPEC §9, db/045).
+//
+// The privacy policy promises it: after a year a notice goes, and the number of
+// notices per month and kind of target stays. Until 23.09.2026 the prune only
+// deleted, and every year-old notice was gone from any answer to "is this
+// growing?". A month long past keeps the fixture apart from other tests' rows;
+// the seeded count checks that a second prune adds rather than overwrites.
+Deno.test({
+  name: "the prune counts what it deletes, by month and kind of target",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { pruneDsaRecords } = await import("../tools/prune_dsa_records.ts");
+    await database.queryOrThrow(`DELETE FROM dsa_notice_counts WHERE month = '2019-03-01'`);
+    await database.queryOrThrow(
+      `INSERT INTO dsa_notice_counts (month, target_kind, notices) VALUES ('2019-03-01', 'feed_message', 4)`,
+    );
+    const kinds = ["feed_message", "feed_message", "feed_message", "offer", "offer"];
+    for (const kind of kinds) {
+      await database.queryOrThrow(
+        `INSERT INTO dsa_notices
+           (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state, created_at)
+         VALUES ('alpha', $1, NULL, $2, true, 'upheld', 'received', '2019-03-15T12:00:00Z')`,
+        [kind, `counted ${uniqueId()}`],
+      );
+    }
+
+    await pruneDsaRecords({ apply: true, batch: 2 });
+
+    const counts = await database.queryOrThrow<{ target_kind: string; notices: number }>(
+      `SELECT target_kind, notices FROM dsa_notice_counts WHERE month = '2019-03-01' ORDER BY target_kind`,
+    );
+    assertEquals(
+      [...counts],
+      [{ target_kind: "feed_message", notices: 7 }, { target_kind: "offer", notices: 2 }],
+      "the pruned notices were not counted, or the count was overwritten instead of added to",
+    );
+    const left = await database.queryOrThrow<{ count: string }>(
+      `SELECT count(*)::text AS count FROM dsa_notices WHERE created_at = '2019-03-15T12:00:00Z'`,
+    );
+    assertEquals(left[0].count, "0", "the counted notices are still there");
+  },
+});
+
 // Article 18 leaves a trace, and the trace names a recipient.
 //
 // The obligation is to inform law enforcement promptly where a suspicion of an

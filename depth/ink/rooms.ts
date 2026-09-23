@@ -75,11 +75,27 @@ export function Inbox(
     onError: (message: string) => void;
   },
 ): ReactElement {
-  const [rows, setRows] = useState<Row[] | null>(null);
+  const [rows, setRows] = useState<Array<Row & { declined?: boolean }> | null>(null);
   const [at, setAt] = useState(0);
-  const load = () =>
+  // Declined rows the node no longer lists (GET /inbox drops them), kept here
+  // so "declined · undo" stays in their place until the person leaves (§4.6).
+  const [declined, setDeclined] = useState<Array<Row & { declined: true }>>([]);
+  const load = (keep = declined) =>
     client.inbox()
-      .then((list) => setRows(list as Row[]))
+      .then((list) => {
+        const live = list as Row[];
+        // In the order the person already sees: a declined row keeps its
+        // place, so the cursor stays on it and "undo" is right there.
+        setRows((before) => {
+          const now = (before ?? []).flatMap((r) => {
+            const fresh = live.find((l) => l.id === r.id);
+            if (fresh) return [fresh];
+            const held = keep.find((d) => d.id === r.id);
+            return held ? [held] : [];
+          });
+          return [...now, ...live.filter((l) => !now.some((r) => r.id === l.id))];
+        });
+      })
       .catch((e: Error) => onError(e.message));
   useEffect(() => void load(), []);
   useInput((_input, key) => {
@@ -107,24 +123,51 @@ export function Inbox(
             Text,
             { key: r.id, bold: i === at },
             `${i === at ? "›" : " "} ${plain(r.name ?? "?", 48)}, ${plain(r.age ?? "?", 3)}   `,
-            r.kind === "chat"
+            r.declined
+              ? say("inbox.declined")
+              : r.kind === "chat"
               ? `${say("inbox.open")} · ${say("inbox.until", { time: time(r.chat_expires_at) })}`
               : say("inbox.match"),
           )
         ),
       ),
     h(Menu, {
-      actions: [
-        {
-          key: "act",
-          label: chosen?.kind === "chat" ? say("inbox.enter") : say("inbox.consent"),
-          disabled: !chosen,
-        },
-        { key: "back", label: say("common.back") },
-      ],
+      actions: chosen?.declined
+        ? [{ key: "undo", label: say("inbox.undo") }, { key: "back", label: say("common.back") }]
+        : [
+          {
+            key: "act",
+            label: chosen?.kind === "chat" ? say("inbox.enter") : say("inbox.consent"),
+            disabled: !chosen,
+          },
+          // "Not now" (§4.6): recorded at once and invisible to the other side.
+          ...(chosen && chosen.kind !== "chat" ? [{ key: "decline", label: say("inbox.notNow") }] : []),
+          { key: "back", label: say("common.back") },
+        ],
       onPick: (key) => {
         if (key === "back") return onBack();
         if (!chosen) return;
+        const matchId = chosen.match_id ?? chosen.id;
+        if (key === "decline") {
+          return void client.decline(matchId)
+            .then((answer) => {
+              if (answer.status >= 300) throw new Error(`"not now" refused: ${answer.status}`);
+              const keep = [...declined, { ...chosen, declined: true as const }];
+              setDeclined(keep);
+              return load(keep);
+            })
+            .catch((e: Error) => onError(e.message));
+        }
+        if (key === "undo") {
+          return void client.undoDecline(matchId)
+            .then((answer) => {
+              if (answer.status >= 300) throw new Error(`undo refused: ${answer.status}`);
+              const keep = declined.filter((d) => d.id !== chosen.id);
+              setDeclined(keep);
+              return load(keep);
+            })
+            .catch((e: Error) => onError(e.message));
+        }
         if (chosen.kind === "chat") {
           return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0);
         }

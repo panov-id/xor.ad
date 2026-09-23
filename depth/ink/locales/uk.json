@@ -88,5 +88,8 @@
   "liked.more": "показати ще",
   "blocked.count": "Заблоковано: {n}",
   "blocked.since": "блокування від {date}",
-  "blocked.lift": "зняти"
+  "blocked.lift": "зняти",
+  "inbox.notNow": "не зараз",
+  "inbox.declined": "відхилено",
+  "inbox.undo": "повернути"
 }

@@ -88,5 +88,8 @@
   "liked.more": "show more",
   "blocked.count": "Blocked: {n}",
   "blocked.since": "blocked since {date}",
-  "blocked.lift": "lift"
+  "blocked.lift": "lift",
+  "inbox.notNow": "not now",
+  "inbox.declined": "declined",
+  "inbox.undo": "undo"
 }

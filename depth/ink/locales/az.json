@@ -88,5 +88,8 @@
   "liked.more": "daha çox göstər",
   "blocked.count": "Bloklanıb: {n}",
   "blocked.since": "{date} tarixindən bloklanıb",
-  "blocked.lift": "götür"
+  "blocked.lift": "götür",
+  "inbox.notNow": "indi yox",
+  "inbox.declined": "rədd edildi",
+  "inbox.undo": "geri qaytar"
 }

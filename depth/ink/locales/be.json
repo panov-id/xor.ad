@@ -88,5 +88,8 @@
   "liked.more": "паказаць яшчэ",
   "blocked.count": "Заблакавана: {n}",
   "blocked.since": "блакаванне ад {date}",
-  "blocked.lift": "зняць"
+  "blocked.lift": "зняць",
+  "inbox.notNow": "не цяпер",
+  "inbox.declined": "адхілена",
+  "inbox.undo": "вярнуць"
 }

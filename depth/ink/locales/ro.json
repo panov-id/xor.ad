@@ -88,5 +88,8 @@
   "liked.more": "arată mai mult",
   "blocked.count": "Blocate: {n}",
   "blocked.since": "blocat din {date}",
-  "blocked.lift": "ridică"
+  "blocked.lift": "ridică",
+  "inbox.notNow": "nu acum",
+  "inbox.declined": "refuzat",
+  "inbox.undo": "anulează"
 }

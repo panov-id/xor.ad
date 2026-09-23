@@ -88,5 +88,8 @@
   "liked.more": "ցույց տալ ավելին",
   "blocked.count": "Արգելափակված՝ {n}",
   "blocked.since": "արգելափակված է {date}-ից",
-  "blocked.lift": "հանել"
+  "blocked.lift": "հանել",
+  "inbox.notNow": "ոչ հիմա",
+  "inbox.declined": "մերժված է",
+  "inbox.undo": "վերադարձնել"
 }

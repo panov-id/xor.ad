@@ -88,5 +88,8 @@
   "liked.more": "მეტის ჩვენება",
   "blocked.count": "დაბლოკილია: {n}",
   "blocked.since": "დაბლოკილია {date}-დან",
-  "blocked.lift": "მოხსნა"
+  "blocked.lift": "მოხსნა",
+  "inbox.notNow": "ახლა არა",
+  "inbox.declined": "უარყოფილია",
+  "inbox.undo": "დაბრუნება"
 }

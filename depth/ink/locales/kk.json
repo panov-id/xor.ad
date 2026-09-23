@@ -88,5 +88,8 @@
   "liked.more": "тағы көрсету",
   "blocked.count": "Бұғатталған: {n}",
   "blocked.since": "{date} бастап бұғатталған",
-  "blocked.lift": "алып тастау"
+  "blocked.lift": "алып тастау",
+  "inbox.notNow": "қазір емес",
+  "inbox.declined": "бас тартылды",
+  "inbox.undo": "қайтару"
 }

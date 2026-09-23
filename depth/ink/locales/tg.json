@@ -88,5 +88,8 @@
   "liked.more": "боз нишон додан",
   "blocked.count": "Манъшуда: {n}",
   "blocked.since": "манъ аз {date}",
-  "blocked.lift": "бардоштан"
+  "blocked.lift": "бардоштан",
+  "inbox.notNow": "ҳоло не",
+  "inbox.declined": "рад шуд",
+  "inbox.undo": "баргардондан"
 }

@@ -88,5 +88,8 @@
   "liked.more": "περισσότερα",
   "blocked.count": "Αποκλεισμένοι: {n}",
   "blocked.since": "αποκλεισμός από {date}",
-  "blocked.lift": "άρση"
+  "blocked.lift": "άρση",
+  "inbox.notNow": "όχι τώρα",
+  "inbox.declined": "απορρίφθηκε",
+  "inbox.undo": "αναίρεση"
 }

@@ -178,6 +178,14 @@ async function main() {
     out("ok   the liked screen shows the match that came out of the like");
     await type(app, ENTER);
     await until(app, /входящие/);
+    // "Not now" and "undo" against the node itself (§4.6): the match leaves the
+    // node's inbox and comes back to it, and only then is it agreed to.
+    await until(app, /не сейчас/, 20);
+    await type(app, RIGHT, ENTER);
+    await until(app, /отклонено/, 20);
+    await type(app, LEFT, ENTER);
+    await until(app, /мэтч/, 20);
+    out("ok   'not now' and 'undo' went to the node and back");
     await type(app, ENTER);
     await until(app, /Марк/, 30);
     out("ok   the inbox screen opened the conversation");

@@ -764,7 +764,11 @@ although `tab` led exactly there.
   Not a second consent: `enter` stays the single press.
 - **`n` — "not now".** The refusal is recorded at once and invisible to the other side: they
   wait until expiry, as they would have anyway. For a few seconds at the bottom,
-  `declined · [u] undo`; then the card is gone and the like is spent — a new match only with
+  `declined · [u] undo` [**built 2026-09-23** in `depth/ink/rooms.ts` (`Inbox`): "not now" and
+  "undo" are menu items, `n` and `u` are not keys (navigation is arrows and enter,
+  2026-09-22); the "declined" line keeps its place until the person leaves the inbox rather than
+  for a few seconds — "undo" has no timer (owner's decision 2026-09-18); the live walk declines
+  and brings back a match against the node]; then the card is gone and the like is spent — a new match only with
   a new phrase.
 - While only you have pressed — the line `no reply yet`, and nothing more: no "seen", no
   "opened".

@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Blocked, Chat, Hidden, Liked, Statements } from "./rooms.ts";
+import { Blocked, Chat, Hidden, Inbox, Liked, Statements } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -50,8 +50,8 @@ async function type(app: { stdin: { write: (s: string) => void } }, ...keys: str
     await settle();
   }
 }
-const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", ENTER = "\r", BACK = "\u007F";
-void [DOWN, UP, RIGHT, ENTER, BACK];
+const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r", BACK = "\u007F";
+void [DOWN, UP, RIGHT, LEFT, ENTER, BACK];
 
 test("registration will not go on without a name and an age", async () => {
   let got: { name: string; age: number } | null = null;
@@ -466,5 +466,37 @@ test("an offer's like is not offered to be taken back", async () => {
   assert.match(app.lastFrame()!, /кофе со скидкой/);
   await type(app, ENTER);
   assert.equal(unliked, 0, "an offer's spent like was sent to be taken back");
+  app.unmount();
+});
+
+// "Not now" and taking it back (§4.6): the node stops listing a declined match,
+// so the screen keeps the row as "declined · undo" until the person leaves.
+test("a match is declined with 'not now' and brought back with 'undo'", async () => {
+  const calls: string[] = [];
+  let declinedOnNode = false;
+  const match = { kind: "match", id: "m1", match_id: "m1", name: "Марк", age: 31 };
+  const chat = { kind: "chat", id: "c1", match_id: "m0", name: "Аня", age: 34, chat_expires_at: 1_758_600_000 };
+  const client = {
+    inbox: () => Promise.resolve(declinedOnNode ? [chat] : [match, chat]),
+    decline: (id: string) => { calls.push(`decline ${id}`); declinedOnNode = true; return Promise.resolve({ status: 204, body: {} }); },
+    undoDecline: (id: string) => { calls.push(`undo ${id}`); declinedOnNode = false; return Promise.resolve({ status: 204, body: {} }); },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /не сейчас/, "'not now' is not offered on a match");
+  await type(app, RIGHT, ENTER);
+  await settle();
+  assert.deepEqual(calls, ["decline m1"], "'not now' did not reach the node");
+  const after = app.lastFrame()!;
+  assert.match(after, /Марк, 31\s+отклонено/, "the declined row left no trace to undo from");
+  assert.match(after, /вернуть/);
+  await type(app, LEFT, ENTER);
+  await settle();
+  assert.deepEqual(calls, ["decline m1", "undo m1"], "'undo' did not reach the node");
+  assert.match(app.lastFrame()!, /Марк, 31\s+мэтч/, "the match did not come back after 'undo'");
+  await type(app, DOWN);
+  assert.doesNotMatch(app.lastFrame()!, /не сейчас/, "an open chat offers 'not now'");
   app.unmount();
 });

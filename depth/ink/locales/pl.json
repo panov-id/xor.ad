@@ -88,5 +88,8 @@
   "liked.more": "pokaż więcej",
   "blocked.count": "Zablokowane: {n}",
   "blocked.since": "blokada od {date}",
-  "blocked.lift": "zdejmij"
+  "blocked.lift": "zdejmij",
+  "inbox.notNow": "nie teraz",
+  "inbox.declined": "odrzucono",
+  "inbox.undo": "cofnij"
 }

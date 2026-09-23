@@ -88,5 +88,8 @@
   "liked.more": "afficher plus",
   "blocked.count": "Bloqués : {n}",
   "blocked.since": "bloqué depuis le {date}",
-  "blocked.lift": "lever"
+  "blocked.lift": "lever",
+  "inbox.notNow": "pas maintenant",
+  "inbox.declined": "refusé",
+  "inbox.undo": "annuler"
 }

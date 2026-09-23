@@ -88,5 +88,8 @@
   "liked.more": "yana ko'rsatish",
   "blocked.count": "Bloklangan: {n}",
   "blocked.since": "{date} dan bloklangan",
-  "blocked.lift": "olib tashlash"
+  "blocked.lift": "olib tashlash",
+  "inbox.notNow": "hozir emas",
+  "inbox.declined": "rad etildi",
+  "inbox.undo": "qaytarish"
 }

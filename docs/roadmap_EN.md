@@ -1,11 +1,11 @@
-# Roadmap — state as of 2026-09-22
+# Roadmap — state as of 2026-09-23
 
 A snapshot of where the product stands as a whole. The detailed work tracker is
 [`open-work_EN.md`](open-work_EN.md); the product build order is §13 of
 [`chat_EN.md`](chat_EN.md). This file sits one level above both: which layers
 exist, which do not, and how that was checked. The snapshot was checked by a
 five-lens review panel —
-[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md); the 2026-09-22 summary was checked by the consistency lens, and what was built that day by the panels `reviews/PANEL_2026-09-22_*.md` (feed queue, profile, encryption, reissue, support).
+[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md); the 2026-09-22 summary was checked by the consistency lens, and what was built that day by the panels `reviews/PANEL_2026-09-22_*.md` (feed queue, profile, encryption, reissue, support). The 2026-09-23 cut is by measurement (`curl`, `scripts/check-node-images.sh`, `scripts/check-openapi.sh`, `scripts/count-tests.sh`, `git`), without a review panel.
 
 `[x]` done and verified, `[~]` partial, `[ ]` ahead. Every claim about a live
 environment carries a date and a method. The 7 July 2026 snapshot (Supabase,
@@ -17,12 +17,12 @@ more. The legal section keeps its number (§2): both storefronts'
 
 | Layer | Readiness | Verified by |
 |---|---|---|
-| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-22: both 200 |
+| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-23: both 200 |
 | Panel xor.panov.id | ~80% | 11 pages in `panel/src/pages` (2026-09-22: the feed queue, support); e2e 5, unit 32 |
-| Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-22: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
+| Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-23: `p1-prod`, `database: ok`, `mail: resend`; open items — §1 |
 | Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
 | Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
-| Relay node: product, steps 1–4 of §13 | ~60% | step 1 and the profile edit; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half; the contract: 84 operations built, 53 spec (measured 2026-09-22, `check-openapi.sh`, by parsing the YAML — `grep` undercounts operations taken through anchors); support is outside the §13 steps: `POST/GET /support`, the team's side, `db/039`–`040` |
+| Relay node: product, steps 1–4 of §13 | ~60% | step 1 and the profile edit; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half; the contract: 85 operations built, 53 spec (measured 2026-09-23, `check-openapi.sh`, by parsing the YAML — `grep` undercounts operations taken through anchors); support is outside the §13 steps: `POST/GET /support`, the team's side, `db/039`–`040` |
 | Relay node: product, steps 5–8 of §13 | ~40% | step 5 — transport, socket, delivery, close codes; step 6 — direction keys and the reissue; step 7 — blocks, hidden, sweepers; step 8 — not started (games), in place of notifications the inbox with a cursor and the daily support digest |
 | `depth` client (terminal, goes first) | ~55% | core `depth/core/`: signing, registration, profile, feed, like, consent, end-to-end encryption, the key reissue and the safety code against a live node (36 core tests, 39 in the whole `depth/` run counting the screens' strings); Ink rendering since 2026-09-22 — `depth/ink/`: registration, location, feed, phrase, inbox, chat; arrows and enter only; the storefronts' seventeen languages (`scripts/check-depth-i18n.sh`), 4 screen tests (`scripts/run-depth-ui-tests.sh`) and a live walk of the terminal against a node, up to the shared safety code (`scripts/run-depth-live-ui.sh`); an image and the command `scripts/depth.sh` (2026-09-22); the PIN and the paper code are placeholders under `testOnly`, and an identity lives until you quit: the key is non-extractable, so nothing reaches the disk and `depth join` waits for the Argon2id parameters |
 | Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
@@ -34,19 +34,22 @@ The percentages are estimates: they are not weighted by hours, because steps
 
 - [x] Production is public: `api.relay.panov.id/health` 200, node `p1-prod`,
   image `v2026.9.11-g8f89e7a`, brands `sosed` and `neighbro`. Measured
-  2026-09-21.
+  2026-09-23.
 - [x] Storefronts `sosed.place` and `neighbro.place`, panel `xor.panov.id` —
-  200. Measured 2026-09-21. Production shipped 2026-07-27–2026-07-28.
+  200. Measured 2026-09-23. Production shipped 2026-07-27–2026-07-28.
 - [x] Supabase left the path on 2026-07-22: state lives in our own Postgres
   beside the node, delivery through Bunny.
-- [ ] Dev and staging (box n1) — not measured: behind an IP allow-list.
+- [~] Dev and staging (box n1) answer — measured 2026-09-23
+  (`scripts/check-node-images.sh`): dev runs `sha-622a848` of 2026-09-11, that
+  is, none of `day56`; staging answers but does not name its build. Boxes `n2`
+  and `n3` are declared in the inventory with no machines.
 - [~] Article 16 notice intake — the host `report.relay.panov.id` is alive
-  (`/health` 200, `p1-prod`, measured 2026-09-21), route `POST /report`; not
+  (`/health` 200, `p1-prod`, measured 2026-09-23), route `POST /report`; not
   yet shipped to the storefronts in production. Why it moved: the WAF on every
   zone cuts bodies quoting `<script>` or `../`, and the zone has zero custom
   rules (`open-work_EN.md`, G12/G13).
-- [ ] **Roll out `day56`.** 76 commits ahead of `origin/dev` (`cd21688`,
-  2026-09-19); migrations `025`–`029` have not been applied anywhere (by the
+- [ ] **Roll out `day56`.** 165 commits ahead of `origin/dev` (`cd21688`,
+  2026-09-19), 89 of them not yet pushed to `origin/day56` (measured 2026-09-23); migrations `025`–`029` have not been applied anywhere (by the
   code and the branch; `schema_migrations` on the boxes was not queried).
   Start with dev (n1), not production.
 - [ ] `NOT NULL` on the published centre (P5) — only in the rollout after
@@ -54,7 +57,8 @@ The percentages are estimates: they are not weighted by hours, because steps
 - [~] Nightly backup encryption (P4): the mechanism shipped 2026-09-21
   (`4a4da9b`); no key on the boxes yet — an owner action: the public half into
   `backup.env` on p1 and n1, the private half from its file into the password
-  vault. Until then, backups are plaintext.
+  vault. Until then, backups are plaintext. As of 2026-09-23 the private half
+  is still a file.
 - [ ] L1: the waitlist is not in the backup — it lives in Bunny storage, and
   the backup takes only Postgres.
 - [~] Restore drill — last on 2026-08-07 (`scripts/verify-backup-restore.sh`).
@@ -79,6 +83,12 @@ The percentages are estimates: they are not weighted by hours, because steps
   not whole in production until `day56` and the Article 16 intake ship. P3
   closed 2026-09-21: the list has an `after` cursor, statements past the
   hundredth are reachable.
+- [~] Watchdog W1 — the age of Article 16 notices (`watchdogs_EN.md`): a letter
+  past 24 hours, an escalation past 48, one per threshold, a letter that did not
+  leave retried in 10 minutes; `lib/dsa_watchdog.ts`, migration `db/041`, 7 tests
+  against Postgres (2026-09-23, panel `reviews/PANEL_2026-09-23_watchdog-c1.md`).
+  Missing — a fallback transport for the escalation, and the
+  `DSA_ESCALATION_EMAILS` addresses are not set on the boxes; not shipped.
 - [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
   `article-30-register_EN.md`. SCC or a replacement.
 - [x] LAW-7: the abandoned-identity sweeper — built 2026-09-20
@@ -120,7 +130,7 @@ core without drawing, against a live node (since 2026-09-21).
 
 All eleven tables of the first cut (§13) exist: six before 2026-09-21, `likes`,
 `matches`, `match_participants`, `blocks` by migration `db/030`, `support_requests`
-by `db/039` (2026-09-22). Migrations in `relay/node/db` — 37 (measured 2026-09-22).
+by `db/039` (2026-09-22). Migrations in `relay/node/db` — 37 committed and `041` in progress (measured 2026-09-23).
 
 Chat code was cleared by the owner's word on 2026-09-21.
 

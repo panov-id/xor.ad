@@ -94,5 +94,15 @@
   "inbox.undo": "қайтару",
   "me.title": "мен",
   "me.name": "аты",
-  "me.age": "жасы"
+  "me.age": "жасы",
+  "chat.fades": "СІЗДІҢ {span} үнсіздігіңізден кейін сөнеді",
+  "chat.span": "өз мерзімім: {span}",
+  "chat.spanShort10": "10 мин",
+  "chat.spanShort30": "30 мин",
+  "chat.spanShort60": "1 сағ",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 минут",
+  "chat.spanLong30": "30 минут",
+  "chat.spanLong60": "бір сағат",
+  "chat.spanLong260": "сөйлескенше"
 }

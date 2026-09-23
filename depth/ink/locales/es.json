@@ -94,5 +94,15 @@
   "inbox.undo": "deshacer",
   "me.title": "yo",
   "me.name": "nombre",
-  "me.age": "edad"
+  "me.age": "edad",
+  "chat.fades": "se apaga tras {span} de TU silencio",
+  "chat.span": "mi plazo: {span}",
+  "chat.spanShort10": "10 min",
+  "chat.spanShort30": "30 min",
+  "chat.spanShort60": "1 h",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 minutos",
+  "chat.spanLong30": "30 minutos",
+  "chat.spanLong60": "una hora",
+  "chat.spanLong260": "mientras hablamos"
 }

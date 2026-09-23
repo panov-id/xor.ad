@@ -94,5 +94,15 @@
   "inbox.undo": "cofnij",
   "me.title": "ja",
   "me.name": "imię",
-  "me.age": "wiek"
+  "me.age": "wiek",
+  "chat.fades": "gaśnie po {span} TWOJEGO milczenia",
+  "chat.span": "mój termin: {span}",
+  "chat.spanShort10": "10 min",
+  "chat.spanShort30": "30 min",
+  "chat.spanShort60": "1 godz.",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 minut",
+  "chat.spanLong30": "30 minut",
+  "chat.spanLong60": "godzina",
+  "chat.spanLong260": "dopóki rozmawiamy"
 }

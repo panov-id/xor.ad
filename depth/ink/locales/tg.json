@@ -94,5 +94,15 @@
   "inbox.undo": "баргардондан",
   "me.title": "ман",
   "me.name": "ном",
-  "me.age": "синну сол"
+  "me.age": "синну сол",
+  "chat.fades": "пас аз {span} хомӯшии ШУМО хомӯш мешавад",
+  "chat.span": "мӯҳлати худам: {span}",
+  "chat.spanShort10": "10 дақ",
+  "chat.spanShort30": "30 дақ",
+  "chat.spanShort60": "1 соат",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 дақиқа",
+  "chat.spanLong30": "30 дақиқа",
+  "chat.spanLong60": "як соат",
+  "chat.spanLong260": "то гап мезанем"
 }

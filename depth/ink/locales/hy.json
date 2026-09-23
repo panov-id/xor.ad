@@ -94,5 +94,15 @@
   "inbox.undo": "վերադարձնել",
   "me.title": "ես",
   "me.name": "անուն",
-  "me.age": "տարիք"
+  "me.age": "տարիք",
+  "chat.fades": "մարում է ՁԵՐ {span} լռությունից հետո",
+  "chat.span": "իմ ժամկետը՝ {span}",
+  "chat.spanShort10": "10 ր",
+  "chat.spanShort30": "30 ր",
+  "chat.spanShort60": "1 ժ",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 րոպե",
+  "chat.spanLong30": "30 րոպե",
+  "chat.spanLong60": "մեկ ժամ",
+  "chat.spanLong260": "քանի դեռ խոսում ենք"
 }

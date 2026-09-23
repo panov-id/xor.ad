@@ -94,5 +94,15 @@
   "inbox.undo": "geri qaytar",
   "me.title": "mən",
   "me.name": "ad",
-  "me.age": "yaş"
+  "me.age": "yaş",
+  "chat.fades": "SİZİN {span} susqunluğunuzdan sonra sönür",
+  "chat.span": "öz müddətim: {span}",
+  "chat.spanShort10": "10 dəq",
+  "chat.spanShort30": "30 dəq",
+  "chat.spanShort60": "1 saat",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 dəqiqə",
+  "chat.spanLong30": "30 dəqiqə",
+  "chat.spanLong60": "bir saat",
+  "chat.spanLong260": "danışdıqca"
 }

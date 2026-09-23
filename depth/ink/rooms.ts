@@ -63,6 +63,7 @@ type Row = {
   age?: number;
   state?: string;
   chat_expires_at?: number;
+  span?: number;
 };
 
 // 5 · the inbox: matches waiting for consent, and chats already open.
@@ -70,7 +71,7 @@ export function Inbox(
   { say, client, onOpen, onBack, onError }: {
     say: Say;
     client: Client;
-    onOpen: (chatId: string, matchId: string | undefined, name: string, age: number) => void;
+    onOpen: (chatId: string, matchId: string | undefined, name: string, age: number, span?: number, endsAt?: number) => void;
     onBack: () => void;
     onError: (message: string) => void;
   },
@@ -169,7 +170,7 @@ export function Inbox(
             .catch((e: Error) => onError(e.message));
         }
         if (chosen.kind === "chat") {
-          return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0);
+          return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0, chosen.span, chosen.chat_expires_at);
         }
         client.consent(chosen.match_id ?? chosen.id)
           .then((answer) => {
@@ -186,8 +187,13 @@ export function Inbox(
 
 // 6 · a chat. Everything shown here was opened by the core; the screen holds
 // the plain text only in memory, and forgets it when the process ends.
+// One's own span (§5, §8.6): four values, stepped through by the one menu item
+// the terminal has instead of the `t` key. 260 is "while we're talking", 4:20.
+const SPANS = [10, 30, 60, 260] as const;
+type Span = (typeof SPANS)[number];
+
 export function Chat(
-  { say, client, chatId, matchId, name, age, limit, onBack, onError }: {
+  { say, client, chatId, matchId, name, age, limit, span: startSpan, endsAt: startEnds, onBack, onError }: {
     say: Say;
     client: Client;
     chatId: string;
@@ -195,6 +201,10 @@ export function Chat(
     name: string;
     age: number;
     limit: number;
+    // From GET /inbox; a chat opened right from consent has neither, and then
+    // it is the column's default hour counted from now (db/031).
+    span?: number;
+    endsAt?: number;
     onBack: () => void;
     onError: (message: string) => void;
   },
@@ -206,6 +216,19 @@ export function Chat(
   const [matched, setMatched] = useState(false);
   const [changed, setChanged] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [span, setSpan] = useState<Span>((SPANS as readonly number[]).includes(startSpan ?? 0) ? startSpan as Span : 60);
+  // When the chat ends for me: my last own message plus my span. The node
+  // counts the same way and sends nothing (§5), so the screen keeps the clock.
+  const [endsAt, setEndsAt] = useState<number>(() => startEnds ?? Math.floor(Date.now() / 1000) + span * 60);
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(tick);
+  }, []);
+  const left = Math.max(0, endsAt - now);
+  // The silence counter lives in the last quarter of one's own span (§5).
+  const counting = left <= (span * 60) / 4;
+  const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
 
   // Opening the panel asks the node again rather than trusting what this
   // screen already holds. A rekey does not move the code — it is derived from
@@ -258,6 +281,11 @@ export function Chat(
     { flexDirection: "column", gap: 1 },
     h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }) }),
     h(
+      Text,
+      counting ? { color: "red" } : { dimColor: true },
+      say("chat.fades", { span: say(`chat.spanShort${span}`) }) + (counting ? ` · ${clock}` : ""),
+    ),
+    h(
       Box,
       { flexDirection: "column" },
       ...lines.map((l, i) =>
@@ -303,6 +331,7 @@ export function Chat(
       actions: [
         { key: "send", label: say("chat.send"), disabled: draft.trim() === "" },
         { key: "code", label: say("chat.codeItem") },
+        { key: "span", label: say("chat.span", { span: say(`chat.spanLong${span}`) }) },
         { key: "end", label: say("chat.end") },
         { key: "block", label: say("block.item") },
         { key: "back", label: say("common.back") },
@@ -310,6 +339,16 @@ export function Chat(
       onPick: (key) => {
         if (key === "back") return onBack();
         if (key === "code") return void openCode();
+        if (key === "span") {
+          const next = SPANS[(SPANS.indexOf(span) + 1) % SPANS.length];
+          return void client.setChatSpan(chatId, next)
+            .then(() => {
+              // The end moves with the span, from the same last own message.
+              setEndsAt((end) => end - span * 60 + next * 60);
+              setSpan(next);
+            })
+            .catch((e: Error) => onError(e.message));
+        }
         // Ending is mutual and plain; blocking is mutual and final, so it is
         // the one that asks twice (§4.8, the owner's shape of 2026-09-22).
         if (key === "end") {
@@ -327,7 +366,11 @@ export function Chat(
         const text = draft.trim();
         setDraft("");
         client.sayInChat(chatId, text, matchId)
-          .then(() => setLines((all) => [...all, { mine: true, text }]))
+          .then(() => {
+            setLines((all) => [...all, { mine: true, text }]);
+            // My own message is what resets my silence (§5).
+            setEndsAt(Math.floor(Date.now() / 1000) + span * 60);
+          })
           .catch((e: Error) => onError(e.message));
       },
       actionsHint: say("common.rowActions"),

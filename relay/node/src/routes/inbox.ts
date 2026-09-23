@@ -61,13 +61,14 @@ async function inbox(req: Request): Promise<Response> {
   const offersFull = matches !== null && matches.length > PAGE;
   const room = matches === null ? 0 : Math.max(0, PAGE - matches.length);
   const chats = await query<{
-    id: string; name: string; age: number; ends: string; created_at: Date; over: boolean;
+    id: string; name: string; age: number; ends: string; span: number; created_at: Date; over: boolean;
     peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null; match_id: string | null;
     my_epoch: number; peer_epoch: number; at: string;
   }>(
     `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
               + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends,
+            p.idle_ttl_minutes AS span,
             them.id AS peer_id, them.identity_public_key AS peer_long,
             -- The peer's ephemeral half (§8.13), the conversation's own since
             -- db/036: a match gone does not take it.
@@ -110,6 +111,9 @@ async function inbox(req: Request): Promise<Response> {
       kind: "chat", id: c.id, name: c.name, age: c.age,
       // Over for the other side: screen 7 shows "ended" — the fact, never their term.
       chat_expires_at: Number(c.ends), state: c.over ? "ended" : "open",
+      // One's own span (§8.6), for the header's "fades after 1h of YOUR
+      // silence"; the other side's is neither shown nor sent (23.09.2026).
+      span: c.span,
       // What the client needs to open the conversation's keys (§8.13): the
       // peer's ephemeral half with its signature, the long key that signed it
       // (and from which the safety code is derived), and the ids that decide

@@ -358,6 +358,14 @@ export class Client {
     this.#ephemeral.delete(chatId);
   }
 
+  // PATCH /chats/:id — my own span in this conversation: 10, 30, 60 minutes or
+  // 260, "while we're talking" (§8.6). It moves my end and nobody else's.
+  async setChatSpan(chatId: string, span: 10 | 30 | 60 | 260): Promise<number> {
+    const answer = await this.#call<{ span: number }>("PATCH", `/chats/${encodeURIComponent(chatId)}`, { span });
+    if (answer.status !== 200) throw new Error(`the span refused: ${answer.status}`);
+    return answer.body.span;
+  }
+
   // "Not now", and taking it back while the match lives (screen 7).
   decline(matchId: string): Promise<Answer> {
     return this.#call("POST", `/matches/${encodeURIComponent(matchId)}/decline`);

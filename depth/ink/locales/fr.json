@@ -94,5 +94,15 @@
   "inbox.undo": "annuler",
   "me.title": "moi",
   "me.name": "prénom",
-  "me.age": "âge"
+  "me.age": "âge",
+  "chat.fades": "s'éteint après {span} de VOTRE silence",
+  "chat.span": "mon délai : {span}",
+  "chat.spanShort10": "10 min",
+  "chat.spanShort30": "30 min",
+  "chat.spanShort60": "1 h",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 minutes",
+  "chat.spanLong30": "30 minutes",
+  "chat.spanLong60": "une heure",
+  "chat.spanLong260": "tant qu'on parle"
 }

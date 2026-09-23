@@ -2080,6 +2080,13 @@ Deno.test({
     const by = Object.fromEntries(rows.map((r) => [r.identity, r.idle_ttl_minutes]));
     assertEquals(by[a.identity_id], 10);
     assertEquals(by[b.identity_id], 60, "one side's span moved the other's");
+    // The inbox says each side its own span, for the header's "fades after …"
+    // (23.09.2026) — never the other's.
+    const spanIn = async (who: typeof a) =>
+      ((await matchCall(who, "GET", "/inbox")).body as { items: Array<{ id: string; span?: number }> })
+        .items.find((i) => i.id === chat)?.span;
+    assertEquals(await spanIn(a), 10, "the inbox does not carry one's own span");
+    assertEquals(await spanIn(b), 60, "the inbox gave one side the other's span");
   },
 });
 

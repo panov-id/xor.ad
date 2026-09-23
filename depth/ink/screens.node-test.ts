@@ -204,8 +204,8 @@ test("blocking asks twice, and says what it costs", async () => {
     }),
   );
   await settle(150);
-  // Into the row, along to "заблокировать": send, код, закончить беседу, block.
-  await type(app, DOWN, RIGHT, RIGHT, RIGHT, ENTER);
+  // Into the row, along to "заблокировать": send, код, свой срок, закончить беседу, block.
+  await type(app, DOWN, RIGHT, RIGHT, RIGHT, RIGHT, ENTER);
   await settle(150);
   assert.equal(blocked, 0, "one press blocked without asking");
   assert.match(app.lastFrame()!, /точно заблокировать/, "the screen did not ask");
@@ -501,4 +501,38 @@ test("a match is declined with 'not now' and brought back with 'undo'", async ()
   await type(app, DOWN);
   assert.doesNotMatch(app.lastFrame()!, /не сейчас/, "an open chat offers 'not now'");
   app.unmount();
+});
+
+// One's own span (§5, §8.6): the header says it, the last quarter counts down,
+// and the one menu item steps through the four values and tells the node.
+test("the chat says its own span, counts down its last quarter, and changes it", async () => {
+  const spans: number[] = [];
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+    openRoom: () => Promise.resolve({ next: () => new Promise(() => {}), close: () => {} }),
+    setChatSpan: (_id: string, span: number) => { spans.push(span); return Promise.resolve(span); },
+  };
+  const now = Math.floor(Date.now() / 1000);
+  const chat = (endsAt: number) =>
+    render(h(Chat, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      chatId: "c1", name: "Аня", age: 34, limit: 256, span: 60, endsAt,
+      onBack: () => {}, onError: () => {},
+    }));
+  const calm = chat(now + 50 * 60);
+  await settle(150);
+  assert.match(calm.lastFrame()!, /гаснет после 1ч ВАШЕГО молчания/, "the header does not say one's own span");
+  assert.doesNotMatch(calm.lastFrame()!, /\d+:\d\d\b(?! \d)/, "a countdown shows long before the last quarter");
+  // Into the row, along to "свой срок": send, код, свой срок.
+  await type(calm, DOWN, RIGHT, RIGHT, ENTER);
+  await settle(150);
+  assert.deepEqual(spans, [260], "the span item did not step to the next value and tell the node");
+  assert.match(calm.lastFrame()!, /гаснет после 4:20 ВАШЕГО молчания/, "the header did not follow the new span");
+  calm.unmount();
+  const late = chat(now + 10 * 60);
+  await settle(150);
+  assert.match(late.lastFrame()!, /гаснет после 1ч ВАШЕГО молчания · (9:5\d|10:00)/, "the last quarter does not count down");
+  late.unmount();
 });

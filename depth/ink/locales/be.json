@@ -94,5 +94,15 @@
   "inbox.undo": "вярнуць",
   "me.title": "я",
   "me.name": "імя",
-  "me.age": "узрост"
+  "me.age": "узрост",
+  "chat.fades": "гасне пасля {span} ВАШАГА маўчання",
+  "chat.span": "свой тэрмін: {span}",
+  "chat.spanShort10": "10 хв",
+  "chat.spanShort30": "30 хв",
+  "chat.spanShort60": "1 гад",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 хвілін",
+  "chat.spanLong30": "30 хвілін",
+  "chat.spanLong60": "гадзіна",
+  "chat.spanLong260": "пакуль гаворым"
 }

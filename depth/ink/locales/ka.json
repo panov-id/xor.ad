@@ -94,5 +94,15 @@
   "inbox.undo": "დაბრუნება",
   "me.title": "მე",
   "me.name": "სახელი",
-  "me.age": "ასაკი"
+  "me.age": "ასაკი",
+  "chat.fades": "ქრება თქვენი {span} დუმილის შემდეგ",
+  "chat.span": "ჩემი ვადა: {span}",
+  "chat.spanShort10": "10 წთ",
+  "chat.spanShort30": "30 წთ",
+  "chat.spanShort60": "1 სთ",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 წუთი",
+  "chat.spanLong30": "30 წუთი",
+  "chat.spanLong60": "საათი",
+  "chat.spanLong260": "სანამ ვსაუბრობთ"
 }

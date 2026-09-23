@@ -94,5 +94,15 @@
   "inbox.undo": "rückgängig",
   "me.title": "ich",
   "me.name": "Name",
-  "me.age": "Alter"
+  "me.age": "Alter",
+  "chat.fades": "erlischt nach {span} IHRES Schweigens",
+  "chat.span": "meine Frist: {span}",
+  "chat.spanShort10": "10 Min.",
+  "chat.spanShort30": "30 Min.",
+  "chat.spanShort60": "1 Std.",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 Minuten",
+  "chat.spanLong30": "30 Minuten",
+  "chat.spanLong60": "eine Stunde",
+  "chat.spanLong260": "solange wir reden"
 }

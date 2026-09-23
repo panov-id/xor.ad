@@ -404,6 +404,7 @@ components:
         waiting_for_you: {type: boolean}
         unread: {type: boolean, deprecated: true, description: "Not sent: the device counts what it has shown, the node knows nothing about reading (owner's decision 2026-09-17; the route built 2026-09-21 omits it).", x-description-ru: "Не отдаётся: точку «новое» считает устройство, узел о чтении не знает (решение владельца 17.09.2026; маршрут, построенный 21.09.2026, поля не шлёт)."}
         chat_expires_at: {type: integer, format: unix-seconds}
+        span: {type: integer, enum: [10, 30, 60, 260], description: "On a chat row since 2026-09-23: one's own span in minutes (PATCH /chats/{id}); the other side's is never sent (§8.6).", x-description-ru: "У строки чата с 23.09.2026: свой срок в минутах (PATCH /chats/{id}); чужой не отдаётся никогда (§8.6)."}
         state: {type: string, enum: [pending, open, ended]}
         match_id: {type: string, format: uuid, description: "On a chat row since 2026-09-22: the match the consent halves (epoch 0) were signed for (§8.13); the peer verifies that binding.", x-description-ru: "У строки чата с 22.09.2026: мэтч, для которого подписаны половины согласия (эпоха 0, §8.13); собеседник проверяет эту привязку."}
         me: {type: string, format: uuid, description: "On a chat row since 2026-09-22: one's own identity id, so the client knows which direction key is its own (§8.13, low→high by sorted ids).", x-description-ru: "У строки чата с 22.09.2026: свой identity id, чтобы клиент знал, какой из ключей направления его (§8.13, low→high по отсортированным id)."}

@@ -807,6 +807,13 @@ although `tab` led exactly there.
   shows **your own** remainder; the other side's span is neither shown nor sent.
   It counts from **your** last message — theirs does not reset it, because reading
   is not talking.
+- **Built 2026-09-23** (`depth/ink/rooms.ts`, `Chat`): under the name, the line "fades after
+  1h of YOUR silence", red with a `mm:ss` remainder in the last quarter; there is no `t` key —
+  the menu item "your span: an hour" steps through 10 minutes → 30 minutes → an hour →
+  "while we're talking" and sends the choice (`PATCH /chats/:id`). One's own span and end come
+  from `GET /inbox` (`span`, `chat_expires_at`); a chat opened straight from consent counts an
+  hour from opening. The live walk changes the span against the node and checks it in the
+  database.
 - The silence counter appears in the **last quarter of your own span** and is reset
   by any **of your own** delivered messages. The old `min(20 min, ttl/3)` rule is
   retired along with the pick at consent.

@@ -94,5 +94,15 @@
   "inbox.undo": "кайтаруу",
   "me.title": "мен",
   "me.name": "аты",
-  "me.age": "жашы"
+  "me.age": "жашы",
+  "chat.fades": "СИЗДИН {span} унчукпооңуздан кийин өчөт",
+  "chat.span": "өз мөөнөтүм: {span}",
+  "chat.spanShort10": "10 мүн",
+  "chat.spanShort30": "30 мүн",
+  "chat.spanShort60": "1 саат",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 мүнөт",
+  "chat.spanLong30": "30 мүнөт",
+  "chat.spanLong60": "бир саат",
+  "chat.spanLong260": "сүйлөшкөнчө"
 }

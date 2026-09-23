@@ -94,5 +94,15 @@
   "inbox.undo": "αναίρεση",
   "me.title": "εγώ",
   "me.name": "όνομα",
-  "me.age": "ηλικία"
+  "me.age": "ηλικία",
+  "chat.fades": "σβήνει μετά από {span} ΔΙΚΗΣ ΣΑΣ σιωπής",
+  "chat.span": "δική μου προθεσμία: {span}",
+  "chat.spanShort10": "10 λεπ.",
+  "chat.spanShort30": "30 λεπ.",
+  "chat.spanShort60": "1 ώρα",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 λεπτά",
+  "chat.spanLong30": "30 λεπτά",
+  "chat.spanLong60": "μία ώρα",
+  "chat.spanLong260": "όσο μιλάμε"
 }

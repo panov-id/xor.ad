@@ -94,5 +94,15 @@
   "inbox.undo": "qaytarish",
   "me.title": "men",
   "me.name": "ism",
-  "me.age": "yosh"
+  "me.age": "yosh",
+  "chat.fades": "SIZNING {span} jimligingizdan keyin o'chadi",
+  "chat.span": "o'z muddatim: {span}",
+  "chat.spanShort10": "10 daq",
+  "chat.spanShort30": "30 daq",
+  "chat.spanShort60": "1 soat",
+  "chat.spanShort260": "4:20",
+  "chat.spanLong10": "10 daqiqa",
+  "chat.spanLong30": "30 daqiqa",
+  "chat.spanLong60": "bir soat",
+  "chat.spanLong260": "gaplashguncha"
 }

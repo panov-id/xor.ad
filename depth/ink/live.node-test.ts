@@ -206,6 +206,19 @@ async function main() {
     const theirs = (await peer.openConversation(peerChat.chat_id, back.body.match_id!)).safetyCode;
     assert.equal(shown, theirs, "the two sides show different safety codes");
     out("ok   both sides show the same safety code");
+
+    // 7 · one's own span, changed from the chat and kept by the node (§8.6):
+    // "compared" closes the panel, the row is still on "code", one step right
+    // is "own span", and an hour steps to "while we're talking", 260.
+    await type(app, ENTER);
+    await settle(300);
+    await type(app, RIGHT, ENTER);
+    await until(app, /гаснет после 4:20/, 20);
+    const [mine] = await sql`SELECT p.idle_ttl_minutes AS span FROM chat_participants p
+                              JOIN identities i ON i.id = p.identity
+                             WHERE p.chat_id = ${peerChat.chat_id} AND i.name = 'Аня'`;
+    assert.equal(Number(mine?.span), 260, "the span changed on the screen but not on the node");
+    out("ok   the chat's own span went to the node");
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

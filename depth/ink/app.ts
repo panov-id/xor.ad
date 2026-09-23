@@ -39,7 +39,7 @@ type Where =
   | { screen: "liked" }
   | { screen: "blocked" }
   | { screen: "me" }
-  | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number };
+  | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number; span?: number; endsAt?: number };
 
 export function App({ say, client }: { say: Say; client: Client }): ReactElement {
   const [where, setWhere] = useState<Where>({ screen: "register" });
@@ -132,7 +132,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
         return h(Inbox, {
           say,
           client,
-          onOpen: (chatId, matchId, name, age) => setWhere({ screen: "chat", chatId, matchId, name, age }),
+          onOpen: (chatId, matchId, name, age, span, endsAt) =>
+            setWhere({ screen: "chat", chatId, matchId, name, age, span, endsAt }),
           onBack: feed,
           onError: fail,
         });
@@ -144,6 +145,8 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           matchId: where.matchId,
           name: where.name,
           age: where.age,
+          span: where.span,
+          endsAt: where.endsAt,
           limit,
           onBack: () => setWhere({ screen: "inbox" }),
           onError: fail,

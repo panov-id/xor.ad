@@ -75,6 +75,7 @@ export interface Liked {
 // ones, a waiting one without its end; `stepped_away_until` only while away.
 export interface Profile {
   name: string;
+  name_pending?: string;
   name_state: "accepted" | "pending" | "rejected";
   age: number;
   phrases?: Array<{ id: string; expires_at?: number }>;

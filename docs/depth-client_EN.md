@@ -1065,8 +1065,17 @@ reached by the item "me" in the feed's menu: there is no `m` key, navigation is 
 enter (2026-09-22). On top, the name and age from `GET /identities/me`, read-only; below, rows
 that open the screens already built: the red "Restrictions: N" (if any), "liked", "hidden · N",
 "Blocked: N" (if any). These items left the feed's menu — the row no longer fit a hundred
-columns. Not built: editing the name, age and languages (the `name_frozen` refusal has no
-terminal text), appearance, the silence and area defaults, hints, support, the console.
+columns. Not built: editing languages, appearance, the silence and area defaults, hints,
+support, the console.
+
+**Editing the name and the age — built 2026-09-23** (`depth/ink/rooms.ts`, `EditProfile`;
+`PATCH /identities/me`). The name and the age are the first rows of `me`, `enter` opens the
+field; under the heading — "changes on a clean slate" and "your contacts will see the change".
+A new name goes to the queue (202): the row shows "Anya → Anna · being checked". Crossing 20/21
+upwards asks "Move into the 21+ band?" with "save" / "Cancel" (storefront screen 10). The node's
+refusals are said in the words the owner approved on 2026-09-23 (`refusal-wordings_EN.md` §5):
+the name is frozen, age down across 20/21, more than ten edits a day; the pause after refusals
+is the §4 block. The live walk edits the name against the node and finds it in the queue.
 
 **Stepping away — built 2026-09-23** (`depth/ink/rooms.ts`, `StepAway`, `Away`; the node —
 `routes/away.ts`). The last row of `me` is "step away". The choice screen: 20 minutes, an hour,

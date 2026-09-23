@@ -774,28 +774,34 @@ export function Blocked(
 // hints, support and the console are not here yet: their terminal mechanics or
 // their refusal texts do not exist (§4.11, §9). No `m` key: the terminal moves
 // by arrows and enter only (owner, 2026-09-22), so "me" is an item of the feed.
-export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away";
+export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age";
 export function Me(
   { say, client, restrictions, onOpen, onBack, onError }: {
     say: Say;
     client: Client;
     restrictions: number;
-    onOpen: (row: MeRow) => void;
+    onOpen: (row: MeRow, current?: string) => void;
     onBack: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
-  const [profile, setProfile] = useState<{ name: string; age: number } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; pending?: string; age: number } | null>(null);
   const [hidden, setHidden] = useState<number | null>(null);
   const [blocked, setBlocked] = useState(0);
   const [at, setAt] = useState(0);
   useEffect(() => {
-    client.profile().then((p) => setProfile({ name: p.name, age: p.age })).catch((e: Error) => onError(e.message));
+    client.profile().then((p) => setProfile({ name: p.name, pending: p.name_pending, age: p.age })).catch((e: Error) => onError(e.message));
     client.hidden().then((list) => setHidden(list.length)).catch(() => {});
     client.blocks().then((list) => setBlocked(list.length)).catch(() => {});
   }, []);
+  // The name and the age are rows too since 23.09.2026: enter edits them.
+  const nameShown = profile
+    ? plain(profile.name, 48) + (profile.pending ? ` → ${plain(profile.pending, 48)} · ${say("feed.checking")}` : "")
+    : "…";
   const rows: Array<{ key: MeRow; label: string; red?: boolean }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true }] : []),
+    { key: "name", label: `${say("me.name")}  ${nameShown}` },
+    { key: "age", label: `${say("me.age")}  ${profile ? plain(profile.age, 3) : "…"}` },
     { key: "liked", label: say("liked.title") },
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}` },
     // Offered only while there is something to lift: "Blocked: 0" is the
@@ -808,18 +814,10 @@ export function Me(
     if (key.downArrow) setAt((i) => (i + 1) % rows.length);
   });
   const chosen = rows[Math.min(at, rows.length - 1)];
-  const field = (label: string, value: string) =>
-    h(Box, { key: label }, h(Box, { width: 12, flexShrink: 0 }, h(Text, { dimColor: true }, label)), h(Text, null, value));
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
     h(Head, { title: say("me.title") }),
-    h(
-      Box,
-      { flexDirection: "column" },
-      field(say("me.name"), profile ? plain(profile.name, 48) : "…"),
-      field(say("me.age"), profile ? plain(profile.age, 3) : "…"),
-    ),
     h(
       Box,
       { flexDirection: "column" },
@@ -829,7 +827,15 @@ export function Me(
     ),
     h(Menu, {
       actions: [{ key: "open", label: say("inbox.enter") }, { key: "back", label: say("common.back") }],
-      onPick: (key) => (key === "back" ? onBack() : chosen && onOpen(chosen.key)),
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (!chosen) return;
+        // The name and the age open with what is there now: the pending name if
+        // one waits, since that is the one being changed.
+        if (chosen.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
+        if (chosen.key === "age") return profile && onOpen("age", String(profile.age));
+        onOpen(chosen.key);
+      },
       hint: say("common.rowActions"),
     }),
   );
@@ -957,5 +963,72 @@ export function Away(
       },
       hint: say("common.rowActions"),
     }),
+  );
+}
+
+// Editing the name or the age from "me" (§4.11; storefront screen 10). The
+// node decides and says why not; the words for its refusals were approved by
+// the owner on 23.09.2026 (refusal-wordings §5). Crossing 20/21 upwards is
+// asked before saving, since it cannot be undone (§8.2).
+export function EditProfile(
+  { say, client, field, current, onDone, onBack, onError }: {
+    say: Say;
+    client: Client;
+    field: "name" | "age";
+    current: string;
+    onDone: () => void;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [value, setValue] = useState(current);
+  const [asking, setAsking] = useState(false);
+  const [refused, setRefused] = useState<string | null>(null);
+  const hhmm = (seconds: unknown) =>
+    typeof seconds === "number" && Number.isFinite(seconds) ? new Date(seconds * 1000).toTimeString().slice(0, 5) : "?";
+  const send = () => {
+    setRefused(null);
+    const patch = field === "name" ? { name: value.trim() } : { age: Number(value) };
+    client.editProfile(patch)
+      .then((answer) => {
+        if (answer.status === 200 || answer.status === 202) return onDone();
+        const error = (answer.body as { error?: { code?: string; until?: number } })?.error;
+        if (error?.code === "name_frozen") return setRefused(say("profile.nameFrozen"));
+        if (error?.code === "age_step_down") return setRefused(say("profile.ageDown"));
+        if (error?.code === "paused") return setRefused(say("write.paused", { time: hhmm(error.until) }));
+        if (answer.status === 429) return setRefused(say("profile.patchDay"));
+        onError(`the profile edit was refused: ${answer.status}`);
+      })
+      .catch((e: Error) => onError(e.message));
+  };
+  const crossesUp = () => field === "age" && Number(current) <= 20 && Number(value) >= 21;
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say(field === "name" ? "me.name" : "me.age"), lines: [say(field === "name" ? "me.nameHint" : "me.ageHint")] }),
+    refused ? h(Text, { color: "red" }, refused) : null,
+    asking ? h(Text, { color: "yellow" }, say("me.band21")) : null,
+    asking
+      ? h(Menu, {
+        actions: [{ key: "save", label: say("me.save") }, { key: "cancel", label: say("me.cancel") }],
+        onPick: (key) => {
+          setAsking(false);
+          if (key === "save") send();
+        },
+      })
+      : h(Form, {
+        fields: [{ key: field, label: say(field === "name" ? "me.name" : "me.age"), value }],
+        onChange: (_key, next) => setValue(field === "age" ? next.replace(/[^0-9]/g, "").slice(0, 3) : next.slice(0, 64)),
+        actions: [
+          { key: "save", label: say("me.save"), disabled: value.trim() === "" || value.trim() === current },
+          { key: "back", label: say("common.back") },
+        ],
+        onPick: (key) => {
+          if (key === "back") return onBack();
+          if (crossesUp()) return setAsking(true);
+          send();
+        },
+        actionsHint: say("common.rowActions"),
+      }),
   );
 }

@@ -142,10 +142,10 @@ async function main() {
     await pickInFeed(app, "hide");
     await settle(400);
     assert.equal(/пробежку/.test(app.lastFrame() ?? ""), false, "a hidden phrase stayed on the screen");
-    // "me" now holds the lists (§4.11): liked is its first row, hidden the second.
+    // "me" now holds the lists (§4.11): name, age, liked, hidden.
     await pickInFeed(app, "me");
     await until(app, /скрытое · 1/, 20);
-    await type(app, DOWN, ENTER);
+    await type(app, DOWN, DOWN, DOWN, ENTER);
     await until(app, /пробежку/, 20);
     await type(app, DOWN, ENTER); // bring it back
     await settle(400);
@@ -180,7 +180,7 @@ async function main() {
     await peer.consent(back.body.match_id!);
     await pickInFeed(app, "me");
     await until(app, /лайкнутое/, 20);
-    await type(app, ENTER);
+    await type(app, DOWN, DOWN, ENTER);
     await until(app, /предложение поговорить/, 20);
     out("ok   the liked screen shows the match that came out of the like");
     await type(app, ENTER);
@@ -227,13 +227,13 @@ async function main() {
     out("ok   a conversation ended by the other side became a tombstone");
 
     // 9 · stepping away against the node (§8.2): from the tombstone to the
-    // feed, "me" → "step away" (after liked and hidden), twenty minutes, and
+    // feed, "me" → "step away" (after name, age, liked and hidden), twenty minutes, and
     // back again with the second press the away screen asks for.
     await type(app, ENTER);
     await until(app, /signal/, 20);
     await pickInFeed(app, "me");
     await until(app, /отойти/, 20);
-    await type(app, DOWN, DOWN, ENTER);
+    await type(app, DOWN, DOWN, DOWN, DOWN, ENTER);
     await until(app, /выберите срок/, 20);
     await type(app, DOWN, ENTER);
     await until(app, /Вы отошли\./, 20);
@@ -244,6 +244,18 @@ async function main() {
     const [backRow] = await sql`SELECT stepped_away_until <= now() AS back FROM identities WHERE id = ${me.id}`;
     assert.equal(backRow?.back, true, "coming back on the screen did not reach the node");
     out("ok   stepping away and coming back went to the node");
+
+    // 10 · the name, edited from "me" against the node: the step away took the
+    // phrases, so the slate is clean and the new name goes to the queue (202).
+    await pickInFeed(app, "me");
+    await until(app, /имя/, 20);
+    await type(app, ENTER);
+    await until(app, /меняется на чистом счету/, 20);
+    await type(app, ..."\u007F\u007F\u007F".split(""), ..."Анна".split(""), DOWN, ENTER);
+    await until(app, /Анна/, 20);
+    const [named] = await sql`SELECT name_pending FROM identities WHERE id = ${me.id}`;
+    assert.equal(named?.name_pending, "Анна", "the new name did not reach the node's queue");
+    out("ok   a name edited from the screen went to the queue");
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

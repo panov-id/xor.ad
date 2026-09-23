@@ -12,7 +12,7 @@ import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, Registration } from "./screens.ts";
 import type { Place } from "./screens.ts";
-import { Away, Blocked, Chat, Hidden, Inbox, Liked, Me, StepAway, Statements, Write } from "./rooms.ts";
+import { Away, Blocked, Chat, EditProfile, Hidden, Inbox, Liked, Me, StepAway, Statements, Write } from "./rooms.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -40,6 +40,7 @@ type Where =
   | { screen: "blocked" }
   | { screen: "me" }
   | { screen: "stepAway" }
+  | { screen: "edit"; field: "name" | "age"; current: string }
   | { screen: "away"; until: number }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number; span?: number; endsAt?: number };
 
@@ -120,13 +121,24 @@ export function App({ say, client }: { say: Say; client: Client }): ReactElement
           say,
           client,
           restrictions: statements?.length ?? 0,
-          onOpen: (row) =>
+          onOpen: (row, current) =>
             setWhere(
               row === "statements" ? { screen: "statements", from: "me" }
               : row === "away" ? { screen: "stepAway" }
+              : row === "name" || row === "age" ? { screen: "edit", field: row, current: current ?? "" }
               : { screen: row },
             ),
           onBack: feed,
+          onError: fail,
+        });
+      case "edit":
+        return h(EditProfile, {
+          say,
+          client,
+          field: where.field,
+          current: where.current,
+          onDone: me,
+          onBack: me,
           onError: fail,
         });
       case "stepAway":

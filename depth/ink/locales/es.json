@@ -125,5 +125,13 @@
   "write.hourly": "Ya has dicho cuatro frases esta hora. La siguiente podrá salir a las {time}.",
   "write.rapid": "Demasiados envíos seguidos.",
   "write.hold": "Revisamos lo anterior — lo nuevo saldrá tras el veredicto.",
-  "write.live": "Ya hay cuatro frases en vivo. El próximo hueco se libera a las {time}."
+  "write.live": "Ya hay cuatro frases en vivo. El próximo hueco se libera a las {time}.",
+  "me.nameHint": "cambia desde cero",
+  "me.ageHint": "tus interlocutores verán el cambio",
+  "me.band21": "¿Pasar a la franja 21+?",
+  "me.save": "guardar",
+  "me.cancel": "Cancelar",
+  "profile.nameFrozen": "Tu nombre solo cambia desde cero: mientras una frase tuya siga viva o haya una conversación abierta, está congelado.",
+  "profile.ageDown": "De la franja 21+ no se vuelve. La edad se corrige dentro de la franja; la línea 20/21 solo se cruza hacia arriba.",
+  "profile.patchDay": "Suficientes cambios de perfil por hoy — mañana podrás de nuevo."
 }

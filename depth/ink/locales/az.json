@@ -125,5 +125,13 @@
   "write.hourly": "Bu saatda dörd ifadə artıq deyilib. Növbətisi {time} mümkündür.",
   "write.rapid": "Ardıcıl çox göndərmə.",
   "write.hold": "Əvvəlkini yoxlayırıq — yenisi qərardan sonra gedəcək.",
-  "write.live": "Dörd ifadə artıq yaşayır. Ən yaxını {time} boşalacaq."
+  "write.live": "Dörd ifadə artıq yaşayır. Ən yaxını {time} boşalacaq.",
+  "me.nameHint": "təmiz vərəqdən dəyişir",
+  "me.ageHint": "həmsöhbətlər dəyişikliyi görəcək",
+  "me.band21": "21+ zolağına keçilsin?",
+  "me.save": "saxla",
+  "me.cancel": "Ləğv et",
+  "profile.nameFrozen": "Adınız yalnız təmiz vərəqdən dəyişir: ifadəniz yaşadıqca və ya söhbət açıq olduqca, o dondurulub.",
+  "profile.ageDown": "21+ zolağından geri keçmirlər. Yaş zolaq daxilində düzəldilir, 20/21 sərhədi isə yalnız yuxarı keçilir.",
+  "profile.patchDay": "Bu gün üçün profil düzəlişləri kifayətdir — sabah yenə olar."
 }

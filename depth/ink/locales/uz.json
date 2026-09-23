@@ -125,5 +125,13 @@
   "write.hourly": "Shu soatda to'rtta ibora aytib bo'lindi. Keyingisi {time} da mumkin.",
   "write.rapid": "Ketma-ket juda ko'p yuborish.",
   "write.hold": "Oldingisini tekshiryapmiz — yangisi hukmdan keyin ketadi.",
-  "write.live": "To'rtta ibora allaqachon tirik. Eng yaqini {time} da bo'shaydi."
+  "write.live": "To'rtta ibora allaqachon tirik. Eng yaqini {time} da bo'shaydi.",
+  "me.nameHint": "toza varaqdan o'zgaradi",
+  "me.ageHint": "suhbatdoshlar o'zgarishni ko'radi",
+  "me.band21": "21+ tasmasiga o'tilsinmi?",
+  "me.save": "saqlash",
+  "me.cancel": "Bekor qilish",
+  "profile.nameFrozen": "Ismingiz faqat toza varaqdan o'zgaradi: iborangiz tirik yoki suhbat ochiq ekan, u muzlatilgan.",
+  "profile.ageDown": "21+ tasmasidan orqaga o'tilmaydi. Yosh tasma ichida tuzatiladi, 20/21 chegarasi esa faqat yuqoriga o'tiladi.",
+  "profile.patchDay": "Bugun uchun profil tuzatishlari yetarli — ertaga yana mumkin."
 }

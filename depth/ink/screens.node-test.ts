@@ -35,7 +35,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Feed, Location, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Away, Blocked, Chat, Hidden, Inbox, Liked, Me, Statements, StepAway, Write } from "./rooms.ts";
+import { Away, Blocked, Chat, EditProfile, Hidden, Inbox, Liked, Me, Statements, StepAway, Write } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -426,7 +426,8 @@ test("'me' offers the blocked list only while there is something on it, and open
   await settle();
   assert.match(some.lastFrame()!, /Заблокировано: 3/, "the blocked list is not offered from 'me'");
   assert.match(some.lastFrame()!, /скрытое · 1/, "the hidden count is not on 'me'");
-  await type(some, DOWN, DOWN, ENTER);
+  // name, age, liked, hidden, blocked.
+  await type(some, DOWN, DOWN, DOWN, DOWN, ENTER);
   assert.deepEqual(opened, ["blocked"], "the arrows and enter did not open the chosen row");
   some.unmount();
   blocks = [];
@@ -730,4 +731,75 @@ test("a phrase the node refuses is said to be refused, and stays in the field", 
   await settle(150);
   assert.deepEqual(done, ["гуляю у реки"], "an accepted phrase did not count as sent");
   app.unmount();
+});
+
+// Editing the profile (§4.11; the refusals approved by the owner 23.09.2026).
+test("a frozen name is refused in the approved words, and a free one is saved", async () => {
+  const answers = [
+    { status: 409, body: { error: { code: "name_frozen" } } },
+    { status: 429, body: { error: { code: "rate_limited" } } },
+    { status: 202, body: { name: "Аня", name_pending: "Анна" } },
+  ];
+  const sent: unknown[] = [];
+  let done = 0;
+  const client = { editProfile: (patch: unknown) => { sent.push(patch); return Promise.resolve(answers.shift()!); } };
+  const app = render(h(EditProfile, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    field: "name", current: "Аня",
+    onDone: () => done++, onBack: () => {}, onError: () => {},
+  }));
+  await settle();
+  assert.match(app.lastFrame()!, /меняется на чистом счету/);
+  await type(app, BACK, BACK, BACK, ..."Анна".split(""), DOWN, ENTER);
+  await settle();
+  assert.deepEqual(sent, [{ name: "Анна" }]);
+  assert.match(app.lastFrame()!, /Имя меняется только на чистом счету: пока живёт ваша фраза или открыта беседа, оно заморожено\./);
+  await type(app, ENTER);
+  await settle();
+  assert.match(app.lastFrame()!, /Правок профиля на сегодня достаточно — завтра можно снова\./);
+  await type(app, ENTER);
+  await settle();
+  assert.equal(done, 1, "a name taken for the queue did not leave the editor");
+  app.unmount();
+});
+
+test("an age crossing 20/21 upwards is asked first, and going back down is refused", async () => {
+  const answers = [
+    { status: 200, body: { age: 21 } },
+  ];
+  const sent: unknown[] = [];
+  let done = 0;
+  const client = { editProfile: (patch: unknown) => { sent.push(patch); return Promise.resolve(answers.shift()!); } };
+  const up = render(h(EditProfile, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    field: "age", current: "20",
+    onDone: () => done++, onBack: () => {}, onError: () => {},
+  }));
+  await settle();
+  await type(up, BACK, BACK, "2", "1", DOWN, ENTER);
+  assert.deepEqual(sent, [], "crossing 20/21 went without asking");
+  assert.match(up.lastFrame()!, /Перейти в полосу 21\+\?/);
+  await type(up, ENTER);
+  await settle();
+  assert.deepEqual(sent, [{ age: 21 }]);
+  assert.equal(done, 1);
+  up.unmount();
+
+  const down = { editProfile: () => Promise.resolve({ status: 409, body: { error: { code: "age_step_down" } } }) };
+  const back = render(h(EditProfile, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: down as any,
+    field: "age", current: "22",
+    onDone: () => {}, onBack: () => {}, onError: () => {},
+  }));
+  await settle();
+  await type(back, BACK, BACK, "1", "9", DOWN, ENTER);
+  await settle();
+  assert.match(back.lastFrame()!, /Из полосы 21\+ обратно не переходят\./, "going down across 20/21 was not refused in words");
+  back.unmount();
 });

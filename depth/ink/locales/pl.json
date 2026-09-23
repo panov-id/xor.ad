@@ -125,5 +125,13 @@
   "write.hourly": "Cztery frazy w tej godzinie już padły. Następną można o {time}.",
   "write.rapid": "Za dużo wysyłek pod rząd.",
   "write.hold": "Sprawdzamy poprzednią — nowa pójdzie po werdykcie.",
-  "write.live": "Cztery frazy już żyją. Najbliższa zwolni się o {time}."
+  "write.live": "Cztery frazy już żyją. Najbliższa zwolni się o {time}.",
+  "me.nameHint": "zmienia się od czystej karty",
+  "me.ageHint": "rozmówcy zobaczą zmianę",
+  "me.band21": "Przejść do pasma 21+?",
+  "me.save": "zapisz",
+  "me.cancel": "Anuluj",
+  "profile.nameFrozen": "Imię zmienia się tylko od czystej karty: dopóki żyje twoja fraza albo otwarta jest rozmowa, jest zamrożone.",
+  "profile.ageDown": "Z pasma 21+ nie wraca się. Wiek poprawia się w obrębie pasma, a granicę 20/21 przekracza się tylko w górę.",
+  "profile.patchDay": "Poprawek profilu na dziś wystarczy — jutro znów można."
 }

@@ -125,5 +125,13 @@
   "write.hourly": "Four phrases already said this hour. The next one can go at {time}.",
   "write.rapid": "Too many sends in a row.",
   "write.hold": "Checking what you sent earlier — the new one goes after the verdict.",
-  "write.live": "Four phrases are already live. The next slot frees at {time}."
+  "write.live": "Four phrases are already live. The next slot frees at {time}.",
+  "me.nameHint": "changes on a clean slate",
+  "me.ageHint": "your contacts will see the change",
+  "me.band21": "Move into the 21+ band?",
+  "me.save": "save",
+  "me.cancel": "Cancel",
+  "profile.nameFrozen": "Your name changes only on a clean slate: while a phrase of yours is live or a conversation is open, it is frozen.",
+  "profile.ageDown": "There is no way back from the 21+ band. Age is edited within the band; the 20/21 line is crossed only upwards.",
+  "profile.patchDay": "Enough profile edits for today — tomorrow you can again."
 }

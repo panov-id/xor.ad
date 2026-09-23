@@ -125,5 +125,13 @@
   "write.hourly": "Patru fraze deja spuse în această oră. Următoarea poate pleca la {time}.",
   "write.rapid": "Prea multe trimiteri la rând.",
   "write.hold": "Verificăm ce ați trimis înainte — cea nouă pleacă după verdict.",
-  "write.live": "Patru fraze sunt deja active. Următorul loc se eliberează la {time}."
+  "write.live": "Patru fraze sunt deja active. Următorul loc se eliberează la {time}.",
+  "me.nameHint": "se schimbă doar de la zero",
+  "me.ageHint": "interlocutorii vor vedea schimbarea",
+  "me.band21": "Treceți în banda 21+?",
+  "me.save": "salvează",
+  "me.cancel": "Anulează",
+  "profile.nameFrozen": "Numele se schimbă doar de la zero: cât timp o frază a dvs. e activă sau o conversație e deschisă, e înghețat.",
+  "profile.ageDown": "Din banda 21+ nu se revine. Vârsta se corectează în interiorul benzii; pragul 20/21 se trece doar în sus.",
+  "profile.patchDay": "Destule modificări de profil pentru azi — mâine se poate din nou."
 }

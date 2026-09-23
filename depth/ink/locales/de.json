@@ -125,5 +125,13 @@
   "write.hourly": "Vier Phrasen in dieser Stunde sind schon gesagt. Die nächste geht um {time}.",
   "write.rapid": "Zu viele Sendungen hintereinander.",
   "write.hold": "Die vorige wird geprüft — die neue geht nach dem Urteil.",
-  "write.live": "Vier Phrasen sind schon live. Der nächste Platz wird um {time} frei."
+  "write.live": "Vier Phrasen sind schon live. Der nächste Platz wird um {time} frei.",
+  "me.nameHint": "ändert sich nur bei leerem Blatt",
+  "me.ageHint": "Ihre Gesprächspartner sehen die Änderung",
+  "me.band21": "In das Band 21+ wechseln?",
+  "me.save": "speichern",
+  "me.cancel": "Abbrechen",
+  "profile.nameFrozen": "Ihr Name ändert sich nur bei leerem Blatt: Solange eine Phrase von Ihnen live oder ein Gespräch offen ist, ist er eingefroren.",
+  "profile.ageDown": "Aus dem Band 21+ gibt es keinen Weg zurück. Das Alter wird innerhalb des Bandes korrigiert; die Grenze 20/21 wird nur nach oben überschritten.",
+  "profile.patchDay": "Genug Profiländerungen für heute — morgen geht es wieder."
 }

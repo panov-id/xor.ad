@@ -62,6 +62,11 @@ The percentages are estimates: they are not weighted by hours, because steps
 - [ ] L1: the waitlist is not in the backup — it lives in Bunny storage, and
   the backup takes only Postgres.
 - [~] Restore drill — last on 2026-08-07 (`scripts/verify-backup-restore.sh`).
+- [x] Watchdog W3 — queue jobs that ran out of attempts are re-armed every hour,
+  and a node started without its database arms them without a restart; a
+  `prune_dsa_records` tombstone is a letter to `DSA_ESCALATION_EMAILS`, one per
+  tombstone (`scheduled.ts` `rearmPass`, `lib/tombstone_watch.ts`, `db/042`, 4 tests
+  against Postgres, 2026-09-23). Not shipped.
 - [~] Alerts: `relay/local/observability/alerts.yml` and the gate
   `scripts/check-metrics-exist.sh`, runbook `runbook-node-down_*.md`; not
   verified to fire in production.

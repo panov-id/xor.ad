@@ -1,9 +1,9 @@
 # Watchdogs: so that nothing lies silent — specification, 2026-09-15
 
 Stage 1 of `docs/reviews/PLAN_2026-09-14_legal-mechanics_v1_EN.md` and S1 of the road to drawing.
-**This is a specification, not code** — except W1: it was built on 2026-09-23
-(`relay/node/src/lib/dsa_watchdog.ts`, migration `db/041`), and its section below describes what was
-built. Node code in `relay/` is outside the hardening process's
+**This is a specification, not code** — except W1 and W3: they were built on 2026-09-23
+(`relay/node/src/lib/dsa_watchdog.ts`, `relay/node/src/lib/tombstone_watch.ts`, migrations `db/041` and
+`db/042`), and their sections below describe what was built. Node code in `relay/` is outside the hardening process's
 standing permission; this records what to watch, on which signal and where to, so that nothing is
 left to choose when the work starts.
 
@@ -60,14 +60,25 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W3. Job tombstones
 
-- The worker calls `armScheduledJobs()` hourly: a standing job that is missing is created again —
-  including when `enqueueOnce` got `rows === null` at node start because the database did not answer
-  (added 2026-09-15 after the final panel, OPS-4).
+- The node calls `armScheduledJobs()` hourly (`scheduled.ts`, `rearmPass` and `startRearming`): a
+  standing job that is missing is created again — including when `enqueueOnce` got `rows === null`
+  at node start because the database did not answer (added 2026-09-15 after the final panel, OPS-4).
+  It is a process timer, not a queue job: a job can become a tombstone itself or never be armed, and
+  then nothing would re-arm the re-arm.
+- Where tombstones come from. A database that is down spends no attempts: `claim()` reads `null`
+  and takes nothing. A tombstone is eight handler failures against a database that answers —
+  storage, a partial outage, a bug. The W1 panel's estimate — a tombstone after an hour or so of a
+  database down (2026-09-23) — is wrong.
 - A `prune_dsa_records` tombstone — an urgent letter to `DSA_ESCALATION_EMAILS`: that job's period
-  is promised in the privacy policy. A letter per **new** tombstone (by `id`), not per pass: an
-  always-failing job, once re-armed, yields a new tombstone about once a day.
+  is promised in the privacy policy. A letter per **new** tombstone (by `id`, the `reported_at`
+  column), not per pass: an always-failing job, once re-armed, yields a new tombstone about once a
+  day. The rows are taken in a `FOR UPDATE SKIP LOCKED` transaction and stamped only after the letter
+  left; a pass that fails rolls back and the letter goes again. Tombstones already lying there before
+  `db/042` are marked as told by the migration — they are old news.
 - Tombstones of other jobs — a line in the team's daily digest (the same digest as support's,
-  `chat_EN.md` §13).
+  `chat_EN.md` §13). **Not built**: the digest today goes per face and about support only; other
+  tombstones show in the gauge and in the `job gave up` log line, and the re-arm brings their jobs
+  back anyway.
 - A gauge `relay_jobs_tombstones{kind}` in `GET /metrics`.
 
 ## W4. The "period without a doer" gate
@@ -128,8 +139,8 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdogs W2, W3, W5, W6 and W7 are not built — items `watchdogs.unbuilt` (W2, legal), `backup.silent.failure` (W7, operations) and
-  `watchdogs.jobs.unbuilt` (W3, operations) in `docs/facts/open.tsv`.
+- Watchdogs W2, W5, W6 and W7 are not built — items `watchdogs.unbuilt` (W2, legal) and `backup.silent.failure` (W7, operations)
+  in `docs/facts/open.tsv`. W3 lacks the digest line about other tombstones — `watchdogs.jobs.unbuilt`.
 - The external pinger service is not chosen — `node.external.pinger`.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; a letter per notice rather
   than one summary a pass — `watchdog.letters.flood` (review panel 2026-09-23).

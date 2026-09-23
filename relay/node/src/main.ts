@@ -21,7 +21,7 @@ import { closeAllRooms, relayUpgrade } from "./chat/relay.ts";
 import { match, metricLabel } from "./lib/router.ts";
 import { withoutAddresses } from "./lib/mailer.ts";
 import { startWorker } from "./lib/jobs.ts";
-import { armScheduledJobs, registerScheduledJobs } from "./lib/scheduled.ts";
+import { armScheduledJobs, startRearming, registerScheduledJobs } from "./lib/scheduled.ts";
 import "./routes/admin.ts"; // registers /auth/* + /admin/* on the pattern router
 import "./routes/v1.ts"; // registers the public /v1/* API on the same router
 import "./routes/limits.ts"; // GET /limits: the numbers a face must obey
@@ -70,6 +70,8 @@ startWorker();
 armScheduledJobs().catch((error) =>
   log("error", "could not arm the scheduled jobs", { error: String(error) })
 );
+// And every hour after: a job that gave up comes back (watchdog С3).
+startRearming();
 
 // A stop is announced to every open room first: 1001, so the terminals come
 // back on their own. The signal then ends the process as it would have.

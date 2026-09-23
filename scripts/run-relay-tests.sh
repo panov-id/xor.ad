@@ -38,7 +38,7 @@ docker run --rm \
   -w /node \
   "$image" \
   deno test --allow-env --allow-read --allow-write \
-  --ignore=test/tenancy.test.ts,test/database.test.ts,test/identity_routes.test.ts,test/session_freeze.test.ts,test/identity_sweeper.test.ts,test/dsa_watchdog.test.ts,test/queue_metrics.test.ts,test/transfer_routes.test.ts,test/feed_publish.test.ts "$@"
+  --ignore=test/tenancy.test.ts,test/database.test.ts,test/identity_routes.test.ts,test/session_freeze.test.ts,test/identity_sweeper.test.ts,test/dsa_watchdog.test.ts,test/job_rearm.test.ts,test/queue_metrics.test.ts,test/transfer_routes.test.ts,test/feed_publish.test.ts "$@"
 
 # The tenancy test rewrites BRANDS/SESSION_SECRET for the whole process (config
 # is captured at import), so it runs in one of its own rather than leaking into

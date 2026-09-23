@@ -14,7 +14,7 @@
 
 import { sendSupportDigests, sweepSupport } from "./support_sweeper.ts";
 import { enqueueOnce, handle } from "./jobs.ts";
-import { queryOrThrow } from "./db.ts";
+import { enabled as databaseEnabled, queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
 import { prunePageviews } from "../../tools/prune_pageviews.ts";
 import { pruneObjects } from "../../tools/prune_objects.ts";
@@ -22,6 +22,7 @@ import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
 import { pruneMagicLinks } from "./auth.ts";
 import { sweepIdentities } from "./identity_sweeper.ts";
 import { watchNoticeAge } from "./dsa_watchdog.ts";
+import { reportTombstones } from "./tombstone_watch.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepChats } from "./chat_sweeper.ts";
@@ -286,7 +287,7 @@ export function registerScheduledJobs(): void {
     // Hourly after a pass that warned everyone. A letter that did not leave
     // brings the pass back in ten minutes rather than an hour, without
     // throwing: a throw spends the queue's attempts, and eight spent attempts
-    // make a tombstone that ends the chain (watchdog С3 is not built).
+    // make a tombstone, and the chain waits for the hourly re-arm (watchdog С3).
     return new Date(Date.now() + (result.unsent ? 10 * A_MINUTE_MS : A_HOUR_MS));
   });
 
@@ -310,6 +311,30 @@ export function registerScheduledJobs(): void {
 // Called once at start-up. `enqueueOnce` rather than `enqueue`: every node in
 // the pool runs this line, and a standing intention does not want one copy per
 // node.
+// Watchdog С3, the re-arm half. armScheduledJobs() used to run once, at start:
+// a start whose database did not answer armed nothing at all (enqueueOnce reads
+// null and returns), and a job whose handler kept throwing ran out of its eight
+// attempts and stayed a tombstone — both until somebody restarted the node. A
+// database that is simply down spends no attempts: claim() reads null and takes
+// nothing. It is the half-working one — answering the claim, failing the work —
+// that makes tombstones. So the arming runs again every hour. Its own timer, not a job: a job can become a tombstone itself, or
+// never be armed, and then nothing would re-arm the re-arm.
+export async function rearmPass(): Promise<void> {
+  await armScheduledJobs();
+  await reportTombstones(PRUNE_DSA);
+}
+
+let rearming: ReturnType<typeof setInterval> | null = null;
+
+export function startRearming(): void {
+  // No database, no queue: a stand without Postgres behaves as it did.
+  if (!databaseEnabled() || rearming !== null) return;
+  rearming = setInterval(() => {
+    rearmPass().catch((error) => log("error", "could not re-arm the scheduled jobs", { error: String(error) }));
+  }, A_HOUR_MS);
+  Deno.unrefTimer(rearming as unknown as number);
+}
+
 export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_PAGEVIEWS, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_OBJECTS, {}, new Date(Date.now() + A_DAY_MS));

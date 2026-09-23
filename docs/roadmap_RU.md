@@ -60,6 +60,11 @@
   а копия снимает только Postgres.
 - [~] Учение восстановления — последнее 07.08.2026
   (`scripts/verify-backup-restore.sh`).
+- [x] Сторож С3 — задачи очереди, исчерпавшие попытки, перевзводятся каждый
+  час, и узел, стартовавший без базы, взводит их без рестарта; о надгробии
+  `prune_dsa_records` — письмо на `DSA_ESCALATION_EMAILS`, одно на надгробие
+  (`scheduled.ts` `rearmPass`, `lib/tombstone_watch.ts`, `db/042`, 4 теста против
+  Postgres, 23.09.2026). Не выкачено.
 - [~] Тревоги: `relay/local/observability/alerts.yml` и ворота
   `scripts/check-metrics-exist.sh`, руководство `runbook-node-down_*.md`;
   работа тревог на проде не проверена.

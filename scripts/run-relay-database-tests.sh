@@ -116,6 +116,15 @@ docker run --rm --network "$network" \
   deno test --allow-env --allow-net --allow-read --allow-write test/dsa_watchdog.test.ts "$@"
 
 echo
+echo "== job re-arm suite (watchdog С3: tombstones come back and are told once)"
+# Its own file for the reason the watchdog has one: it drives the queue's own
+# rows to tombstones, which no other suite should find lying about.
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno test --allow-env --allow-net --allow-read --allow-write test/job_rearm.test.ts "$@"
+
+echo
 echo "== session freeze suite (chat spec §8.2: the row and the notification)"
 # Its own file for its own reason: it opens raw LISTENing connections, and the
 # driver throws when one is handed a notification — a fact this suite asserts on

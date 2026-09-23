@@ -404,6 +404,34 @@ export async function sendNoticeAging(
   return await deliver(brand, to, subject, subject, noticeAgingBlocks(notice));
 }
 
+// Watchdog С3: a job whose period the privacy policy promises ran out of
+// attempts. The job and the row, never its error text — that goes to the log,
+// where withoutAddresses has already been over it.
+export function jobTombstoneBlocks(tombstone: { id: string; kind: string; attempts: number }): Block[] {
+  return [
+    {
+      kind: "text",
+      value: `The scheduled job ${tombstone.kind} gave up after ${tombstone.attempts} attempts. ` +
+        "What it deletes is kept past the period the privacy policy promises until it runs again.",
+    },
+    {
+      kind: "text",
+      value: `Job row: ${tombstone.id}. The node re-arms it within the hour, and it runs at its next ` +
+        "turn — up to a day later. If it gives up again, another letter follows. The error is in the node log.",
+    },
+  ];
+}
+
+export async function sendJobTombstone(
+  to: string,
+  tombstone: { id: string; kind: string; attempts: number },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = resolveBrand(null);
+  const subject = `${brand.name}: the job ${tombstone.kind} gave up`;
+  return await deliver(brand, to, subject, subject, jobTombstoneBlocks(tombstone));
+}
+
 export async function sendNoticeDecision(
   to: string,
   // Nullable: a notice can arrive naming no storefront (migration 007), and the

@@ -183,3 +183,4 @@ watchdogs.2026-09-24.noescalation	2026-09-24	xor.ad/docs/watchdogs_RU.md:41	xor.
 protocol.2026-09-24.signupappearance	2026-09-24	xor.ad/docs/protocol_RU.md:132	xor.ad/docs/protocol_EN.md:140	необязательное `appearance`	an optional `appearance`
 deployment.2026-09-25.envname	2026-09-25	xor.ad/docs/deployment_RU.md:277	xor.ad/docs/deployment_EN.md:292	(решено кворумом 25.09.2026)	(decided by quorum on 2026-09-25)
 watchdogs.2026-09-25.triedorder	2026-09-25	xor.ad/docs/watchdogs_RU.md:45	xor.ad/docs/watchdogs_EN.md:49	Среди прочих — сначала непробованные** (решено кворумом 25.09.2026)	Among the rest, the untried first** (decided by quorum on 2026-09-25)
+protocol.2026-09-25.noncebody	2026-09-25	xor.ad/docs/protocol_RU.md:96	xor.ad/docs/protocol_EN.md:101	тот же nonce с другим телом	the same nonce with another body

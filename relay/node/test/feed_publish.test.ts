@@ -4339,6 +4339,29 @@ Deno.test({
   },
 });
 
+// The same nonce with another body is still the first request's repeat
+// (quorum 2026-09-25, two of three who voted: write it down, do not refuse it;
+// panel of the day57 loop, task 5). The body is signed, so it is the same
+// device asking; it gets what the first asked for, and nothing it asks for now.
+Deno.test({
+  name: "a repeat with the same nonce and another body gets the first answer and changes nothing",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a } = await freshMatch();
+    const nonce = awayNonce();
+    const first = await matchCall(a, "POST", "/away", { span: "hour", nonce });
+    assertEquals(first.status, 200, JSON.stringify(first.body));
+    const until = async () => (await database.queryOrThrow<{ until: Date }>(
+      `SELECT stepped_away_until AS until FROM identities WHERE id = $1`, [a.identity_id]))[0].until.getTime();
+    const untilBefore = await until();
+    const other = await matchCall(a, "POST", "/away", { span: "short", nonce });
+    assertEquals(other.status, 200, `the repeat with another body was refused: ${JSON.stringify(other.body)}`);
+    assertEquals(other.body, first.body, "the repeat with another body did not get the first answer");
+    assertEquals(await until(), untilBefore, "the repeat with another body changed the time away");
+  },
+});
+
 Deno.test({
   name: "stepping away puts out a match that has not become a conversation, for the other side too",
   sanitizeResources: false,

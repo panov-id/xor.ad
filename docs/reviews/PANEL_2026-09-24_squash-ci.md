@@ -352,3 +352,21 @@
 5. **План выката на dev** — O1: мерж в dev, зелёный build-push, затем
    `scripts/deploy-relay-dev.sh`; перед этим `SELECT name FROM schema_migrations` на n1.
    Уровень: дефект плана. Цена: ~1 ч, решение владельца.
+
+## Закрыто 24.09.2026
+
+- **Задача 1, документы** — `72d427a`, `ba637b5`: индексы `pending_deliveries_by_age` и
+  `support_by_brand_created` в DDL `chat_RU/EN.md` (C1, C2), 197 коммитов (C3), `022`–`045`
+  и выкат `day57` скриптом узла (O1, O2), `loop` в перечне (C8), EN-адреса решений (C4),
+  комментарий `deno.json` (C6), «9 файлов в 4» (Э/С7). `check-all`: 34 из 35, красный
+  только `ontology` (до диапазона).
+- **Задача 2, CI** — `d2a3668`: `timeout-minutes: 15` на `test` и `database`, `timeout 300`
+  на набор (O5); `|| true` в подстановке, охрана говорит `::error` (O4 — ПРОВЕРЕНО опытом
+  в `bash -eo pipefail`: 9 наборов на настоящем `deno.json`, строка ошибки и код 1 на `{}`);
+  аннотация на упавший набор (Э6); `permissions: contents: read` и
+  `persist-credentials: false` на обоих job (S3). Контрольная поломка
+  `queue_metrics.test.ts:49` на одноразовой ветке: run 35962801856 — красный,
+  аннотация `database suite failed | test/queue_metrics.test.ts`; `day57` на `ba637b5`:
+  run 35962804757 — test 222/222, database 276/276. Таймаут опытом не проверялся.
+- **Открыты:** задача 3 (охрана порядка в раннере), задача 4 (один список наборов),
+  задача 5 (выкат на dev по исправленному плану).

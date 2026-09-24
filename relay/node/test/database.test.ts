@@ -1427,12 +1427,16 @@ Deno.test({
       assertEquals(response.status, 202, "a report of illegal content is never refused");
       const body = await response.json();
       const rows = await query<
-        { brand: string | null; received_via: string | null; snapshot: unknown }
+        { brand: string | null; received_via: string | null; snapshot: unknown; shape: string | null }
       >(
-        `SELECT brand, received_via, snapshot FROM dsa_notices WHERE id = $1`,
+        `SELECT brand, received_via, snapshot, jsonb_typeof(snapshot) AS shape FROM dsa_notices WHERE id = $1`,
         [body.id],
       );
       assert(rows !== null && rows.length === 1, "the notice was not stored");
+      // The snapshot is the evidence the moderator reads (DSA Art. 16): it is
+      // stored as the object it was, not as a JSON string of it — the jsonb
+      // trap src/lib/jobs.ts names (loop, 2026-09-24).
+      assertEquals(rows[0].shape, "object", "the snapshot is stored as a JSON string, not as the object");
       return rows[0];
     };
 
@@ -1877,6 +1881,38 @@ Deno.test({
     const [kind] = await database.queryOrThrow<{ t: string }>(
       `SELECT jsonb_typeof(response) AS t FROM idempotency WHERE key LIKE $1`, [`sosed:${key}:%`]);
     assertEquals(kind.t, "object", "the row holds a JSON string, not the answer");
+  },
+});
+
+// db/046 turns values stored as a JSON string of themselves back into the
+// values, and leaves an object alone. Run twice, it changes nothing.
+Deno.test({
+  name: "db/046 unwraps a snapshot stored as a JSON string, and leaves objects as they are",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = await Deno.readTextFile(new URL("../db/046_unwrap_jsonb_strings.sql", import.meta.url));
+    const value = { table: "feed_messages", captured_at: "2026-09-24T00:00:00Z", row: { text: "фраза" } };
+    const [wrapped] = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices (brand, target_kind, target_id, snapshot, reason_text, bona_fide, status, snapshot_state)
+       VALUES (NULL, 'feed_message', $1, to_jsonb($2::text), 'wrapped', true, 'received', 'received') RETURNING id`,
+      [crypto.randomUUID(), JSON.stringify(value)]);
+    const [plain] = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices (brand, target_kind, target_id, snapshot, reason_text, bona_fide, status, snapshot_state)
+       VALUES (NULL, 'feed_message', $1, $2::text::jsonb, 'plain', true, 'received', 'received') RETURNING id`,
+      [crypto.randomUUID(), JSON.stringify(value)]);
+    const shapes = async () => await database.queryOrThrow<{ id: string; shape: string; snapshot: unknown }>(
+      `SELECT id, jsonb_typeof(snapshot) AS shape, snapshot FROM dsa_notices WHERE id = ANY($1::uuid[]) ORDER BY reason_text`,
+      [[wrapped.id, plain.id]]);
+    assertEquals((await shapes()).map((r) => r.shape).sort(), ["object", "string"], "the fixture did not store one of each");
+    for (let run = 0; run < 2; run++) {
+      await database.queryOrThrow(sql);
+      for (const row of await shapes()) {
+        assertEquals(row.shape, "object", `run ${run + 1} left a string`);
+        assertEquals(row.snapshot, value, `run ${run + 1} changed the value`);
+      }
+    }
+    await database.queryOrThrow(`DELETE FROM dsa_notices WHERE id = ANY($1::uuid[])`, [[wrapped.id, plain.id]]);
   },
 });
 

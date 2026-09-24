@@ -191,7 +191,7 @@ export async function report(req: Request): Promise<Response> {
        (brand, target_kind, target_id, snapshot, reason_text,
         notifier_name, notifier_email, bona_fide, status, snapshot_state,
         snapshot_reason, received_via)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, 'received', $8, $9, $10)
+     VALUES ($1, $2, $3, $4::text::jsonb, $5, $6, $7, true, 'received', $8, $9, $10)
      RETURNING id`,
     [
       examinedBy,

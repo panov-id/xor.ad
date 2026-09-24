@@ -991,6 +991,13 @@ async function closeIdentity(req: Request): Promise<Response> {
   return refuse("unavailable", "the node cannot write right now", 503);
 }
 
+// The sweep closed the identity while this close waited on its share (a year
+// without a session, decided under its own locks). Thrown, so the take-down and
+// the nonce roll back with it, and answered as any request from a session no
+// longer live — it fell to the catch below as a bare Error and answered 503
+// "the node cannot write", with an error in the log (eighth quorum, 2026-09-25).
+class ClosedUnderUs extends Error {}
+
 async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, presented: string): Promise<Response> {
   return await transaction<Response>(async (run) => {
     const held = await run<{ session: string }>(
@@ -1026,7 +1033,7 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
         WHERE id = $1 AND closed_at IS NULL RETURNING id`,
       [me],
     );
-    if (shut.length === 0) throw new Error("the identity closed under a held vault lock");
+    if (shut.length === 0) throw new ClosedUnderUs();
 
     const ended = await run<{ chat_id: string }>(
       `UPDATE chat_participants SET gone_at = now()
@@ -1061,6 +1068,9 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
     return new Response(null, { status: 200, headers: sunsetHeader() });
   }).catch((error) => {
     if (error instanceof TakeDownRetry) throw error;
+    if (error instanceof ClosedUnderUs) {
+      return refuse("unauthorized", "the request is not signed by a live session", 401);
+    }
     log("error", "closing an identity failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });

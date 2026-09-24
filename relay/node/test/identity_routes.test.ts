@@ -1807,6 +1807,34 @@ Deno.test("a business profile goes a year after its last offer, and a systematic
   assertEquals(await left(await addressHmac(unsaidAddress)), 1, "a suspension with no reason went without its hash");
 });
 
+// A close waiting on its share while the sweep closed the identity for a year
+// without a session answered 503 "the node cannot write" and logged an error
+// (eighth quorum, 2026-09-25). It answers as any request from a session no longer live.
+Deno.test({ name: "a close that finds the identity closed under it answers 401, not 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await registered();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { answer?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.created.session_id]);
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+        { nonce: nonce16(), auth: authBase64(AUTH) }).then((r) => (got.answer = r));
+      await new Promise((r) => setTimeout(r, 300));
+      await tx.unsafe(
+        `UPDATE identities SET closed_at = now(), recovery_auth_hash = NULL, recovery_wrapped_key = NULL WHERE id = $1`,
+        [me.created.identity_id]);
+    });
+    for (let i = 0; i < 150 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.answer, "the close never answered");
+    assertEquals(got.answer.status, 401, `a close under a sweep answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+  } finally {
+    await sql.end(); reset();
+  }
+});
+
 // Last in the file on purpose: the claim and the close at once make the pool
 // open a second connection, and its read would be counted as a leak by
 // whichever case came next.

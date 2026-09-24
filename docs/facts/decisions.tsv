@@ -179,3 +179,4 @@ deployment.2026-09-24.readyoff	2026-09-24	xor.ad/docs/deployment_RU.md:272	xor.a
 watchdogs.2026-09-24.c1ceiling	2026-09-24	xor.ad/docs/watchdogs_RU.md:35	xor.ad/docs/watchdogs_EN.md:38	решено кворумом 24.09.2026, по числу владельца для С2	decided by quorum on 2026-09-24, by the owner's number for W2
 protocol.2026-09-24.receiptbody	2026-09-24	xor.ad/docs/protocol_RU.md:249	xor.ad/docs/protocol_EN.md:260	тело решено кворумом 24.09.2026	the body decided by quorum on 2026-09-24
 dsa.2026-09-24.art24counter	2026-09-24	xor.ad/docs/dsa/README_RU.md:84	xor.ad/docs/dsa/README_EN.md:87	счётчик построен 24.09.2026	the counter built on 2026-09-24
+watchdogs.2026-09-24.noescalation	2026-09-24	xor.ad/docs/watchdogs_RU.md:41	xor.ad/docs/watchdogs_EN.md:45	Некому эскалировать — эскалации не берутся** (решено кворумом 24.09.2026)	Nobody to escalate to — escalations are not picked** (decided by quorum on 2026-09-24)

@@ -35,7 +35,7 @@ async function notice(ageHours: number, status = "received"): Promise<string> {
 
 Deno.test({ name: "a notice younger than a day is left alone", ...pool }, async () => {
   const id = await notice(2);
-  const picked = (await agingNotices()) ?? [];
+  const picked = (await agingNotices(undefined, true)) ?? [];
   assertEquals(picked.some((n) => n.id === id), false, "a fresh notice was warned about");
 });
 
@@ -43,24 +43,24 @@ Deno.test({ name: "a day old is a reminder, two days old is an escalation, and e
   const day = await notice(30);
   const twoDays = await notice(60);
 
-  const first = (await agingNotices()) ?? [];
+  const first = (await agingNotices(undefined, true)) ?? [];
   assertEquals(first.find((n) => n.id === day)?.stage, "remind");
   assertEquals(first.find((n) => n.id === twoDays)?.stage, "escalate");
 
   // The same rows again: the stamps must keep them out.
-  const second = (await agingNotices()) ?? [];
+  const second = (await agingNotices(undefined, true)) ?? [];
   assertEquals(second.some((n) => n.id === day), false, "the reminder would go twice");
   assertEquals(second.some((n) => n.id === twoDays), false, "the escalation would go twice");
 
   // The one that was only reminded about still escalates when it gets there.
   await queryOrThrow(`UPDATE dsa_notices SET created_at = now() - interval '60 hours' WHERE id = $1`, [day]);
-  const third = (await agingNotices()) ?? [];
+  const third = (await agingNotices(undefined, true)) ?? [];
   assertEquals(third.find((n) => n.id === day)?.stage, "escalate", "a reminded notice never escalated");
 });
 
 Deno.test({ name: "a notice that was decided is not chased", ...pool }, async () => {
   const id = await notice(90, "upheld");
-  const picked = (await agingNotices()) ?? [];
+  const picked = (await agingNotices(undefined, true)) ?? [];
   assertEquals(picked.some((n) => n.id === id), false, "a decided notice was chased");
 });
 
@@ -115,7 +115,7 @@ Deno.test({ name: "a platform notice is reminded in the inbox it came through", 
      RETURNING id`,
     [`watchdog ${crypto.randomUUID()}`],
   );
-  const picked = (await agingNotices()) ?? [];
+  const picked = (await agingNotices(undefined, true)) ?? [];
   assertEquals(picked.find((n) => n.id === rows[0].id)?.brand, "sosed", "the face it came through was lost");
 });
 
@@ -193,4 +193,37 @@ Deno.test({ name: "a letter that throws gives its stamp back instead of ending t
   assertEquals(result.unsent, 1, "a throwing letter was not counted as unsent");
   const [row] = await queryOrThrow<{ reminded_at: Date | null }>(`SELECT reminded_at FROM dsa_notices WHERE id = $1`, [id]);
   assertEquals(row.reminded_at, null, "a throwing letter kept its stamp, so the reminder would never go");
+});
+
+// Starvation (dsa.aging.starvation, verifier 2026-09-24): with no escalation
+// addresses the 200 oldest escalations lost their stamps every pass and came
+// back first, and a fresh notice never got its reminder. Decided by quorum,
+// five of five: with nobody to escalate to, escalations are not picked at all,
+// and the pass says so loudly; reminders go on.
+Deno.test({ name: "with nobody to escalate to, old escalations do not starve a fresh reminder", ...pool }, async () => {
+  const saved = Deno.env.get("DSA_ESCALATION_EMAILS");
+  Deno.env.set("DSA_ESCALATION_EMAILS", "");
+  try {
+    await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
+    await queryOrThrow(
+      // arrival_sent_at set: these rows are the watchdog's case, and the
+      // arrival letters' retry (С2, another suite on this database) must not
+      // take them for its own.
+      `INSERT INTO dsa_notices (brand, target_kind, reason_text, bona_fide, status, created_at, reminded_at, arrival_sent_at)
+       SELECT 'neighbro', 'chat', 'starve ' || g, true, 'received', now() - interval '60 hours', now() - interval '12 hours', now()
+         FROM generate_series(1, 201) g`);
+    const fresh = await notice(30);
+    const told: string[] = [];
+    for (let pass = 0; pass < 2; pass++) {
+      await watchNoticeAge((_to, n) => { told.push(n.id); return Promise.resolve(true); }, () => Promise.resolve(true));
+    }
+    assertEquals(told.includes(fresh), true, "a fresh notice got no reminder behind escalations nobody could get");
+    const [held] = await queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM dsa_notices WHERE reason_text LIKE 'starve %' AND escalated_at IS NULL`);
+    assertEquals(held.n, 201, "an escalation with nobody to receive it was stamped as sent");
+  } finally {
+    await queryOrThrow(`DELETE FROM dsa_notices WHERE reason_text LIKE 'starve %'`);
+    if (saved === undefined) Deno.env.delete("DSA_ESCALATION_EMAILS");
+    else Deno.env.set("DSA_ESCALATION_EMAILS", saved);
+  }
 });

@@ -88,16 +88,23 @@ async function tried(attempt: () => Promise<boolean>): Promise<boolean> {
 // two passes at once holds one open to be the pass the other has to get past.
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[] | null>;
 
-export async function agingNotices(run: Run = query): Promise<AgingNotice[] | null> {
+// `escalate` false: nobody to escalate to, so escalations are not picked at all.
+// Picked, they found no address, gave their stamps back and came first again in
+// the next pass, and 200 of them kept a fresh notice from its reminder for good
+// (dsa.aging.starvation; decided by quorum 2026-09-24, five of five).
+export async function agingNotices(
+  run: Run = query,
+  escalate = escalationAddresses().length > 0,
+): Promise<AgingNotice[] | null> {
   const rows = await run<{ id: string; kind: string; face: string | null; age_hours: string; stage: string }>(
     `WITH picked AS (
        SELECT id,
-              CASE WHEN created_at < now() - interval '${ESCALATE_AFTER_HOURS} hours' AND escalated_at IS NULL
+              CASE WHEN $1 AND created_at < now() - interval '${ESCALATE_AFTER_HOURS} hours' AND escalated_at IS NULL
                    THEN 'escalate' ELSE 'remind' END AS stage
          FROM dsa_notices
         WHERE status IN ('received', 'in_review')
           AND ((created_at < now() - interval '${REMIND_AFTER_HOURS} hours' AND reminded_at IS NULL)
-            OR (created_at < now() - interval '${ESCALATE_AFTER_HOURS} hours' AND escalated_at IS NULL))
+            OR ($1 AND created_at < now() - interval '${ESCALATE_AFTER_HOURS} hours' AND escalated_at IS NULL))
         ORDER BY created_at
         LIMIT 200
         FOR UPDATE SKIP LOCKED
@@ -119,6 +126,7 @@ export async function agingNotices(run: Run = query): Promise<AgingNotice[] | nu
                   extract(epoch FROM (now() - n.created_at)) / 3600 AS age_hours, p.stage
      )
      SELECT * FROM stamped`,
+    [escalate],
   );
   if (rows === null) return null;
   return rows.map((r) => ({
@@ -164,7 +172,8 @@ export async function watchNoticeAge(
   send: typeof sendNoticeAging = sendNoticeAging,
   summarize: typeof sendNoticeAgingSummary = sendNoticeAgingSummary,
 ): Promise<{ reminded: number; escalated: number; unsent: number }> {
-  const notices = await agingNotices();
+  const escalate = escalationAddresses().length > 0;
+  const notices = await agingNotices(query, escalate);
   if (notices === null) {
     // A database that did not answer is not "nothing to do": say so and let the
     // queue's backoff bring this back.
@@ -204,6 +213,17 @@ export async function watchNoticeAge(
       await unstamp(notice);
     } else if (notice.stage === "escalate") escalated++;
     else reminded++;
+  }
+  if (!escalate) {
+    // Said every pass, not once: an escalation nobody can receive is a notice
+    // past two days that the people named for it never hear of.
+    const held = await query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM dsa_notices
+        WHERE status IN ('received', 'in_review') AND escalated_at IS NULL
+          AND created_at < now() - interval '${ESCALATE_AFTER_HOURS} hours'`,
+    );
+    const n = held?.[0]?.n ?? 0;
+    if (n > 0) log("error", "escalations held: DSA_ESCALATION_EMAILS names nobody", { held: n });
   }
   if (unsent) {
     log("error", "notices nobody could be warned about", { reminded, escalated, unsent });

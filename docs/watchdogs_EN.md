@@ -41,7 +41,11 @@ The platform's promises rest on people and jobs, and they can break without a so
   did not leave takes back the stamps of all its notices. A pass is hourly; the retry in 10 minutes
   carries only what did not leave: the node remembers which address already got the letter about a notice
   at a stage (the address's hash, `db/054`), and the retry goes only to the rest; an address written twice
-  gets one letter (2026-09-24, from the verifier). Rejected: no ceiling; a ceiling on `support@` only.
+  gets one letter (2026-09-24, from the verifier).
+  **Nobody to escalate to — escalations are not picked** (decided by quorum on 2026-09-24): with an empty
+  `DSA_ESCALATION_EMAILS` they are not taken at all, and every pass logs an `error` with their number;
+  reminders go on. Otherwise the 200 oldest escalations gave their stamps back every pass and came first
+  again, and a fresh notice never got its reminder. Rejected: a separate limit per stage. Rejected: no ceiling; a ceiling on `support@` only.
 - **Where to.** The reminder — to the `support@` of the face the notice came through (as the
   new-notice letter does: `brand`, else `received_via`); the escalation — to the personal addresses in
   `DSA_ESCALATION_EMAILS` (the wizard passes it to the node from `secrets.env`), not a shared inbox,

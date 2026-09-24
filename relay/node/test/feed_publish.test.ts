@@ -1424,10 +1424,14 @@ Deno.test("a page cursor says nothing, and only one issued for that list opens",
   assertEquals(await feedAt(feedCursor), 200, "a cursor the node issued was refused");
   assertEquals(await likesAt(await sealCursor("likes", micros, id)), 200, "a likes cursor the node issued was refused");
 
+  const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
   const flipped = feedCursor.slice(0, 20) + (feedCursor[20] === "A" ? "B" : "A") + feedCursor.slice(21);
   for (const [name, bad] of [
     ["the old clear pair", `${micros}_${id}`],
     ["an edited cursor", flipped],
+    // The last character carries spare bits of base64: a cursor spelled
+    // another way is not the one issued (verifier, 2026-09-24).
+    ["its last character changed in the spare bits", feedCursor.slice(0, -1) + B64[B64.indexOf(feedCursor.at(-1)!) ^ 1]],
     ["a likes cursor", await sealCursor("likes", micros, id)],
   ]) {
     assertEquals(await feedAt(bad), 400, `the feed took ${name}`);

@@ -770,7 +770,7 @@ components:
       required: false
       schema: {type: string}
       description: Opaque cursor from the previous answer's `next` (protocol §6). On /feed and /likes it is sealed by the node (AES-256-GCM under the pool's key, 2026-09-24) and reveals nothing; one the pool did not issue for that list answers 400 invalid_body. Elsewhere it encodes one's own rows' time in microseconds and their id — (created_at, id) on /statements (2026-09-21).
-      x-description-ru: Непрозрачный курсор из `next` предыдущего ответа (протокол §6). Кодирует время строки в микросекундах и её id — (visible_at, id) у ленты, (created_at, id) у /statements (21.09.2026); не раскрывает ничего сверх уже выданного.
+      x-description-ru: Непрозрачный курсор из `next` предыдущего ответа (протокол §6). У /feed и /likes узел его запечатывает (AES-256-GCM ключом пула, 24.09.2026), и он ничего не раскрывает; курсор, который пул не выдавал для этого списка, получает 400 invalid_body. В остальных списках кодирует время своих строк в микросекундах и их id — (created_at, id) у /statements (21.09.2026).
   headers:
     ProtocolSunset:
       schema: {type: integer}

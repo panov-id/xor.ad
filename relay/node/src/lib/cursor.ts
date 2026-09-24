@@ -12,8 +12,9 @@
 // The key is VAULT_SHARE_KEY through HKDF with its own salt and info
 // (lib/vault_share.ts explains why HKDF and why a constant salt): already the
 // pool's shared secret, one the wizard generates and will not deploy without.
-// Rotating it ends every cursor in hand; a client whose `after` is refused
-// starts from the first page, which is what an expired cursor means anyway.
+// Rotating it ends every cursor in hand: `after` answers 400, and a client
+// has to start from the first page again — depth does not yet, it shows the
+// refusal (depth/ink/rooms.ts, the likes' "more").
 //
 // The list's name is the GCM additional data: a feed cursor does not open as a
 // likes cursor. Layout: nonce(12) ‖ ciphertext(8 + 16) ‖ tag(16), base64url.
@@ -97,6 +98,10 @@ export async function openCursor(list: CursorList, cursor: string): Promise<{ mi
   if (!/^[A-Za-z0-9_-]{70}$/.test(cursor)) return null;
   const bytes = base64urlToBytes(cursor);
   if (!bytes || bytes.length !== NONCE_BYTES + 24 + 16) return null;
+  // Seventy characters carry four spare bits: fifteen other spellings of the
+  // last one decode to the same bytes. Only the spelling issued is a cursor
+  // (verifier, 2026-09-24).
+  if (bytesToBase64url(bytes) !== cursor) return null;
   let plain: Uint8Array;
   try {
     plain = new Uint8Array(await crypto.subtle.decrypt(

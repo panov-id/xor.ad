@@ -44,7 +44,8 @@ The percentages are estimates: they are not weighted by hours, because steps
   is, none of `day56`; staging answers but does not name its build. Boxes `n2`
   and `n3` are declared in the inventory with no machines.
 - [~] Article 16 notice intake — the host `report.relay.panov.id` is alive
-  (`/health` 200, `p1-prod`, measured 2026-09-24), route `POST /report`; not
+  (`/health` 200, `p1-prod`, measured 2026-09-24 — **from Bunny's cache**: the zone serves `/health` and `/ready`
+  with `max-age=2592000`, `cdn-cachedat 09/23/2026`, the node is not asked — `report.zone.cache`), route `POST /report`; not
   yet shipped to the storefronts in production. Why it moved: the WAF on every
   zone cuts bodies quoting `<script>` or `../`, and the zone has zero custom
   rules (`open-work_EN.md`, G12/G13).

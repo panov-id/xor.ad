@@ -78,7 +78,10 @@ route("GET", "/admin/dsa-notices", async ({ req, url }) => {
     conditions.push(`brand = $${args.length}`);
   }
   const rows = await query<NoticeRow>(
-    `SELECT id, brand, received_via, target_kind, target_id, snapshot, snapshot_state, snapshot_reason,
+    `SELECT id, brand, received_via, target_kind, target_id,
+            -- A snapshot the old image wrote as a JSON string, while db/046 ran or
+            -- after a rollback, is read as the object (review panel 2026-09-24, W).
+            CASE WHEN jsonb_typeof(snapshot) = 'string' AND (snapshot #>> '{}') IS JSON THEN (snapshot #>> '{}')::jsonb ELSE snapshot END AS snapshot, snapshot_state, snapshot_reason,
             reason_text, notifier_name, notifier_email, status, created_at, decided_at
        FROM dsa_notices
       ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
@@ -222,7 +225,8 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     // their posts this is about. Without them the letter opens with "something
     // you posted has been restricted" and never says which — useless to anybody
     // with more than one.
-    `SELECT id, brand, target_kind, target_id, snapshot, snapshot_state, snapshot_reason,
+    `SELECT id, brand, target_kind, target_id,
+            CASE WHEN jsonb_typeof(snapshot) = 'string' AND (snapshot #>> '{}') IS JSON THEN (snapshot #>> '{}')::jsonb ELSE snapshot END AS snapshot, snapshot_state, snapshot_reason,
             notifier_email, status, decided_at
        FROM dsa_notices WHERE id = $1`,
     [params.id],

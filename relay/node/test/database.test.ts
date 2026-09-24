@@ -818,6 +818,33 @@ async function seedNotice(brand: string | null, reason: string): Promise<string>
   return rows[0].id;
 }
 
+// A snapshot written as a JSON string reaches the moderator as the object. Rows
+// the old intake wrote are unwrapped by db/046, but the old image keeps
+// serving while the migration runs, and a notice in that window — or during a
+// rollback — lands as a string after 046 is recorded (review panel of the loop,
+// 2026-09-24, W). The queue and the decision read both shapes.
+Deno.test({
+  name: "the article 16 queue shows a snapshot stored as a JSON string as the object",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const value = { table: "feed_messages", captured_at: "2026-09-24T00:00:00Z", row: { text: "фраза" } };
+    const [row] = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices (brand, target_kind, target_id, snapshot, reason_text, bona_fide, status, snapshot_state)
+       VALUES (NULL, 'feed_message', $1, to_jsonb($2::text), $3, true, 'received', 'received') RETURNING id`,
+      [crypto.randomUUID(), JSON.stringify(value), `wrapped snapshot ${uniqueId()}`]);
+    try {
+      const all = await callAs(PLATFORM, "GET", "/admin/dsa-notices");
+      assertEquals(all.status, 200);
+      const seen = all.body.find((r: Body) => r.id === row.id);
+      assert(seen, "the notice is not in the platform's queue");
+      assertEquals(seen.snapshot, value, "the moderator is shown the snapshot as an escaped string");
+    } finally {
+      await database.queryOrThrow(`DELETE FROM dsa_notices WHERE id = $1`, [row.id]);
+    }
+  },
+});
+
 Deno.test({
   name: "the article 16 queue shows a tenant its own notices only",
   sanitizeOps: false,
@@ -1905,6 +1932,16 @@ Deno.test({
       `SELECT id, jsonb_typeof(snapshot) AS shape, snapshot FROM dsa_notices WHERE id = ANY($1::uuid[]) ORDER BY reason_text`,
       [[wrapped.id, plain.id]]);
     assertEquals((await shapes()).map((r) => r.shape).sort(), ["object", "string"], "the fixture did not store one of each");
+    // The file rewrites the whole shared database: a string a regressed writer
+    // left earlier in this suite would be fixed here, out of sight of the check
+    // that runs last (review panel 2026-09-24, T). So it must find none but ours.
+    const strays = await database.queryOrThrow<{ n: string }>(
+      `SELECT ((SELECT count(*) FROM dsa_notices WHERE jsonb_typeof(snapshot) = 'string' AND id <> $1)
+             + (SELECT count(*) FROM idempotency WHERE jsonb_typeof(response) = 'string')
+             + (SELECT count(*) FROM nonces WHERE jsonb_typeof(response) = 'string')
+             + (SELECT count(*) FROM jobs WHERE jsonb_typeof(payload) = 'string'))::text AS n`,
+      [wrapped.id]);
+    assertEquals(strays[0].n, "0", "a writer earlier in this suite stored a JSON string; db/046 would hide it");
     for (let run = 0; run < 2; run++) {
       await database.queryOrThrow(sql);
       for (const row of await shapes()) {
@@ -1913,6 +1950,20 @@ Deno.test({
       }
     }
     await database.queryOrThrow(`DELETE FROM dsa_notices WHERE id = ANY($1::uuid[])`, [[wrapped.id, plain.id]]);
+
+    // A string whose text is not JSON is left as it is: the cast would fail the
+    // file, and a failed 046 stops a rollout after 022–045 have committed
+    // (review panel 2026-09-24).
+    const [odd] = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO jobs (kind, payload, run_at) VALUES ('046-odd', to_jsonb('hello'::text), now()) RETURNING id::text`);
+    try {
+      await database.queryOrThrow(sql);
+      const [kept] = await database.queryOrThrow<{ shape: string }>(
+        `SELECT jsonb_typeof(payload) AS shape FROM jobs WHERE id = $1::bigint`, [odd.id]);
+      assertEquals(kept.shape, "string", "a string that is not JSON was changed");
+    } finally {
+      await database.queryOrThrow(`DELETE FROM jobs WHERE id = $1::bigint`, [odd.id]);
+    }
   },
 });
 

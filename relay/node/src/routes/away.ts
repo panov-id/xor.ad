@@ -3,8 +3,9 @@
 //
 // Not a pause of the interface but a state of the identity on the node: until
 // `stepped_away_until` there is no product for the person, and every signed
-// request but four answers 409 stepped_away (lib/identity_guard.ts). One
-// transaction takes what the spec lists:
+// request but four answers 409 stepped_away (lib/identity_guard.ts) — and but
+// a repeat of POST /away with its own nonce, which answers the stored {until}
+// (protocol §2, 2026-09-24). One transaction takes what the spec lists:
 //
 //  - one's phrases, published and waiting for the queue alike — DELETE, not
 //    hiding, so the slots are free at once; the likes on them go by cascade;
@@ -27,7 +28,7 @@
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { queryOrThrow, transaction } from "../lib/db.ts";
+import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
@@ -71,10 +72,13 @@ async function stepAwayOnce(req: Request): Promise<Response> {
 
   const away = caller.steppedAwayUntil;
   if (away && away.getTime() > Date.now()) {
-    const [kept] = await queryOrThrow<{ response: unknown }>(
+    const looked = await query<{ response: unknown }>(
       `SELECT response FROM nonces WHERE session_id = $1 AND nonce = $2 AND route = 'POST /away'`,
       [caller.sessionId, given],
     );
+    // The route's own 503 on a database that cannot answer, not the router's 500.
+    if (looked === null) return refuse("unavailable", "the node cannot write right now", 503);
+    const [kept] = looked;
     if (kept && kept.response !== null) return json(kept.response, 200, sunsetHeader());
     // Anything else while away is what the guard would have said.
     return refuse("stepped_away", "you are away until the time you chose", 409, {

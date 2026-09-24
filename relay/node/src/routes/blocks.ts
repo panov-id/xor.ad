@@ -19,7 +19,7 @@
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
-import { query, queryOrThrow, transaction } from "../lib/db.ts";
+import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, BLOCK_LIMITS } from "../lib/rate_limit.ts";
@@ -43,8 +43,11 @@ async function block(req: Request): Promise<Response> {
   // used a slot per repeat, and once the hour's slots were gone the repeat of
   // a block already made got 429 instead of its 204 (loop, 2026-09-24). The
   // transaction below still settles a race between two first tries.
-  const [seen] = await queryOrThrow<{ route: string }>(
+  const looked = await query<{ route: string }>(
     `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, given]);
+  // The route's own 503 on a database that cannot answer, not the router's 500.
+  if (looked === null) return refuse("unavailable", "the node cannot read right now", 503);
+  const [seen] = looked;
   if (seen) {
     return seen.route === "POST /blocks" ? done() : refuse("invalid_body", "this nonce was used on another route", 409);
   }

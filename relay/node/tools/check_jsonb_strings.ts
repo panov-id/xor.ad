@@ -4,9 +4,10 @@
 //
 // postgres.js encodes a string handed to a jsonb parameter as JSON a second
 // time, and the row holds "{\"a\":1}" instead of {"a":1}. It reached
-// production twice (the Article 16 snapshot, /v1's idempotency answer) and
-// hid twice more; a scan of the SQL text for `$n::jsonb` missed the snapshot,
-// whose parameter had no cast at all (loop, 2026-09-24). So the check asks the
+// production three times (the Article 16 snapshot, /v1's idempotency answer,
+// the job payload — harmless there) and a fourth time in the step away; a
+// scan of the SQL text for `$n::jsonb` missed the snapshot, whose parameter
+// had no cast at all (loop, 2026-09-24). So the check asks the
 // data, not the code: every jsonb column the schema has, after every writer the
 // suites exercise has written. None of them holds a string on purpose; a column
 // that ever should is named in ALLOWED with its reason.
@@ -29,8 +30,9 @@ for (const { table_name, column_name } of columns) {
   const where = `${table_name}.${column_name}`;
   if (ALLOWED.has(where)) continue;
   // Identifiers come from the catalogue, quoted as identifiers, never from input.
+  const quote = (name: string) => `"${name.replaceAll('"', '""')}"`;
   const [row] = await queryOrThrow<{ n: string }>(
-    `SELECT count(*)::text AS n FROM "${table_name}" WHERE jsonb_typeof("${column_name}") = 'string'`,
+    `SELECT count(*)::text AS n FROM public.${quote(table_name)} WHERE jsonb_typeof(${quote(column_name)}) = 'string'`,
   );
   if (Number(row.n) > 0) found.push(`${where}: ${row.n} row(s)`);
 }

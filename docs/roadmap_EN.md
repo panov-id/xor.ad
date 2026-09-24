@@ -171,12 +171,15 @@ core without drawing, against a live node (since 2026-09-21).
 | 7. Blocks, hiding, sweeping | [~] `POST`/`GET`/`DELETE /blocks` (2026-09-21): by a phrase or a conversation, 204 with no oracle, a `nonce` against replay, the match goes and the conversation ends for both with the room closed 4003; sweepers of matches, the queue and conversations; `db/034` and `/hidden` — hide a phrase for oneself and bring it back; missing — blocking and hiding a line at a table (there are no tables) | [x] `depth/ink` (2026-09-23): "hide" and "block" in the feed, the hidden list with a way back, "end the conversation" and "block" in the chat; blocking asks twice and names what it costs; the core gained `hide`, `hidden`, `unhide`; the "blocked" screen with lifting (2026-09-23) |
 | 8. Notifications and games | [ ] | [ ] |
 | 9. Web face | — | [ ] prototype exists, app does not |
+| Offers (outside §13) | [~] `db/050`: `advertisers`, `venues`, `offers`; `GET /o/:code` (the interstitial: the domain and whether the link is off) and `/o/:code/go` (302, a count with no person, previewers and HEAD not counted, a limit per address), 9bfb5f0 and a62bbb9; the link goes out with the offer too — hidden by complaints or its discount over, decided by quorum on 2026-09-24 (98e0c84); not yet — complaints about a link `/o/:code/report` (waits for the letter to the venue under Art. 17), the `/adv/*` dashboard | [ ] |
 
 All eleven tables of the first cut (§13) exist: six before 2026-09-21, `likes`,
 `matches`, `match_participants`, `blocks` by migration `db/030`, `support_requests`
 by `db/039` (2026-09-22). Migrations in `relay/node/db` — 43 files, the last `051` (measured on the evening of 2026-09-24; was "37, the last `045`" after the squash [retired]).
 
 Chat code was cleared by the owner's word on 2026-09-21.
+
+**Built on 2026-09-24, not rolled out** (git `day57`): changing the PIN `POST /vault/pin` (63ac60e), "start over" `POST /identities/close` (dd16011), a new paper code `POST /recovery/reissue` (dd40dc6), the legal revisions `GET /legal/manifest` and `POST /legal/accept` (29cdd5d); the request dispatcher moved to `relay/node/src/dispatch.ts`, and HEAD is checked through it (b6819f5); `/ready` answers 503 for a staging or prod node with no database (d60fdac); DELETE `/away` no longer wakes the rooms a second time after the minute's job (19a014d). 571 tests (`scripts/count-tests.sh`, the evening of 2026-09-24).
 
 ## 4. Storefronts and panel
 

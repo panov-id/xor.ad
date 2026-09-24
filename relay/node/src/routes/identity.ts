@@ -1022,10 +1022,6 @@ interface ReissueBody {
 // identity, counted only for a code that matched. The nonce is looked at
 // before the time away, as protocol §2 asks.
 async function reissueCode(req: Request): Promise<Response> {
-  const paused = pausedFor();
-  if (paused > 0) {
-    return refuse("rate_limited", "codes are not being accepted right now", 429, {}, { "retry-after": String(paused) });
-  }
   const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;
   const body = await readJson<ReissueBody>(req);
@@ -1053,12 +1049,41 @@ async function reissueCode(req: Request): Promise<Response> {
       inc("relay_nonce_replay_total", { route: "POST /recovery/reissue" });
       return new Response(null, { status: 204, headers: sunsetHeader() });
     }
+    // The node-wide pause and the address limit of code entry after the
+    // replay, as protocol §2 orders them (verifier, 2026-09-24: a repeat met
+    // the pause first). The address limit is the claim's own: one address
+    // guessing through this door must not pause code entry for everybody in
+    // fewer tries than through the other.
+    const paused = pausedFor();
+    if (paused > 0) {
+      return refuse("rate_limited", "codes are not being accepted right now", 429, {}, { "retry-after": String(paused) });
+    }
+    const address = checkAll(RECOVERY_CLAIM_LIMITS, clientAddress(req).ip);
+    if (!address.allowed) {
+      return refuse("rate_limited", "too many attempts from this address", 429, {}, {
+        "retry-after": String(address.retryAfterSeconds),
+      });
+    }
     if (me.stepped_away_until && me.stepped_away_until.getTime() > Date.now()) {
       return refuse("stepped_away", "you are away until the time you chose", 409, {
         until: Math.floor(me.stepped_away_until.getTime() / 1000),
       });
     }
     if (!me.recovery_auth_hash || !sameHash(presented, me.recovery_auth_hash)) {
+      if (countMiss()) {
+        log("warn", "recovery codes paused: the shared miss threshold was reached", { threshold: SHARED_MISS_MAX });
+      }
+      inc("relay_recovery_reissue_total", { result: "no_match" });
+      return refuse("not_found", "that code does not match", 404);
+    }
+    // A new code equal to somebody's live one is a miss, answered as one:
+    // the unique index answered 503 there, which told a photographed code
+    // apart from a fresh one and counted nothing (verifier, 2026-09-24).
+    const [clash] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM identities WHERE recovery_auth_hash = $1 AND id <> $2`,
+      [nextHash, caller.identityId],
+    );
+    if (clash.n > 0) {
       if (countMiss()) {
         log("warn", "recovery codes paused: the shared miss threshold was reached", { threshold: SHARED_MISS_MAX });
       }

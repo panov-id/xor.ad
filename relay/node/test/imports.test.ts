@@ -67,3 +67,15 @@ configured("nothing outside the allowlist imports storage data functions", () =>
     `these must go through scoped_storage.ts instead:\n${offenders.join("\n")}`,
   );
 });
+
+// The image runs the node with --allow-read limited to what it reads at run
+// time. The legal revisions (lib/legal.ts) are read from /app/legal; with only
+// /data allowed, GET /legal/manifest answered 503 from a built image while
+// every test, run with a plain --allow-read, stayed green (verifier,
+// 2026-09-24).
+Deno.test("the image lets the node read its legal revisions", async () => {
+  const docker = await Deno.readTextFile(new URL("../Dockerfile", import.meta.url));
+  const cmd = docker.split("\n").find((l) => l.startsWith("CMD "));
+  const read = cmd?.match(/--allow-read=([^"]+)"/)?.[1]?.split(",") ?? [];
+  if (!read.includes("/app/legal")) throw new Error(`the image's --allow-read is ${JSON.stringify(read)}; lib/legal.ts reads /app/legal`);
+});

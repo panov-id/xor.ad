@@ -1007,6 +1007,37 @@ Deno.test("a reissued paper code replaces the old one, a wrong one changes nothi
   reset();
 });
 
+// Found by the verifier of dd40dc6 (2026-09-24): a repeat met the node-wide
+// pause before its nonce was looked at (protocol §2 puts the replay first),
+// and a new code equal to somebody else's live one answered a 503 that told it
+// apart from a fresh one, with no miss counted — a photographed code tested
+// quietly. It is a miss now, answered like a wrong current code.
+Deno.test("a reissue repeat is answered through the pause, and another's code as the new one is a miss", async () => {
+  const misses = await import("../src/lib/recovery_misses.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset(); misses.reset();
+  const me = await registered();
+  const other = await registered();
+  const reissue = (current: string, next: string, nonce = auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)))) =>
+    signedCall(me.pair.privateKey, me.created.session_id, "POST", "/recovery/reissue", {
+      nonce, current: { lookup_id: current },
+      next: { lookup_id: next, wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))) },
+    });
+  try {
+    const taken = await reissue(me.lookupId, other.lookupId);
+    assertEquals(taken.status, 404, `another person's live code as the new one was told apart: ${taken.status}`);
+
+    const nonce = auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)));
+    const next = crypto.randomUUID();
+    assertEquals((await reissue(me.lookupId, next, nonce)).status, 204);
+    for (let i = 0; i < misses.SHARED_MISS_MAX; i++) misses.countMiss();
+    assert(misses.pausedFor() > 0, "the fixture did not pause code entry");
+    assertEquals((await reissue(me.lookupId, next, nonce)).status, 204, "a repeat was refused by the pause instead of answered");
+  } finally {
+    misses.reset(); reset();
+  }
+});
+
 Deno.test("the node stores a hash of the paper code's half, not the half itself", async () => {
   // A read-only copy of `identities` must not be a set of keys. Until
   // 2026-09-20 the column held exactly what the device presents, so a dump was

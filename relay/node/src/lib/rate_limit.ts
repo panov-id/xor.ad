@@ -230,7 +230,7 @@ export interface Verdict {
   retryAfterSeconds: number;
 }
 
-export function check(limit: Limit, address: string, now = Date.now()): Verdict {
+export function check(limit: Limit, address: string, now = Date.now(), record = true): Verdict {
   if (buckets.size > MAX_TRACKED) {
     // Two passes, and neither of them is a wholesale clear.
     //
@@ -300,6 +300,9 @@ export function check(limit: Limit, address: string, now = Date.now()): Verdict 
     };
   }
 
+  // `record = false` asks without spending: checkAll needs every window's answer
+  // before any of them is charged.
+  if (!record) return { allowed: true, remaining: limit.max - hits.length - 1, retryAfterSeconds: 0 };
   hits.push(now);
   buckets.set(key, { hits });
   return { allowed: true, remaining: limit.max - hits.length, retryAfterSeconds: 0 };
@@ -308,10 +311,17 @@ export function check(limit: Limit, address: string, now = Date.now()): Verdict 
 // Every window must allow it; the first refusal is the one reported, because
 // that is the one the caller has to wait out.
 export function checkAll(limits: Limit[], address: string, now = Date.now()): Verdict {
+  // Asked first, charged after: a hit recorded in the hourly window before the
+  // daily one refused was a slot spent on a request that never went through,
+  // and the next attempt was refused by the hour — Retry-After jumped from a
+  // day to an hour (loop quorum, 2026-09-24).
+  for (const limit of limits) {
+    const verdict = check(limit, address, now, false);
+    if (!verdict.allowed) return verdict;
+  }
   let allowed: Verdict = { allowed: true, remaining: Number.MAX_SAFE_INTEGER, retryAfterSeconds: 0 };
   for (const limit of limits) {
     const verdict = check(limit, address, now);
-    if (!verdict.allowed) return verdict;
     // Report the tightest remaining, so a caller that surfaces it tells the truth
     // about which window runs out first.
     if (verdict.remaining < allowed.remaining) allowed = verdict;

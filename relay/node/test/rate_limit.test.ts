@@ -87,3 +87,26 @@ configured("the refusal reported is the window that has to be waited out", () =>
   // caller is told to wait.
   assertEquals(refused.retryAfterSeconds, 60);
 });
+
+// A request one window refuses spends nothing in the others. checkAll recorded
+// a hit in each window as it passed, so when the daily window refused, the
+// hourly one had already been spent on a request that never went through: the
+// next attempt was refused by the hour, and Retry-After jumped from a day to an
+// hour and back (loop quorum, 2026-09-24).
+const BURST: Limit = { name: "spent-burst", max: 3, windowMs: 3_600_000 };
+const DAY: Limit = { name: "spent-day", max: 2, windowMs: 86_400_000 };
+
+configured("a refusal by one window spends no slot of another", () => {
+  reset();
+  const now = 3_000_000;
+  assertEquals(checkAll([BURST, DAY], "5.5.5.5", now).allowed, true);
+  assertEquals(checkAll([BURST, DAY], "5.5.5.5", now).allowed, true);
+  const first = checkAll([BURST, DAY], "5.5.5.5", now);
+  assertEquals(first.allowed, false);
+  const second = checkAll([BURST, DAY], "5.5.5.5", now);
+  assertEquals(second.allowed, false);
+  assertEquals(second.retryAfterSeconds, first.retryAfterSeconds,
+    "the refused request spent the hourly window, and the wait the caller is told changed");
+  // The hourly window holds the two requests that went through, not the refused ones.
+  assertEquals(check(BURST, "5.5.5.5", now).remaining, 0, "the burst window holds more or fewer than the two that passed plus this one");
+});

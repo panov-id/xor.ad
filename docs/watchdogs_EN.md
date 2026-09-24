@@ -94,9 +94,10 @@ The platform's promises rest on people and jobs, and they can break without a so
   address; the lease of a pass that died runs out and the letter goes again. Tombstones already lying there before
   `db/042` are marked as told by the migration — they are old news.
 - Tombstones of other jobs — a line in the team's daily digest (the same digest as support's,
-  `chat_EN.md` §13). **Not built**: the digest today goes per face and about support only; other
-  tombstones show in the gauge and in the `job gave up` log line, and the re-arm brings their jobs
-  back anyway.
+  `chat_EN.md` §13). **Built 2026-09-24** (`lib/support_sweeper.ts`, `supportDigest`): a line
+  "jobs that gave up: kind ×count" in every face's letter, and a digest goes to every face while
+  there are any, even with no requests that day. This said "not built: the digest goes per face and
+  about support only" [retired].
 - A gauge `relay_jobs_tombstones{kind}` in `GET /metrics`.
 
 ## W4. The "period without a doer" gate
@@ -158,7 +159,7 @@ Each watchdog is broken on purpose and must reach the channel:
 ## Open
 
 - Watchdogs W5 and W6 are not built. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
-  W2 is built without the fallback transport — `watchdogs.unbuilt`. W3 lacks the digest line about other tombstones — `watchdogs.jobs.unbuilt`.
+  W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; a letter per notice rather
   than one summary a pass — `watchdog.letters.flood` (review panel 2026-09-23).

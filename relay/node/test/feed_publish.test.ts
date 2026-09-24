@@ -3868,6 +3868,36 @@ Deno.test({
   },
 });
 
+// Watchdog С3's other half (docs/watchdogs_RU.md): tombstones of jobs other
+// than prune_dsa_records, which has its own urgent letter, go as a line in the
+// same daily digest — to every face, even one with no requests that day
+// (loop, 2026-09-24; open.tsv watchdogs.jobs.unbuilt).
+Deno.test({
+  name: "the daily digest names jobs that gave up, and goes out for them alone",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const kind = `test_job_${crypto.randomUUID().slice(0, 8)}`;
+    await database.queryOrThrow(
+      `INSERT INTO jobs (kind, payload, run_at, attempts, locked_until) VALUES ($1, '{}'::jsonb, now(), 8, 'infinity')`, [kind]);
+    try {
+      const { supportDigest } = await import("../src/lib/support_sweeper.ts");
+      const digest = await supportDigest();
+      const quiet = await database.queryOrThrow<{ key: string }>(
+        `SELECT key FROM brands WHERE key NOT IN (SELECT DISTINCT brand FROM support_requests WHERE brand IS NOT NULL) LIMIT 1`);
+      if (quiet[0]) {
+        assert(digest.some((d) => d.brand === quiet[0].key), "a face with no requests got no digest though a job gave up");
+      }
+      const line = digest[0];
+      assert(line.tombstones?.some((t) => t.kind === kind && t.count === 1), `the digest does not name the job: ${JSON.stringify(line.tombstones)}`);
+      const { supportDigestBlocks } = await import("../src/lib/mailer.ts");
+      assert(JSON.stringify(supportDigestBlocks(line)).includes(kind), "the letter does not name the job that gave up");
+    } finally {
+      await database.queryOrThrow(`DELETE FROM jobs WHERE kind = $1`, [kind]);
+    }
+  },
+});
+
 Deno.test("the support digest does not send the team to a panel page that does not exist", async () => {
   const { supportDigestBlocks } = await import("../src/lib/mailer.ts");
   const letter = JSON.stringify(supportDigestBlocks({ new: 1, waiting: 1, frozen: 0 }));

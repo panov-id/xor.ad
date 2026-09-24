@@ -24,6 +24,9 @@ export interface DigestLine {
   new: number;
   waiting: number;
   frozen: number;
+  // Watchdog С3: jobs that gave up, other than prune_dsa_records (it has its
+  // own urgent letter). The same for every face: the queue is the node's.
+  tombstones?: { kind: string; count: number }[];
 }
 
 // The day's counts per storefront; only storefronts with something to say.
@@ -40,7 +43,21 @@ export async function supportDigest(): Promise<DigestLine[]> {
          OR count(*) FILTER (WHERE answer IS NULL) > 0
       ORDER BY brand`,
   );
-  return rows;
+  // Tombstones of the other jobs go in the same digest (docs/watchdogs_RU.md
+  // С3; loop, 2026-09-24): a line in every face's letter, and a letter for
+  // every face while there are any, even on a day with no requests.
+  const tombstones = await queryOrThrow<{ kind: string; count: number }>(
+    `SELECT kind, count(*)::int AS count FROM jobs
+      WHERE locked_until = 'infinity' AND kind <> 'prune_dsa_records'
+      GROUP BY kind ORDER BY kind`,
+  );
+  if (tombstones.length === 0) return rows;
+  const faces = await queryOrThrow<{ key: string }>(`SELECT key FROM brands ORDER BY key`);
+  const byBrand = new Map(rows.map((r) => [r.brand, r]));
+  return faces.map((f) => ({
+    ...(byBrand.get(f.key) ?? { brand: f.key, new: 0, waiting: 0, frozen: 0 }),
+    tombstones: [...tombstones],
+  }));
 }
 
 // Each storefront's line to its own support@<domain>. Best-effort: a failed

@@ -283,7 +283,17 @@ export function noticeArrivedBlocks(opts: {
 // No request's text, no email, no number of a request — a letter per request
 // would turn the mailbox into a copy of a table that lives a year, and a
 // digest that quoted them would be the same copy once a day.
-export function supportDigestBlocks(line: { new: number; waiting: number; frozen: number }): Block[] {
+export function supportDigestBlocks(
+  line: { new: number; waiting: number; frozen: number; tombstones?: { kind: string; count: number }[] },
+): Block[] {
+  const gaveUp = line.tombstones && line.tombstones.length > 0
+    ? [{
+      kind: "text" as const,
+      value: "Jobs that gave up after their attempts: " +
+        line.tombstones.map((t) => `${t.kind} ×${t.count}`).join(", ") +
+        ". The node re-arms them within the hour; one that keeps giving up needs a look at the node log.",
+    }]
+    : [];
   return [
     { kind: "text", value: "Support requests, the last day." },
     { kind: "text", value: `New: ${line.new}. Waiting for an answer: ${line.waiting}.` },
@@ -295,13 +305,14 @@ export function supportDigestBlocks(line: { new: number; waiting: number; frozen
     // The door exists since 2026-09-22 (GET /admin/support, the Support page);
     // a test holds the letter to it.
     { kind: "text", value: "The requests themselves are not in this letter: read and answer them on the Support page of the panel." },
+    ...gaveUp,
   ];
 }
 
 export async function sendSupportDigest(
   to: string,
   brandKey: string,
-  line: { new: number; waiting: number; frozen: number },
+  line: { new: number; waiting: number; frozen: number; tombstones?: { kind: string; count: number }[] },
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
   const brand = (await brandByKey(brandKey)) ?? resolveBrand(null);

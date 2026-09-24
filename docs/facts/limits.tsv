@@ -130,3 +130,4 @@ offer.suspend.window	90	дней	окно, в котором считаются 
 feed.nearby.floor	5	человек	с какого числа шапка ленты показывает «рядом N человек»; ниже — «рядом мало людей» (огонёк, 18.09.2026)	клиент	sosed.place/docs/03-feed-screen_RU.md,sosed.place/docs/03-feed-screen_EN.md,neighbro.place/docs/03-feed-screen_RU.md,neighbro.place/docs/03-feed-screen_EN.md	
 feed.read.hour	300	запросов	чтений ленты в час по личности: веер из личностей ради вычисления возраста автора дорожает (панель ревью 21.09.2026, решение владельца)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md
 safety.code.digits	20	цифр	длина кода безопасности: пять групп по четыре, около 66 бит; выводится из долгих ключей обеих личностей (решение владельца 22.09.2026)	клиент	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
+request.body.bytes	1048576	байт	потолок тела любого запроса к узлу, 413 сверх (24.09.2026, панель owner-decisions)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	

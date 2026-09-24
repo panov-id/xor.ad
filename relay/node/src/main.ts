@@ -43,6 +43,7 @@ import "./routes/support_admin.ts"; // GET /admin/support, answer: the team's si
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)
 
 type Handler = (req: Request) => Response | Promise<Response>;
+import { capBody } from "./lib/body_limit.ts";
 
 const routes: Record<string, Handler> = {
   "GET /health": () => health(),
@@ -89,7 +90,15 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
   }
 }
 
-Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (req, info) => {
+Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (incoming, info) => {
+  // The body's ceiling comes first, before any route or signature reads it
+  // (lib/body_limit.ts). What passes is a new Request over the counted bytes.
+  const capped = await capBody(incoming);
+  if (capped instanceof Response) {
+    inc("relay_requests_total", { route: "body_too_large", status: "413" });
+    return capped;
+  }
+  const req = capped;
   // The only place the connection's own address is known.
   rememberRemote(req, info?.remoteAddr?.hostname);
   const url = new URL(req.url);

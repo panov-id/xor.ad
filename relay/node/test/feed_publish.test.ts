@@ -2186,6 +2186,13 @@ Deno.test({
   },
 });
 
+// How many repeats a route has answered from a stored nonce (lib/metrics.ts).
+const replays = async (route: string) => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const line = render().split("\n").find((row) => row.startsWith(`relay_nonce_replay_total{route="${route}"}`));
+  return line ? Number(line.split(" ").at(-1)) : 0;
+};
+
 // A repeat is answered, not counted (protocol §2). The hourly limit was taken
 // before the nonce was looked at: every repeat of one block spent a slot, and
 // once the hour's twenty were gone the repeat of a block already made got 429
@@ -2202,7 +2209,9 @@ Deno.test({
     const first = { feed: await seedPhrase(b.identity_id, "фраза для повтора"), nonce: nonce() };
     const call = (body: unknown) => signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", body);
     assertEquals((await call(first)).status, 204);
+    const before = await replays("POST /blocks");
     for (let i = 0; i < 25; i++) assertEquals((await call(first)).status, 204, `repeat ${i + 1} was refused`);
+    assertEquals(await replays("POST /blocks"), before + 25, "the repeats are not counted as repeats");
     const c = await author();
     const second = await call({ feed: await seedPhrase(c.identity_id, "другая фраза"), nonce: nonce() });
     assertEquals(second.status, 204, "repeats of one block used up the hour's limit");
@@ -3611,7 +3620,9 @@ Deno.test({
       `SELECT stepped_away_until AS until FROM identities WHERE id = $1`, [a.identity_id]))[0].until.getTime();
     const untilBefore = await until();
 
+    const before = await replays("POST /away");
     const again = await matchCall(a, "POST", "/away", { span: "hour", nonce });
+    assertEquals(await replays("POST /away"), before + 1, "the repeat is not counted as a repeat");
     assertEquals(again.status, 200, `the repeat was refused: ${JSON.stringify(again.body)}`);
     assertEquals(again.body, first.body, "the repeat answered something other than the first");
     assertEquals(await until(), untilBefore, "the repeat moved the time one comes back");

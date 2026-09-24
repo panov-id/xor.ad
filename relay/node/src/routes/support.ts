@@ -75,6 +75,7 @@ async function write(req: Request): Promise<Response> {
       if (kept.route !== "POST /support" || !kept.response) {
         return refuse("invalid_body", "this nonce was used on another route", 409);
       }
+      inc("relay_nonce_replay_total", { route: "POST /support" });
       return json(kept.response, 201, sunsetHeader());
     }
     if (frozen) {

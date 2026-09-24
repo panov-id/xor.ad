@@ -49,7 +49,11 @@ async function block(req: Request): Promise<Response> {
   if (looked === null) return refuse("unavailable", "the node cannot read right now", 503);
   const [seen] = looked;
   if (seen) {
-    return seen.route === "POST /blocks" ? done() : refuse("invalid_body", "this nonce was used on another route", 409);
+    if (seen.route !== "POST /blocks") return refuse("invalid_body", "this nonce was used on another route", 409);
+    // Answered, and counted as what it is: a repeat, not a block (review panel
+    // of the loop, 2026-09-24).
+    inc("relay_nonce_replay_total", { route: "POST /blocks" });
+    return done();
   }
   const allowed = checkAll(BLOCK_LIMITS, caller.identityId);
   if (!allowed.allowed) {
@@ -76,6 +80,7 @@ async function block(req: Request): Promise<Response> {
       if (kept && kept.route !== "POST /blocks") {
         return refuse("invalid_body", "this nonce was used on another route", 409);
       }
+      inc("relay_nonce_replay_total", { route: "POST /blocks" });
       return done();
     }
 

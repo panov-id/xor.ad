@@ -79,7 +79,10 @@ async function stepAwayOnce(req: Request): Promise<Response> {
     // The route's own 503 on a database that cannot answer, not the router's 500.
     if (looked === null) return refuse("unavailable", "the node cannot write right now", 503);
     const [kept] = looked;
-    if (kept && kept.response !== null) return json(kept.response, 200, sunsetHeader());
+    if (kept && kept.response !== null) {
+      inc("relay_nonce_replay_total", { route: "POST /away" });
+      return json(kept.response, 200, sunsetHeader());
+    }
     // Anything else while away is what the guard would have said.
     return refuse("stepped_away", "you are away until the time you chose", 409, {
       until: Math.floor(away.getTime() / 1000),
@@ -101,6 +104,7 @@ async function stepAwayOnce(req: Request): Promise<Response> {
       if (kept && kept.route !== "POST /away") {
         return refuse("invalid_body", "this nonce was used on another route", 409);
       }
+      inc("relay_nonce_replay_total", { route: "POST /away" });
       return json(kept?.response ?? {}, 200, sunsetHeader());
     }
 

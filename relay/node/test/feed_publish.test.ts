@@ -1886,6 +1886,31 @@ Deno.test({
   },
 });
 
+// "No product" reaches the socket too: a room already open when its person
+// stepped away is handed nothing while they are away — the lines wait in the
+// queue and come when they are back (the owner's decision of 2026-09-24; the
+// room itself stays open, 409 answers requests through it).
+Deno.test({
+  name: "a room of someone away is handed nothing, and gets what waited once they are back",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { pendingFor } = await import("../src/chat/relay.ts");
+    const { a, b, chat } = await openChat();
+    const localId = crypto.randomUUID();
+    await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`, { local_id: localId, ciphertext: ciphertext() });
+    assertEquals((await pendingFor(chat, b.session_id, null)).length, 1, "the fixture queued nothing");
+    const away = await signedCall(b.pair.privateKey, b.session_id, "POST", "/away",
+      { span: "short", nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
+    assertEquals(away.status, 200, JSON.stringify(away.body));
+    assertEquals((await pendingFor(chat, b.session_id, null)).length, 0, "a room of someone away would be handed the line");
+    assertEquals((await pendingFor(chat, b.session_id, localId)).length, 0, "a new line would reach a room of someone away");
+    assertEquals(await queued(chat, b.session_id), [localId], "the line left the queue instead of waiting");
+    assertEquals((await signedCall(b.pair.privateKey, b.session_id, "DELETE", "/away")).status, 204);
+    assertEquals((await pendingFor(chat, b.session_id, null)).map((r) => r.local_id), [localId], "coming back did not bring the line");
+  },
+});
+
 Deno.test({
   name: "receipt deletes one's own rows and nobody else's",
   sanitizeResources: false,

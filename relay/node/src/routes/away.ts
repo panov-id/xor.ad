@@ -233,6 +233,14 @@ async function comeBack(req: Request): Promise<Response> {
         WHERE id = $1 AND stepped_away_until > now()`,
       [caller.identityId],
     );
+    // The rooms left open while away were handed nothing; they get what waited
+    // now (src/chat/relay.ts; the owner's decision of 2026-09-24).
+    await run(
+      `SELECT pg_notify('chat_message', cp.chat_id || '::' || s.id)
+         FROM chat_participants cp JOIN sessions s ON s.identity = cp.identity
+        WHERE cp.identity = $1 AND cp.gone_at IS NULL`,
+      [caller.identityId],
+    );
     return new Response(null, { status: 204, headers: sunsetHeader() });
   }).catch((error) => {
     log("error", "coming back failed", { error: String(error) });

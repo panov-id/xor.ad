@@ -206,4 +206,3 @@ in this cut.
   snapshot; whether they were settled has not been checked.
 - The `profile.patch.day` window — a rolling day or a calendar day — against
   the refusal's word "tomorrow".
-- Live lines into the open room of someone who stepped away — the owner's call.

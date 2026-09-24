@@ -30,6 +30,9 @@ interface Room {
   session: string;
   chat: string;
   seq: number;
+  // Lines were held back while its person was away: the next hand-over gives
+  // everything that waited, not only the line that woke it.
+  held?: boolean;
 }
 
 const rooms = new Map<string, Set<Room>>(); // key: chat id
@@ -41,13 +44,47 @@ function frame(room: Room, type: string, data: unknown): void {
   room.socket.send(JSON.stringify({ type, seq: room.seq, data }));
 }
 
-async function hand(room: Room, localId: string | null): Promise<void> {
-  const rows = await queryOrThrow<{ local_id: string; ciphertext: Uint8Array; created_at: Date }>(
+// What waits in the queue for this session of this chat — all of it, or one
+// line by its local id. Exported for the database suite: a room needs a socket,
+// the question of what it would be handed does not.
+export async function pendingFor(
+  chat: string,
+  session: string,
+  localId: string | null,
+): Promise<{ local_id: string; ciphertext: Uint8Array; created_at: Date }[]> {
+  return await queryOrThrow<{ local_id: string; ciphertext: Uint8Array; created_at: Date }>(
     `SELECT local_id, ciphertext, created_at FROM pending_deliveries
       WHERE chat = $1 AND recipient_session = $2 AND ($3::uuid IS NULL OR local_id = $3)
+        -- "No product" while away reaches an open room too: nothing is handed
+        -- to it, the lines wait (the owner's decision of 2026-09-24).
+        AND NOT EXISTS (SELECT 1 FROM sessions s JOIN identities i ON i.id = s.identity
+                         WHERE s.id = $2 AND i.stepped_away_until > now())
       ORDER BY created_at, local_id`,
-    [room.chat, room.session, localId],
+    [chat, session, localId],
   );
+}
+
+async function away(session: string): Promise<boolean> {
+  const [row] = await queryOrThrow<{ away: boolean }>(
+    `SELECT coalesce(i.stepped_away_until > now(), false) AS away
+       FROM sessions s JOIN identities i ON i.id = s.identity WHERE s.id = $1`,
+    [session],
+  );
+  return row?.away ?? false;
+}
+
+async function hand(room: Room, localId: string | null): Promise<void> {
+  if (await away(room.session)) {
+    room.held = true;
+    return;
+  }
+  // A time away can end by itself, with no DELETE /away to announce it: the
+  // first hand-over after it gives everything that waited.
+  if (room.held) {
+    localId = null;
+    room.held = false;
+  }
+  const rows = await pendingFor(room.chat, room.session, localId);
   for (const row of rows) {
     const bytes = row.ciphertext instanceof Uint8Array ? row.ciphertext : new Uint8Array(row.ciphertext);
     let binary = "";
@@ -122,9 +159,12 @@ function ensureListeningSys(): Promise<void> {
 
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
-    const [chat, localId] = payload.split(":");
+    // "<chat>:<local id>" for a new line; "<chat>::<session>" when a session
+    // comes back from a time away and its rooms get what waited (2026-09-24).
+    const [chat, localId, only] = payload.split(":");
     for (const room of rooms.get(chat) ?? []) {
-      hand(room, localId).catch((error) => log("error", "room hand-over failed", { error: String(error) }));
+      if (only && room.session !== only) continue;
+      hand(room, localId || null).catch((error) => log("error", "room hand-over failed", { error: String(error) }));
     }
   });
   return listening;

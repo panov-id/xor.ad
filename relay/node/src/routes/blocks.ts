@@ -30,7 +30,9 @@ const UUID = /^[0-9a-fA-F-]{36}$/;
 const done = () => new Response(null, { status: 204, headers: sunsetHeader() });
 
 async function block(req: Request): Promise<Response> {
-  const caller = await callerOf(req);
+  // Past the guard's stepped-away refusal and refused below instead, after the
+  // replay: protocol §2 answers a repeat even from a time away (as POST /away).
+  const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;
   const body = await readJson<{ feed?: unknown; chat?: unknown; nonce?: unknown }>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);
@@ -54,6 +56,12 @@ async function block(req: Request): Promise<Response> {
     // of the loop, 2026-09-24).
     inc("relay_nonce_replay_total", { route: "POST /blocks" });
     return done();
+  }
+  const away = caller.steppedAwayUntil;
+  if (away && away.getTime() > Date.now()) {
+    return refuse("stepped_away", "you are away until the time you chose", 409, {
+      until: Math.floor(away.getTime() / 1000),
+    });
   }
   const allowed = checkAll(BLOCK_LIMITS, caller.identityId);
   if (!allowed.allowed) {

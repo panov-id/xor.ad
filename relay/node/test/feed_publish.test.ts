@@ -2305,6 +2305,31 @@ Deno.test({
   },
 });
 
+// Protocol §2: a repeat is looked up before the stepped-away refusal, so a lost
+// answer can be asked for from a time away; a new block cannot be made there.
+Deno.test({
+  name: "a repeated block is answered from a time away, and a new one is refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const b = await author();
+    const body = { feed: await seedPhrase(b.identity_id, "фраза для повтора"), nonce: nonce() };
+    assertEquals((await signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", body)).status, 204);
+    await database.queryOrThrow(
+      `UPDATE identities SET stepped_away_until = now() + interval '20 minutes' WHERE id = $1`, [a.identity_id]);
+    const again = await signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", body);
+    assertEquals(again.status, 204, `a repeat from a time away was not answered: ${JSON.stringify(again.body)}`);
+    const fresh = await signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks",
+      { feed: await seedPhrase(b.identity_id, "другая фраза"), nonce: nonce() });
+    assertEquals(fresh.status, 409, "a new block was made while away");
+    assertEquals((fresh.body as { error: { code: string } }).error.code, "stepped_away", "a new block was refused for another reason");
+    reset();
+  },
+});
+
 // How many repeats a route has answered from a stored nonce (lib/metrics.ts).
 const replays = async (route: string) => {
   const { render } = await import("../src/lib/metrics.ts");

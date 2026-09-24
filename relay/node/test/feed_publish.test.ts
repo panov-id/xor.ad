@@ -2330,6 +2330,66 @@ Deno.test({
   },
 });
 
+// POST /identities/close — "start over" (chat spec §8.2, screen 12): one
+// transaction closes the identity and takes down all it has live, and the
+// PIN is proved on the same counter as the vault's.
+Deno.test({
+  name: "closing an identity takes down what it has live, and a wrong PIN closes nothing",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, chat } = await openChat();
+    const pin = crypto.getRandomValues(new Uint8Array(32));
+    await database.queryOrThrow(`UPDATE vault_shares SET auth_hash = $2 WHERE session = $1`,
+      [a.session_id, await auth.sha256hex(pin)]);
+    await seedPhrase(a.identity_id, "ещё одна фраза");
+    await signedCall(b.pair.privateKey, b.session_id, "POST", `/chats/${chat}/messages`,
+      { local_id: crypto.randomUUID(), ciphertext: ciphertext() });
+    const close = (proof: Uint8Array, nonce = auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)))) =>
+      signedCall(a.pair.privateKey, a.session_id, "POST", "/identities/close", { nonce, auth: auth.bytesToBase64url(proof) });
+    const count = async (sql: string, args: unknown[]) =>
+      Number((await database.queryOrThrow<{ n: string }>(sql, args))[0].n);
+
+    const wrong = await close(crypto.getRandomValues(new Uint8Array(32)));
+    assertEquals(wrong.status, 409);
+    assertEquals((wrong.body as { error: { code: string } }).error.code, "pin_mismatch");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM identities WHERE id = $1 AND closed_at IS NULL`, [a.identity_id]), 1,
+      "a wrong PIN closed the identity");
+    await database.queryOrThrow(`UPDATE vault_shares SET next_attempt_at = NULL WHERE session = $1`, [a.session_id]);
+
+    const closed = await close(pin);
+    assertEquals(closed.status, 200, JSON.stringify(closed.body));
+    const [me] = await database.queryOrThrow<
+      { closed_at: Date | null; recovery_auth_hash: string | null; recovery_wrapped_key: string | null }>(
+      `SELECT closed_at, recovery_auth_hash, recovery_wrapped_key FROM identities WHERE id = $1`, [a.identity_id]);
+    assert(me.closed_at, "the identity is not closed");
+    assertEquals(me.recovery_auth_hash, null, "the paper code could still raise a closed identity");
+    assertEquals(me.recovery_wrapped_key, null, "the paper code's wrapped key outlived the close");
+    assertEquals(await count(
+      `SELECT count(*)::text AS n FROM matches m JOIN match_participants p ON p.match_id = m.id
+        WHERE p.identity = $1 AND m.expires_at > now()`, [a.identity_id]), 0, "a closed identity still has a live match");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM chats WHERE id = $1`, [chat]), 0,
+      "the conversation's row outlived the close (chat spec §8.2: deleted in the same transaction)");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM feed_messages WHERE author_identity = $1`, [a.identity_id]), 0,
+      "a closed identity still has phrases in the feed");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM likes WHERE liker_identity = $1`, [a.identity_id]), 0,
+      "a closed identity's likes are still counted");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM chat_participants WHERE chat_id = $1 AND gone_at IS NULL`, [chat]), 0,
+      "a conversation with a closed identity goes on");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM pending_deliveries WHERE chat = $1`, [chat]), 0,
+      "the queue of an ended conversation stayed");
+    const [session] = await database.queryOrThrow<{ frozen_reason: string | null }>(
+      `SELECT frozen_reason FROM sessions WHERE id = $1`, [a.session_id]);
+    assertEquals(session.frozen_reason, "closed", "the session of a closed identity is not frozen");
+    assertEquals(await count(`SELECT count(*)::text AS n FROM vault_shares WHERE session = $1 AND share_enc IS NOT NULL`, [a.session_id]), 0,
+      "the share of a closed identity was not burned");
+    assertEquals((await signedCall(a.pair.privateKey, a.session_id, "GET", "/identities/me")).status, 401,
+      "a closed identity still answers");
+    // The other side goes on living.
+    assertEquals((await signedCall(b.pair.privateKey, b.session_id, "GET", "/identities/me")).status, 200);
+  },
+});
+
 // How many repeats a route has answered from a stored nonce (lib/metrics.ts).
 const replays = async (route: string) => {
   const { render } = await import("../src/lib/metrics.ts");

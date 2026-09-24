@@ -348,7 +348,7 @@ through three different wrappers and cannot be counted by eye.
 | 17.8 | Re-asked once a year, and silence changes nothing | a year later with no answer → the same age, no blocks | nothing to check |
 | 17.9 | **The paper code is re-issued only on presenting the current one** | a request without it → refused; with the right code → a new one issued, the old one dead | nothing to check |
 | 17.10 | Changing the PIN re-encrypts the base and takes a new share | the old PIN opens nothing afterwards | **held on the node** — "a new PIN takes the old one's place, and the vault opens with the new share", "a wrong old PIN spends an attempt and changes nothing", "a repeat of a change that went through spends no attempt", "a locked vault changes no PIN, even with the right one" (`identity_routes.test.ts`, 2026-09-24); re-encrypting the base is the client's, and depth's PIN is still a stub |
-| 17.11 | "Start over" closes the identity rather than deleting the row | `closed_at` set, phrases out of the feed, the paper code no longer raises it | nothing to check |
+| 17.11 | "Start over" closes the identity rather than deleting the row | `closed_at` set, phrases out of the feed, the paper code no longer raises it | **held** — "closing an identity takes down what it has live, and a wrong PIN closes nothing" (`feed_publish.test.ts`, 2026-09-24): phrases, likes, the conversation and its queue, the frozen session, the burned share, the paper code's half |
 
 ## 18. The inbox (step 8)
 

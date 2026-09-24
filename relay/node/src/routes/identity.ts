@@ -26,6 +26,7 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
 import { burnShare, freezeSession } from "../lib/sessions.ts";
 import { checkPin } from "../lib/pin_attempts.ts";
+import { takeDownLive, TakeDownRetry } from "../lib/take_down.ts";
 import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts";
 import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
@@ -879,6 +880,131 @@ async function changePin(req: Request): Promise<Response> {
   });
 }
 
+interface CloseBody {
+  nonce?: unknown;
+  auth?: unknown;
+}
+
+// POST /identities/close — "start over" (chat spec §8.2, screen 12; the body
+// agreed 2026-09-17). One transaction closes and takes down everything the
+// spec lists, so what the identity has live goes with the close itself:
+//
+//  - closed_at, and the paper code's two halves and any first-PIN grant gone:
+//    nothing can raise the identity again (there is no way back, 2026-09-11);
+//  - what is live, as a time away takes it (lib/take_down.ts): phrases with
+//    their likes, the likes one gave with their counts, matches put out;
+//  - every live conversation over for both: its rooms told to close 4003, its
+//    match put out, its row deleted with its queue;
+//  - what waits in the delivery queue for one's own sessions;
+//  - every session frozen ('closed', each announced on session_frozen) and
+//    every share burned;
+//  - the appearance rows, and the tie to one's support requests.
+//
+// The PIN is proved as /vault/pin proves it, the nonce looked at first under
+// the vault row's lock, and a time away does not stop it: this is one of the
+// four routes a time away lets through (protocol §4.9). The row itself goes
+// thirty days later (lib/identity_sweeper.ts).
+//
+// Not here, and said so: tables, table lines, seats and chat games — those
+// tables do not exist yet, and each joins this list in the step that makes it.
+// And not closed yet: a like or a phrase whose request passed the guard before
+// this commits lands after it, on a closed identity (verifier, 2026-09-24).
+// The like and the publish do not lock the identity's row; the same holds for
+// a time away. That is an open task, not a property of this route.
+async function closeIdentity(req: Request): Promise<Response> {
+  const caller = await callerOf(req, { allowSteppedAway: true });
+  if (caller instanceof Response) return caller;
+  const body = await readJson<CloseBody>(req);
+  if (!body) return refuse("invalid_body", "the body is not json", 400);
+  const nonce = isText(body.nonce, 64) ? base64urlToBytes(body.nonce) : null;
+  if (!nonce || nonce.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
+  const proof = isText(body.auth, 512) ? base64urlToBytes(body.auth) : null;
+  if (!proof || proof.length === 0) return refuse("invalid_body", "auth must be base64url", 400);
+  const presented = await sha256hex(proof);
+
+  // A like on a new author racing the take-down is rare; three tries cover it.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await closeOnce(caller.sessionId, caller.identityId, nonce, presented);
+    } catch (error) {
+      if (!(error instanceof TakeDownRetry)) throw error;
+    }
+  }
+  return refuse("unavailable", "the node cannot write right now", 503);
+}
+
+async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, presented: string): Promise<Response> {
+  return await transaction<Response>(async (run) => {
+    const held = await run<{ session: string }>(
+      `SELECT session FROM vault_shares WHERE session = $1 FOR UPDATE`, [sessionId]);
+    if (held.length === 0) return refuse("not_found", "this session has no share", 404);
+    const [kept] = await run<{ route: string }>(
+      `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [sessionId, nonce]);
+    if (kept) {
+      if (kept.route !== "POST /identities/close") {
+        return refuse("invalid_body", "this nonce was used on another route", 409);
+      }
+      inc("relay_nonce_replay_total", { route: "POST /identities/close" });
+      return new Response(null, { status: 200, headers: sunsetHeader() });
+    }
+    const row = await checkPin(run, sessionId, presented, (result) =>
+      inc("relay_identity_close_total", { result: result === "wrong_pin" ? "wrong" : result }));
+    if (row instanceof Response) return row;
+    if (!row.share_enc) return refuse("not_found", "this session has no share", 404);
+
+    await run(
+      `INSERT INTO nonces (session_id, nonce, route, status, response)
+       VALUES ($1, $2, 'POST /identities/close', 200, 'null'::jsonb)`,
+      [sessionId, nonce],
+    );
+    const shut = await run<{ id: string }>(
+      `UPDATE identities SET closed_at = now(),
+              recovery_auth_hash = NULL, recovery_wrapped_key = NULL, first_pin_grant_at = NULL
+        WHERE id = $1 AND closed_at IS NULL RETURNING id`,
+      [me],
+    );
+    if (shut.length === 0) return refuse("not_found", "no such identity", 404);
+
+    await takeDownLive(run, me);
+
+    const ended = await run<{ chat_id: string }>(
+      `UPDATE chat_participants SET gone_at = now()
+        WHERE gone_at IS NULL
+          AND chat_id IN (SELECT chat_id FROM chat_participants WHERE identity = $1 AND gone_at IS NULL)
+        RETURNING chat_id`,
+      [me],
+    );
+    const chats = [...new Set(ended.map((e) => e.chat_id))];
+    if (chats.length > 0) {
+      for (const chat of chats) await run(`SELECT pg_notify('chat_closed', $1)`, [chat]);
+      // The rows go now, as §8.2 lists, and their queue, participants and
+      // tickets with them by cascade. A match points at its chat ON DELETE SET
+      // NULL (db/031): put out first, or it would stand again as a live match.
+      await run(
+        `UPDATE matches SET expires_at = least(expires_at, now() - interval '1 second') WHERE chat_id = ANY($1::uuid[])`,
+        [chats]);
+      await run(`DELETE FROM chats WHERE id = ANY($1::uuid[])`, [chats]);
+      inc("relay_chat_ended_total", { by: "closed" }, chats.length);
+    }
+
+    const sessions = (await run<{ id: string }>(`SELECT id FROM sessions WHERE identity = $1`, [me])).map((r) => r.id);
+    await run(`DELETE FROM pending_deliveries WHERE recipient_session = ANY($1::uuid[])`, [sessions]);
+    for (const id of sessions) {
+      await freezeSession(run, id, "closed");
+      await burnShare(run, id);
+    }
+    await run(`DELETE FROM identity_appearance WHERE identity = $1`, [me]);
+    await run(`UPDATE support_requests SET identity = NULL WHERE identity = $1`, [me]);
+
+    inc("relay_identity_close_total", { result: "closed" });
+    return new Response(null, { status: 200, headers: sunsetHeader() });
+  }).catch((error) => {
+    if (error instanceof TakeDownRetry) throw error;
+    log("error", "closing an identity failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+}
+
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
 route("POST", "/recovery/claim", (c) => claimRecovery(c.req));
@@ -886,3 +1012,4 @@ route("POST", "/recovery/confirm", (c) => confirmRecovery(c.req));
 route("POST", "/vault/share", (c) => vaultShare(c.req));
 route("POST", "/vault/init", (c) => vaultInit(c.req));
 route("POST", "/vault/pin", (c) => changePin(c.req));
+route("POST", "/identities/close", (c) => closeIdentity(c.req));

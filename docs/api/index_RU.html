@@ -37,13 +37,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 138 операций, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
 <h2 id="tag-node">node</h2>
-<p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (main.ts).</p>
+<p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (dispatch.ts).</p>
 <section class="op" id="get-health">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/health</code><span class="chip s-built">построено</span></div>
 <p><strong>Состояние узла, всегда 200</strong></p>
 <h3>Доступ</h3><p>без доступа</p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Узел отвечает.</td><td><a href="#schema-health"><code>Health</code></a></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="get-limits">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/limits</code><span class="chip s-built">построено</span></div>
@@ -58,14 +58,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Готовность, 503 пока база недоступна</strong></p>
 <h3>Доступ</h3><p>без доступа</p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Готов.</td><td><a href="#schema-ready"><code>Ready</code></a></td></tr><tr><td><code>503</code></td><td>База недоступна.</td><td></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="get-metrics">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/metrics</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
 <p><strong>Счётчики Prometheus по токену</strong></p>
 <h3>Доступ</h3><p>METRICS_TOKEN в Authorization или x-metrics-token; без него маршрут отвечает 404</p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>text/plain; version=0.0.4</td><td></td></tr><tr><td><code>404</code></td><td>Нет токена или не тот — не 401, чтобы путь не подтверждался.</td><td></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="get-chat">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/chat</code><span class="chip s-built">построено</span></div>
@@ -85,7 +85,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-waitlistlead"><code>WaitlistLead</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Сохранено, дубль или хранилище выключено.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr><tr><td><code>202</code></td><td>Заполнена ловушка для ботов.</td><td></td></tr><tr><td><code>401</code></td><td>Нет ключа или ключ неверен.</td><td><a href="#schema-error"><code>Error</code></a></td></tr><tr><td><code>403</code></td><td>Источник не разрешён для ключа.</td><td></td></tr><tr><td><code>422</code></td><td>неверная почта</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса или суточная квота.</td><td></td></tr><tr><td><code>503</code></td><td>бренд недоступен</td><td></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="post-client-error">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/client-error</code><span class="chip s-built">построено</span></div>
@@ -94,7 +94,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-clienterror"><code>ClientError</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято или молча отброшено.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="post-pageview">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/pageview</code><span class="chip s-built">построено</span></div>
@@ -103,7 +103,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-pageview"><code>Pageview</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято или молча отброшено.</td><td><a href="#schema-ok"><code>Ok</code></a></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="post-report">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/report</code><span class="chip s-built">построено</span></div>
@@ -113,7 +113,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-notice"><code>Notice</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>202</code></td><td>Принято, с номером.</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело или нет обязательного поля</td><td></td></tr><tr><td><code>429</code></td><td>Предел адреса.</td><td></td></tr><tr><td><code>503</code></td><td>не удалось сохранить уведомление</td><td></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <section class="op" id="post-report-decision">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/report/decision</code><span class="chip s-spec">спека</span></div>
@@ -130,7 +130,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Нарушение политики безопасности контента, всегда 204</strong></p>
 <h3>Доступ</h3><p>без доступа</p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>204</code></td><td>Без тела, даже сверх предела.</td><td></td></tr></table></div>
-<p class="src">Источник: <code>relay/node/src/main.ts</code></p>
+<p class="src">Источник: <code>relay/node/src/dispatch.ts</code></p>
 </section>
 <h2 id="tag-v1">v1</h2>
 <p>Публичный API для третьих сторон, по секретному ключу. Ошибки в форме {error:{code,message}}.</p>

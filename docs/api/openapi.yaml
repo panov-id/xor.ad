@@ -4,20 +4,20 @@ info:
   version: "2026-09-17"
   description: |-
     The contract of the relay node, spec first (route to drawing, stage S4a, decided by the owner on 2026-09-15).
-    x-status built — the route exists in relay/node/src (main.ts, routes/*.ts); its shapes were read from the code on 2026-09-15 and not exercised live.
+    x-status built — the route exists in relay/node/src (dispatch.ts, routes/*.ts); its shapes were read from the code on 2026-09-15 and not exercised live.
     x-status spec — described in docs/protocol_EN.md §4 and the chat canon, not built; the 56 names proposed on 2026-09-16 were agreed by the owner on 2026-09-17 (docs/api/ROUTES_2026-09-17_naming_EN.md). Where the canon names no body, none is invented here.
     Checked by scripts/check-openapi.sh against the protocol tables, the code and the rendered pages.
     Since 2026-09-16 the eight areas of protocol §4.6–4.12 are in as proposed operations (tables, games in a chat, blocks and hiding, stepping away, support, the profile, reissuing the paper code); "My notices" reuse /report/decision and /legal/manifest. Decided the same day: the error shape ApiError, the x-protocol-version header, cursor pagination (protocol §6, §8).
   x-description-ru: |-
     Контракт узла relay, спецификация первая (маршрут до отрисовки, этап Э4а, решение владельца 15.09.2026).
-    x-status built — маршрут есть в relay/node/src (main.ts, routes/*.ts); формы прочитаны из кода 15.09.2026 и живым запросом не проверены.
+    x-status built — маршрут есть в relay/node/src (dispatch.ts, routes/*.ts); формы прочитаны из кода 15.09.2026 и живым запросом не проверены.
     x-status spec — описано в docs/protocol_RU.md §4 и каноне чата, не построено; 56 имён, предложенных 16.09.2026, утверждены владельцем 17.09.2026 (docs/api/ROUTES_2026-09-17_naming_RU.md). Где канон тела не называет, здесь его не выдумывают.
     Сверяется scripts/check-openapi.sh с таблицами протокола, кодом и собранными страницами.
     С 16.09.2026 восемь областей протокола §4.6–4.12 внесены операциями proposed (столы, игры в чате, блокировки и скрытие, отлучка, поддержка, профиль, перевыпуск бумажного кода); «Мои уведомления» идут через /report/decision и /legal/manifest. Тем же днём решены форма ошибки ApiError, заголовок x-protocol-version и пагинация курсором (протокол §6, §8).
 tags:
   - name: node
-    description: Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (main.ts).
-    x-description-ru: Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (main.ts).
+    description: Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (dispatch.ts).
+    x-description-ru: Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (dispatch.ts).
   - name: intake
     description: Public intake from the storefronts, keyed by a publishable key or none.
     x-description-ru: Публичный приём с витрин, по публикуемому ключу или без него.
@@ -821,7 +821,7 @@ paths:
       summary: Node health, always 200
       x-summary-ru: Состояние узла, всегда 200
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: []
       responses:
         "200": {description: The node answers., x-description-ru: Узел отвечает., content: {application/json: {schema: {$ref: "#/components/schemas/Health"}}}}
@@ -843,7 +843,7 @@ paths:
       summary: Readiness, 503 while the database is down
       x-summary-ru: Готовность, 503 пока база недоступна
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: []
       responses:
         "200": {description: Ready., x-description-ru: Готов., content: {application/json: {schema: {$ref: "#/components/schemas/Ready"}}}}
@@ -855,7 +855,7 @@ paths:
       x-summary-ru: Счётчики Prometheus по токену
       x-status: built
       x-internal: true
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: [{metricsToken: []}]
       responses:
         "200": {description: text/plain; version=0.0.4, x-description-ru: text/plain; version=0.0.4}
@@ -879,7 +879,7 @@ paths:
       summary: A waitlist lead from a storefront
       x-summary-ru: Заявка в лист ожидания с витрины
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: [{publishableKey: []}, {}]
       description: Rate limit 20 per hour and 60 per day by address; the key is optional unless REQUIRE_API_KEY=true.
       x-description-ru: Предел 20 в час и 60 в сутки по адресу; ключ необязателен, если не REQUIRE_API_KEY=true.
@@ -898,7 +898,7 @@ paths:
       summary: A client error report, always 200
       x-summary-ru: Отчёт об ошибке клиента, всегда 200
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: [{publishableKey: []}, {}]
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ClientError"}}}}
       responses:
@@ -909,7 +909,7 @@ paths:
       summary: A page view for our own counter, always 200
       x-summary-ru: Просмотр страницы для своего счётчика, всегда 200
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: [{publishableKey: []}]
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/Pageview"}}}}
       responses:
@@ -920,7 +920,7 @@ paths:
       summary: An Article 16 notice, public by design
       x-summary-ru: Уведомление по ст. 16, публично по замыслу
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: [{publishableKey: []}, {}]
       description: Rate limit 10 per hour and 40 per day by address; a key only names the brand and never refuses the notice.
       x-description-ru: Предел 10 в час и 40 в сутки по адресу; ключ только называет бренд и уведомление не отклоняет.
@@ -950,7 +950,7 @@ paths:
       summary: A content-security-policy violation, always 204
       x-summary-ru: Нарушение политики безопасности контента, всегда 204
       x-status: built
-      x-source: relay/node/src/main.ts
+      x-source: relay/node/src/dispatch.ts
       security: []
       responses:
         "204": {description: "No body, even over the limit.", x-description-ru: "Без тела, даже сверх предела."}

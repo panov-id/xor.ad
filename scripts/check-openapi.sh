@@ -132,14 +132,14 @@ if not routes.is_dir():
     sys.exit(2)
 built_pairs = {(method, path) for (method, path), op in ops.items() if op.get("x-status") == "built"}
 # Маршруты узла объявлены двумя способами, и оба читаются: точная карта
-# `"GET /health": …` в main.ts и `route("POST", "/auth/request-link", …)` в
+# `"GET /health": …` в dispatch.ts (до 24.09.2026 — в main.ts) и `route("POST", "/auth/request-link", …)` в
 # routes/*.ts (lib/router.ts). Первая версия ворот знала только литералы
-# /admin/… и /v1/… в routes/ — карту main.ts и /auth/* она бы не увидела вовсе
+# /admin/… и /v1/… в routes/ — точную карту и /auth/* она бы не увидела вовсе
 # (опись маршрутов 15.09.2026).
 pair = re.compile(r"[\"'`](GET|POST|PUT|PATCH|DELETE) (/[A-Za-z0-9_:./-]*)[\"'`]\s*:")
 declared = re.compile(r"\broute\(\s*[\"'`](GET|POST|PUT|PATCH|DELETE)[\"'`]\s*,\s*[\"'`](/[A-Za-z0-9_:./-]*)[\"'`]")
 sources = sorted(routes.glob("*.ts"))
-main = routes.parent / "main.ts"
+main = routes.parent / "dispatch.ts"
 if main.is_file():
     sources.append(main)
 code_pairs = set()
@@ -151,7 +151,7 @@ for source in sources:
         if key not in built_pairs:
             problems.append(f"{source.name}: маршрут {key[0]} {key[1]} построен, а в спецификации built его нет")
 for method, path in sorted(built_pairs - code_pairs):
-    problems.append(f"спецификация: {method} {path} помечен built, а в main.ts и routes/*.ts такого маршрута нет")
+    problems.append(f"спецификация: {method} {path} помечен built, а в dispatch.ts и routes/*.ts такого маршрута нет")
 
 # Время: протокол §1 знает одно представление — unix-секунды, UTC, «часовых поясов
 # в протоколе нет нигде». 20.09.2026 в контракте стояло 21 поле format: date-time

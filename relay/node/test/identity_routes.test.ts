@@ -1597,19 +1597,15 @@ async function seedOffer(externalUrl: string | null): Promise<{ id: string; code
   return { id, code };
 }
 
+// Through the node's own dispatcher (src/dispatch.ts), so a HEAD goes the way
+// a real one does: looked up as GET, answered with GET's headers and no body.
 async function follow(code: string, init: { method?: string; agent?: string } = {}) {
-  const url = new URL(`https://relay.test/o/${code}/go`);
-  const found = match("GET", url.pathname);
-  assert(found, "no route for /o/:code/go");
-  return await found.h({
-    req: new Request(url, {
-      method: init.method ?? "GET",
-      headers: { "x-origin-token": "identity-routes-origin-token", "x-client-ip": nextAddress(),
-        ...(init.agent ? { "user-agent": init.agent } : {}) },
-    }),
-    params: found.params,
-    url,
-  });
+  const { dispatch } = await import("../src/dispatch.ts");
+  return await dispatch(new Request(`https://relay.test/o/${code}/go`, {
+    method: init.method ?? "GET",
+    headers: { "x-origin-token": "identity-routes-origin-token", "x-client-ip": nextAddress(),
+      ...(init.agent ? { "user-agent": init.agent } : {}) },
+  }));
 }
 
 const hitsOf = async (id: string) => (await database.queryOrThrow<{ redirect_hits: number }>(
@@ -1633,7 +1629,9 @@ Deno.test("an offer's link shows its domain, counts a person and not a previewer
   const unfurled = await follow(offer.code, { agent: "TelegramBot (like TwitterBot)" });
   assertEquals(unfurled.status, 302);
   const probed = await follow(offer.code, { method: "HEAD" });
-  assertEquals(probed.status, 302);
+  assertEquals(probed.status, 302, "HEAD /o/:code/go did not find the GET route");
+  assertEquals(probed.headers.get("location"), "https://ourcafe.example/menu?from=sosed", "HEAD lost where the link goes");
+  assertEquals(await probed.text(), "", "HEAD carried a body");
   assertEquals(await hitsOf(offer.id), 1, "a previewer or a HEAD was counted as a person");
 
   await database.queryOrThrow(`UPDATE offers SET redirect_disabled_at = now() WHERE id = $1`, [offer.id]);

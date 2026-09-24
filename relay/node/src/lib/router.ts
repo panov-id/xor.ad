@@ -1,4 +1,4 @@
-// Minimal pattern router alongside main.ts's exact-match map, so routes can carry
+// Minimal pattern router alongside dispatch.ts's exact-match map, so routes can carry
 // path params (e.g. /admin/panel-users/:email). Register with route(); resolve
 // with match(). First registered match wins.
 //
@@ -55,7 +55,7 @@ export function match(
 // built from the raw path did.
 const KNOWN_METHODS = new Set(["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"]);
 
-// The label a request is counted under. Lives here rather than inline in main.ts
+// The label a request is counted under. Lives here rather than inline in dispatch.ts
 // so it can be exercised on its own: main.ts starts a server on import, and a
 // rule nobody can call is a rule nobody tests.
 export function metricLabel(

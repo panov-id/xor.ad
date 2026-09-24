@@ -17,7 +17,7 @@
 // has MAX_TRACKED: the map is fed by request traffic, and traffic includes
 // scanners. Production on 2026-09-10 already carried a series per probed path —
 // `GET /.git/config`, `GET /xmlrpc.php`, hundreds of them — and nothing dropped
-// them until a restart. Labels are normalised at the call site (main.ts collapses
+// them until a restart. Labels are normalised at the call site (dispatch.ts collapses
 // an unmatched path to one series per method), so reaching this ceiling means a
 // new caller is labelling by something unbounded; the counter below says so out
 // loud rather than letting the process grow quietly.

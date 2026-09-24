@@ -125,7 +125,7 @@ configured("a stored error line carries no address and no id", async () => {
   const { withoutAddresses } = await import("../src/lib/mailer.ts");
   const { metricLabel } = await import("../src/lib/router.ts");
 
-  // What main.ts now puts into a line of level `error` — the level that lib/log.ts
+  // What dispatch.ts now puts into a line of level `error` — the level that lib/log.ts
   // copies to object storage and the panel reads back. Two things used to travel
   // there in the raw path: an address, from `/admin/panel-users/:email`, and a
   // notice id, from `/admin/dsa-notices/:id/decide`.

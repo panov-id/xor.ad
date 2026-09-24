@@ -21,7 +21,7 @@ import { inc } from "../lib/metrics.ts";
 // so closed is the honest default — and 404 rather than 401, because a 401 tells
 // a guesser the path was right.
 export async function metrics(req: Request): Promise<Response> {
-  // Refusals are counted, because main.ts leaves /metrics out of the request log
+  // Refusals are counted, because dispatch.ts leaves /metrics out of the request log
   // and the request counter entirely — that exclusion was written for the
   // successful scrape, and it meant a million guesses at the token left no line
   // and no number anywhere. The counter is read by the scrape itself, so it

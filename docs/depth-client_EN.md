@@ -15,10 +15,13 @@ introduces no rule that is not already in the spec. Where the two disagree,
 > Deno and Web Crypto, no Ink and no DOM (§13 of the chat spec). It signs per §2,
 > registers with the paper code, reads the profile, sends a phrase, reads the
 > feed with its cursor, likes and takes a like back, consents and says "not
-> now"; checked against a live node (`scripts/run-depth-tests.sh`). **Not yet:**
-> drawing (Ink), the image, the volume and `identity.age` of §2 and §6 — keys live
-> in memory only. **Placeholders:** the PIN proof (Argon2id — its parameters are
-> not written down), the paper code's halves and the node's share that opens no
+> now"; checked against a live node (`scripts/run-depth-tests.sh`). **Drawing
+> exists since 2026-09-22** — `depth/ink/` (Node + Ink, screens, 17 languages; was
+> "not yet: drawing (Ink)" [retired]). **Not yet:** the image, the volume and
+> `identity.age` of §2 and §6 — keys live in memory only. **Placeholders:** the PIN
+> proof — Argon2id 64 MB / t=3 is written down (§9, measured 2026-08-28), but the
+> parallelism and the device salt are not named, so a random proof stands in; the
+> paper code's halves and the node's share that opens no
 > vault yet; registering with them takes the `testOnly` flag.
 
 ## 1. Why this face exists

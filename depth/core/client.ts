@@ -4,9 +4,10 @@
 // **Three placeholders, said here and nowhere pretended otherwise.** The node
 // checks their shape and cannot read their content, so they are enough to prove
 // the protocol, and not enough for a person:
-// - the PIN proof. §8.2 derives it from the PIN with Argon2id, and the
-//   parameters are not written down anywhere yet (review panel 2026-09-21,
-//   PANEL_2026-09-21_steps1-2.md); a random proof stands in;
+// - the PIN proof. §8.2 derives it from the PIN with Argon2id, 64 MB and t=3
+//   (docs/chat_RU.md, measured 2026-08-28); the parallelism and where the
+//   device salt comes from are not named yet (review panel 2026-09-21,
+//   PANEL_2026-09-21_steps1-2.md), so a random proof stands in;
 // - the paper code: `recovery_lookup_id` and `recovery_wrapped_key` come from
 //   halves of a code the person writes down; random bytes stand in;
 // - the node's share of the vault key is sent and not yet used to open a vault.

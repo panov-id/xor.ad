@@ -493,7 +493,12 @@ it has to be settled before the first line of step 1.
 4. ~~**Pagination of the feed and the inbox**~~ — **decided 2026-09-16:** a cursor `?after`,
    the answer `{items, next}`; §6.
 5. ~~**The response shape when a rate limit is hit**~~ — **decided 2026-09-16:** a 429 in the
-   common shape with `code: rate_limited` and `Retry-After`; §6.
+   common shape with `code: rate_limited` and `Retry-After`; §6. **A slot is not given
+   back when the node itself answered 503 — the owner's decision of 2026-09-24.** The slot
+   is spent before the write; if the write fails (`unavailable`), it stays spent. The price
+   is named: the client loses a slot to a failure not its own. Giving it back would be
+   fairer, but under a flood the 503 comes from `lock_timeout`, and giving it back would
+   lift the brake exactly when it holds the database (the loop's quorum, 2026-09-24).
 6. ~~**The wordings of moderation refusals**~~ — **they exist since 2026-09-08** in
    `refusal-wordings_EN.md` §1–6 as a proposal until read aloud; in an answer they travel in
    the `reason` field (§6). [retired] This said "they do not exist at all".

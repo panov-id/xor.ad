@@ -304,6 +304,33 @@ LOG_POLICY = (
 )
 
 
+# The size limits above say nothing about age, and the privacy policy keeps
+# server logs 30 days (limits.tsv logs.retention): at a slow trickle a rotated
+# file held lines far older (logs.container.rotation, verifier 2026-09-24).
+# Once a day the rotated files whose last write is past 30 days go — their
+# every line is older. The active file is left alone: cutting it under the
+# daemon is the daemon's business, and a quiet box can still hold older lines
+# there; that part stays open. Decided by quorum 2026-09-25 (a timer of our own,
+# four of five; journald's retention is the daemon's, not ours on a shared box).
+LOG_RETENTION_DAYS = 30
+LOG_TRIM_SCRIPT = (
+    "#!/bin/sh\n"
+    "# Written by the wizard: rotated container logs past the policy's days.\n"
+    # The directory can be named, so the test runs the script on one of its own.
+    f"find \"${{DOCKER_CONTAINERS:-/var/lib/docker/containers}}\" -type f -name '*-json.log.*' "
+    f"-mtime +{LOG_RETENTION_DAYS} -print -delete\n"
+)
+LOG_TRIM_SERVICE = (
+    "[Unit]\nDescription=Delete rotated container logs past the privacy policy's days\n\n"
+    "[Service]\nType=oneshot\nExecStart=/opt/relay/trim-container-logs.sh\n"
+)
+LOG_TRIM_TIMER = (
+    "[Unit]\nDescription=Daily trim of rotated container logs\n\n"
+    "[Timer]\nOnCalendar=*-*-* 04:10:00 UTC\nRandomizedDelaySec=900\n"
+    "Persistent=true\n\n[Install]\nWantedBy=timers.target\n"
+)
+
+
 def render_compose(inv: dict, box: dict) -> str:
     pool = inv.get("pool", {})
     node_repo = pool.get("node_repo", "ghcr.io/panov-id/edge-node")
@@ -686,6 +713,9 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
         _sftp_mkdirs(sftp, f"{REMOTE_ROOT}/compose")
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/docker-compose.yml", render_compose(inv, box))
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/Caddyfile", render_caddyfile(inv, box))
+        _write_remote(sftp, f"{REMOTE_ROOT}/trim-container-logs.sh", LOG_TRIM_SCRIPT)
+        _write_remote(sftp, "/tmp/relay-logs-trim.service", LOG_TRIM_SERVICE)
+        _write_remote(sftp, "/tmp/relay-logs-trim.timer", LOG_TRIM_TIMER)
         _write_remote(sftp, f"{REMOTE_ROOT}/compose/caddy.env",
                       f"BUNNY_API_KEY={os.environ.get('BUNNY_API_KEY', '')}\n"
                       # Caddy compares the header against this; empty means the
@@ -826,6 +856,11 @@ def _sync_and_up(client, inv: dict, box: dict, sudo: bool, user: str) -> None:
     # Named services when a subset was asked for: `up -d` on the whole file would
     # also recreate the other environment if anything of its configuration had
     # changed, and "deploy dev" must not be a way to restart staging.
+    print("      container-log trim timer")
+    sh(client, f"chmod 0755 {REMOTE_ROOT}/trim-container-logs.sh "
+               "&& mv /tmp/relay-logs-trim.service /tmp/relay-logs-trim.timer /etc/systemd/system/ "
+               "&& systemctl daemon-reload && systemctl enable --now relay-logs-trim.timer",
+       sudo=sudo)
     services = " ".join(f"node-{env}" for env in acting_envs(box))
     print(f"      docker compose up -d ({services or 'all'})")
     sh(client, f"cd {REMOTE_ROOT}/compose && docker compose up -d {services}", sudo=sudo)

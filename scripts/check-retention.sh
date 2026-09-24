@@ -43,6 +43,7 @@ BINDINGS = {
         ("relay/node/tools/prune_objects.ts", r'directory: "server-logs",\s*days: (\d+),', 1),
         ("relay/node/tools/prune_objects.ts", r'directory: "client-errors",\s*days: (\d+),', 1),
         ("relay/node/tools/prune_objects.ts", r'directory: "client-errors-unattributed",\s*days: (\d+),', 1),
+        ("relay/wizard/wizard.py", r"(?m)^LOG_RETENTION_DAYS = (\d+)$", 1),
         ("relay/node/tools/prune_objects.ts", r'directory: "csp-reports",\s*(?://[^\n]*\n\s*)*days: (\d+),', 1),
     ],
     "audit.log.retention": [("relay/node/tools/prune_objects.ts", r'directory: "audit",\s*days: (\d+),', 1)],

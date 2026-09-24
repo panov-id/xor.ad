@@ -546,8 +546,39 @@ check("the wizard puts the variables in backup.env",
       all(name in (pathlib.Path(__file__).parent / "wizard.py").read_text(encoding="utf-8")
           for name in ("BACKUP_STORAGE_ZONE", "BACKUP_STORAGE_KEY")))
 
+# --- container logs go at the policy's 30 days, not only at a size -----------
+#
+# logs.container.rotation: the compose files rotate by size, and at a slow
+# trickle a rotated file held lines far past the privacy policy's 30 days. The
+# trim script is run here for real, on a directory of our own.
+import subprocess  # noqa: E402
+import tempfile  # noqa: E402
+import time  # noqa: E402
+
+with tempfile.TemporaryDirectory() as containers:
+    box = pathlib.Path(containers) / "abc"
+    box.mkdir()
+    now = time.time()
+    files = {"abc-json.log": 40, "abc-json.log.1": 40, "abc-json.log.2": 10}
+    for name, days in files.items():
+        path = box / name
+        path.write_text("line\n")
+        os.utime(path, (now - days * 86400, now - days * 86400))
+    script = pathlib.Path(containers) / "trim.sh"
+    script.write_text(wizard.LOG_TRIM_SCRIPT)
+    subprocess.run(["sh", str(script)], env={**os.environ, "DOCKER_CONTAINERS": containers},
+                   check=True, capture_output=True)
+    left = sorted(p.name for p in box.iterdir())
+    check("a rotated log past the policy's days is deleted", "abc-json.log.1" not in left, str(left))
+    check("a rotated log inside the days stays", "abc-json.log.2" in left, str(left))
+    check("the active log is not cut under the daemon", "abc-json.log" in left, str(left))
+
+check("the trim runs daily from a timer the wizard enables",
+      "OnCalendar=*-*-*" in wizard.LOG_TRIM_TIMER
+      and "systemctl enable --now relay-logs-trim.timer" in source,
+      wizard.LOG_TRIM_TIMER)
+
 if failed:
     print(f"FAILED: {failed}")
     sys.exit(1)
 print("wizard: every case passed")
-

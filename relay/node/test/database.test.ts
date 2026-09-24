@@ -1141,6 +1141,12 @@ Deno.test({
     assertEquals(read.body.months.length, 6, "not six months back");
     assertEquals(read.body.complete, true);
     assertEquals(read.body.average, 35, "the average is not of the six months before this one");
+    // A month missing is missing, not borrowed from a year back (verifier, 2026-09-24).
+    await database.queryOrThrow(
+      `DELETE FROM dsa_monthly_recipients WHERE month = (date_trunc('month', now()) - interval '4 months')::date`);
+    const gap = await callAs(PLATFORM, "GET", "/admin/dsa-recipients");
+    assertEquals([gap.body.months.length, gap.body.complete], [5, false],
+      "a missing month was filled from further back and passed for six");
     const tenant = await callAs({ role: "moderator", brand: "alpha" }, "GET", "/admin/dsa-recipients");
     assertEquals(tenant.status, 403, "a tenant read the platform's number");
     // The month's count is the other case's to raise; the large row goes.

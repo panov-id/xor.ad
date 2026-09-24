@@ -410,7 +410,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-admin-dsa-recipients">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-recipients</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
 <p><strong>Average monthly active recipients over six months (DSA Art. 24(3))</strong></p>
-<p>The platform&#x27;s number: identities that finished signing up with a session seen in the month, all counted as in the Union (decided by quorum on 2026-09-24). Six complete months before this one; complete is false until there are six. A tenant reader gets 403.</p>
+<p>The platform&#x27;s number: identities that finished signing up with a session seen in the month, all counted as in the Union (decided by quorum on 2026-09-24). The six calendar months before this one; complete is false until all six have a row. A tenant reader gets 403.</p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>{months, average, complete, method}.</td><td></td></tr><tr><td><code>403</code></td><td>A tenant reader.</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/dsa.ts</code></p>

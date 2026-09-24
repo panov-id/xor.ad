@@ -27,15 +27,19 @@ export async function countActiveRecipients(): Promise<number | null> {
   return rows === null ? null : rows[0].active;
 }
 
-// The six complete months before this one, newest first, and their average.
-// Fewer than six is said, not padded: `complete` is false until there are six.
+// The six calendar months before this one, newest first, and their average.
+// Fewer than six is said, not padded: `complete` is false until all six are
+// there. A month with no row is missing, not borrowed from further back — the
+// six last rows were read before, and a gap or a year-old row passed for "the
+// last six months" (verifier, 2026-09-24).
 export async function averageRecipients(): Promise<
   { months: { month: string; active: number }[]; average: number | null; complete: boolean } | null
 > {
   const rows = await query<{ month: string; active: number }>(
     `SELECT to_char(month, 'YYYY-MM') AS month, active FROM dsa_monthly_recipients
       WHERE month < date_trunc('month', now())::date
-      ORDER BY month DESC LIMIT 6`,
+        AND month >= (date_trunc('month', now()) - interval '6 months')::date
+      ORDER BY month DESC`,
   );
   if (rows === null) return null;
   const average = rows.length === 0 ? null : Math.round(rows.reduce((sum, r) => sum + r.active, 0) / rows.length);

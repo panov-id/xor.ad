@@ -38,8 +38,8 @@ The platform's promises rest on people and jobs, and they can break without a so
 - **The ceiling is 6 per hour per address** (decided by quorum on 2026-09-24, by the owner's number for W2):
   the first six notices of a pass go to an address one by one, the rest in one summary that names each
   by its reference, target, age and stage. None is left out, only the letters are fewer; a summary that
-  did not leave takes back the stamps of all its notices. A pass is hourly; the retry in 10 minutes
-  carries only what did not leave: the node remembers which address already got the letter about a notice
+  did not leave takes back the stamps of all its notices. The ceiling holds per hour, not per pass (`db/055`: letters and summaries counted per address hash per hour; what is over waits for the next hour with its stamp given back). A pass is hourly; the retry in 10 minutes
+  repeats what did not leave and takes newly aged notices, within the same hour's count: the node remembers which address already got the letter about a notice
   at a stage (the address's hash, `db/054`), and the retry goes only to the rest; an address written twice
   gets one letter (2026-09-24, from the verifier).
   **Nobody to escalate to — escalations are not picked** (decided by quorum on 2026-09-24): with an empty

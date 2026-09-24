@@ -83,3 +83,4 @@ night_path_hours	-	relay/node/db/044_night_path_hours.sql	control
 dsa_notice_counts	-	relay/node/db/045_dsa_notice_counts.sql	control
 dsa_monthly_recipients	-	relay/node/db/053_dsa_monthly_recipients.sql	control
 dsa_notice_letters	-	relay/node/db/054_dsa_notice_letters.sql	control
+dsa_aging_hours	-	relay/node/db/055_dsa_aging_hours.sql	control

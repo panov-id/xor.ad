@@ -65,6 +65,19 @@ async function markTold(notices: AgingNotice[], address: string): Promise<void> 
   }
 }
 
+// A place in this hour's letters at one address (db/055): one statement
+// decides it, so two passes cannot both hand out the sixth.
+async function takeSlot(hash: string, kind: "letters" | "summaries", ceiling: number): Promise<boolean> {
+  const rows = await query<{ n: number }>(
+    `INSERT INTO dsa_aging_hours (hour, address_hash, ${kind}) VALUES (date_trunc('hour', now()), $1, 1)
+     ON CONFLICT (hour, address_hash) DO UPDATE SET ${kind} = dsa_aging_hours.${kind} + 1
+     RETURNING ${kind} AS n`,
+    [hash],
+  );
+  // No answer from the database is not a reason to stay silent about a notice.
+  return rows === null || rows[0].n <= ceiling;
+}
+
 // A send that throws is a letter that did not leave, not the end of the pass:
 // thrown out of here it left every stamp of the pass in place, and those
 // letters would never go (verifier, 2026-09-24).
@@ -105,7 +118,10 @@ export async function agingNotices(
         WHERE status IN ('received', 'in_review')
           AND ((created_at < now() - interval '${REMIND_AFTER_HOURS} hours' AND reminded_at IS NULL)
             OR ($1 AND created_at < now() - interval '${ESCALATE_AFTER_HOURS} hours' AND escalated_at IS NULL))
-        ORDER BY created_at
+        -- Reminders first: an escalation whose letter keeps failing somewhere
+        -- comes back every pass, and 200 of them ahead in age kept a fresh
+        -- notice from its reminder even with addresses (verifier, 2026-09-24).
+        ORDER BY (reminded_at IS NULL) DESC, created_at
         LIMIT 200
         FOR UPDATE SKIP LOCKED
      ), stamped AS (
@@ -193,15 +209,23 @@ export async function watchNoticeAge(
       byAddress.set(address, [...(byAddress.get(address) ?? []), notice]);
     }
   }
+  await query(`DELETE FROM dsa_aging_hours WHERE hour < now() - interval '2 days'`);
   for (const [address, list] of byAddress) {
-    for (const notice of list.slice(0, AGING_LETTERS_PER_HOUR)) {
+    const hash = await addressHash(address);
+    let next = 0;
+    // One by one while the hour has room at this address.
+    while (next < list.length && await takeSlot(hash, "letters", AGING_LETTERS_PER_HOUR)) {
+      const notice = list[next++];
       if (await tried(() => send(address, notice))) await markTold([notice], address);
       else failedIds.add(notice.id);
     }
-    const rest = list.slice(AGING_LETTERS_PER_HOUR);
+    const rest = list.slice(next);
     if (rest.length === 0) continue;
-    if (await tried(() => summarize(address, rest))) await markTold(rest, address);
-    else for (const notice of rest) failedIds.add(notice.id);
+    // The rest in one summary, one an hour; past that they wait for the next
+    // hour, their stamps given back.
+    if (await takeSlot(hash, "summaries", 1) && await tried(() => summarize(address, rest))) {
+      await markTold(rest, address);
+    } else for (const notice of rest) failedIds.add(notice.id);
   }
   let reminded = 0, escalated = 0, unsent = 0;
   for (const notice of notices) {

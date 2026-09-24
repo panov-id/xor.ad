@@ -949,7 +949,7 @@ paths:
       x-source: relay/node/src/dispatch.ts
       security: []
       description: 'Not signed by an identity; the code in the body. "No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The code is 32 hex characters; the decision body was decided by quorum on 2026-09-24.'
-      x-description-ru: 'Личностью не подписан; код в теле. На «нет такой квитанции» и «решения ещё нет» ответ один: статус 200, тело байт в байт, Cache-Control no-store, одно минимальное время на обе ветки; предел по адресу держится в памяти и в журнал не пишется (dsa/SPEC §6, протокол §4.5). Тело решения в каноне поле за полем не описано.'
+      x-description-ru: 'Личностью не подписан; код в теле. На «нет такой квитанции» и «решения ещё нет» ответ один: статус 200, тело байт в байт, Cache-Control no-store, одно минимальное время на обе ветки; предел по адресу держится в памяти и в журнал не пишется (dsa/SPEC §6, протокол §4.5). Код — 32 шестнадцатеричных символа; тело решения решено кворумом 24.09.2026.'
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ReceiptQuery"}}}}
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1440,8 +1440,8 @@ paths:
       x-internal: true
       x-source: relay/node/src/routes/dsa.ts
       security: [{panelSession: []}]
-      description: "The platform's number: identities that finished signing up with a session seen in the month, all counted as in the Union (decided by quorum on 2026-09-24). Six complete months before this one; complete is false until there are six. A tenant reader gets 403."
-      x-description-ru: "Число платформы: личности, закончившие регистрацию, с сессией, увиденной в месяце, — все считаются в ЕС (решено кворумом 24.09.2026). Шесть полных месяцев до текущего; complete — false, пока их меньше шести. Читатель арендатора получает 403."
+      description: "The platform's number: identities that finished signing up with a session seen in the month, all counted as in the Union (decided by quorum on 2026-09-24). The six calendar months before this one; complete is false until all six have a row. A tenant reader gets 403."
+      x-description-ru: "Число платформы: личности, закончившие регистрацию, с сессией, увиденной в месяце, — все считаются в ЕС (решено кворумом 24.09.2026). Шесть календарных месяцев до текущего; complete — false, пока строки есть не у всех шести. Читатель арендатора получает 403."
       responses:
         "200": {description: "{months, average, complete, method}.", x-description-ru: "{months, average, complete, method}."}
         "403": {description: A tenant reader., x-description-ru: Читатель арендатора.}

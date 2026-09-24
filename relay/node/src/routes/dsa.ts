@@ -51,7 +51,6 @@ interface NoticeRow {
 
 const OPEN = ["received", "in_review"];
 
-// The queue: oldest first, because a notice that waits is the one that matters.
 // Article 24(3): the average monthly active recipients over six months, for
 // the coordinator's request (db/053, lib/dsa_recipients.ts). The platform's
 // number, not a tenant's: identities are shared by the faces, so a tenant
@@ -68,6 +67,7 @@ route("GET", "/admin/dsa-recipients", async ({ req }) => {
   });
 });
 
+// The queue: oldest first, because a notice that waits is the one that matters.
 route("GET", "/admin/dsa-notices", async ({ req, url }) => {
   const access = await requirePermission(req, "dsa_notices.read");
   if (isDenied(access)) return access.response;

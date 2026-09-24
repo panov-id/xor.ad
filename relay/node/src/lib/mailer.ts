@@ -445,9 +445,10 @@ export async function sendNoticeAgingSummary(
   notices: { id: string; kind: string; brand?: string | null; age_hours: number; stage: "remind" | "escalate" }[],
 ): Promise<boolean> {
   if (config.mail.transport === "none" || notices.length === 0) return false;
-  // One face's name only when every notice in it came through that face; an
-  // escalation mixes them, and it went out under the first one's brand with the
-  // others unnamed (verifier, 2026-09-24).
+  // One face's name only when every notice in it came through that face. An
+  // escalation mixes them and goes out under the node's default face (the first
+  // of BRANDS) with each notice's face named on its line — it went out under
+  // the first notice's brand with the others unnamed (verifier, 2026-09-24).
   const faces = new Set(notices.map((n) => n.brand ?? null));
   const only = faces.size === 1 ? notices[0].brand : null;
   const brand = (only ? await brandByKey(only) : undefined) ?? resolveBrand(null);

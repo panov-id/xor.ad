@@ -1892,6 +1892,33 @@ async function halfFor(who: { pair: CryptoKeyPair }, matchId: string, spki?: str
 const consent = async (who: { pair: CryptoKeyPair; session_id: string }, matchId: string) =>
   matchCall(who, "POST", `/matches/${matchId}/consent`, await halfFor(who, matchId));
 
+// The half belongs to the session that published it (open.tsv
+// chat.queue.epk-session; chat spec §8.2, 18.09.2026). A move freezes that
+// session before the second press, and its private half stays on the old
+// device: a chat opened with it would open with a key nobody can derive. So
+// the freeze takes back the half and the consent with it, the match waits
+// again, and the new device consents with a half of its own (loop plan A13).
+Deno.test({
+  name: "a frozen session's half does not open the chat, and its consent is taken back",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { freezeSession } = await import("../src/lib/sessions.ts");
+    const { a, b, id } = await freshMatch();
+    assertEquals((await consent(a, id)).body, { state: "waiting" });
+    const [stamped] = await database.queryOrThrow<{ ephemeral_session: string | null }>(
+      `SELECT ephemeral_session FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
+    assertEquals(stamped.ephemeral_session, a.session_id, "the half does not say which session published it");
+    await database.transaction(async (run) => { await freezeSession(run, a.session_id, "transfer"); });
+    const [taken] = await database.queryOrThrow<{ ephemeral_public_key: string | null; accepted_at: Date | null }>(
+      `SELECT ephemeral_public_key, accepted_at FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
+    assertEquals(taken.ephemeral_public_key, null, "a frozen session's half still stands");
+    assertEquals(taken.accepted_at, null, "a consent without its half still stands");
+    const second = await consent(b, id);
+    assertEquals((second.body as { state: string }).state, "waiting", "the chat opened on a half nobody can derive with");
+  },
+});
+
 Deno.test({
   name: "consent waits for the other side, and both make it agreed",
   sanitizeResources: false,

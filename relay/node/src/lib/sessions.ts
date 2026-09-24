@@ -55,6 +55,19 @@ export async function freezeSession(
   // hand is string concatenation into SQL, on an identifier that arrives in a
   // header.
   await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
+  // The halves this session published for matches not yet a chat: its private
+  // halves stay on the device being frozen, and a chat opened with them opens
+  // with a key nobody can derive. The half and the consent go back together,
+  // the match waits, and a new device consents with a half of its own (db/048;
+  // open.tsv chat.queue.epk-session).
+  await run(
+    `UPDATE match_participants
+        SET ephemeral_public_key = NULL, ephemeral_signature = NULL,
+            ephemeral_session = NULL, accepted_at = NULL
+      WHERE ephemeral_session = $1
+        AND match_id IN (SELECT id FROM matches WHERE chat_id IS NULL)`,
+    [sessionId],
+  );
   // Counted here rather than at each caller: a freeze is a freeze whoever asks
   // for it, and the reason is the label that tells a spike of stolen-key
   // lockouts (`pin_limit`) from a wave of closures.

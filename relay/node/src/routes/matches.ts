@@ -145,10 +145,13 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     await run(
       `UPDATE match_participants
           SET accepted_at = coalesce(accepted_at, now()), declined_at = NULL,
+              -- The session travels with the half it published: a freeze of
+              -- that session takes the half back (db/048, lib/sessions.ts).
+              ephemeral_session = CASE WHEN ephemeral_public_key IS NULL THEN $5 ELSE ephemeral_session END,
               ephemeral_public_key = coalesce(ephemeral_public_key, $3),
               ephemeral_signature = coalesce(ephemeral_signature, $4)
         WHERE match_id = $1 AND identity = $2`,
-      [matchId, me, half!.key, half!.signature],
+      [matchId, me, half!.key, half!.signature, caller.sessionId],
     );
     const [both] = await run<{ n: number }>(
       `SELECT count(*)::int AS n FROM match_participants

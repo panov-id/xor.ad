@@ -14,6 +14,7 @@
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
+import { averageRecipients } from "../lib/dsa_recipients.ts";
 import { query, queryOrThrow, transaction } from "../lib/db.ts";
 import { recordAuditEvent } from "../lib/audit.ts";
 import { sendNoticeDecision, sendStatementOfReasons } from "../lib/mailer.ts";
@@ -51,6 +52,22 @@ interface NoticeRow {
 const OPEN = ["received", "in_review"];
 
 // The queue: oldest first, because a notice that waits is the one that matters.
+// Article 24(3): the average monthly active recipients over six months, for
+// the coordinator's request (db/053, lib/dsa_recipients.ts). The platform's
+// number, not a tenant's: identities are shared by the faces, so a tenant
+// reader is refused rather than shown the whole.
+route("GET", "/admin/dsa-recipients", async ({ req }) => {
+  const access = await requirePermission(req, "dsa_notices.read");
+  if (isDenied(access)) return access.response;
+  if (access.user.brand) return json({ error: "the platform's number, not a tenant's" }, 403);
+  const result = await averageRecipients();
+  if (result === null) return json({ error: "the node cannot read right now" }, 503);
+  return json({
+    ...result,
+    method: "identities that finished signing up with a session seen in the month; all counted as in the Union",
+  });
+});
+
 route("GET", "/admin/dsa-notices", async ({ req, url }) => {
   const access = await requirePermission(req, "dsa_notices.read");
   if (isDenied(access)) return access.response;

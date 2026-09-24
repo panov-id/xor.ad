@@ -176,7 +176,7 @@ core without drawing, against a live node (since 2026-09-21).
 
 All eleven tables of the first cut (§13) exist: six before 2026-09-21, `likes`,
 `matches`, `match_participants`, `blocks` by migration `db/030`, `support_requests`
-by `db/039` (2026-09-22). Migrations in `relay/node/db` — 44 files, the last `052` (measured late on the evening of 2026-09-24; 43 and `051` in the evening [retired]; was "37, the last `045`" after the squash [retired]).
+by `db/039` (2026-09-22). Migrations in `relay/node/db` — 45 files, the last `053` (measured late on the evening of 2026-09-24; 43 and `051` in the evening [retired]; was "37, the last `045`" after the squash [retired]).
 
 Chat code was cleared by the owner's word on 2026-09-21.
 

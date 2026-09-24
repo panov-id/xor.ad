@@ -1431,6 +1431,21 @@ paths:
         "403": {description: "no support.answer", x-description-ru: "нет права support.answer"}
         "404": {description: "no such request, or another brand's", x-description-ru: "нет такого обращения или оно чужого бренда"}
         "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/dsa-recipients:
+    get:
+      tags: [admin]
+      summary: Average monthly active recipients over six months (DSA Art. 24(3))
+      x-summary-ru: Среднее число активных получателей за шесть месяцев (ст. 24(3) DSA)
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/dsa.ts
+      security: [{panelSession: []}]
+      description: "The platform's number: identities that finished signing up with a session seen in the month, all counted as in the Union (decided by quorum on 2026-09-24). Six complete months before this one; complete is false until there are six. A tenant reader gets 403."
+      x-description-ru: "Число платформы: личности, закончившие регистрацию, с сессией, увиденной в месяце, — все считаются в ЕС (решено кворумом 24.09.2026). Шесть полных месяцев до текущего; complete — false, пока их меньше шести. Читатель арендатора получает 403."
+      responses:
+        "200": {description: "{months, average, complete, method}.", x-description-ru: "{months, average, complete, method}."}
+        "403": {description: A tenant reader., x-description-ru: Читатель арендатора.}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/dsa-notices:
     get:
       tags: [admin]

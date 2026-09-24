@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>API узла</h1><a href="index_EN.html">English</a></div>
-<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 138 операций, OpenAPI 3.1.0, 2026-09-17.</p>
+<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 139 операций, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (dispatch.ts).</p>
@@ -406,6 +406,14 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Отвечено.</td><td></td></tr><tr><td><code>400</code></td><td>нет текста или длиннее 4000 символов</td><td></td></tr><tr><td><code>401</code></td><td>нет сессии панели</td><td></td></tr><tr><td><code>403</code></td><td>нет права support.answer</td><td></td></tr><tr><td><code>404</code></td><td>нет такого обращения или оно чужого бренда</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/support_admin.ts</code></p>
+</section>
+<section class="op" id="get-admin-dsa-recipients">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-recipients</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
+<p><strong>Среднее число активных получателей за шесть месяцев (ст. 24(3) DSA)</strong></p>
+<p>Число платформы: личности, закончившие регистрацию, с сессией, увиденной в месяце, — все считаются в ЕС (решено кворумом 24.09.2026). Шесть полных месяцев до текущего; complete — false, пока их меньше шести. Читатель арендатора получает 403.</p>
+<h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>{months, average, complete, method}.</td><td></td></tr><tr><td><code>403</code></td><td>Читатель арендатора.</td><td></td></tr><tr><td><code>503</code></td><td>база недоступна</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/dsa.ts</code></p>
 </section>
 <section class="op" id="get-admin-dsa-notices">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/admin/dsa-notices</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>

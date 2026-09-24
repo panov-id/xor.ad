@@ -1089,6 +1089,65 @@ Deno.test({
   },
 });
 
+// --- Article 24(3): active recipients, a count and nothing else (db/053) ----------
+// Counted relative to what is there, since other cases leave identities behind:
+// one identity signed up and seen this month adds exactly one; one never signed
+// up, or seen only last month, adds nothing; a month's number is never lowered;
+// the average is over six complete months, and a tenant does not read it.
+Deno.test({
+  name: "the month's active recipients count a signed-up identity seen this month, and only that",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { countActiveRecipients } = await import("../src/lib/dsa_recipients.ts");
+    const person = async (signedUp: boolean, seen: string) => {
+      const id = crypto.randomUUID();
+      await database.queryOrThrow(
+        `INSERT INTO identities (id, identity_public_key, name, age, signup_completed_at)
+         VALUES ($1, 'not-a-real-key', 'получатель', 30, CASE WHEN $2 THEN now() END)`, [id, signedUp]);
+      await database.queryOrThrow(
+        `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, last_seen_at)
+         VALUES ($1, $2, 'k', 'k', ${seen})`, [crypto.randomUUID(), id]);
+      return id;
+    };
+    const before = (await countActiveRecipients())!;
+    const counted = await person(true, "now()");
+    await person(false, "now()");
+    await person(true, "date_trunc('month', now()) - interval '1 day'");
+    assertEquals(await countActiveRecipients(), before + 1,
+      "the month counted other than one signed-up identity seen in it");
+    await database.queryOrThrow("DELETE FROM sessions WHERE identity = $1", [counted]);
+    assertEquals(await countActiveRecipients(), before + 1, "a month's number went down");
+  },
+});
+
+Deno.test({
+  name: "the average is over six complete months, and only the platform reads it",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    for (let back = 1; back <= 7; back++) {
+      await database.queryOrThrow(
+        `INSERT INTO dsa_monthly_recipients (month, active)
+         VALUES ((date_trunc('month', now()) - make_interval(months => $1))::date, $2)
+         ON CONFLICT (month) DO UPDATE SET active = EXCLUDED.active`, [back, back * 10]);
+    }
+    // This month is not over, so it is not in the average however large it is.
+    await database.queryOrThrow(
+      `INSERT INTO dsa_monthly_recipients (month, active) VALUES (date_trunc('month', now())::date, 100000)
+       ON CONFLICT (month) DO UPDATE SET active = 100000`);
+    const read = await callAs(PLATFORM, "GET", "/admin/dsa-recipients");
+    assertEquals(read.status, 200, JSON.stringify(read.body));
+    assertEquals(read.body.months.length, 6, "not six months back");
+    assertEquals(read.body.complete, true);
+    assertEquals(read.body.average, 35, "the average is not of the six months before this one");
+    const tenant = await callAs({ role: "moderator", brand: "alpha" }, "GET", "/admin/dsa-recipients");
+    assertEquals(tenant.status, 403, "a tenant read the platform's number");
+    // The month's count is the other case's to raise; the large row goes.
+    await database.queryOrThrow(`DELETE FROM dsa_monthly_recipients WHERE month = date_trunc('month', now())::date`);
+  },
+});
+
 // --- a receipt without a mailbox (dsa/SPEC §6) --------------------------------
 // The device keeps a random code, the node its SHA-256. The decision is asked by
 // the code; "no such receipt" and "not decided yet" must not be told apart —

@@ -1934,6 +1934,29 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
       `the same-device claim and the close deadlocked: ${JSON.stringify(pair3.map((a) => a.status))}`);
     const state3 = await liveAfterClose(third.created.identity_id);
     assert(!state3.closed || state3.live === 0, `a closed identity kept a live session: ${JSON.stringify(state3)}`);
+
+    // A PIN change against a close from the same session (eighth quorum,
+    // 2026-09-25): both start from the share, so one waits for the other —
+    // no deadlock and nothing past 4xx, whichever goes first.
+    const fourth = await registered();
+    const before4 = await deadlocks();
+    let pair4: { status: number }[] = [];
+    const nextAuth = crypto.getRandomValues(new Uint8Array(32));
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [fourth.created.session_id]);
+      Promise.all([
+        changePin(fourth, AUTH, { auth: nextAuth, share: crypto.getRandomValues(new Uint8Array(32)) }),
+        signedCall(fourth.pair.privateKey, fourth.created.session_id, "POST", "/identities/close",
+          { nonce: nonce16(), auth: authBase64(AUTH) }),
+      ]).then((r) => (pair4 = r));
+      await new Promise((r) => setTimeout(r, 400));
+    });
+    for (let i = 0; i < 150 && pair4.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
+    assertEquals(pair4.length, 2, "the PIN change or the close never answered");
+    assertEquals(await deadlocks(), before4, `a PIN change and a close deadlocked: ${JSON.stringify(pair4.map((a) => a.status))}`);
+    assert(pair4.every((a) => a.status < 500), `a PIN change against a close answered ${JSON.stringify(pair4.map((a) => a.status))}`);
+    const state4 = await liveAfterClose(fourth.created.identity_id);
+    assert(!state4.closed || state4.live === 0, `a closed identity kept a live session: ${JSON.stringify(state4)}`);
   } finally {
     await sql.end(); misses.reset(); reset();
   }

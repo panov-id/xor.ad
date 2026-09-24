@@ -446,6 +446,7 @@ components:
         share: {type: string, description: "The node's half of the vault key: 32 random bytes, base64url. Stored sealed under the node's own key and handed back only against a proof of the PIN.", x-description-ru: "Половина ключа хранилища, принадлежащая узлу: 32 случайных байта, base64url. Хранится запечатанной ключом узла и отдаётся только против доказательства ПИНа."}
         label: {type: string, description: "What the device calls itself, \"Chrome, Android\"; optional.", x-description-ru: "Как устройство себя называет, «Chrome, Android»; необязательно."}
         recovery_lookup_id: {type: string}
+        appearance: {$ref: "#/components/schemas/Appearance", description: "What the device chose before it had an identity; kept for the key's face, a value outside the sets is the default (2026-09-24).", x-description-ru: "Что устройство выбрало до личности; хранится для лица ключа, значение вне набора — умолчание (24.09.2026)."}
     VaultInit:
       type: object
       required: [auth_hash, share]

@@ -33,6 +33,7 @@ import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identi
 import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS, RECOVERY_REISSUE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { cleanName } from "../lib/names.ts";
+import { ACCENTS, CONTRASTS, THEMES } from "./appearance.ts";
 
 // §8.2 and docs/facts/limits.tsv (`name.length`, enforced by: the node): the
 // limit is **24 graphemes**, and the node is named as what holds it.
@@ -90,6 +91,7 @@ interface CreateBody {
   share?: unknown;
   label?: unknown;
   recovery_lookup_id?: unknown;
+  appearance?: unknown;
 }
 
 const isText = (value: unknown, max: number): value is string =>
@@ -196,6 +198,24 @@ async function createIdentity(req: Request): Promise<Response> {
   }
 
   const label = typeof body.label === "string" ? body.label.slice(0, 200) : null;
+  // What the device chose on the storefront before it had an identity (screen
+  // 22's copy in local storage, privacy policy §8): kept for the key's face in
+  // the same transaction, so the first answer of GET /identities/appearance is
+  // that choice and not the default (appearance.unbuilt, decided by quorum
+  // 2026-09-24). A value outside the sets is the default, not a refusal — a
+  // registration is not lost over a colour.
+  const chosen = (() => {
+    const given = typeof body.appearance === "object" && body.appearance !== null
+      ? body.appearance as Record<string, unknown>
+      : {};
+    const pick = (value: unknown, set: readonly string[]) =>
+      typeof value === "string" && set.includes(value) ? value : null;
+    return {
+      theme: pick(given.theme, THEMES),
+      contrast: pick(given.contrast, CONTRASTS),
+      accent: pick(given.accent, ACCENTS),
+    };
+  })();
   const identityId = crypto.randomUUID();
   const sessionId = crypto.randomUUID();
   const sealed = await sealShare(share);
@@ -220,6 +240,12 @@ async function createIdentity(req: Request): Promise<Response> {
     // UPDATE against a row that does not exist refuses silently — for ever, and
     // without an error anywhere (experiment in postgres:16, 2026-09-14).
     await run(`INSERT INTO identity_stats (identity) VALUES ($1)`, [identityId]);
+    if (key.brand && (chosen.theme || chosen.contrast || chosen.accent)) {
+      await run(
+        `INSERT INTO identity_appearance (identity, brand, theme, contrast, accent) VALUES ($1, $2, $3, $4, $5)`,
+        [identityId, key.brand, chosen.theme, chosen.contrast, chosen.accent],
+      );
+    }
     return true;
   }).catch((error) => {
     // Logged, not swallowed. The three transaction catches on this file used to

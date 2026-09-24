@@ -1504,6 +1504,28 @@ async function finishedIdentity() {
   return { key: pair.privateKey, session: created.session_id, identity: created.identity_id };
 }
 
+// What the device chose before it had an identity comes with the registration
+// and is the first answer, for the key's face only; a value outside the sets is
+// the default, and does not cost the registration (appearance.unbuilt, decided
+// by quorum 2026-09-24).
+Deno.test("a registration keeps the appearance chosen before it, for its face, and never fails over it", async () => {
+  const { answer, pair } = await register({ appearance: { theme: "dark", contrast: "loud", accent: "violet" } });
+  assertEquals(answer.status, 200, "a registration failed over its appearance");
+  const created = answer.body as { identity_id: string; session_id: string };
+  await signedCall(pair.privateKey, created.session_id, "POST", "/recovery/confirm", {
+    recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
+  });
+  const read = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/appearance", undefined,
+    { "x-api-key": KEY_ID });
+  assertEquals(read.body, { theme: "dark", contrast: null, accent: "violet" },
+    "the choice made before registering was lost, or a value outside the set was kept");
+  const plain = await register();
+  const [row] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM identity_appearance WHERE identity = $1`,
+    [(plain.answer.body as { identity_id: string }).identity_id]);
+  assertEquals(row.n, 0, "a registration with no choice wrote a row of defaults");
+});
+
 Deno.test("the appearance is saved and read back for the face that set it", async () => {
   const me = await finishedIdentity();
   const alpha = { "x-api-key": KEY_ID };

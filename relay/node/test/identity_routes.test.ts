@@ -1742,6 +1742,62 @@ Deno.test("the same text under a new date is accepted as a revision of its own",
   assertEquals((await row("2026-02-01")).length, 1, "a re-dated revision of the same text was not recorded");
 });
 
+// A business profile goes a year after its last offer (business.profile.retention,
+// db/056): the account, its venues and offers. A venue suspended for
+// systematic complaints leaves its address's HMAC and date one more year;
+// "this is not us" leaves nothing; a kept hash past its year goes too.
+Deno.test("a business profile goes a year after its last offer, and a systematic suspension leaves only a keyed hash", async () => {
+  const { sweepAdvertisers, addressHmac } = await import("../src/lib/advertiser_sweeper.ts");
+  const age = async (offer: { id: string }, days: number) => {
+    await database.queryOrThrow(`UPDATE offers SET published_at = now() - make_interval(days => $2) WHERE id = $1`, [offer.id, days]);
+    await database.queryOrThrow(
+      `UPDATE advertisers SET created_at = now() - make_interval(days => $2)
+        WHERE id = (SELECT v.advertiser_id FROM offers o JOIN venues v ON v.id = o.venue_id WHERE o.id = $1)`,
+      [offer.id, days + 30]);
+  };
+  const advertiserOf = async (offer: { id: string }) => (await database.queryOrThrow<{ a: string; v: string }>(
+    `SELECT v.advertiser_id AS a, v.id AS v FROM offers o JOIN venues v ON v.id = o.venue_id WHERE o.id = $1`, [offer.id]))[0];
+  const exists = async (table: string, id: string) =>
+    (await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM ${table} WHERE id = $1`, [id]))[0].n === 1;
+
+  const old = await seedOffer("https://old.example/");
+  const fresh = await seedOffer("https://fresh.example/");
+  const guilty = await seedOffer("https://guilty.example/");
+  const victim = await seedOffer("https://victim.example/");
+  await age(old, 400); await age(fresh, 100); await age(guilty, 400); await age(victim, 400);
+  const [o, f, g, v] = [await advertiserOf(old), await advertiserOf(fresh), await advertiserOf(guilty), await advertiserOf(victim)];
+  const address = `Макариу ${crypto.randomUUID().slice(0, 8)}`;
+  await database.queryOrThrow(
+    `UPDATE venues SET verification_status = 'suspended', suspended_reason = 'systematic', suspended_at = now() - interval '10 days',
+            address = $2 WHERE id = $1`, [g.v, `  ${address.toUpperCase()}  `]);
+  await database.queryOrThrow(
+    `UPDATE venues SET verification_status = 'suspended', suspended_reason = 'not_us', address = $2 WHERE id = $1`,
+    [v.v, `Victim ${crypto.randomUUID().slice(0, 8)}`]);
+  const bare = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO advertisers (id, email, contact, created_at) VALUES ($1, 'none@alpha.test', 'Нет', now() - interval '400 days')`, [bare]);
+  const stale = "f".repeat(64);
+  await database.queryOrThrow(
+    `INSERT INTO venue_suspensions (address_hmac, suspended_at, keep_until) VALUES ($1, now() - interval '800 days', now() - interval '1 day')
+     ON CONFLICT DO NOTHING`, [stale]);
+
+  await sweepAdvertisers();
+
+  assertEquals([await exists("advertisers", o.a), await exists("venues", o.v), await exists("offers", old.id)], [false, false, false],
+    "a profile a year past its last offer stayed");
+  assertEquals([await exists("advertisers", f.a), await exists("offers", fresh.id)], [true, true], "a profile with a recent offer went");
+  assertEquals(await exists("advertisers", bare), false, "a profile that never published stayed past its year");
+  assertEquals([await exists("advertisers", g.a), await exists("advertisers", v.a)], [false, false], "a suspended profile stayed");
+  const kept = await database.queryOrThrow<{ address_hmac: string; keep_until: Date }>(
+    `SELECT address_hmac, keep_until FROM venue_suspensions WHERE address_hmac = $1`, [await addressHmac(address)]);
+  assertEquals(kept.length, 1, "a systematic suspension left no keyed hash, so waiting a year lifts it");
+  assert(new Date(kept[0].keep_until).getTime() > Date.now() + 360 * 86_400_000, "the hash is not kept a year");
+  assertEquals((await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM venue_suspensions WHERE address_hmac = $1`, [await addressHmac(v.v)]))[0].n, 0);
+  const [{ n: victimRows }] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM venue_suspensions`);
+  assertEquals(victimRows, 1, "\"this is not us\" left something behind, or a hash past its year stayed");
+});
+
 // Last in the file on purpose: the claim and the close at once make the pool
 // open a second connection, and its read would be counted as a leak by
 // whichever case came next.

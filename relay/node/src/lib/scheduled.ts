@@ -31,6 +31,7 @@ import { wakeReturned } from "./away_waker.ts";
 import { watchBackup } from "./backup_watch.ts";
 import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 import { countActiveRecipients } from "./dsa_recipients.ts";
+import { sweepAdvertisers } from "./advertiser_sweeper.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
 // Everything else the policy promises a window for. Page views keep their own job
@@ -42,6 +43,8 @@ export const PRUNE_OBJECTS = "prune_objects";
 export const PRUNE_DSA = "prune_dsa_records";
 // Article 24(3): the month's count of active recipients, raised daily (db/053).
 export const COUNT_DSA_RECIPIENTS = "count_dsa_recipients";
+// A business profile a year after its last offer (db/056).
+export const SWEEP_ADVERTISERS = "sweep_advertisers";
 // Idempotency rows outlive their purpose by a lot: a key exists so a retry a few
 // minutes later gets the same answer, and after a day nobody will ever look one
 // up again. Nothing deleted them until 2026-09-08, so the table only grew — one
@@ -133,6 +136,12 @@ export function registerScheduledJobs(): void {
   handle(PRUNE_OBJECTS, async (payload) => {
     const result = await pruneObjects({ apply: true, only: payload.only as string | undefined });
     log("info", "pruned stored objects", { ...result, skipped: result.skipped.join(",") });
+    return new Date(Date.now() + A_DAY_MS);
+  });
+
+  handle(SWEEP_ADVERTISERS, async () => {
+    const result = await sweepAdvertisers();
+    log("info", "swept business profiles past their year", { ...result });
     return new Date(Date.now() + A_DAY_MS);
   });
 
@@ -376,6 +385,7 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(PRUNE_OBJECTS, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_DSA, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(COUNT_DSA_RECIPIENTS, {}, new Date(Date.now() + A_HOUR_MS));
+  await enqueueOnce(SWEEP_ADVERTISERS, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_IDEMPOTENCY, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_MAGIC, {}, new Date(Date.now() + A_DAY_MS));
   await enqueueOnce(PRUNE_INVITES, {}, new Date(Date.now() + A_HOUR_MS));

@@ -51,6 +51,7 @@ BINDINGS = {
     "backup.retention": [("relay/wizard/backup-postgres.sh", r"(?m)^keep_days=(\d+)$", 1)],
     "analytics.detail.retention": [("relay/node/tools/prune_pageviews.ts", r"const DEFAULT_DAYS = (\d+);", 1)],
     "identity.inactive.retention": [("relay/node/src/lib/identity_sweeper.ts", r"export const INACTIVE_DAYS = (\d+);", 1)],
+    "business.profile.retention": [("relay/node/src/lib/advertiser_sweeper.ts", r"export const PROFILE_RETENTION_DAYS = (\d+);", 1)],
     "identity.deletion.delay": [("relay/node/src/lib/identity_sweeper.ts", r"export const DELETION_DELAY_DAYS = (\d+);", 1)],
 }
 TO_DAYS = {"дней": 1, "день": 1, "дня": 1, "год": 365, "года": 365, "лет": 365}

@@ -885,6 +885,7 @@ Less, and a seasonal advertiser pays for nothing; more is justified by nothing.
 - **For a venue in `suspended` over systematic complaints (10.2), a keyed hash of the address and the `suspended` date remain for one more year after deletion — decided 2026-09-14.**
   A suspension by the "this is not us" button (section 11) leaves nothing behind: there the venue is the victim, not the offender (clarified 2026-09-14 after the review panel).
   Otherwise a suspended venue only had to wait a year without offers and verify again.
+  **Built on 2026-09-25** — the node's `sweep_advertisers` job, `db/056`: the year runs from the last offer's publication, or from the account's creation if it never published; the HMAC key is derived from the node's `VAULT_SHARE_KEY` (HKDF), and without the key a suspended venue waits rather than goes bare.
   Verification at an address with such a hash does not go through in that year. The hash is an HMAC-SHA256 under a node key kept outside the database:
   a leaked table cannot be enumerated without the key, and with it addresses can — so it is a pseudonym, not anonymisation, and the period is named and finite. Up to two years from the last offer in all
 - The complainant's identity is never disclosed to the author, under any circumstances

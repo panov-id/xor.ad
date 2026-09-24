@@ -12,7 +12,7 @@ gate="$here/check-retention.sh"
 
 files=(docs/facts/limits.tsv relay/node/tools/prune_objects.ts relay/node/tools/prune_dsa_records.ts
        relay/node/tools/prune_pageviews.ts relay/node/src/lib/support_sweeper.ts
-       relay/node/src/lib/identity_sweeper.ts relay/wizard/backup-postgres.sh)
+       relay/node/src/lib/identity_sweeper.ts relay/node/src/lib/advertiser_sweeper.ts relay/wizard/backup-postgres.sh)
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 

@@ -82,7 +82,7 @@ dsa-CHECKLIST.2026-08-05.42	2026-08-05	xor.ad/docs/dsa/CHECKLIST_RU.md:42	xor.ad
 article-30.2026-08-07.246	2026-08-07	xor.ad/docs/article-30-register_RU.md:326	xor.ad/docs/article-30-register_EN.md:338	Push-уведомления отменены	Push notifications cancelled
 dsa-CHECKLIST.2026-08-09.63	2026-08-09	xor.ad/docs/dsa/CHECKLIST_RU.md:63	xor.ad/docs/dsa/CHECKLIST_EN.md:67	Сквозная проверка на staging	An end-to-end check on staging
 open-work.2026-08-10.548	2026-08-10	xor.ad/docs/open-work_RU.md:548	xor.ad/docs/open-work_EN.md:558	Механизм уведомлений по ст. 16 DSA	Art. 16 notice mechanism
-open-work.2026-08-11.1368	2026-08-11	xor.ad/docs/open-work_RU.md:1717	xor.ad/docs/open-work_EN.md:1797	стал фактом, а не намерением	became a fact rather than an intention
+open-work.2026-08-11.1368	2026-08-11	xor.ad/docs/open-work_RU.md:1719	xor.ad/docs/open-work_EN.md:1799	стал фактом, а не намерением	became a fact rather than an intention
 deployment.2026-08-13.149	2026-08-13	xor.ad/docs/deployment_RU.md:169	xor.ad/docs/deployment_EN.md:179	стояло 0664	until 2026-08-13
 open-work.2026-08-14.265	2026-08-14	xor.ad/docs/open-work_RU.md:265	xor.ad/docs/open-work_EN.md:269	Первая половина была закрыта	The first half was closed
 open-work.2026-08-16.991	2026-08-16	xor.ad/docs/open-work_RU.md:991	xor.ad/docs/open-work_EN.md:1026	включить Shield Basic	turn on Shield Basic

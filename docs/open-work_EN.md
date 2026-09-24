@@ -1316,8 +1316,8 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       ciphertext with nonce, tag and base64, and that must fit inside the 8 KB
       `NOTIFY` payload with room to spare (§8.1, §8.13). Raising it is allowed,
       but not blindly.
-- [ ] **G9. The native client key — two of five sub-items done 2026-08-12, three
-      waiting for their occasion.**
+- [ ] **G9. The native client key — three of five sub-items done (two on 2026-08-12,
+      per-identity limits with the identity on 2026-09-20), two waiting for their occasion.**
 
       **Done:**
       - [x] **`client_type` (`browser` | `native`)** — migration `008`, the field
@@ -1337,9 +1337,11 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       passes four in a row. Broke `isNative` — the test went red — and restored.
 
       **Waiting for its occasion, which is not an excuse:**
-      - [ ] **per-identity limits** — there are no `identities` and no sessions in
-        the code yet (J19). There is nothing for a per-identity limit to hang on
-        today; it arrives with the identity and not before;
+      - [x] **per-identity limits** — built with the identity (`db/022`,
+        2026-09-20): feed reads, density, likes, profile edits, chat lines and
+        hiding are counted per identity (`relay/node/src/lib/rate_limit.ts`,
+        checked 2026-09-25). This said "there are no `identities` and no
+        sessions in the code yet" [retired];
       - [ ] **the `depth` brand and its first `native` key** — there is no `depth`
         image yet, so there is nothing to publish. The key is one command on the
         day there is;

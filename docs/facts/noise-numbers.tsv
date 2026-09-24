@@ -44,7 +44,7 @@ value	unit	kind	why	example
 180	KB	measurement	встречено в: now has `rel="preload"`. Image weight is moderate (the hero, at 180 KB, is the	sosed.place/docs/SEO_AND_ANALYTICS_EN.md:203
 1	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:361
 1	m	prose.figure	встречено в: `1m → 5m → 30m → 2h → 6h` and a dead-letter queue when they run out.	xor.ad/docs/api-platform_EN.md:255
-1	min	prose.figure	встречено в: after 1 minute 40 seconds, and since the smaller of the two applies, one	xor.ad/docs/open-work_EN.md:1932
+1	min	prose.figure	встречено в: after 1 minute 40 seconds, and since the smaller of the two applies, one	xor.ad/docs/open-work_EN.md:1934
 20	m	prose.figure	встречено в: - Panel head: `City feed` / `Newest · fades in 4h 20m` (ephemerality).	xor.ad/docs/app-prototype-spec_EN.md:58
 20	s	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
 236	KB	measurement	встречено в: 236 KB. No keys and no secrets are in them, but publishing the design of an	xor.ad/docs/open-work_EN.md:872
@@ -62,7 +62,7 @@ value	unit	kind	why	example
 3	km	prose.figure	встречено в: positions: 100 m, 300 m, 1 km, 3 km, 10 km** (2026-08-31; a free number of metres	sosed.place/docs/00-mechanics_EN.md:361
 3	min	prose.figure	встречено в: - **The silence counter** appears in the **last quarter of your own span** and counts down to th	xor.ad/docs/chat_EN.md:55
 400	m	external.fact	встречено в: capitalisation had fallen below $400m — 97% down from the IPO. The causes: a deep discount was	xor.ad/docs/offers/README_EN.md:338
-40	s	prose.figure	встречено в: after 1 minute 40 seconds, and since the smaller of the two applies, one	xor.ad/docs/open-work_EN.md:1932
+40	s	prose.figure	встречено в: after 1 minute 40 seconds, and since the smaller of the two applies, one	xor.ad/docs/open-work_EN.md:1934
 41	KB	measurement	встречено в: - `Noto Sans Georgian` (41 KB) in both storefronts and `Noto Sans Armenian`	xor.ad/docs/open-work_EN.md:315
 48	h	external.fact	встречено в: - **Breaches** (§6.2): notice without undue delay and **no later than 48 hours**	xor.ad/docs/legal-archive/bunny-dpa_EN.md:30
 4	KB	measurement	встречено в: **What is not measured is said plainly:** the weight of one sticker. There are no stickers yet; 	sosed.place/docs/16-stickers_EN.md:27
@@ -77,7 +77,7 @@ value	unit	kind	why	example
 65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2261
 6	h	external.fact	глубина восстановления чужой услуги (PITR), не наш предел	xor.ad/docs/backend-free-stack_RU.md:64
 700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1573
-7.86	MB	measurement	встречено в: bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the	xor.ad/docs/open-work_EN.md:1623
+7.86	MB	measurement	встречено в: bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the	xor.ad/docs/open-work_EN.md:1625
 800	m	sample.data	значение в макете терминального клиента, не обязательство	xor.ad/docs/depth-client_EN.md:319
 8	chars	prose.figure	встречено в: There is a transport behind the limit: 256 UTF-8 characters → ~1.4 KB of	xor.ad/docs/open-work_EN.md:1315
 3310	chars	measurement	длина одного из шестнадцати пробных тел уведомления в замере 03.09.2026, не предел	xor.ad/docs/open-work_EN.md:1095

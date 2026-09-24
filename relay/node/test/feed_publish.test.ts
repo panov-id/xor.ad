@@ -2248,6 +2248,64 @@ Deno.test({
   },
 });
 
+// The window of one round-trip: a DELETE /away whose transaction began before
+// the time away ran out, and whose row the minute's job took first. The job
+// announces the end; the DELETE, rechecking the row after the lock, must not
+// announce it again. Here the job is a third connection doing what it does,
+// holding the row from before the DELETE started until after the end.
+Deno.test({
+  name: "a return begun before the end and served after the job woke the rooms does not wake them again",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const listener = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const job = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const arrived: string[] = [];
+    await listener.listen("chat_message", (payload: string) => arrived.push(payload));
+    try {
+      const { b, chat } = await openChat();
+      const wake = `${chat}::${b.session_id}`;
+      const stepped = await signedCall(b.pair.privateKey, b.session_id, "POST", "/away",
+        { span: "short", nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
+      assertEquals(stepped.status, 200, JSON.stringify(stepped.body));
+      const [{ identity }] = await database.queryOrThrow<{ identity: string }>(
+        `SELECT identity FROM sessions WHERE id = $1`, [b.session_id]);
+      await database.queryOrThrow(
+        `UPDATE identities SET stepped_away_until = now() + interval '1500 milliseconds' WHERE id = $1`, [identity]);
+
+      let returned: Promise<{ status: number }> | undefined;
+      await job.begin(async (tx) => {
+        await tx`SELECT id FROM identities WHERE id = ${identity} FOR UPDATE`;
+        returned = signedCall(b.pair.privateKey, b.session_id, "DELETE", "/away");
+        // The DELETE is in its transaction and waits on this row.
+        const until = Date.now() + 3000;
+        let waiting = 0;
+        while (Date.now() < until && waiting === 0) {
+          [{ n: waiting }] = await database.queryOrThrow<{ n: number }>(
+            `SELECT count(*)::int AS n FROM pg_stat_activity
+              WHERE wait_event_type = 'Lock' AND query LIKE '%UPDATE identities SET stepped_away_until = now(), away_wake_due = false%'`);
+          if (waiting === 0) await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        assert(waiting > 0, "the return never waited on the row, so the window was not opened");
+        await new Promise((resolve) => setTimeout(resolve, 1600));
+        // What wakeReturned() does, now that the time away is over.
+        const woke = await tx`UPDATE identities SET away_wake_due = false
+          WHERE id = ${identity} AND away_wake_due AND stepped_away_until <= clock_timestamp() RETURNING id`;
+        assertEquals(woke.length, 1, "the job found nothing to wake");
+        await tx`SELECT pg_notify('chat_message', ${wake})`;
+      });
+      assertEquals((await returned!).status, 204);
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      assertEquals(arrived.filter((p) => p === wake).length, 1,
+        "the end of one time away was announced twice: by the job and by a return that came after it");
+    } finally {
+      await listener.end();
+      await job.end();
+    }
+  },
+});
+
 // The waker's two filters (lib/away_waker.ts), unguarded until 2026-09-24 (the
 // verifier found them green when removed): a frozen session holds no room to
 // wake, and a conversation over for the person is not woken.

@@ -157,8 +157,12 @@ async function comeBack(req: Request): Promise<Response> {
     const back = await run<{ id: string }>(
       // The flag down too: this return announces itself below, and the end of
       // the time away must not announce it a second time (lib/away_waker.ts).
+      // "Still away" is asked of the clock, not of now(): now() is when this
+      // transaction began, and a row the minute's job took and woke meanwhile
+      // would still look away to it when rechecked after the lock — two wakes
+      // for one end (the window of one round-trip, found 2026-09-24).
       `UPDATE identities SET stepped_away_until = now(), away_wake_due = false
-        WHERE id = $1 AND stepped_away_until > now() RETURNING id`,
+        WHERE id = $1 AND stepped_away_until > clock_timestamp() RETURNING id`,
       [caller.identityId],
     );
     // The rooms left open while away were handed nothing; they get what waited

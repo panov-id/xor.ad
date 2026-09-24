@@ -712,6 +712,29 @@ Deno.test("a phrase past its term is swept, and a live one is left alone", async
   );
 });
 
+// The first pass after a long stop meets the whole backlog. One DELETE over it
+// held a lock per row until the last one went, as the other sweepers learned
+// (lib/identity_sweeper.ts, BATCH): this one goes in batches too, and a pass
+// ends at its ceiling, leaving the rest for the next minute (loop plan A11).
+Deno.test("expired phrases go in batches, and a pass stops at its ceiling", async () => {
+  await verdict.sweepExpiredPhrases();
+  const me = await author();
+  const ids: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    ids.push(await livePhrase({ pair: me.pair.privateKey, session_id: me.session_id }, { text: `старая ${i}` }));
+    // Expired at once, so four live phrases is never the limit this case meets.
+    await database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [ids[i]]);
+    await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}' WHERE identity = $1`, [me.identity_id]);
+  }
+  const left = async () => Number((await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM feed_messages WHERE id = ANY($1::uuid[])`, [ids]))[0].n);
+
+  assertEquals(await verdict.sweepExpiredPhrases({ batch: 2, maxBatches: 1 }), 2, "a pass took more than its ceiling");
+  assertEquals(await left(), 3);
+  assertEquals(await verdict.sweepExpiredPhrases({ batch: 2 }), 3, "an unbounded pass left some behind");
+  assertEquals(await left(), 0);
+});
+
 Deno.test("density answers a step, and never the number", async () => {
   const mine = await author();
   const theirs = await author();
@@ -1463,6 +1486,44 @@ async function likeCount(id: string): Promise<number> {
     `SELECT like_count FROM feed_messages WHERE id = $1`, [id]);
   return Number(row.like_count);
 }
+
+// Crossing likes make exactly one match (§8.4). The route's own comment says
+// why a route-only test proves nothing: in one process the two transactions
+// never overlap where it matters. So one side is played on its own connection,
+// step by step, the way the route does it: the pair lock, the like, and a
+// commit only after the other side's request has started (loop plan A12).
+Deno.test({
+  name: "a like crossing another under the pair lock still makes the match",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const { pairKey } = await import("../src/routes/likes.ts");
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const b = await author();
+    const mine = await seedPhrase(a.identity_id, "встречный лайк А");
+    const theirs = await seedPhrase(b.identity_id, "встречный лайк Б");
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const got: { back?: { status: number; body: unknown } } = {};
+    try {
+      await sql.begin(async (tx) => {
+        await tx.unsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, [await pairKey(a.identity_id, b.identity_id)]);
+        await tx.unsafe(`INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)`, [a.identity_id, theirs]);
+        const pending = like(b, mine).then((r) => (got.back = r));
+        await new Promise((r) => setTimeout(r, 300));
+        void pending;
+      });
+      for (let i = 0; i < 150 && !got.back; i++) await new Promise((r) => setTimeout(r, 20));
+      assert(got.back, "the crossing like never answered");
+      assertEquals(stateOf(got.back), "matched", `a crossing like lost the match: ${JSON.stringify(got.back.body)}`);
+    } finally {
+      await sql.end();
+      reset();
+    }
+  },
+});
 
 Deno.test("a like counts once, and a double tap adds nothing", async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");

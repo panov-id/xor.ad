@@ -265,16 +265,36 @@ export async function sweepStaleQueue(): Promise<number> {
 // came, this one about a life that ended. They have different periods and
 // different meanings, and one job doing both would report one number for two
 // unrelated facts.
-export async function sweepExpiredPhrases(): Promise<number> {
-  const rows = await queryOrThrow<{ count: string }>(
-    `WITH gone AS (
-       DELETE FROM feed_messages
-        WHERE visible_at IS NOT NULL AND expires_at <= now()
-        RETURNING 1
-     )
-     SELECT count(*)::text AS count FROM gone`,
-  );
-  const swept = Number(rows[0]?.count ?? 0);
+//
+// In batches, as the other sweepers are (lib/identity_sweeper.ts, BATCH): the
+// first pass after a stop meets the whole backlog, and one DELETE over it held
+// a lock per row, and the likes' cascade behind each, until the last one went
+// (open.tsv, loop plan A11, 2026-09-24). A pass ends at its ceiling; the rest
+// waits a minute.
+const EXPIRED_BATCH = 2000;
+const EXPIRED_MAX_BATCHES = 50;
+
+export async function sweepExpiredPhrases(
+  options: { batch?: number; maxBatches?: number } = {},
+): Promise<number> {
+  const batch = options.batch ?? EXPIRED_BATCH;
+  const maxBatches = options.maxBatches ?? EXPIRED_MAX_BATCHES;
+  let swept = 0;
+  for (let round = 0; round < maxBatches; round++) {
+    const rows = await queryOrThrow<{ count: string }>(
+      `WITH gone AS (
+         DELETE FROM feed_messages
+          WHERE id IN (SELECT id FROM feed_messages
+                        WHERE visible_at IS NOT NULL AND expires_at <= now()
+                        LIMIT ${batch})
+          RETURNING 1
+       )
+       SELECT count(*)::text AS count FROM gone`,
+    );
+    const took = Number(rows[0]?.count ?? 0);
+    swept += took;
+    if (took < batch) break;
+  }
   if (swept > 0) inc("relay_feed_verdict_total", { verdict: "expired" }, swept);
   return swept;
 }

@@ -91,12 +91,13 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
     // lock is what makes two crossing likes see each other; the ordered row
     // locks keep the counters and the publishing limits in one queue.
     //
-    // Not proven by this node's tests, and said so: a test that fires crossing
-    // likes through this route (sixty pairs at once) stayed green with both
-    // locks removed — in one process the two transactions never overlap in the
-    // window that matters. The races were reproduced in the container with two
-    // hand-driven connections (§8.4, 2026-09-15); a test that drives two
-    // connections step by step is what would prove these lines, and it is open.
+    // A test that fires crossing likes through this route (sixty pairs at once)
+    // stayed green with both locks removed — in one process the two
+    // transactions never overlap in the window that matters. The pair lock is
+    // proven by one that plays the other side on its own connection, step by
+    // step: "a like crossing another under the pair lock still makes the match"
+    // (feed_publish.test.ts, 2026-09-24) goes red without it. The ordered row
+    // locks are not proven that way yet.
     // Two seconds for any lock, then 503 (likes panel, 2026-09-21): a flood of
     // likes on one author must fail while the pool of four is still free,
     // rather than hold every connection for the fifteen-second statement cap.
@@ -441,4 +442,6 @@ route("GET", "/likes", (c) => myLikes(c.req, c.url));
 route("POST", "/feed/:id/like", (c) => likePhrase(c.req, c.params.id));
 route("DELETE", "/feed/:id/like", (c) => unlikePhrase(c.req, c.params.id));
 
-export { likePhrase, myLikes, unlikePhrase };
+// pairKey for the database suite: a test that plays one side of a crossing
+// like on its own connection must take the same pair lock the route takes.
+export { likePhrase, myLikes, pairKey, unlikePhrase };

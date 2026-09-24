@@ -1859,6 +1859,27 @@ Deno.test({
   },
 });
 
+// A remembered answer comes back as the answer. It was written as
+// JSON.stringify(...) into `$3::jsonb`, which postgres.js encodes a second time
+// (the trap src/lib/jobs.ts names): the row held a JSON string, recall handed
+// back a string, and /v1 replayed `seen.status` and `seen.body` — both
+// undefined — as a 200 with no body (loop, 2026-09-24).
+Deno.test({
+  name: "an idempotency key replays the status and the body it stored",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { recall, remember } = await import("../src/lib/idempotency.ts");
+    const key = `replay-${crypto.randomUUID()}`;
+    await remember("sosed", key, `{"email":"a@example.com"}`, { status: 201, body: { ok: true, n: 1 } });
+    const seen = await recall("sosed", key, `{"email":"a@example.com"}`);
+    assertEquals(seen, { status: 201, body: { ok: true, n: 1 } }, "the stored answer came back as something else");
+    const [kind] = await database.queryOrThrow<{ t: string }>(
+      `SELECT jsonb_typeof(response) AS t FROM idempotency WHERE key LIKE $1`, [`sosed:${key}:%`]);
+    assertEquals(kind.t, "object", "the row holds a JSON string, not the answer");
+  },
+});
+
 // The idempotency table stops growing.
 //
 // A key exists so a retry minutes later gets the same answer; after a day nobody

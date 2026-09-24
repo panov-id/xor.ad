@@ -51,8 +51,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Read-only token, and not left in .git/config: the suites read the tree,
+    # and nothing here needs to write to the repository (review panel 2026-09-24).
+    permissions:
+      contents: read
+    # A run takes under a minute; a hung suite would otherwise hold the job, and
+    # build-push behind it, for GitHub's six hours.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: denoland/setup-deno@v2
         with:
           # The same version the image runs (relay/node/Dockerfile) and the same
@@ -98,6 +107,10 @@ jobs:
   # execute. A foreign key that made key issuance impossible shipped that way.
   database:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # Two minutes today; see the test job for why there is a ceiling at all.
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16-alpine
@@ -117,6 +130,8 @@ jobs:
       DATABASE_URL: postgres://relay:test@localhost:5432/relay_test
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.1.4
@@ -136,15 +151,23 @@ jobs:
       # here without anyone remembering to add it. One process per file, as
       # scripts/run-relay-database-tests.sh does: several of them set environment
       # before the first import, and config captures it once.
+      #
+      # `|| true`: GitHub runs this under `bash -e`, and a pipeline that finds
+      # nothing would end the step on the assignment, silently, before the guard
+      # below could say why. `timeout 300`: the slowest suite takes under a
+      # minute, and a hung one should be a named failure, not a job that waits.
       - name: database suites
         working-directory: relay/node
         run: |
-          suites=$(grep -o -- '--ignore=[^ "]*' deno.json | cut -d= -f2 | tr ',' '\n' | grep -v '^test/database.test.ts$')
-          [ -n "$suites" ] || { echo "no suites found in the ignore list of deno.json" >&2; exit 1; }
+          suites=$(grep -o -- '--ignore=[^ "]*' deno.json | cut -d= -f2 | tr ',' '\n' | grep -v '^test/database.test.ts$' || true)
+          [ -n "$suites" ] || { echo "::error title=database suites::no suites found in the --ignore list of relay/node/deno.json"; exit 1; }
           failed=""
           for suite in $suites; do
             echo "::group::$suite"
-            deno test --allow-env --allow-net --allow-read --allow-write "$suite" || failed="$failed $suite"
+            if ! timeout 300 deno test --allow-env --allow-net --allow-read --allow-write "$suite"; then
+              failed="$failed $suite"
+              echo "::error title=database suite failed::$suite"
+            fi
             echo "::endgroup::"
           done
           [ -z "$failed" ] || { echo "failed:$failed" >&2; exit 1; }

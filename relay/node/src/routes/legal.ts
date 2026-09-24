@@ -5,7 +5,8 @@
 // legal_acceptances (db/022) per document, and only of the revision the node
 // serves now: a client holding an older text learns so, and shows the new one
 // — the record has to answer "which text did they accept", and a sha256 of a
-// text nobody serves any more would not.
+// text nobody serves any more would not. Accepting the same revision twice
+// records it once (db/049).
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
@@ -38,11 +39,14 @@ async function accept(req: Request): Promise<Response> {
   }
   const written = await query(
     `INSERT INTO legal_acceptances (identity, document, revision_date, revision_sha256)
-     VALUES ($1, $2, $3, $4)`,
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (identity, document, revision_sha256) DO NOTHING
+     RETURNING id`,
     [caller.identityId, current.document, current.revision_date, current.revision_sha256],
   );
   if (written === null) return refuse("unavailable", "the node cannot write right now", 503);
-  inc("relay_legal_accept_total", { result: "recorded" });
+  // A repeat of an accepted revision keeps the first row and its time (db/049).
+  inc("relay_legal_accept_total", { result: written.length ? "recorded" : "again" });
   return new Response(null, { status: 200, headers: sunsetHeader() });
 }
 

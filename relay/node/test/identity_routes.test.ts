@@ -947,7 +947,7 @@ await database.queryOrThrow(
 await database.queryOrThrow(
   `INSERT INTO api_keys (id, brand, origins) VALUES ($1, 'sosed', '{}') ON CONFLICT (id) DO NOTHING`, [LEGAL_KEY]);
 
-Deno.test("the manifest names the face's three revisions, and an acceptance records only the one served", async () => {
+Deno.test("the manifest names the face's three revisions, and an acceptance records only the one served, once", async () => {
   const shipped = JSON.parse(await Deno.readTextFile(new URL("../legal/sosed.json", import.meta.url))) as
     { documents: Record<string, { date: string; sha256: string }> };
   const unsigned = await call("GET", "/legal/manifest", {});
@@ -964,13 +964,15 @@ Deno.test("the manifest names the face's three revisions, and an acceptance reco
     { "x-api-key": LEGAL_KEY });
   const current = await accept({ document: "terms", revision_sha256: shipped.documents.terms.sha256 });
   assertEquals(current.status, 200, JSON.stringify(current.body));
+  const again = await accept({ document: "terms", revision_sha256: shipped.documents.terms.sha256 });
+  assertEquals(again.status, 200, "accepting the same revision again was refused");
   const stale = await accept({ document: "terms", revision_sha256: "0".repeat(64) });
   assertEquals(stale.status, 400, "an acceptance of a revision nobody serves was recorded");
   const rows = await database.queryOrThrow<{ document: string; revision_date: string; revision_sha256: string }>(
     `SELECT document, revision_date::text AS revision_date, revision_sha256 FROM legal_acceptances WHERE identity = $1`,
     [me.created.identity_id]);
   assertEquals([...rows], [{ document: "terms", revision_date: shipped.documents.terms.date, revision_sha256: shipped.documents.terms.sha256 }],
-    "the acceptance is not the one row of the served revision");
+    "the acceptance is not the one row of the served revision, or a repeat added another");
 });
 
 // POST /recovery/reissue (protocol §4.1): the current code proves, the new one

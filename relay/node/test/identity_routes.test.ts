@@ -1741,3 +1741,86 @@ Deno.test("the same text under a new date is accepted as a revision of its own",
   assertEquals((await row("2026-01-01")).length, 0, "the same revision was recorded twice");
   assertEquals((await row("2026-02-01")).length, 1, "a re-dated revision of the same text was not recorded");
 });
+
+// Last in the file on purpose: the claim and the close at once make the pool
+// open a second connection, and its read would be counted as a leak by
+// whichever case came next.
+// A claim racing a close (quorum 2026-09-24, five of five: no race, guard the
+// order). The claim reads the identity unlocked and then takes its row FOR
+// UPDATE by recovery_auth_hash; a close blanks that hash in the same UPDATE and
+// takes the row too. Whichever commits first, a closed identity must end with
+// no live session: close first — the claim finds no code and answers 404;
+// claim first — the close waits for the row and freezes the new session with
+// the rest. Nothing here checks the order a comment promises; this does.
+Deno.test({ name: "a claim racing a close never leaves a closed identity with a live session", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const misses = await import("../src/lib/recovery_misses.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset(); misses.reset();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const liveAfterClose = async (identity: string) => {
+    const [row] = await database.queryOrThrow<{ closed: boolean; live: number }>(
+      `SELECT (SELECT closed_at IS NOT NULL FROM identities WHERE id = $1) AS closed,
+              (SELECT count(*)::int FROM sessions WHERE identity = $1 AND frozen_at IS NULL) AS live`, [identity]);
+    return row;
+  };
+  const claimBody = async (lookupId: string) => {
+    const fresh = await device();
+    return { lookup_id: lookupId, sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) };
+  };
+  try {
+    // The close commits while the claim waits on the row.
+    const first = await registered();
+    const got: { answer?: { status: number; body: unknown } } = {};
+    const body = await claimBody(first.lookupId);
+    await sql.begin(async (tx) => {
+      await tx.unsafe(
+        `UPDATE identities SET closed_at = now(), recovery_auth_hash = NULL, recovery_wrapped_key = NULL WHERE id = $1`,
+        [first.created.identity_id]);
+      await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed' WHERE identity = $1`, [first.created.identity_id]);
+      call("POST", "/recovery/claim", { body }).then((r) => (got.answer = r));
+      await new Promise((r) => setTimeout(r, 400));
+    });
+    for (let i = 0; i < 150 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.answer, "the claim never answered");
+    assertEquals(got.answer.status, 404, `a claim raised an identity closed under it: ${JSON.stringify(got.answer.body)}`);
+    assertEquals(await liveAfterClose(first.created.identity_id), { closed: true, live: 0 },
+      "a closed identity kept a session the claim seated");
+
+    // Both real, released together: whichever wins, no live session is left.
+    const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
+      `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
+    const before = await deadlocks();
+    const second = await registered();
+    const claimed = await claimBody(second.lookupId);
+    let answers: { status: number }[] = [];
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT id FROM identities WHERE id = $1 FOR UPDATE`, [second.created.identity_id]);
+      const both = Promise.all([
+        call("POST", "/recovery/claim", { body: claimed }),
+        signedCall(second.pair.privateKey, second.created.session_id, "POST", "/identities/close",
+          { nonce: nonce16(), auth: authBase64(AUTH) }),
+      ]).then((r) => (answers = r));
+      await new Promise((r) => setTimeout(r, 400));
+      void both;
+    });
+    for (let i = 0; i < 150 && answers.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
+    assertEquals(answers.length, 2, "the claim or the close never answered");
+    assertEquals(await deadlocks(), before, `the claim and the close deadlocked: ${JSON.stringify(answers.map((a) => a.status))}`);
+    // Two outcomes are right, whichever takes the row first: the claim seats a
+    // new device (the old session, frozen, can no longer close), or the close
+    // goes through and the claim finds no code. Anything else — a 503 from a
+    // lock taken out of order, or a closed identity with a live session — is
+    // the race this case is here for.
+    const [claim, close] = answers.map((a) => a.status);
+    const state = await liveAfterClose(second.created.identity_id);
+    const outcome = JSON.stringify({ claim, close, ...state });
+    assert(
+      (claim === 200 && close !== 200 && !state.closed && state.live === 1) ||
+        (claim === 404 && close === 200 && state.closed && state.live === 0),
+      `a claim and a close in a race ended wrong: ${outcome}`,
+    );
+  } finally {
+    await sql.end(); misses.reset(); reset();
+  }
+});

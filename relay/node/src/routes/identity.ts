@@ -611,6 +611,16 @@ async function claimRecovery(req: Request): Promise<Response> {
       `SELECT id FROM sessions WHERE identity = $1 AND frozen_at IS NULL`,
       [identity.id],
     );
+    // The shares first, the row a close starts from (its caller's share FOR
+    // UPDATE): taken the other way round — the session, then its share — a claim
+    // and a close each held what the other wanted, Postgres broke the deadlock
+    // and the claim answered 503 (the claim-and-close case, 2 runs in 10,
+    // 2026-09-24). Whoever takes the share first now finishes before the other
+    // starts: a close first leaves no code, and the claim answers 404.
+    await run(
+      `SELECT session FROM vault_shares WHERE session = ANY($1::uuid[]) ORDER BY session FOR UPDATE`,
+      [live.map((s) => s.id)],
+    );
     // Frozen *and* burned: §8.2 (2026-09-11) makes any move of an identity burn
     // the old device's share, recovery and voluntary transfer alike. Freezing
     // alone left the lost phone decrypting its own history with its own PIN,
@@ -672,8 +682,9 @@ interface ShareBody {
 // The code a claim found the identity by, asked again at the claim's last
 // write to the identity's row: a reissue that committed while the claim ran
 // moved it, and the old code must not raise the identity once more (verifier,
-// 2026-09-24, reproduced). The row is taken last, after the sessions and the
-// shares, the order a close takes them. A throw rolls the claim back whole.
+// 2026-09-24, reproduced). The row is taken last, after the shares and the
+// sessions: a close takes its share first too, so the two meet on the share and
+// never on the row. A throw rolls the claim back whole.
 class CodeMoved extends Error {}
 async function stillTheCode(run: <R>(text: string, args?: unknown[]) => Promise<R[]>, identityId: string, code: string): Promise<void> {
   const held = await run<{ id: string }>(

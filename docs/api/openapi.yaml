@@ -960,7 +960,7 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/v1.ts
       security: [{secretKey: []}]
-      description: Scope waitlist.write. Idempotency-Key replays a stored response when key and body hash match.
+      description: Scope waitlist.write. Idempotency-Key replays a stored response when key and body hash match; a replay spends no daily allowance and is answered even after the day is spent (2026-09-24).
       x-description-ru: Скоуп waitlist.write. Idempotency-Key повторяет сохранённый ответ при совпадении ключа и хэша тела.
       parameters:
         - {name: Idempotency-Key, in: header, required: false, schema: {type: string}}

@@ -228,19 +228,22 @@ async function comeBack(req: Request): Promise<Response> {
   const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;
   return await transaction(async (run) => {
-    await run(
+    const back = await run<{ id: string }>(
       `UPDATE identities SET stepped_away_until = now()
-        WHERE id = $1 AND stepped_away_until > now()`,
+        WHERE id = $1 AND stepped_away_until > now() RETURNING id`,
       [caller.identityId],
     );
     // The rooms left open while away were handed nothing; they get what waited
-    // now (src/chat/relay.ts; the owner's decision of 2026-09-24).
-    await run(
-      `SELECT pg_notify('chat_message', cp.chat_id || '::' || s.id)
-         FROM chat_participants cp JOIN sessions s ON s.identity = cp.identity
-        WHERE cp.identity = $1 AND cp.gone_at IS NULL`,
-      [caller.identityId],
-    );
+    // now (src/chat/relay.ts; the owner's decision of 2026-09-24). Only on a
+    // real return, and only to sessions that can hold a room (panel 2026-09-24).
+    if (back.length > 0) {
+      await run(
+        `SELECT pg_notify('chat_message', cp.chat_id || '::' || s.id)
+           FROM chat_participants cp JOIN sessions s ON s.identity = cp.identity
+          WHERE cp.identity = $1 AND cp.gone_at IS NULL AND s.frozen_at IS NULL`,
+        [caller.identityId],
+      );
+    }
     return new Response(null, { status: 204, headers: sunsetHeader() });
   }).catch((error) => {
     log("error", "coming back failed", { error: String(error) });

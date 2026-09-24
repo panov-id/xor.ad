@@ -1004,7 +1004,7 @@ export function EditProfile(
         // The window slides (24 hours from each edit), so the wait is the hours
         // Retry-After names, rounded up — not "tomorrow" (owner, 2026-09-24).
         if (error?.code === "rate_limited") {
-          const hours = Math.max(1, Math.ceil((answer.retryAfter ?? 24 * 3600) / 3600));
+          const hours = Math.min(24, Math.max(1, Math.ceil((answer.retryAfter ?? 24 * 3600) / 3600)));
           return setRefused(say("profile.patchDay", { n: String(hours) }));
         }
         onError(`the profile edit was refused: ${answer.status}`);

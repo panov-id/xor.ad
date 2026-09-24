@@ -137,7 +137,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-v1-waitlist">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/v1/waitlist</code><span class="chip s-built">built</span></div>
 <p><strong>A waitlist lead by secret key</strong></p>
-<p>Scope waitlist.write. Idempotency-Key replays a stored response when key and body hash match.</p>
+<p>Scope waitlist.write. Idempotency-Key replays a stored response when key and body hash match; a replay spends no daily allowance and is answered even after the day is spent (2026-09-24).</p>
 <h3>Access</h3><p>Secret key &quot;ak_live_…</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>Idempotency-Key</code></td><td>header</td><td><code>string</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>

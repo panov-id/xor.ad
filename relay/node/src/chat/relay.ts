@@ -80,11 +80,12 @@ async function hand(room: Room, localId: string | null): Promise<void> {
   }
   // A time away can end by itself, with no DELETE /away to announce it: the
   // first hand-over after it gives everything that waited.
-  if (room.held) {
-    localId = null;
-    room.held = false;
-  }
+  const wasHeld = room.held === true;
+  if (wasHeld) localId = null;
   const rows = await pendingFor(room.chat, room.session, localId);
+  // Cleared only once what waited is in hand: a failed read keeps it held, and
+  // the next hand-over tries everything again (panel 2026-09-24).
+  if (wasHeld) room.held = false;
   for (const row of rows) {
     const bytes = row.ciphertext instanceof Uint8Array ? row.ciphertext : new Uint8Array(row.ciphertext);
     let binary = "";

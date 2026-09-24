@@ -20,7 +20,8 @@ Three different troubles, treated differently:
    `off`. `down` is this case; go to the database step. `status` itself is always
    `"ok"`: that is liveness, the balancer reads it, and it says nothing about
    whether work is getting done. A separate `GET /ready` answers 503 when the
-   database is gone — convenient for checking a node in one command, though the
+   database is gone, and for a node with a database and no `VAULT_SHARE_KEY`
+   (the cause is in `reasons`) — convenient for checking a node in one command, though the
    CDN does not poll it yet.
 3. **`/health` answers with the wrong thing** — `image` is not the build that was
    deployed, say: that is a deploy which never arrived, not a node which broke.

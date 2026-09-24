@@ -2,6 +2,7 @@ import { config } from "../config.ts";
 import { json } from "../lib/http.ts";
 import { storageEnabled } from "../lib/storage.ts";
 import { enabled as databaseEnabled, query } from "../lib/db.ts";
+import { cursorConfigured } from "../lib/cursor.ts";
 
 // Two routes, and the difference between them is the point.
 //
@@ -102,18 +103,38 @@ export async function health(): Promise<Response> {
     // Asked, not assumed. `storage` above says what this node was configured
     // with; `database` says what answered a moment ago.
     database,
+    // Named here, decided in /ready: without it the feed and the likes answer
+    // 503 (lib/cursor.ts) while everything else looks well.
+    vault_key: cursorConfigured() ? "set" : "missing",
     ts: new Date().toISOString(),
   });
 }
 
+// What makes a node unable to do its work, as a pure decision so a test can
+// ask it without a database. The vault key is asked only of a node that has a
+// database: one without serves no feed, and holding it to a key it never uses
+// would steer traffic away from a node that is fine (review panel 2026-09-24,
+// operations lens: a node without the key answered 503 on the whole feed while
+// /ready said ready).
+export function readiness(state: { database: ProbeResult; databaseEnabled: boolean; vaultKey: boolean }): {
+  ok: boolean;
+  reasons: string[];
+} {
+  const reasons: string[] = [];
+  if (state.database === "down") reasons.push("database_down");
+  if (state.databaseEnabled && !state.vaultKey) reasons.push("vault_key_missing");
+  return { ok: reasons.length === 0, reasons };
+}
+
 export async function ready(): Promise<Response> {
   const database = await probeDatabase();
-  const ok = database !== "down";
+  const { ok, reasons } = readiness({ database, databaseEnabled: databaseEnabled(), vaultKey: cursorConfigured() });
   return json({
     status: ok ? "ready" : "not_ready",
     node: config.nodeId,
     env: config.envName,
     database,
+    ...(reasons.length > 0 ? { reasons } : {}),
     ts: new Date().toISOString(),
   }, ok ? 200 : 503);
 }

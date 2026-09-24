@@ -137,6 +137,7 @@ components:
         mail: {type: string}
         brands: {type: array, items: {type: string}}
         database: {type: string, enum: [ok, down, "off"]}
+        vault_key: {type: string, enum: [set, missing], description: "Whether VAULT_SHARE_KEY is set; without it the feed and the likes answer 503 (2026-09-24).", x-description-ru: "Задан ли VAULT_SHARE_KEY; без него лента и лайкнутое отвечают 503 (24.09.2026)."}
         ts: {type: string}
     Ready:
       type: object
@@ -145,6 +146,7 @@ components:
         node: {type: string}
         env: {type: string}
         database: {type: string}
+        reasons: {type: array, items: {type: string, enum: [database_down, vault_key_missing]}, description: "Only when not ready (2026-09-24).", x-description-ru: "Только при отказе (24.09.2026)."}
         ts: {type: string}
     WaitlistLead:
       type: object

@@ -16,7 +16,9 @@
 #
 # **Losing this value loses every local history in that environment**, and
 # changing it does the same — the shares sealed under the old one stop opening.
-# It wants the handling of a backup key, not of a password.
+# It wants the handling of a backup key, not of a password. When it has to
+# change anyway — only on a leak — the order and the price are in
+# docs/deployment_EN.md, "The vault key VAULT_SHARE_KEY: changed only at a loss".
 set -euo pipefail
 
 if ! command -v openssl >/dev/null 2>&1; then

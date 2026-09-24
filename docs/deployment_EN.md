@@ -181,6 +181,36 @@ until 2026-08-13.
 A template with every name and no values: `relay/wizard/secrets.env.example`. An
 empty value counts as absent — the wizard will say it could not check.
 
+### The vault key `VAULT_SHARE_KEY`: changed only at a loss
+
+The key seals two things: the node's share of each session's vault key
+(`relay/node/src/lib/vault_share.ts`) and the cursor of the feed and the likes
+(`lib/cursor.ts`). Both are derived from it by HKDF with different `salt` and
+`info`, so one never opens the other, but they change together. The key comes
+from `relay/wizard/new-vault-key.sh`; without it a node with a database answers
+503 on `/ready` (below, "Smoke after a deploy").
+
+**There is no rotation without loss — recorded 2026-09-24.** The node holds one
+key and cannot open with an old one while sealing with a new one. Changing the
+key means:
+
+- **every session's share in the environment stops opening** — every local
+  history there is lost, as if the key itself were lost; a person comes back
+  with the paper code and sets a new PIN;
+- **cursors issued before the change get 400** — a client starts the list again
+  from the first page (`depth` does since 2026-09-24); no harm done.
+
+So the key is changed only when it has leaked. The order: a new key from
+`new-vault-key.sh`; put it in the password store and in `secrets.env` under the
+environment's name; roll the environment's nodes with the wizard — all at once,
+since the key is shared by the pool and nodes with different keys open neither
+each other's cursors nor shares; check `/ready` on each node. Then destroy the
+old key: it opens a share out of any copy of the database.
+
+A change without loss is separate work: the node reads both keys, reseals a
+share with the new one on its next use, and drops the old key after a window.
+Not built; the owner's decision.
+
 ### `pool` requires confirmation
 
 Steering the live DNS record is the one operation that puts a box into the record
@@ -246,7 +276,12 @@ page itself lives for minutes, and an edge rule shortens the TTL:
    reads it, and steering traffic away is **`/ready`**'s decision, which answers
    503 when the database is gone. Until that day `status: "ok"` was a constant,
    and the runbook's case "answers, but no work is getting done" had no signal
-   at all.
+   at all. **Since 2026-09-24 `/ready` also answers 503 for a node with a
+   database and no `VAULT_SHARE_KEY`** (`reasons: ["vault_key_missing"]`;
+   `/health` names it in `vault_key`): without the key the feed and the likes
+   answer 503, since the cursor is sealed with it (`lib/cursor.ts`). The smoke
+   test, the dev roll and the wizard ask `/ready`, so such a node fails its
+   deploy instead of quietly refusing the feed.
 4. The panel opens, magic-link sign-in works, Waitlist and the logs are visible.
 
 Items 3–4 are automated in `relay/test/smoke.sh`. **Since 2026-09-08 the smoke test, the dev roll and the wizard ask `/ready`, not only `/health`:** the latter is always 200 by design, and judging a deploy by it is asking a light that cannot turn red. A node older than the route answers 404 — not a failure, and the output says so.

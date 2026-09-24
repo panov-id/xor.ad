@@ -46,3 +46,25 @@ configured("the database field is one of three known words", async () => {
     `unexpected database state: ${body.database}`,
   );
 });
+
+// A node with a database but no VAULT_SHARE_KEY answers 503 on the whole feed
+// and the likes (lib/cursor.ts) while it looks alive (review panel 2026-09-24,
+// operations lens). Readiness says so; liveness stays 200 and names it. A node
+// without a database serves no feed, so the key is not asked of it.
+Deno.test("a node with a database and no vault key is not ready, and says why", async () => {
+  const { readiness } = await import("../src/routes/health.ts");
+  assertEquals(readiness({ database: "ok", databaseEnabled: true, vaultKey: true }), { ok: true, reasons: [] });
+  assertEquals(readiness({ database: "ok", databaseEnabled: true, vaultKey: false }),
+    { ok: false, reasons: ["vault_key_missing"] }, "a node that cannot serve the feed was called ready");
+  assertEquals(readiness({ database: "down", databaseEnabled: true, vaultKey: false }),
+    { ok: false, reasons: ["database_down", "vault_key_missing"] });
+  assertEquals(readiness({ database: "off", databaseEnabled: false, vaultKey: false }), { ok: true, reasons: [] },
+    "a node without a database was held to a key it has no use for");
+});
+
+configured("health names whether the vault key is set, and stays 200 either way", async () => {
+  const response = await health();
+  assertEquals(response.status, 200);
+  const body = await response.json();
+  assertEquals(body.vault_key, "missing", "health does not say the key is missing");
+});

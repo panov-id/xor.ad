@@ -1668,9 +1668,27 @@ Deno.test({
     assertEquals(body.status, "ok");
     assertEquals(body.database, "ok", "with DATABASE_URL set and answering, this is 'ok'");
 
-    const readiness = await ready();
-    assertEquals(readiness.status, 200);
-    assertEquals((await readiness.json()).status, "ready");
+    // A node with a database and no vault key cannot serve the feed (the
+    // cursor is sealed with it) and says so on /ready; with the key it is
+    // ready (review panel 2026-09-24, loop plan A1).
+    const { reloadConfig } = await import("../src/config.ts");
+    const had = Deno.env.get("VAULT_SHARE_KEY");
+    try {
+      Deno.env.delete("VAULT_SHARE_KEY");
+      reloadConfig();
+      const without = await ready();
+      assertEquals(without.status, 503, "a node with a database and no vault key was called ready");
+      assertEquals((await without.json()).reasons, ["vault_key_missing"]);
+      Deno.env.set("VAULT_SHARE_KEY", "database-suite-vault-key");
+      reloadConfig();
+      const readiness = await ready();
+      assertEquals(readiness.status, 200);
+      assertEquals((await readiness.json()).status, "ready");
+    } finally {
+      if (had === undefined) Deno.env.delete("VAULT_SHARE_KEY");
+      else Deno.env.set("VAULT_SHARE_KEY", had);
+      reloadConfig();
+    }
   },
 });
 

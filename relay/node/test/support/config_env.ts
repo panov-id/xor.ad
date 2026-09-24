@@ -44,6 +44,7 @@ const CONFIGURED = [
   "ORIGIN_TOKEN",
   "METRICS_TOKEN",
   "DATABASE_URL",
+  "VAULT_SHARE_KEY",
 ];
 
 export function useEnvironment(overrides: Record<string, string> = {}): void {

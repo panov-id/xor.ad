@@ -1512,7 +1512,19 @@ Deno.test({
         await tx.unsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, [await pairKey(a.identity_id, b.identity_id)]);
         await tx.unsafe(`INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)`, [a.identity_id, theirs]);
         const pending = like(b, mine).then((r) => (got.back = r));
-        await new Promise((r) => setTimeout(r, 300));
+        // Commit only once the other request is seen waiting on this pair
+        // lock; a fixed pause let a slow start come after the commit, and the
+        // case went green with nothing crossing.
+        let waited = false;
+        for (let i = 0; i < 250 && !waited && !got.back; i++) {
+          // Asked on this side's own connection: a pool query here would open
+          // a connection the next cases count as a leak.
+          const [row] = await tx.unsafe(
+            `SELECT count(*)::int AS n FROM pg_locks WHERE locktype = 'advisory' AND NOT granted`);
+          waited = row.n > 0;
+          if (!waited) await new Promise((r) => setTimeout(r, 20));
+        }
+        assert(waited, "the other like never waited on the pair lock, so nothing crossed");
         void pending;
       });
       for (let i = 0; i < 150 && !got.back; i++) await new Promise((r) => setTimeout(r, 20));

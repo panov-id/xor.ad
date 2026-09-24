@@ -2460,3 +2460,46 @@ Deno.test({
     assertEquals(String(left.n), "0", "likes or blocks outlived their identity");
   },
 });
+
+// A kind this node does not know is somebody else's, not a failure.
+//
+// During a rollout an old image claims the jobs a new one armed — wake_returned
+// was the first (2026-09-24). Counted as failures, eight claims by the old node
+// gave the job up for good, and the new node, once it was the only one left,
+// found a standing job it could never run again. So an unknown kind is put back
+// untouched, ten minutes on, with a note, and never runs out of attempts.
+Deno.test({
+  name: "a job of a kind this node does not know is put back, not given up",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { runOnce } = await import("../src/lib/jobs.ts");
+    const kind = `from-a-newer-node-${uniqueId()}`;
+    const [{ id }] = await database.queryOrThrow<{ id: number }>(
+      `INSERT INTO jobs (kind, payload, run_at) VALUES ($1, '{}'::jsonb, now() - interval '1 year') RETURNING id`,
+      [kind],
+    );
+    try {
+      for (let i = 0; i < 10; i++) {
+        await database.queryOrThrow(`UPDATE jobs SET run_at = now() - interval '1 year' WHERE id = $1`, [id]);
+        await runOnce();
+      }
+      const [row] = await database.queryOrThrow<
+        { attempts: number; given_up: boolean; locked: boolean; later: boolean; last_error: string | null }
+      >(
+        `SELECT attempts, COALESCE(locked_until = 'infinity', false) AS given_up, locked_until IS NOT NULL AS locked,
+                run_at > now() + interval '5 minutes' AS later, last_error
+           FROM jobs WHERE id = $1`,
+        [id],
+      );
+      assert(row, "the job of an unknown kind was deleted");
+      assertEquals(row.given_up, false, "ten claims by a node that does not know the kind gave the job up");
+      assertEquals(row.attempts, 0, "a claim by a node that does not know the kind was counted as an attempt");
+      assertEquals(row.locked, false, "the job was left leased");
+      assertEquals(row.later, true, "the job was put back to be claimed again at once");
+      assert(row.last_error?.includes("no handler"), `the note says nothing: ${row.last_error}`);
+    } finally {
+      await database.queryOrThrow(`DELETE FROM jobs WHERE id = $1`, [id]);
+    }
+  },
+});

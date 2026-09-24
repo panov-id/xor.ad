@@ -206,7 +206,18 @@ export async function runOnce(): Promise<boolean> {
   if (!job) return false;
   const handler = handlers.get(job.kind);
   if (!handler) {
-    await finish(job, `no handler for "${job.kind}"`);
+    // A kind armed by a newer node, claimed by an older one mid-rollout: put
+    // back as it was, the claim uncounted, ten minutes on. As a failure it ran
+    // out of attempts on the old node and stayed given up for the new one
+    // (2026-09-24, wake_returned). A kind no node knows any more stays too,
+    // asked about every ten minutes, its note saying why.
+    await query(
+      `UPDATE jobs SET locked_until = NULL, lease = NULL, attempts = GREATEST(attempts - 1, 0),
+              run_at = now() + interval '10 minutes', last_error = $3
+        WHERE id = $1 AND lease = $2`,
+      [job.id, job.lease, `no handler for "${job.kind}" on this node`],
+    );
+    log("warn", "put back a job this node has no handler for", { kind: job.kind, id: job.id });
     return true;
   }
   try {

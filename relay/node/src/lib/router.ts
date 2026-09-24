@@ -56,8 +56,8 @@ export function match(
 const KNOWN_METHODS = new Set(["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"]);
 
 // The label a request is counted under. Lives here rather than inline in dispatch.ts
-// so it can be exercised on its own: main.ts starts a server on import, and a
-// rule nobody can call is a rule nobody tests.
+// so it can be exercised on its own, without every route module dispatch.ts
+// pulls in: a rule nobody can call is a rule nobody tests.
 export function metricLabel(
   method: string,
   path: string,

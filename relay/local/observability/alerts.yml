@@ -93,7 +93,7 @@ groups:
           summary: "Приём бумажных кодов на паузе"
           description: "Пятьдесят промахов за час. Пока пауза держится, честный код тоже не принимается."
 
-      # Anything the node answers 5xx to. The label comes from main.ts's own
+      # Anything the node answers 5xx to. The label comes from dispatch.ts's own
       # request counter, so this covers every route rather than the ones
       # somebody remembered to instrument.
       - alert: ServerErrors

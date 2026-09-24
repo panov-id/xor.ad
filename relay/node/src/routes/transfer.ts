@@ -324,6 +324,14 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
     const [open] = await run<{ n: number }>(
       `SELECT count(*)::int AS n FROM identities WHERE id = $1 AND closed_at IS NULL`, [invite.identity]);
     if (open.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);
+    // And this session itself, read after the same lock: a claim by the paper
+    // code that committed while this waited froze it and seated the owner's new
+    // device. Let through, the approval froze the owner and seated the invited
+    // device — the lost phone taking the identity back past the paper code
+    // (verifier, 2026-09-25, reproduced).
+    const [mine] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM sessions WHERE id = $1 AND frozen_at IS NULL`, [caller.sessionId]);
+    if (mine.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);
 
     // The move itself, and the order is not a matter of taste: the leaving
     // device goes quiet **before** the arriving one is written. One live

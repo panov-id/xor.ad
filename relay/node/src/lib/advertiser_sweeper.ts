@@ -58,7 +58,10 @@ export async function sweepAdvertisers(): Promise<{ deleted: number; kept: numbe
     for (const { id } of due) {
       const suspended = await run<{ address: string; suspended_at: Date | null }>(
         `SELECT address, suspended_at FROM venues
-          WHERE advertiser_id = $1 AND verification_status = 'suspended' AND suspended_reason = 'systematic'`,
+          WHERE advertiser_id = $1 AND verification_status = 'suspended'
+            -- Only "this is not us" leaves nothing; a suspension with no reason
+            -- written is kept as the stricter one (verifier, 2026-09-25).
+            AND coalesce(suspended_reason, 'systematic') <> 'not_us'`,
         [id],
       );
       const hashes: { hmac: string; at: Date }[] = [];

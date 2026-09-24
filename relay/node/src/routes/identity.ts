@@ -567,6 +567,11 @@ async function claimRecovery(req: Request): Promise<Response> {
 
   if (sameDevice) {
     const answer = await transaction<Response>(async (run) => {
+      // The share first, the row a close and a PIN attempt start from: taken
+      // after the session, a claim from the same device and a close (or the
+      // tenth PIN mistake) each held what the other wanted, and Postgres broke
+      // the deadlock in 20 pairs of 20 (verifier, 2026-09-25).
+      await run(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller!.sessionId]);
       // Unfreezing can collide with the partial unique index if a live session
       // has appeared in the meantime — one live session per identity is held by
       // the index, not by this code, and that is on purpose.

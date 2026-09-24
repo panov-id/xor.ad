@@ -254,6 +254,52 @@ Deno.test("an approval waiting on a close moves nothing into the closed identity
   }
 });
 
+// An approval waiting on its own share while the paper code raised the
+// identity elsewhere (verifier, 2026-09-25, reproduced): the claim froze the
+// old session and seated the owner's new one; the approval, let through after,
+// froze the owner and seated the invited device — the lost phone taking the
+// identity back past the paper code. The approval must find its own session
+// frozen and move nothing.
+Deno.test("an approval waiting while the paper code raised the identity moves nothing", async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const old = await device_with_identity();
+  const lookupId = lookup();
+  assertEquals((await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite",
+    { lookup_id: lookupId, ...proof(PIN) })).status, 200);
+  const fresh = await device();
+  assertEquals((await call("POST", "/sessions/claim", { body: { lookup_id: lookupId, envelope: envelope() } })).status, 200);
+  const owner = crypto.randomUUID();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { approved?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [old.session_id]);
+      const pending = signedCall(old.pair.privateKey, old.session_id, "POST", `/sessions/${lookupId}/approve`,
+        { reply: envelope(), sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))), label: "x" })
+        .then((r) => (got.approved = r));
+      await new Promise((r) => setTimeout(r, 300));
+      // What a claim by the paper code does: the old device frozen and burned,
+      // the owner's new one seated.
+      await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`, [old.session_id]);
+      await tx.unsafe(`UPDATE vault_shares SET share_enc = NULL, burned_at = now() WHERE session = $1`, [old.session_id]);
+      await tx.unsafe(
+        `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key)
+         VALUES ($1, $2, 'owner-key', 'owner-key')`, [owner, old.identity_id]);
+      void pending;
+    });
+    for (let i = 0; i < 150 && !got.approved; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.approved, "the approval never answered");
+    const rows = await database.queryOrThrow<{ id: string; frozen: boolean }>(
+      `SELECT id, frozen_at IS NOT NULL AS frozen FROM sessions WHERE identity = $1 AND id <> $2`,
+      [old.identity_id, old.session_id]);
+    assertEquals(rows.map((r) => ({ id: r.id, frozen: r.frozen })), [{ id: owner, frozen: false }],
+      `the approval froze the owner raised by the paper code, or seated the invited device (answer ${got.approved.status}): ${JSON.stringify(rows)}`);
+    assertEquals(got.approved.status, 401);
+  } finally {
+    await sql.end();
+  }
+});
+
 Deno.test("without a PIN the window does not open", async () => {
   // A stolen signing key alone must not start a transfer (§8.2, 2026-09-11).
   const old = await device_with_identity();

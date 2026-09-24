@@ -1770,9 +1770,17 @@ Deno.test("a business profile goes a year after its last offer, and a systematic
   await database.queryOrThrow(
     `UPDATE venues SET verification_status = 'suspended', suspended_reason = 'systematic', suspended_at = now() - interval '10 days',
             address = $2 WHERE id = $1`, [g.v, `  ${address.toUpperCase()}  `]);
+  const unsaid = await seedOffer("https://unsaid.example/");
+  await age(unsaid, 400);
+  const u = await advertiserOf(unsaid);
+  const unsaidAddress = `Unsaid ${crypto.randomUUID().slice(0, 8)}`;
+  await database.queryOrThrow(
+    `UPDATE venues SET verification_status = 'suspended', suspended_reason = NULL, address = $2 WHERE id = $1`,
+    [u.v, unsaidAddress]);
+  const victimAddress = `Victim ${crypto.randomUUID().slice(0, 8)}`;
   await database.queryOrThrow(
     `UPDATE venues SET verification_status = 'suspended', suspended_reason = 'not_us', address = $2 WHERE id = $1`,
-    [v.v, `Victim ${crypto.randomUUID().slice(0, 8)}`]);
+    [v.v, victimAddress]);
   const bare = crypto.randomUUID();
   await database.queryOrThrow(
     `INSERT INTO advertisers (id, email, contact, created_at) VALUES ($1, 'none@alpha.test', 'Нет', now() - interval '400 days')`, [bare]);
@@ -1792,10 +1800,11 @@ Deno.test("a business profile goes a year after its last offer, and a systematic
     `SELECT address_hmac, keep_until FROM venue_suspensions WHERE address_hmac = $1`, [await addressHmac(address)]);
   assertEquals(kept.length, 1, "a systematic suspension left no keyed hash, so waiting a year lifts it");
   assert(new Date(kept[0].keep_until).getTime() > Date.now() + 360 * 86_400_000, "the hash is not kept a year");
-  assertEquals((await database.queryOrThrow<{ n: number }>(
-    `SELECT count(*)::int AS n FROM venue_suspensions WHERE address_hmac = $1`, [await addressHmac(v.v)]))[0].n, 0);
-  const [{ n: victimRows }] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM venue_suspensions`);
-  assertEquals(victimRows, 1, "\"this is not us\" left something behind, or a hash past its year stayed");
+  const left = async (hmac: string | null) => (await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM venue_suspensions WHERE address_hmac = $1`, [hmac]))[0].n;
+  assertEquals(await left(await addressHmac(victimAddress)), 0, "\"this is not us\" left a hash of the victim's address");
+  assertEquals(await left(stale), 0, "a hash past its year stayed");
+  assertEquals(await left(await addressHmac(unsaidAddress)), 1, "a suspension with no reason went without its hash");
 });
 
 // Last in the file on purpose: the claim and the close at once make the pool
@@ -1876,6 +1885,27 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
         (claim === 404 && close === 200 && state.closed && state.live === 0),
       `a claim and a close in a race ended wrong: ${outcome}`,
     );
+
+    // The same device's claim against a close from that session, released
+    // together: the share is where they meet now, not a deadlock.
+    const third = await registered();
+    const before3 = await deadlocks();
+    let pair3: { status: number }[] = [];
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT id FROM identities WHERE id = $1 FOR UPDATE`, [third.created.identity_id]);
+      Promise.all([
+        signedCall(third.pair.privateKey, third.created.session_id, "POST", "/recovery/claim", { lookup_id: third.lookupId }),
+        signedCall(third.pair.privateKey, third.created.session_id, "POST", "/identities/close",
+          { nonce: nonce16(), auth: authBase64(AUTH) }),
+      ]).then((r) => (pair3 = r));
+      await new Promise((r) => setTimeout(r, 400));
+    });
+    for (let i = 0; i < 150 && pair3.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
+    assertEquals(pair3.length, 2, "the same-device claim or the close never answered");
+    assertEquals(await deadlocks(), before3,
+      `the same-device claim and the close deadlocked: ${JSON.stringify(pair3.map((a) => a.status))}`);
+    const state3 = await liveAfterClose(third.created.identity_id);
+    assert(!state3.closed || state3.live === 0, `a closed identity kept a live session: ${JSON.stringify(state3)}`);
   } finally {
     await sql.end(); misses.reset(); reset();
   }

@@ -51,7 +51,7 @@ The percentages are estimates: they are not weighted by hours, because steps
 - [ ] **Roll out `day57`.** `day56` was pushed in full on 2026-09-24
   (`b74b60a`); `day57` on top of it is 197 commits ahead of `origin/dev`
   (`cd21688`, 2026-09-19) at `bc385fc`, none unpushed (measured 2026-09-24).
-  Migrations `022`–`045` have not been applied anywhere: the dev
+  Migrations `022`–`046` have not been applied anywhere: the dev
   (`sha-622a848`) and production images end at `021`, staging at `010` (by the
   pinned tags in `relay/wizard/environments.toml`; `schema_migrations` on the
   boxes was not queried). The draft pairs were squashed on 2026-09-24 in
@@ -65,6 +65,14 @@ The percentages are estimates: they are not weighted by hours, because steps
   `--ignore` of `relay/node/deno.json`, 10 suites, 276 tests (`f142f18`,
   2026-09-24; before it, 9 of the 10 ran only locally). A deliberate break in
   `queue_metrics.test.ts` went red naming the file.
+- [ ] **Two production defects are fixed by rolling out `day57`** (found by
+  the loop on 2026-09-24): a `/v1` repeat with an `Idempotency-Key` answers 200
+  with no body (`acb7dca`); Article 16 notice snapshots sit in
+  `dsa_notices.snapshot` as a jsonb string, so the panel shows the moderator
+  an escaped line instead of the evidence (`4e54c91`, `db/046` unwraps the
+  rows). The storefronts send no idempotency key, so the first touches only
+  `/v1` clients. The class is now caught by the last step of the database run:
+  no jsonb column in the schema holds a string (`tools/check_jsonb_strings.ts`).
 - [ ] `NOT NULL` on the published centre (P5) — only in the rollout after
   `027`, never in the same one.
 - [~] Nightly backup encryption (P4): the mechanism shipped 2026-09-21

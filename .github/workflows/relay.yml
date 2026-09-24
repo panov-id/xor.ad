@@ -125,9 +125,11 @@ jobs:
       - name: migrations
         working-directory: relay/node
         run: deno run --allow-env --allow-net --allow-read tools/migrate_db.ts
+      # --allow-run: the lock-timeout tests spawn the pruning command and the
+      # migration tool as child processes, as scripts/run-relay-database-tests.sh does.
       - name: database tests
         working-directory: relay/node
-        run: deno test --allow-env --allow-net --allow-read --allow-write test/database.test.ts
+        run: deno test --allow-env --allow-net --allow-read --allow-write --allow-run test/database.test.ts
 
   build-push:
     needs: [test, database]

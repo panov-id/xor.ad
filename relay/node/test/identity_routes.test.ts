@@ -1038,6 +1038,41 @@ Deno.test("a reissue repeat is answered through the pause, and another's code as
   }
 });
 
+// A claim with the old code that found the identity before a reissue
+// committed went through after it (verifier, 2026-09-24): the old code worked
+// once more. Another connection plays the reissue and holds the identity's
+// row while the claim comes in.
+Deno.test("a claim with the old code that races a reissue raises nothing", async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const misses = await import("../src/lib/recovery_misses.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset(); misses.reset();
+  const me = await registered();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { answer?: { status: number; body: unknown } } = {};
+  try {
+    const fresh = await device();
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`UPDATE identities SET recovery_auth_hash = $2 WHERE id = $1`,
+        [me.created.identity_id, await auth.sha256hex(new TextEncoder().encode(crypto.randomUUID()))]);
+      const pending = call("POST", "/recovery/claim", {
+        body: { lookup_id: me.lookupId, sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) },
+      }).then((r) => (got.answer = r));
+      await new Promise((r) => setTimeout(r, 400));
+      void pending;
+    });
+    for (let i = 0; i < 150 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.answer, "the claim never answered");
+    assertEquals(got.answer.status, 404, `the old code raised the identity after it was reissued: ${JSON.stringify(got.answer.body)}`);
+    const [live] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM sessions WHERE identity = $1 AND frozen_at IS NULL AND id <> $2`,
+      [me.created.identity_id, me.created.session_id]);
+    assertEquals(live.n, "0", "a session was seated by the old code");
+  } finally {
+    await sql.end(); misses.reset(); reset();
+  }
+});
+
 Deno.test("the node stores a hash of the paper code's half, not the half itself", async () => {
   // A read-only copy of `identities` must not be a set of keys. Until
   // 2026-09-20 the column held exactly what the device presents, so a dump was

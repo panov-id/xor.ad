@@ -490,11 +490,12 @@ async function claimRecovery(req: Request): Promise<Response> {
     }
   }
 
+  const presentedCode = await recoveryHash(body.lookup_id);
   const found = await query<{ id: string; recovery_wrapped_key: Uint8Array | null }>(
     `SELECT id, recovery_wrapped_key FROM identities
       WHERE recovery_auth_hash = $1 AND closed_at IS NULL
         AND signup_completed_at IS NOT NULL`,
-    [await recoveryHash(body.lookup_id)],
+    [presentedCode],
   );
   if (found === null) {
     inc("relay_recovery_claim_total", { result: "unavailable" });
@@ -560,6 +561,7 @@ async function claimRecovery(req: Request): Promise<Response> {
         `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
         [identity.id],
       );
+      await stillTheCode(run, identity.id, presentedCode);
       inc("relay_recovery_claim_total", { result: "same_device" });
       return json({
         identity_id: identity.id,
@@ -567,6 +569,7 @@ async function claimRecovery(req: Request): Promise<Response> {
         recovery_wrapped_key: wrapped,
       }, 200, sunsetHeader());
     }).catch((error) => {
+      if (error instanceof CodeMoved) return refuse("not_found", "that code does not match", 404);
       log("error", "recovery claim failed on the same device", { error: String(error) });
       return refuse("refused", "this device cannot be raised right now", 409);
     });
@@ -603,6 +606,7 @@ async function claimRecovery(req: Request): Promise<Response> {
       `UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`,
       [identity.id],
     );
+    await stillTheCode(run, identity.id, presentedCode);
     inc("relay_recovery_claim_total", { result: "new_device" });
     return json({
       identity_id: identity.id,
@@ -610,6 +614,7 @@ async function claimRecovery(req: Request): Promise<Response> {
       recovery_wrapped_key: wrapped,
     }, 200, sunsetHeader());
   }).catch((error) => {
+    if (error instanceof CodeMoved) return refuse("not_found", "that code does not match", 404);
     log("error", "recovery claim failed on a new device", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });
@@ -638,6 +643,18 @@ interface ShareBody {
 // Found by the security lens of the review panel, 2026-09-20. The device sends
 // the same `lookup_id` as before — this is not a protocol change, and the
 // canon's own wording is what the code now does.
+// The code a claim found the identity by, asked again at the claim's last
+// write to the identity's row: a reissue that committed while the claim ran
+// moved it, and the old code must not raise the identity once more (verifier,
+// 2026-09-24, reproduced). The row is taken last, after the sessions and the
+// shares, the order a close takes them. A throw rolls the claim back whole.
+class CodeMoved extends Error {}
+async function stillTheCode(run: <R>(text: string, args?: unknown[]) => Promise<R[]>, identityId: string, code: string): Promise<void> {
+  const held = await run<{ id: string }>(
+    `SELECT id FROM identities WHERE id = $1 AND recovery_auth_hash = $2 FOR UPDATE`, [identityId, code]);
+  if (held.length === 0) throw new CodeMoved();
+}
+
 async function recoveryHash(lookupId: string): Promise<string> {
   return await sha256hex(new TextEncoder().encode(lookupId));
 }

@@ -133,7 +133,7 @@
   "me.cancel": "Anuluj",
   "profile.nameFrozen": "Imię zmienia się tylko od czystej karty: dopóki żyje twoja fraza albo otwarta jest rozmowa, jest zamrożone.",
   "profile.ageDown": "Z pasma 21+ nie wraca się. Wiek poprawia się w obrębie pasma, a granicę 20/21 przekracza się tylko w górę.",
-  "profile.patchDay": "Poprawek profilu na dziś wystarczy — jutro znów można.",
+  "profile.patchDay": "Poprawek profilu na razie wystarczy — znów można za {n} godz.",
   "card.hint": "w prawo — polubienie, w lewo — ukryj; ukryte przywrócisz w me · [enter] rozumiem",
   "card.soon": "wkrótce zniknie",
   "card.keys": "→ polub · ← ukryj · ↑↓ przewijaj · enter wstecz",

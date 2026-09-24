@@ -737,7 +737,7 @@ test("a phrase the node refuses is said to be refused, and stays in the field", 
 test("a frozen name is refused in the approved words, and a free one is saved", async () => {
   const answers = [
     { status: 409, body: { error: { code: "name_frozen" } } },
-    { status: 429, body: { error: { code: "rate_limited" } } },
+    { status: 429, body: { error: { code: "rate_limited" } }, retryAfter: 3 * 3600 - 120 },
     { status: 202, body: { name: "Аня", name_pending: "Анна" } },
   ];
   const sent: unknown[] = [];
@@ -758,7 +758,9 @@ test("a frozen name is refused in the approved words, and a free one is saved", 
   assert.match(app.lastFrame()!, /Имя меняется только на чистом счету: пока живёт ваша фраза или открыта беседа, оно заморожено\./);
   await type(app, ENTER);
   await settle();
-  assert.match(app.lastFrame()!, /Правок профиля на сегодня достаточно — завтра можно снова\./);
+  // The window slides, so "tomorrow" was a promise the node did not keep: the hours
+  // left, rounded up, from Retry-After (the owner's decision of 2026-09-24).
+  assert.match(app.lastFrame()!, /Правок профиля пока достаточно — снова можно через 3 ч\./);
   await type(app, ENTER);
   await settle();
   assert.equal(done, 1, "a name taken for the queue did not leave the editor");

@@ -147,7 +147,7 @@ away" button would put it out.
 | no network | There is no connection. What you wrote is saved. | Retry once there is (edited 2026-09-15 after the review panel: "We will send it when there is" [retired] — mechanics §10 and screen 11 say "retry", there is no auto-send) |
 | the name is frozen (`name_frozen`) | Your name changes only on a clean slate: while a phrase of yours is live or a conversation is open, it is frozen. | Wait for the phrase and conversations to end (approved by the owner 2026-09-23) |
 | age down across 20/21 (`age_step_down`) | There is no way back from the 21+ band. Age is edited within the band; the 20/21 line is crossed only upwards. | — (approved by the owner 2026-09-23) |
-| profile edits in a day (`profile.patch.day`) | Enough profile edits for today — tomorrow you can again. | Wait (approved by the owner 2026-09-23) |
+| profile edits in a day (`profile.patch.day`) | Enough profile edits for now — you can again in N h. | Wait; N is the hours of `Retry-After`, rounded up (the window slides; approved by the owner 2026-09-24, was "tomorrow you can again") |
 | rate in a row (the node's per-address limit) | Too many sends in a row. | Try again later — no span and no word "address" (storefront screen 11, 2026-09-15) |
 | the check did not happen (10 minutes without a verdict) | The check did not happen, your text is saved — send it again. | Send again; the slot is free, it does not count towards the pause (decided 2026-09-15, storefront screen 11) |
 | the match waits for your name | Your name did not pass the check, and the match will not open until a new one is accepted. | Change the name |

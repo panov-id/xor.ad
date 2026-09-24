@@ -204,5 +204,3 @@ in this cut.
   threshold applies only to processing based on consent.
 - The accent set and the brand reference typeface — open in the 7 July
   snapshot; whether they were settled has not been checked.
-- The `profile.patch.day` window — a rolling day or a calendar day — against
-  the refusal's word "tomorrow".

@@ -133,7 +133,7 @@
   "me.cancel": "Cancelar",
   "profile.nameFrozen": "Tu nombre solo cambia desde cero: mientras una frase tuya siga viva o haya una conversación abierta, está congelado.",
   "profile.ageDown": "De la franja 21+ no se vuelve. La edad se corrige dentro de la franja; la línea 20/21 solo se cruza hacia arriba.",
-  "profile.patchDay": "Suficientes cambios de perfil por hoy — mañana podrás de nuevo.",
+  "profile.patchDay": "Suficientes cambios de perfil por ahora — podrás de nuevo en {n} h.",
   "card.hint": "derecha — me gusta, izquierda — ocultar; lo oculto se recupera en me · [enter] entendido",
   "card.soon": "desaparece pronto",
   "card.keys": "→ me gusta · ← ocultar · ↑↓ pasar · enter volver",

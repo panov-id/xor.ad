@@ -1001,7 +1001,12 @@ export function EditProfile(
         if (error?.code === "name_frozen") return setRefused(say("profile.nameFrozen"));
         if (error?.code === "age_step_down") return setRefused(say("profile.ageDown"));
         if (error?.code === "paused") return setRefused(say("write.paused", { time: hhmm(error.until) }));
-        if (error?.code === "rate_limited") return setRefused(say("profile.patchDay"));
+        // The window slides (24 hours from each edit), so the wait is the hours
+        // Retry-After names, rounded up — not "tomorrow" (owner, 2026-09-24).
+        if (error?.code === "rate_limited") {
+          const hours = Math.max(1, Math.ceil((answer.retryAfter ?? 24 * 3600) / 3600));
+          return setRefused(say("profile.patchDay", { n: String(hours) }));
+        }
         onError(`the profile edit was refused: ${answer.status}`);
       })
       .catch((e: Error) => onError(e.message));

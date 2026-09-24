@@ -118,3 +118,43 @@ Deno.test({ name: "a platform notice is reminded in the inbox it came through", 
   const picked = (await agingNotices()) ?? [];
   assertEquals(picked.find((n) => n.id === rows[0].id)?.brand, "sosed", "the face it came through was lost");
 });
+
+// The ceiling (decided by quorum 2026-09-24, by the owner's number for С2):
+// a stream of aging notices is not a stream of letters. One address gets the
+// first six one by one and the rest in one summary, and every notice is in
+// exactly one of them — fewer letters, none left out.
+Deno.test({ name: "past six notices an address gets one summary, and every notice is told once", ...pool }, async () => {
+  const { AGING_LETTERS_PER_HOUR } = await import("../src/lib/dsa_watchdog.ts");
+  // Whatever an earlier case left unstamped is stamped first, so this pass is ours.
+  await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
+  const ids: string[] = [];
+  for (let i = 0; i < AGING_LETTERS_PER_HOUR + 3; i++) ids.push(await notice(30));
+  const one: [string, string][] = [];
+  const summaries: [string, string[]][] = [];
+  const result = await watchNoticeAge(
+    (to, n) => { one.push([to, n.id]); return Promise.resolve(true); },
+    (to, list) => { summaries.push([to, list.map((n) => n.id)]); return Promise.resolve(true); },
+  );
+  const addresses = new Set([...one.map(([to]) => to), ...summaries.map(([to]) => to)]);
+  assertEquals(addresses.size, 1, "the reminders of one face went to more than its inbox");
+  assertEquals(one.length, AGING_LETTERS_PER_HOUR, "an address got more letters one by one than the ceiling");
+  assertEquals(summaries.length, 1, "what the ceiling held back did not go as one summary");
+  const told = [...one.map(([, id]) => id), ...summaries[0][1]].sort();
+  assertEquals(told, [...ids].sort(), "a notice was left out of the letters, or told twice");
+  assertEquals(result, { reminded: ids.length, escalated: 0, unsent: 0 });
+  const stamped = await queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM dsa_notices WHERE id = ANY($1::uuid[]) AND reminded_at IS NOT NULL`, [ids]);
+  assertEquals(stamped[0].n, ids.length, "a notice told in the summary was not stamped");
+});
+
+Deno.test({ name: "a summary that did not leave gives back the stamps of every notice in it", ...pool }, async () => {
+  const { AGING_LETTERS_PER_HOUR } = await import("../src/lib/dsa_watchdog.ts");
+  await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
+  const ids: string[] = [];
+  for (let i = 0; i < AGING_LETTERS_PER_HOUR + 2; i++) ids.push(await notice(30));
+  const result = await watchNoticeAge(() => Promise.resolve(true), () => Promise.resolve(false));
+  assertEquals(result.unsent, 2, "the notices of a lost summary were counted as told");
+  const unstamped = await queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM dsa_notices WHERE id = ANY($1::uuid[]) AND reminded_at IS NULL`, [ids]);
+  assertEquals(unstamped[0].n, 2, "the stamps of a lost summary stayed, so those reminders would never go");
+});

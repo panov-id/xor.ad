@@ -35,6 +35,11 @@ The platform's promises rest on people and jobs, and they can break without a so
   next pass, in 10 minutes rather than an hour, sends it again. A letter goes at least once; a second
   copy is the price of not losing the one that mattered (review panel 2026-09-23,
   `docs/reviews/PANEL_2026-09-23_watchdog-c1.md`).
+- **The ceiling is 6 per hour per address** (decided by quorum on 2026-09-24, by the owner's number for W2):
+  the first six notices of a pass go to an address one by one, the rest in one summary that names each
+  by its reference, target, age and stage. None is left out, only the letters are fewer; a summary that
+  did not leave takes back the stamps of all its notices. A pass is hourly; the retry in 10 minutes
+  carries only what did not leave. Rejected: no ceiling; a ceiling on `support@` only.
 - **Where to.** The reminder — to the `support@` of the face the notice came through (as the
   new-notice letter does: `brand`, else `received_via`); the escalation — to the personal addresses in
   `DSA_ESCALATION_EMAILS` (the wizard passes it to the node from `secrets.env`), not a shared inbox,
@@ -161,5 +166,4 @@ Each watchdog is broken on purpose and must reach the channel:
 - Watchdogs W5 and W6 are not built. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
-- W1: no fallback transport for the escalation — `mail.fallback.transport`; a letter per notice rather
-  than one summary a pass — `watchdog.letters.flood` (review panel 2026-09-23).
+- W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — a summary a pass beyond six per address.

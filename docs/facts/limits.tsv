@@ -135,3 +135,4 @@ request.body.deadline	30	секунд	срок, за который тело з�
 logs.retention	30	дней	срок хранения серверных логов, ошибок клиента и отчётов CSP (политика приватности витрин §5 «Server logs and client errors: 30 days»)	узел	sosed.place/landing/legal/privacy_EN.md,neighbro.place/landing/legal/privacy_EN.md	prune_objects
 dsa.records.retention	1	год	срок хранения уведомления по ст. 16, снятой копии и мотивировки по ст. 17 (политика приватности витрин §5 «1 year»)	узел	sosed.place/landing/legal/privacy_EN.md,neighbro.place/landing/legal/privacy_EN.md	prune_dsa_records
 backup.retention	14	дней	срок хранения ночного дампа базы (политика приватности витрин §5 «14 days»)	конфиг	sosed.place/landing/legal/privacy_EN.md,neighbro.place/landing/legal/privacy_EN.md	
+dsa.aging.hour	6	за час	писем сторожа С1 на один адрес за проход, остальное сводкой (решено кворумом 24.09.2026)	узел	xor.ad/docs/watchdogs_RU.md,xor.ad/docs/watchdogs_EN.md	dsa_notice_age

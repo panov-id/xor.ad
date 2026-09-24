@@ -15,7 +15,7 @@
 import { config } from "../config.ts";
 import { query } from "./db.ts";
 import { log } from "./log.ts";
-import { sendNoticeAging } from "./mailer.ts";
+import { sendNoticeAging, sendNoticeAgingSummary } from "./mailer.ts";
 import { brandByKey } from "./brand_registry.ts";
 
 export const REMIND_AFTER_HOURS = 24;
@@ -111,23 +111,48 @@ async function unstamp(notice: AgingNotice): Promise<void> {
   await query(`UPDATE dsa_notices SET ${column} = NULL WHERE id = $1`, [notice.id]);
 }
 
-export async function watchNoticeAge(): Promise<{ reminded: number; escalated: number; unsent: number }> {
+// A ceiling on the letters (decided by quorum 2026-09-24, five of five, by the
+// owner's number for С2 of 2026-09-23): a stream of notices was a stream of
+// letters to support@ and to people's own inboxes, spending the quota the other
+// watchdogs' letters need. Each address gets the first AGING_LETTERS_PER_HOUR
+// notices of a pass one by one and the rest in one summary that names every
+// one of them — none is left out, only the letters are fewer. A pass runs
+// hourly; a pass after a failure comes in ten minutes and carries only what
+// did not leave.
+export const AGING_LETTERS_PER_HOUR = 6;
+
+export async function watchNoticeAge(
+  send: typeof sendNoticeAging = sendNoticeAging,
+  summarize: typeof sendNoticeAgingSummary = sendNoticeAgingSummary,
+): Promise<{ reminded: number; escalated: number; unsent: number }> {
   const notices = await agingNotices();
   if (notices === null) {
     // A database that did not answer is not "nothing to do": say so and let the
     // queue's backoff bring this back.
     throw new Error("the watchdog could not read the notices");
   }
-  let reminded = 0, escalated = 0, unsent = 0;
+  const byAddress = new Map<string, AgingNotice[]>();
+  const failedIds = new Set<string>();
   for (const notice of notices) {
     const to = await addressesFor(notice);
-    let failed = to.length === 0;
-    if (failed) {
+    if (to.length === 0) {
       log("error", "nobody to warn about an unresolved notice", { id: notice.id, stage: notice.stage });
+      failedIds.add(notice.id);
     }
-    for (const address of to) {
-      if (!await sendNoticeAging(address, notice)) failed = true;
+    for (const address of to) byAddress.set(address, [...(byAddress.get(address) ?? []), notice]);
+  }
+  for (const [address, list] of byAddress) {
+    for (const notice of list.slice(0, AGING_LETTERS_PER_HOUR)) {
+      if (!await send(address, notice)) failedIds.add(notice.id);
     }
+    const rest = list.slice(AGING_LETTERS_PER_HOUR);
+    if (rest.length > 0 && !await summarize(address, rest)) {
+      for (const notice of rest) failedIds.add(notice.id);
+    }
+  }
+  let reminded = 0, escalated = 0, unsent = 0;
+  for (const notice of notices) {
+    const failed = failedIds.has(notice.id);
     if (failed) {
       // Every address again next time, including any that did get it: a
       // second copy is the price of not losing the one that mattered.

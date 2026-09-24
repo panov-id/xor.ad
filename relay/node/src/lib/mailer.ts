@@ -420,6 +420,37 @@ export async function sendNoticeAging(
   return await deliver(brand, to, subject, subject, noticeAgingBlocks(notice));
 }
 
+// Watchdog С1 past its ceiling: the notices beyond the first few of a pass, in
+// one letter. Each by its reference, kind, age and stage — never the text.
+export function noticeAgingSummaryBlocks(
+  notices: { id: string; kind: string; age_hours: number; stage: "remind" | "escalate" }[],
+): Block[] {
+  return [
+    {
+      kind: "text",
+      value: `${notices.length} more reports of illegal content are still unanswered, beyond the ones ` +
+        "sent one by one in this pass.",
+    },
+    ...notices.map((n): Block => ({
+      kind: "text",
+      value: `Reference: ${n.id.slice(0, 8)}. Target: ${n.kind}. Waiting ${n.age_hours} hours` +
+        (n.stage === "escalate" ? ", escalated." : "."),
+    })),
+    { kind: "text", value: "Article 16(6) asks for a timely decision. Open them in the panel." },
+  ];
+}
+
+export async function sendNoticeAgingSummary(
+  to: string,
+  notices: { id: string; kind: string; brand?: string | null; age_hours: number; stage: "remind" | "escalate" }[],
+): Promise<boolean> {
+  if (config.mail.transport === "none" || notices.length === 0) return false;
+  const first = notices[0];
+  const brand = (first.brand ? await brandByKey(first.brand) : undefined) ?? resolveBrand(null);
+  const subject = `${brand.name}: ${notices.length} more reports are unanswered`;
+  return await deliver(brand, to, subject, subject, noticeAgingSummaryBlocks(notices));
+}
+
 // Watchdog С3: a job whose period the privacy policy promises ran out of
 // attempts. The job and the row, never its error text — that goes to the log,
 // where withoutAddresses has already been over it.

@@ -68,9 +68,15 @@ function limited(req: Request): Response | null {
 
 type Row = { external_url: string | null; disabled: boolean };
 
+// A link is live while nobody switched it off, the offer is not hidden by
+// complaints and its discount still holds. A card gone from the feed by
+// expires_at keeps it: the card lives 4:20, the discount to its own term
+// (offers spec §6.2, decided by quorum 2026-09-24).
+const LIVE = `redirect_disabled_at IS NULL AND status <> 'hidden' AND discount_until > now()`;
+
 async function find(code: string): Promise<Row | null | "unavailable"> {
   const rows = await query<Row>(
-    `SELECT external_url, redirect_disabled_at IS NOT NULL AS disabled FROM offers WHERE redirect_code = $1`,
+    `SELECT external_url, NOT (${LIVE}) AS disabled FROM offers WHERE redirect_code = $1`,
     [code],
   );
   if (rows === null) return "unavailable";
@@ -101,7 +107,7 @@ async function go(req: Request, code: string): Promise<Response> {
     // a web address counts; anything else answers 404 below and sent nobody.
     const hit = await query<{ external_url: string | null }>(
       `UPDATE offers SET redirect_hits = redirect_hits + 1
-        WHERE redirect_code = $1 AND redirect_disabled_at IS NULL AND external_url ~* '^https?://'
+        WHERE redirect_code = $1 AND ${LIVE} AND external_url ~* '^https?://'
         RETURNING external_url`,
       [code],
     );

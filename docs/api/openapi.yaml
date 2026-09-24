@@ -3035,8 +3035,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/offer_links.ts
       security: []
-      description: "Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled; counts nothing."
-      x-description-ru: "Показывается всегда, всем, при каждом переходе (offers/SPEC_RU.md §6.3): полный домен и погашена ли ссылка; ничего не считает."
+      description: "Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled — switched off, the offer hidden, or its discount over; counts nothing."
+      x-description-ru: "Показывается всегда, всем, при каждом переходе (offers/SPEC_RU.md §6.3): полный домен и погашена ли ссылка — отключена, оффер скрыт или вышел срок скидки; ничего не считает."
       parameters:
         - {name: code, in: path, required: true, schema: {type: string, minLength: 10}}
       responses:
@@ -3059,7 +3059,7 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "302": {description: To the venue., x-description-ru: На сайт заведения., headers: {Location: {schema: {type: string, format: uri}}, Cache-Control: {schema: {type: string, const: no-store}}, Referrer-Policy: {schema: {type: string, const: no-referrer}}}}
         "404": {description: No such code., x-description-ru: Такого кода нет.}
-        "410": {description: The link is disabled., x-description-ru: Ссылка погашена.}
+        "410": {description: "The link is disabled: switched off, the offer hidden by complaints, or its discount over (offers/SPEC_EN.md §6.2, 2026-09-24).", x-description-ru: "Ссылка погашена: отключена, оффер скрыт по жалобам или вышел срок скидки (offers/SPEC_RU.md §6.2, 24.09.2026)."}
   /o/{code}/report:
     post:
       tags: [offers]

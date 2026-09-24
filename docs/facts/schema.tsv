@@ -60,7 +60,7 @@ likes	docs/chat_RU.md:1930	relay/node/db/030_likes_matches_blocks.sql	product
 match_participants	docs/chat_RU.md:2028	relay/node/db/030_likes_matches_blocks.sql	product
 matches	docs/chat_RU.md:2020	relay/node/db/030_likes_matches_blocks.sql	product
 offers	docs/offers/SPEC_RU.md:310	relay/node/db/050_offers.sql	product
-offer_link_reports	docs/offers/SPEC_RU.md:698	-	product
+offer_link_reports	docs/offers/SPEC_RU.md:700	-	product
 pageview_daily	-	relay/node/db/001_control_state.sql	control
 pending_deliveries	docs/chat_RU.md:2313	relay/node/db/032_pending_deliveries.sql	product
 quota_counters	-	relay/node/db/001_control_state.sql	control

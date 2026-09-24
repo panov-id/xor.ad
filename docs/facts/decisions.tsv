@@ -42,7 +42,7 @@ chat.2026-08-31.865	2026-08-31	xor.ad/docs/chat_RU.md:1536	xor.ad/docs/chat_EN.m
 chat.2026-08-31.880	2026-08-31	xor.ad/docs/chat_RU.md:1551	xor.ad/docs/chat_EN.md:1573	Насколько — посчитано 31.08.2026, и прежняя формулировка «общее с сотн	By how much was computed on 2026-08-31, and the earlier wording "share
 SPEC.2026-08-28.124	2026-08-28	xor.ad/docs/dsa/SPEC_RU.md:133	xor.ad/docs/dsa/SPEC_EN.md:140	Стол добавлен 28.08.2026 — следствие, а не новое решение.	The table was added on 2026-08-28 — a consequence, not a new decision.
 SPEC.2026-08-29.207	2026-08-29	xor.ad/docs/dsa/SPEC_RU.md:304	xor.ad/docs/dsa/SPEC_EN.md:319	Записано 29.08.2026, и это вывод не юриста.	Recorded 2026-08-29, and this is not a lawyer's conclusion.
-SPEC.2026-08-27.482	2026-08-27	xor.ad/docs/offers/SPEC_RU.md:544	xor.ad/docs/offers/SPEC_EN.md:568	В ленте с 27.08.2026 три сущности	Since 2026-08-27 the feed holds three things
+SPEC.2026-08-27.482	2026-08-27	xor.ad/docs/offers/SPEC_RU.md:546	xor.ad/docs/offers/SPEC_EN.md:570	В ленте с 27.08.2026 три сущности	Since 2026-08-27 the feed holds three things
 SPEC.2026-08-29.280	2026-08-29	xor.ad/docs/offers/SPEC_RU.md:342	xor.ad/docs/offers/SPEC_EN.md:351	Срок — единственное ограничение со своим полем (правка 29.08.2026).	The term is the one limit with a field of its own (edit of 2026-08-29)
 app-prototype-spec.2026-08-26.144	2026-08-26	xor.ad/docs/app-prototype-spec_RU.md:144	xor.ad/docs/app-prototype-spec_EN.md:144	свой у каждого	each person's own
 app-prototype-spec.2026-08-26.147	2026-08-26	xor.ad/docs/app-prototype-spec_RU.md:147	xor.ad/docs/app-prototype-spec_EN.md:147	ступень	**band** of density
@@ -174,3 +174,4 @@ protocol.2026-09-24.slot503	2026-09-24	xor.ad/docs/protocol_RU.md:485	xor.ad/doc
 chat.2026-09-24.queueaway	2026-09-24	xor.ad/docs/chat_RU.md:886	xor.ad/docs/chat_EN.md:895	действует и в отлучку, решение владельца 24.09.2026	holds during a time away too, the owner's decision of 2026-09-24
 chat.2026-09-24.awaywake	2026-09-24	xor.ad/docs/chat_RU.md:886	xor.ad/docs/chat_EN.md:895	поминутное задание узла `wake_returned` будит удержанные комнаты	the minute job `wake_returned` wakes the held rooms
 chat.2026-09-24.cursorsealed	2026-09-24	xor.ad/docs/chat_RU.md:1733	xor.ad/docs/chat_EN.md:1758	с 24.09.2026 он запечатан	since 2026-09-24 it is sealed
+offers.2026-09-24.linkgoesout	2026-09-24	xor.ad/docs/offers/SPEC_RU.md:482	xor.ad/docs/offers/SPEC_EN.md:500	Ссылка гаснет и вместе с оффером — решено кворумом 24.09.2026	The link goes out with the offer too — decided by quorum on 2026-09-24

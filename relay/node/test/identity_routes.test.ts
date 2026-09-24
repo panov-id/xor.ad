@@ -1647,6 +1647,35 @@ Deno.test("an offer's link shows its domain, counts a person and not a previewer
   assertEquals((await call("GET", "/o/nosuchcode123")).status, 404);
 });
 
+// A link goes out with its offer (offers spec §6.2, decided by quorum
+// 2026-09-24): hidden by complaints, or its discount over — switched off, 410,
+// not counted. A card gone from the feed by expires_at keeps its link.
+Deno.test("an offer's link goes out when the offer is hidden or its discount is over, not when its card leaves the feed", async () => {
+  const set = (id: string, change: string) => database.queryOrThrow(`UPDATE offers SET ${change} WHERE id = $1`, [id]);
+  const agent = { agent: "Mozilla/5.0" };
+
+  const hidden = await seedOffer("https://ourcafe.example/");
+  await set(hidden.id, "status = 'hidden'");
+  assertEquals((await call("GET", `/o/${hidden.code}`)).body, { domain: "ourcafe.example", disabled: true },
+    "the exit screen of a hidden offer does not say the link is off");
+  assertEquals((await follow(hidden.code, agent)).status, 410, "a hidden offer still sends people on");
+  assertEquals(await hitsOf(hidden.id), 0, "a hidden offer's link counted a hit");
+  await set(hidden.id, "status = 'active'");
+  assertEquals((await follow(hidden.code, agent)).status, 302, "an offer shown again did not get its link back");
+
+  const over = await seedOffer("https://ourcafe.example/");
+  await set(over.id, "discount_until = now() - interval '1 minute'");
+  assertEquals((await call("GET", `/o/${over.code}`)).body, { domain: "ourcafe.example", disabled: true },
+    "the exit screen of an offer whose discount is over does not say the link is off");
+  assertEquals((await follow(over.code, agent)).status, 410, "an offer whose discount is over still sends people on");
+  assertEquals(await hitsOf(over.id), 0, "a link past its discount counted a hit");
+
+  const gone = await seedOffer("https://ourcafe.example/");
+  await set(gone.id, "status = 'expired', expires_at = now() - interval '1 minute'");
+  assertEquals((await follow(gone.code, agent)).status, 302, "a card gone from the feed took a live discount's link with it");
+  assertEquals(await hitsOf(gone.id), 1);
+});
+
 Deno.test("an offer with no link, or a link that is not a web address, sends nobody anywhere", async () => {
   const none = await seedOffer(null);
   assertEquals((await follow(none.code)).status, 404);

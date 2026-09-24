@@ -1146,7 +1146,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="get-o--code">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/o/{code}</code><span class="chip s-built">built</span></div>
 <p><strong>The exit screen of an offer link</strong></p>
-<p>Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled; counts nothing.</p>
+<p>Shown always, to everyone, on every click (offers/SPEC_EN.md §6.3): the full domain and whether the link is disabled — switched off, the offer hidden, or its discount over; counts nothing.</p>
 <h3>Access</h3><p>no access control</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>No such code.</td><td></td></tr><tr><td><code>200</code></td><td>Domain and state.</td><td><a href="#schema-offerexit"><code>OfferExit</code></a></td></tr></table></div>
@@ -1158,7 +1158,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>302 to external_url and redirect_hits + 1, nothing about the person; a disabled link answers 410, an unknown code 404. The answer carries Cache-Control: no-store, so no cache replays a link after it is disabled, and Referrer-Policy: no-referrer, so the venue never learns the /o/ code; HEAD and known link-preview agents get the 302 without counting (offers/SPEC_EN.md §6.2; review panel 2026-09-19).</p>
 <h3>Access</h3><p>no access control</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>302</code></td><td>To the venue.</td><td></td></tr><tr><td><code>404</code></td><td>No such code.</td><td></td></tr><tr><td><code>410</code></td><td>The link is disabled.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>302</code></td><td>To the venue.</td><td></td></tr><tr><td><code>404</code></td><td>No such code.</td><td></td></tr><tr><td><code>410</code></td><td>The link is disabled: switched off, the offer hidden by complaints, or its discount over (offers/SPEC_EN.md §6.2, 2026-09-24).</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/offer_links.ts</code></p>
 </section>
 <section class="op" id="post-o--code--report">

@@ -497,6 +497,8 @@ waiting for an examination. Two complaints from the interstitial are enough, and
 extinguishing happens by itself, **provided both complainants' first publications are older than a day and came out before the day of the offer** ("have had a publication accepted" [retired])
 (section 10.1, clarified 2026-09-14).
 
+**The link goes out with the offer too — decided by quorum on 2026-09-24.** An offer hidden by complaints (`hidden`) and an offer whose discount has run out (`discount_until`) answer as an extinguished link: the interstitial says "link switched off", the click-through is 410 and is not counted. Hiding can be undone ("Show again", section 8), so this is an extinguishing, not "no such link". A card that left the feed by `expires_at` does not put the link out: the card lives 4:20, the discount until its own term, and a saved card stays a promise. Rejected: 404 as for an unknown code (tells someone who saw the link it never was) and going out on `expires_at` (kills a discount still in force).
+
 **Only the number of click-throughs per offer is counted.** Not who went, not when, not from
 what address — a counter and nothing else. We keep the ability to extinguish; no knowledge about
 a person appears.

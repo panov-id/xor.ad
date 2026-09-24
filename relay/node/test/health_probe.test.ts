@@ -13,7 +13,7 @@ import { suite } from "./support/config_env.ts";
 
 const configured = suite({});
 
-const { health, ready } = await import("../src/routes/health.ts");
+const { health, ready, forgetProbe } = await import("../src/routes/health.ts");
 
 // This suite runs with DATABASE_URL unset, which is the interesting case: the
 // node is configured without a database, and "off" is not a failure. A node
@@ -76,4 +76,17 @@ configured("health names whether the vault key is set, and stays 200 either way"
   assertEquals(response.status, 200);
   const body = await response.json();
   assertEquals(body.vault_key, "missing", "health does not say the key is missing");
+});
+
+// ready() hands readiness() the node's own env: without that line the pure
+// rule above stays green and a staging node with no database still answers
+// ready (the verifier of d60fdac removed it and the unit run stayed 204+36).
+const staging = suite({ NODE_ENV_NAME: "staging" });
+staging("a staging node with no database answers /ready 503 and names database_off", async () => {
+  forgetProbe();
+  const response = await ready();
+  const body = await response.json();
+  assertEquals(response.status, 503, "a staging node without a database answered ready");
+  assertEquals(body.env, "staging");
+  assertEquals(body.reasons, ["database_off"]);
 });

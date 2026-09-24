@@ -161,6 +161,10 @@ async function comeBack(req: Request): Promise<Response> {
       // transaction began, and a row the minute's job took and woke meanwhile
       // would still look away to it when rechecked after the lock — two wakes
       // for one end (the window of one round-trip, found 2026-09-24).
+      // The price, measured by the verifier: a return begun before the end whose
+      // row another writer (not the job) held past the end wakes nothing itself;
+      // the flag stays up and the job wakes the rooms within its minute. One
+      // wake either way, sometimes a minute late — never two.
       `UPDATE identities SET stepped_away_until = now(), away_wake_due = false
         WHERE id = $1 AND stepped_away_until > clock_timestamp() RETURNING id`,
       [caller.identityId],

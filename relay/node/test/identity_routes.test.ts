@@ -1661,7 +1661,7 @@ Deno.test("an offer's link goes out when the offer is hidden or its discount is 
   assertEquals((await follow(hidden.code, agent)).status, 410, "a hidden offer still sends people on");
   assertEquals(await hitsOf(hidden.id), 0, "a hidden offer's link counted a hit");
   await set(hidden.id, "status = 'active'");
-  assertEquals((await follow(hidden.code, agent)).status, 302, "an offer shown again did not get its link back");
+  assertEquals((await follow(hidden.code, agent)).status, 302, "an offer back in active after its complaints were rejected did not get its link back");
 
   const over = await seedOffer("https://ourcafe.example/");
   await set(over.id, "discount_until = now() - interval '1 minute'");

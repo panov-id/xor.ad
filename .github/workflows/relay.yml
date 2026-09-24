@@ -171,6 +171,11 @@ jobs:
             echo "::endgroup::"
           done
           [ -z "$failed" ] || { echo "failed:$failed" >&2; exit 1; }
+      # Last, after every suite has written: a jsonb column holding a JSON string
+      # of its value, whatever SQL wrote it (tools/check_jsonb_strings.ts).
+      - name: jsonb columns hold values
+        working-directory: relay/node
+        run: deno run --allow-env --allow-net --allow-read tools/check_jsonb_strings.ts
 
   build-push:
     needs: [test, database]

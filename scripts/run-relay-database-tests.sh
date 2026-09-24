@@ -153,3 +153,13 @@ docker run --rm --network "$network" \
   -e DATABASE_URL="$database_url" \
   -v "$root/relay/node":/node -w /node "$image" \
   deno test --allow-env --allow-net --allow-read --allow-write test/identity_routes.test.ts "$@"
+
+echo
+echo "== jsonb columns hold values, not JSON strings of them"
+# Last, after every suite has written: it asks the data rather than the code,
+# so a writer that hands a string to a jsonb column is caught whatever its SQL
+# looks like (tools/check_jsonb_strings.ts; loop, 2026-09-24).
+docker run --rm --network "$network" \
+  -e DATABASE_URL="$database_url" \
+  -v "$root/relay/node":/node -w /node "$image" \
+  deno run --allow-env --allow-net --allow-read tools/check_jsonb_strings.ts

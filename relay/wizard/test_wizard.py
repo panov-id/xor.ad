@@ -491,6 +491,13 @@ check("the uploads read the chosen zone, not a hardcoded one",
 check("nothing addresses the working key directly any more",
       len(re.findall(r'AccessKey: \$\{BUNNY_STORAGE_KEY\}', backup)) == 0, backup[:200])
 
+# Watchdog С7's marker is the one thing that goes to the working zone whichever
+# zone the dumps chose — on purpose, through its own names, so the two checks
+# above keep catching an upload that does so by accident (loop, 2026-09-24).
+check("the backup marker goes to the working zone, through its own names",
+      'marker_zone="${BUNNY_STORAGE_ZONE}"' in backup and "${marker_zone}/backups/${environment}/last-ok.json" in backup,
+      "the marker is not addressed through marker_zone")
+
 # The fallback branch assigning key="${key}" is a real edit that happened here,
 # and it would have sent every dump with an empty AccessKey — a nightly failure
 # that looks like a provider problem.

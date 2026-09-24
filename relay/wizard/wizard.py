@@ -29,7 +29,9 @@ the one whose absence makes a prod deploy fail with the wrong explanation.
   node       SESSION_SECRET_DEV / _STAGING / _PROD (one per environment,
              never shared), VAULT_SHARE_KEY_DEV / _STAGING / _PROD (likewise,
              and losing one loses every local history in that environment),
-             POSTGRES_PASSWORD, ORIGIN_TOKEN, METRICS_TOKEN
+             POSTGRES_PASSWORD, ORIGIN_TOKEN, METRICS_TOKEN,
+             PROTOCOL_SUNSET_AT? (unix time the protocol's major version ends;
+             unset — no sunset), BACKUP_AGE_ALERT_HOURS? (watchdog С7, default 26)
   images     GHCR_USER, GHCR_TOKEN
   prod gate  GITHUB_TOKEN — read access to the release repo. Without it the
              release check cannot tell "no such release" from "private repo,
@@ -179,6 +181,13 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # means an unanswered notice past 48 hours warns nobody, and the node
         # says so in its log every ten minutes (lib/dsa_watchdog.ts).
         "DSA_ESCALATION_EMAILS": os.environ.get("DSA_ESCALATION_EMAILS", ""),
+        # Protocol §3: when the current major version stops being served, as unix
+        # time; empty is no sunset. Named in the protocol and read by the node,
+        # and missing from this map until 2026-09-24 (open.tsv
+        # node.env.undocumented) — an operator setting it had nowhere to put it.
+        "PROTOCOL_SUNSET_AT": os.environ.get("PROTOCOL_SUNSET_AT", ""),
+        # Watchdog С7 (lib/backup_watch.ts): hours before a late backup is told.
+        "BACKUP_AGE_ALERT_HOURS": os.environ.get("BACKUP_AGE_ALERT_HOURS", "26"),
         # Panel control plane: shared signing secret + per-env panel URL for the
         # magic-link email; PANEL_SENDER is the (panov.id-verified) from address.
         # Per environment, never shared. One secret across dev, staging and

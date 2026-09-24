@@ -22,7 +22,8 @@ introduces no rule that is not already in the spec. Where the two disagree,
 > proof — Argon2id 64 MB / t=3 is written down (§9, measured 2026-08-28), but the
 > parallelism and the device salt are not named, so a random proof stands in; the
 > paper code's halves and the node's share that opens no
-> vault yet; registering with them takes the `testOnly` flag.
+> vault yet; registering with them takes the `testOnly` flag. Status checked against
+> the code on 2026-09-24.
 
 ## 1. Why this face exists
 

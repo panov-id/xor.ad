@@ -60,6 +60,13 @@ if [ -n "${BACKUP_PUBLIC_KEY:-}" ]; then
   fi
 fi
 
+# The marker of a good night (watchdog С7) goes to the WORKING zone whichever
+# zone the dumps chose: the node reads it with its own key, and the backup
+# zone's key stays off the node (relay/node/src/lib/backup_watch.ts).
+marker_zone="${BUNNY_STORAGE_ZONE}"
+marker_key="${BUNNY_STORAGE_KEY}"
+marker_host="${BUNNY_STORAGE_HOST:-storage.bunnycdn.com}"
+
 stamp="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 # Keep a fortnight: control state is small, and two weeks is long enough to
 # notice a corruption that a single night's dump would have already overwritten.
@@ -149,9 +156,9 @@ for database in ${DATABASES}; do
   # (loop, 2026-09-24). A marker that fails to go up does not fail the backup;
   # the watchdog reads an old marker as a missed night, which errs loud.
   printf '{"at":"%s","dump":"%s","bytes":%s}' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${remote}" "${size}" |
-    curl -fsS -X PUT -H "AccessKey: ${BUNNY_STORAGE_KEY}" -H "Content-Type: application/json" \
+    curl -fsS -X PUT -H "AccessKey: ${marker_key}" -H "Content-Type: application/json" \
       --data-binary @- \
-      "https://${BUNNY_STORAGE_HOST:-storage.bunnycdn.com}/${BUNNY_STORAGE_ZONE}/backups/${environment}/last-ok.json" \
+      "https://${marker_host}/${marker_zone}/backups/${environment}/last-ok.json" \
       >/dev/null || echo "WARNING: the backup marker for ${environment} did not go up" >&2
 
   # Retention runs after a successful upload, never before: losing old dumps

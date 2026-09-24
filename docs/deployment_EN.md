@@ -181,6 +181,8 @@ until 2026-08-13.
 A template with every name and no values: `relay/wizard/secrets.env.example`. An
 empty value counts as absent — the wizard will say it could not check.
 
+Two optional node settings go the same way since 2026-09-24: `PROTOCOL_SUNSET_AT` — the unix time when the current major version of the protocol stops being served (protocol §3; empty — no end), and `BACKUP_AGE_ALERT_HOURS` — how many hours before watchdog W7 writes about a late backup (default 26). Until then the node read them and the wizard did not pass them.
+
 ### The vault key `VAULT_SHARE_KEY`: changed only at a loss
 
 The key seals two things: the node's share of each session's vault key

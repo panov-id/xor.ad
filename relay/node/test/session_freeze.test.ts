@@ -32,6 +32,9 @@ const database = await import("../src/lib/db.ts");
 // connections are opened lazily, and a connection opened *during* a test is a
 // leak by Deno's reckoning even when the pool goes on owning it.
 await database.queryOrThrow("SELECT 1");
+// The node's own listeners, started here for the same reason: each holds a
+// connection of the pool for good.
+await (await import("../src/chat/relay.ts")).listenForRooms();
 
 // A session needs an identity, and identities carry required columns; the two
 // rows are made here rather than through the routes, because what is under test
@@ -159,4 +162,42 @@ Deno.test("a freeze that is rolled back is never announced", async () => {
 // with it.
 addEventListener("unload", () => {
   database.closePool();
+});
+
+// The other end of `session_frame`: the node's rooms. A frame for one session
+// reaches every room that session holds, in any chat, and no room of another
+// session; a payload the node cannot read is dropped, not half-sent. Until
+// this case the listener in chat/relay.ts had no test (commit 5ed9cd7 said so).
+Deno.test("a session frame reaches every room of that session and no other", async () => {
+  const { roomsForTest } = await import("../src/chat/relay.ts");
+  const sent = new Map<string, unknown[]>();
+  const fake = (name: string): WebSocket => {
+    sent.set(name, []);
+    return { readyState: WebSocket.OPEN, send: (text: string) => sent.get(name)!.push(JSON.parse(text)), close() {} } as unknown as WebSocket;
+  };
+  const mine = crypto.randomUUID();
+  const theirs = crypto.randomUUID();
+  roomsForTest().set("chat-a", new Set([
+    { socket: fake("mine-a"), session: mine, chat: "chat-a", seq: 0 },
+    { socket: fake("theirs-a"), session: theirs, chat: "chat-a", seq: 0 },
+  ]));
+  roomsForTest().set("chat-b", new Set([{ socket: fake("mine-b"), session: mine, chat: "chat-b", seq: 4 }]));
+  try {
+    await database.queryOrThrow(`SELECT pg_notify('session_frame', $1)`, [`${mine}|not json`]);
+    await database.queryOrThrow(`SELECT pg_notify('session_frame', $1)`, [`${mine}|{"data":1}`]);
+    await database.queryOrThrow(`SELECT pg_notify('session_frame', $1)`,
+      [`${mine}|${JSON.stringify({ type: "name_verdict", data: { accepted: true } })}`]);
+    const until = Date.now() + 2000;
+    while (Date.now() < until && (sent.get("mine-a")!.length === 0 || sent.get("mine-b")!.length === 0)) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    assertEquals(sent.get("mine-a"), [{ type: "name_verdict", seq: 1, data: { accepted: true } }],
+      "the session's room did not get the frame, or got the unreadable ones");
+    assertEquals(sent.get("mine-b"), [{ type: "name_verdict", seq: 5, data: { accepted: true } }],
+      "the session's room in another chat did not get the frame in its own sequence");
+    assertEquals(sent.get("theirs-a"), [], "a room of another session got the frame");
+  } finally {
+    roomsForTest().delete("chat-a");
+    roomsForTest().delete("chat-b");
+  }
 });

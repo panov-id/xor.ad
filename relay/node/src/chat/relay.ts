@@ -190,6 +190,17 @@ function ensureListening(): Promise<void> {
   return listening;
 }
 
+// Every channel a room is served from. Exported for the database suite, which
+// puts rooms in by hand and needs the listeners without a ticket.
+export async function listenForRooms(): Promise<void> {
+  await ensureListening();
+  await ensureListeningFrozen();
+  await ensureListeningClosed();
+  await ensureListeningRekey();
+  await ensureListeningSys();
+  await ensureListeningSession();
+}
+
 // Every room, closed with 1001 "going away": the node is stopping, and a
 // client that sees 1001 reconnects to whatever answers next rather than
 // waiting on a socket that will never speak (step-5 panel, 2026-09-21).
@@ -259,12 +270,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
     inc("relay_chat_rooms_total", { result: "bad_ticket" });
     return response;
   }
-  await ensureListening();
-  await ensureListeningFrozen();
-  await ensureListeningClosed();
-  await ensureListeningRekey();
-  await ensureListeningSys();
-  await ensureListeningSession();
+  await listenForRooms();
   const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();

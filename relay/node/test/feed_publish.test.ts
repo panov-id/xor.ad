@@ -2949,6 +2949,56 @@ Deno.test({
   },
 });
 
+// The name's verdict reaches the author's open rooms as a `name_verdict`
+// frame (protocol §4.4 frames, §8.2): the node has no socket of a session's
+// own, so the frame goes to every room the session holds; with none open, the
+// profile's name_state says the same (loop plan A10, 2026-09-24).
+Deno.test({
+  name: "a name's verdict is announced to its author's live sessions, accepted or refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const heard: string[] = [];
+    await sql.listen("session_frame", (payload: string) => heard.push(payload));
+    const moderator = await panelAs("moderator");
+    const waiting = async (me: { identity_id: string; pair: CryptoKeyPair; session_id: string }, text: string) => {
+      await database.queryOrThrow(
+        `UPDATE identities SET name_state = 'pending', name_pending = 'Вера' WHERE id = $1`, [me.identity_id]);
+      await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text }));
+      const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
+        .find((i) => i.text === text);
+      assert(row, "a waiting phrase is not in the queue");
+      return row.id as string;
+    };
+    const frameFor = async (session: string) => {
+      for (let i = 0; i < 100; i++) {
+        const got = heard.find((p) => p.startsWith(`${session}|`));
+        if (got) return JSON.parse(got.slice(session.length + 1));
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      return null;
+    };
+    try {
+      const one = await author();
+      assertEquals((await moderator("POST", `/admin/feed-queue/${await waiting(one, "имя примут")}/publish`)).status, 200);
+      assertEquals(await frameFor(one.session_id), { type: "name_verdict", data: { accepted: true } },
+        "an accepted name was not announced to its author's session");
+
+      const two = await author();
+      assertEquals((await moderator("POST", `/admin/feed-queue/${await waiting(two, "имя отклонят")}/refuse-name`)).status, 200);
+      assertEquals(await frameFor(two.session_id), { type: "name_verdict", data: { accepted: false } },
+        "a refused name was not announced to its author's session");
+    } finally {
+      await sql.end();
+      reset();
+    }
+  },
+});
+
 Deno.test({
   name: "publish accepts only the name the moderator saw, and never a rejected one unread",
   sanitizeResources: false,

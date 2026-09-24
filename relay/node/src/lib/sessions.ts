@@ -124,3 +124,16 @@ export async function burnShare(run: Run, sessionId: string): Promise<void> {
   // counting it would make the number describe the sweep rather than the loss.
   if (burned.length > 0) inc("relay_vault_shares_burned_total");
 }
+
+// A frame for every live session of one identity, through their open rooms
+// (chat/relay.ts listens on `session_frame`): the node has no socket of a
+// session's own, so a frame meant for "the author's session" goes to each room
+// that session holds. The name's verdict first (protocol §4.4, `name_verdict`;
+// loop plan A10, 2026-09-24). In the caller's transaction: sent on commit.
+export async function frameSessions(run: Run, identityId: string, type: string, data: unknown): Promise<void> {
+  await run(
+    `SELECT pg_notify('session_frame', s.id || '|' || $2) FROM sessions s
+      WHERE s.identity = $1 AND s.frozen_at IS NULL`,
+    [identityId, JSON.stringify({ type, data })],
+  );
+}

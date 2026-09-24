@@ -1950,10 +1950,12 @@ mistaken for a loss.
       its notification, the burning of a share on a move, a sweeper for three
       deadlines, and 46 cases against a live Postgres.
 
-      **What of the list below is still not built:** the device transfer as a
-      whole (blocked by the fork in G15 — neither side has a way to learn the
-      outcome), the chat key re-issue, and the transfer confirmation screen with
-      its context. The rest of the list is done and checked; §14's acceptance for
+      **What of the list below is still not built — checked against the code
+      2026-09-24:** the transfer confirmation screen with its context in the
+      client. The transfer is built on the node (`routes/transfer.ts`, five
+      `/sessions/*` routes, tests in `transfer_routes.test.ts`), and so is the
+      chat key re-issue (`POST /chats/:id/rekey`); this said "the transfer as a
+      whole (the G15 fork) and the chat key re-issue are not built" [retired]. The rest of the list is done and checked; §14's acceptance for
       step 1 is broken out row by row in `docs/test-map_EN.md`, and what the
       review panel found in this code is in
       `docs/reviews/PANEL_2026-09-20_step1-identity.md`.

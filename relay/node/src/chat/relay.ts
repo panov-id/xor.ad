@@ -158,6 +158,25 @@ function ensureListeningSys(): Promise<void> {
   return listeningSys;
 }
 
+// `NOTIFY session_frame` carries "<session>|<json {type, data}>": a frame for
+// every room that one session holds — today the name's verdict (lib/sessions.ts
+// frameSessions; protocol §4.4, 2026-09-24).
+let listeningSession: Promise<void> | null = null;
+function ensureListeningSession(): Promise<void> {
+  listeningSession ??= listen("session_frame", (payload) => {
+    const cut = payload.indexOf("|");
+    if (cut < 0) return;
+    const session = payload.slice(0, cut);
+    let body: { type?: unknown; data?: unknown };
+    try { body = JSON.parse(payload.slice(cut + 1)); } catch { return; }
+    if (typeof body.type !== "string") return;
+    for (const set of rooms.values()) {
+      for (const room of set) if (room.session === session) frame(room, body.type, body.data);
+    }
+  });
+  return listeningSession;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     // "<chat>:<local id>" for a new line; "<chat>::<session>" when a session
@@ -245,6 +264,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   await ensureListeningClosed();
   await ensureListeningRekey();
   await ensureListeningSys();
+  await ensureListeningSession();
   const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();

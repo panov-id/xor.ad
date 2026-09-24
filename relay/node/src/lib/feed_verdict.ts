@@ -20,6 +20,7 @@
 import { queryOrThrow, transaction } from "./db.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
+import { frameSessions } from "./sessions.ts";
 
 // docs/facts/limits.tsv, by name.
 export const PHRASE_SPAN = "4 hours 20 minutes"; // feed.phrase.span
@@ -150,12 +151,13 @@ export async function publishPhrase(id: string, scope: VerdictScope = {}): Promi
       // again, since the moderator has just read it beside the phrase.
       // Only a name that was waiting: a rejected one has no name_pending and
       // would come back as it was, which is not what "accepted" means.
-      await run(
+      const named = await run<{ id: string }>(
         `UPDATE identities
             SET name = name_pending, name_pending = NULL, name_state = 'accepted'
-          WHERE id = $1 AND name_state = 'pending'`,
+          WHERE id = $1 AND name_state = 'pending' RETURNING id`,
         [row.author_identity],
       );
+      if (named.length > 0) await frameSessions(run, row.author_identity, "name_verdict", { accepted: true });
       await rememberMoment(run, row.author_identity, "published_at_recent", KEEP_PUBLISHED);
       // The first accepted publication, as a UTC date. It serves one rule only
       // — "the reporter has been publishing for a while" (offers spec §10.1) —
@@ -213,6 +215,9 @@ export async function refuseName(id: string, scope: VerdictScope = {}): Promise<
       `UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = $1`,
       [row.author_identity],
     );
+    // No reason: the verdict carries none for a name today, and the frame
+    // does not make one up.
+    await frameSessions(run, row.author_identity, "name_verdict", { accepted: false });
     inc("relay_feed_verdict_total", { verdict: "name_refused" });
     return { applied: true, identityId: row.author_identity };
   });

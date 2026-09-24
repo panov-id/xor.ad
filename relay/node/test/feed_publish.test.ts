@@ -3564,6 +3564,32 @@ Deno.test({
   },
 });
 
+// The answer to a step away can be lost on the way back, and the client sends
+// the same request again. Protocol §2: a repeated nonce answers what the first
+// answered and does nothing again. The guard in front of the route refused
+// anyone away before the nonce was ever looked at, so the repeat — of the one
+// request that makes one away — got 409 stepped_away instead (loop quorum,
+// 2026-09-24).
+Deno.test({
+  name: "a repeated step away, same nonce, answers what the first answered and does nothing again",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a } = await freshMatch();
+    const nonce = awayNonce();
+    const first = await matchCall(a, "POST", "/away", { span: "hour", nonce });
+    assertEquals(first.status, 200, JSON.stringify(first.body));
+    const until = async () => (await database.queryOrThrow<{ until: Date }>(
+      `SELECT stepped_away_until AS until FROM identities WHERE id = $1`, [a.identity_id]))[0].until.getTime();
+    const untilBefore = await until();
+
+    const again = await matchCall(a, "POST", "/away", { span: "hour", nonce });
+    assertEquals(again.status, 200, `the repeat was refused: ${JSON.stringify(again.body)}`);
+    assertEquals(again.body, first.body, "the repeat answered something other than the first");
+    assertEquals(await until(), untilBefore, "the repeat moved the time one comes back");
+  },
+});
+
 Deno.test({
   name: "stepping away puts out a match that has not become a conversation, for the other side too",
   sanitizeResources: false,

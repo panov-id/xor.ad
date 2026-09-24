@@ -27,7 +27,7 @@
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { transaction } from "../lib/db.ts";
+import { queryOrThrow, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
@@ -52,7 +52,12 @@ async function stepAway(req: Request): Promise<Response> {
 }
 
 async function stepAwayOnce(req: Request): Promise<Response> {
-  const caller = await callerOf(req);
+  // Past the guard's refusal of anyone away, and refused below instead: the
+  // one request that makes a person away is also the one whose repeat must
+  // find them away. The guard answered that repeat 409 before the nonce was
+  // looked at, so a lost answer could never be asked for again (protocol §2;
+  // loop quorum, 2026-09-24).
+  const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;
   const body = await req.json().catch(() => null) as { span?: unknown; nonce?: unknown } | null;
   if (!body || typeof body !== "object") return refuse("invalid_body", "a JSON object is expected", 400);
@@ -63,6 +68,19 @@ async function stepAwayOnce(req: Request): Promise<Response> {
   const given = typeof body.nonce === "string" ? base64urlToBytes(body.nonce) : null;
   if (!given || given.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
   const me = caller.identityId;
+
+  const away = caller.steppedAwayUntil;
+  if (away && away.getTime() > Date.now()) {
+    const [kept] = await queryOrThrow<{ response: unknown }>(
+      `SELECT response FROM nonces WHERE session_id = $1 AND nonce = $2 AND route = 'POST /away'`,
+      [caller.sessionId, given],
+    );
+    if (kept && kept.response !== null) return json(kept.response, 200, sunsetHeader());
+    // Anything else while away is what the guard would have said.
+    return refuse("stepped_away", "you are away until the time you chose", 409, {
+      until: Math.floor(away.getTime() / 1000),
+    });
+  }
 
   return await transaction<Response>(async (run) => {
     // The nonce first, as POST /blocks does: a repeat answers what the first
@@ -183,7 +201,7 @@ async function stepAwayOnce(req: Request): Promise<Response> {
       [me, minutes],
     );
     const answer = { until: Number(until.until) };
-    await run(`UPDATE nonces SET response = $3::jsonb WHERE session_id = $1 AND nonce = $2`, [
+    await run(`UPDATE nonces SET response = $3::text::jsonb WHERE session_id = $1 AND nonce = $2`, [
       caller.sessionId,
       given,
       JSON.stringify(answer),

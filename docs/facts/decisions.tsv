@@ -177,3 +177,4 @@ chat.2026-09-24.cursorsealed	2026-09-24	xor.ad/docs/chat_RU.md:1733	xor.ad/docs/
 offers.2026-09-24.linkgoesout	2026-09-24	xor.ad/docs/offers/SPEC_RU.md:482	xor.ad/docs/offers/SPEC_EN.md:500	Ссылка гаснет и вместе с оффером — решено кворумом 24.09.2026	The link goes out with the offer too — decided by quorum on 2026-09-24
 deployment.2026-09-24.readyoff	2026-09-24	xor.ad/docs/deployment_RU.md:272	xor.ad/docs/deployment_EN.md:288	узлу staging или prod совсем без базы	decided by quorum on 2026-09-24
 watchdogs.2026-09-24.c1ceiling	2026-09-24	xor.ad/docs/watchdogs_RU.md:35	xor.ad/docs/watchdogs_EN.md:38	решено кворумом 24.09.2026, по числу владельца для С2	decided by quorum on 2026-09-24, by the owner's number for W2
+protocol.2026-09-24.receiptbody	2026-09-24	xor.ad/docs/protocol_RU.md:249	xor.ad/docs/protocol_EN.md:260	тело решено кворумом 24.09.2026	the body decided by quorum on 2026-09-24

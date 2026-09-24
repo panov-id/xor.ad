@@ -1089,6 +1089,92 @@ Deno.test({
   },
 });
 
+// --- a receipt without a mailbox (dsa/SPEC §6) --------------------------------
+// The device keeps a random code, the node its SHA-256. The decision is asked by
+// the code; "no such receipt" and "not decided yet" must not be told apart —
+// not by the body, not by the status, not by the clock.
+Deno.test({
+  name: "a receipt answers the decision, and an unknown or undecided one answers alike",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { report, receiptDecision, RECEIPT_FLOOR_MS } = await import("../src/routes/report.ts");
+    // The report and receipt limits are per address and in memory, and every
+    // request of this suite comes from the same one: a clean slate before and
+    // after, so this case neither trips nor spends another case's allowance.
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const { sha256hex } = await import("../src/lib/identity_auth.ts");
+    const hex = () => [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    const code = hex();
+    const hash = await sha256hex(new TextEncoder().encode(code));
+    const filed = await report(new Request("https://relay.test/report", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ target_kind: "other", reason_text: `receipt ${uniqueId()}`, bona_fide: true, receipt_hash: hash }),
+    }));
+    assertEquals(filed.status, 202);
+    const { id } = await filed.json();
+    const [stored] = await database.queryOrThrow<{ receipt_hash: string | null }>(
+      "SELECT receipt_hash FROM dsa_notices WHERE id = $1", [id]);
+    assertEquals(stored.receipt_hash, hash, "the notice did not keep the device's receipt hash");
+
+    const ask = async (c: string) => {
+      const started = performance.now();
+      const response = await receiptDecision(new Request("https://relay.test/report/decision", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: c }),
+      }));
+      return { status: response.status, cache: response.headers.get("cache-control"), text: await response.text(), ms: performance.now() - started };
+    };
+    const undecided = await ask(code);
+    const unknown = await ask(hex());
+    assertEquals([undecided.status, undecided.text, undecided.cache], [unknown.status, unknown.text, unknown.cache],
+      "an undecided notice and an unknown receipt can be told apart");
+    assertEquals(undecided.text, JSON.stringify({ decided: false }));
+    assertEquals(undecided.cache, "no-store");
+    assert(undecided.ms >= RECEIPT_FLOOR_MS - 5 && unknown.ms >= RECEIPT_FLOOR_MS - 5,
+      `an answer came under the floor (${Math.round(undecided.ms)} and ${Math.round(unknown.ms)} ms)`);
+
+    await database.queryOrThrow(
+      "UPDATE dsa_notices SET status = 'rejected', decided_at = now(), automated_used = false WHERE id = $1", [id]);
+    const decided = await ask(code);
+    assertEquals(decided.status, 200);
+    const answer = JSON.parse(decided.text);
+    assertEquals([answer.decided, answer.outcome, answer.automated], [true, "rejected", false],
+      "the decision did not reach the device that holds the receipt");
+    assertEquals(typeof answer.decided_at, "number");
+
+    assertEquals((await ask("not-a-code")).status, 422);
+    await database.queryOrThrow("DELETE FROM dsa_notices WHERE id = $1", [id]);
+    reset();
+  },
+});
+
+Deno.test({
+  name: "a malformed receipt hash does not cost the notice",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { report } = await import("../src/routes/report.ts");
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const filed = await report(new Request("https://relay.test/report", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ target_kind: "other", reason_text: `receipt ${uniqueId()}`, bona_fide: true, receipt_hash: "XYZ" }),
+    }));
+    assertEquals(filed.status, 202, "a notice was refused over its optional receipt");
+    const { id } = await filed.json();
+    const [stored] = await database.queryOrThrow<{ receipt_hash: string | null }>(
+      "SELECT receipt_hash FROM dsa_notices WHERE id = $1", [id]);
+    assertEquals(stored.receipt_hash, null);
+    await database.queryOrThrow("DELETE FROM dsa_notices WHERE id = $1", [id]);
+    reset();
+  },
+});
+
 // --- article 16(4): acknowledged is a fact, not an intention -------------------
 
 Deno.test({

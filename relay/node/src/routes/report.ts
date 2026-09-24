@@ -18,7 +18,8 @@ import { log } from "../lib/log.ts";
 import { markArrivalSent, sendNightPathCopies } from "../lib/notice_notify.ts";
 import { captureTarget } from "../lib/dsa_snapshot.ts";
 import { clientAddress } from "../lib/client_ip.ts";
-import { checkAll, REPORT_LIMITS } from "../lib/rate_limit.ts";
+import { checkAll, RECEIPT_LIMITS, REPORT_LIMITS } from "../lib/rate_limit.ts";
+import { sha256hex } from "../lib/identity_auth.ts";
 
 // The table and screen 19 were added on 2026-08-26; `table_line` reached the DSA
 // specification on 2026-08-28 (191eb9e) and this set on 2026-08-30: for two days
@@ -53,10 +54,60 @@ interface Body {
   brand?: unknown;
   lang?: unknown;
   source?: unknown;
+  receipt_hash?: unknown;
 }
 
 const text = (value: unknown, max: number): string | null =>
   typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+
+const RECEIPT_HASH = /^[0-9a-f]{64}$/;
+const RECEIPT_CODE = /^[0-9a-f]{32}$/;
+// Both answers that must not be told apart take at least this long: an unknown
+// receipt costs one indexed miss, an undecided one a hit — the difference is
+// below this floor, so the clock says nothing about which it was.
+export const RECEIPT_FLOOR_MS = 300;
+const UNDECIDED = { decided: false };
+
+// POST /report/decision (dsa/SPEC §6, protocol §4.5): the decision on a notice
+// by the receipt code its device kept. Not signed by an identity, the code in
+// the body. "No such receipt" and "not decided yet" answer the same, byte for
+// byte and no faster than RECEIPT_FLOOR_MS. The address is used for the limit
+// in memory and written nowhere. A decision says the outcome, whether automation
+// was used and when — not why: the reason for the notifier has no column yet
+// (decided by quorum 2026-09-24; the body was left open in the canon).
+export async function receiptDecision(req: Request): Promise<Response> {
+  const started = performance.now();
+  const { ip } = clientAddress(req);
+  const verdict = checkAll(RECEIPT_LIMITS, ip);
+  if (!verdict.allowed) {
+    return json({ error: "too many requests — try later" }, 429, { "retry-after": String(verdict.retryAfterSeconds) });
+  }
+  const body = await readJson<{ code?: unknown }>(req);
+  if (!body || typeof body.code !== "string" || !RECEIPT_CODE.test(body.code)) {
+    return json({ error: "code must be 32 hex characters" }, 422);
+  }
+  const hash = await sha256hex(new TextEncoder().encode(body.code));
+  const rows = await query<{ status: string; automated_used: boolean; decided_at: Date }>(
+    `SELECT status, automated_used, decided_at FROM dsa_notices
+      WHERE receipt_hash = $1 AND decided_at IS NOT NULL AND status IN ('upheld', 'rejected')
+      LIMIT 1`,
+    [hash],
+  );
+  if (rows === null) return json({ error: "the node cannot read right now" }, 503);
+  const row = rows[0];
+  const answer = row
+    ? {
+      decided: true,
+      outcome: row.status,
+      automated: row.automated_used,
+      decided_at: Math.floor(new Date(row.decided_at).getTime() / 1000),
+    }
+    : UNDECIDED;
+  const wait = RECEIPT_FLOOR_MS - (performance.now() - started);
+  if (!row && wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+  inc("relay_receipt_total", { result: row ? "decided" : "none" });
+  return json(answer, 200);
+}
 
 export async function report(req: Request): Promise<Response> {
   // A limit here is more delicate than on a signup: refusing a report of illegal
@@ -190,8 +241,8 @@ export async function report(req: Request): Promise<Response> {
     `INSERT INTO dsa_notices
        (brand, target_kind, target_id, snapshot, reason_text,
         notifier_name, notifier_email, bona_fide, status, snapshot_state,
-        snapshot_reason, received_via)
-     VALUES ($1, $2, $3, $4::text::jsonb, $5, $6, $7, true, 'received', $8, $9, $10)
+        snapshot_reason, received_via, receipt_hash)
+     VALUES ($1, $2, $3, $4::text::jsonb, $5, $6, $7, true, 'received', $8, $9, $10, $11)
      RETURNING id`,
     [
       examinedBy,
@@ -204,6 +255,10 @@ export async function report(req: Request): Promise<Response> {
       status,
       snapshotReason,
       arrivedVia,
+      // The device's receipt (dsa/SPEC §6): a hash of a code the node never
+      // sees. A malformed one is dropped, not refused — refusing a notice for
+      // an optional field would be refusing the obligation over nothing.
+      typeof body.receipt_hash === "string" && RECEIPT_HASH.test(body.receipt_hash) ? body.receipt_hash : null,
     ],
   );
 

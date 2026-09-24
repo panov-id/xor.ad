@@ -184,7 +184,7 @@ components:
       x-description-ru: Уведомление по ст. 16 DSA.
       required: [target_kind, reason_text, bona_fide]
       properties:
-        receipt_hash: {type: string, pattern: '^[0-9a-f]{64}$', description: "SHA-256 of the receipt code born on the device (dsa/SPEC §6); proposed 2026-09-16, LAW-2 of pass 3 — not accepted by report.ts yet.", x-description-ru: "SHA-256 кода квитанции, рождённого на устройстве (dsa/SPEC §6); предложено 16.09.2026, LAW-2 прохода 3 — report.ts его ещё не принимает."}
+        receipt_hash: {type: string, pattern: '^[0-9a-f]{64}$', description: "SHA-256 of the receipt code born on the device (dsa/SPEC §6); proposed 2026-09-16, LAW-2 of pass 3; accepted since 2026-09-24 (db/052), a malformed one is dropped, not refused.", x-description-ru: "SHA-256 кода квитанции, рождённого на устройстве (dsa/SPEC §6); предложено 16.09.2026, LAW-2 прохода 3; принимается с 24.09.2026 (db/052), кривой отбрасывается, а не отказывает."}
         target_kind: {type: string, enum: [feed_message, offer, table_line, chat, other]}
         reason_text: {type: string, maxLength: 4000}
         bona_fide: {type: boolean, const: true}
@@ -238,7 +238,17 @@ components:
       description: The device's receipt code, in the body and never in the address (dsa/SPEC §6).
       x-description-ru: Код квитанции с устройства, в теле и никогда в адресе (dsa/SPEC §6).
       properties:
-        code: {type: string}
+        code: {type: string, pattern: '^[0-9a-f]{32}$'}
+    ReceiptDecision:
+      type: object
+      description: "{decided: false} for an unknown receipt and an undecided notice alike; the outcome once decided (2026-09-24)."
+      x-description-ru: "{decided: false} одинаково для неизвестной квитанции и нерешённого уведомления; исход, когда решено (24.09.2026)."
+      required: [decided]
+      properties:
+        decided: {type: boolean}
+        outcome: {type: string, enum: [upheld, rejected]}
+        automated: {type: boolean}
+        decided_at: {type: integer, description: unix seconds, x-description-ru: unix-секунды}
     SessionsClaim:
       type: object
       properties:
@@ -935,15 +945,19 @@ paths:
       tags: [intake]
       summary: The decision on a notice by its receipt code
       x-summary-ru: Решение по уведомлению по коду квитанции
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/dispatch.ts
       security: []
-      description: 'Not signed by an identity; the code in the body. "No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The decision body is not spelled out in the canon.'
+      description: 'Not signed by an identity; the code in the body. "No such receipt" and "not decided yet" get one answer: status 200, the body byte for byte, Cache-Control no-store, one minimum response time for both branches; the per-address limit lives in memory and is not logged (dsa/SPEC §6, protocol §4.5). The code is 32 hex characters; the decision body was decided by quorum on 2026-09-24.'
       x-description-ru: 'Личностью не подписан; код в теле. На «нет такой квитанции» и «решения ещё нет» ответ один: статус 200, тело байт в байт, Cache-Control no-store, одно минимальное время на обе ветки; предел по адресу держится в памяти и в журнал не пишется (dsa/SPEC §6, протокол §4.5). Тело решения в каноне поле за полем не описано.'
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/ReceiptQuery"}}}}
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
-        "200": {description: The same answer for an unknown receipt and an undecided notice; the decision once there is one., x-description-ru: "Один ответ на неизвестную квитанцию и нерешённое уведомление; решение, когда оно есть."}
+        "200": {description: The same answer for an unknown receipt and an undecided notice; the decision once there is one., x-description-ru: "Один ответ на неизвестную квитанцию и нерешённое уведомление; решение, когда оно есть.", content: {application/json: {schema: {$ref: "#/components/schemas/ReceiptDecision"}}}}
+        "422": {description: The code is not 32 hex characters., x-description-ru: Код — не 32 шестнадцатеричных символа.}
+        "429": {description: "Address limit, in memory.", x-description-ru: "Предел адреса, в памяти."}
+        "503": {description: The node cannot read right now., x-description-ru: Узел сейчас не может читать.}
   /csp-report:
     post:
       tags: [intake]

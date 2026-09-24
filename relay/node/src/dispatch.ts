@@ -14,7 +14,7 @@ import { metrics } from "./routes/metrics.ts";
 import { waitlist } from "./routes/waitlist.ts";
 import { clientError } from "./routes/client_error.ts";
 import { pageview } from "./routes/pageview.ts";
-import { report } from "./routes/report.ts";
+import { receiptDecision, report } from "./routes/report.ts";
 import { cspReport } from "./routes/csp_report.ts";
 import { rememberRemote } from "./lib/client_ip.ts";
 // Registers its own routes on import, like the admin module does.
@@ -56,6 +56,8 @@ const routes: Record<string, Handler> = {
   // unauthenticated by design — an authority or a stranger must be able to
   // reach it without an account.
   "POST /report": (req) => report(req),
+  // The decision on one's own notice by its receipt code (dsa/SPEC §6).
+  "POST /report/decision": (req) => receiptDecision(req),
   // Where a browser says the content policy blocked something. Public and
   // unauthenticated by necessity: a violation report carries none of our
   // headers, and a report that needed a key would be silenced by exactly the

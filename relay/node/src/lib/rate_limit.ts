@@ -64,6 +64,13 @@ export const WAITLIST_LIMITS: Limit[] = [
 
 // Higher on purpose: refusing a report of illegal content is refusing a legal
 // obligation, so the cost of a false refusal here is not an annoyed visitor.
+// POST /report/decision: a device asks now and then, at a random moment of a
+// session; a guesser asks many times. Kept in memory and never logged
+// (dsa/SPEC §6).
+export const RECEIPT_LIMITS: Limit[] = [
+  { name: "receipt", max: 30, windowMs: HOUR },
+];
+
 export const REPORT_LIMITS: Limit[] = [
   { name: "report", max: 10, windowMs: HOUR },
   { name: "report-day", max: 40, windowMs: DAY },

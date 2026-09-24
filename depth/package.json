@@ -8,6 +8,7 @@
     "test": "node --experimental-transform-types --test ink/*.node-test.ts"
   },
   "dependencies": {
+    "hash-wasm": "4.12.0",
     "ink": "6.0.1",
     "react": "19.1.0"
   },

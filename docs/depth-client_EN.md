@@ -1359,3 +1359,13 @@ such a contract.
   supported old branch is code nobody touches and nobody checks.
 - **Re-asking for age** (§8.2 re-asks **once a year**: "are you still 38?", one
   line that closes on a tap) — what that looks like in a terminal is undecided.
+
+  **The library and the parallelism were chosen on 2026-09-24 by measurement in
+  both runtimes of the core** (the loop, without asking: the owner had it
+  choose; `depth/core/pin.ts`): `p=1`, `hash-wasm` 4.12.0 — about 270 ms in Deno
+  and in Node, and byte for byte the output of the `argon2-cffi` reference;
+  `@noble/hashes` matched too but took about 2.8 s — twenty times the limit
+  above; `argon2-browser` crashed the process in both. The price is named: a
+  one-author dependency on the crypto path and the core's first outside import
+  (`depth/deno.json` for Deno, `package.json` for Node, one version). The device
+  salt is 16 random bytes per device.

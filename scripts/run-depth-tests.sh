@@ -76,7 +76,7 @@ status=0
 docker run --rm --network "$network" $cache \
   -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" -e DEPTH_DATABASE_URL="$database_url" -e DEPTH_ORIGIN_TOKEN=depth-test-origin \
   -v "$root":/repo -w /repo "$image" \
-  deno test --allow-env --allow-read --allow-net depth/ "$@" 2>&1 | tee "$out" || status=$?
+  deno test --config depth/deno.json --allow-env --allow-read --allow-net depth/ "$@" 2>&1 | tee "$out" || status=$?
 if [ "$status" -eq 0 ] && grep -qE "[1-9][0-9]* ignored" "$out"; then
   echo "tests were skipped — the live ones must run here" >&2; status=1
 fi

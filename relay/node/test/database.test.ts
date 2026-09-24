@@ -1941,6 +1941,25 @@ Deno.test({
     assertEquals(done.status, 200);
     assertEquals(done.body.recipient, "cy_police_cybercrime");
 
+    // Article 18 is kept by the record, not by the 200: who told whom, when,
+    // about what (dsa/SPEC §4). The write is not awaited by the route, so the
+    // record is waited for rather than assumed.
+    const { list, get } = await import("../src/lib/storage.ts");
+    const { auditDir } = await import("../src/lib/audit.ts");
+    let record: Body = null;
+    for (const until = Date.now() + 3000; Date.now() < until && !record;) {
+      // list() gives file names, not paths.
+      for (const name of await list(auditDir())) {
+        const event = await get<Body>(`${auditDir()}/${name}`);
+        if (event?.action === "dsa_notice.escalated" && event?.target === id) record = event;
+      }
+      if (!record) await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    assert(record, "the escalation left no record in the audit log — Article 18 has nothing to show");
+    assertEquals(record.after.recipient, "cy_police_cybercrime");
+    assertEquals(record.actor_role, "moderator", "the record does not say who escalated");
+    assert(record.at, "the record does not say when");
+
     // A tenant cannot escalate somebody else's notice, for the same reason it
     // cannot decide one: whether it exists is not their business.
     const theirs = await seedNotice("beta", `article 18 beta ${uniqueId()}`);

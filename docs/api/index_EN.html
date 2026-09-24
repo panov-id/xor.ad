@@ -559,15 +559,16 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Source: <code>relay/node/src/routes/identity.ts</code></p>
 </section>
 <section class="op" id="get-legal-manifest">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/legal/manifest</code><span class="chip s-built">built</span></div>
 <p><strong>The documents&#x27; current revisions</strong></p>
 <p>Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>The manifest.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/legal.ts</code></p>
 </section>
 <section class="op" id="post-legal-accept">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/legal/accept</code><span class="chip s-built">built</span></div>
 <p><strong>Record an acceptance</strong></p>
 <p>Document, date, hash; one row each.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -575,6 +576,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-legalaccept"><code>LegalAccept</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Recorded.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/legal.ts</code></p>
 </section>
 <section class="op" id="get-identities-me">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/identities/me</code><span class="chip s-built">built</span></div>

@@ -41,6 +41,7 @@ import "./routes/away.ts"; // POST/DELETE /away: stepping away and coming back (
 import "./routes/support.ts";
 import "./routes/support_admin.ts"; // GET /admin/support, answer: the team's side (protocol §4.10a) // POST/GET /support, /support/:no/seen: screen 14 (protocol §4.10)
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)
+import "./routes/legal.ts"; // GET /legal/manifest, POST /legal/accept (§4.1)
 
 type Handler = (req: Request) => Response | Promise<Response>;
 import { capBody } from "./lib/body_limit.ts";

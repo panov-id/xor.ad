@@ -1,6 +1,7 @@
 {
-  "//": "The core runs in Deno for its tests and in Node for the screens. One bare name for each outside module, mapped here for Deno and resolved from node_modules (package.json, same version) in Node. nodeModulesDir none: Deno takes npm packages from its own cache, so the node_modules the screens use does not have to carry them.",
+  "//": "The core runs in Deno for its tests and in Node for the screens. One bare name for each outside module, mapped here for Deno and resolved from node_modules (package.json, same version) in Node. nodeModulesDir none: Deno takes npm packages from its own cache, so the node_modules the screens use does not have to carry them. No lock file: the version is pinned here and in package.json, and a lock written by every test run is noise in the tree.",
   "nodeModulesDir": "none",
+  "lock": false,
   "imports": {
     "hash-wasm": "npm:hash-wasm@4.12.0"
   }

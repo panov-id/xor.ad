@@ -1743,20 +1743,22 @@ paths:
       tags: [identity]
       summary: The documents' current revisions
       x-summary-ru: Нынешние редакции документов
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/legal.ts
       security: [{publishableKey: []}]
       description: Date, substance sha256 and re-acceptance policy of the three documents; required for all three since 2026-09-15.
       x-description-ru: Дата, sha256 существа и политика повторного принятия трёх документов; required у всех трёх с 15.09.2026.
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
-        "200": {description: The manifest., x-description-ru: Манифест., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {type: object, properties: {documents: {type: array, items: {type: object, properties: {document: {type: string}, revision_date: {type: string, format: date}, revision_sha256: {type: string}, lang: {type: string}}}}}}}}}
+        "200": {description: The manifest., x-description-ru: Манифест., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {type: object, properties: {documents: {type: array, items: {type: object, properties: {document: {type: string, enum: [terms, privacy, guidelines]}, revision_date: {type: string, format: date}, revision_sha256: {type: string}, reaccept: {type: string, description: "The storefront's re-acceptance policy of this revision; required for all three since 2026-09-15.", x-description-ru: "Политика повторного принятия этой редакции у витрины; required у всех трёх с 15.09.2026."}, lang: {type: string}}}}}}}}}
   /legal/accept:
     post:
       tags: [identity]
       summary: Record an acceptance
       x-summary-ru: Записать принятие
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/legal.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}

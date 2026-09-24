@@ -11,6 +11,8 @@ COPY src ./src
 # belongs to the version of the code that needs it, and the database is only
 # reachable from inside the box's compose network anyway.
 COPY db ./db
+# Each storefront's legal revisions, copied by scripts/sync-legal-revisions.sh (GET /legal/manifest).
+COPY legal ./legal
 COPY tools ./tools
 RUN deno cache src/main.ts
 

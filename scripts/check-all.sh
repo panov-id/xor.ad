@@ -91,6 +91,7 @@ run check-retired-terms        bash "$here/check-retired-terms.sh"
 run check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
 run check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
 run check-identity-cascades    bash "$here/check-identity-cascades.sh"
+run sync-legal-revisions       bash "$here/sync-legal-revisions.sh" --check
 run check-screens-mirror       bash "$here/check-screens-mirror.sh"
 run check-design-sheets        bash "$here/check-design-sheets.sh"
 run check-design-text          bash "$here/check-design-text.sh"

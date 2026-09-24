@@ -1,0 +1,19 @@
+{
+  "documents": {
+    "guidelines": {
+      "date": "2026-09-15",
+      "reaccept": "required",
+      "sha256": "1bff3ea9621cb45f61e9ce9b401c3b0209986893e193c38a701bd1b50b3cc1c1"
+    },
+    "privacy": {
+      "date": "2026-09-16",
+      "reaccept": "required",
+      "sha256": "03208e4d5104b9f645250911bebd866ad5f8b04fdf231791d2651a61ec6baa24"
+    },
+    "terms": {
+      "date": "2026-09-16",
+      "reaccept": "required",
+      "sha256": "179b4176591badd148e8bc0a8a085cdb5aadc8db564d42bee2a73d344b456c5f"
+    }
+  }
+}

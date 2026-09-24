@@ -42,6 +42,7 @@ const { openShare } = await import("../src/lib/vault_share.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 await import("../src/routes/identity.ts"); // registers the routes as a side effect
 await import("../src/routes/appearance.ts");
+await import("../src/routes/legal.ts");
 
 const KEY_ID = "ak_pub_identityroutestest01";
 
@@ -933,6 +934,43 @@ Deno.test("a locked vault changes no PIN, even with the right one", async () => 
   const refused = await changePin(me, AUTH, next);
   assertEquals(refused.status, 409);
   assertEquals((refused.body as { error: { code: string } }).error.code, "pin_locked");
+});
+
+// The legal manifest and the acceptance (protocol §4.1): the revisions are the
+// storefront's, copied per brand into relay/node/legal (scripts/sync-legal-
+// revisions.sh); an acceptance is recorded only for the revision served now.
+const LEGAL_KEY = "ak_pub_identityroutessosed1";
+await database.queryOrThrow(
+  `INSERT INTO brands (key, name, domain, sender, upper)
+     VALUES ('sosed', 'Sosed', 'sosed.test', 's <s@sosed.test>', 'SOSED') ON CONFLICT (key) DO NOTHING`,
+);
+await database.queryOrThrow(
+  `INSERT INTO api_keys (id, brand, origins) VALUES ($1, 'sosed', '{}') ON CONFLICT (id) DO NOTHING`, [LEGAL_KEY]);
+
+Deno.test("the manifest names the face's three revisions, and an acceptance records only the one served", async () => {
+  const shipped = JSON.parse(await Deno.readTextFile(new URL("../legal/sosed.json", import.meta.url))) as
+    { documents: Record<string, { date: string; sha256: string }> };
+  const unsigned = await call("GET", "/legal/manifest", {});
+  assertEquals(unsigned.status, 401, "the manifest answered without a storefront key");
+  const got = await call("GET", "/legal/manifest", { headers: { "x-api-key": LEGAL_KEY } });
+  assertEquals(got.status, 200, JSON.stringify(got.body));
+  const documents = (got.body as { documents: Array<{ document: string; revision_date: string; revision_sha256: string }> }).documents;
+  assertEquals(documents.map((d) => d.document), ["guidelines", "privacy", "terms"]);
+  assertEquals(documents.find((d) => d.document === "terms")?.revision_sha256, shipped.documents.terms.sha256,
+    "the manifest does not carry the storefront's revision");
+
+  const me = await registered();
+  const accept = (body: unknown) => signedCall(me.pair.privateKey, me.created.session_id, "POST", "/legal/accept", body,
+    { "x-api-key": LEGAL_KEY });
+  const current = await accept({ document: "terms", revision_sha256: shipped.documents.terms.sha256 });
+  assertEquals(current.status, 200, JSON.stringify(current.body));
+  const stale = await accept({ document: "terms", revision_sha256: "0".repeat(64) });
+  assertEquals(stale.status, 400, "an acceptance of a revision nobody serves was recorded");
+  const rows = await database.queryOrThrow<{ document: string; revision_date: string; revision_sha256: string }>(
+    `SELECT document, revision_date::text AS revision_date, revision_sha256 FROM legal_acceptances WHERE identity = $1`,
+    [me.created.identity_id]);
+  assertEquals([...rows], [{ document: "terms", revision_date: shipped.documents.terms.date, revision_sha256: shipped.documents.terms.sha256 }],
+    "the acceptance is not the one row of the served revision");
 });
 
 Deno.test("the node stores a hash of the paper code's half, not the half itself", async () => {

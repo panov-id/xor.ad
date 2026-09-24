@@ -2344,6 +2344,7 @@ CREATE TABLE pending_deliveries (
   PRIMARY KEY (chat, recipient_session, local_id)
 );
 CREATE INDEX ON pending_deliveries (recipient_session, created_at);
+CREATE INDEX pending_deliveries_by_age ON pending_deliveries (created_at);  -- the sweeper by age, every minute (step-5 panel, 2026-09-21)
 ```
 
 - Every insert is `ON CONFLICT DO NOTHING`: a retry with the same `local_id` creates no
@@ -2904,6 +2905,7 @@ CREATE TABLE support_requests (
 );
 CREATE INDEX support_by_identity ON support_requests (identity, created_at DESC) WHERE identity IS NOT NULL;  -- own list and the daily cap
 CREATE INDEX support_by_created ON support_requests (created_at);  -- the sweep after a year and the daily digest
+CREATE INDEX support_by_brand_created ON support_requests (brand, created_at);  -- the daily digest per storefront (db/039)
 ```
 
 **Built 2026-09-22** (`relay/node/db/039_support_requests.sql`, `routes/support.ts`; closing an identity cuts its requests loose in the sweeper): the text is at most 2000 characters (`support.body.length`, the owner's decision of 2026-09-22), and the list returns the text itself (screen 14 A). The year's cleaning and the daily digest were built the same day (`sweep_support`, below). Not built: turning a request into an Article 16 notice.

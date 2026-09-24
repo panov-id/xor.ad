@@ -5,7 +5,7 @@ A snapshot of where the product stands as a whole. The detailed work tracker is
 [`chat_EN.md`](chat_EN.md). This file sits one level above both: which layers
 exist, which do not, and how that was checked. The snapshot was checked by a
 five-lens review panel —
-[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md); the 2026-09-22 summary was checked by the consistency lens, and what was built that day by the panels `reviews/PANEL_2026-09-22_*.md` (feed queue, profile, encryption, reissue, support). What was built on 2026-09-23 was checked by the panels `reviews/PANEL_2026-09-23_*.md` (watchdogs C1–C3, stepping away, profile and card, screens, chat). The 2026-09-24 cut is by measurement (`curl`, `scripts/check-node-images.sh`, `scripts/check-openapi.sh`, `scripts/count-tests.sh`, `scripts/run-depth-ui-tests.sh`, `git`, CI), without a review panel.
+[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md); the 2026-09-22 summary was checked by the consistency lens, and what was built that day by the panels `reviews/PANEL_2026-09-22_*.md` (feed queue, profile, encryption, reissue, support). What was built on 2026-09-23 was checked by the panels `reviews/PANEL_2026-09-23_*.md` (watchdogs C1–C3, stepping away, profile and card, screens, chat, the loop). The 2026-09-24 cut is by measurement (`curl`, `scripts/check-node-images.sh`, `scripts/check-openapi.sh`, `scripts/count-tests.sh`, `scripts/run-depth-ui-tests.sh`, `git`, CI), without a review panel.
 
 `[x]` done and verified, `[~]` partial, `[ ]` ahead. Every claim about a live
 environment carries a date and a method. The 7 July 2026 snapshot (Supabase,
@@ -48,14 +48,19 @@ The percentages are estimates: they are not weighted by hours, because steps
   yet shipped to the storefronts in production. Why it moved: the WAF on every
   zone cuts bodies quoting `<script>` or `../`, and the zone has zero custom
   rules (`open-work_EN.md`, G12/G13).
-- [ ] **Roll out `day56`.** The branch was pushed in full on 2026-09-24
-  (`b74b60a`); with `day57` it is 195 commits ahead of `origin/dev`
-  (`cd21688`, 2026-09-19), none unpushed (measured 2026-09-24). Migrations
-  `025`–`045` have not been applied anywhere (by the code and the branch;
-  `schema_migrations` on the boxes was not queried). The draft pairs were
-  squashed on 2026-09-24: `035` into `030`, `036` and `038` into `031`, `037`
-  into `032`, `040` into `039` (16 files into 11, no renumbering). Start with
-  dev (n1), not production.
+- [ ] **Roll out `day57`.** `day56` was pushed in full on 2026-09-24
+  (`b74b60a`); `day57` on top of it is 197 commits ahead of `origin/dev`
+  (`cd21688`, 2026-09-19) at `bc385fc`, none unpushed (measured 2026-09-24).
+  Migrations `022`–`045` have not been applied anywhere: the dev
+  (`sha-622a848`) and production images end at `021`, staging at `010` (by the
+  pinned tags in `relay/wizard/environments.toml`; `schema_migrations` on the
+  boxes was not queried). The draft pairs were squashed on 2026-09-24 in
+  `day57`: `035` into `030`, `036` and `038` into `031`, `037` into `032`,
+  `040` into `039` (9 files into 4, 16 into 11 across `030`–`045`, no
+  renumbering), so `day57` is what rolls out, not `day56`. A merge into `dev`
+  ships only the panel (`deploy-dev.yml`); node n1 goes by
+  `scripts/deploy-relay-dev.sh` after a green build-push. Start with dev (n1),
+  not production.
 - [x] The node's CI runs every database suite: the list is taken from the
   `--ignore` of `relay/node/deno.json`, 10 suites, 276 tests (`f142f18`,
   2026-09-24; before it, 9 of the 10 ran only locally). A deliberate break in

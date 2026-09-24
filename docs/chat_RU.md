@@ -2319,6 +2319,7 @@ CREATE TABLE pending_deliveries (
   PRIMARY KEY (chat, recipient_session, local_id)
 );
 CREATE INDEX ON pending_deliveries (recipient_session, created_at);
+CREATE INDEX pending_deliveries_by_age ON pending_deliveries (created_at);  -- уборщик по возрасту, раз в минуту (панель шага 5, 21.09.2026)
 ```
 
 - Вставка всегда `ON CONFLICT DO NOTHING`: повтор с тем же `local_id` дубля не создаёт.
@@ -2862,6 +2863,7 @@ CREATE TABLE support_requests (
 );
 CREATE INDEX support_by_identity ON support_requests (identity, created_at DESC) WHERE identity IS NOT NULL;  -- свой список и предел в сутки
 CREATE INDEX support_by_created ON support_requests (created_at);  -- чистка через год и суточная сводка
+CREATE INDEX support_by_brand_created ON support_requests (brand, created_at);  -- суточная сводка по витрине (db/039)
 ```
 
 **Построено 22.09.2026** (`relay/node/db/039_support_requests.sql`, `routes/support.ts`; закрытие личности отвязывает обращения в уборщике): текст — до 2000 символов (`support.body.length`, решение владельца 22.09.2026), список отдаёт и сам текст (экран 14 A). Чистка через год и суточная сводка построены тем же днём (`sweep_support`, ниже). Не построен перевод обращения в уведомление по ст. 16.

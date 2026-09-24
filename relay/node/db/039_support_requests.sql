@@ -1,5 +1,5 @@
 -- Support requests (chat spec §13, the eleventh table of the first slice,
--- added 2026-09-14; protocol §4.10; screen 14). The spec's DDL, plus the storefront's brand below.
+-- added 2026-09-14; protocol §4.10; screen 14). Exactly the spec's DDL.
 CREATE TABLE IF NOT EXISTS support_requests (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   public_no    text NOT NULL UNIQUE CHECK (public_no ~ '^[0-9A-HJKMNP-TV-Z]{10}$'),

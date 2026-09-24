@@ -2174,6 +2174,80 @@ Deno.test({
   },
 });
 
+// The room's end of the hold (src/chat/relay.ts, `held`), which the two cases
+// above stop short of: they read the queue and the channel, not what a socket
+// is sent. While its person is away a room is sent nothing; the wake gives it
+// every line that waited, once and in order; and a time away that ran out by
+// itself, with no wake yet, is ended by the next line — which then brings the
+// earlier ones too, not only itself.
+Deno.test({
+  name: "a held room is sent nothing while away, and all that waited on the first hand-over after",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    await relay.listenForRooms();
+    const stepAway = (who: { pair: CryptoKeyPair; session_id: string }) =>
+      signedCall(who.pair.privateKey, who.session_id, "POST", "/away",
+        { span: "short", nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
+    const say = async (who: { pair: CryptoKeyPair; session_id: string }, chat: string) => {
+      const localId = crypto.randomUUID();
+      const sent = await signedCall(who.pair.privateKey, who.session_id, "POST", `/chats/${chat}/messages`,
+        { local_id: localId, ciphertext: ciphertext() });
+      assertEquals(sent.status, 202, JSON.stringify(sent.body));
+      return localId;
+    };
+    const room = (chat: string, session: string) => {
+      const ids: string[] = [];
+      const socket = {
+        readyState: WebSocket.OPEN,
+        send: (text: string) => ids.push((JSON.parse(text) as { data: { id: string } }).data.id),
+        close() {},
+      } as unknown as WebSocket;
+      relay.roomsForTest().set(chat, new Set([{ socket, session, chat, seq: 0 }]));
+      return ids;
+    };
+    const settle = async (ids: string[], want: number) => {
+      const until = Date.now() + 2000;
+      while (Date.now() < until && ids.length < want) await new Promise((resolve) => setTimeout(resolve, 20));
+      // A second hand-over of the same lines would land within this.
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    };
+    const chats: string[] = [];
+    try {
+      // Back by hand: DELETE /away wakes the room.
+      const one = await openChat();
+      chats.push(one.chat);
+      const got = room(one.chat, one.b.session_id);
+      assertEquals((await stepAway(one.b)).status, 200);
+      const first = await say(one.a, one.chat);
+      const second = await say(one.a, one.chat);
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      assertEquals(got, [], "a room was sent a line while its person was away");
+      assertEquals((await signedCall(one.b.pair.privateKey, one.b.session_id, "DELETE", "/away")).status, 204);
+      await settle(got, 2);
+      assertEquals(got, [first, second], "the wake did not send what waited, once and in order");
+
+      // Ran out by itself: no wake yet, the next line ends the hold.
+      const two = await openChat();
+      chats.push(two.chat);
+      const late = room(two.chat, two.b.session_id);
+      assertEquals((await stepAway(two.b)).status, 200);
+      const waited = await say(two.a, two.chat);
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      assertEquals(late, [], "a room was sent a line while its person was away");
+      await database.queryOrThrow(
+        `UPDATE identities SET stepped_away_until = now() - interval '1 second'
+          WHERE id = (SELECT identity FROM sessions WHERE id = $1)`, [two.b.session_id]);
+      const next = await say(two.a, two.chat);
+      await settle(late, 2);
+      assertEquals(late, [waited, next], "the first line after a time away ran out came without what waited");
+    } finally {
+      for (const chat of chats) relay.roomsForTest().delete(chat);
+    }
+  },
+});
+
 // The waker's two filters (lib/away_waker.ts), unguarded until 2026-09-24 (the
 // verifier found them green when removed): a frozen session holds no room to
 // wake, and a conversation over for the person is not woken.

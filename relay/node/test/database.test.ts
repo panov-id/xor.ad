@@ -115,6 +115,7 @@ async function callWithKey(
   method: string,
   path: string,
   body?: unknown,
+  extra: Record<string, string> = {},
 ): Promise<{ status: number; body: Body; headers: Headers }> {
   const url = new URL(`https://relay.test${path}`);
   const found = match(method, url.pathname);
@@ -125,6 +126,7 @@ async function callWithKey(
       headers: {
         authorization: `Bearer ${secret}`,
         ...(body === undefined ? {} : { "content-type": "application/json" }),
+        ...extra,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
@@ -375,6 +377,28 @@ Deno.test({
 
     const resolved = await secretKeys.resolveSecretKey(minted.secret);
     assertEquals(resolved?.quota_events_per_day, 2, "and the resolver reads it back");
+  },
+});
+
+// A repeat under the same Idempotency-Key is the same request: it gets the
+// stored answer and spends nothing (openapi: "replays a stored response"). The
+// allowance was charged before the stored answer was looked up, so every repeat
+// spent a unit, and once the day was spent the repeat got 429 instead of its
+// answer (the owner's decision of 2026-09-24).
+Deno.test({
+  name: "a repeat under the same idempotency key spends no allowance and is answered after it is spent",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const minted = await secretKeys.createSecretKey("alpha", "replay", ["waitlist.write"], null);
+    await callAs(PLATFORM, "PATCH", `/admin/secret-keys/${minted.key.id}/quota`, { quota_events_per_day: 1 });
+    const lead = { email: `replay-${uniqueId()}@example.com`, lang: "en" };
+    const key = { "idempotency-key": `replay-${uniqueId()}` };
+    const first = await callWithKey(minted.secret, "POST", "/v1/waitlist", lead, key);
+    assert(first.status < 300, `the first request was refused: ${first.status} ${JSON.stringify(first.body)}`);
+    const again = await callWithKey(minted.secret, "POST", "/v1/waitlist", lead, key);
+    assertEquals(again.status, first.status, `the repeat was answered ${again.status}: ${JSON.stringify(again.body)}`);
+    assertEquals(again.headers.get("idempotent-replay"), "true", "the repeat was not answered from the stored response");
   },
 });
 

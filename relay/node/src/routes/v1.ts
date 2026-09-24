@@ -129,13 +129,14 @@ route("POST", "/v1/waitlist", async ({ req }) => {
     inc("relay_v1_total", { route: "waitlist", result: "forbidden" });
     return denied(caller, "waitlist.write");
   }
-  const over = await overAllowance(caller, "waitlist");
-  if (over) return over;
-
   // Read once: the body is needed twice — to fingerprint the request and to hand
   // to the handler — and a Request body cannot be read twice.
   const raw = await req.text();
   const idempotencyKey = req.headers.get("idempotency-key");
+  // A repeat is the same request: its stored answer, before the allowance, so it
+  // spends nothing and is answered even once the day is spent. Charged first, it
+  // cost a unit per repeat and got 429 instead of its answer (the owner's
+  // decision of 2026-09-24).
   if (idempotencyKey) {
     const seen = await recall(caller.brand, idempotencyKey, raw);
     if (seen) {
@@ -146,6 +147,8 @@ route("POST", "/v1/waitlist", async ({ req }) => {
       });
     }
   }
+  const over = await overAllowance(caller, "waitlist");
+  if (over) return over;
 
   // The tenant is the key's, and it is handed over directly. Forging a request
   // for the public route to re-resolve would mean the brand is decided twice, by

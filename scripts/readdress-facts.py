@@ -140,6 +140,21 @@ def decisions_locate(fields: dict, address: str):
     return (target, find_by_anchor(target, anchor)), None
 
 
+def decisions_en_locate(fields: dict, address: str):
+    """The English half of a decision: its own address in `en`, its own anchor in
+    `subject_en`. Until 2026-09-24 only the Russian half was followed, and 111 of
+    162 English addresses had drifted by up to nine hundred lines while every
+    gate stayed green (review panel of the loop, 2026-09-24, task 5).
+    """
+    anchor = fields.get("subject_en", "")
+    if not anchor:
+        return None, "нет предмета: колонка subject_en пуста"
+    target = resolve(address.rsplit(":", 1)[0])
+    if target is None:
+        return None, "адрес указывает на файл, которого нет"
+    return (target, find_by_anchor(target, anchor)), None
+
+
 def schema_locate(fields: dict, address: str):
     target = resolve(address.rsplit(":", 1)[0])
     if target is None:
@@ -152,6 +167,9 @@ REGISTRIES = [
     Registry("schema", "docs/facts/schema.tsv", "declared_in", schema_locate, "FACTS_SCHEMA"),
     Registry("noise", "docs/facts/noise-numbers.tsv", "example", noise_locate, "FACTS_NOISE"),
     Registry("decisions", "docs/facts/decisions.tsv", "ru", decisions_locate, "FACTS_DECISIONS"),
+    # The same file, its other half: processed after the Russian one, so a
+    # --write reads what the first pass wrote.
+    Registry("decisions (en)", "docs/facts/decisions.tsv", "en", decisions_en_locate, "FACTS_DECISIONS"),
 ]
 
 

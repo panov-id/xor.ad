@@ -85,6 +85,27 @@ else
   failures=$((failures + 1)); printf '  ✗ --write чинит и не теряет строк (%s → %s)\n' "$before" "$after"
 fi
 
+# Английская половина решения: адрес в колонке en, якорь — subject_en. До
+# 24.09.2026 скрипт её не видел вовсе, и 111 из 162 адресов указывали мимо
+# (панель цикла 24.09.2026, задача 5).
+reset
+en_row=$(grep -v '^#' "$decisions_witness" | awk -F'\t' 'NR>1 && $4 ~ /:[0-9]+$/ {print; exit}')
+en_id=$(printf '%s' "$en_row" | cut -f1)
+python3 - "$decisions" "$en_id" <<'PY'
+import sys
+path, wanted = sys.argv[1], sys.argv[2]
+lines = open(path, encoding="utf-8").read().splitlines(keepends=True)
+for i, line in enumerate(lines):
+    if line.split("\t")[0] == wanted:
+        cells = line.rstrip("\n").split("\t")
+        rel, number = cells[3].rsplit(":", 1)
+        cells[3] = f"{rel}:{int(number) + 40}"
+        lines[i] = "\t".join(cells) + "\n"
+        break
+open(path, "w", encoding="utf-8").write("".join(lines))
+PY
+expect 1 "$en_id" 'сбитый номер английской половины решения — назван и красен'
+
 # Якорь, которого в файле нет: номер тут не поможет — только руки.
 reset
 python3 - "$open" "$id" <<'PY'

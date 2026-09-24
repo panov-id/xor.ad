@@ -2186,6 +2186,34 @@ Deno.test({
   },
 });
 
+// A repeat is answered, not counted (protocol §2). The hourly limit was taken
+// before the nonce was looked at: every repeat of one block spent a slot, and
+// once the hour's twenty were gone the repeat of a block already made got 429
+// instead of its 204 — the family of the step away's guard (loop, 2026-09-24).
+Deno.test({
+  name: "repeating a block spends no slot of the hour's limit, and is answered after the limit is gone",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset, checkAll, BLOCK_LIMITS } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const b = await author();
+    const first = { feed: await seedPhrase(b.identity_id, "фраза для повтора"), nonce: nonce() };
+    const call = (body: unknown) => signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", body);
+    assertEquals((await call(first)).status, 204);
+    for (let i = 0; i < 25; i++) assertEquals((await call(first)).status, 204, `repeat ${i + 1} was refused`);
+    const c = await author();
+    const second = await call({ feed: await seedPhrase(c.identity_id, "другая фраза"), nonce: nonce() });
+    assertEquals(second.status, 204, "repeats of one block used up the hour's limit");
+
+    // The limit gone by other means, the repeat still finds its answer.
+    while (checkAll(BLOCK_LIMITS, a.identity_id).allowed) { /* spend the hour */ }
+    assertEquals((await call(first)).status, 204, "a repeat of a block already made was refused by the limit");
+    reset();
+  },
+});
+
 // ── Hiding a phrase for oneself (§8.9, screens 5 and 10) ───────────────────────
 Deno.test({
   name: "a hidden phrase leaves one's own feed only, and comes back by its id",

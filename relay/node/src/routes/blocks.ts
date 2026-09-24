@@ -19,7 +19,7 @@
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
-import { query, transaction } from "../lib/db.ts";
+import { query, queryOrThrow, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, BLOCK_LIMITS } from "../lib/rate_limit.ts";
@@ -39,6 +39,15 @@ async function block(req: Request): Promise<Response> {
   const feed = typeof body.feed === "string" && UUID.test(body.feed) ? body.feed : null;
   const chat = typeof body.chat === "string" && UUID.test(body.chat) ? body.chat : null;
   if ((feed === null) === (chat === null)) return refuse("invalid_body", "exactly one of feed or chat", 400);
+  // A repeat is answered before the limit is spent (protocol §2): counting it
+  // used a slot per repeat, and once the hour's slots were gone the repeat of
+  // a block already made got 429 instead of its 204 (loop, 2026-09-24). The
+  // transaction below still settles a race between two first tries.
+  const [seen] = await queryOrThrow<{ route: string }>(
+    `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, given]);
+  if (seen) {
+    return seen.route === "POST /blocks" ? done() : refuse("invalid_body", "this nonce was used on another route", 409);
+  }
   const allowed = checkAll(BLOCK_LIMITS, caller.identityId);
   if (!allowed.allowed) {
     return refuse("rate_limited", "too many blocks this hour", 429, {}, {

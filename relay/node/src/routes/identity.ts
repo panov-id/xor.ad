@@ -907,10 +907,9 @@ interface CloseBody {
 //
 // Not here, and said so: tables, table lines, seats and chat games — those
 // tables do not exist yet, and each joins this list in the step that makes it.
-// And not closed yet: a like or a phrase whose request passed the guard before
-// this commits lands after it, on a closed identity (verifier, 2026-09-24).
-// The like and the publish do not lock the identity's row; the same holds for
-// a time away. That is an open task, not a property of this route.
+// A like or a phrase whose request passed the guard before this commits waits
+// on the counters row takeDownLive holds, and asks again once it has it
+// (stillHere in lib/take_down.ts): it lands nothing on a closed identity.
 async function closeIdentity(req: Request): Promise<Response> {
   const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;

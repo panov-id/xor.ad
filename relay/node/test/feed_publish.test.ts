@@ -2390,6 +2390,54 @@ Deno.test({
   },
 });
 
+// A like or a phrase that passed the guard while the identity was open must
+// not land once a close or a time away has committed (verifier, 2026-09-24).
+// Deterministic: another connection holds the counters row both lock, the
+// request waits on it, the identity is closed and the lock let go.
+Deno.test({
+  name: "a like or a phrase waiting on a close lands nothing once the close commits",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const a = await author();
+    const b = await author();
+    await seedPhrase(a.identity_id, "своя фраза");
+    const theirs = await seedPhrase(b.identity_id, "чужая фраза");
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    try {
+      for (const [name, act, landed] of [
+        ["like", () => like(a, theirs),
+          async () => (await database.queryOrThrow<{ n: string }>(
+            `SELECT count(*)::text AS n FROM likes WHERE liker_identity = $1`, [a.identity_id]))[0].n !== "0"],
+        ["phrase", () => signedCall(a.pair.privateKey, a.session_id, "POST", "/feed",
+            phrase({ text: "после закрытия" })),
+          async () => (await database.queryOrThrow<{ n: string }>(
+            `SELECT count(*)::text AS n FROM feed_messages WHERE author_identity = $1 AND text = 'после закрытия'`,
+            [a.identity_id]))[0].n !== "0"],
+      ] as const) {
+        await database.queryOrThrow(`UPDATE identities SET closed_at = NULL WHERE id = $1`, [a.identity_id]);
+        let answer: { status: number } | null = null;
+        await sql.begin(async (tx) => {
+          await tx.unsafe(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [a.identity_id]);
+          const pending = act().then((r) => (answer = r));
+          await new Promise((r) => setTimeout(r, 300));
+          await tx.unsafe(`UPDATE identities SET closed_at = now() WHERE id = $1`, [a.identity_id]);
+          void pending;
+        });
+        for (let i = 0; i < 100 && answer === null; i++) await new Promise((r) => setTimeout(r, 20));
+        assert(answer !== null, `the ${name} never answered`);
+        assert(!(await landed()), `a ${name} landed on an identity closed while it waited`);
+      }
+    } finally {
+      await sql.end();
+      reset();
+    }
+  },
+});
+
 // How many repeats a route has answered from a stored nonce (lib/metrics.ts).
 const replays = async (route: string) => {
   const { render } = await import("../src/lib/metrics.ts");

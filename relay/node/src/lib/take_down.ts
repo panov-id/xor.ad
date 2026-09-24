@@ -91,3 +91,21 @@ export async function takeDownLive(run: Run, me: string): Promise<void> {
     [me],
   );
 }
+
+// The other half of the same line. A like or a phrase checks the identity in
+// the guard, before its transaction, and then waits on the counters row a
+// close or a time away holds (takeDownLive locks it first). When the wait ends
+// the close has committed, and the request must see it: asked again here,
+// after the lock, under READ COMMITTED it does (verifier, 2026-09-24 — a like
+// that passed the guard landed on a closed identity). null means go on.
+export async function stillHere(run: Run, me: string): Promise<{ closed: boolean; awayUntil: Date | null } | null> {
+  const [row] = await run<{ closed: boolean; away_until: Date | null }>(
+    `SELECT closed_at IS NOT NULL AS closed,
+            CASE WHEN stepped_away_until > now() THEN stepped_away_until END AS away_until
+       FROM identities WHERE id = $1`,
+    [me],
+  );
+  if (!row) return { closed: true, awayUntil: null };
+  if (row.closed || row.away_until) return { closed: row.closed, awayUntil: row.away_until };
+  return null;
+}

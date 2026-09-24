@@ -18,6 +18,7 @@
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
+import { stillHere } from "../lib/take_down.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { band } from "../lib/feed_geo.ts";
@@ -106,6 +107,14 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
       `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
       [[me, phrase.author]],
     );
+    const gone = await stillHere(run, me);
+    if (gone) {
+      return gone.closed
+        ? refuse("unauthorized", "the request is not signed by a live session", 401)
+        : refuse("stepped_away", "you are away until the time you chose", 409, {
+          until: Math.floor(gone.awayUntil!.getTime() / 1000),
+        });
+    }
 
     const mineBand = band(mine.age);
     const inserted = await run<{ feed_message_id: string }>(

@@ -14,6 +14,7 @@
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
+import { stillHere } from "../lib/take_down.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
@@ -95,6 +96,16 @@ async function publish(req: Request): Promise<Response> {
     // written at the verdict and two parallel sends otherwise both pass the
     // ceiling before either verdict lands (§8.3, review panel 2026-09-14).
     const refusal = await refusalFor(run, caller.identityId);
+    // After the counters row's lock refusalFor took: a close or a time away
+    // that held it has committed by now (lib/take_down.ts).
+    const gone = await stillHere(run, caller.identityId);
+    if (gone) {
+      return gone.closed
+        ? refuse("unauthorized", "the request is not signed by a live session", 401)
+        : refuse("stepped_away", "you are away until the time you chose", 409, {
+          until: Math.floor(gone.awayUntil!.getTime() / 1000),
+        });
+    }
     if (refusal) {
       switch (refusal.kind) {
         case "paused":

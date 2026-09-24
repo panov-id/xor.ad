@@ -22,6 +22,7 @@ import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
 import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
 
 // 128 graphemes on the node; the DDL's 2048 bytes is the wide net beneath it.
 const TEXT_MAX_GRAPHEMES = 128;
@@ -263,21 +264,19 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   // on the way out — a cursor of "…500900Z" arrived at the database as
   // "…500000" and the first version of this fix was undone by its own driver,
   // silently, while looking correct in the source.
+  //
+  // It travels sealed (lib/cursor.ts, §8.11): in the clear it was the last
+  // phrase's publication to the microsecond — with a fixed span, its author's
+  // end — and a cursor the pool did not issue is refused.
+  if (!cursorConfigured()) return refuse("unavailable", "the node cannot answer right now", 503);
   const after = url.searchParams.get("after");
   let cursorAt: string | null = null;
   let cursorId: string | null = null;
   if (after) {
-    const cut = after.lastIndexOf("_");
-    const at = cut < 0 ? "" : after.slice(0, cut);
-    const id = cut < 0 ? "" : after.slice(cut + 1);
-    // Sixteen digits of microseconds reach the year 2286; nineteen passed the
-    // test and overflowed bigint in the database, which answered 503 and wrote
-    // a "query failed" line for a caller's typo (review panel 23.09.2026).
-    if (!/^[0-9]{1,16}$/.test(at) || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-      return refuse("invalid_body", "after is not a cursor from this feed", 400);
-    }
-    cursorAt = at;
-    cursorId = id;
+    const opened = await openCursor("feed", after);
+    if (!opened) return refuse("invalid_body", "after is not a cursor from this feed", 400);
+    cursorAt = opened.micros;
+    cursorId = opened.id;
   }
 
   const [me] = await query<{ age: number; languages: string[]; filter_age_min: number | null; filter_age_max: number | null }>(
@@ -436,7 +435,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   return json({
     items,
     next: rows.length === PAGE_SIZE && last
-      ? `${last.visible_at_cursor}_${last.id}`
+      ? await sealCursor("feed", last.visible_at_cursor, last.id)
       : null,
     ...(usedRadius > radius ? { radius_used: usedRadius } : {}),
   }, 200, sunsetHeader());

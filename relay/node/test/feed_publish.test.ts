@@ -1403,6 +1403,39 @@ Deno.test("a cursor that is not one from this route is refused", async () => {
   assertEquals((bad.body as { error: { code: string } }).error.code, "invalid_body");
 });
 
+// The feed's and the likes' cursors are sealed (lib/cursor.ts, §8.11): the
+// pair inside is the last row's instant to the microsecond — for the feed,
+// another person's publication and so their end — and only a cursor the pool
+// issued for that list opens (the owner's decision of 2026-09-24).
+Deno.test("a page cursor says nothing, and only one issued for that list opens", async () => {
+  const { sealCursor } = await import("../src/lib/cursor.ts");
+  const me = await author();
+  const id = crypto.randomUUID();
+  const micros = String(Date.now() * 1000 + 123);
+  const feedCursor = await sealCursor("feed", micros, id);
+  assert(!feedCursor.includes(micros.slice(0, 10)) && !feedCursor.includes(id.slice(0, 8)),
+    "the cursor carries its instant or its id in the clear");
+  assertEquals(feedCursor === await sealCursor("feed", micros, id), false, "two seals of one pair came out alike");
+
+  const feedAt = async (after: string) =>
+    (await signedCall(me.pair.privateKey, me.session_id, "GET", feedUrl({ after }))).status;
+  const likesAt = async (after: string) =>
+    (await signedCall(me.pair.privateKey, me.session_id, "GET", `/likes?after=${encodeURIComponent(after)}`)).status;
+  assertEquals(await feedAt(feedCursor), 200, "a cursor the node issued was refused");
+  assertEquals(await likesAt(await sealCursor("likes", micros, id)), 200, "a likes cursor the node issued was refused");
+
+  const flipped = feedCursor.slice(0, 20) + (feedCursor[20] === "A" ? "B" : "A") + feedCursor.slice(21);
+  for (const [name, bad] of [
+    ["the old clear pair", `${micros}_${id}`],
+    ["an edited cursor", flipped],
+    ["a likes cursor", await sealCursor("likes", micros, id)],
+  ]) {
+    assertEquals(await feedAt(bad), 400, `the feed took ${name}`);
+  }
+  assertEquals(await likesAt(feedCursor), 400, "the likes took a feed cursor");
+  assertEquals(await likesAt(`${micros}_${id}`), 400, "the likes took the old clear pair");
+});
+
 // ── Likes (chat spec §8.4) and the match they make (§8.5) ──────────────────────
 // Phrases are written straight into the table at their own spot, so these cases
 // neither wait for a moderator nor land on another case's feed.

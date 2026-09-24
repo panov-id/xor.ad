@@ -25,6 +25,7 @@ import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { checkAll, FEED_READ_LIMITS, LIKE_LIMITS } from "../lib/rate_limit.ts";
 import { SOON_MINUTES } from "./feed.ts";
+import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // A ceiling for "no ceiling": the band above 20 is open upwards (feed_geo.band),
@@ -363,22 +364,17 @@ async function myLikes(req: Request, url: URL): Promise<Response> {
 
   // The feed's cursor, for the feed's reasons (routes/feed.ts): microseconds as
   // digits — never a Date, never a timestamp-looking string — and the id to
-  // split likes made in the same microsecond.
+  // split likes made in the same microsecond; sealed as the feed's is
+  // (lib/cursor.ts), and a feed cursor does not open here.
+  if (!cursorConfigured()) return refuse("unavailable", "the node cannot answer right now", 503);
   const after = url.searchParams.get("after");
   let cursorAt: string | null = null;
   let cursorId: string | null = null;
   if (after) {
-    const cut = after.lastIndexOf("_");
-    const at = cut < 0 ? "" : after.slice(0, cut);
-    const id = cut < 0 ? "" : after.slice(cut + 1);
-    // Sixteen digits of microseconds reach the year 2286; nineteen passed the
-    // test and overflowed bigint in the database, which answered 503 and wrote
-    // a "query failed" line for a caller's typo (review panel 23.09.2026).
-    if (!/^[0-9]{1,16}$/.test(at) || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-      return refuse("invalid_body", "after is not a cursor from this list", 400);
-    }
-    cursorAt = at;
-    cursorId = id;
+    const opened = await openCursor("likes", after);
+    if (!opened) return refuse("invalid_body", "after is not a cursor from this list", 400);
+    cursorAt = opened.micros;
+    cursorId = opened.id;
   }
 
   const rows = await query<LikedRow>(
@@ -428,7 +424,7 @@ async function myLikes(req: Request, url: URL): Promise<Response> {
       ...(row.soon ? { soon: true } : {}),
       liked_at: Math.floor(row.liked_at.getTime() / 1000),
     })),
-    next: rows.length === LIKES_PAGE && last ? `${last.liked_at_cursor}_${last.id}` : null,
+    next: rows.length === LIKES_PAGE && last ? await sealCursor("likes", last.liked_at_cursor, last.id) : null,
   }, 200, sunsetHeader());
 }
 

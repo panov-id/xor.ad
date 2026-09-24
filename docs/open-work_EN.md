@@ -1224,6 +1224,10 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       1052 with nonce and tag → 1404 in base64, 46% of headroom) — and
       `max_message_length` = **256** stays the counter in the client. The feed
       stays at **128**; that is a different limit and the two should not be merged.
+      **The code is there since 2026-09-21, only the measurement is open (checked 2026-09-24):**
+      the node refuses ciphertext longer than 2048 bytes of base64url text with a 400
+      (`relay/node/src/routes/chats.ts`, `CIPHERTEXT_MAX`), and a case sends 2049
+      (`feed_publish.test.ts`). The gate below closes it on the live node after the deploy.
       **Nothing can close it yet, and it was re-measured 2026-09-20** by the
       `check-message-limits.sh` gate, which asks the live node itself: `GET
       /chat` on `api.relay.panov.id` still answers **501**, and the gate exits

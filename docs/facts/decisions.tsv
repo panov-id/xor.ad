@@ -82,7 +82,7 @@ dsa-CHECKLIST.2026-08-05.42	2026-08-05	xor.ad/docs/dsa/CHECKLIST_RU.md:42	xor.ad
 article-30.2026-08-07.246	2026-08-07	xor.ad/docs/article-30-register_RU.md:326	xor.ad/docs/article-30-register_EN.md:338	Push-уведомления отменены	Push notifications cancelled
 dsa-CHECKLIST.2026-08-09.63	2026-08-09	xor.ad/docs/dsa/CHECKLIST_RU.md:63	xor.ad/docs/dsa/CHECKLIST_EN.md:67	Сквозная проверка на staging	An end-to-end check on staging
 open-work.2026-08-10.548	2026-08-10	xor.ad/docs/open-work_RU.md:548	xor.ad/docs/open-work_EN.md:558	Механизм уведомлений по ст. 16 DSA	Art. 16 notice mechanism
-open-work.2026-08-11.1368	2026-08-11	xor.ad/docs/open-work_RU.md:1713	xor.ad/docs/open-work_EN.md:1793	стал фактом, а не намерением	became a fact rather than an intention
+open-work.2026-08-11.1368	2026-08-11	xor.ad/docs/open-work_RU.md:1717	xor.ad/docs/open-work_EN.md:1797	стал фактом, а не намерением	became a fact rather than an intention
 deployment.2026-08-13.149	2026-08-13	xor.ad/docs/deployment_RU.md:169	xor.ad/docs/deployment_EN.md:179	стояло 0664	until 2026-08-13
 open-work.2026-08-14.265	2026-08-14	xor.ad/docs/open-work_RU.md:265	xor.ad/docs/open-work_EN.md:269	Первая половина была закрыта	The first half was closed
 open-work.2026-08-16.991	2026-08-16	xor.ad/docs/open-work_RU.md:991	xor.ad/docs/open-work_EN.md:1026	включить Shield Basic	turn on Shield Basic
@@ -99,8 +99,8 @@ ontology.2026-09-03.54	2026-09-03	xor.ad/docs/facts/ontology_RU.md:54	xor.ad/doc
 ontology.2026-09-03.62	2026-09-03	xor.ad/docs/facts/ontology_RU.md:62	xor.ad/docs/facts/ontology_EN.md:64	Адрес открытого пункта держится якорем, а не номером — с 03.09.2026.	An open item's address is held by an anchor, not by a line number — since 2026-09-03.
 ontology.2026-09-03.100	2026-09-03	xor.ad/docs/facts/ontology_RU.md:100	xor.ad/docs/facts/ontology_EN.md:105	С 03.09.2026 пробы есть у всех шести ворот	Since 2026-09-03 all six gates have a probe that
 ontology.2026-09-03.89	2026-09-03	xor.ad/docs/facts/ontology_RU.md:89	xor.ad/docs/facts/ontology_EN.md:93	Номер строки в `declared_in` сверяется с объявлением — с 03.09.2026.	Since 2026-09-03 the line number in `declared_in` is reconciled against the
-open-work.2026-09-04.1179	2026-09-20	xor.ad/docs/open-work_RU.md:1179	xor.ad/docs/open-work_EN.md:1227	Закрыть пока нечем, и перемерено 20.09.2026	Nothing can close it yet, and it was re-measured 2026-09-20
-open-work.2026-09-04.1184	2026-09-04	xor.ad/docs/open-work_RU.md:1185	xor.ad/docs/open-work_EN.md:1234	(заведены 04.09.2026).** Ворота спрашивают узел сами	(filed 2026-09-04).** The gate asks the
+open-work.2026-09-04.1179	2026-09-20	xor.ad/docs/open-work_RU.md:1183	xor.ad/docs/open-work_EN.md:1231	Закрыть пока нечем, и перемерено 20.09.2026	Nothing can close it yet, and it was re-measured 2026-09-20
+open-work.2026-09-04.1184	2026-09-04	xor.ad/docs/open-work_RU.md:1189	xor.ad/docs/open-work_EN.md:1238	(заведены 04.09.2026).** Ворота спрашивают узел сами	(filed 2026-09-04).** The gate asks the
 chat.2026-09-07.937	2026-09-07	xor.ad/docs/chat_RU.md:1649	xor.ad/docs/chat_EN.md:1672	Правка 07.09.2026 по панели ревью.	Edited 2026-09-07 after a review panel.
 refusal-wordings.2026-09-07.86	2026-09-07	xor.ad/docs/refusal-wordings_RU.md:120	xor.ad/docs/refusal-wordings_EN.md:130	«За час», а не «подряд» — правка 07.09.2026	rather than "in a row" — edited 2026-09-07
 test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:141	xor.ad/docs/test-map_EN.md:140	Успешная публикация счётчик отказов не обнуляет	A successful publication does not zero the refusal counter

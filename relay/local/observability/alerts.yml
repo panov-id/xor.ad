@@ -51,6 +51,16 @@ groups:
 
       # A burst of wrong PINs is somebody working through a stolen signing key
       # or an unlocked tab. Ten in five minutes is far above a person mistyping.
+      # Watchdog С7 (relay/node/src/lib/backup_watch.ts): the marker of the last
+      # nightly dump is older than 26 hours. -1 means none seen yet, not old.
+      - alert: BackupStale
+        expr: max(relay_backup_age_seconds) > 26 * 3600
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Ночной бэкап опаздывает: {{ $value | humanizeDuration }}"
+          description: "Метка last-ok.json не обновлялась больше 26 часов. Смотреть relay-backup.service на боксе и зону хранилища."
+
       - alert: PinMissBurst
         # Every door that takes a PIN proof: the share, a PIN change and a close
         # (review panel 2026-09-24 — /vault/pin and /identities/close counted

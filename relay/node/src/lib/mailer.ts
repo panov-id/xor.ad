@@ -427,6 +427,31 @@ export function jobTombstoneBlocks(tombstone: { id: string; kind: string; attemp
   ];
 }
 
+// Watchdog С7: the last nightly dump is older than it should be, or none has
+// been seen since the node started (lib/backup_watch.ts). No data of anyone's.
+export function backupStaleBlocks(env: string, ageHours: number | null): Block[] {
+  return [
+    {
+      kind: "text",
+      value: ageHours === null
+        ? `No nightly backup of ${env} has been seen since this node started.`
+        : `The last nightly backup of ${env} went up ${ageHours} hours ago.`,
+    },
+    {
+      kind: "text",
+      value: "Look at relay-backup.service on the box (journalctl -u relay-backup.service) and at the " +
+        "storage zone. Another letter follows in a day if it stays this way.",
+    },
+  ];
+}
+
+export async function sendBackupStale(to: string, ageHours: number | null): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = resolveBrand(null);
+  const subject = `${brand.name}: the ${config.envName} backup is late`;
+  return await deliver(brand, to, subject, subject, backupStaleBlocks(config.envName, ageHours));
+}
+
 export async function sendJobTombstone(
   to: string,
   tombstone: { id: string; kind: string; attempts: number },

@@ -131,9 +131,9 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W7. The age of the last dump
 
-- **Gauge.** `GET /metrics` serves `relay_backup_age_seconds` — the age of the newest object in `backups/<env>/postgres/` of the storage; the node asks the storage by a scheduler job once an hour (refined 2026-09-16, OPS-5: the external pinger of W5 does not list the storage; a box down as a whole is caught by W5).
+- **Gauge — built 2026-09-24.** `GET /metrics` serves `relay_backup_age_seconds` — the age of the marker `backups/<env>/last-ok.json` that the backup script puts in the **working** zone with the node's key after a dump went up (`relay/wizard/backup-postgres.sh`); `-1` while there is none. The node reads it with the `watch_backup` job once an hour (`relay/node/src/lib/backup_watch.ts`). Not the dumps themselves: they may live in their own zone, whose key is kept off the node — otherwise a break-in of the node reaches the second copy. [retired] This said "the age of the newest object in `backups/<env>/postgres/`" (2026-09-16, OPS-5: the external pinger of W5 does not list the storage; a box down as a whole is caught by W5).
 - **Threshold.** 26 hours (`BACKUP_AGE_ALERT_HOURS`, a node variable): the dump is nightly, the hour is slack for a deploy and the network.
-- **Where to.** A letter to the personal addresses; the unit `relay-backup.service` gets an `OnFailure=` with the same letter, so a failed `curl` to the storage does not stay silent.
+- **Where to.** A letter to the escalation addresses (`DSA_ESCALATION_EMAILS`) from the node itself — the boxes run no Alertmanager; at most once a day while the backup stays old; with no marker, only once the node has been up longer than the threshold. [retired] This also said "the unit `relay-backup.service` gets an `OnFailure=` with the same letter": not built — the box has no way to send a letter without the node, and a failed `curl` is caught anyway by the marker that does not move.
 - **Why.** Up to 2026-09-15 the backup had not run for four nights in a row and nobody learned (panel, OPS-1); the command fix and the `check-backup-script` gate catch a broken text, not a broken network. Added 2026-09-16 after the panel (OPS-14); item `backup.silent.failure` in `docs/facts/open.tsv`.
 
 ## Gauges that arrive with the code
@@ -157,7 +157,7 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdogs W5, W6 and W7 are not built — item `backup.silent.failure` (W7, operations) in `docs/facts/open.tsv`.
+- Watchdogs W5 and W6 are not built. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3 lacks the digest line about other tombstones — `watchdogs.jobs.unbuilt`.
 - The external pinger service is not chosen — `node.external.pinger`.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; a letter per notice rather

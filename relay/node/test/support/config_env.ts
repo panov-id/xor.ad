@@ -45,6 +45,7 @@ const CONFIGURED = [
   "METRICS_TOKEN",
   "DATABASE_URL",
   "VAULT_SHARE_KEY",
+  "BACKUP_AGE_ALERT_HOURS",
 ];
 
 export function useEnvironment(overrides: Record<string, string> = {}): void {

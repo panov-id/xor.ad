@@ -143,6 +143,17 @@ for database in ${DATABASES}; do
   echo "uploaded ${database} (${size} bytes) as ${remote}"
   rm -f "${file}"
 
+  # Watchdog С7 reads this (relay/node/src/lib/backup_watch.ts): the time of the
+  # last dump that went up, in the WORKING zone and with the node's own key —
+  # the backup zone's key stays off the node, which is the point of that zone
+  # (loop, 2026-09-24). A marker that fails to go up does not fail the backup;
+  # the watchdog reads an old marker as a missed night, which errs loud.
+  printf '{"at":"%s","dump":"%s","bytes":%s}' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${remote}" "${size}" |
+    curl -fsS -X PUT -H "AccessKey: ${BUNNY_STORAGE_KEY}" -H "Content-Type: application/json" \
+      --data-binary @- \
+      "https://${BUNNY_STORAGE_HOST:-storage.bunnycdn.com}/${BUNNY_STORAGE_ZONE}/backups/${environment}/last-ok.json" \
+      >/dev/null || echo "WARNING: the backup marker for ${environment} did not go up" >&2
+
   # Retention runs after a successful upload, never before: losing old dumps
   # because the new one failed is the exact shape of the disaster this guards
   # against.

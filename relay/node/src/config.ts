@@ -107,6 +107,10 @@ function read() {
     // a share at all rather than storing it in the clear.
     vaultShareKey: env("VAULT_SHARE_KEY"),
 
+    // Watchdog С7 (lib/backup_watch.ts): how old the last nightly dump may be
+    // before a letter goes out. A nightly dump and an hour to spare.
+    backupAgeAlertHours: Number(env("BACKUP_AGE_ALERT_HOURS", "26")) || 26,
+
     // Protocol §3: the unix time when the current major version stops being
     // served. Unset until a sunset is actually announced — and unset is the
     // meaningful state, not a placeholder: the header goes out on every answer

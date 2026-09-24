@@ -11,6 +11,7 @@ import { Box, Text, useInput } from "ink";
 import type { Client, Liked as LikedCard, Statement } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
+import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import type { Place } from "./screens.ts";
 
 // 4 · a phrase. The counter shows the number this client documents (146);
@@ -311,33 +312,60 @@ export function Chat(
     (async () => {
       const conversation = await client.openConversation(chatId, matchId);
       setCode(conversation.safetyCode);
-      room = await client.openRoom(chatId);
-      // 4003 is the only close that means "over"; its reason is not sent, so
-      // one's own clock tells a term from a hand (protocol §4.4).
-      void (room as unknown as { closed: Promise<number> }).closed.then((code) => {
-        if (!live || code !== 4003) return;
-        live = false;
-        end(Math.floor(Date.now() / 1000) >= endsAtRef.current ? "expired" : "ended");
-      });
+      // A room is opened again after a close that is not the end (protocol
+      // §4.4, core/reconnect.ts): the node's restart closes it with 1001. The
+      // node hands what waits on every opening, and depth does not confirm
+      // receipt, so lines already on the screen come again — shown once.
+      const shown = new Set<string>();
+      let attempt = 0;
       while (live) {
-        const frame = await room.next(60_000).catch(() => null);
-        if (!frame) continue;
-        // The other side stepped away (§8.2): a mark over the input, which stays
-        // live; their first line here takes it off.
-        if (frame.type === "sys" && (frame.data as { kind?: string })?.kind === "peer_stepped_away") {
-          setPeerAway(true);
+        // A node still coming back refuses the ticket: wait and ask again,
+        // rather than ending the screen on an error.
+        const opened = await client.openRoom(chatId).catch(() => null);
+        if (!live) return;
+        if (!opened) {
+          await new Promise((r) => setTimeout(r, reconnectDelay(attempt++)));
           continue;
         }
-        if (frame.type !== "message") continue;
-        setPeerAway(false);
-        const { id, ciphertext } = frame.data as { id: string; ciphertext: string };
-        // A frame that does not open is the node's doing, not the peer's: it
-        // must never be drawn as something they said (security lens,
-        // 2026-09-22).
-        const text = await client.read(chatId, ciphertext, id, matchId)
-          .then((line) => ({ text: line, broken: false }))
-          .catch((e: Error) => ({ text: e.message, broken: true }));
-        setLines((all) => [...all, { mine: false, ...text }]);
+        room = opened;
+        const closed = (room as unknown as { closed: Promise<number> }).closed ?? new Promise<number>(() => {});
+        let code: number | null = null;
+        void closed.then((c) => (code = c));
+        while (live && code === null) {
+          const frame = await Promise.race([room.next(60_000).catch(() => null), closed.then(() => null)]);
+          if (!frame) continue;
+          attempt = 0;
+          // The other side stepped away (§8.2): a mark over the input, which stays
+          // live; their first line here takes it off.
+          if (frame.type === "sys" && (frame.data as { kind?: string })?.kind === "peer_stepped_away") {
+            setPeerAway(true);
+            continue;
+          }
+          if (frame.type !== "message") continue;
+          setPeerAway(false);
+          const { id, ciphertext } = frame.data as { id: string; ciphertext: string };
+          if (shown.has(id)) continue;
+          shown.add(id);
+          // A frame that does not open is the node's doing, not the peer's: it
+          // must never be drawn as something they said (security lens,
+          // 2026-09-22).
+          const text = await client.read(chatId, ciphertext, id, matchId)
+            .then((line) => ({ text: line, broken: false }))
+            .catch((e: Error) => ({ text: e.message, broken: true }));
+          setLines((all) => [...all, { mine: false, ...text }]);
+        }
+        if (!live) return;
+        const closedWith = await closed;
+        const action = afterClose(closedWith);
+        // 4003 is the only close that means "over"; its reason is not sent, so
+        // one's own clock tells a term from a hand (protocol §4.4).
+        if (action === "over") {
+          live = false;
+          end(Math.floor(Date.now() / 1000) >= endsAtRef.current ? "expired" : "ended");
+          return;
+        }
+        if (action === "stay") return;
+        await new Promise((r) => setTimeout(r, reconnectDelay(attempt++)));
       }
     })().catch((e: Error) => onError(e.message));
     return () => {

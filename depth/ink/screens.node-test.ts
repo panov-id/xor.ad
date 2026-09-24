@@ -577,6 +577,47 @@ test("a conversation closed by the node becomes a tombstone that leads to the fe
   app.unmount();
 });
 
+// The node's restart closes every room with 1001 (protocol §4.4): the screen
+// opens the room again, and a line the node hands on both openings — depth
+// confirms no receipt — is drawn once (core/reconnect.ts, 2026-09-24).
+test("a room the node closed for a restart is opened again, and a line handed twice is shown once", async () => {
+  const frames = [{ type: "message", seq: 1, data: { id: "l1", ciphertext: "x" } }];
+  const rooms: Array<ReturnType<typeof roomThatCloses>> = [];
+  const roomWith = () => {
+    const made = roomThatCloses();
+    const queue = [...frames];
+    made.room.next = () => queue.length ? Promise.resolve(queue.shift()!) : new Promise(() => {});
+    rooms.push(made);
+    return made.room;
+  };
+  let opened = 0;
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+    openRoom: () => { opened++; return Promise.resolve(roomWith()); },
+    read: (_c: string, _ct: string, id: string) => Promise.resolve(`строка ${id}`),
+    forget: () => {},
+  };
+  const app = render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "c3", name: "Аня", age: 34, limit: 256, span: 60, endsAt: Math.floor(Date.now() / 1000) + 3000,
+    onBack: () => {}, onError: (e: string) => { throw new Error(`the screen went to an error: ${e}`); },
+  }));
+  await settle(150);
+  assert.equal(opened, 1);
+  assert.match(app.lastFrame()!, /строка l1/);
+  rooms[0].close(1001);
+  // settle() waits 50 ms whatever it is given; the pause before coming back is
+  // half a second to a second (core/reconnect.ts).
+  await new Promise((r) => setTimeout(r, 1300));
+  assert.equal(opened, 2, "a room closed for the node's restart was not opened again");
+  const frame = app.lastFrame()!;
+  assert.equal(frame.split("строка l1").length - 1, 1, "a line handed on both openings was drawn twice");
+  assert.doesNotMatch(frame, /Беседа закончилась/, "a restart was taken for the end of the conversation");
+  app.unmount();
+});
+
 test("one's own span running out is the other tombstone, even with the room still open", async () => {
   const { room } = roomThatCloses();
   const client = {

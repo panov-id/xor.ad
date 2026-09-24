@@ -43,6 +43,7 @@ const auth = await import("../src/lib/identity_auth.ts");
 await import("../src/routes/identity.ts"); // registers the routes as a side effect
 await import("../src/routes/appearance.ts");
 await import("../src/routes/legal.ts");
+await import("../src/routes/offer_links.ts");
 
 const KEY_ID = "ak_pub_identityroutestest01";
 
@@ -1572,4 +1573,89 @@ Deno.test("the appearance refuses what it cannot keep, and writes nothing", asyn
 
   const rows = await database.queryOrThrow(`SELECT 1 FROM identity_appearance WHERE identity = $1`, [me.identity]);
   assertEquals(rows.length, 0, "a refused request left a row behind");
+});
+
+// An offer's link through our own redirect (offers spec §6.2, §6.3; the first
+// slice of offers, 2026-09-24): the exit screen names the full domain and
+// counts nothing; /go counts a person, not a previewer or a HEAD, sends them on
+// with no-store and no-referrer, and answers 410 once the link is switched off.
+async function seedOffer(externalUrl: string | null): Promise<{ id: string; code: string }> {
+  const advertiser = crypto.randomUUID();
+  const venue = crypto.randomUUID();
+  const id = crypto.randomUUID();
+  const code = `c${crypto.randomUUID().replaceAll("-", "").slice(0, 15)}`;
+  await database.queryOrThrow(`INSERT INTO advertisers (id, email, contact) VALUES ($1, 'cafe@alpha.test', 'Анна')`, [advertiser]);
+  await database.queryOrThrow(
+    `INSERT INTO venues (id, advertiser_id, name, address, verification_status, verified_at)
+     VALUES ($1, $2, 'Кофейня', 'Макариу 1', 'verified', now())`, [venue, advertiser]);
+  await database.queryOrThrow(
+    `INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, external_url, redirect_code,
+                         discount_until, status, expires_at)
+     VALUES ($1, 'alpha', $2, 'второй кофе бесплатно', '1+1', $3, $4, now() + interval '7 days', 'active',
+             now() + interval '4 hours 20 minutes')`,
+    [id, venue, externalUrl, code]);
+  return { id, code };
+}
+
+async function follow(code: string, init: { method?: string; agent?: string } = {}) {
+  const url = new URL(`https://relay.test/o/${code}/go`);
+  const found = match("GET", url.pathname);
+  assert(found, "no route for /o/:code/go");
+  return await found.h({
+    req: new Request(url, {
+      method: init.method ?? "GET",
+      headers: { "x-origin-token": "identity-routes-origin-token", "x-client-ip": nextAddress(),
+        ...(init.agent ? { "user-agent": init.agent } : {}) },
+    }),
+    params: found.params,
+    url,
+  });
+}
+
+const hitsOf = async (id: string) => (await database.queryOrThrow<{ redirect_hits: number }>(
+  `SELECT redirect_hits FROM offers WHERE id = $1`, [id]))[0].redirect_hits;
+
+Deno.test("an offer's link shows its domain, counts a person and not a previewer, and stops when switched off", async () => {
+  const offer = await seedOffer("https://ourcafe.example/menu?from=sosed");
+
+  const screen = await call("GET", `/o/${offer.code}`);
+  assertEquals(screen.status, 200, JSON.stringify(screen.body));
+  assertEquals(screen.body, { domain: "ourcafe.example", disabled: false });
+  assertEquals(await hitsOf(offer.id), 0, "the exit screen counted a hit");
+
+  const went = await follow(offer.code, { agent: "Mozilla/5.0 (Android 14)" });
+  assertEquals(went.status, 302);
+  assertEquals(went.headers.get("location"), "https://ourcafe.example/menu?from=sosed");
+  assertEquals(went.headers.get("cache-control"), "no-store", "a cache could replay the link after it is off");
+  assertEquals(went.headers.get("referrer-policy"), "no-referrer", "the venue would learn the code");
+  assertEquals(await hitsOf(offer.id), 1, "a person going to the venue was not counted");
+
+  const unfurled = await follow(offer.code, { agent: "TelegramBot (like TwitterBot)" });
+  assertEquals(unfurled.status, 302);
+  const probed = await follow(offer.code, { method: "HEAD" });
+  assertEquals(probed.status, 302);
+  assertEquals(await hitsOf(offer.id), 1, "a previewer or a HEAD was counted as a person");
+
+  await database.queryOrThrow(`UPDATE offers SET redirect_disabled_at = now() WHERE id = $1`, [offer.id]);
+  const off = await follow(offer.code, { agent: "Mozilla/5.0" });
+  assertEquals(off.status, 410, "a switched-off link still sent people on");
+  assertEquals(off.headers.get("location"), null);
+  assertEquals(await hitsOf(offer.id), 1, "a switched-off link counted a hit");
+  const offScreen = await call("GET", `/o/${offer.code}`);
+  assertEquals(offScreen.body, { domain: "ourcafe.example", disabled: true });
+
+  assertEquals((await follow("nosuchcode123")).status, 404);
+  assertEquals((await follow("short")).status, 404);
+  assertEquals((await call("GET", "/o/nosuchcode123")).status, 404);
+});
+
+Deno.test("an offer with no link, or a link that is not a web address, sends nobody anywhere", async () => {
+  const none = await seedOffer(null);
+  assertEquals((await follow(none.code)).status, 404);
+  assertEquals((await call("GET", `/o/${none.code}`)).status, 404);
+  const script = await seedOffer("javascript:alert(1)");
+  const res = await follow(script.code);
+  assertEquals(res.status, 404, "a non-web address was put in a Location header");
+  assertEquals(res.headers.get("location"), null);
+  assertEquals((await call("GET", `/o/${script.code}`)).status, 404);
 });

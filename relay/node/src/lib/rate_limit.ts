@@ -225,6 +225,11 @@ export const TRANSFER_CLAIM_LIMITS: Limit[] = [
   { name: "transfer-claim-day", max: 200, windowMs: DAY },
 ];
 
+// /o/<code> and its /go: a person following an offer's link is a page view,
+// so the page view's numbers, in buckets of their own — a link clicked does not
+// spend the page counter's allowance (offers/SPEC_RU.md §6.2, 2026-09-24).
+export const OFFER_LINK_LIMITS: Limit[] = PAGEVIEW_LIMITS.map((limit) => ({ ...limit, name: `offer-link-${limit.name}` }));
+
 export const V1_LIMITS: Limit[] = [
   { name: "v1", max: 1200, windowMs: HOUR },
   { name: "v1-day", max: 20000, windowMs: DAY },

@@ -366,8 +366,8 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 
 | Route | What it does | Origin |
 |---|---|---|
-| `GET /o/:code` | the exit screen: the full domain and whether the link is disabled; counts nothing (§6.3) | **spec** |
-| `GET /o/:code/go` | 302 to the venue's site, `redirect_hits + 1` without a person; a disabled one — 410, an unknown code — 404; `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, link previews are not counted (§6.2; panel 2026-09-19) | **spec** |
+| `GET /o/:code` | the exit screen: the full domain and whether the link is disabled; counts nothing (§6.3) | **built** 2026-09-24 (`routes/offer_links.ts`, tables `db/050`; an offer with no link or a link that is not http(s) — 404), was: spec |
+| `GET /o/:code/go` | 302 to the venue's site, `redirect_hits + 1` without a person; a disabled one — 410, an unknown code — 404; `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, link previews are not counted (§6.2; panel 2026-09-19) | **built** 2026-09-24 (`routes/offer_links.ts`; HEAD and self-announcing previewers by `User-Agent` get the 302 uncounted; limits — the page view's numbers in buckets of their own), was: spec |
 | `POST /o/:code/report` | a link complaint without an e-mail; two counting ones from different people disable the link at once (§10.1) | **spec** |
 | `POST /offers/:id/complaints` | "the discount was not given": the e-mail is required, private; 3 counting ones hide the offer; 202 with `{id, counts_towards_autohide}`, no e-mail — 422 (§10, §10.2) | **spec** |
 | `POST /adv/signup` | open an account: e-mail and contact; always 204, confirmed by a link (§2.1) | **spec** |

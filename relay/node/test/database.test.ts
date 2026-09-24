@@ -1297,37 +1297,6 @@ async function forgetPhrases(ids: string[]): Promise<void> {
   await query(`DELETE FROM feed_messages WHERE id = ANY($1::uuid[])`, [ids]);
 }
 
-// A probe surface, and the promise that it is ours.
-//
-// These suites build the product's tables to exercise branches that need them —
-// feed_messages and offers exist in no migration yet. They did it with
-// `CREATE TABLE IF NOT EXISTS` and dropped unconditionally in `finally`, which is
-// safe exactly until the day the product is migrated: then a probe silently takes
-// the real table, works against it, and deletes it with every row in it. The only
-// guard was that `scripts/run-relay-database-tests.sh` hands the suite a
-// throwaway database — a property of the runner, not of the test, and `deno test`
-// with somebody's DATABASE_URL in the environment behaves the same way.
-//
-// Finding the table already there is not a reason to carry on quietly: it means
-// that day has arrived, and the suite says so instead of deleting anything. The
-// DDL below also lost its `IF NOT EXISTS` for the same reason — a probe that
-// silently accepts an existing table is the whole problem in one clause.
-async function refuseIfSurfaceExists(name: string): Promise<void> {
-  const { query } = await import("../src/lib/db.ts");
-  const rows = await query<{ exists: boolean }>(
-    "SELECT to_regclass($1) IS NOT NULL AS exists",
-    [name],
-  );
-  assert(rows !== null, "the database did not answer");
-  if (rows[0]?.exists) {
-    throw new Error(
-      `${name} already exists in this database. The product has been migrated, so ` +
-        `this probe must stop building its own surface — and must certainly not drop ` +
-        `the real one. Rewrite the suite to use the migrated table.`,
-    );
-  }
-}
-
 Deno.test({
   name: "a phrase attributed to another face is still examined, because the world is one",
   sanitizeResources: false,
@@ -1397,26 +1366,19 @@ Deno.test({
     const { query } = await import("../src/lib/db.ts");
     const { captureTarget } = await import("../src/lib/dsa_snapshot.ts");
 
-    await refuseIfSurfaceExists("offers");
-    const built = await query(
-      `CREATE TABLE offers (
-         id uuid PRIMARY KEY,
-         brand text,
-         offer_text text,
-         discount_value text,
-         conditions text,
-         published_at timestamptz DEFAULT now(),
-         venue_id uuid
-       )`,
-      [],
-    );
-    assert(built !== null, "the probe surface could not be created");
-
+    // The migrated table since db/050 (2026-09-24): an advertiser, a venue and
+    // the offer, the rows the spec's own foreign keys ask for.
+    const advertiser = crypto.randomUUID();
+    const venue = crypto.randomUUID();
     const id = crypto.randomUUID();
-    await query(
-      `INSERT INTO offers (id, brand, offer_text) VALUES ($1, 'alpha', 'кофе за полцены')`,
-      [id],
-    );
+    await database.queryOrThrow(`INSERT INTO advertisers (id, email, contact) VALUES ($1, 'x@alpha.test', 'x')`, [advertiser]);
+    await database.queryOrThrow(
+      `INSERT INTO venues (id, advertiser_id, name, address, verification_status) VALUES ($1, $2, 'v', 'a', 'verified')`,
+      [venue, advertiser]);
+    await database.queryOrThrow(
+      `INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, redirect_code, discount_until, status, expires_at)
+       VALUES ($1, 'alpha', $2, 'кофе за полцены', '-50%', $3, now() + interval '1 day', 'active', now() + interval '1 hour')`,
+      [id, venue, `dsa${id.replaceAll("-", "")}`]);
 
     try {
       const elsewhere = await captureTarget("offer", id, "beta");
@@ -1435,7 +1397,9 @@ Deno.test({
       assertEquals(missing.status, "target_gone");
       assertEquals(missing.reason, null);
     } finally {
-      await query(`DROP TABLE IF EXISTS offers`, []);
+      await query(`DELETE FROM offers WHERE id = $1`, [id]);
+      await query(`DELETE FROM venues WHERE id = $1`, [venue]);
+      await query(`DELETE FROM advertisers WHERE id = $1`, [advertiser]);
     }
   },
 });

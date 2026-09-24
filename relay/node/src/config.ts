@@ -199,7 +199,26 @@ export function brandByKey(key: string): Brand | undefined {
   return config.brands.find((b) => b.key === key);
 }
 
+// The names a node may call its environment. The name picks the storage
+// prefixes (platform/<env>/brands, panel/<env>/users) and /ready's rules, and
+// it defaulted to "dev": a staging or prod node that lost its env file, or had
+// the name mistyped, called itself dev — read and wrote another environment's
+// data and answered /ready 200 with no database (verifier of d60fdac; decided by
+// quorum 2026-09-25, two of three who voted: refuse to start, rather than a
+// reason in /ready, because until the balancer notices, the node already works).
+export const ENV_NAMES = ["dev", "staging", "prod", "local", "test"] as const;
+
+export function envNameProblem(raw: string | undefined): string | null {
+  if (raw === undefined || raw.trim() === "") return "NODE_ENV_NAME is not set";
+  if (!(ENV_NAMES as readonly string[]).includes(raw)) {
+    return `NODE_ENV_NAME "${raw}" is none of ${ENV_NAMES.join(", ")}`;
+  }
+  return null;
+}
+
 export function assertConfig(): void {
+  const problem = envNameProblem(Deno.env.get("NODE_ENV_NAME"));
+  if (problem) throw new Error(`refusing to start: ${problem}`);
   if (config.storage.transport === "bunny" && !(config.storage.zone && config.storage.key)) {
     console.warn("[config] bunny storage not configured (waitlist storage disabled)");
   }

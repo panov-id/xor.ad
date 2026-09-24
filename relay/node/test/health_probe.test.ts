@@ -90,3 +90,29 @@ staging("a staging node with no database answers /ready 503 and names database_o
   assertEquals(body.env, "staging");
   assertEquals(body.reasons, ["database_off"]);
 });
+
+// A node that does not know its environment does not start (decided by quorum
+// 2026-09-25): with no name, or a name outside the set, it used to call itself
+// dev, read and write dev's storage prefixes and answer /ready 200.
+Deno.test("a node with no environment name, or an unknown one, refuses to start", async () => {
+  const { envNameProblem, assertConfig } = await import("../src/config.ts");
+  for (const name of ["dev", "staging", "prod", "local", "test"]) {
+    assertEquals(envNameProblem(name), null, `a known environment "${name}" was refused`);
+  }
+  for (const name of [undefined, "", "  ", "prdo", "production", "Prod"]) {
+    assert(envNameProblem(name), `the environment name ${JSON.stringify(name)} was taken as known`);
+  }
+  const saved = Deno.env.get("NODE_ENV_NAME");
+  Deno.env.delete("NODE_ENV_NAME");
+  try {
+    let refused = false;
+    try {
+      assertConfig();
+    } catch (error) {
+      refused = String(error).includes("refusing to start");
+    }
+    assert(refused, "the node would start with no environment name");
+  } finally {
+    if (saved !== undefined) Deno.env.set("NODE_ENV_NAME", saved);
+  }
+});

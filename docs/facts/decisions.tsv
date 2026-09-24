@@ -181,3 +181,4 @@ protocol.2026-09-24.receiptbody	2026-09-24	xor.ad/docs/protocol_RU.md:249	xor.ad
 dsa.2026-09-24.art24counter	2026-09-24	xor.ad/docs/dsa/README_RU.md:84	xor.ad/docs/dsa/README_EN.md:87	счётчик построен 24.09.2026	the counter built on 2026-09-24
 watchdogs.2026-09-24.noescalation	2026-09-24	xor.ad/docs/watchdogs_RU.md:41	xor.ad/docs/watchdogs_EN.md:45	Некому эскалировать — эскалации не берутся** (решено кворумом 24.09.2026)	Nobody to escalate to — escalations are not picked** (decided by quorum on 2026-09-24)
 protocol.2026-09-24.signupappearance	2026-09-24	xor.ad/docs/protocol_RU.md:132	xor.ad/docs/protocol_EN.md:140	необязательное `appearance`	an optional `appearance`
+deployment.2026-09-25.envname	2026-09-25	xor.ad/docs/deployment_RU.md:277	xor.ad/docs/deployment_EN.md:292	(решено кворумом 25.09.2026)	(decided by quorum on 2026-09-25)

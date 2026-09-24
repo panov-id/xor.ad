@@ -288,6 +288,9 @@ page itself lives for minutes, and an edge rule shortens the TTL:
    no database at all** (`reasons: ["database_off"]`; decided by quorum on 2026-09-24):
    there it is a deploy that lost its `DATABASE_URL` — no feed, no sweeping. Dev
    and local stands without a database stay ready: that is how they are meant to run.
+   **Since 2026-09-25 a node with no `NODE_ENV_NAME`, or a name other than dev, staging, prod, local, test, does not start**
+   (decided by quorum on 2026-09-25): it used to call itself dev silently, read and write another environment's storage
+   prefixes and answer `/ready` 200 with no database. The wizard, the stand and the test scripts always set the name.
 4. The panel opens, magic-link sign-in works, Waitlist and the logs are visible.
 
 Items 3–4 are automated in `relay/test/smoke.sh`. **Since 2026-09-08 the smoke test, the dev roll and the wizard ask `/ready`, not only `/health`:** the latter is always 200 by design, and judging a deploy by it is asking a light that cannot turn red. A node older than the route answers 404 — not a failure, and the output says so.

@@ -2155,6 +2155,47 @@ Deno.test({
   },
 });
 
+// The waker's two filters (lib/away_waker.ts), unguarded until 2026-09-24 (the
+// verifier found them green when removed): a frozen session holds no room to
+// wake, and a conversation over for the person is not woken.
+Deno.test({
+  name: "a time away that runs out wakes no frozen session and no conversation that ended",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { wakeReturned } = await import("../src/lib/away_waker.ts");
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const heard: string[] = [];
+    await sql.listen("chat_message", (payload: string) => heard.push(payload));
+    const stepAway = (who: { pair: CryptoKeyPair; session_id: string }) =>
+      signedCall(who.pair.privateKey, who.session_id, "POST", "/away",
+        { span: "short", nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
+    const runOut = (session: string) => database.queryOrThrow(
+      `UPDATE identities SET stepped_away_until = now() - interval '1 second'
+        WHERE id = (SELECT identity FROM sessions WHERE id = $1)`, [session]);
+    try {
+      const frozen = await openChat();
+      assertEquals((await stepAway(frozen.b)).status, 200);
+      await runOut(frozen.b.session_id);
+      await database.queryOrThrow(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit' WHERE id = $1`, [frozen.b.session_id]);
+
+      const gone = await openChat();
+      assertEquals((await stepAway(gone.b)).status, 200);
+      await runOut(gone.b.session_id);
+      await database.queryOrThrow(`UPDATE chat_participants SET gone_at = now() WHERE chat_id = $1 AND identity = (SELECT identity FROM sessions WHERE id = $2)`,
+        [gone.chat, gone.b.session_id]);
+
+      await wakeReturned();
+      await new Promise((r) => setTimeout(r, 400));
+      assert(!heard.includes(`${frozen.chat}::${frozen.b.session_id}`), "a frozen session was woken");
+      assert(!heard.includes(`${gone.chat}::${gone.b.session_id}`), "a conversation that ended for the person was woken");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
 Deno.test({
   name: "receipt deletes one's own rows and nobody else's",
   sanitizeResources: false,

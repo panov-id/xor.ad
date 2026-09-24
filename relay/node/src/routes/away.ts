@@ -24,7 +24,9 @@
 // for a step away, so they stay open and every request through them is refused.
 //
 // Coming back early is DELETE: stepped_away_until = now(). The marks are left
-// for one's own first line in each conversation to clear (chats.ts).
+// for one's own first line in each conversation to clear (chats.ts). A time
+// away that simply runs out wakes the held rooms through lib/away_waker.ts,
+// a minute's job, as DELETE wakes them here (db/047).
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
@@ -204,7 +206,8 @@ async function stepAwayOnce(req: Request): Promise<Response> {
     }
 
     const [until] = await run<{ until: string }>(
-      `UPDATE identities SET stepped_away_until = now() + ($2 * interval '1 minute') WHERE id = $1
+      `UPDATE identities SET stepped_away_until = now() + ($2 * interval '1 minute'), away_wake_due = true
+        WHERE id = $1
        RETURNING floor(extract(epoch from stepped_away_until))::bigint::text AS until`,
       [me, minutes],
     );
@@ -229,7 +232,9 @@ async function comeBack(req: Request): Promise<Response> {
   if (caller instanceof Response) return caller;
   return await transaction(async (run) => {
     const back = await run<{ id: string }>(
-      `UPDATE identities SET stepped_away_until = now()
+      // The flag down too: this return announces itself below, and the end of
+      // the time away must not announce it a second time (lib/away_waker.ts).
+      `UPDATE identities SET stepped_away_until = now(), away_wake_due = false
         WHERE id = $1 AND stepped_away_until > now() RETURNING id`,
       [caller.identityId],
     );

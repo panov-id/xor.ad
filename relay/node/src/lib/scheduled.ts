@@ -27,6 +27,7 @@ import { DSA_NOTICE_NOTIFY, retryArrivalLetters, sendNightPathSummaries } from "
 import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepChats } from "./chat_sweeper.ts";
+import { wakeReturned } from "./away_waker.ts";
 import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 
 export const PRUNE_PAGEVIEWS = "prune_pageviews";
@@ -93,6 +94,9 @@ export const SWEEP_PENDING = "sweep_pending";
 // Conversations whose term came, and those over for both (§8.10). Every minute:
 // the shortest term is ten.
 export const SWEEP_CHATS = "sweep_chats";
+// Times away that ran out by themselves, their held rooms woken (db/047).
+// Every minute: a longer wait is a longer silence in an open conversation.
+export const WAKE_RETURNED = "wake_returned";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -194,6 +198,11 @@ export function registerScheduledJobs(): void {
 
   handle(SWEEP_CHATS, async () => {
     await sweepChats();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
+  handle(WAKE_RETURNED, async () => {
+    await wakeReturned();
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
@@ -362,4 +371,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_PENDING, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_CHATS, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(WAKE_RETURNED, {}, new Date(Date.now() + A_MINUTE_MS));
 }

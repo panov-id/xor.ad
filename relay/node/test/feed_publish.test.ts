@@ -1911,6 +1911,63 @@ Deno.test({
   },
 });
 
+// The wake itself, on the wire: a held room gets what waited only on a
+// `chat_message` of "<chat>::<session>" (src/chat/relay.ts). A time away that
+// runs out by itself sends it from the minute's job, once; an early return
+// sends it from DELETE /away, and the job then says nothing (db/047).
+Deno.test({
+  name: "a time away that runs out wakes the held rooms once, and a return by hand is not woken twice",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { wakeReturned } = await import("../src/lib/away_waker.ts");
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const arrived: string[] = [];
+    await sql.listen("chat_message", (payload: string) => arrived.push(payload));
+    const heard = async (payload: string, ms: number) => {
+      const until = Date.now() + ms;
+      while (Date.now() < until) {
+        if (arrived.includes(payload)) return true;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      return arrived.includes(payload);
+    };
+    const count = (payload: string) => arrived.filter((p) => p === payload).length;
+    const stepAway = (who: { pair: CryptoKeyPair; session_id: string }) =>
+      signedCall(who.pair.privateKey, who.session_id, "POST", "/away",
+        { span: "short", nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
+    try {
+      // By the clock.
+      const one = await openChat();
+      const wake = `${one.chat}::${one.b.session_id}`;
+      assertEquals((await stepAway(one.b)).status, 200);
+      await wakeReturned();
+      assert(!(await heard(wake, 300)), "a room was woken while its person was still away");
+      await database.queryOrThrow(
+        `UPDATE identities SET stepped_away_until = now() - interval '1 second'
+          WHERE id = (SELECT identity FROM sessions WHERE id = $1)`, [one.b.session_id]);
+      await wakeReturned();
+      assert(await heard(wake, 2000), "a time away that ran out woke nothing");
+      await wakeReturned();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      assertEquals(count(wake), 1, "the same end of a time away was announced more than once");
+
+      // By hand.
+      const two = await openChat();
+      const back = `${two.chat}::${two.b.session_id}`;
+      assertEquals((await stepAway(two.b)).status, 200);
+      assertEquals((await signedCall(two.b.pair.privateKey, two.b.session_id, "DELETE", "/away")).status, 204);
+      assert(await heard(back, 2000), "coming back by hand woke nothing");
+      await wakeReturned();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      assertEquals(count(back), 1, "the job woke a return that had already announced itself");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
 Deno.test({
   name: "receipt deletes one's own rows and nobody else's",
   sanitizeResources: false,

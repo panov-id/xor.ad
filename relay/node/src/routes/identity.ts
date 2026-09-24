@@ -25,12 +25,12 @@ import {
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
 import { burnShare, freezeSession } from "../lib/sessions.ts";
-import { checkPin } from "../lib/pin_attempts.ts";
+import { checkPin, sameHash } from "../lib/pin_attempts.ts";
 import { takeDownLive, TakeDownRetry } from "../lib/take_down.ts";
 import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts";
 import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
-import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS } from "../lib/rate_limit.ts";
+import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS, RECOVERY_REISSUE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { cleanName } from "../lib/names.ts";
 
@@ -1007,6 +1007,88 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
   });
 }
 
+interface ReissueBody {
+  nonce?: unknown;
+  current?: { lookup_id?: unknown };
+  next?: { lookup_id?: unknown; wrapped_key?: unknown };
+}
+
+// POST /recovery/reissue — a new paper code for the old one (protocol §4.1,
+// chat spec §8.2 "paper code"; agreed 2026-09-17). The device proves the
+// current code and brings the new one's derivatives; the new code works and
+// the old stops in one transaction. A miss of the current code goes into the
+// same shared counter and pause as POST /recovery/claim: a signed caller
+// guessing codes is guessing codes. No more than reissue.day a day per
+// identity, counted only for a code that matched. The nonce is looked at
+// before the time away, as protocol §2 asks.
+async function reissueCode(req: Request): Promise<Response> {
+  const paused = pausedFor();
+  if (paused > 0) {
+    return refuse("rate_limited", "codes are not being accepted right now", 429, {}, { "retry-after": String(paused) });
+  }
+  const caller = await callerOf(req, { allowSteppedAway: true });
+  if (caller instanceof Response) return caller;
+  const body = await readJson<ReissueBody>(req);
+  if (!body) return refuse("invalid_body", "the body is not json", 400);
+  const nonce = isText(body.nonce, 64) ? base64urlToBytes(body.nonce) : null;
+  if (!nonce || nonce.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
+  if (!isText(body.current?.lookup_id, 512)) return refuse("invalid_body", "current.lookup_id is missing", 400);
+  if (!isText(body.next?.lookup_id, 512)) return refuse("invalid_body", "next.lookup_id is missing", 400);
+  const wrapped = isText(body.next?.wrapped_key, 4096) ? base64urlToBytes(body.next!.wrapped_key as string) : null;
+  if (!wrapped || wrapped.length === 0) return refuse("invalid_body", "next.wrapped_key must be base64url", 400);
+  const presented = await recoveryHash(body.current!.lookup_id as string);
+  const nextHash = await recoveryHash(body.next!.lookup_id as string);
+
+  return await transaction<Response>(async (run) => {
+    const [me] = await run<{ recovery_auth_hash: string | null; stepped_away_until: Date | null }>(
+      `SELECT recovery_auth_hash, stepped_away_until FROM identities
+        WHERE id = $1 AND closed_at IS NULL FOR UPDATE`,
+      [caller.identityId],
+    );
+    if (!me) return refuse("unauthorized", "the request is not signed by a live session", 401);
+    const [kept] = await run<{ route: string }>(
+      `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, nonce]);
+    if (kept) {
+      if (kept.route !== "POST /recovery/reissue") return refuse("invalid_body", "this nonce was used on another route", 409);
+      inc("relay_nonce_replay_total", { route: "POST /recovery/reissue" });
+      return new Response(null, { status: 204, headers: sunsetHeader() });
+    }
+    if (me.stepped_away_until && me.stepped_away_until.getTime() > Date.now()) {
+      return refuse("stepped_away", "you are away until the time you chose", 409, {
+        until: Math.floor(me.stepped_away_until.getTime() / 1000),
+      });
+    }
+    if (!me.recovery_auth_hash || !sameHash(presented, me.recovery_auth_hash)) {
+      if (countMiss()) {
+        log("warn", "recovery codes paused: the shared miss threshold was reached", { threshold: SHARED_MISS_MAX });
+      }
+      inc("relay_recovery_reissue_total", { result: "no_match" });
+      return refuse("not_found", "that code does not match", 404);
+    }
+    const allowed = checkAll(RECOVERY_REISSUE_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      inc("relay_recovery_reissue_total", { result: "limited" });
+      return refuse("rate_limited", "the paper code was reissued too often today", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+    await run(
+      `INSERT INTO nonces (session_id, nonce, route, status, response)
+       VALUES ($1, $2, 'POST /recovery/reissue', 204, 'null'::jsonb)`,
+      [caller.sessionId, nonce],
+    );
+    await run(
+      `UPDATE identities SET recovery_auth_hash = $2, recovery_wrapped_key = $3 WHERE id = $1`,
+      [caller.identityId, nextHash, wrapped],
+    );
+    inc("relay_recovery_reissue_total", { result: "reissued" });
+    return new Response(null, { status: 204, headers: sunsetHeader() });
+  }).catch((error) => {
+    log("error", "reissuing the paper code failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+}
+
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
 route("POST", "/recovery/claim", (c) => claimRecovery(c.req));
@@ -1015,3 +1097,4 @@ route("POST", "/vault/share", (c) => vaultShare(c.req));
 route("POST", "/vault/init", (c) => vaultInit(c.req));
 route("POST", "/vault/pin", (c) => changePin(c.req));
 route("POST", "/identities/close", (c) => closeIdentity(c.req));
+route("POST", "/recovery/reissue", (c) => reissueCode(c.req));

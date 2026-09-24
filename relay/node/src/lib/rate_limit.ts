@@ -201,6 +201,12 @@ export const HIDDEN_LIMITS: Limit[] = [
 ];
 
 // Blocks per identity (limits.tsv blocks.hour, SEC-1).
+// limits.tsv reissue.day: paper-code reissues per identity per day (protocol
+// §4.1, POST /recovery/reissue). Per node, as the other identity limits here.
+export const RECOVERY_REISSUE_LIMITS: Limit[] = [
+  { name: "recovery-reissue-day", max: 3, windowMs: DAY },
+];
+
 export const BLOCK_LIMITS: Limit[] = [
   { name: "block", max: 20, windowMs: HOUR },
 ];

@@ -973,6 +973,40 @@ Deno.test("the manifest names the face's three revisions, and an acceptance reco
     "the acceptance is not the one row of the served revision");
 });
 
+// POST /recovery/reissue (protocol §4.1): the current code proves, the new one
+// works and the old one stops in one transaction; a miss counts like a
+// claim's; reissue.day a day per identity (loop plan A8, 2026-09-24).
+Deno.test("a reissued paper code replaces the old one, a wrong one changes nothing, the fourth a day is refused", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await registered();
+  const hashOf = async (id: string) => await auth.sha256hex(new TextEncoder().encode(id));
+  const stored = async () => (await database.queryOrThrow<{ recovery_auth_hash: string }>(
+    `SELECT recovery_auth_hash FROM identities WHERE id = $1`, [me.created.identity_id]))[0].recovery_auth_hash;
+  const reissue = (current: string, next: string, nonce = auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)))) =>
+    signedCall(me.pair.privateKey, me.created.session_id, "POST", "/recovery/reissue", {
+      nonce, current: { lookup_id: current },
+      next: { lookup_id: next, wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))) },
+    });
+
+  const wrong = await reissue(crypto.randomUUID(), crypto.randomUUID());
+  assertEquals(wrong.status, 404, "a wrong current code was taken");
+  assertEquals(await stored(), await hashOf(me.lookupId), "a wrong current code moved the stored code");
+
+  let current = me.lookupId;
+  for (let i = 0; i < 3; i++) {
+    const next = crypto.randomUUID();
+    const done = await reissue(current, next);
+    assertEquals(done.status, 204, JSON.stringify(done.body));
+    assertEquals(await stored(), await hashOf(next), "the new code did not replace the old one");
+    current = next;
+  }
+  const fourth = await reissue(current, crypto.randomUUID());
+  assertEquals(fourth.status, 429, "a fourth reissue in a day was taken");
+  assertEquals(await stored(), await hashOf(current));
+  reset();
+});
+
 Deno.test("the node stores a hash of the paper code's half, not the half itself", async () => {
   // A read-only copy of `identities` must not be a set of keys. Until
   // 2026-09-20 the column held exactly what the device presents, so a dump was

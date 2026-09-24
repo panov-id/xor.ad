@@ -2944,7 +2944,8 @@ paths:
       tags: [identity]
       summary: "Reissue the paper code"
       x-summary-ru: "Перевыпустить бумажный код"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
       description: "Proof of the current code and the derivatives of the new one; the new one works and the old one dies in one transaction. A miss counts where /recovery/claim misses count (recovery.miss.shared, recovery.miss.pause)."
       x-description-ru: "Доказательство текущего кода и производные нового; новый действует и прежний гаснет одной транзакцией. Промах идёт в те же счётчики, что у /recovery/claim (recovery.miss.shared, recovery.miss.pause)."

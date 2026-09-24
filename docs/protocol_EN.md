@@ -353,7 +353,7 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /recovery/reissue` | change the code: `{current: {lookup_id}, next: {lookup_id, wrapped_key}, nonce}`; at most `reissue.day` a day per identity — proof of the current code and the derivatives of a new one born on the device; the new one works and the old one dies **in one transaction**; a miss on the current code counts where `POST /recovery/claim` misses count and towards the `recovery.miss.pause`; the shown-and-confirmed step stays on the device, the node knows nothing of it | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§8.2; `recovery.code.length`, `recovery.miss.shared`) |
+| `POST /recovery/reissue` | change the code: `{current: {lookup_id}, next: {lookup_id, wrapped_key}, nonce}`; at most `reissue.day` a day per identity — proof of the current code and the derivatives of a new one born on the device; the new one works and the old one dies **in one transaction**; a miss on the current code counts where `POST /recovery/claim` misses count and towards the `recovery.miss.pause`; the shown-and-confirmed step stays on the device, the node knows nothing of it | **built** 2026-09-24 (`routes/identity.ts`; a wrong current code — 404 and a miss into the shared counter; a fourth in a day — 429), was: spec (proposed 2026-09-16, agreed 2026-09-17) (§8.2; `recovery.code.length`, `recovery.miss.shared`)  |
 
 ### 4.13. Offers (`offers/SPEC_EN.md`, screens 3, 17, 23, 25)
 

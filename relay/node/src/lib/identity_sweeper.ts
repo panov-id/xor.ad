@@ -84,6 +84,51 @@ async function inBatches(statement: string): Promise<number> {
 // tables, matches, chat games, undelivered messages. Step 1 is the identity and
 // its sessions; each of the others joins this statement in the step that creates
 // its table, and the spec paragraph is the checklist for doing so.
+// A year without a session, decided under the rows it is decided about. The
+// guard writes last_seen_at in a commit of its own (lib/identity_guard.ts), and
+// the statement that closed used its snapshot: a person back after a year, whose
+// bump committed while the statement ran, was closed in the middle of their
+// own request — irreversibly (eighth quorum, 2026-09-25). So the candidates'
+// identity rows are locked, then their sessions (the order a close takes them),
+// and the year is asked again by a new statement, which in READ COMMITTED
+// sees whatever committed while the locks were waited for.
+async function closeInactive(): Promise<number> {
+  let total = 0;
+  for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const { picked, closed } = await transaction(async (run) => {
+      const doomed = await run<{ id: string }>(
+        `SELECT id FROM identities
+          WHERE closed_at IS NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM sessions s
+               WHERE s.identity = identities.id
+                 AND s.last_seen_at > now() - interval '${INACTIVE_DAYS} days')
+          ORDER BY id LIMIT ${BATCH}
+          FOR UPDATE SKIP LOCKED`,
+      );
+      if (doomed.length === 0) return { picked: 0, closed: 0 };
+      const ids = doomed.map((d) => d.id);
+      await run(`SELECT id FROM sessions WHERE identity = ANY($1::uuid[]) ORDER BY id FOR UPDATE`, [ids]);
+      const shut = await run<{ id: string }>(
+        `UPDATE identities SET closed_at = now(),
+                recovery_auth_hash = NULL, recovery_wrapped_key = NULL,
+                first_pin_grant_at = NULL
+          WHERE id = ANY($1::uuid[]) AND closed_at IS NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM sessions s
+               WHERE s.identity = identities.id
+                 AND s.last_seen_at > clock_timestamp() - interval '${INACTIVE_DAYS} days')
+          RETURNING id`,
+        [ids],
+      );
+      return { picked: doomed.length, closed: shut.length };
+    });
+    total += closed;
+    if (picked < BATCH) break;
+  }
+  return total;
+}
+
 async function closeIdentities(): Promise<number> {
   // In a transaction, and the reason is the notification rather than the
   // writes: freezing a session has to announce itself on `session_frozen`
@@ -108,9 +153,9 @@ async function closeIdentities(): Promise<number> {
   // an hour later, rather than surviving until the row is deleted thirty days
   // on. Outside that window there is nothing left to finish — the third pass
   // deletes the row itself (the window was added 2026-09-21; before it, this
-  // statement read every identity ever closed, hourly, to find nothing). It does not remove the race — two
-  // writers still need a lock for that, and that is written up as a task — it
-  // stops the race from being permanent.
+  // statement read every identity ever closed, hourly, to find nothing). The
+  // race itself is closed by closeInactive's locks (2026-09-25); this pass stays
+  // as the net under anything a later writer leaves half-done.
   // **In batches, like the other two passes, and for the reason written at
   // BATCH above.** This one was the exception until 2026-09-21: one UPDATE
   // over the whole table, then one CTE over every closed identity, then a
@@ -120,25 +165,7 @@ async function closeIdentities(): Promise<number> {
   // node picks the job up while the first is still inside it. The comment
   // arguing against exactly that was sitting forty lines above the code doing
   // it. Found by the data and operations lenses of the review panel.
-  const shut = await inBatches(
-    `WITH doomed AS (
-       SELECT id FROM identities
-        WHERE closed_at IS NULL
-          AND NOT EXISTS (
-            SELECT 1 FROM sessions s
-             WHERE s.identity = identities.id
-               AND s.last_seen_at > now() - interval '${INACTIVE_DAYS} days'
-          )
-        LIMIT ${BATCH}
-     ), shut AS (
-       UPDATE identities SET closed_at = now(),
-              recovery_auth_hash = NULL, recovery_wrapped_key = NULL,
-              first_pin_grant_at = NULL
-        WHERE id IN (SELECT id FROM doomed)
-        RETURNING id
-     )
-     SELECT count(*)::text AS count FROM shut`,
-  );
+  const shut = await closeInactive();
 
   // The consequences, also in batches, and **bounded by the deletion window**.
   // The set used to be every closed identity there has ever been, which is the

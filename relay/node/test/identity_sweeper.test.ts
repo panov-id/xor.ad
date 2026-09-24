@@ -394,3 +394,27 @@ Deno.test("every frozen session is announced, however many there are", async () 
     );
   }
 });
+
+// A person back after a year, whose request is in flight when the sweep runs
+// (eighth quorum, 2026-09-25): the guard's bump of last_seen_at commits while
+// the sweep decides, and the sweep decided by its own snapshot and closed the
+// identity in the middle of that request — irreversibly. Here the bump is held
+// open on a connection of its own until the sweep is waiting, then committed.
+Deno.test({ name: "a person back after a year is not closed by a sweep that met their request", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const back = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  try {
+    let swept: Promise<unknown> | undefined;
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`UPDATE sessions SET last_seen_at = now() WHERE id = $1`, [back.sessionId]);
+      swept = sweeper.sweepIdentities();
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    await swept;
+    assertEquals((await identityRow(back.identityId)).closed_at, null,
+      "the sweep closed an identity whose person came back while it ran");
+  } finally {
+    await sql.end();
+  }
+});

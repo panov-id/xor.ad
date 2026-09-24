@@ -3781,10 +3781,14 @@ Deno.test({ name: "a phrase in its last 65 minutes is marked soon, and its end i
   assertEquals(items.find((i) => i.id === going)?.soon, true, "a phrase in its last hour is not marked soon");
   assertEquals(items.find((i) => i.id === staying)?.soon, undefined, "a phrase with hours left is marked soon");
   assert(items.every((i) => !("expires_at" in i)), "the feed sent someone else's end as a time");
+  // Nor its start: the span is fixed, so a start to the second is the end to the
+  // second (§8.11; the owner's decision of 2026-09-24).
+  assert(items.every((i) => !("created_at" in i)), "the feed sent someone else's start, and with it the end");
   assertEquals(stateOf(await like(viewer, going)), "liked");
   const likes = (await signedCall(viewer.pair.privateKey, viewer.session_id, "GET", "/likes")).body as
     { items: Array<Record<string, unknown>> };
   assertEquals(likes.items.find((i) => i.id === going)?.soon, true, "the likes do not say a liked phrase is about to go");
   assert(likes.items.every((i) => !("expires_at" in i)), "the likes sent someone else's end as a time");
+  assert(likes.items.every((i) => !("created_at" in i)), "the likes sent someone else's start, and with it the end");
   reset();
 });

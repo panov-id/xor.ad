@@ -1726,7 +1726,7 @@ cell are open to whoever is handed its `id` by someone who has it in their feed 
 SELECT f.id, f.text, f.mode,
        grid_round_lat(f.lat, f.area_radius)        AS lat,   -- outwards: the grid node,
        grid_round_lon(f.lon, f.lat, f.area_radius) AS lon,   -- not what the database holds
-       f.area_radius, f.like_count, f.visible_at AS created_at   -- the card's time (2026-09-15)
+       f.area_radius, f.like_count   -- no time: with a fixed span the start is the end (§8.11, 2026-09-24)
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
 WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text

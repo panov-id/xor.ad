@@ -417,7 +417,8 @@ async function deliver(req: Request, url: URL): Promise<Response> {
       lon: at.lon,
       area_radius: row.area_radius,
       like_count: row.like_count,
-      created_at: Math.floor(row.visible_at.getTime() / 1000),
+      // No created_at: the span is fixed, so another person's start to the second
+      // is their end to the second (§8.11; the owner's decision of 2026-09-24).
       ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
       // The last 65 minutes as a word, never as a number: another person's
       // remaining time does not leave the node (§8.11; limits.tsv

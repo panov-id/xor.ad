@@ -206,6 +206,4 @@ in this cut.
   snapshot; whether they were settled has not been checked.
 - The `profile.patch.day` window — a rolling day or a calendar day — against
   the refusal's word "tomorrow".
-- §8.11 "someone else's phrases never expire" against `created_at + 4:20` in
-  the code.
 - Live lines into the open room of someone who stepped away — the owner's call.

@@ -1702,7 +1702,7 @@ total       медиана 2789 мс   максимум 11948
 SELECT f.id, f.text, f.mode,
        grid_round_lat(f.lat, f.area_radius)        AS lat,   -- наружу — узел сетки,
        grid_round_lon(f.lon, f.lat, f.area_radius) AS lon,   -- а не то, что в базе
-       f.area_radius, f.like_count, f.visible_at AS created_at   -- время карточки (15.09.2026)
+       f.area_radius, f.like_count   -- без времени: начало при фиксированном сроке есть конец (§8.11, 24.09.2026)
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
 WHERE f.visible_at IS NOT NULL                                      -- прошла очередь; без этого лента отдаёт непроверенное

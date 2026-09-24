@@ -421,7 +421,8 @@ async function myLikes(req: Request, url: URL): Promise<Response> {
       lon: row.lon_published,
       area_radius: row.area_radius,
       like_count: row.like_count,
-      created_at: Math.floor(row.visible_at.getTime() / 1000),
+      // No created_at: the span is fixed, so another person's start to the second
+      // is their end to the second (§8.11; the owner's decision of 2026-09-24).
       ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
       state: row.matched ? "matched" : "liked",
       ...(row.soon ? { soon: true } : {}),

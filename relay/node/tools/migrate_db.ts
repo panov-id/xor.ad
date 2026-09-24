@@ -15,6 +15,7 @@
 if (!Deno.env.get("RELAY_DB_TIMEOUT_MS")) Deno.env.set("RELAY_DB_TIMEOUT_MS", "1800000");
 
 import { closePool, queryOrThrow, transaction } from "../src/lib/db.ts";
+import { planMigrations } from "../src/lib/migration_order.ts";
 
 // One migrator at a time per database. The wizard runs this per environment and
 // the pool has more than one box; two runs used to see the same empty `applied`
@@ -41,6 +42,23 @@ await queryOrThrow(`
 const applied = new Set(
   (await queryOrThrow<{ name: string }>("SELECT name FROM schema_migrations")).map((row) => row.name),
 );
+
+// Decided before the first file runs, so a refusal leaves the database as it
+// found it — and a dry run says the same thing a real one would.
+const plan = planMigrations(files, applied);
+if (plan.ghosts.length > 0) {
+  console.warn(`   note  recorded but not on disk (a rollback, or a squash): ${plan.ghosts.join(", ")}`);
+}
+if (plan.outOfOrder.length > 0) {
+  for (const { file, highest } of plan.outOfOrder) {
+    console.error(
+      `   refuse ${file}: it sorts below ${highest}, which this database already has — ` +
+        `here it would run last, on a fresh database in its place. Give it a number above ${highest}.`,
+    );
+  }
+  await closePool();
+  Deno.exit(1);
+}
 
 let ran = 0;
 for (const name of files) {

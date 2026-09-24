@@ -351,6 +351,35 @@ test("a like that became an offer to talk is not taken back: it leads to the inb
   app.unmount();
 });
 
+// A cursor the node no longer opens — a rolled key, or one from an older
+// image on a mixed pool — is answered 400 (lib/cursor.ts on the node). The
+// list starts again from the first page instead of ending on an error
+// (review panel 2026-09-24; loop plan A2).
+test("a refused cursor starts the liked list again from the first page", async () => {
+  const { CursorRefused } = await import("../core/client.ts");
+  const pages: Array<string | undefined> = [];
+  const errors: string[] = [];
+  const client = {
+    likes: (after?: string) => {
+      pages.push(after);
+      return after
+        ? Promise.reject(new CursorRefused())
+        : Promise.resolve({ items: [card("p5", "снова с начала")], next: "stale" });
+    },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Liked, { say, client: client as any, onInbox: () => {}, onBack: () => {}, onError: (e: string) => errors.push(e) }));
+  await settle();
+  await settle();
+  await type(app, RIGHT, ENTER);
+  await settle();
+  await settle();
+  assert.deepEqual(errors, [], "a refused cursor ended the list on an error");
+  assert.deepEqual(pages, [undefined, "stale", undefined], "the list did not start again from the first page");
+  assert.equal(app.lastFrame()!.split("снова с начала").length - 1, 1, "the first page was added twice instead of replacing the list");
+  app.unmount();
+});
+
 test("the liked list takes the next page when asked, and says so when it is empty", async () => {
   const pages: Array<string | undefined> = [];
   const client = {

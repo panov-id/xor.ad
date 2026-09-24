@@ -476,6 +476,10 @@ export class Client {
   async likes(after?: string): Promise<{ items: Liked[]; next: string | null }> {
     const path = after ? `/likes?after=${encodeURIComponent(after)}` : "/likes";
     const answer = await this.#call<{ items: Liked[]; next: string | null }>("GET", path);
+    // A cursor this node will not open any more: its key rolled, or it came
+    // from an older image (the node seals cursors since 2026-09-24). Not a
+    // failure of the list — the caller starts again from the first page.
+    if (after && answer.status === 400) throw new CursorRefused();
     if (answer.status !== 200) throw new Error(`the likes refused: ${answer.status}`);
     return answer.body;
   }
@@ -533,6 +537,13 @@ export class Client {
 
   get sessionId(): string {
     return this.#session;
+  }
+}
+
+// The node answered 400 to an `after` it had issued: start from the first page.
+export class CursorRefused extends Error {
+  constructor() {
+    super("the node no longer opens this cursor");
   }
 }
 

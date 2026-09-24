@@ -9,6 +9,7 @@ import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Client, Liked as LikedCard, Statement } from "../core/client.ts";
+import { CursorRefused } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
@@ -698,7 +699,12 @@ export function Liked(
         if (key === "more" && next) {
           return void client.likes(next)
             .then((page) => { setRows((list) => [...(list ?? []), ...page.items]); setNext(page.next); })
-            .catch((e: Error) => onError(e.message));
+            .catch((e: Error) => {
+              // A cursor the node will not open any more starts the list again.
+              if (!(e instanceof CursorRefused)) return onError(e.message);
+              return client.likes().then((page) => { setRows(page.items); setNext(page.next); })
+                .catch((again: Error) => onError(again.message));
+            });
         }
         if (!chosen) return;
         if (key === "offer") return onInbox();
@@ -898,7 +904,14 @@ export function StepAway(
       let likes = 0;
       let after: string | undefined;
       for (let page = 0; page < 20; page++) {
-        const got = await client.likes(after);
+        const got = await client.likes(after).catch((e: Error) => {
+          // A refused cursor: count again from the first page; the twenty
+          // pages of this loop bound how often that can happen.
+          if (!(e instanceof CursorRefused)) throw e;
+          likes = 0;
+          after = undefined;
+          return client.likes();
+        });
         likes += got.items.length;
         if (!got.next) break;
         after = got.next;

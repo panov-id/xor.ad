@@ -209,3 +209,8 @@ in this cut.
 - §8.11 "someone else's phrases never expire" against `created_at + 4:20` in
   the code.
 - Live lines into the open room of someone who stepped away — the owner's call.
+- Whether a rate-limit slot is given back when the node itself answers 503
+  (`hidden.ts`, `likes.ts`, `blocks.ts`, `feed.ts`): today the slot is spent.
+  Giving it back is fairer to the client, but under a flood of likes the 503
+  comes from `lock_timeout`, and giving it back lifts the brake exactly then
+  (the loop's quorum, 2026-09-24).

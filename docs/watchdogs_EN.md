@@ -45,7 +45,10 @@ The platform's promises rest on people and jobs, and they can break without a so
   **Nobody to escalate to — escalations are not picked** (decided by quorum on 2026-09-24): with an empty
   `DSA_ESCALATION_EMAILS` they are not taken at all, and every pass logs an `error` with their number;
   reminders go on. Otherwise the 200 oldest escalations gave their stamps back every pass and came first
-  again, and a fresh notice never got its reminder. Rejected: a separate limit per stage. Rejected: no ceiling; a ceiling on `support@` only.
+  again, and a fresh notice never got its reminder. Rejected: a separate limit per stage.
+  **Among the rest, the untried first** (decided by quorum on 2026-09-25): the pick stamps
+  `aging_tried_at` (`db/057`) and takes reminders, then the never-tried, then the longest-ago tried.
+  Two hundred escalations failing at one address no longer hold a newer one. Rejected: a count of attempts. Rejected: no ceiling; a ceiling on `support@` only.
 - **Where to.** The reminder — to the `support@` of the face the notice came through (as the
   new-notice letter does: `brand`, else `received_via`); the escalation — to the personal addresses in
   `DSA_ESCALATION_EMAILS` (the wizard passes it to the node from `secrets.env`), not a shared inbox,

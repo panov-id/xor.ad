@@ -121,7 +121,10 @@ export async function agingNotices(
         -- Reminders first: an escalation whose letter keeps failing somewhere
         -- comes back every pass, and 200 of them ahead in age kept a fresh
         -- notice from its reminder even with addresses (verifier, 2026-09-24).
-        ORDER BY (reminded_at IS NULL) DESC, created_at
+        -- And among the rest, the never-tried first and the longest-ago tried
+        -- next: 200 escalations failing at one address held a newer one while
+        -- they kept failing (dsa.aging.escalation.order, db/057).
+        ORDER BY (reminded_at IS NULL) DESC, aging_tried_at NULLS FIRST, created_at
         LIMIT 200
         FOR UPDATE SKIP LOCKED
      ), stamped AS (
@@ -129,7 +132,8 @@ export async function agingNotices(
           -- An escalation stamps the reminder too: a notice first seen past 48
           -- hours skips the reminder, and without the stamp the next pass would
           -- send it — a "waiting a day" letter after the "two days" one.
-          SET reminded_at  = coalesce(n.reminded_at, now()),
+          SET aging_tried_at = now(),
+              reminded_at  = coalesce(n.reminded_at, now()),
               escalated_at = CASE WHEN p.stage = 'escalate' THEN now() ELSE n.escalated_at END
          FROM picked p
         WHERE n.id = p.id

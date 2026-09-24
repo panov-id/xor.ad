@@ -293,3 +293,35 @@ Deno.test({ name: "escalations failing at one address do not starve a fresh remi
     else Deno.env.set("DSA_ESCALATION_EMAILS", saved);
   }
 });
+
+// Among escalations too, the tried give way (dsa.aging.escalation.order;
+// decided by quorum 2026-09-25, five of five: a column, not a counter). 200
+// escalations whose letter keeps failing at one address stood ahead in age of
+// a newer one and held it for as long as they kept failing.
+Deno.test({ name: "escalations tried and failing give way to one never tried", ...pool }, async () => {
+  const saved = Deno.env.get("DSA_ESCALATION_EMAILS");
+  Deno.env.set("DSA_ESCALATION_EMAILS", "good@watch.test, bad@watch.test");
+  try {
+    await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
+    await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge();
+    await queryOrThrow(
+      `INSERT INTO dsa_notices (brand, target_kind, reason_text, bona_fide, status, created_at, reminded_at, arrival_sent_at)
+       SELECT 'neighbro', 'chat', 'tried ' || g, true, 'received', now() - interval '90 hours', now() - interval '60 hours', now()
+         FROM generate_series(1, 200) g`);
+    const [{ id: newer }] = await queryOrThrow<{ id: string }>(
+      `INSERT INTO dsa_notices (brand, target_kind, reason_text, bona_fide, status, created_at, reminded_at, arrival_sent_at)
+       VALUES ('neighbro', 'chat', 'tried newer', true, 'received', now() - interval '50 hours', now() - interval '26 hours', now())
+       RETURNING id`);
+    const told: string[] = [];
+    for (let pass = 0; pass < 3; pass++) {
+      await queryOrThrow(`DELETE FROM dsa_aging_hours`);
+      await watchNoticeAge((to, n) => { if (to.startsWith("good")) told.push(n.id); return Promise.resolve(!to.startsWith("bad")); },
+        (to, list) => { if (to.startsWith("good")) told.push(...list.map((n) => n.id)); return Promise.resolve(!to.startsWith("bad")); });
+    }
+    assertEquals(told.includes(newer), true, "an escalation never tried waited behind 200 that kept failing");
+  } finally {
+    await queryOrThrow(`DELETE FROM dsa_notices WHERE reason_text LIKE 'tried %'`);
+    if (saved === undefined) Deno.env.delete("DSA_ESCALATION_EMAILS");
+    else Deno.env.set("DSA_ESCALATION_EMAILS", saved);
+  }
+});

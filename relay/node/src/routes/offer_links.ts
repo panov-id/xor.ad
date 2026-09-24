@@ -19,7 +19,7 @@ import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
 import { query } from "../lib/db.ts";
 import { refuse } from "../lib/identity_guard.ts";
-import { callerBucket } from "../lib/client_ip.ts";
+import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, OFFER_LINK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -57,7 +57,10 @@ function webTarget(raw: string | null): URL | null {
 const NO_STORE = { "cache-control": "no-store", "referrer-policy": "no-referrer" };
 
 function limited(req: Request): Response | null {
-  const verdict = checkAll(OFFER_LINK_LIMITS, callerBucket(req));
+  // The address alone. These routes take no key, and callerBucket names a
+  // bucket by any well-formed one: a made-up key per request was a fresh
+  // allowance per request (verifier, 2026-09-24).
+  const verdict = checkAll(OFFER_LINK_LIMITS, `${clientAddress(req).ip}|offer-link`);
   if (verdict.allowed) return null;
   return json({ error: "rate_limited", retry_after: verdict.retryAfterSeconds }, 429,
     { "retry-after": String(verdict.retryAfterSeconds) });
@@ -94,10 +97,11 @@ async function go(req: Request, code: string): Promise<Response> {
     row = await find(code);
   } else {
     // Counted in the same statement that reads the target: a hit is one row
-    // written, never a read and a write a switch-off could fall between.
+    // written, never a read and a write a switch-off could fall between. Only
+    // a web address counts; anything else answers 404 below and sent nobody.
     const hit = await query<{ external_url: string | null }>(
       `UPDATE offers SET redirect_hits = redirect_hits + 1
-        WHERE redirect_code = $1 AND redirect_disabled_at IS NULL AND external_url IS NOT NULL
+        WHERE redirect_code = $1 AND redirect_disabled_at IS NULL AND external_url ~* '^https?://'
         RETURNING external_url`,
       [code],
     );

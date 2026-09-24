@@ -40,12 +40,12 @@ async function accept(req: Request): Promise<Response> {
   const written = await query(
     `INSERT INTO legal_acceptances (identity, document, revision_date, revision_sha256)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT (identity, document, revision_sha256) DO NOTHING
+     ON CONFLICT (identity, document, revision_date, revision_sha256) DO NOTHING
      RETURNING id`,
     [caller.identityId, current.document, current.revision_date, current.revision_sha256],
   );
   if (written === null) return refuse("unavailable", "the node cannot write right now", 503);
-  // A repeat of an accepted revision keeps the first row and its time (db/049).
+  // A repeat of an accepted revision keeps the first row and its time (db/049, db/051).
   inc("relay_legal_accept_total", { result: written.length ? "recorded" : "again" });
   return new Response(null, { status: 200, headers: sunsetHeader() });
 }

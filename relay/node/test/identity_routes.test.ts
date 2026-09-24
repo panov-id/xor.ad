@@ -1657,5 +1657,38 @@ Deno.test("an offer with no link, or a link that is not a web address, sends nob
   const res = await follow(script.code);
   assertEquals(res.status, 404, "a non-web address was put in a Location header");
   assertEquals(res.headers.get("location"), null);
+  assertEquals(await hitsOf(script.id), 0, "a link that sent nobody anywhere counted a hit");
   assertEquals((await call("GET", `/o/${script.code}`)).status, 404);
+});
+
+// The limit on an offer's link counts the address alone. These routes take no
+// key, and a bucket named by any well-formed key let one address mint a fresh
+// allowance per request: 300 hits past the ceiling (verifier, 2026-09-24).
+Deno.test("an offer's link limit cannot be reset by a made-up storefront key", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const offer = await seedOffer("https://ourcafe.example/");
+  const address = "203.0.113.77";
+  let last = 0;
+  for (let i = 0; i < 600; i++) last = (await call("GET", `/o/${offer.code}`, { address })).status;
+  assertEquals(last, 200, "the ceiling came before the page view's numbers");
+  const plain = await call("GET", `/o/${offer.code}`, { address });
+  assertEquals(plain.status, 429, "the six hundred and first view from one address was let through");
+  const keyed = await call("GET", `/o/${offer.code}`, { address, headers: { "x-api-key": `ak_pub_${"7".repeat(16)}` } });
+  assertEquals(keyed.status, 429, "a made-up key gave the address a fresh allowance");
+  reset();
+});
+
+// A document re-dated without a change of text is a revision of its own: the
+// record answers "which revision", and the date is half of the answer
+// (verifier, 2026-09-24; db/051).
+Deno.test("the same text under a new date is accepted as a revision of its own", async () => {
+  const me = await registered();
+  const row = (date: string) => database.queryOrThrow(
+    `INSERT INTO legal_acceptances (identity, document, revision_date, revision_sha256)
+     VALUES ($1, 'terms', $2, $3) ON CONFLICT (identity, document, revision_date, revision_sha256) DO NOTHING RETURNING id`,
+    [me.created.identity_id, date, "a".repeat(64)]);
+  assertEquals((await row("2026-01-01")).length, 1);
+  assertEquals((await row("2026-01-01")).length, 0, "the same revision was recorded twice");
+  assertEquals((await row("2026-02-01")).length, 1, "a re-dated revision of the same text was not recorded");
 });

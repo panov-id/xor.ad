@@ -7,7 +7,10 @@
 --
 -- The DDL is the spec's own; what is added is only what the spec states in
 -- words: the three statuses, a code that names one offer, and the lookup by it.
-CREATE TABLE IF NOT EXISTS advertisers (
+-- No IF NOT EXISTS: a table of that name already there is somebody's probe or a
+-- half-made migration, and taking it silently would leave the CHECKs off
+-- (verifier, 2026-09-24; the same reasoning as db/022).
+CREATE TABLE advertisers (
   id                  uuid PRIMARY KEY,
   email               text NOT NULL,           -- sign-in by magic link
   email_confirmed_at  timestamptz,             -- no envelope and no offer before it
@@ -15,7 +18,7 @@ CREATE TABLE IF NOT EXISTS advertisers (
   created_at          timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS venues (
+CREATE TABLE venues (
   id                   uuid PRIMARY KEY,
   advertiser_id        uuid NOT NULL REFERENCES advertisers(id),
   name                 text NOT NULL,
@@ -26,7 +29,7 @@ CREATE TABLE IF NOT EXISTS venues (
   created_at           timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS offers (
+CREATE TABLE offers (
   id                      uuid PRIMARY KEY,
   brand                   text NOT NULL,          -- every search is bounded by it
   venue_id                uuid NOT NULL REFERENCES venues(id),
@@ -48,5 +51,5 @@ CREATE TABLE IF NOT EXISTS offers (
 
 -- /o/<code> finds one offer by it; two offers under one code would send a
 -- person to whichever the planner met first.
-CREATE UNIQUE INDEX IF NOT EXISTS offers_redirect_code ON offers (redirect_code);
-CREATE INDEX IF NOT EXISTS venues_advertiser ON venues (advertiser_id);
+CREATE UNIQUE INDEX offers_redirect_code ON offers (redirect_code);
+CREATE INDEX venues_advertiser ON venues (advertiser_id);

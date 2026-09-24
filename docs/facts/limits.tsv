@@ -132,3 +132,6 @@ feed.read.hour	300	запросов	чтений ленты в час по ли�
 safety.code.digits	20	цифр	длина кода безопасности: пять групп по четыре, около 66 бит; выводится из долгих ключей обеих личностей (решение владельца 22.09.2026)	клиент	xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
 request.body.bytes	1048576	байт	потолок тела любого запроса к узлу, 413 сверх (24.09.2026, панель owner-decisions)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 request.body.deadline	30	секунд	срок, за который тело запроса должно прийти целиком, 408 сверх (24.09.2026, панель цикла)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	запрос
+logs.retention	30	дней	срок хранения серверных логов, ошибок клиента и отчётов CSP (политика приватности витрин §5 «Server logs and client errors: 30 days»)	узел	sosed.place/landing/legal/privacy_EN.md,neighbro.place/landing/legal/privacy_EN.md	prune_objects
+dsa.records.retention	1	год	срок хранения уведомления по ст. 16, снятой копии и мотивировки по ст. 17 (политика приватности витрин §5 «1 year»)	узел	sosed.place/landing/legal/privacy_EN.md,neighbro.place/landing/legal/privacy_EN.md	prune_dsa_records
+backup.retention	14	дней	срок хранения ночного дампа базы (политика приватности витрин §5 «14 days»)	конфиг	sosed.place/landing/legal/privacy_EN.md,neighbro.place/landing/legal/privacy_EN.md	

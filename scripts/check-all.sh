@@ -78,6 +78,7 @@ run check-facts-open      bash "$here/check-facts-open.sh"
 run readdress-facts       python3 "$here/readdress-facts.py"
 run check-facts-decisions bash "$here/check-facts-decisions.sh"
 run check-facts-limits    bash "$here/check-facts-limits.sh"
+run check-retention       bash "$here/check-retention.sh"
 run check-docs-pairing    bash "$here/check-docs-pairing-all.sh"
 run ontology              python3 "$here/ontology.py" --check
 # Карта тестов называет свои числа, а число в документе живёт ровно до первого
@@ -149,6 +150,7 @@ if [ "$with_tests" = 1 ]; then
   # держит границу: смотреть можно, стирать только по --force и вслух.
   run test_seed-facts-decisions bash "$here/test_seed-facts-decisions.sh"
   run test_check-facts-limits    bash "$here/test_check-facts-limits.sh"
+  run test_check-retention       bash "$here/test_check-retention.sh"
   # Сам check-node-images остаётся снаружи (живые адреса пула), но его проба
   # сети не трогает: стенд поднимает подставной /health на 127.0.0.1.
   run test_check-node-images    bash "$here/test_check-node-images.sh"

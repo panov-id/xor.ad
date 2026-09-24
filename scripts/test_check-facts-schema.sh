@@ -61,7 +61,13 @@ sql 'create table probe_orphan (id int)'
 expect 'живёт в базе и не заведена в реестре' 'лишняя таблица в базе'
 sql 'drop table probe_orphan'
 
-sed -i 's|^blocks\t\(.*\)\t-\tproduct|blocks\t\1\trelay/node/db/001_control_state.sql\tproduct|' "$registry"
+# Any product table still on paper will do: `blocks`, used here first, was
+# migrated by db/030 on 2026-09-21, the sed matched nothing and the case went
+# green on an untouched registry (found 2026-09-24).
+paper=$(grep -P '\t-\tproduct' "$registry" | head -1 | cut -f1)
+[ -n "$paper" ] || { echo "в реестре не осталось продуктовой таблицы без миграции — случай нечем поставить"; exit 2; }
+sed -i "s|^${paper}\t\(.*\)\t-\tproduct|${paper}\t\1\trelay/node/db/001_control_state.sql\tproduct|" "$registry"
+grep -qP "^${paper}\t.*\trelay/node/db/001_control_state.sql\tproduct" "$registry" || { echo "подмена строки $paper не легла"; exit 2; }
 expect 'база её не знает' 'реестр пообещал базе продуктовую таблицу'
 cp "$backup" "$registry"
 

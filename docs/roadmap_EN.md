@@ -49,8 +49,10 @@ The percentages are estimates: they are not weighted by hours, because steps
   zone cuts bodies quoting `<script>` or `../`, and the zone has zero custom
   rules (`open-work_EN.md`, G12/G13).
 - [ ] **Roll out `day57`.** `day56` was pushed in full on 2026-09-24
-  (`b74b60a`); `day57` on top of it is 197 commits ahead of `origin/dev`
-  (`cd21688`, 2026-09-19) at `bc385fc`, none unpushed (measured 2026-09-24).
+  (`b74b60a`); `day57` on top of it is ahead of `origin/dev` (`cd21688`,
+  2026-09-19); the counts of commits and of unpushed ones are
+  `git rev-list --count origin/dev..day57` and `origin/day57..day57` on the day
+  of the rollout, not from here (panel 2026-09-24).
   Migrations `022`–`046` have not been applied anywhere: the dev
   (`sha-622a848`) and production images end at `021`, staging at `010` (by the
   pinned tags in `relay/wizard/environments.toml`; `schema_migrations` on the
@@ -71,8 +73,12 @@ The percentages are estimates: they are not weighted by hours, because steps
   `dsa_notices.snapshot` as a jsonb string, so the panel shows the moderator
   an escaped line instead of the evidence (`4e54c91`, `db/046` unwraps the
   rows). The storefronts send no idempotency key, so the first touches only
-  `/v1` clients. The class is now caught by the last step of the database run:
-  no jsonb column in the schema holds a string (`tools/check_jsonb_strings.ts`).
+  `/v1` clients. In the test database the class is caught by the last step of
+  the run: no jsonb column in the schema holds a string
+  (`tools/check_jsonb_strings.ts`). Production has no such step: after the
+  rollout run the same tool in the node's container and expect zero; a
+  snapshot the old image writes during the migration window or a rollback is
+  still shown as the object by the queue (`routes/dsa.ts`).
 - [ ] `NOT NULL` on the published centre (P5) — only in the rollout after
   `027`, never in the same one.
 - [~] Nightly backup encryption (P4): the mechanism shipped 2026-09-21

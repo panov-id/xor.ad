@@ -64,3 +64,22 @@ Deno.test("a request with no body is handed on as the same object", async () => 
   const req = new Request(URL_, { method: "GET" });
   assert((await capBody(req)) === req, "a bodiless request was copied");
 });
+
+// A body that stops arriving holds its buffer only until the deadline: without
+// one, slow connections each kept up to the ceiling for as long as they liked
+// (review panel 2026-09-24, operations and security lenses).
+Deno.test("a body that stops arriving is let go at the deadline", async () => {
+  const stalled = new ReadableStream<Uint8Array>({
+    start(c) { c.enqueue(new Uint8Array(10)); },
+    pull() { return new Promise(() => {}); },
+  });
+  let guard: ReturnType<typeof setTimeout> | undefined;
+  const result = await Promise.race([
+    capBody(new Request(URL_, { method: "POST", body: stalled }), BODY_MAX_BYTES, 200),
+    new Promise<"hung">((r) => (guard = setTimeout(() => r("hung"), 2000))),
+  ]);
+  clearTimeout(guard);
+  assert(result !== "hung", "a stalled body was waited for past its deadline");
+  assert(result instanceof Response, "a stalled body was let through");
+  assertEquals(result.status, 408);
+});

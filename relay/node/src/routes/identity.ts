@@ -956,15 +956,18 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
        VALUES ($1, $2, 'POST /identities/close', 200, 'null'::jsonb)`,
       [sessionId, nonce],
     );
+    // The counters row before the identity's row, the order a step-away takes
+    // them (routes/away.ts): the other way round the two deadlocked and one
+    // answered 503 (review panel 2026-09-24, data lens, reproduced). The
+    // commit is one, so stillHere sees the close whichever row it waited on.
+    await takeDownLive(run, me);
     const shut = await run<{ id: string }>(
       `UPDATE identities SET closed_at = now(),
               recovery_auth_hash = NULL, recovery_wrapped_key = NULL, first_pin_grant_at = NULL
         WHERE id = $1 AND closed_at IS NULL RETURNING id`,
       [me],
     );
-    if (shut.length === 0) return refuse("not_found", "no such identity", 404);
-
-    await takeDownLive(run, me);
+    if (shut.length === 0) throw new Error("the identity closed under a held vault lock");
 
     const ended = await run<{ chat_id: string }>(
       `UPDATE chat_participants SET gone_at = now()

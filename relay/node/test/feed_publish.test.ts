@@ -2438,6 +2438,42 @@ Deno.test({
   },
 });
 
+// A close racing a step-away of the same identity (review panel 2026-09-24,
+// data lens): a step-away holds the counters row, then writes the identity's
+// row. A close that took the identity's row first and the counters second met
+// it the other way round — deadlock, one of the two 503. Another connection
+// plays the step-away here, in its order, while the close waits.
+Deno.test({
+  name: "a close and a step-away of one identity take their locks in one order",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const a = await author();
+    const pin = crypto.getRandomValues(new Uint8Array(32));
+    await database.queryOrThrow(`UPDATE vault_shares SET auth_hash = $2 WHERE session = $1`,
+      [a.session_id, await auth.sha256hex(pin)]);
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const got: { closed?: { status: number; body: unknown } } = {};
+    try {
+      await sql.begin(async (tx) => {
+        await tx.unsafe(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [a.identity_id]);
+        const pending = signedCall(a.pair.privateKey, a.session_id, "POST", "/identities/close",
+          { nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))), auth: auth.bytesToBase64url(pin) })
+          .then((r) => (got.closed = r));
+        await new Promise((r) => setTimeout(r, 300));
+        await tx.unsafe(`UPDATE identities SET stepped_away_until = now() + interval '20 minutes' WHERE id = $1`, [a.identity_id]);
+        void pending;
+      });
+      for (let i = 0; i < 150 && !got.closed; i++) await new Promise((r) => setTimeout(r, 20));
+      assert(got.closed, "the close never answered");
+      assertEquals(got.closed.status, 200, `the close lost to the step-away: ${JSON.stringify(got.closed.body)}`);
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
 // How many repeats a route has answered from a stored nonce (lib/metrics.ts).
 const replays = async (route: string) => {
   const { render } = await import("../src/lib/metrics.ts");

@@ -93,9 +93,17 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
 Deno.serve({ port: config.port, hostname: "0.0.0.0" }, async (incoming, info) => {
   // The body's ceiling comes first, before any route or signature reads it
   // (lib/body_limit.ts). What passes is a new Request over the counted bytes.
-  const capped = await capBody(incoming);
+  // A client that goes away mid-body throws out of the read: answered here, so
+  // it is counted and logged like any other request rather than escaping to
+  // Deno as a bare 500 (review panel 2026-09-24).
+  const capped = await capBody(incoming).catch(() =>
+    json({ error: { code: "invalid_body", message: "the body could not be read" } }, 400)
+  );
   if (capped instanceof Response) {
-    inc("relay_requests_total", { route: "body_too_large", status: "413" });
+    inc("relay_requests_total", { route: "body_refused", status: String(capped.status) });
+    // With CORS, or a storefront's browser reads a network error instead of
+    // the refusal (review panel 2026-09-24, operations lens).
+    for (const [k, v] of Object.entries(corsHeaders(incoming.headers.get("origin")))) capped.headers.set(k, v);
     return capped;
   }
   const req = capped;

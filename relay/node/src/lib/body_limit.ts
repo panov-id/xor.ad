@@ -19,12 +19,24 @@
 import { json } from "./http.ts";
 
 export const BODY_MAX_BYTES = 1024 * 1024;
+// And a deadline for the whole body: a ceiling alone let slow connections each
+// hold a buffer for as long as they liked (review panel 2026-09-24). Thirty
+// seconds carries a megabyte over the slowest honest line many times over.
+export const BODY_DEADLINE_MS = 30_000;
 
 function tooLarge(): Response {
   return json({ error: { code: "invalid_body", message: `the body is larger than ${BODY_MAX_BYTES} bytes` } }, 413);
 }
 
-export async function capBody(req: Request, max = BODY_MAX_BYTES): Promise<Request | Response> {
+function tooSlow(): Response {
+  return json({ error: { code: "invalid_body", message: "the body did not arrive in time" } }, 408);
+}
+
+export async function capBody(
+  req: Request,
+  max = BODY_MAX_BYTES,
+  deadlineMs = BODY_DEADLINE_MS,
+): Promise<Request | Response> {
   if (req.body === null) return req;
   const declared = Number(req.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > max) {
@@ -34,15 +46,26 @@ export async function capBody(req: Request, max = BODY_MAX_BYTES): Promise<Reque
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.length;
-    if (total > max) {
-      await reader.cancel().catch(() => {});
-      return tooLarge();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<"late">((resolve) => (timer = setTimeout(() => resolve("late"), deadlineMs)));
+  try {
+    for (;;) {
+      const next = await Promise.race([reader.read(), late]);
+      if (next === "late") {
+        await reader.cancel().catch(() => {});
+        return tooSlow();
+      }
+      const { done, value } = next;
+      if (done) break;
+      total += value.length;
+      if (total > max) {
+        await reader.cancel().catch(() => {});
+        return tooLarge();
+      }
+      chunks.push(value);
     }
-    chunks.push(value);
+  } finally {
+    clearTimeout(timer);
   }
   const bytes = new Uint8Array(total);
   let at = 0;

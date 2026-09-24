@@ -219,6 +219,41 @@ Deno.test("an identity moves to another device, and the old one goes quiet", asy
   assertEquals(stale.status, 401);
 });
 
+// An approval that passed the guard before a close committed must not seat a
+// new session in the closed identity (review panel 2026-09-24, security lens).
+// Another connection holds the vault row a close takes first; the identity is
+// closed there while the approval waits on it.
+Deno.test("an approval waiting on a close moves nothing into the closed identity", async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const old = await device_with_identity();
+  const lookupId = lookup();
+  assertEquals((await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite",
+    { lookup_id: lookupId, ...proof(PIN) })).status, 200);
+  const fresh = await device();
+  assertEquals((await call("POST", "/sessions/claim", { body: { lookup_id: lookupId, envelope: envelope() } })).status, 200);
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { approved?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [old.session_id]);
+      const pending = signedCall(old.pair.privateKey, old.session_id, "POST", `/sessions/${lookupId}/approve`,
+        { reply: envelope(), sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))), label: "x" })
+        .then((r) => (got.approved = r));
+      await new Promise((r) => setTimeout(r, 300));
+      await tx.unsafe(`UPDATE identities SET closed_at = now() WHERE id = (SELECT identity FROM sessions WHERE id = $1)`, [old.session_id]);
+      void pending;
+    });
+    for (let i = 0; i < 150 && !got.approved; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.approved, "the approval never answered");
+    const [seated] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM sessions WHERE identity = (SELECT identity FROM sessions WHERE id = $1) AND id <> $1`,
+      [old.session_id]);
+    assertEquals(seated.n, "0", `a new session was seated in a closed identity (answer ${got.approved.status})`);
+  } finally {
+    await sql.end();
+  }
+});
+
 Deno.test("without a PIN the window does not open", async () => {
   // A stolen signing key alone must not start a transfer (§8.2, 2026-09-11).
   const old = await device_with_identity();

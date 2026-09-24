@@ -314,6 +314,17 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
       return refuse("refused", "nobody has typed this code yet", 409);
     }
 
+    // A close committed while this waited must stop it here: the guard read
+    // the identity before the transaction, and a session seated now would be
+    // a live one in a closed identity (review panel 2026-09-24, security
+    // lens). The vault row first — the lock a close takes first — so the two
+    // queue up instead of meeting the other way round; then the identity,
+    // read after it.
+    await run(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
+    const [open] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM identities WHERE id = $1 AND closed_at IS NULL`, [invite.identity]);
+    if (open.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);
+
     // The move itself, and the order is not a matter of taste: the leaving
     // device goes quiet **before** the arriving one is written. One live
     // session per identity is held by a partial unique index (db/022), so the

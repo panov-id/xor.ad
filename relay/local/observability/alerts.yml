@@ -52,7 +52,10 @@ groups:
       # A burst of wrong PINs is somebody working through a stolen signing key
       # or an unlocked tab. Ten in five minutes is far above a person mistyping.
       - alert: PinMissBurst
-        expr: sum(rate(relay_vault_share_total{result="wrong"}[5m])) * 300 > 10
+        # Every door that takes a PIN proof: the share, a PIN change and a close
+        # (review panel 2026-09-24 — /vault/pin and /identities/close counted
+        # their misses where this rule did not look).
+        expr: ((sum(rate(relay_vault_share_total{result="wrong"}[5m])) or vector(0)) + sum(rate(relay_vault_pin_total{result="wrong"}[5m]) or vector(0)) + sum(rate(relay_identity_close_total{result="wrong"}[5m]) or vector(0))) * 300 > 10
         for: 5m
         labels: { severity: warning }
         annotations:

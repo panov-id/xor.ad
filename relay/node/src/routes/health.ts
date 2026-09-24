@@ -116,19 +116,32 @@ export async function health(): Promise<Response> {
 // would steer traffic away from a node that is fine (review panel 2026-09-24,
 // operations lens: a node without the key answered 503 on the whole feed while
 // /ready said ready).
-export function readiness(state: { database: ProbeResult; databaseEnabled: boolean; vaultKey: boolean }): {
+//
+// A node with no database at all is legitimate only where it was meant to be:
+// dev and local stands. In staging and prod it is a deploy that lost its
+// DATABASE_URL — no feed, no sweeping — and it went out green (final panel
+// 2026-09-15, OPS-3; decided by quorum 2026-09-24, five of five).
+export function readiness(
+  state: { database: ProbeResult; databaseEnabled: boolean; vaultKey: boolean; env?: string },
+): {
   ok: boolean;
   reasons: string[];
 } {
   const reasons: string[] = [];
   if (state.database === "down") reasons.push("database_down");
+  if (state.database === "off" && (state.env === "staging" || state.env === "prod")) reasons.push("database_off");
   if (state.databaseEnabled && !state.vaultKey) reasons.push("vault_key_missing");
   return { ok: reasons.length === 0, reasons };
 }
 
 export async function ready(): Promise<Response> {
   const database = await probeDatabase();
-  const { ok, reasons } = readiness({ database, databaseEnabled: databaseEnabled(), vaultKey: cursorConfigured() });
+  const { ok, reasons } = readiness({
+    database,
+    databaseEnabled: databaseEnabled(),
+    vaultKey: cursorConfigured(),
+    env: config.envName,
+  });
   return json({
     status: ok ? "ready" : "not_ready",
     node: config.nodeId,

@@ -60,6 +60,15 @@ Deno.test("a node with a database and no vault key is not ready, and says why", 
     { ok: false, reasons: ["database_down", "vault_key_missing"] });
   assertEquals(readiness({ database: "off", databaseEnabled: false, vaultKey: false }), { ok: true, reasons: [] },
     "a node without a database was held to a key it has no use for");
+  // No database where one is meant to be: a deploy that lost DATABASE_URL.
+  for (const env of ["staging", "prod"]) {
+    assertEquals(readiness({ database: "off", databaseEnabled: false, vaultKey: false, env }),
+      { ok: false, reasons: ["database_off"] }, `a ${env} node without a database was called ready`);
+  }
+  for (const env of ["dev", "local"]) {
+    assertEquals(readiness({ database: "off", databaseEnabled: false, vaultKey: false, env }), { ok: true, reasons: [] },
+      `a ${env} stand without a database, which is meant to run so, was called not ready`);
+  }
 });
 
 configured("health names whether the vault key is set, and stays 200 either way", async () => {

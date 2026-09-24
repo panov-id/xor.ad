@@ -146,7 +146,7 @@ components:
         node: {type: string}
         env: {type: string}
         database: {type: string}
-        reasons: {type: array, items: {type: string, enum: [database_down, vault_key_missing]}, description: "Only when not ready (2026-09-24).", x-description-ru: "Только при отказе (24.09.2026)."}
+        reasons: {type: array, items: {type: string, enum: [database_down, database_off, vault_key_missing]}, description: "Only when not ready (2026-09-24). database_off — no database configured on a staging or prod node.", x-description-ru: "Только при отказе (24.09.2026). database_off — у узла staging или prod база не настроена."}
         ts: {type: string}
     WaitlistLead:
       type: object

@@ -175,3 +175,4 @@ chat.2026-09-24.queueaway	2026-09-24	xor.ad/docs/chat_RU.md:886	xor.ad/docs/chat
 chat.2026-09-24.awaywake	2026-09-24	xor.ad/docs/chat_RU.md:886	xor.ad/docs/chat_EN.md:895	поминутное задание узла `wake_returned` будит удержанные комнаты	the minute job `wake_returned` wakes the held rooms
 chat.2026-09-24.cursorsealed	2026-09-24	xor.ad/docs/chat_RU.md:1733	xor.ad/docs/chat_EN.md:1758	с 24.09.2026 он запечатан	since 2026-09-24 it is sealed
 offers.2026-09-24.linkgoesout	2026-09-24	xor.ad/docs/offers/SPEC_RU.md:482	xor.ad/docs/offers/SPEC_EN.md:500	Ссылка гаснет и вместе с оффером — решено кворумом 24.09.2026	The link goes out with the offer too — decided by quorum on 2026-09-24
+deployment.2026-09-24.readyoff	2026-09-24	xor.ad/docs/deployment_RU.md:272	xor.ad/docs/deployment_EN.md:288	узлу staging или prod совсем без базы	decided by quorum on 2026-09-24

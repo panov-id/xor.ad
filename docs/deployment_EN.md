@@ -284,6 +284,10 @@ page itself lives for minutes, and an edge rule shortens the TTL:
    answer 503, since the cursor is sealed with it (`lib/cursor.ts`). The smoke
    test, the dev roll and the wizard ask `/ready`, so such a node fails its
    deploy instead of quietly refusing the feed.
+   **Since 2026-09-24 `/ready` also answers 503 for a staging or prod node with
+   no database at all** (`reasons: ["database_off"]`; decided by quorum on 2026-09-24):
+   there it is a deploy that lost its `DATABASE_URL` — no feed, no sweeping. Dev
+   and local stands without a database stay ready: that is how they are meant to run.
 4. The panel opens, magic-link sign-in works, Waitlist and the logs are visible.
 
 Items 3–4 are automated in `relay/test/smoke.sh`. **Since 2026-09-08 the smoke test, the dev roll and the wizard ask `/ready`, not only `/health`:** the latter is always 200 by design, and judging a deploy by it is asking a light that cannot turn red. A node older than the route answers 404 — not a failure, and the output says so.

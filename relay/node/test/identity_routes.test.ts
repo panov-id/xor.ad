@@ -836,6 +836,105 @@ async function registered(pin: Uint8Array = AUTH) {
   return { created, pair, lookupId, wrapped, share };
 }
 
+// POST /vault/pin (chat spec §8.2): the old PIN proved on the same counter as
+// /vault/share, then one write — the new hash, the new share, ten attempts.
+const nonce16 = () => authBase64(crypto.getRandomValues(new Uint8Array(16)));
+async function changePin(who: { pair: CryptoKeyPair; created: { session_id: string } }, current: Uint8Array,
+  next: { auth: Uint8Array; share: Uint8Array }, nonce = nonce16()) {
+  return await signedCall(who.pair.privateKey, who.created.session_id, "POST", "/vault/pin", {
+    nonce,
+    current_auth: authBase64(current),
+    next_auth_hash: await auth.sha256hex(next.auth),
+    next_share: authBase64(next.share),
+  });
+}
+
+Deno.test("a new PIN takes the old one's place, and the vault opens with the new share", async () => {
+  const me = await registered();
+  const next = { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() };
+  // One miss first, so the counter going back to ten is seen, not assumed.
+  await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/share", proof(crypto.getRandomValues(new Uint8Array(32))));
+  await clearDelay(me.created.session_id);
+
+  const changed = await changePin(me, AUTH, next);
+  assertEquals(changed.status, 200, JSON.stringify(changed.body));
+  assertEquals((await attemptsLeft(me.created.session_id)).attempts_left, 10, "the counter did not go back to ten");
+
+  const old = await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/share", proof(AUTH));
+  assertEquals(old.status, 409, "the old PIN still opens the vault");
+  await clearDelay(me.created.session_id);
+  const opened = await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/share", proof(next.auth));
+  assertEquals(opened.status, 200, "the new PIN does not open the vault");
+  assertEquals((opened.body as { share: string }).share, authBase64(next.share), "the vault holds some other share");
+});
+
+Deno.test("a wrong old PIN spends an attempt and changes nothing", async () => {
+  const me = await registered();
+  const next = { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() };
+  const refused = await changePin(me, crypto.getRandomValues(new Uint8Array(32)), next);
+  assertEquals(refused.status, 409);
+  assertEquals((refused.body as { error: { code: string } }).error.code, "pin_mismatch");
+  assertEquals((await attemptsLeft(me.created.session_id)).attempts_left, 9, "a wrong proof cost nothing");
+  await clearDelay(me.created.session_id);
+  const still = await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/share", proof(AUTH));
+  assertEquals(still.status, 200, "a refused change moved the PIN anyway");
+  assertEquals((still.body as { share: string }).share, authBase64(me.share));
+});
+
+Deno.test("a repeat of a change that went through spends no attempt", async () => {
+  const me = await registered();
+  const next = { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() };
+  const nonce = nonce16();
+  assertEquals((await changePin(me, AUTH, next, nonce)).status, 200);
+  // The answer was lost and the client sends the same request: its old PIN is
+  // no longer the PIN, and it must not be counted as a wrong one.
+  const again = await changePin(me, AUTH, next, nonce);
+  assertEquals(again.status, 200, JSON.stringify(again.body));
+  assertEquals((await attemptsLeft(me.created.session_id)).attempts_left, 10, "the repeat was counted as a wrong PIN");
+  const kept = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM nonces WHERE session_id = $1 AND route = 'POST /vault/pin'`, [me.created.session_id]);
+  assertEquals(kept[0].n, "1", "the change did not keep its nonce exactly once");
+});
+
+// A hash the node could never match would lock the vault for good: whatever
+// PIN comes next is a mismatch (verifier, 2026-09-24). The form is sha256 hex.
+Deno.test("a new hash that is not a sha256 is refused, and the old PIN stays", async () => {
+  const me = await registered();
+  const bad = await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/pin", {
+    nonce: nonce16(), current_auth: authBase64(AUTH), next_auth_hash: "not-a-hash", next_share: authBase64(newShareBytes()),
+  });
+  assertEquals(bad.status, 400, JSON.stringify(bad.body));
+  const still = await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/share", proof(AUTH));
+  assertEquals(still.status, 200, "a refused change moved the PIN anyway");
+});
+
+// Protocol §2: the replay is looked up before the stepped-away refusal, so a
+// lost answer can be asked for again from a time away; a new change cannot.
+Deno.test("while away a repeat is answered, and a new change is refused", async () => {
+  const me = await registered();
+  const next = { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() };
+  const nonce = nonce16();
+  assertEquals((await changePin(me, AUTH, next, nonce)).status, 200);
+  await database.queryOrThrow(
+    `UPDATE identities SET stepped_away_until = now() + interval '20 minutes'
+      WHERE id = (SELECT identity FROM sessions WHERE id = $1)`, [me.created.session_id]);
+  const again = await changePin(me, AUTH, next, nonce);
+  assertEquals(again.status, 200, `a repeat from a time away was not answered: ${JSON.stringify(again.body)}`);
+  const fresh = await changePin(me, next.auth, { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() });
+  assertEquals(fresh.status, 409);
+  assertEquals((fresh.body as { error: { code: string } }).error.code, "stepped_away", "a new change went through while away");
+  assertEquals((await attemptsLeft(me.created.session_id)).attempts_left, 10, "a refusal while away spent an attempt");
+});
+
+Deno.test("a locked vault changes no PIN, even with the right one", async () => {
+  const me = await registered();
+  await database.queryOrThrow(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [me.created.session_id]);
+  const next = { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() };
+  const refused = await changePin(me, AUTH, next);
+  assertEquals(refused.status, 409);
+  assertEquals((refused.body as { error: { code: string } }).error.code, "pin_locked");
+});
+
 Deno.test("the node stores a hash of the paper code's half, not the half itself", async () => {
   // A read-only copy of `identities` must not be a set of keys. Until
   // 2026-09-20 the column held exactly what the device presents, so a dump was

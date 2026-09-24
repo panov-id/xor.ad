@@ -1559,7 +1559,8 @@ paths:
       tags: [identity]
       summary: Change the PIN
       x-summary-ru: Сменить ПИН
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/identity.ts
       security: [{identitySignature: []}]
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -1570,7 +1571,12 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PinChange"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "409": {$ref: "#/components/responses/NonceReused"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "404":
+          description: "This session has no share to re-key: a move of the identity burned it (§8.2)."
+          x-description-ru: "У этой сессии нет доли, которую можно перевыпустить: её сжёг переезд личности (§8.2)."
+          content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Changed., x-description-ru: Сменён.}

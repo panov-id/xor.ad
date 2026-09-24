@@ -777,9 +777,112 @@ async function vaultInit(req: Request): Promise<Response> {
   return answer;
 }
 
+interface PinChangeBody {
+  nonce?: unknown;
+  current_auth?: unknown;
+  next_auth_hash?: unknown;
+  next_share?: unknown;
+}
+
+// POST /vault/pin — a new PIN against a proof of the old one (chat spec §8.2,
+// protocol §2; the body agreed 2026-09-17).
+//
+// The old PIN is proved exactly as /vault/share proves it — lib/pin_attempts.ts,
+// the same counter of ten, the same delays, the same freeze on the tenth miss —
+// because a change that asked less would be the cheaper door to the same vault.
+// A wrong proof is answered by returning, not throwing, so the transaction
+// commits the spent attempt: a rolled-back refusal would make guessing free.
+//
+// The nonce is looked at before the PIN, under the vault row's lock. A repeat
+// of a change that went through carries the old PIN, which is no longer the
+// PIN: checked first, it would spend an attempt on the person's own retry, and
+// two copies racing would spend one each. So the row is locked, a kept answer
+// is replayed, and only a new nonce reaches the proof. The nonce is written
+// only with the change, so a refused try leaves it free to be used again.
+//
+// One write for the rest, as §8.2 asks: the new hash, the new share sealed as
+// every share is, and the counter back at ten.
+async function changePin(req: Request): Promise<Response> {
+  // Past the guard's stepped-away refusal and refused below instead, after the
+  // replay: protocol §2 answers a repeat even from a time away (as POST /away).
+  const caller = await callerOf(req, { allowSteppedAway: true });
+  if (caller instanceof Response) return caller;
+
+  const body = await readJson<PinChangeBody>(req);
+  if (!body) return refuse("invalid_body", "the body is not json", 400);
+  const nonce = isText(body.nonce, 64) ? base64urlToBytes(body.nonce) : null;
+  if (!nonce || nonce.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
+  const current = isText(body.current_auth, 512) ? base64urlToBytes(body.current_auth) : null;
+  if (!current || current.length === 0) return refuse("invalid_body", "current_auth must be base64url", 400);
+  // sha256 hex, as every stored auth_hash is compared: anything else is a hash
+  // no PIN will ever match, and the vault would stay shut for good (verifier,
+  // 2026-09-24).
+  if (typeof body.next_auth_hash !== "string" || !/^[0-9a-f]{64}$/.test(body.next_auth_hash)) {
+    return refuse("invalid_body", "next_auth_hash must be sha256 hex", 400);
+  }
+  const nextAuthHash = body.next_auth_hash;
+  const nextShare = isText(body.next_share, 512) ? base64urlToBytes(body.next_share) : null;
+  if (!nextShare || nextShare.length !== SHARE_BYTES) {
+    return refuse("invalid_body", `next_share must be ${SHARE_BYTES} bytes, base64url`, 400);
+  }
+  if (!configured()) {
+    return refuse("unavailable", "this node cannot store a vault share right now", 503);
+  }
+  const presented = await sha256hex(current);
+  const sealed = await sealShare(nextShare);
+
+  return await transaction<Response>(async (run) => {
+    const held = await run<{ session: string }>(
+      `SELECT session FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
+    if (held.length === 0) return refuse("not_found", "this session has no share", 404);
+
+    const [kept] = await run<{ route: string }>(
+      `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, nonce]);
+    if (kept) {
+      if (kept.route !== "POST /vault/pin") return refuse("invalid_body", "this nonce was used on another route", 409);
+      inc("relay_nonce_replay_total", { route: "POST /vault/pin" });
+      return new Response(null, { status: 200, headers: sunsetHeader() });
+    }
+    const away = caller.steppedAwayUntil;
+    if (away && away.getTime() > Date.now()) {
+      return refuse("stepped_away", "you are away until the time you chose", 409, {
+        until: Math.floor(away.getTime() / 1000),
+      });
+    }
+
+    const row = await checkPin(run, caller.sessionId, presented, (result) =>
+      inc("relay_vault_pin_total", { result: result === "wrong_pin" ? "wrong" : result }));
+    if (row instanceof Response) return row;
+    if (!row.share_enc) {
+      // Burned by a move: there is no vault on this device to re-key.
+      return refuse("not_found", "this session has no share", 404);
+    }
+
+    await run(
+      `INSERT INTO nonces (session_id, nonce, route, status, response)
+       VALUES ($1, $2, 'POST /vault/pin', 200, 'null'::jsonb)`,
+      [caller.sessionId, nonce],
+    );
+    await run(
+      `UPDATE vault_shares
+          SET auth_hash = $2, share_enc = $3,
+              attempts_left = 10, next_attempt_at = NULL, last_used_at = now()
+        WHERE session = $1`,
+      [caller.sessionId, nextAuthHash, sealed],
+    );
+    inc("relay_vault_pin_total", { result: "changed" });
+    return new Response(null, { status: 200, headers: sunsetHeader() });
+  }).catch((error) => {
+    log("error", "changing the PIN failed", { error: String(error) });
+    inc("relay_vault_pin_total", { result: "storage_failed" });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+}
+
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
 route("POST", "/recovery/claim", (c) => claimRecovery(c.req));
 route("POST", "/recovery/confirm", (c) => confirmRecovery(c.req));
 route("POST", "/vault/share", (c) => vaultShare(c.req));
 route("POST", "/vault/init", (c) => vaultInit(c.req));
+route("POST", "/vault/pin", (c) => changePin(c.req));

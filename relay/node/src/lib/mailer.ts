@@ -423,7 +423,7 @@ export async function sendNoticeAging(
 // Watchdog С1 past its ceiling: the notices beyond the first few of a pass, in
 // one letter. Each by its reference, kind, age and stage — never the text.
 export function noticeAgingSummaryBlocks(
-  notices: { id: string; kind: string; age_hours: number; stage: "remind" | "escalate" }[],
+  notices: { id: string; kind: string; brand?: string | null; age_hours: number; stage: "remind" | "escalate" }[],
 ): Block[] {
   return [
     {
@@ -433,7 +433,7 @@ export function noticeAgingSummaryBlocks(
     },
     ...notices.map((n): Block => ({
       kind: "text",
-      value: `Reference: ${n.id.slice(0, 8)}. Target: ${n.kind}. Waiting ${n.age_hours} hours` +
+      value: `Reference: ${n.id.slice(0, 8)}. Face: ${n.brand ?? "platform"}. Target: ${n.kind}. Waiting ${n.age_hours} hours` +
         (n.stage === "escalate" ? ", escalated." : "."),
     })),
     { kind: "text", value: "Article 16(6) asks for a timely decision. Open them in the panel." },
@@ -445,8 +445,12 @@ export async function sendNoticeAgingSummary(
   notices: { id: string; kind: string; brand?: string | null; age_hours: number; stage: "remind" | "escalate" }[],
 ): Promise<boolean> {
   if (config.mail.transport === "none" || notices.length === 0) return false;
-  const first = notices[0];
-  const brand = (first.brand ? await brandByKey(first.brand) : undefined) ?? resolveBrand(null);
+  // One face's name only when every notice in it came through that face; an
+  // escalation mixes them, and it went out under the first one's brand with the
+  // others unnamed (verifier, 2026-09-24).
+  const faces = new Set(notices.map((n) => n.brand ?? null));
+  const only = faces.size === 1 ? notices[0].brand : null;
+  const brand = (only ? await brandByKey(only) : undefined) ?? resolveBrand(null);
   const subject = `${brand.name}: ${notices.length} more reports are unanswered`;
   return await deliver(brand, to, subject, subject, noticeAgingSummaryBlocks(notices));
 }

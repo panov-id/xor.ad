@@ -15,6 +15,11 @@
 # стоит числом, и число обязано совпасть. Привязка — список ниже: новый срок без
 # привязки ворота не увидят, поэтому строка реестра без неё — тоже красный.
 #
+# Граница: число сверяется там, где оно объявлено, — константа, поле или
+# переменная, с разделителем после него (`days: 30,`, `= 365;`), так что
+# `days: 30 * 2` не находится и краснеет. Использование константы дальше по
+# коду (`YEAR_DAYS * 2`, литерал вместо `${INACTIVE_DAYS}`) ворота не видят.
+#
 # Коды выхода: 0 — всё сходится; 1 — расхождение; 2 — не читается реестр или код.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,17 +40,18 @@ registry = {r[0]: r for r in rows}
 # id реестра -> места в коде: (файл, регулярка с одной группой-числом, множитель к дням)
 BINDINGS = {
     "logs.retention": [
-        ("relay/node/tools/prune_objects.ts", r'directory: "server-logs",\s*days: (\d+)', 1),
-        ("relay/node/tools/prune_objects.ts", r'directory: "client-errors",\s*days: (\d+)', 1),
-        ("relay/node/tools/prune_objects.ts", r'directory: "client-errors-unattributed",\s*days: (\d+)', 1),
-        ("relay/node/tools/prune_objects.ts", r'directory: "csp-reports",\s*(?://[^\n]*\n\s*)*days: (\d+)', 1),
+        ("relay/node/tools/prune_objects.ts", r'directory: "server-logs",\s*days: (\d+),', 1),
+        ("relay/node/tools/prune_objects.ts", r'directory: "client-errors",\s*days: (\d+),', 1),
+        ("relay/node/tools/prune_objects.ts", r'directory: "client-errors-unattributed",\s*days: (\d+),', 1),
+        ("relay/node/tools/prune_objects.ts", r'directory: "csp-reports",\s*(?://[^\n]*\n\s*)*days: (\d+),', 1),
     ],
-    "audit.log.retention": [("relay/node/tools/prune_objects.ts", r'directory: "audit",\s*days: (\d+)', 1)],
+    "audit.log.retention": [("relay/node/tools/prune_objects.ts", r'directory: "audit",\s*days: (\d+),', 1)],
     "dsa.records.retention": [("relay/node/tools/prune_dsa_records.ts", r"const YEAR_DAYS = (\d+);", 1)],
     "support.retention": [("relay/node/src/lib/support_sweeper.ts", r"interval '(\d+) year'", 365)],
     "backup.retention": [("relay/wizard/backup-postgres.sh", r"(?m)^keep_days=(\d+)$", 1)],
     "analytics.detail.retention": [("relay/node/tools/prune_pageviews.ts", r"const DEFAULT_DAYS = (\d+);", 1)],
     "identity.inactive.retention": [("relay/node/src/lib/identity_sweeper.ts", r"export const INACTIVE_DAYS = (\d+);", 1)],
+    "identity.deletion.delay": [("relay/node/src/lib/identity_sweeper.ts", r"export const DELETION_DELAY_DAYS = (\d+);", 1)],
 }
 TO_DAYS = {"дней": 1, "день": 1, "дня": 1, "год": 365, "года": 365, "лет": 365}
 

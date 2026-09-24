@@ -158,3 +158,39 @@ Deno.test({ name: "a summary that did not leave gives back the stamps of every n
     `SELECT count(*)::int AS n FROM dsa_notices WHERE id = ANY($1::uuid[]) AND reminded_at IS NULL`, [ids]);
   assertEquals(unstamped[0].n, 2, "the stamps of a lost summary stayed, so those reminders would never go");
 });
+
+// One address that always fails must not bring the others their letters again
+// (verifier, 2026-09-24: 42 letters an hour to the healthy one). The retry goes
+// only where the letter did not arrive (db/054).
+Deno.test({ name: "a retry goes only to the address that did not get the letter", ...pool }, async () => {
+  const saved = Deno.env.get("DSA_ESCALATION_EMAILS");
+  Deno.env.set("DSA_ESCALATION_EMAILS", "good@watch.test, bad@watch.test, GOOD@watch.test");
+  try {
+    assertEquals(escalationAddresses(), ["good@watch.test", "bad@watch.test"], "an address written twice was kept twice");
+    await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
+    const ids = [await notice(60), await notice(60), await notice(60)];
+    const letters: string[] = [];
+    const send = (to: string) => { letters.push(to); return Promise.resolve(to.startsWith("good")); };
+    const first = await watchNoticeAge(send, () => Promise.resolve(false));
+    assertEquals(first.unsent, 3, "a letter the bad address never got was counted as sent");
+    const good = () => letters.filter((to) => to.startsWith("good")).length;
+    assertEquals(good(), 3);
+    await watchNoticeAge(send, () => Promise.resolve(false));
+    await watchNoticeAge(send, () => Promise.resolve(false));
+    assertEquals(good(), 3, "the healthy address got the same notices again on the retries");
+    assertEquals(letters.filter((to) => to.startsWith("bad")).length, 9, "the failing address was not retried");
+    await queryOrThrow(`UPDATE dsa_notices SET escalated_at = now() WHERE id = ANY($1::uuid[])`, [ids]);
+  } finally {
+    if (saved === undefined) Deno.env.delete("DSA_ESCALATION_EMAILS");
+    else Deno.env.set("DSA_ESCALATION_EMAILS", saved);
+  }
+});
+
+Deno.test({ name: "a letter that throws gives its stamp back instead of ending the pass", ...pool }, async () => {
+  await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
+  const id = await notice(30);
+  const result = await watchNoticeAge(() => Promise.reject(new Error("the transport threw")), () => Promise.resolve(true));
+  assertEquals(result.unsent, 1, "a throwing letter was not counted as unsent");
+  const [row] = await queryOrThrow<{ reminded_at: Date | null }>(`SELECT reminded_at FROM dsa_notices WHERE id = $1`, [id]);
+  assertEquals(row.reminded_at, null, "a throwing letter kept its stamp, so the reminder would never go");
+});

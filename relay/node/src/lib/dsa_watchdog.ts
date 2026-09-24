@@ -15,8 +15,9 @@
 import { config } from "../config.ts";
 import { query } from "./db.ts";
 import { log } from "./log.ts";
-import { sendNoticeAging, sendNoticeAgingSummary } from "./mailer.ts";
+import { sendNoticeAging, sendNoticeAgingSummary, withoutAddresses } from "./mailer.ts";
 import { brandByKey } from "./brand_registry.ts";
+import { sha256hex } from "./identity_auth.ts";
 
 export const REMIND_AFTER_HOURS = 24;
 export const ESCALATE_AFTER_HOURS = 48;
@@ -32,10 +33,48 @@ export type AgingNotice = {
 // Everyone who must hear about a notice nobody answered. Personal addresses,
 // not a shared inbox: the shared one is what did not work.
 export function escalationAddresses(): string[] {
-  return (Deno.env.get("DSA_ESCALATION_EMAILS") ?? "")
+  // Once each: a name written twice was two letters, and a notice named twice in
+  // one summary (verifier, 2026-09-24).
+  return [...new Set((Deno.env.get("DSA_ESCALATION_EMAILS") ?? "")
     .split(/[,\s]+/)
-    .map((address) => address.trim())
-    .filter((address) => address.includes("@"));
+    .map((address) => address.trim().toLowerCase())
+    .filter((address) => address.includes("@")))];
+}
+
+const addressHash = async (address: string) => await sha256hex(new TextEncoder().encode(address));
+
+// Where the letter about this notice at this stage already arrived. A retry
+// goes only to the rest, so one failing address no longer brings every notice
+// back to the healthy ones every ten minutes (db/054).
+async function alreadyTold(notice: AgingNotice): Promise<Set<string>> {
+  const rows = await query<{ address_hash: string }>(
+    `SELECT address_hash FROM dsa_notice_letters WHERE notice_id = $1 AND stage = $2`,
+    [notice.id, notice.stage],
+  );
+  return new Set((rows ?? []).map((r) => r.address_hash));
+}
+
+async function markTold(notices: AgingNotice[], address: string): Promise<void> {
+  const hash = await addressHash(address);
+  for (const notice of notices) {
+    await query(
+      `INSERT INTO dsa_notice_letters (notice_id, stage, address_hash) VALUES ($1, $2, $3)
+       ON CONFLICT DO NOTHING`,
+      [notice.id, notice.stage, hash],
+    );
+  }
+}
+
+// A send that throws is a letter that did not leave, not the end of the pass:
+// thrown out of here it left every stamp of the pass in place, and those
+// letters would never go (verifier, 2026-09-24).
+async function tried(attempt: () => Promise<boolean>): Promise<boolean> {
+  try {
+    return await attempt();
+  } catch (error) {
+    log("error", "a watchdog letter threw", { error: withoutAddresses(String(error)) });
+    return false;
+  }
 }
 
 // The rows to warn about, and the stamp that keeps the letter to one. Taken in
@@ -139,16 +178,21 @@ export async function watchNoticeAge(
       log("error", "nobody to warn about an unresolved notice", { id: notice.id, stage: notice.stage });
       failedIds.add(notice.id);
     }
-    for (const address of to) byAddress.set(address, [...(byAddress.get(address) ?? []), notice]);
+    const told = await alreadyTold(notice);
+    for (const address of to) {
+      if (told.has(await addressHash(address))) continue;
+      byAddress.set(address, [...(byAddress.get(address) ?? []), notice]);
+    }
   }
   for (const [address, list] of byAddress) {
     for (const notice of list.slice(0, AGING_LETTERS_PER_HOUR)) {
-      if (!await send(address, notice)) failedIds.add(notice.id);
+      if (await tried(() => send(address, notice))) await markTold([notice], address);
+      else failedIds.add(notice.id);
     }
     const rest = list.slice(AGING_LETTERS_PER_HOUR);
-    if (rest.length > 0 && !await summarize(address, rest)) {
-      for (const notice of rest) failedIds.add(notice.id);
-    }
+    if (rest.length === 0) continue;
+    if (await tried(() => summarize(address, rest))) await markTold(rest, address);
+    else for (const notice of rest) failedIds.add(notice.id);
   }
   let reminded = 0, escalated = 0, unsent = 0;
   for (const notice of notices) {

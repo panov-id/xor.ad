@@ -46,6 +46,10 @@ fresh; edit relay/node/tools/prune_objects.ts 'directory: "server-logs",
     days: 30,' 'directory: "server-logs",
     days: 31,'
 expect 1 "logs.retention: реестр обещает 30 дн., а relay/node/tools/prune_objects.ts держит 31" "логи держатся дольше обещанного"
+fresh; edit relay/node/tools/prune_objects.ts 'directory: "audit",
+    days: 365,' 'directory: "audit",
+    days: 365 * 2,'
+expect 1 "audit.log.retention: в relay/node/tools/prune_objects.ts место срока найдено 0 раз" "срок записан выражением, а не числом"
 fresh; edit relay/node/tools/prune_dsa_records.ts "const YEAR_DAYS = 365;" "const YEAR_DAYS = 400;"
 expect 1 "dsa.records.retention: реестр обещает 365 дн." "запись DSA держится дольше года"
 fresh; edit relay/wizard/backup-postgres.sh "keep_days=14" "keep_days=21"

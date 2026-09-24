@@ -1509,7 +1509,8 @@ Deno.test({
     const got: { back?: { status: number; body: unknown } } = {};
     try {
       await sql.begin(async (tx) => {
-        await tx.unsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, [await pairKey(a.identity_id, b.identity_id)]);
+        const pair = await pairKey(a.identity_id, b.identity_id);
+        await tx.unsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pair]);
         await tx.unsafe(`INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)`, [a.identity_id, theirs]);
         const pending = like(b, mine).then((r) => (got.back = r));
         // Commit only once the other request is seen waiting on this pair
@@ -1519,8 +1520,14 @@ Deno.test({
         for (let i = 0; i < 250 && !waited && !got.back; i++) {
           // Asked on this side's own connection: a pool query here would open
           // a connection the next cases count as a leak.
+          // This pair's lock, not any: a bigint advisory key is split into
+          // classid (high half) and objid (low half) in pg_locks.
           const [row] = await tx.unsafe(
-            `SELECT count(*)::int AS n FROM pg_locks WHERE locktype = 'advisory' AND NOT granted`);
+            `SELECT count(*)::int AS n FROM pg_locks
+              WHERE locktype = 'advisory' AND NOT granted
+                AND objid = (hashtext($1)::bigint & 4294967295)::oid
+                AND classid = ((hashtext($1)::bigint >> 32) & 4294967295)::oid`,
+            [pair]);
           waited = row.n > 0;
           if (!waited) await new Promise((r) => setTimeout(r, 20));
         }

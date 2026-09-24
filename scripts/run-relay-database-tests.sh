@@ -67,92 +67,32 @@ docker run --rm --network "$network" \
   -v "$root/relay/node":/node -w /node "$image" \
   deno run --allow-env --allow-net --allow-read tools/migrate_db.ts
 
-echo
-echo "== database suite"
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write --allow-run test/database.test.ts "$@"
-
-echo
-echo "== feed publish suite (chat spec §8.3: sending a phrase)"
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/feed_publish.test.ts "$@"
-
-echo
-echo "== transfer suite (chat spec §8.2: moving an identity between devices)"
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/transfer_routes.test.ts "$@"
-
-echo
-echo "== queue metrics suite (what a scrape sees of the job queue)"
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/queue_metrics.test.ts "$@"
-
-echo
-echo "== identity sweeper suite (chat spec §8.2: the three deadlines)"
-# The repository root, not just the node: one case reads docs/facts/limits.tsv,
-# because the deadlines belong to the registry and a test that took them from
-# the same module as the code could not catch a wrong one. Read-only — a suite
-# that deletes rows has no business writing files.
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root":/repo:ro -w /repo/relay/node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/identity_sweeper.test.ts "$@"
-
-echo
-echo "== DSA watchdog suite (watchdog С1: unanswered notices at 24 and 48 hours)"
-# Its own file: the picking and the stamping are one statement, so the only
-# honest test is against Postgres, and it sets MAIL_TRANSPORT before import.
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/dsa_watchdog.test.ts "$@"
-
-echo
-echo "== job re-arm suite (watchdog С3: tombstones come back and are told once)"
-# Its own file for the reason the watchdog has one: it drives the queue's own
-# rows to tombstones, which no other suite should find lying about.
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/job_rearm.test.ts "$@"
-
-echo
-echo "== arrival retry suite (watchdog С2: a failed arrival letter is retried, not logged)"
-# Its own file: it points mail at a dead SMTP port for the whole process, which
-# no other suite should inherit.
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/notice_notify.test.ts "$@"
-
-echo
-echo "== session freeze suite (chat spec §8.2: the row and the notification)"
-# Its own file for its own reason: it opens raw LISTENing connections, and the
-# driver throws when one is handed a notification — a fact this suite asserts on
-# purpose and no other suite should have to survive by accident.
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/session_freeze.test.ts "$@"
-
-echo
-echo "== identity routes suite (chat spec §13 step 1)"
-# A file of its own, not a section of database.test.ts: that suite sets its own
-# brands and secret before the first import, and config captures the environment
-# once. Two sets of environment variables in one process is how the suites used
-# to leak into each other.
-docker run --rm --network "$network" \
-  -e DATABASE_URL="$database_url" \
-  -v "$root/relay/node":/node -w /node "$image" \
-  deno test --allow-env --allow-net --allow-read --allow-write test/identity_routes.test.ts "$@"
+# The suites are the ones `deno task test` ignores (relay/node/deno.json), read
+# from there as CI reads them, so a suite moved out of the unit run is run here
+# too without a second edit (loop, 2026-09-24). Until then this file listed the
+# ten by hand, each with a paragraph; what the paragraphs said still holds:
+#   - every file runs in its own process: several set environment before the
+#     first import, and config captures it once;
+#   - database.test.ts gets --allow-run: its lock-timeout tests spawn the
+#     pruning command and the migration tool as child processes;
+#   - identity_sweeper.test.ts sees the repository root, read-only: one case
+#     reads docs/facts/limits.tsv, because the deadlines belong to the registry.
+suites=$(grep -o -- '--ignore=[^ "]*' "$root/relay/node/deno.json" | cut -d= -f2 | tr ',' '\n' || true)
+[ -n "$suites" ] || { echo "no suites found in the --ignore list of relay/node/deno.json" >&2; exit 1; }
+for suite in $suites; do
+  echo
+  echo "== $suite"
+  mount=(-v "$root/relay/node":/node -w /node)
+  extra=()
+  case "$suite" in
+    test/database.test.ts) extra=(--allow-run) ;;
+    test/identity_sweeper.test.ts) mount=(-v "$root":/repo:ro -w /repo/relay/node) ;;
+  esac
+  docker run --rm --network "$network" \
+    -e DATABASE_URL="$database_url" \
+    "${mount[@]}" "$image" \
+    deno test --allow-env --allow-net --allow-read --allow-write "${extra[@]}" "$suite" "$@"
+done
 
 echo
 echo "== jsonb columns hold values, not JSON strings of them"
@@ -163,3 +103,6 @@ docker run --rm --network "$network" \
   -e DATABASE_URL="$database_url" \
   -v "$root/relay/node":/node -w /node "$image" \
   deno run --allow-env --allow-net --allow-read tools/check_jsonb_strings.ts
+# A filtered run wrote only what its chosen tests wrote: the check above saw part
+# of the writers, and a green line is not the whole answer.
+[ "$#" -eq 0 ] || echo "   (partial run: filtered by $*; the jsonb check saw only what those tests wrote)"

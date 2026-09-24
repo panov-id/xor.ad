@@ -8,7 +8,7 @@
 // requests in the day, of those still waiting for an answer, and — separately —
 // of those written from a frozen session (a possible takeover), with no text of
 // any request. It goes to each storefront's support@<domain>; the brand was put
-// on the row for it (db/040, the owner's decision of 2026-09-22). A request
+// on the row for it (db/039, the owner's decision of 2026-09-22). A request
 // without a brand — sent with no storefront's key — is in no one's digest.
 
 import { queryOrThrow } from "./db.ts";

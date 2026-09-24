@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS match_participants (
   accepted_at          timestamptz,    -- NULL: has not pressed "open the chat"
   declined_at          timestamptz,    -- "not now", seen only by its own side
   ephemeral_public_key text,           -- this side's ephemeral half, signed (§8.13)
+  -- The half is published signed by the long key, so the peer can tell it
+  -- belongs to the identity they matched with and not to the node; without the
+  -- signature the peer has nothing to verify (step 6, 2026-09-22).
+  ephemeral_signature  text,
   PRIMARY KEY (match_id, identity)
 );
 CREATE INDEX IF NOT EXISTS match_participants_by_identity ON match_participants (identity);

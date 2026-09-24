@@ -71,7 +71,7 @@ async function inbox(req: Request): Promise<Response> {
             p.idle_ttl_minutes AS span,
             them.id AS peer_id, them.identity_public_key AS peer_long,
             -- The peer's ephemeral half (§8.13), the conversation's own since
-            -- db/036: a match gone does not take it.
+            -- db/031: a match gone does not take it.
             o.match_id, o.ephemeral_public_key AS peer_half, o.ephemeral_signature AS peer_sig,
             p.key_epoch AS my_epoch, o.key_epoch AS peer_epoch,
             (extract(epoch from c.last_activity_at) * 1000000)::bigint::text AS at

@@ -18,6 +18,19 @@ CREATE TABLE IF NOT EXISTS chat_participants (
   last_own_message_at timestamptz,
   away_marked         boolean NOT NULL DEFAULT false,
   gone_at             timestamptz,
+  -- §8.13: the ephemeral halves belong to the conversation, not to the match
+  -- that opened it. Read through matches.chat_id, a match gone — swept, or
+  -- replaced by a later re-match of the pair — took the halves with it while
+  -- the chat lived on (step-6 panel, 2026-09-22). Copied here when the chat
+  -- opens; ON DELETE CASCADE takes them with the chat.
+  match_id             uuid,
+  ephemeral_public_key text,
+  ephemeral_signature  text,
+  -- The key reissued after a device change: 0 is the half from consent; a side
+  -- that lost its pair publishes a half at the next epoch, the other side
+  -- answers at the same one, and the conversation's keys are those of the
+  -- epoch both hold (step 6, 2026-09-22).
+  key_epoch           integer NOT NULL DEFAULT 0,
   PRIMARY KEY (chat_id, identity)
 );
 CREATE INDEX IF NOT EXISTS chat_participants_by_identity ON chat_participants (identity);

@@ -12,3 +12,6 @@ CREATE TABLE IF NOT EXISTS pending_deliveries (
   PRIMARY KEY (chat, recipient_session, local_id)
 );
 CREATE INDEX IF NOT EXISTS pending_deliveries_by_session ON pending_deliveries (recipient_session, created_at);
+-- The pending sweeper deletes by age (lib/pending_sweeper.ts, every minute);
+-- without this it walks the whole table each time (step-5 panel, 2026-09-21).
+CREATE INDEX IF NOT EXISTS pending_deliveries_by_age ON pending_deliveries (created_at);

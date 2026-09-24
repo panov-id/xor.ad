@@ -1919,6 +1919,68 @@ Deno.test({
   },
 });
 
+// The two races a move can meet (panel 2026-09-24, security and data lenses,
+// both reproduced). The freeze is the node's own, run in a transaction held
+// open while a consent comes in, as a move holds it.
+async function heldFreeze(sessionId: string, reason: "transfer" | "pin_limit", during: () => Promise<unknown>) {
+  const { freezeSession } = await import("../src/lib/sessions.ts");
+  const got: { answer?: { status: number; body: unknown } } = {};
+  await database.transaction(async (run) => {
+    await freezeSession(run, sessionId, reason);
+    const pending = during().then((r) => (got.answer = r as { status: number; body: unknown }));
+    await new Promise((r) => setTimeout(r, 400));
+    void pending;
+  });
+  for (let i = 0; i < 150 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+  assert(got.answer, "the consent never answered");
+  return got.answer;
+}
+
+Deno.test({
+  name: "a consent racing a freeze of its own session writes no half",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, id } = await freshMatch();
+    const answer = await heldFreeze(a.session_id, "transfer", () => consent(a, id));
+    const [row] = await database.queryOrThrow<{ ephemeral_public_key: string | null }>(
+      `SELECT ephemeral_public_key FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
+    assertEquals(row.ephemeral_public_key, null,
+      `a frozen session's consent left a half nothing will take back (answer ${answer.status})`);
+  },
+});
+
+Deno.test({
+  name: "the other side's consent during a freeze opens no chat on the half it takes back",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, id } = await freshMatch();
+    assertEquals((await consent(a, id)).body, { state: "waiting" });
+    const answer = await heldFreeze(a.session_id, "transfer", () => consent(b, id));
+    assertEquals((answer.body as { state?: string }).state, "waiting",
+      `a chat opened on the half a move was taking back: ${JSON.stringify(answer.body)}`);
+  },
+});
+
+// A PIN-limit freeze is lifted on the same device by the paper code, private
+// halves and all: its consents stand.
+Deno.test({
+  name: "a PIN-limit freeze leaves the halves and the consent standing",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { freezeSession } = await import("../src/lib/sessions.ts");
+    const { a, id } = await freshMatch();
+    await consent(a, id);
+    await database.transaction(async (run) => { await freezeSession(run, a.session_id, "pin_limit"); });
+    const [row] = await database.queryOrThrow<{ ephemeral_public_key: string | null; accepted_at: Date | null }>(
+      `SELECT ephemeral_public_key, accepted_at FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
+    assert(row.ephemeral_public_key, "a PIN-limit freeze took back a half its device still holds");
+    assert(row.accepted_at, "a PIN-limit freeze took back a consent");
+  },
+});
+
 Deno.test({
   name: "consent waits for the other side, and both make it agreed",
   sanitizeResources: false,

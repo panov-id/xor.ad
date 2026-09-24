@@ -33,6 +33,12 @@ configured({ name: "a fresh dump says nothing, an old one writes once a day", sa
   assertEquals(l.sent.length, 1, "a late backup wrote again an hour later");
   await watchBackup({ now: now + 25 * HOUR, send: l.send, to: ["ops@example.test"] });
   assertEquals(l.sent.length, 2, "a backup still late a day later was not told again");
+
+  // A marker from the future is not a fresh dump.
+  forgetBackupWatch();
+  await put("backups/dev/last-ok.json", { at: new Date(now + 5 * HOUR).toISOString() });
+  const future = await watchBackup({ now, send: l.send, to: ["ops@example.test"] });
+  assert(future.stale, "a marker five hours in the future silenced the watchdog");
 } });
 
 configured({ name: "no marker is the first night until the node has been up past the threshold", sanitizeOps: false, sanitizeResources: false, fn: async () => {

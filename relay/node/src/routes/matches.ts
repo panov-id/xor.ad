@@ -142,6 +142,17 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     if (stood?.ephemeral_public_key && stood.ephemeral_public_key !== half!.key) {
       return refuse("half_published", "a different ephemeral half already stands for this match", 409);
     }
+    // The session, held and read again before its half is written: the guard
+    // read it before this transaction, and a move that froze it since — taking
+    // back its halves, of which this one was not yet — would leave this half
+    // standing for a session whose private half is gone (panel 2026-09-24,
+    // security lens, reproduced). FOR SHARE queues behind a freeze in progress;
+    // after the counters and the match row, the order a close takes them.
+    const [own] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM (SELECT 1 FROM sessions WHERE id = $1 AND frozen_at IS NULL FOR SHARE) s`,
+      [caller.sessionId],
+    );
+    if (own.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);
     await run(
       `UPDATE match_participants
           SET accepted_at = coalesce(accepted_at, now()), declined_at = NULL,

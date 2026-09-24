@@ -277,8 +277,10 @@ const EXPIRED_MAX_BATCHES = 50;
 export async function sweepExpiredPhrases(
   options: { batch?: number; maxBatches?: number } = {},
 ): Promise<number> {
-  const batch = options.batch ?? EXPIRED_BATCH;
-  const maxBatches = options.maxBatches ?? EXPIRED_MAX_BATCHES;
+  // Interpolated into the statement, so made a positive whole number first,
+  // whatever a caller hands in (panel 2026-09-24, security lens).
+  const batch = Math.max(1, Math.floor(Number(options.batch ?? EXPIRED_BATCH)) || EXPIRED_BATCH);
+  const maxBatches = Math.max(1, Math.floor(Number(options.maxBatches ?? EXPIRED_MAX_BATCHES)) || EXPIRED_MAX_BATCHES);
   let swept = 0;
   for (let round = 0; round < maxBatches; round++) {
     const rows = await queryOrThrow<{ count: string }>(

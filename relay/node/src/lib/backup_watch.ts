@@ -49,7 +49,10 @@ export async function watchBackup(options: {
   const at = marker?.at ? Date.parse(marker.at) : NaN;
   const age = Number.isFinite(at) ? now - at : null;
   setGauge("relay_backup_age_seconds", age === null ? -1 : Math.round(age / 1000));
-  const stale = age === null ? now - upSince > threshold : age > threshold;
+  // A marker from the future is a clock or a script gone wrong, not a fresh
+  // dump: read as late, or it would silence this watchdog for good (panel
+  // 2026-09-24, security lens). An hour of skew is let through.
+  const stale = age === null ? now - upSince > threshold : age > threshold || age < -60 * 60 * 1000;
   if (!stale || now - lastLetterAt < A_DAY_MS) {
     return { ageHours: age === null ? null : age / 3_600_000, stale, told: false };
   }

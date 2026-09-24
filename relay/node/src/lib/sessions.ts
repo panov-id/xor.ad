@@ -42,6 +42,28 @@ export async function freezeSession(
   sessionId: string,
   reason: FreezeReason,
 ): Promise<boolean> {
+  // A move leaves this session's private halves on the device being frozen:
+  // the halves it published for matches not yet a chat go back, with their
+  // consent, and a new device consents with a half of its own (db/048;
+  // open.tsv chat.queue.epk-session). Only a move: a PIN-limit freeze is lifted
+  // on the same device by the paper code, halves and all, and a closed
+  // identity has no match left to open (panel 2026-09-24, data lens).
+  //
+  // The match rows first, then the session: a consent of the other side takes
+  // the match row and then reads the participants, and without this lock it
+  // counted a consent this freeze was taking back and opened the chat on a
+  // half nobody can derive with (panel 2026-09-24, data lens, reproduced). The
+  // same order a consent takes them — the match, then the session.
+  const takesHalves = reason === "transfer";
+  if (takesHalves) {
+    await run(
+      `SELECT 1 FROM matches
+        WHERE chat_id IS NULL
+          AND id IN (SELECT match_id FROM match_participants WHERE ephemeral_session = $1)
+        ORDER BY id FOR UPDATE`,
+      [sessionId],
+    );
+  }
   const frozen = await run<{ id: string }>(
     `UPDATE sessions SET frozen_at = now(), frozen_reason = $2
       WHERE id = $1 AND frozen_at IS NULL
@@ -55,19 +77,16 @@ export async function freezeSession(
   // hand is string concatenation into SQL, on an identifier that arrives in a
   // header.
   await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
-  // The halves this session published for matches not yet a chat: its private
-  // halves stay on the device being frozen, and a chat opened with them opens
-  // with a key nobody can derive. The half and the consent go back together,
-  // the match waits, and a new device consents with a half of its own (db/048;
-  // open.tsv chat.queue.epk-session).
-  await run(
-    `UPDATE match_participants
-        SET ephemeral_public_key = NULL, ephemeral_signature = NULL,
-            ephemeral_session = NULL, accepted_at = NULL
-      WHERE ephemeral_session = $1
-        AND match_id IN (SELECT id FROM matches WHERE chat_id IS NULL)`,
-    [sessionId],
-  );
+  if (takesHalves) {
+    await run(
+      `UPDATE match_participants
+          SET ephemeral_public_key = NULL, ephemeral_signature = NULL,
+              ephemeral_session = NULL, accepted_at = NULL
+        WHERE ephemeral_session = $1
+          AND match_id IN (SELECT id FROM matches WHERE chat_id IS NULL)`,
+      [sessionId],
+    );
+  }
   // Counted here rather than at each caller: a freeze is a freeze whoever asks
   // for it, and the reason is the label that tells a spike of stolen-key
   // lockouts (`pin_limit`) from a wave of closures.

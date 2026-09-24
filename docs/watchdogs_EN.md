@@ -172,4 +172,4 @@ Each watchdog is broken on purpose and must reach the channel:
 - Watchdogs W5 and W6 are not built. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
-- W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — a summary a pass beyond six per address.
+- W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — six an hour per address and one summary beyond that.

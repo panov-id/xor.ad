@@ -178,16 +178,19 @@ async function unstamp(notice: AgingNotice): Promise<void> {
 // owner's number for С2 of 2026-09-23): a stream of notices was a stream of
 // letters to support@ and to people's own inboxes, spending the quota the other
 // watchdogs' letters need. Each address gets the first AGING_LETTERS_PER_HOUR
-// notices of a pass one by one and the rest in one summary that names every
-// one of them — none is left out, only the letters are fewer. A pass runs
-// hourly; a pass after a failure comes in ten minutes and carries only what
-// did not leave.
+// notices of an hour one by one and the rest in one summary that names every
+// one of them — none is left out, only the letters are fewer (db/055 counts the
+// hour per address). A pass runs hourly; a pass after a failure comes in ten
+// minutes, repeats what did not leave and takes newly aged notices, within the
+// same hour's count. What the hour has no room for is held, not failed: its
+// stamp goes back and the next hour's pass takes it, without an error and
+// without the ten-minute return a failure brings (verifier, 2026-09-24).
 export const AGING_LETTERS_PER_HOUR = 6;
 
 export async function watchNoticeAge(
   send: typeof sendNoticeAging = sendNoticeAging,
   summarize: typeof sendNoticeAgingSummary = sendNoticeAgingSummary,
-): Promise<{ reminded: number; escalated: number; unsent: number }> {
+): Promise<{ reminded: number; escalated: number; unsent: number; held: number }> {
   const escalate = escalationAddresses().length > 0;
   const notices = await agingNotices(query, escalate);
   if (notices === null) {
@@ -197,6 +200,7 @@ export async function watchNoticeAge(
   }
   const byAddress = new Map<string, AgingNotice[]>();
   const failedIds = new Set<string>();
+  const heldIds = new Set<string>();
   for (const notice of notices) {
     const to = await addressesFor(notice);
     if (to.length === 0) {
@@ -223,17 +227,20 @@ export async function watchNoticeAge(
     if (rest.length === 0) continue;
     // The rest in one summary, one an hour; past that they wait for the next
     // hour, their stamps given back.
-    if (await takeSlot(hash, "summaries", 1) && await tried(() => summarize(address, rest))) {
+    if (!await takeSlot(hash, "summaries", 1)) {
+      for (const notice of rest) heldIds.add(notice.id);
+    } else if (await tried(() => summarize(address, rest))) {
       await markTold(rest, address);
     } else for (const notice of rest) failedIds.add(notice.id);
   }
-  let reminded = 0, escalated = 0, unsent = 0;
+  let reminded = 0, escalated = 0, unsent = 0, held = 0;
   for (const notice of notices) {
-    const failed = failedIds.has(notice.id);
-    if (failed) {
-      // Every address again next time, including any that did get it: a
-      // second copy is the price of not losing the one that mattered.
+    if (failedIds.has(notice.id)) {
+      // Again next time, to the addresses it did not reach (db/054).
       unsent++;
+      await unstamp(notice);
+    } else if (heldIds.has(notice.id)) {
+      held++;
       await unstamp(notice);
     } else if (notice.stage === "escalate") escalated++;
     else reminded++;
@@ -251,8 +258,8 @@ export async function watchNoticeAge(
   }
   if (unsent) {
     log("error", "notices nobody could be warned about", { reminded, escalated, unsent });
-  } else if (reminded || escalated) {
-    log("info", "notices that nobody has answered", { reminded, escalated });
+  } else if (reminded || escalated || held) {
+    log("info", "notices that nobody has answered", { reminded, escalated, held });
   }
-  return { reminded, escalated, unsent };
+  return { reminded, escalated, unsent, held };
 }

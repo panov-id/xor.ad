@@ -23,6 +23,14 @@ await queryOrThrow("SELECT 1");
 // and two passes at once open a second one that outlives the test by design.
 const pool = { sanitizeOps: false, sanitizeResources: false };
 
+// The watchdog's ceiling counts a calendar hour (db/055). A case that counts
+// letters across passes would see two hours' allowance if its passes fell on
+// both sides of one, so it starts clear of the edge.
+async function clearOfHourEdge(): Promise<void> {
+  const left = 3_600_000 - (Date.now() % 3_600_000);
+  if (left < 15_000) await new Promise((resolve) => setTimeout(resolve, left + 1_000));
+}
+
 async function notice(ageHours: number, status = "received"): Promise<string> {
   const rows = await queryOrThrow<{ id: string }>(
     `INSERT INTO dsa_notices (brand, target_kind, reason_text, bona_fide, status, created_at)
@@ -127,7 +135,7 @@ Deno.test({ name: "past six notices an address gets one summary, and every notic
   const { AGING_LETTERS_PER_HOUR } = await import("../src/lib/dsa_watchdog.ts");
   // Whatever an earlier case left unstamped is stamped first, so this pass is ours.
   await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-  await queryOrThrow(`DELETE FROM dsa_aging_hours`); // this hour's count is the case's own
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge(); // this hour's count is the case's own
   const ids: string[] = [];
   for (let i = 0; i < AGING_LETTERS_PER_HOUR + 3; i++) ids.push(await notice(30));
   const one: [string, string][] = [];
@@ -142,7 +150,7 @@ Deno.test({ name: "past six notices an address gets one summary, and every notic
   assertEquals(summaries.length, 1, "what the ceiling held back did not go as one summary");
   const told = [...one.map(([, id]) => id), ...summaries[0][1]].sort();
   assertEquals(told, [...ids].sort(), "a notice was left out of the letters, or told twice");
-  assertEquals(result, { reminded: ids.length, escalated: 0, unsent: 0 });
+  assertEquals(result, { reminded: ids.length, escalated: 0, unsent: 0, held: 0 });
   const stamped = await queryOrThrow<{ n: number }>(
     `SELECT count(*)::int AS n FROM dsa_notices WHERE id = ANY($1::uuid[]) AND reminded_at IS NOT NULL`, [ids]);
   assertEquals(stamped[0].n, ids.length, "a notice told in the summary was not stamped");
@@ -151,7 +159,7 @@ Deno.test({ name: "past six notices an address gets one summary, and every notic
 Deno.test({ name: "a summary that did not leave gives back the stamps of every notice in it", ...pool }, async () => {
   const { AGING_LETTERS_PER_HOUR } = await import("../src/lib/dsa_watchdog.ts");
   await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-  await queryOrThrow(`DELETE FROM dsa_aging_hours`); // this hour's count is the case's own
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge(); // this hour's count is the case's own
   const ids: string[] = [];
   for (let i = 0; i < AGING_LETTERS_PER_HOUR + 2; i++) ids.push(await notice(30));
   const result = await watchNoticeAge(() => Promise.resolve(true), () => Promise.resolve(false));
@@ -170,7 +178,7 @@ Deno.test({ name: "a retry goes only to the address that did not get the letter"
   try {
     assertEquals(escalationAddresses(), ["good@watch.test", "bad@watch.test"], "an address written twice was kept twice");
     await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-  await queryOrThrow(`DELETE FROM dsa_aging_hours`); // this hour's count is the case's own
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge(); // this hour's count is the case's own
     const ids = [await notice(60), await notice(60), await notice(60)];
     const letters: string[] = [];
     const send = (to: string) => { letters.push(to); return Promise.resolve(to.startsWith("good")); };
@@ -192,7 +200,7 @@ Deno.test({ name: "a retry goes only to the address that did not get the letter"
 
 Deno.test({ name: "a letter that throws gives its stamp back instead of ending the pass", ...pool }, async () => {
   await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-  await queryOrThrow(`DELETE FROM dsa_aging_hours`); // this hour's count is the case's own
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge(); // this hour's count is the case's own
   const id = await notice(30);
   const result = await watchNoticeAge(() => Promise.reject(new Error("the transport threw")), () => Promise.resolve(true));
   assertEquals(result.unsent, 1, "a throwing letter was not counted as unsent");
@@ -210,7 +218,7 @@ Deno.test({ name: "with nobody to escalate to, old escalations do not starve a f
   Deno.env.set("DSA_ESCALATION_EMAILS", "");
   try {
     await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-  await queryOrThrow(`DELETE FROM dsa_aging_hours`); // this hour's count is the case's own
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge(); // this hour's count is the case's own
     await queryOrThrow(
       // arrival_sent_at set: these rows are the watchdog's case, and the
       // arrival letters' retry (С2, another suite on this database) must not
@@ -240,7 +248,7 @@ Deno.test({ name: "with nobody to escalate to, old escalations do not starve a f
 Deno.test({ name: "an address gets six letters and one summary in an hour, however many passes", ...pool }, async () => {
   const { AGING_LETTERS_PER_HOUR } = await import("../src/lib/dsa_watchdog.ts");
   await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-  await queryOrThrow(`DELETE FROM dsa_aging_hours`);
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge();
   const one: string[] = [];
   let summaries = 0;
   const send = (_to: string, n: { id: string }) => { one.push(n.id); return Promise.resolve(true); };
@@ -252,7 +260,8 @@ Deno.test({ name: "an address gets six letters and one summary in an hour, howev
   const second = await watchNoticeAge(send, summarize);
   assertEquals(one.length, AGING_LETTERS_PER_HOUR, "the second pass of the hour sent more letters one by one");
   assertEquals(summaries, 1, "the second pass of the hour sent another summary");
-  assertEquals(second.unsent, later.length, "what the hour had no room for was counted as told");
+  assertEquals([second.unsent, second.held], [0, later.length],
+    "what the hour had no room for was counted as told, or as a failure");
   const [waiting] = await queryOrThrow<{ n: number }>(
     `SELECT count(*)::int AS n FROM dsa_notices WHERE id = ANY($1::uuid[]) AND reminded_at IS NULL`, [later]);
   assertEquals(waiting.n, later.length, "a notice past the hour's ceiling lost its reminder instead of waiting");
@@ -266,7 +275,7 @@ Deno.test({ name: "escalations failing at one address do not starve a fresh remi
   Deno.env.set("DSA_ESCALATION_EMAILS", "good@watch.test, bad@watch.test");
   try {
     await queryOrThrow(`UPDATE dsa_notices SET reminded_at = now(), escalated_at = now() WHERE status = 'received'`);
-    await queryOrThrow(`DELETE FROM dsa_aging_hours`);
+    await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge();
     await queryOrThrow(
       `INSERT INTO dsa_notices (brand, target_kind, reason_text, bona_fide, status, created_at, reminded_at, arrival_sent_at)
        SELECT 'neighbro', 'chat', 'failing ' || g, true, 'received', now() - interval '60 hours', now() - interval '12 hours', now()

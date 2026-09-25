@@ -791,3 +791,203 @@ Deno.test("the sweeper's skip counters are published at zero before any skip", a
       `relay_identity_sweeper_skipped_total{reason="${reason}"} is not published until the first skip`);
   }
 });
+
+// True once a backend of this database waits on a lock while running a
+// statement that matches `pattern` — which statement the sweep is stuck on,
+// not just that something is.
+async function waitsOn(pattern: string, ms = 5000): Promise<boolean> {
+  const until = Date.now() + ms;
+  while (Date.now() < until) {
+    const [{ n }] = await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_stat_activity
+        WHERE datname = current_database() AND wait_event_type = 'Lock' AND query LIKE $1`,
+      [`%${pattern}%`]);
+    if (n > 0) return true;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  return false;
+}
+
+const skipped = async (reason: string) =>
+  countOf((await import("../src/lib/metrics.ts")).render(),
+    `relay_identity_sweeper_skipped_total{reason="${reason}"}`);
+
+// The identity's own row, held by somebody else (a reissue, a close, a claim's
+// grant): the batch takes it SKIP LOCKED and leaves the identity out, and the
+// skip is counted as row_held — share_held is what the alert on held shares
+// watches, and this is not one (2026-09-25, verifier: without SKIP LOCKED on
+// the identity, without own.has() in `whole`, or with every skip counted as a
+// share, the suite stayed green).
+Deno.test({ name: "a batch skips an identity whose own row somebody holds, and counts it as row_held", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const rowBefore = await skipped("row_held");
+  const shareBefore = await skipped("share_held");
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let release: () => void = () => {};
+  const released = new Promise<void>((r) => { release = r; });
+  let swept: Promise<unknown> | undefined;
+  try {
+    let held!: () => void;
+    const isHeld = new Promise<void>((r) => { held = r; });
+    const holding = holder.begin(async (tx) => {
+      await tx.unsafe(`SELECT id FROM identities WHERE id = $1 FOR UPDATE`, [b.identityId]);
+      held();
+      await released;
+    });
+    await isHeld;
+    swept = sweeper.sweepIdentities();
+    const outcome = await Promise.race([
+      swept.then(() => "done"),
+      new Promise((r) => setTimeout(() => r("waited"), 3000)),
+    ]);
+    assertEquals(outcome, "done", "the sweep waited on an identity row somebody held");
+    assert((await identityRow(x.identityId)).closed_at !== null, "the identity nobody held was not closed");
+    assertEquals((await identityRow(b.identityId)).closed_at, null,
+      "the identity whose row was held was closed under it");
+    assertEquals((await skipped("row_held")) - rowBefore, 1,
+      'an identity skipped for its held row did not move reason="row_held"');
+    assertEquals((await skipped("share_held")) - shareBefore, 0,
+      'an identity skipped for its held row was counted as reason="share_held"');
+    release();
+    await holding;
+  } finally {
+    release();
+    await swept?.catch(() => {});
+    await holder.end();
+  }
+});
+
+// A batch that leaves an identity out rolls back to its savepoint, and every
+// lock it took for that identity goes with it (sweeper.batch.shareheld). Since
+// no step of the batch waits, the window between the retry and the commit is
+// too short to meet by chance, so it is held open: the pick is stopped on the
+// sessions table, a SHARE lock on identities is granted while the pick holds
+// only ACCESS SHARE, and the batch's closing UPDATE then queues on it — after
+// every lock of the batch is taken. X has two shares, one held elsewhere, so X
+// is left out; B closes. With the batch stalled, the holder of X's share lets
+// go, and taking both of X's shares NOWAIT must succeed.
+Deno.test({ name: "a batch stalled after its locks holds no share of an identity it left out", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const xOther = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, last_seen_at, frozen_at, frozen_reason)
+     VALUES ($1, $2, 'k', 'k', now() - make_interval(days => $3), now(), 'transfer')`,
+    [xOther, x.identityId, sweeper.INACTIVE_DAYS + 5]);
+  await database.queryOrThrow(`INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, 'hash', $2)`,
+    [xOther, new Uint8Array([7])]);
+  const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+
+  const shareHolder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const tableHolder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const rowsHolder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const closer = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const gate = () => {
+    let open: () => void = () => {};
+    const opened = new Promise<void>((r) => { open = r; });
+    return { open: () => open(), opened };
+  };
+  const share = gate(), shareTaken = gate();
+  const table = gate(), tableTaken = gate();
+  const rows = gate(), rowsTaken = gate();
+  let closeError = "";
+  let sweepError = "";
+  let swept: Promise<unknown> | undefined;
+  const holdings: Promise<unknown>[] = [];
+  try {
+    holdings.push(shareHolder.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [xOther]);
+      shareTaken.open();
+      await share.opened;
+    }));
+    await shareTaken.opened;
+    holdings.push(tableHolder.begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE sessions IN ACCESS EXCLUSIVE MODE`);
+      tableTaken.open();
+      await table.opened;
+    }));
+    await tableTaken.opened;
+    swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+    assert(await waitsOn("AND NOT EXISTS"), "the sweep's pick never waited on the held sessions table");
+    holdings.push(rowsHolder.begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE identities IN SHARE MODE`);
+      rowsTaken.open();
+      await rows.opened;
+    }));
+    await rowsTaken.opened;
+    table.open();
+    assert(await waitsOn("UPDATE identities SET closed_at"),
+      "the batch never reached its closing UPDATE with the identities table held");
+    share.open();
+    await holdings[0];
+    await closer.begin(async (c) => {
+      await c.unsafe(
+        `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
+          WHERE s.identity = $1 ORDER BY v.session FOR UPDATE OF v NOWAIT`, [x.identityId]);
+    }).catch((e) => { closeError = String(e); });
+    rows.open();
+    await swept;
+  } finally {
+    share.open();
+    table.open();
+    rows.open();
+    await Promise.allSettled(holdings);
+    await swept;
+    await shareHolder.end();
+    await tableHolder.end();
+    await rowsHolder.end();
+    await closer.end();
+  }
+  assertEquals(closeError, "",
+    `a batch kept a share of an identity it had left out, until its commit: ${closeError}`);
+  assertEquals(sweepError, "", `the sweep failed: ${sweepError}`);
+  assertEquals((await identityRow(x.identityId)).closed_at, null,
+    "the identity with a held share was closed");
+  assert((await identityRow(b.identityId)).closed_at !== null, "the identity nobody held was not closed");
+});
+
+// NO KEY UPDATE on the sessions, and not UPDATE: every INSERT that references a
+// session — a nonce, a support request — takes a key-share on it, and the full
+// lock conflicts with that. With SKIP LOCKED the conflict is not a deadlock
+// but a skip, so the reissue test above stays green either way; what shows the
+// lock mode is that an identity whose session only a nonce is being written
+// against is still closed by the pass that meets it.
+Deno.test({ name: "a nonce being written against a candidate's session does not keep the sweep off it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const made = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const rowBefore = await skipped("row_held");
+  const writer = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let release: () => void = () => {};
+  const released = new Promise<void>((r) => { release = r; });
+  let swept: Promise<unknown> | undefined;
+  try {
+    let written!: () => void;
+    const isWritten = new Promise<void>((r) => { written = r; });
+    const writing = writer.begin(async (tx) => {
+      await tx.unsafe(`INSERT INTO nonces (session_id, nonce, route, status, response)
+                       VALUES ($1, $2, 'POST /support', 200, 'null'::jsonb)`,
+        [made.sessionId, crypto.getRandomValues(new Uint8Array(16))]);
+      written();
+      await released;
+    });
+    await isWritten;
+    swept = sweeper.sweepIdentities();
+    const outcome = await Promise.race([
+      swept.then(() => "done"),
+      new Promise((r) => setTimeout(() => r("waited"), 3000)),
+    ]);
+    assertEquals(outcome, "done", "the sweep waited on a session a nonce was being written against");
+    assertEquals((await skipped("row_held")) - rowBefore, 0,
+      "the sweep counted a session under a nonce's key-share as held");
+    assert((await identityRow(made.identityId)).closed_at !== null,
+      "a key-share on the session (a nonce being written) kept the sweep off an identity past its year");
+    release();
+    await writing;
+  } finally {
+    release();
+    await swept?.catch(() => {});
+    await writer.end();
+  }
+});

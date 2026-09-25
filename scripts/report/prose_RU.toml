@@ -1,0 +1,105 @@
+# What the report says that no script can measure: expert estimates from the
+# roadmap, the day's summary, what waits on the owner. build.py takes numbers
+# from the measurements and words from here.
+#
+# Each block carries the date it was true on. build.py prints those dates next
+# to the text and raises a red banner when a date falls behind the last day
+# with commits — stale words are shown as stale, not passed off as today's.
+#
+# Text is HTML (<code>, <b>); {placeholders} are filled from the measurements:
+#   {ahead} {day57_tail} {branch_only} {mig_last} {branch}
+
+[roadmap]
+# docs/roadmap_RU.md: readiness by layer, the step table, the one-glance grid,
+# and which migration each environment's pinned image carries.
+as_of = "2026-09-24"
+prod_image_note = "по дереву коммита образа прода <code>8f89e7a</code> (11.09): маршрутов продукта в нём нет — только витрины, лист ожидания, <code>/v1</code>, DSA и панель"
+prod_migration = "021"
+
+environments = [
+  { label = "Прод p1 · v2026.9.11", migration = 21, note = "образ 11.09" },
+  { label = "dev n1 · sha-622a848", migration = 21, note = "образ 11.09" },
+  { label = "staging n1", migration = 10, note = "сборку не называет" },
+]
+
+layers = [
+  { name = "Витрины sosed.place и neighbro.place", percent = 90, holds = "живые, 200 сейчас" },
+  { name = "Панель xor.panov.id", percent = 80, holds = "11 страниц; e2e 5, юнит 32" },
+  { name = "Узел relay: платформа — ключи, бренды, DSA, почта", percent = 70, holds = "прод p1 жив, база ok" },
+  { name = "Клиент depth — терминал", percent = 65, holds = "тесты экранов — раздел 8; ПИН — заглушка" },
+  { name = "Узел relay: продукт, шаги 1–4", percent = 60, holds = "модели-модератора нет" },
+  { name = "Юридическое и DSA", percent = 60, holds = "SCC для Bunny нет" },
+  { name = "Эксплуатация: копии, тревоги, откат", percent = 50, holds = "ключа копий на боксах нет" },
+  { name = "Узел relay: продукт, шаги 5–8", percent = 40, holds = "игр нет" },
+  { name = "Веб-приложение, шаг 9", percent = 5, holds = "только прототип" },
+]
+
+# state: yes | part | no | — (not applicable)
+matrix_columns = ["Узел relay", "Терминал depth", "Веб-лицо", "На проде"]
+matrix = [
+  { name = "Личность и сессия", cells = ["part", "part", "no", "no"] },
+  { name = "Лента и гео", cells = ["part", "part", "no", "no"] },
+  { name = "Лайки и мэтч", cells = ["part", "part", "no", "no"] },
+  { name = "Чат и шифрование", cells = ["part", "part", "no", "no"] },
+  { name = "Блоки и чистка", cells = ["part", "yes", "no", "no"] },
+  { name = "Уведомления и игры", cells = ["no", "no", "no", "no"] },
+  { name = "Офферы", cells = ["part", "no", "no", "no"] },
+  { name = "Витрины и лист ожидания", cells = ["yes", "—", "yes", "yes"] },
+  { name = "Панель модерации и DSA", cells = ["part", "—", "part", "part"] },
+]
+
+steps = [
+  { step = "1. Личность и сессия", node = "part", node_text = "Личности, хранилище, сессии, восстановление, смена ПИН, «начать заново», перевыпуск бумажного кода; 25.09 — единый порядок блокировок «доля → сессии → личность» во всех путях, уборщик пропускает занятые строки.", depth = "part", depth_text = "Регистрация против живого узла, экран «я», правка имени и возраста; ПИН и бумажный код — заглушки под testOnly." },
+  { step = "2. Лента и гео", node = "part", node_text = "Фразы, выдача по кругам, плотность, запечатанный курсор, очередь модерации с вердиктом человека. Нет модели-модератора.", depth = "part", depth_text = "Фраза, лента, карточка во весь экран, отказы узла словами." },
+  { step = "3. Лайки", node = "part", node_text = "Лайк, снятие, мэтч при встречном под блокировкой пары, предел 300 в час, GET /likes.", depth = "part", depth_text = "Лайк, снятие, «лайкнутое», сброс курсора." },
+  { step = "4. Мэтч и согласие", node = "part", node_text = "Согласие и «не сейчас», эфемерная половина привязана к сессии.", depth = "part", depth_text = "Согласие и «не сейчас» во входящих." },
+  { step = "5. Чат: транспорт", node = "part", node_text = "Очередь доставки с потолком 200, сокет, срок беседы, инбокс, отлучка; 25.09 — /away отвергает чужой nonce.", depth = "part", depth_text = "Срок беседы, надгробие, отлучка, переподключение комнаты." },
+  { step = "6. Шифрование", node = "part", node_text = "Эфемерная половина на согласии, перевыпуск ключа беседы. Нет — свёртка ключей для веб-лица.", depth = "part", depth_text = "ECDH P-256 → HKDF → AES-GCM, сквозной тест двух терминалов, код безопасности." },
+  { step = "7. Блоки и чистка", node = "part", node_text = "Блоки, скрытое, уборщики; 25.09 — профиль заведения удаляется через год после последнего оффера, логи контейнеров режутся на 30 днях.", depth = "yes", depth_text = "Скрыть, заблокировать, списки с возвратом." },
+  { step = "8. Уведомления и игры", node = "no", node_text = "Не начат: столов, таймеров хода и уборщика стола нет; вместо уведомлений — инбокс и суточная сводка.", depth = "no", depth_text = "—" },
+  { step = "9. Веб-лицо", node = "no", node_text = "—", depth = "no", depth_text = "Только HTML-прототип, приложения нет." },
+  { step = "Офферы (вне §13)", node = "part", node_text = "Таблицы advertisers, venues, offers, ссылка /o/:code и /go. Нет — жалоб на ссылку и кабинета /adv/*.", depth = "no", depth_text = "—" },
+]
+
+[day]
+# The last working day: its summary line and cards (section 4).
+date = "2026-09-25"
+summary = "единый порядок блокировок (гонки закрытия и восстановления больше не дают deadlock), уборщик пропускает занятые строки, счётчики тревог заведены нулём, заморожённая сессия не «оживает» от стража (решено кворумом 3/3)"
+cards = [
+  { title = "Порядок блокировок", text = "Единое правило <code>identity.lock.order</code>: доля → сессии → личность — в vault/init, переносе, заявке, closeOnce и уборщике. Гонки закрытия против восстановления больше не дают deadlock; <code>lock_timeout</code> 2 с." },
+  { title = "Уборщик личностей", text = "SKIP LOCKED на долях, сессиях и личностях: годовой проход не ждёт и не закрывает человека, который как раз возвращается; тест на перепроверку года; три теста на пять мутаций." },
+  { title = "Заморожённая сессия", text = "Страж больше не пишет <code>last_seen_at</code> заморожённой сессии — путь назад не считается использованием. Развилка решена кворумом 3/3, записана в <code>decisions.tsv</code> и §8.2." },
+  { title = "Наблюдаемость", text = "Счётчики пропусков и <code>storage_failed</code> публикуются нулём с первого старта — тревоги видят первое событие; дашборд и правила тревог под порядок блокировок." },
+  { title = "Ночная волна (00:00–04:00)", text = "Заявка восстановления берёт доли первой; узел не стартует без окружения; профиль заведения удаляется через год; логи режутся на 30 днях; <code>/away</code> отвергает чужой nonce; десятый неверный ПИН под тестом." },
+  { title = "Документы", text = "Абзац §8.2 спеки, решения <code>chat.2026-09-25.lockorder</code> и <code>frozennoyear</code>, карта тестов 569/616, протокол панели <code>PANEL_2026-09-25_lock-order.md</code>." },
+]
+
+[state]
+# Summary bullets, what waits on the owner, what is not built, what the build
+# does not check. Written from the handoff and the open registry.
+as_of = "2026-09-25"
+has = "сервер шагов 1–7 из 9 построен частично; терминал depth проходит путь от регистрации до чата со сквозным шифрованием"
+has_not = "шага 8 (уведомления и игры), веб-приложения (шаг 9), модели-модератора, кабинета заведения, SCC для Bunny, ключа шифрования копий на боксах"
+gap = "на проде и dev — образы от 11.09 с миграциями до 021 и без единого маршрута продукта; в коде миграции уже до {mig_last}. Личность, лента, лайки, чат существуют только в коде и тестах"
+owner = [
+  "<b>Пуш {branch} и выкат.</b> {ahead} коммитов только локально ({day57_tail} из них — хвост day57, запушенной лишь до <code>9412936</code>); выкат начинается с dev (n1), не с прода. Пока его нет, на проде нет ничего из day56–day58, включая исправления двух дефектов прода (<code>/v1</code> с Idempotency-Key, снимки ст. 16 строкой).",
+  "<b>Ключ шифрования ночных копий</b> — открытая половина в <code>backup.env</code> на p1 и n1; пока копии открытым текстом.",
+  "<b>SCC для Bunny</b> — передача за ЕЭЗ без оснований гл. V GDPR.",
+  "<b>Кэш зоны report.relay.panov.id</b> — Bunny держит <code>/health</code> 30 дней: 200 этого адреса в разделе 7 может быть вчерашним.",
+  "<b>Плотность ленты</b> (<code>feed.density.people</code>) — считать фразы или людей; развилка продуктовая.",
+  "Второй почтовый аккаунт для резервной доставки; внешний пингер узла.",
+]
+not_built = [
+  "Шаг 8 целиком: столы, таймеры хода, уборщик стола; уведомлений нет.",
+  "Веб-приложение (шаг 9) — только прототип.",
+  "Модель-модератор: без дежурного человека фраза удаляется непрочитанной через 10 минут.",
+  "Кабинет заведения <code>/adv/*</code> и жалоба на ссылку оффера.",
+  "ПИН и бумажный код в терминале — заглушки; том для постоянной личности depth не заведён.",
+  "Пределы частоты живут в памяти узла и не переживают пересоздание контейнера.",
+]
+unverified = [
+  "Полный прогон узла с базой при сборке не запускается: по записи сессии — 364 passed в 10 файлах на 5f28387.",
+  "<code>schema_migrations</code> на боксах не опрашивались; staging сборку не называет.",
+  "200 от <code>report.relay.panov.id/health</code> может быть ответом из кэша Bunny (<code>report.zone.cache</code>).",
+  "Дашборд Grafana стенда не снят: стенд наблюдаемости не поднимался.",
+]

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Render depth's real screens (the screen tests) and keep each test's last frame
-# in $REPORT_WORK/data/frames.json.
+# in $REPORT_WORK/data/frames.json, the run's own tally in frames.txt.
 #
 # The screen test is patched into a copy of depth under $REPORT_WORK/dc, never
 # into the tree: docker creates missing mount points as root, and a copy inside
@@ -38,4 +38,4 @@ timeout 300 docker run --rm -v "$W/dc":/repo/depth $mods -w /repo/depth "$image"
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -e FORCE_COLOR=1 -v "$R/relay":/repo/relay:ro -v "$W/dc":/repo/depth $mods \
   -v "$W/data":/out -w /repo/depth "$image" \
-  node --experimental-transform-types ink/_frames.node-test.ts
+  node --experimental-transform-types ink/_frames.node-test.ts 2>&1 | tee "$W/data/frames.txt"

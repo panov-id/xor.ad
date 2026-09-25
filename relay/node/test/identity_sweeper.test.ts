@@ -786,7 +786,7 @@ Deno.test({ name: "a person back between the pick and the locks is asked again a
 Deno.test("the sweeper's skip counters are published at zero before any skip", async () => {
   const metrics = await import("../src/lib/metrics.ts");
   const lines = metrics.render().split("\n");
-  for (const reason of ["share_held", "row_held", "came_back"]) {
+  for (const reason of ["share_held", "row_held", "retry_cap", "came_back"]) {
     assert(lines.some((l) => l.startsWith(`relay_identity_sweeper_skipped_total{reason="${reason}"} `)),
       `relay_identity_sweeper_skipped_total{reason="${reason}"} is not published until the first skip`);
   }
@@ -990,4 +990,96 @@ Deno.test({ name: "a nonce being written against a candidate's session does not 
     await swept?.catch(() => {});
     await writer.end();
   }
+});
+
+// The ceiling of five attempts, executed. An attempt that loses an identity is
+// rolled back and tried again without it; to need a sixth, every attempt has to
+// lose somebody new, which no single held lock can do — the first retry drops
+// the held identity and the second attempt is whole. So the attempts are paced:
+// each one's share lock queues on a table lock (EXCLUSIVE on vault_shares, which
+// the batch's plain reads pass), and while it waits one more candidate's session
+// is taken. The next table lock is queued behind the waiting batch, so it is
+// granted exactly when the attempt rolls back, and holds the next attempt at the
+// same place. Five attempts lose five identities to row_held; the two nobody
+// held are what the ceiling drops, and they are retry_cap — counted as
+// share_held, churn nobody holds read as a lock that never lets go
+// (observability.lockorder.alerts, 2026-09-26).
+Deno.test({ name: "the fifth attempt is the last, and what it drops is counted as retry_cap", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  // Whatever an earlier case left open would be a candidate here too.
+  await sweeper.sweepIdentities();
+  const made: Made[] = [];
+  for (let i = 0; i < 7; i++) made.push(await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 }));
+  const before = {
+    share: await skipped("share_held"),
+    row: await skipped("row_held"),
+    cap: await skipped("retry_cap"),
+  };
+  const url = Deno.env.get("DATABASE_URL")!;
+  const tables = Array.from({ length: 6 }, () => postgres(url, { max: 1 }));
+  const rowsHolder = postgres(url, { max: 1 });
+  const gate = () => {
+    let open: () => void = () => {};
+    const opened = new Promise<void>((r) => { open = r; });
+    return { open: () => open(), opened };
+  };
+  const within = <T,>(p: Promise<T>, what: string) =>
+    Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error(what)), 5000))]);
+  const release = Array.from({ length: 6 }, gate), taken = Array.from({ length: 6 }, gate);
+  const rowWanted = Array.from({ length: 5 }, gate), rowTaken = Array.from({ length: 5 }, gate);
+  const rowsDone = gate();
+  const holdings: Promise<unknown>[] = [];
+  const pace = (k: number) =>
+    holdings.push(tables[k].begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE vault_shares IN EXCLUSIVE MODE`);
+      taken[k].open();
+      await release[k].opened;
+    }));
+  let sweepError = "";
+  let swept: Promise<unknown> | undefined;
+  try {
+    // The sessions, one more per attempt, in one transaction that keeps them all.
+    holdings.push(rowsHolder.begin(async (tx) => {
+      for (let k = 0; k < 5; k++) {
+        await rowWanted[k].opened;
+        await tx.unsafe(`SELECT id FROM sessions WHERE identity = $1 FOR UPDATE`, [made[k].identityId]);
+        rowTaken[k].open();
+      }
+      await rowsDone.opened;
+    }));
+    pace(0);
+    await within(taken[0].opened, "the first table lock was never granted");
+    swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+    for (let k = 0; k < 5; k++) {
+      assert(await waitsOn("FOR UPDATE OF v SKIP LOCKED"), `attempt ${k + 1} never waited on the held table`);
+      rowWanted[k].open();
+      await within(rowTaken[k].opened, `the session of candidate ${k} was never taken`);
+      pace(k + 1);
+      assert(await waitsOn("LOCK TABLE vault_shares"), `the lock pacing attempt ${k + 2} never queued`);
+      release[k].open();
+      await within(taken[k + 1].opened, `attempt ${k + 1} never let go of the table`);
+    }
+    // Attempt five has rolled back. Without the ceiling a sixth would be waiting
+    // here now, and would close the two nobody held once let through.
+    release[5].open();
+    rowsDone.open();
+    await within(Promise.all(holdings), "a holder never finished");
+    await within(swept, "the sweep never finished");
+  } finally {
+    for (const g of [...release, ...rowWanted, rowsDone]) g.open();
+    await Promise.allSettled(holdings);
+    await swept;
+    await Promise.all([...tables, rowsHolder].map((c) => c.end()));
+  }
+  assertEquals(sweepError, "", `the sweep failed: ${sweepError}`);
+  for (const m of made) {
+    assertEquals((await identityRow(m.identityId)).closed_at, null,
+      "an identity was closed by a batch that had run out of attempts — the ceiling did not hold");
+  }
+  assertEquals((await skipped("row_held")) - before.row, 5,
+    "five attempts, each losing one held session, did not count five row_held");
+  assertEquals((await skipped("retry_cap")) - before.cap, 2,
+    'the two identities the ceiling dropped were not counted as reason="retry_cap"');
+  assertEquals((await skipped("share_held")) - before.share, 0,
+    'identities nobody held, dropped by the ceiling, were counted as reason="share_held"');
 });

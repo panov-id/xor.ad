@@ -58,9 +58,12 @@ groups:
       # lens). Passes are hourly, so a 90-minute window always holds one; `for:
       # 3h` means three passes in a row skipped somebody. The counter is not per
       # identity: a stream of different short holds reads the same, and the
-      # answer to both is to look at pg_locks. came_back is a person, not a lock.
+      # answer to both is to look at pg_locks. retry_cap is that stream seen
+      # from the batch: five attempts in a row each lost somebody new, and the
+      # ones nobody held were dropped with them (counted as share_held until
+      # 2026-09-26). came_back is a person, not a lock.
       - alert: IdentitySweeperKeepsSkipping
-        expr: sum(increase(relay_identity_sweeper_skipped_total{reason=~"share_held|row_held"}[90m])) > 0
+        expr: sum(increase(relay_identity_sweeper_skipped_total{reason=~"share_held|row_held|retry_cap"}[90m])) > 0
         for: 3h
         labels: { severity: warning }
         annotations:

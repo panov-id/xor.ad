@@ -38,7 +38,7 @@ export const INACTIVE_DAYS = 365; // identity.inactive.retention
 // earlier sample, increase() reads its first step as nothing, and the first
 // skip after every restart went unseen by IdentitySweeperKeepsSkipping
 // (observability.lockorder.alerts, 2026-09-25).
-for (const reason of ["share_held", "row_held", "came_back"]) inc("relay_identity_sweeper_skipped_total", { reason }, 0);
+for (const reason of ["share_held", "row_held", "retry_cap", "came_back"]) inc("relay_identity_sweeper_skipped_total", { reason }, 0);
 export const DELETION_DELAY_DAYS = 30; // identity.deletion.delay
 
 // How many rows one pass takes at a time, and how many bites it takes before
@@ -168,7 +168,9 @@ async function closeInactive(): Promise<number> {
       const sessionsWanted = count(await run<{ identity: string }>(
         `SELECT identity FROM sessions WHERE identity = ANY($1::uuid[])`, [candidates]));
       let ids = candidates;
+      let shortOfShares = 0;
       let shortOfRows = 0;
+      let capped = 0;
       for (let attempt = 0; ids.length > 0; attempt++) {
         await run(`SAVEPOINT sweep_shares`);
         const got = count(await run<{ identity: string }>(
@@ -188,21 +190,30 @@ async function closeInactive(): Promise<number> {
           await run(`RELEASE SAVEPOINT sweep_shares`);
           break;
         }
+        shortOfShares += ids.length - shares.length;
         shortOfRows += shares.length - whole.length;
         await run(`ROLLBACK TO SAVEPOINT sweep_shares`);
         await run(`RELEASE SAVEPOINT sweep_shares`);
-        ids = attempt < 4 ? whole : [];
+        if (attempt < 4) ids = whole;
+        else {
+          capped = whole.length;
+          ids = [];
+        }
       }
       // Somebody holding a share or a row is visible, or an identity kept from
       // its year by a lock that never lets go would look like a quiet night
-      // (review panel 2026-09-25, operations lens). The two reasons apart:
-      // share_held is what the alert watches.
-      const skipped = candidates.length - ids.length;
-      const rowHeld = Math.min(shortOfRows, skipped);
-      if (skipped - rowHeld > 0) {
-        inc("relay_identity_sweeper_skipped_total", { reason: "share_held" }, skipped - rowHeld);
-      }
-      if (rowHeld > 0) inc("relay_identity_sweeper_skipped_total", { reason: "row_held" }, rowHeld);
+      // (review panel 2026-09-25, operations lens). Each reason apart, and each
+      // skipped identity counted once: an identity leaves `ids` in exactly one
+      // attempt, for exactly one of them. retry_cap is an identity nobody held,
+      // dropped because the fifth attempt still lost somebody else — churn, not
+      // a held share, and it was counted as share_held until
+      // observability.lockorder.alerts (2026-09-26).
+      const skip = (reason: string, n: number) => {
+        if (n > 0) inc("relay_identity_sweeper_skipped_total", { reason }, n);
+      };
+      skip("share_held", shortOfShares);
+      skip("row_held", shortOfRows);
+      skip("retry_cap", capped);
       if (ids.length === 0) return { picked: doomed.length, closed: 0, last };
       const shut = await run<{ id: string }>(
         `UPDATE identities SET closed_at = now(),

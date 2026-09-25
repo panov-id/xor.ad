@@ -106,6 +106,20 @@ tests:
               summary: "Уборщик третий час подряд пропускает личности: долю или строку держит блокировка"
               description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю, сессию или строку держит чужая транзакция. Смотреть pg_locks по vault_shares, sessions и identities — застрявшая транзакция держит личность дольше её года."
 
+  - name: retry_cap growing every pass for hours raises IdentitySweeperKeepsSkipping
+    interval: 1m
+    input_series:
+      - series: 'relay_identity_sweeper_skipped_total{reason="retry_cap"}'
+        values: '0x59 1x59 2x59 3x59 4x59 5x59'
+    alert_rule_test:
+      - eval_time: 5h
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Уборщик третий час подряд пропускает личности: долю или строку держит блокировка"
+              description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю, сессию или строку держит чужая транзакция. Смотреть pg_locks по vault_shares, sessions и identities — застрявшая транзакция держит личность дольше её года."
+
   - name: one pass that met a held share is not an alert
     interval: 1m
     input_series:

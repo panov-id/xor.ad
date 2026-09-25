@@ -1245,6 +1245,13 @@ async function reissueCode(req: Request): Promise<Response> {
   });
 }
 
+// A right paper code the node could not write is alerted on its first
+// occurrence (RecoveryClaimCannotWrite). The series exists from the start at
+// zero, so increase() sees 0 -> 1; born at 1 it was invisible after a restart,
+// and the rule had to guess with `unless … offset`, which fired on a scrape gap
+// too (observability.lockorder.alerts, 2026-09-25).
+inc("relay_recovery_claim_total", { result: "storage_failed" }, 0);
+
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));
 route("POST", "/recovery/claim", (c) => claimRecovery(c.req));

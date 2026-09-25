@@ -114,15 +114,12 @@ groups:
       # A right paper code the node could not write (relay/node/src/routes/
       # identity.ts, claim on a new device). There is no retry on the person's
       # side worth the name: they hold the code and got 503, so one is enough.
-      # The second half is the first failure after a restart: a counter series
-      # is born at 1, `increase()` over a series with no earlier sample is
-      # nothing, and the first event would pass unseen — `unless … offset`
-      # catches a series that exists now and did not 15 minutes ago
-      # (2026-09-25; alerts.test.yml holds both cases).
+      # The node publishes the series at zero from the start, so the first
+      # failure after a restart is a 0 -> 1 step increase() sees; an earlier
+      # `unless … offset` half guessed at it and fired on a 20-minute scrape gap
+      # over an old failure (verifier, 2026-09-25; alerts.test.yml).
       - alert: RecoveryClaimCannotWrite
-        expr: (sum(increase(relay_recovery_claim_total{result="storage_failed"}[15m])) > 0)
-              or (sum(relay_recovery_claim_total{result="storage_failed"}
-                      unless relay_recovery_claim_total{result="storage_failed"} offset 15m) > 0)
+        expr: sum(increase(relay_recovery_claim_total{result="storage_failed"}[15m])) > 0
         for: 1m
         labels: { severity: warning }
         annotations:

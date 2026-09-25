@@ -2244,3 +2244,13 @@ Deno.test({ name: "a close from a session whose share is burned answers 404 and 
     reset();
   }
 });
+
+// RecoveryClaimCannotWrite reads increase() over this series, and increase()
+// cannot see a series born at 1 (observability.lockorder.alerts, 2026-09-25):
+// the node publishes it at zero from the start, before any claim has failed.
+Deno.test("the recovery claim's storage_failed series is published at zero before any failure", async () => {
+  const metrics = await import("../src/lib/metrics.ts");
+  const line = metrics.render().split("\n")
+    .find((l) => l.startsWith('relay_recovery_claim_total{result="storage_failed"} '));
+  assert(line, "relay_recovery_claim_total{result=\"storage_failed\"} is not published until the first failure");
+});

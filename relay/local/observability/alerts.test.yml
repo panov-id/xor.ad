@@ -144,13 +144,14 @@ tests:
               summary: "Восстановление бумажным кодом не записывается"
               description: "Верный бумажный код получил 503: узел не смог записать новое устройство. Человек без входа держит код в руках — смотреть журнал узла, «recovery claim failed on a new device»."
 
-  # The first failure after a restart: the series is born at 1 and has no
-  # earlier sample for increase() to compare against.
+  # The first failure after a restart: the node publishes the series at zero
+  # from the start, so an old failure, a restart and a new one read as
+  # 1, reset to 0, then 1 — a step increase() sees.
   - name: the first storage_failed after a restart is not missed
     interval: 1m
     input_series:
       - series: 'relay_recovery_claim_total{result="storage_failed"}'
-        values: '_x30 1x60'
+        values: '1x30 0x3 1x60'
     alert_rule_test:
       - eval_time: 40m
         alertname: RecoveryClaimCannotWrite
@@ -159,6 +160,18 @@ tests:
             exp_annotations:
               summary: "Восстановление бумажным кодом не записывается"
               description: "Верный бумажный код получил 503: узел не смог записать новое устройство. Человек без входа держит код в руках — смотреть журнал узла, «recovery claim failed on a new device»."
+
+  # A scrape gap over an old failure is not a new one (verifier, 2026-09-25:
+  # the `unless … offset` rule fired here).
+  - name: a scrape gap over an old storage_failed is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_recovery_claim_total{result="storage_failed"}'
+        values: '1x60 _x20 1x60'
+    alert_rule_test:
+      - eval_time: 90m
+        alertname: RecoveryClaimCannotWrite
+        exp_alerts: []
 
   - name: recovery claims that are written, and an old failure, are not an alert
     interval: 1m

@@ -161,3 +161,7 @@ Verifier (ПРОВЕРЕНО им): 357 passed; 360 раундов против 
 - Абзац §8.2: «пока ждёт» снято (пачке ждать нечего), в EN подлежащее — годовой проход, а не закрытие.
 
 Оставлено, записано здесь: мутации `ident_wait`, `no_own`, `all_share`, `keep_locks`, `sess_full` полный набор не валят — эти страховки тестом не держатся; «a stalled batch…», «a person back after a year…», «a reissue's nonce…» теперь проходят через пропуск, а не через названный механизм. Потолок в 5 попыток и счёт его пропуска как share_held — в `observability.lockorder.alerts`.
+
+## Тревоги без обходных выражений (25.09.2026, поверх e6b732a)
+
+Ряды `relay_identity_sweeper_skipped_total{reason}` (share_held, row_held, came_back) и `relay_recovery_claim_total{result="storage_failed"}` узел заводит нулём при загрузке — `increase()` видит первое событие после рестарта, и у `RecoveryClaimCannotWrite` снята ветка `unless … offset`, которая срабатывала на пропуске скрейпа (находка verifier). Тесты: два в узле («…published at zero…», красные без заведения рядов) и случай «a scrape gap over an old storage_failed is not an alert» (на старом выражении FAILED на 1h30m); случай рестарта переписан под форму ряда, которую выдаёт код. Остаток пункта `observability.lockorder.alerts` — только счёт выброшенных потолком как share_held.

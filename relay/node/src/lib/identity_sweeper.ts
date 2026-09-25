@@ -33,6 +33,12 @@ import { inc, setGauge } from "./metrics.ts";
 // SQL below, so a change is one edit in one file.
 export const UNFINISHED_SIGNUP_HOURS = 1; // signup.unfinished.ttl
 export const INACTIVE_DAYS = 365; // identity.inactive.retention
+
+// The skip counters exist from the start, at zero. A series born at 1 has no
+// earlier sample, increase() reads its first step as nothing, and the first
+// skip after every restart went unseen by IdentitySweeperKeepsSkipping
+// (observability.lockorder.alerts, 2026-09-25).
+for (const reason of ["share_held", "row_held", "came_back"]) inc("relay_identity_sweeper_skipped_total", { reason }, 0);
 export const DELETION_DELAY_DAYS = 30; // identity.deletion.delay
 
 // How many rows one pass takes at a time, and how many bites it takes before

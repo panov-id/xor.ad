@@ -779,3 +779,15 @@ Deno.test({ name: "a person back between the pick and the locks is asked again a
   assertEquals((await identityRow(back.identityId)).closed_at, null,
     "a person who came back while the sweep waited was closed");
 });
+
+// IdentitySweeperKeepsSkipping reads increase() over these series, which cannot
+// see a series born at 1 (observability.lockorder.alerts, 2026-09-25): the
+// sweeper publishes every skip reason at zero from the start.
+Deno.test("the sweeper's skip counters are published at zero before any skip", async () => {
+  const metrics = await import("../src/lib/metrics.ts");
+  const lines = metrics.render().split("\n");
+  for (const reason of ["share_held", "row_held", "came_back"]) {
+    assert(lines.some((l) => l.startsWith(`relay_identity_sweeper_skipped_total{reason="${reason}"} `)),
+      `relay_identity_sweeper_skipped_total{reason="${reason}"} is not published until the first skip`);
+  }
+});

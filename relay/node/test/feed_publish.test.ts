@@ -3912,6 +3912,34 @@ Deno.test({
   },
 });
 
+// A frozen session's way back is not use (support.frozen.bump; decided by
+// quorum, 2026-09-25). §8.2 closes an identity after a year without a live
+// session, and the guard wrote last_seen_at for every session it let in — so a
+// lost phone writing to support once a day, even with requests the route then
+// refused, kept the identity past its year for ever.
+Deno.test({
+  name: "a frozen session writing to support does not move its last_seen_at, a live one does",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const seen = async (id: string) => (await database.queryOrThrow<{ days: number }>(
+      `SELECT round(extract(epoch FROM now() - last_seen_at) / 86400)::int AS days FROM sessions WHERE id = $1`, [id]))[0].days;
+    for (const reason of ["pin_limit", "transfer"] as const) {
+      const me = await author();
+      await database.queryOrThrow(
+        `UPDATE sessions SET frozen_at = now(), frozen_reason = $2, last_seen_at = now() - interval '200 days' WHERE id = $1`,
+        [me.session_id, reason]);
+      await support(me, "POST", "/support", { body: "заблокировали", nonce: nonce16() });
+      assertEquals(await seen(me.session_id), 200, `a ${reason}-frozen session's request to support moved its year`);
+    }
+    // The control: the same request from a live session is use, and bumps.
+    const live = await author();
+    await database.queryOrThrow(`UPDATE sessions SET last_seen_at = now() - interval '200 days' WHERE id = $1`, [live.session_id]);
+    await support(live, "POST", "/support", { body: "вопрос", nonce: nonce16() });
+    assertEquals(await seen(live.session_id), 0, "a live session's request did not bump last_seen_at");
+  },
+});
+
 Deno.test({
   name: "closing an identity cuts its support requests loose, as screen 14 promises",
   sanitizeResources: false,

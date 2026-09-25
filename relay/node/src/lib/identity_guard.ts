@@ -160,7 +160,16 @@ export async function callerOf(
   // waiting on and an error nobody reads — and once a day per session is not a
   // cost worth that. `query` swallows its own failure, so a database that
   // cannot take the write refuses nothing here.
-  if (row.last_seen_at.getTime() < Date.now() - A_DAY_MS) {
+  //
+  // Not for a frozen session. The routes that let one in (a support request, the
+  // same device raising itself by paper code) are a way back, not use: §8.2
+  // closes an identity after a year without a live session (LAW-7), and a live
+  // session is one with frozen_at IS NULL. Bumped here, a lost phone writing to
+  // support once a day kept the identity for ever — even on the requests the
+  // support route then refused (support.frozen.bump; decided by quorum,
+  // 2026-09-25). The mark stops at the freeze, and the year runs from there; a
+  // device raised again is live and bumps on its next request.
+  if (!row.frozen_at && row.last_seen_at.getTime() < Date.now() - A_DAY_MS) {
     await query(`UPDATE sessions SET last_seen_at = now() WHERE id = $1`, [row.session_id]);
   }
 

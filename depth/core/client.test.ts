@@ -125,6 +125,40 @@ Deno.test({
   },
 });
 
+// The key the client signs with is the unwrapped copy, not the extractable one
+// it was born as — the whole reason for the round trip in paper.ts. Nothing
+// else shows it: a client signing with the extractable key passed every other
+// test (verifier, 2026-09-26, break G). So the requests are caught on their way
+// out and every key that signs one is looked at.
+Deno.test("every request is signed with a key that cannot be exported", async () => {
+  const subtle = crypto.subtle as SubtleCrypto & { sign: SubtleCrypto["sign"] };
+  const realSign = subtle.sign.bind(subtle);
+  const realFetch = globalThis.fetch;
+  const seen: boolean[] = [];
+  subtle.sign = ((algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource) => {
+    if (key.algorithm.name === "ECDSA") seen.push(key.extractable);
+    return realSign(algorithm, key, data);
+  }) as SubtleCrypto["sign"];
+  globalThis.fetch = ((input: string | URL | Request) => {
+    const path = new URL(String(input)).pathname;
+    if (path === "/identities") {
+      return Promise.resolve(new Response(JSON.stringify({ identity_id: "i", session_id: "s" }), { status: 200 }));
+    }
+    return Promise.resolve(new Response(null, { status: path === "/recovery/confirm" ? 204 : 200 }));
+  }) as typeof fetch;
+  try {
+    const client = new Client("http://stub.invalid", "key");
+    await client.register({ name: "Аня", age: 30 }, { pin: "123456", paperCode: newPaperCode() });
+    await client.confirmPaperCode();
+    await client.changePin("123456", "654321");
+  } finally {
+    subtle.sign = realSign;
+    globalThis.fetch = realFetch;
+  }
+  assert(seen.length >= 2, `the signed requests were not seen: ${seen.length}`);
+  assertEquals(seen.filter((x) => x), [], "a request was signed with a key that can be exported");
+});
+
 // One counter for every proof of the PIN (§8.2): a wrong old PIN in "change the
 // PIN" costs an attempt, the new PIN is what "start again" is then confirmed
 // with, and the old one no longer is.

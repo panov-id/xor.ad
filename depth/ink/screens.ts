@@ -9,6 +9,7 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Client, Radius } from "../core/client.ts";
+import { readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
 
@@ -94,9 +95,9 @@ export function PaperCode(
   },
 ): ReactElement {
   const [typed, setTyped] = useState(["", ""]);
-  // Read back the way paper.ts reads a code: any case, and the letters
-  // Crockford reads as digits read as digits.
-  const read = (value: string) => value.toUpperCase().replace(/[\s-]/g, "").replace(/[IL]/g, "1").replace(/O/g, "0");
+  // Read back the way the core reads a code (paper.ts): any case, and the
+  // letters Crockford reads as digits read as digits.
+  const read = readPaperText;
   const right = ASKED.every((g, i) => read(typed[i]) === groups[g]);
   const full = typed.every((t) => read(t).length === 4);
   return h(

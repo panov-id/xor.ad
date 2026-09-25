@@ -105,7 +105,9 @@ async function main() {
     await until(app, /Запишите этот код/);
     const paper = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(app.lastFrame() ?? "");
     assert.ok(paper, "the paper code is not on the screen in four groups");
-    await typeUntil(app, paper[2], new RegExp(paper[2]));
+    // With the cursor after it: the group itself is on the screen already, in
+    // the code, and matched with no key landing (verifier, 2026-09-26).
+    await typeUntil(app, paper[2], new RegExp(`${paper[2]}_`));
     await type(app, DOWN);
     await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
     await type(app, DOWN, ENTER);

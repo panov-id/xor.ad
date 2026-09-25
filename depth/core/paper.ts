@@ -42,8 +42,14 @@ export function paperGroups(code: string): string[] {
 // What a person types back: any case, dashes and spaces where they like, and
 // the letters Crockford reads as digits read as digits. U is not in the
 // alphabet and is refused rather than guessed, as is any other stray character.
+// The reading alone, for a part of a code — the screen that asks two groups
+// back reads them the same way, from here, so the two cannot drift.
+export function readPaperText(typed: string): string {
+  return typed.toUpperCase().replace(/[\s-]/g, "").replace(/[IL]/g, "1").replace(/O/g, "0");
+}
+
 export function readPaperCode(typed: string): string {
-  const clean = typed.toUpperCase().replace(/[\s-]/g, "").replace(/[IL]/g, "1").replace(/O/g, "0");
+  const clean = readPaperText(typed);
   if (clean.length !== LENGTH || [...clean].some((c) => !ALPHABET.includes(c))) {
     throw new Error(`the paper code is ${LENGTH} characters of ${ALPHABET}`);
   }
@@ -71,8 +77,12 @@ export async function derivePaperCode(code: string): Promise<{ lookupId: string;
 }
 
 // The long key under the code, and a copy of it the process can sign with but
-// never export. The extractable key goes no further than this function: its
-// material is only ever handed to wrapKey, never read into a buffer here.
+// never export. The extractable key goes no further than this function, and
+// this code never reads its material: it is handed to wrapKey only. Said
+// plainly, because a probe saw it (verifier, 2026-09-26): WebCrypto's wrapKey
+// exports the pkcs8 inside the runtime to encrypt it, so for the length of
+// that call the raw key exists in the runtime's memory — once, at
+// registration, and never again in this process.
 export async function wrapLongKey(
   extractable: CryptoKey,
   wrapKey: CryptoKey,

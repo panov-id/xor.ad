@@ -1116,7 +1116,11 @@ export function ChangePin(
     setRefused(null);
     client.changePin(values.current, values.next)
       .then((answer) => {
-        if (answer.status === 200) return setChanged(true);
+        if (answer.status === 200) {
+          // Nothing to keep the three PINs for once the node has the new one.
+          setValues({ current: "", next: "", again: "" });
+          return setChanged(true);
+        }
         const line = pinRefusal(say, answer);
         if (line) return setRefused(line);
         onError(`the PIN change was refused: ${answer.status}`);

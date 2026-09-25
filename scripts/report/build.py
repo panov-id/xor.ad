@@ -18,13 +18,22 @@ OUT.mkdir(exist_ok=True)
 e = html.escape
 
 # ---------- data ----------
+def tsv(name):
+    # An empty file is a real measurement (nothing unpushed after a push), not
+    # one row with one empty field: "".split("\n") is [""].
+    return [l.split("\t") for l in (D / name).read_text().split("\n") if l.strip()]
+
+
 git = dict(l.split("=", 1) for l in (D / "git.env").read_text().split("\n") if "=" in l)
-hist = [l.split("\t") for l in (D / "history.tsv").read_text().strip().split("\n")]
-commits = [l.split("\t") for l in (D / "commits_per_day.tsv").read_text().strip().split("\n")]
+hist = tsv("history.tsv")
+commits = tsv("commits_per_day.tsv")
+if not hist or not commits:
+    # The history is what the report is about; empty charts would be a false page.
+    sys.exit(f"build.py: no commits on {git.get('branch')} since 20.08 in {D} — nothing to report")
 counts = dict(re.findall(r"^(\S+(?: \S+)?)\s+(\d+)$", (D / "count-tests.txt").read_text(), re.M))
 ops = re.search(r"операций: (\d+) \(built (\d+), spec (\d+)", (D / "openapi.txt").read_text())
 ops_total, ops_built, ops_spec = map(int, ops.groups())
-live = [l.split("\t") for l in (D / "live.tsv").read_text().strip().split("\n")]
+live = tsv("live.tsv")
 prod = json.loads((D / "prod-health.json").read_text())
 pool = [l.strip() for l in (D / "node-images.txt").read_text().split("\n") if l.strip().startswith(("✓", "·", "✗"))]
 # Without relay/wizard/inventory.toml (gitignored, so absent in a fresh worktree)
@@ -32,7 +41,7 @@ pool = [l.strip() for l in (D / "node-images.txt").read_text().split("\n") if l.
 _pool_lines = [l for l in (D / "node-images.txt").read_text().split("\n") if l.strip()]
 pool_sum = next((l for l in _pool_lines if l.startswith("записей")), None) or "· " + (_pool_lines or ["пул не опрошен"])[0]
 opened = [r for r in csv.reader(open(D / "open.tsv"), delimiter="\t")]
-unpushed = [l.split("\t") for l in (D / "unpushed.tsv").read_text().strip().split("\n")]
+unpushed = tsv("unpushed.tsv")
 frames = dict(json.load(open(D / "frames.json")))
 tests_total = int(counts["итого"])
 depth_now = int(hist[-1][5])
@@ -293,6 +302,8 @@ def pool_html():
 
 
 def unpushed_html():
+    if not unpushed:
+        return f'<p class="lead">Нет: всё на ветке {e(git["branch"])} уже на удалённом.</p>'
     rows = "".join(f'<tr><td><code>{e(h)}</code></td><td class="nw">{e(w)}</td><td>{e(s)}</td></tr>' for h, w, s in unpushed)
     return f'<table class="t small"><thead><tr><th style="width:62px">Коммит</th><th style="width:80px">Когда</th><th>Сообщение</th></tr></thead><tbody>{rows}</tbody></table>'
 

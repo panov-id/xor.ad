@@ -4364,6 +4364,26 @@ Deno.test({
   },
 });
 
+// Another route's nonce on /away while away (verifier, 2026-09-25): protocol
+// §2 promises 409 invalid_body for it on every route; /away said stepped_away.
+Deno.test({
+  name: "another route's nonce on /away while away is refused as another route's",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a } = await freshMatch();
+    const nonce = awayNonce();
+    await database.queryOrThrow(
+      `INSERT INTO nonces (session_id, nonce, route, status, response) VALUES ($1, $2, 'POST /blocks', 204, 'null'::jsonb)`,
+      [a.session_id, auth.base64urlToBytes(nonce)]);
+    assertEquals((await matchCall(a, "POST", "/away", { span: "hour", nonce: awayNonce() })).status, 200);
+    const other = await matchCall(a, "POST", "/away", { span: "hour", nonce });
+    assertEquals(other.status, 409);
+    assertEquals((other.body as { error: { code: string } }).error.code, "invalid_body",
+      "another route's nonce read as a time away while away");
+  },
+});
+
 Deno.test({
   name: "stepping away puts out a match that has not become a conversation, for the other side too",
   sanitizeResources: false,

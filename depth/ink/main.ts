@@ -18,4 +18,4 @@ if (!node || !apiKey) {
 }
 
 const say = strings(languageOf(process.env));
-render(h(App, { say, client: new Client(node, apiKey) }));
+render(h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey) }));

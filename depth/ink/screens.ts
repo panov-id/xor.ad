@@ -16,8 +16,8 @@ export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 
 export type Place = { lat: number; lon: number; radius: Radius };
 
-// 1 · registration. The PIN and the paper code are still the core's testOnly
-// stubs, so the screen says so rather than pretending.
+// 1 · registration: the name and the age. The PIN and the paper code follow
+// on screens of their own (§3.1: name, age, PIN, paper code, point).
 export function Registration(
   { say, onDone, error }: { say: Say; onDone: (name: string, age: number) => void; error?: string },
 ): ReactElement {
@@ -40,7 +40,82 @@ export function Registration(
       actionsHint: say("common.rowActions"),
     }),
     error ? h(Text, { color: "red" }, error) : null,
-    h(Text, { dimColor: true }, `# ${say("reg.stub")}`),
+  );
+}
+
+// Six digits, and nothing else reaches the field.
+export const digits = (value: string) => value.replace(/\D/g, "").slice(0, 6);
+
+// 1a · the PIN, twice. Its price is said here, before the identity exists, not
+// after (depth-client §2.3).
+export function PinSet(
+  { say, onDone, busy, error }: { say: Say; onDone: (pin: string) => void; busy?: boolean; error?: string },
+): ReactElement {
+  const [pin, setPin] = useState("");
+  const [again, setAgain] = useState("");
+  const full = pin.length === 6 && again.length === 6;
+  const differ = full && pin !== again;
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("reg.pinTitle"), lines: [say("reg.pinIntro")] }),
+    h(Form, {
+      fields: [
+        { key: "pin", label: say("reg.pin"), value: pin, secret: true },
+        { key: "again", label: say("reg.pinAgain"), value: again, secret: true },
+      ],
+      onChange: (key, value) => (key === "pin" ? setPin(digits(value)) : setAgain(digits(value))),
+      actions: [{ key: "go", label: say("reg.next"), disabled: !full || differ || busy === true }, { key: "exit", label: say("common.exit") }],
+      onPick: (key) => (key === "go" ? onDone(pin) : process.exit(0)),
+      fieldsHint: say("common.rowFields"),
+      actionsHint: say("common.rowActions"),
+    }),
+    differ ? h(Text, { color: "red" }, say("reg.pinMismatch")) : null,
+    busy ? h(Text, { dimColor: true }, "…") : null,
+    error ? h(Text, { color: "red" }, error) : null,
+  );
+}
+
+// The groups the person types back: the second and the fourth, as §3.1 draws
+// the screen. Two of four, because a "next" pressed without looking is what
+// this screen exists to stop, and the whole code typed back is a second chance
+// to get it wrong on the paper.
+const ASKED = [1, 3] as const;
+
+// 1b · the paper code: shown once, and no further until two of its groups come
+// back (§8.2). The code is the caller's and is dropped with this screen.
+export function PaperCode(
+  { say, groups, onDone, busy, error }: {
+    say: Say;
+    groups: string[];
+    onDone: () => void;
+    busy?: boolean;
+    error?: string;
+  },
+): ReactElement {
+  const [typed, setTyped] = useState(["", ""]);
+  // Read back the way paper.ts reads a code: any case, and the letters
+  // Crockford reads as digits read as digits.
+  const read = (value: string) => value.toUpperCase().replace(/[\s-]/g, "").replace(/[IL]/g, "1").replace(/O/g, "0");
+  const right = ASKED.every((g, i) => read(typed[i]) === groups[g]);
+  const full = typed.every((t) => read(t).length === 4);
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("reg.codeTitle"), lines: [say("reg.codeWhy")] }),
+    h(Text, { bold: true }, `      ${groups.join(" - ")}`),
+    h(Text, null, say("reg.codeRepeat")),
+    h(Form, {
+      fields: ASKED.map((g, i) => ({ key: String(i), label: say("reg.codeGroup", { n: g + 1 }), value: typed[i] })),
+      onChange: (key, value) => setTyped((t) => t.map((v, i) => (String(i) === key ? value.slice(0, 9) : v))),
+      actions: [{ key: "go", label: say("reg.codeDone"), disabled: !right || busy === true }, { key: "exit", label: say("common.exit") }],
+      onPick: (key) => (key === "go" ? onDone() : process.exit(0)),
+      fieldsHint: say("common.rowFields"),
+      actionsHint: say("common.rowActions"),
+    }),
+    full && !right ? h(Text, { color: "red" }, say("reg.codeWrong")) : null,
+    busy ? h(Text, { dimColor: true }, "…") : null,
+    error ? h(Text, { color: "red" }, error) : null,
   );
 }
 

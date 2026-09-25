@@ -7,10 +7,21 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import postgres from "npm:postgres@3.4.4";
 import { Client } from "./client.ts";
+import { newPaperCode } from "./paper.ts";
 
 const node = Deno.env.get("DEPTH_NODE_URL");
 const apiKey = Deno.env.get("DEPTH_API_KEY");
 const databaseUrl = Deno.env.get("DEPTH_DATABASE_URL");
+
+// One row, on a connection of its own, closed after.
+async function rowOf(text: string, args: string[]): Promise<Record<string, unknown>> {
+  const sql = postgres(databaseUrl!, { max: 1 });
+  try {
+    return (await sql.unsafe(text, args))[0];
+  } finally {
+    await sql.end();
+  }
+}
 
 // Two people whose phrases are already past the queue. A phrase sent through
 // the client waits for a verdict nobody gives on a bare stand (§8.3), so the
@@ -19,7 +30,7 @@ const databaseUrl = Deno.env.get("DEPTH_DATABASE_URL");
 async function twoWithPhrases(sql: postgres.Sql) {
   const person = async (name: string) => {
     const c = new Client(node!, apiKey!);
-    await c.register({ name, age: 30 }, { testOnly: true });
+    await c.register({ name, age: 30 }, { pin: "123456", paperCode: newPaperCode() });
     await c.confirmPaperCode();
     return c;
   };
@@ -45,7 +56,7 @@ Deno.test({
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
-    const me = await client.register({ name: "Женя", age: 30 }, { testOnly: true });
+    const me = await client.register({ name: "Женя", age: 30 }, { pin: "123456", paperCode: newPaperCode() });
     assert(me.identityId && me.sessionId, "registration did not return an identity and a session");
     await client.confirmPaperCode();
     const profile = await client.profile();
@@ -59,7 +70,7 @@ Deno.test({
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
-    await client.register({ name: "Аня", age: 28 }, { testOnly: true });
+    await client.register({ name: "Аня", age: 28 }, { pin: "123456", paperCode: newPaperCode() });
     await client.confirmPaperCode();
     const sent = await client.say({ text: "гуляю у реки, если кто рядом", mode: "alone", lat: 41.9, lon: 12.5, radius: 1000 });
     assertEquals(sent.status, 202, "a phrase was not accepted for checking");
@@ -68,14 +79,82 @@ Deno.test({
   },
 });
 
-Deno.test("without testOnly the core refuses to register with placeholder secrets", async () => {
-  // depth-core panel, 2026-09-21: the PIN proof and the paper code are random
-  // stand-ins; a terminal built on this core as-is would register people who
-  // can never unlock or recover. Until the real ones exist, it takes a flag.
-  const client = new Client("http://nowhere.invalid", "key");
-  let refused = false;
-  try { await client.register({ name: "Женя", age: 30 }); } catch (e) { refused = String(e).includes("placeholder"); }
-  assert(refused, "the core registered with placeholders without being told they are acceptable");
+// The paper code is the whole of "I lost my phone" (§8.2), so the test is the
+// way back itself: a clean device with nothing but the sixteen characters asks
+// the node, gets the wrapped long key, opens it, and the key it opens signs
+// what the identity's public key verifies. Written as the terminal types it
+// back — lower case, dashes, an O for a zero — to hold the reading too.
+Deno.test({
+  name: "the paper code finds the identity on a clean device and opens its long key",
+  ignore: !node,
+  async fn() {
+    const { derivePaperCode, unwrapLongKey, paperGroups } = await import("./paper.ts");
+    const code = newPaperCode();
+    const client = new Client(node!, apiKey!);
+    await client.register({ name: "Аня", age: 30 }, { pin: "482913", paperCode: code });
+    await client.confirmPaperCode();
+
+    const typed = paperGroups(code).join("-").toLowerCase().replaceAll("0", "o");
+    const { lookupId, wrapKey } = await derivePaperCode(typed);
+    const fresh = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]) as CryptoKeyPair;
+    const wrapPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+    const spki = async (k: CryptoKey) => {
+      const bytes = new Uint8Array(await crypto.subtle.exportKey("spki", k));
+      return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    };
+    const claimed = await fetch(new URL("/recovery/claim", node!), {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-protocol-version": "1", "x-api-key": apiKey! },
+      body: JSON.stringify({ lookup_id: lookupId, sign_pub: await spki(fresh.publicKey), wrap_pub: await spki(wrapPair.publicKey) }),
+    });
+    const body = await claimed.json() as { identity_id?: string; recovery_wrapped_key?: string };
+    assertEquals(claimed.status, 200, `the node did not find the identity by its paper code: ${JSON.stringify(body)}`);
+    assertEquals(body.identity_id, client.identityId, "the code raised somebody else");
+
+    const wrapped = Uint8Array.from(atob(body.recovery_wrapped_key!.replaceAll("-", "+").replaceAll("_", "/")), (c) => c.charCodeAt(0));
+    const longKey = await unwrapLongKey(wrapped, wrapKey);
+    const row = await rowOf(`SELECT identity_public_key FROM identities WHERE id = $1`, [client.identityId]);
+    const pub = Uint8Array.from(atob(String(row.identity_public_key).replaceAll("-", "+").replaceAll("_", "/")), (c) => c.charCodeAt(0));
+    const verifier = await crypto.subtle.importKey("spki", pub, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    const said = new TextEncoder().encode("the same person");
+    const signature = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, longKey, said);
+    assert(
+      await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, verifier, signature, said),
+      "the key under the paper code is not the identity's long key",
+    );
+  },
+});
+
+// One counter for every proof of the PIN (§8.2): a wrong old PIN in "change the
+// PIN" costs an attempt, the new PIN is what "start again" is then confirmed
+// with, and the old one no longer is.
+Deno.test({
+  name: "the PIN is changed with the old one and then confirms the close, the old one no longer does",
+  ignore: !node,
+  async fn() {
+    const client = new Client(node!, apiKey!);
+    await client.register({ name: "Женя", age: 30 }, { pin: "111111", paperCode: newPaperCode() });
+    await client.confirmPaperCode();
+
+    const wrong = await client.changePin("999999", "222222");
+    assertEquals(wrong.status, 409, JSON.stringify(wrong.body));
+    assertEquals(wrong.body.error?.code, "pin_mismatch");
+    assertEquals(wrong.body.error?.attempts_left, 9, "a wrong old PIN did not cost an attempt");
+
+    const changed = await client.changePin("111111", "222222");
+    assertEquals(changed.status, 200, `the PIN was not changed: ${JSON.stringify(changed.body)}`);
+
+    // The counter after a wrong PIN waits before the next try (§8.2); the
+    // change put it back to ten, so the close below is not held by it.
+    const stale = await client.closeIdentity("111111");
+    assertEquals(stale.status, 409, `the old PIN still confirmed something: ${JSON.stringify(stale.body)}`);
+    assertEquals(stale.body.error?.code, "pin_mismatch");
+
+    const closed = await client.closeIdentity("222222");
+    assertEquals(closed.status, 200, `the close was refused: ${JSON.stringify(closed.body)}`);
+    const row = await rowOf(`SELECT closed_at FROM identities WHERE id = $1`, [client.identityId]);
+    assert(row.closed_at !== null, "the identity is not closed");
+  },
 });
 
 Deno.test("the two shapes of 409 are told apart", async () => {
@@ -92,7 +171,7 @@ Deno.test({
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
-    await client.register({ name: "Аня", age: 30 }, { testOnly: true });
+    await client.register({ name: "Аня", age: 30 }, { pin: "123456", paperCode: newPaperCode() });
     await client.confirmPaperCode();
     const asked = await client.editProfile({ name: "Анна", languages: ["ru"] });
     assertEquals(asked.status, 202, JSON.stringify(asked.body));

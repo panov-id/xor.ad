@@ -1,19 +1,18 @@
 // The depth core's client: the protocol calls a person makes, signed, over
 // plain HTTP. No DOM, no Ink — the terminal and, later, the web draw on top.
 //
-// **Three placeholders, said here and nowhere pretended otherwise.** The node
-// checks their shape and cannot read their content, so they are enough to prove
-// the protocol, and not enough for a person:
-// - the PIN proof. §8.2 derives it from the PIN with Argon2id, 64 MB and t=3
-//   (docs/chat_RU.md, measured 2026-08-28); the parallelism and where the
-//   device salt comes from are not named yet (review panel 2026-09-21,
-//   PANEL_2026-09-21_steps1-2.md), so a random proof stands in;
-// - the paper code: `recovery_lookup_id` and `recovery_wrapped_key` come from
-//   halves of a code the person writes down; random bytes stand in;
-// - the node's share of the vault key is sent and not yet used to open a vault.
+// The PIN and the paper code are real since 2026-09-26 (A5): the PIN's proof
+// comes from pin.ts, the lookup and the wrapped long key from paper.ts. One
+// thing still is not, and it is the owner's decision, not a placeholder: there
+// is no volume (docs/depth-client_RU.md §6), so the node's share of the vault
+// key is sent and never used to open anything — there is no file for it to
+// open, and the device salt the PIN is derived with lives only as long as the
+// process.
 
-import { base64url, generateSigningKey, signRequest, type SigningKey } from "./sign.ts";
+import { base64url, signRequest, type SigningKey } from "./sign.ts";
 import { Conversation, Ephemeral, safetyCode, verifyHalf } from "./seal.ts";
+import { derivePin, newDeviceSalt } from "./pin.ts";
+import { derivePaperCode, wrapLongKey } from "./paper.ts";
 
 const PROTOCOL_MAJOR = "1";
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
@@ -136,45 +135,91 @@ export class Client {
     };
   }
 
+  // The salt the PIN is derived with on this device (pin.ts). Without a volume
+  // it lives as long as the process, as the identity does.
+  #deviceSalt: Uint8Array | null = null;
+  // The long key under the paper code, held until POST /recovery/confirm takes it.
+  #wrappedLongKey: Uint8Array | null = null;
+
   // POST /identities — name and age, then the PIN's proof with the node's share,
   // then the paper code, all at once (§13 step 1: three steps, all required).
   //
-  // `testOnly` is required while the three secrets are placeholders: a terminal
-  // built on this core as it is would register people who can never unlock or
-  // recover (depth-core panel, 2026-09-21). The test scripts pass it; nothing
-  // else should until the PIN and the paper code are real.
+  // The long key is born extractable, because §8.2 wraps it under the paper
+  // code and WebCrypto wraps nothing else (chat spec §8.13, "извлекаем
+  // всегда"); the key this client signs with is the unwrapped copy, which is
+  // not. The extractable one is dropped with this call (quorum, 2026-09-26).
+  // The code itself is the caller's to make (paper.ts newPaperCode) and to
+  // show: the core never keeps it.
   async register(
     who: { name: string; age: number },
-    opts: { testOnly?: boolean } = {},
+    secrets: { pin: string; paperCode: string },
   ): Promise<{ identityId: string; sessionId: string }> {
-    if (!opts.testOnly) {
-      throw new Error("register: the PIN proof and the paper code are still placeholders; pass testOnly");
-    }
-    this.#key = await generateSigningKey();
+    const salt = newDeviceSalt();
+    const [pin, paper] = await Promise.all([derivePin(secrets.pin, salt), derivePaperCode(secrets.paperCode)]);
+    const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+    const { wrapped, privateKey } = await wrapLongKey(long.privateKey, paper.wrapKey);
+    const key: SigningKey = {
+      privateKey,
+      publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", long.publicKey))),
+    };
     const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
-    this.#wrapPrivate = wrap.privateKey;
     const answer = await this.#call<{ identity_id: string; session_id: string }>("POST", "/identities", {
-      sign_pub: this.#key.publicSpki,
+      sign_pub: key.publicSpki,
       wrap_pub: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", wrap.publicKey))),
       name: who.name,
       age: who.age,
-      auth_hash: await sha256hex(random(32)), // placeholder: Argon2id of the PIN
+      auth_hash: await sha256hex(pin.auth),
       share: base64url(random(32)),
-      recovery_lookup_id: crypto.randomUUID(), // placeholder: from the paper code
+      recovery_lookup_id: paper.lookupId,
     }, false);
     if (answer.status !== 200) throw new Error(`registration refused: ${answer.status} ${JSON.stringify(answer.body)}`);
+    this.#key = key;
+    this.#wrapPrivate = wrap.privateKey;
+    this.#deviceSalt = salt;
+    this.#wrappedLongKey = wrapped;
     this.#session = answer.body.session_id;
     this.identityId = answer.body.identity_id;
     return { identityId: this.identityId, sessionId: this.#session };
   }
 
   // POST /recovery/confirm — the paper code is written down; until then the
-  // registration is unfinished and most routes refuse it.
+  // registration is unfinished and most routes refuse it. Called once the
+  // person has typed two of its groups back (the screen's job, §8.2).
   async confirmPaperCode(): Promise<void> {
+    if (!this.#wrappedLongKey) throw new Error("not registered: there is no wrapped long key to confirm");
     const answer = await this.#call("POST", "/recovery/confirm", {
-      recovery_wrapped_key: base64url(random(48)), // placeholder: the key under the code
+      recovery_wrapped_key: base64url(this.#wrappedLongKey),
     });
     if (answer.status !== 204) throw new Error(`the paper code was not confirmed: ${answer.status}`);
+    this.#wrappedLongKey = null;
+  }
+
+  async #pinProof(pin: string): Promise<Uint8Array> {
+    if (!this.#deviceSalt) throw new Error("not registered: there is no device salt to derive the PIN with");
+    return (await derivePin(pin, this.#deviceSalt)).auth;
+  }
+
+  // POST /vault/pin — the old PIN proved, the new one's hash and a new share in
+  // one write (§8.2; depth-client §3.6). A wrong old PIN answers 409
+  // pin_mismatch with attempts_left, the tenth pin_locked and the session
+  // frozen — the same counter as every other proof of the PIN.
+  async changePin(current: string, next: string): Promise<Answer<{ error?: { code?: string; attempts_left?: number } }>> {
+    const [proof, fresh] = await Promise.all([this.#pinProof(current), this.#pinProof(next)]);
+    return this.#call("POST", "/vault/pin", {
+      nonce: base64url(random(16)),
+      current_auth: base64url(proof),
+      next_auth_hash: await sha256hex(fresh),
+      next_share: base64url(random(32)),
+    });
+  }
+
+  // POST /identities/close — "start again" (§8.2, screen 12): confirmed by the
+  // PIN, irreversible, and the paper code dies with it.
+  async closeIdentity(pin: string): Promise<Answer<{ error?: { code?: string; attempts_left?: number } }>> {
+    return this.#call("POST", "/identities/close", {
+      nonce: base64url(random(16)),
+      auth: base64url(await this.#pinProof(pin)),
+    });
   }
 
   // What the node will accept (§8.3). The client is open and hostile, so this

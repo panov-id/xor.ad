@@ -15,6 +15,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import postgres from "postgres";
 import { Client } from "../core/client.ts";
+import { newPaperCode } from "../core/paper.ts";
 import { App } from "./app.ts";
 import { strings } from "./strings.ts";
 
@@ -84,7 +85,7 @@ async function typeUntil(
 async function main() {
   const sql = postgres(databaseUrl, { max: 1 });
   const say = strings("ru");
-  const app = render(h(App, { say, client: new Client(node, apiKey) }));
+  const app = render(h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey) }));
   let failed = 0;
   try {
     // 1 · registration, through the screen.
@@ -94,8 +95,22 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, "27", /27/);
     await type(app, DOWN, ENTER);
+    // The PIN twice, then the paper code: read off the screen, the way a
+    // person reads it, and its second and fourth groups typed back.
+    await until(app, /Ваш ПИН/);
+    await typeUntil(app, "482913", /••••••/);
+    await type(app, DOWN);
+    await typeUntil(app, "482913", /••••••[\s\S]*••••••/);
+    await type(app, DOWN, ENTER);
+    await until(app, /Запишите этот код/);
+    const paper = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(app.lastFrame() ?? "");
+    assert.ok(paper, "the paper code is not on the screen in four groups");
+    await typeUntil(app, paper[2], new RegExp(paper[2]));
+    await type(app, DOWN);
+    await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
+    await type(app, DOWN, ENTER);
     await until(app, /Где ты/);
-    out("ok   registration went through the screens");
+    out("ok   registration went through the screens, the PIN and the paper code");
 
     // 2 · the location, then the feed. Each value is waited for on the screen
     // before the next key: a freshly mounted screen can miss keys pressed in
@@ -119,7 +134,7 @@ async function main() {
 
     // The other side: the core, and a phrase put where the feed will find it.
     const peer = new Client(node, apiKey);
-    await peer.register({ name: "Марк", age: 29 }, { testOnly: true });
+    await peer.register({ name: "Марк", age: 29 }, { pin: "123456", paperCode: newPaperCode() });
     await peer.confirmPaperCode();
     const phraseId = crypto.randomUUID();
     await sql.unsafe(
@@ -256,6 +271,34 @@ async function main() {
     const [named] = await sql`SELECT name_pending FROM identities WHERE id = ${me.id}`;
     assert.equal(named?.name_pending, "Анна", "the new name did not reach the node's queue");
     out("ok   a name edited from the screen went to the queue");
+
+    // 11 · the PIN changed from "me" (after name, age, liked, hidden and step
+    // away), against the node's own proof: the old PIN opens it, and the
+    // next step is confirmed with the new one.
+    await until(app, /сменить ПИН/, 20);
+    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+    await until(app, /Смена ПИНа/, 20);
+    await typeUntil(app, "482913", /••••••/);
+    await type(app, DOWN);
+    await typeUntil(app, "111111", /••••••[\s\S]*••••••/);
+    await type(app, DOWN);
+    await typeUntil(app, "111111", /••••••[\s\S]*••••••[\s\S]*••••••/);
+    await type(app, DOWN, ENTER);
+    await until(app, /ПИН сменён/, 20);
+    out("ok   the PIN was changed from the screen with the old one");
+
+    // 12 · start again, confirmed with the new PIN: the identity is closed on
+    // the node and the terminal is back at the first screen as someone else.
+    await type(app, ENTER);
+    await until(app, /начать заново/, 20);
+    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+    await until(app, /исчезнет фраз: \d/, 20);
+    await typeUntil(app, "111111", /••••••/);
+    await type(app, DOWN, ENTER);
+    await until(app, /Operator/, 20);
+    const [gone] = await sql`SELECT closed_at IS NOT NULL AS closed FROM identities WHERE id = ${me.id}`;
+    assert.equal(gone?.closed, true, "the screen started again and the node did not close the identity");
+    out("ok   starting again closed the identity on the node and returned to the first screen");
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

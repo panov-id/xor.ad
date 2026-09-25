@@ -808,7 +808,7 @@ export function Blocked(
 // hints, support and the console are not here yet: their terminal mechanics or
 // their refusal texts do not exist (§4.11, §9). No `m` key: the terminal moves
 // by arrows and enter only (owner, 2026-09-22), so "me" is an item of the feed.
-export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age";
+export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age" | "pin" | "reset";
 export function Me(
   { say, client, restrictions, onOpen, onBack, onError }: {
     say: Say;
@@ -842,6 +842,8 @@ export function Me(
     // storefronts' open question (Q-48), not the terminal's to answer.
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }) }] : []),
     { key: "away", label: say("away.item") },
+    { key: "pin", label: say("pin.item") },
+    { key: "reset", label: say("reset.item") },
   ];
   useInput((_input, key) => {
     if (key.upArrow) setAt((i) => (i - 1 + rows.length) % rows.length);
@@ -1084,5 +1086,128 @@ export function EditProfile(
         },
         actionsHint: say("common.rowActions"),
       }),
+  );
+}
+
+// How the node refuses a proof of the PIN, as one line (§8.2): the same
+// counter answers "change the PIN" and "start again".
+function pinRefusal(say: Say, answer: { status: number; body: unknown; retryAfter?: number }): string | null {
+  const error = (answer.body as { error?: { code?: string; attempts_left?: number } } | null)?.error;
+  if (error?.code === "pin_mismatch") return say("pin.mismatch", { n: String(error.attempts_left ?? "?") });
+  if (error?.code === "pin_locked") return say("pin.locked");
+  if (error?.code === "rate_limited") return say("pin.wait", { n: String(answer.retryAfter ?? "?") });
+  return null;
+}
+
+// "Change the PIN" (depth-client §3.6): the old one, the new one twice. A
+// wrong old PIN goes into the same ten attempts as every other proof.
+export function ChangePin(
+  { say, client, onBack, onError }: { say: Say; client: Client; onBack: () => void; onError: (message: string) => void },
+): ReactElement {
+  const [values, setValues] = useState({ current: "", next: "", again: "" });
+  const [sending, setSending] = useState(false);
+  const [refused, setRefused] = useState<string | null>(null);
+  const [changed, setChanged] = useState(false);
+  const six = (v: string) => v.length === 6;
+  const differ = six(values.next) && six(values.again) && values.next !== values.again;
+  const ready = six(values.current) && six(values.next) && values.next === values.again && !sending;
+  const send = () => {
+    setSending(true);
+    setRefused(null);
+    client.changePin(values.current, values.next)
+      .then((answer) => {
+        if (answer.status === 200) return setChanged(true);
+        const line = pinRefusal(say, answer);
+        if (line) return setRefused(line);
+        onError(`the PIN change was refused: ${answer.status}`);
+      })
+      .catch((e: Error) => onError(e.message))
+      .finally(() => setSending(false));
+  };
+  if (changed) {
+    return h(
+      Box,
+      { flexDirection: "column", gap: 1 },
+      h(Head, { title: say("pin.title") }),
+      h(Text, null, say("pin.changed")),
+      h(Menu, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
+    );
+  }
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("pin.title") }),
+    h(Form, {
+      fields: [
+        { key: "current", label: say("pin.current"), value: values.current, secret: true },
+        { key: "next", label: say("pin.next"), value: values.next, secret: true },
+        { key: "again", label: say("pin.again"), value: values.again, secret: true },
+      ],
+      onChange: (key, value) => setValues((v) => ({ ...v, [key]: value.replace(/\D/g, "").slice(0, 6) })),
+      actions: [{ key: "go", label: say("pin.go"), disabled: !ready }, { key: "back", label: say("common.back") }],
+      onPick: (key) => (key === "go" ? send() : onBack()),
+      fieldsHint: say("common.rowFields"),
+      actionsHint: say("common.rowActions"),
+    }),
+    differ ? h(Text, { color: "red" }, say("reg.pinMismatch")) : null,
+    sending ? h(Text, { dimColor: true }, "…") : null,
+    refused ? h(Text, { color: "red" }, refused) : null,
+  );
+}
+
+// "Start again" (depth-client §3.6, screen 12): what goes is counted on the
+// spot before the PIN is asked — one's live phrases (GET /identities/me) and
+// the conversations and offers in the inbox (GET /inbox) — and the paper code
+// is named as dying with it. Irreversible (§8.2), so nothing is preselected.
+export function StartAgain(
+  { say, client, onClosed, onBack, onError }: {
+    say: Say;
+    client: Client;
+    onClosed: () => void;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [counts, setCounts] = useState<{ phrases: number; chats: number } | null>(null);
+  const [pin, setPin] = useState("");
+  const [sending, setSending] = useState(false);
+  const [refused, setRefused] = useState<string | null>(null);
+  useEffect(() => {
+    Promise.all([client.profile(), client.inbox()])
+      .then(([me, inbox]) => setCounts({ phrases: me.phrases?.length ?? 0, chats: inbox.length }))
+      .catch((e: Error) => onError(e.message));
+  }, []);
+  const send = () => {
+    setSending(true);
+    setRefused(null);
+    client.closeIdentity(pin)
+      .then((answer) => {
+        if (answer.status === 200) return onClosed();
+        const line = pinRefusal(say, answer);
+        if (line) return setRefused(line);
+        onError(`the close was refused: ${answer.status}`);
+      })
+      .catch((e: Error) => onError(e.message))
+      .finally(() => setSending(false));
+  };
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("reset.title"), lines: [say("reset.warning")] }),
+    h(Text, null, counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"),
+    h(Text, { color: "yellow" }, say("reset.code")),
+    h(Form, {
+      fields: [{ key: "pin", label: say("reset.pin"), value: pin, secret: true }],
+      onChange: (_key, value) => setPin(value.replace(/\D/g, "").slice(0, 6)),
+      actions: [
+        { key: "go", label: say("reset.go"), disabled: pin.length !== 6 || counts === null || sending },
+        { key: "back", label: say("common.back") },
+      ],
+      onPick: (key) => (key === "go" ? send() : onBack()),
+      fieldsHint: say("common.rowFields"),
+      actionsHint: say("common.rowActions"),
+    }),
+    sending ? h(Text, { dimColor: true }, "…") : null,
+    refused ? h(Text, { color: "red" }, refused) : null,
   );
 }

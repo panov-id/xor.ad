@@ -56,7 +56,9 @@ export function Menu(
   );
 }
 
-export type Field = { key: string; label: string; value: string; choices?: string[] };
+// `secret` draws the value as dots: a PIN on the screen is a PIN for whoever
+// stands behind the chair.
+export type Field = { key: string; label: string; value: string; choices?: string[]; secret?: boolean };
 
 // A column of fields: up and down move between them, typing edits the one in
 // hand, and a field with choices is turned by left and right instead.
@@ -98,7 +100,7 @@ export function Fields(
         Text,
         { key: f.key },
         `  ${f.label.padEnd(width)} ${f.key === current?.key ? ">" : " "} `,
-        f.choices ? `‹ ${f.value} ›` : f.value,
+        f.choices ? `‹ ${f.value} ›` : f.secret ? "•".repeat(f.value.length) : f.value,
         f.key === current?.key && !f.choices ? "_" : "",
       )
     ),

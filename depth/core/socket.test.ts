@@ -4,6 +4,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import postgres from "npm:postgres@3.4.4";
 import { Client } from "./client.ts";
+import { newPaperCode } from "./paper.ts";
 
 const node = Deno.env.get("DEPTH_NODE_URL");
 const apiKey = Deno.env.get("DEPTH_API_KEY");
@@ -12,7 +13,7 @@ const databaseUrl = Deno.env.get("DEPTH_DATABASE_URL");
 async function chatBetween(sql: postgres.Sql) {
   const person = async (name: string) => {
     const c = new Client(node!, apiKey!);
-    await c.register({ name, age: 30 }, { testOnly: true });
+    await c.register({ name, age: 30 }, { pin: "123456", paperCode: newPaperCode() });
     await c.confirmPaperCode();
     return c;
   };

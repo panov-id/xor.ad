@@ -33,9 +33,9 @@ setTimeout(async () => {
 }, 0);
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { Feed, Location, Registration } from "./screens.ts";
+import { Feed, Location, PaperCode, PinSet, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Away, Blocked, Chat, EditProfile, Hidden, Inbox, Liked, Me, Statements, StepAway, Write } from "./rooms.ts";
+import { Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, Statements, StepAway, Write } from "./rooms.ts";
 import { strings } from "./strings.ts";
 
 const say = strings("ru");
@@ -127,11 +127,89 @@ test("what the node sends cannot repaint the screen", async () => {
   assert.equal(plain(undefined), "", "an absent value must not print as undefined");
 });
 
-test("a fresh terminal will not register while the PIN is a placeholder", async () => {
-  // The core's escape hatch is what the tests pass; the image must not.
-  const { Client } = await import("../core/client.ts");
-  const client = new Client("http://127.0.0.1:1", "k");
-  await assert.rejects(() => client.register({ name: "Аня", age: 27 }), /placeholders/);
+test("the PIN goes on only when both are the same six digits, and is drawn as dots", async () => {
+  let got: string | null = null;
+  const app = render(h(PinSet, { say, onDone: (pin) => (got = pin) }));
+  await settle();
+  await type(app, "48291a3", DOWN, "482914", DOWN, ENTER);
+  assert.equal(got, null, "two different PINs went through");
+  assert.match(app.lastFrame()!, /не совпадают/, "the screen does not say the PINs differ");
+  assert.equal(/48291/.test(app.lastFrame()!), false, "the PIN is on the screen in the clear");
+  assert.match(app.lastFrame()!, /••••••/, "the PIN is not drawn as dots");
+  await type(app, UP, BACK, "3", DOWN, ENTER);
+  assert.equal(got, "482913", "the same PIN twice did not go on");
+  app.unmount();
+});
+
+test("the paper code goes no further until its second and fourth groups come back", async () => {
+  let done = false;
+  const groups = ["RTQ4", "8FMK", "2PZN", "XW90"];
+  const app = render(h(PaperCode, { say, groups, onDone: () => (done = true) }));
+  await settle();
+  assert.match(app.lastFrame()!, /RTQ4 - 8FMK - 2PZN - XW90/, "the code is not shown in four groups");
+  // The first and the third: the wrong two.
+  await type(app, "RTQ4", DOWN, "2PZN", DOWN, ENTER);
+  assert.equal(done, false, "the wrong groups finished the registration");
+  assert.match(app.lastFrame()!, /не совпадают/, "the screen does not say the groups are wrong");
+  // Back up, clear both, and type the right ones the way people write: lower
+  // case, and an O for the zero.
+  await type(app, UP, BACK, BACK, BACK, BACK, "xw9o", UP, BACK, BACK, BACK, BACK, "8fmk", DOWN, DOWN, ENTER);
+  assert.equal(done, true, "the second and the fourth groups did not finish the registration");
+  app.unmount();
+});
+
+test("changing the PIN says how many attempts a wrong old PIN left", async () => {
+  const answers = [
+    { status: 409, body: { error: { code: "pin_mismatch", attempts_left: 9 } } },
+    { status: 200, body: null },
+  ];
+  const calls: string[][] = [];
+  const client = {
+    changePin: (current: string, next: string) => {
+      calls.push([current, next]);
+      return Promise.resolve(answers[calls.length - 1]);
+    },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(ChangePin, { say, client: client as any, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await type(app, "999999", DOWN, "222222", DOWN, "222222", DOWN, ENTER);
+  await settle(100);
+  assert.deepEqual(calls[0], ["999999", "222222"]);
+  assert.match(app.lastFrame()!, /Осталось попыток: 9/, "the attempts left are not on the screen");
+  await type(app, ENTER);
+  await settle(100);
+  assert.match(app.lastFrame()!, /ПИН сменён/, "a changed PIN is not said to be changed");
+  app.unmount();
+});
+
+test("starting again counts what goes, names the code, and waits for the PIN", async () => {
+  let closedWith: string | null = null;
+  let closed = false;
+  const client = {
+    profile: () => Promise.resolve({ phrases: [{ id: "a" }, { id: "b" }] }),
+    inbox: () => Promise.resolve([{ chat_id: "c" }]),
+    closeIdentity: (pin: string) => {
+      closedWith = pin;
+      return Promise.resolve({ status: 200, body: null });
+    },
+  };
+  const app = render(
+    // deno-lint-ignore no-explicit-any
+    h(StartAgain, { say, client: client as any, onClosed: () => (closed = true), onBack: () => {}, onError: () => {} }),
+  );
+  await settle(100);
+  const frame = app.lastFrame()!;
+  assert.match(frame, /исчезнет фраз: 2/, "the phrases that go are not counted");
+  assert.match(frame, /бесед и предложений: 1/, "the conversations that end are not counted");
+  assert.match(frame, /Бумажный код станет бесполезен/, "the paper code's death is not named");
+  await type(app, DOWN, ENTER);
+  assert.equal(closedWith, null, "the identity was closed without a PIN");
+  await type(app, UP, "123456", DOWN, ENTER);
+  await settle(100);
+  assert.equal(closedWith, "123456");
+  assert.equal(closed, true, "a close the node accepted did not move on");
+  app.unmount();
 });
 
 test("a safety code that changed drops the \"compared\" mark", async () => {

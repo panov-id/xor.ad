@@ -50,21 +50,22 @@ groups:
           description: "Проход должен быть раз в час. Три срока §8.2 сейчас не исполняются: брошенные регистрации, год бездействия, тридцать дней после закрытия."
 
       # The sweeper that runs and still closes nobody. It passes over an
-      # identity whose share somebody holds locked (SKIP LOCKED in
-      # relay/node/src/lib/identity_sweeper.ts) — once is a transfer or a PIN in
+      # identity whose share, session or row somebody holds locked (SKIP LOCKED
+      # in relay/node/src/lib/identity_sweeper.ts; rows since the same day —
+      # the verifier found a row held for good raised nothing) — once is a transfer or a PIN in
       # flight, but a lock that never lets go keeps an identity past its year
       # while every pass looks healthy (review panel 2026-09-25, operations
       # lens). Passes are hourly, so a 90-minute window always holds one; `for:
       # 3h` means three passes in a row skipped somebody. The counter is not per
       # identity: a stream of different short holds reads the same, and the
-      # answer to both is to look at pg_locks on vault_shares.
+      # answer to both is to look at pg_locks. came_back is a person, not a lock.
       - alert: IdentitySweeperKeepsSkipping
-        expr: sum(increase(relay_identity_sweeper_skipped_total{reason="share_held"}[90m])) > 0
+        expr: sum(increase(relay_identity_sweeper_skipped_total{reason=~"share_held|row_held"}[90m])) > 0
         for: 3h
         labels: { severity: warning }
         annotations:
-          summary: "Уборщик третий час подряд пропускает личности: долю держит блокировка"
-          description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю держит чужая транзакция. Смотреть pg_locks по vault_shares — застрявшая транзакция держит личность дольше её года."
+          summary: "Уборщик третий час подряд пропускает личности: долю или строку держит блокировка"
+          description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю, сессию или строку держит чужая транзакция. Смотреть pg_locks по vault_shares, sessions и identities — застрявшая транзакция держит личность дольше её года."
 
       # A burst of wrong PINs is somebody working through a stolen signing key
       # or an unlocked tab. Ten in five minutes is far above a person mistyping.

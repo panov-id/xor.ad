@@ -584,8 +584,11 @@ Deno.test({ name: "the sweep and a reissue's nonce on the same session do not de
 // identity (closeOnce: lock_timeout 2s, then every share of the identity in
 // order) timed out on a share the sweep was not even going to use, and the
 // person got a 503. Here: X has two shares, one held elsewhere; B's session is
-// held so the batch stalls; the holder of X's share lets go, and the close's
-// own statements then have to get both of X's shares inside their two seconds.
+// held; the holder of X's share lets go, and the close's own statements then
+// have to get both of X's shares inside their two seconds. Since the batch
+// also skips held session rows (later the same day) it no longer stalls on B at
+// all — B is left for the next pass — so this now guards the stronger outcome,
+// and the savepoint's release of X's shares is no longer what keeps it green.
 Deno.test({ name: "a stalled batch keeps no share of an identity it left out, so a close of it is not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
@@ -647,7 +650,8 @@ Deno.test({ name: "a stalled batch keeps no share of an identity it left out, so
   assertEquals(closeError, "",
     `a close of an identity the sweep left out waited on a share the stalled batch kept: ${closeError}`);
   assertEquals(sweepError, "", `the sweep failed: ${sweepError}`);
-  assert((await identityRow(b.identityId)).closed_at, "the candidate the batch waited for was not closed");
+  assertEquals((await identityRow(b.identityId)).closed_at, null,
+    "the candidate whose session was held was closed under it");
 });
 
 // The keyset between batches (`after`). A batch full of identities the sweep
@@ -700,4 +704,78 @@ Deno.test({ name: "a full batch of identities the sweep leaves alone does not hi
   await database.queryOrThrow(`DELETE FROM identities WHERE name = 'keyset-probe'`);
   assertEquals(heldOpen.n, String(sweeper.BATCH), "the sweep closed an identity whose shares were held");
   assert(lastRow.closed_at, "an identity after a full batch of skipped ones was never reached");
+});
+
+// A batch never waits on a session row (sweeper.batch.shareheld; verifier,
+// 2026-09-25, probe P1). It used to take every share and then queue on the
+// sessions FOR NO KEY UPDATE, so one held session — the guard's bump, a claim,
+// a freeze — stalled the batch with the shares of everything it was closing,
+// and a close of any of those hit its lock_timeout. The row is now skipped
+// like a share: the identity whose session is held waits for the next pass,
+// and the rest of the batch closes at once.
+Deno.test({ name: "a batch skips an identity whose session somebody holds instead of waiting on it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let release: () => void = () => {};
+  const released = new Promise<void>((r) => { release = r; });
+  try {
+    let held!: () => void;
+    const isHeld = new Promise<void>((r) => { held = r; });
+    const holding = holder.begin(async (tx) => {
+      await tx.unsafe(`SELECT id FROM sessions WHERE id = $1 FOR UPDATE`, [b.sessionId]);
+      held();
+      await released;
+    });
+    await isHeld;
+    // The whole sweep, while B's session is still held.
+    const outcome = await Promise.race([
+      sweeper.sweepIdentities().then(() => "done"),
+      new Promise((r) => setTimeout(() => r("waited"), 3000)),
+    ]);
+    assertEquals(outcome, "done", "the sweep waited on a session row somebody held");
+    assert((await identityRow(x.identityId)).closed_at !== null, "the identity nobody held was not closed");
+    assertEquals((await identityRow(b.identityId)).closed_at, null, "the identity whose session was held was closed under it");
+    release();
+    await holding;
+    // Next pass, nothing held: B's year is decided then.
+    await sweeper.sweepIdentities();
+    assert((await identityRow(b.identityId)).closed_at !== null, "the skipped identity was not closed on the next pass");
+  } finally {
+    release();
+    await holder.end();
+  }
+});
+
+// The year asked again under the sweep's own locks (eighth quorum,
+// 2026-09-25). The candidates are picked without a lock, so a person who comes
+// back after that — the guard's bump of last_seen_at, committed on its own —
+// must be seen by the second question, or they are closed in the middle of
+// their own request, irreversibly. Since the batch skips held rows, the older
+// test for this passes through the skip instead; this one stops the sweep
+// between picking and locking — it holds vault_shares, which the pick does not
+// read and the next statement does — and lets the bump commit in that gap
+// (verifier, 2026-09-25: without the second question the person was closed).
+Deno.test({ name: "a person back between the pick and the locks is asked again and not closed", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const back = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let swept: Promise<unknown> | undefined;
+  let sweepError = "";
+  try {
+    await holder.begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE vault_shares IN ACCESS EXCLUSIVE MODE`);
+      swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+      assert(await sweepWaitsOrEnds(swept), "the sweep never reached the held table");
+      // The bump, as the guard writes it: its own commit, while the sweep waits.
+      await database.queryOrThrow(`UPDATE sessions SET last_seen_at = now() WHERE id = $1`, [back.sessionId]);
+    });
+    await swept;
+  } finally {
+    await holder.end();
+  }
+  assertEquals(sweepError, "", `the sweep failed: ${sweepError}`);
+  assertEquals((await identityRow(back.identityId)).closed_at, null,
+    "a person who came back while the sweep waited was closed");
 });

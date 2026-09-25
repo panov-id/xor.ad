@@ -147,7 +147,22 @@ async function closeInactive(): Promise<number> {
       // any share, it is rolled back — every lock it took with it — and tried
       // again without the identities that were short. The set shrinks on every
       // retry, so the loop ends; the ceiling only bounds a pathological churn.
+      // The rows the same way, and for the same reason: a batch that got every
+      // share and then waited on a session somebody held — the guard's bump of
+      // last_seen_at, a claim, a freeze — kept the shares of every identity it
+      // was closing, and a close of one of them hit its lock_timeout and
+      // answered 503 (verifier, 2026-09-25, probe P1: 2032 ms). Whoever holds
+      // a session or the identity's row is using it, so the year is not up for
+      // them this pass either. NO KEY UPDATE and not UPDATE: nothing here
+      // deletes a row or changes a key, and the full lock also conflicts with
+      // the key-share every INSERT referencing the row takes — a paper-code
+      // reissue (identities, then a nonce on the session) and a support request
+      // met the sweep the other way round and deadlocked (review panel
+      // 2026-09-25, data lens, reproduced).
+      const sessionsWanted = count(await run<{ identity: string }>(
+        `SELECT identity FROM sessions WHERE identity = ANY($1::uuid[])`, [candidates]));
       let ids = candidates;
+      let shortOfRows = 0;
       for (let attempt = 0; ids.length > 0; attempt++) {
         await run(`SAVEPOINT sweep_shares`);
         const got = count(await run<{ identity: string }>(
@@ -155,30 +170,34 @@ async function closeInactive(): Promise<number> {
             WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v SKIP LOCKED`, [ids]));
         // At least as many as were counted: a share written in between is locked
         // here too and is no reason to wait.
-        const whole = ids.filter((id) => (got.get(id) ?? 0) >= (want.get(id) ?? 0));
+        const shares = ids.filter((id) => (got.get(id) ?? 0) >= (want.get(id) ?? 0));
+        const rows = count(await run<{ identity: string }>(
+          `SELECT identity FROM sessions WHERE identity = ANY($1::uuid[])
+            ORDER BY id FOR NO KEY UPDATE SKIP LOCKED`, [shares]));
+        const own = new Set((await run<{ id: string }>(
+          `SELECT id FROM identities WHERE id = ANY($1::uuid[]) ORDER BY id FOR NO KEY UPDATE SKIP LOCKED`,
+          [shares])).map((r) => r.id));
+        const whole = shares.filter((id) => (rows.get(id) ?? 0) >= (sessionsWanted.get(id) ?? 0) && own.has(id));
         if (whole.length === ids.length) {
           await run(`RELEASE SAVEPOINT sweep_shares`);
           break;
         }
+        shortOfRows += shares.length - whole.length;
         await run(`ROLLBACK TO SAVEPOINT sweep_shares`);
         await run(`RELEASE SAVEPOINT sweep_shares`);
         ids = attempt < 4 ? whole : [];
       }
-      // Somebody holding a share is visible, or an identity kept from its year
-      // by a lock that never lets go would look like a quiet night (review
-      // panel 2026-09-25, operations lens).
-      if (candidates.length > ids.length) {
-        inc("relay_identity_sweeper_skipped_total", { reason: "share_held" }, candidates.length - ids.length);
+      // Somebody holding a share or a row is visible, or an identity kept from
+      // its year by a lock that never lets go would look like a quiet night
+      // (review panel 2026-09-25, operations lens). The two reasons apart:
+      // share_held is what the alert watches.
+      const skipped = candidates.length - ids.length;
+      const rowHeld = Math.min(shortOfRows, skipped);
+      if (skipped - rowHeld > 0) {
+        inc("relay_identity_sweeper_skipped_total", { reason: "share_held" }, skipped - rowHeld);
       }
+      if (rowHeld > 0) inc("relay_identity_sweeper_skipped_total", { reason: "row_held" }, rowHeld);
       if (ids.length === 0) return { picked: doomed.length, closed: 0, last };
-      // NO KEY UPDATE and not UPDATE: nothing here deletes a row or changes a
-      // key, and the full lock also conflicts with the key-share every INSERT
-      // referencing the row takes — a paper-code reissue (identities, then a
-      // nonce on the session) and a support request met the sweep the other
-      // way round and deadlocked (review panel 2026-09-25, data lens,
-      // reproduced). The bump of last_seen_at and a freeze still wait.
-      await run(`SELECT id FROM sessions WHERE identity = ANY($1::uuid[]) ORDER BY id FOR NO KEY UPDATE`, [ids]);
-      await run(`SELECT id FROM identities WHERE id = ANY($1::uuid[]) ORDER BY id FOR NO KEY UPDATE`, [ids]);
       const shut = await run<{ id: string }>(
         `UPDATE identities SET closed_at = now(),
                 recovery_auth_hash = NULL, recovery_wrapped_key = NULL,

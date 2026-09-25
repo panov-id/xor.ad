@@ -1141,9 +1141,11 @@ sweeper pass yields rather than waits: it skips a share someone holds
 not to contend with the key-share lock that every insert referencing an identity
 takes. Closing an identity waits for each lock held by someone else no longer
 than 2 s (`lock_timeout`; a bound on one wait, not on the whole request) and
-answers 503 rather than holding a connection until the statement timeout. The price is named: while a sweeper batch holds the shares, closing
-an identity in that batch can get a 503 and retry — this is open as
-`sweeper.batch.shareheld`.
+answers 503 rather than holding a connection until the statement timeout. The yearly pass takes the session and identity rows the same way, without
+waiting: an identity whose share, session or row someone holds goes to the next
+pass — whoever holds it is using it. A batch has nothing left to wait for, and it
+holds the shares of the identities it closes only until its own commit
+(`sweeper.batch.shareheld`, closed 2026-09-25).
 
 **64 MB and t=3 are measured as of 2026-09-11, not guessed.** Until that day the
 numbers sat in the specification four times and had never been checked: WebCrypto

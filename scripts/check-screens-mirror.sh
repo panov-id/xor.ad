@@ -23,7 +23,7 @@
 # 3 — сверять было нечего (ни одного экрана не нашлось).
 set -uo pipefail
 
-GROUP="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$(dirname "${BASH_SOURCE[0]}")/group-root.sh"; GROUP="$(group_root "$(dirname "${BASH_SOURCE[0]}")/..")"
 A="$GROUP/sosed.place/docs"
 B="$GROUP/neighbro.place/docs"
 for d in "$A" "$B"; do

@@ -15,7 +15,7 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
-group="$(cd "$root/.." && pwd)"
+. "$here/group-root.sh"; group="$(group_root "$root")"
 decisions="${FACTS_DECISIONS:-$root/docs/facts/decisions.tsv}"
 noise="${FACTS_NOISE:-$root/docs/facts/noise.tsv}"
 

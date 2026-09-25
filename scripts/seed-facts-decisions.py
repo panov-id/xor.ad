@@ -34,8 +34,10 @@ import re
 import sys
 from collections import defaultdict
 
+from group_root import group_root
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-GROUP = ROOT.parent
+GROUP = group_root(ROOT)
 PAIRS = [
     "xor.ad/docs/chat", "xor.ad/docs/protocol", "xor.ad/docs/dsa/SPEC",
     "xor.ad/docs/offers/SPEC", "xor.ad/docs/app-prototype-spec",

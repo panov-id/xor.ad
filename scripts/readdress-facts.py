@@ -34,8 +34,10 @@ import re
 import sys
 from pathlib import Path
 
+from group_root import group_root
+
 ROOT = Path(__file__).resolve().parent.parent
-GROUP = ROOT.parent
+GROUP = group_root(ROOT)
 
 
 def resolve(rel: str) -> Path | None:

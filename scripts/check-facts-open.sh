@@ -31,7 +31,7 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
-group="$(cd "$root/.." && pwd)"
+. "$here/group-root.sh"; group="$(group_root "$root")"
 registry="${FACTS_OPEN:-$root/docs/facts/open.tsv}"
 config="${FACTS_ONTOLOGY:-$root/docs/facts/ontology.json}"
 

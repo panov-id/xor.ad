@@ -150,8 +150,19 @@ def memory_directory(project: pathlib.Path) -> pathlib.Path:
     что не буква и не цифра, становится дефисом. Не только разделитель — точка в
     xor.ad тоже, иначе скрипт ищет память в несуществующем каталоге и бодро
     отчитывается о её отсутствии при полной."""
-    slug = re.sub(r'[^A-Za-z0-9]', '-', str(project.resolve()))
+    slug = re.sub(r'[^A-Za-z0-9]', '-', str(main_checkout(project).resolve()))
     return pathlib.Path.home() / '.claude' / 'projects' / slug / 'memory'
+
+
+def main_checkout(project: pathlib.Path) -> pathlib.Path:
+    """Память одна на проект и лежит по пути основного дерева. Из рабочего
+    дерева .claude/worktrees/<имя> путь давал пустой каталог, и проверка
+    краснела «памяти нет вовсе» при полной (26.09.2026)."""
+    try:
+        from group_root import main_checkout as ask
+    except ImportError:  # пробы кладут ontology.py в песочницу одну
+        return project
+    return ask(project)
 
 
 def run(command, cwd=None):

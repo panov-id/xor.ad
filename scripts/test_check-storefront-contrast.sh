@@ -10,7 +10,7 @@
 # ломается в копии, ворота направляются на неё через STOREFRONT_LANDING_DIR.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-root="$(cd "$here/../.." && pwd)"
+. "$here/group-root.sh"; root="$(group_root "$here/..")"
 gate="$here/check-storefront-contrast.sh"
 real="$root/sosed.place/landing"
 work="$(mktemp -d)"; trap 'rm -rf "$work"' EXIT

@@ -19,7 +19,9 @@ import re
 import sys
 from collections import Counter, defaultdict
 
-GROUP = pathlib.Path(__file__).resolve().parent.parent.parent
+from group_root import group_root
+
+GROUP = group_root(pathlib.Path(__file__).resolve().parent.parent)
 REPOS = ("xor.ad", "sosed.place", "neighbro.place")
 
 # Дата. Глаголы перед ней ловить нельзя: первая версия этого скрипта держала

@@ -15,7 +15,7 @@
 # нулём — два пустых набора совпадают идеально и не значат ничего.
 set -euo pipefail
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$(dirname "${BASH_SOURCE[0]}")/group-root.sh"; root="$(group_root "$(dirname "${BASH_SOURCE[0]}")/..")"
 names() {
   grep -o -- '--[a-z0-9-]*\s*:' "$1" | sed 's/[[:space:]]*:$//' | grep -v -- '--img-' | sort -u
 }

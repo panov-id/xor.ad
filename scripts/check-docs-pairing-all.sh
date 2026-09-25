@@ -9,7 +9,7 @@
 #   scripts/check-docs-pairing-all.sh
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GROUP="$(cd "$HERE/../.." && pwd)"
+. "$HERE/group-root.sh"; GROUP="$(group_root "$HERE/..")"
 FAIL=0
 
 # Вывод берётся целиком, а не последней строкой: у падающей проверки последняя

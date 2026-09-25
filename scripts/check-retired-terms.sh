@@ -21,13 +21,25 @@ REGISTRY="$ROOT_DIR/docs/retired-terms.txt"
 
 [ -f "$REGISTRY" ] || { echo "нет реестра $REGISTRY" >&2; exit 2; }
 
-python3 - "$ROOT_DIR" "$REGISTRY" <<'PY'
+. "$ROOT_DIR/scripts/group-root.sh"
+python3 - "$ROOT_DIR" "$REGISTRY" "$(group_root "$ROOT_DIR")" <<'PY'
 import pathlib
 import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
 registry = pathlib.Path(sys.argv[2])
+# Соседи — «sosed.place/docs/…» — ищутся от корня группы, а не через
+# ссылки sosed.place -> ../sosed.place в корне: в рабочем дереве
+# .claude/worktrees/<имя> те ведут в пустоту, и правило молча не находило
+# ни одного файла (26.09.2026).
+group = pathlib.Path(sys.argv[3])
+
+
+def bases(glob):
+    if (root / glob.split("/", 1)[0]).is_symlink():
+        return [group]
+    return [root / "docs", root]
 
 # An explicit marker, not a guess. The first version inferred "this passage is
 # about history" from nearby words like «раньше» and "used to" — and these
@@ -61,7 +73,8 @@ for term, scope, replacement in entries:
     documents = sorted({
         path
         for glob in scope
-        for path in list((root / "docs").glob(glob)) + list(root.glob(glob))
+        for base in bases(glob)
+        for path in base.glob(glob)
     })
     if not documents:
         print(f"  ! правило «{term}» не нашло ни одного файла из: {' '.join(scope)}")
@@ -78,7 +91,9 @@ for term, scope, replacement in entries:
             if MARKER.search(context):
                 continue
             problems += 1
-            print(f"  ✗ {document.relative_to(root)}:{number}")
+            shown = (document.relative_to(root) if document.is_relative_to(root)
+                     else document.relative_to(group))
+            print(f"  ✗ {shown}:{number}")
             print(f"      «{term}» — отменено: {replacement}")
             print(f"      если это запись об истории — поставьте [retired] на этой строке или строкой выше")
             print(f"      {line.strip()[:100]}")

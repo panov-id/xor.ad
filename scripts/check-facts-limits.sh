@@ -20,7 +20,7 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
-group="$(cd "$root/.." && pwd)"
+. "$here/group-root.sh"; group="$(group_root "$root")"
 registry="${FACTS_LIMITS:-$root/docs/facts/limits.tsv}"
 protocol_ru="${FACTS_PROTOCOL_RU:-$root/docs/protocol_RU.md}"
 scheduled="${FACTS_SCHEDULED:-$root/relay/node/src/lib/scheduled.ts}"

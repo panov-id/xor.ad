@@ -9,7 +9,7 @@
 #   scripts/check-storefront-contrast.sh            # both storefronts
 #   STOREFRONTS="sosed.place" scripts/check-storefront-contrast.sh
 set -uo pipefail
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$(dirname "${BASH_SOURCE[0]}")/group-root.sh"; root="$(group_root "$(dirname "${BASH_SOURCE[0]}")/..")"
 failed=0; checked=0
 for name in ${STOREFRONTS:-sosed.place neighbro.place}; do
   landing="${STOREFRONT_LANDING_DIR:-$root/$name/landing}"

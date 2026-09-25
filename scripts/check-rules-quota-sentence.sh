@@ -19,7 +19,7 @@
 # */landing/legal/, и переименованный каталог давал бы зелень на пустоте —
 # «жалоба нигде не режет квоту» без единого прочитанного документа.
 set -uo pipefail
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$(dirname "${BASH_SOURCE[0]}")/group-root.sh"; ROOT_DIR="$(group_root "$(dirname "${BASH_SOURCE[0]}")/..")"
 
 python3 - "$ROOT_DIR" <<'PY'
 import pathlib

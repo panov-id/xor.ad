@@ -12,11 +12,12 @@
 #   scripts/sync-legal-revisions.sh --check   exit 1 if a copy differs from its storefront
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+. "$root/scripts/group-root.sh"; group="$(group_root "$root")"
 check=0; [ "${1:-}" = "--check" ] && check=1
 status=0
 for pair in sosed:sosed.place neighbro:neighbro.place; do
   brand="${pair%%:*}"; repo="${pair#*:}"
-  source="$root/../$repo/deploy/legal-revisions.json"
+  source="$group/$repo/deploy/legal-revisions.json"
   copy="$root/relay/node/legal/$brand.json"
   if [ ! -f "$source" ]; then
     echo "  · $brand: $source not found — the storefront repository is not beside this one; not checked"

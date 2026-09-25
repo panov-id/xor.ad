@@ -23,7 +23,7 @@
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-group="$(cd "$here/../.." && pwd)"
+. "$here/group-root.sh"; group="$(group_root "$here/..")"
 registry="${FACTS_DECISIONS:-$here/../docs/facts/decisions.tsv}"
 
 [ -f "$registry" ] || { echo "нет реестра: $registry" >&2; exit 2; }

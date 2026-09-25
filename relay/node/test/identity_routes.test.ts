@@ -1804,7 +1804,8 @@ Deno.test("a business profile goes a year after its last offer, and a systematic
     `SELECT count(*)::int AS n FROM venue_suspensions WHERE address_hmac = $1`, [hmac]))[0].n;
   assertEquals(await left(await addressHmac(victimAddress)), 0, "\"this is not us\" left a hash of the victim's address");
   assertEquals(await left(stale), 0, "a hash past its year stayed");
-  assertEquals(await left(await addressHmac(unsaidAddress)), 1, "a suspension with no reason went without its hash");
+  // The policy keeps a hash for systematic complaints only; no reason written, no hash.
+  assertEquals(await left(await addressHmac(unsaidAddress)), 0, "a suspension with no reason kept a hash the policy does not promise");
 });
 
 // A close waiting on its share while the sweep closed the identity for a year

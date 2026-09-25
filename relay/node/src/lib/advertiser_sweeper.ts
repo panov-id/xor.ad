@@ -59,9 +59,10 @@ export async function sweepAdvertisers(): Promise<{ deleted: number; kept: numbe
       const suspended = await run<{ address: string; suspended_at: Date | null }>(
         `SELECT address, suspended_at FROM venues
           WHERE advertiser_id = $1 AND verification_status = 'suspended'
-            -- Only "this is not us" leaves nothing; a suspension with no reason
-            -- written is kept as the stricter one (verifier, 2026-09-25).
-            AND coalesce(suspended_reason, 'systematic') <> 'not_us'`,
+            -- Only for systematic complaints, as the published policy says; a
+            -- suspension with no reason written leaves nothing, so whatever
+            -- suspends a venue must write why (verifier, 2026-09-25, twice).
+            AND suspended_reason = 'systematic'`,
         [id],
       );
       const hashes: { hmac: string; at: Date }[] = [];

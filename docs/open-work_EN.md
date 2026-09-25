@@ -1317,7 +1317,7 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       `NOTIFY` payload with room to spare (§8.1, §8.13). Raising it is allowed,
       but not blindly.
 - [ ] **G9. The native client key — three of five sub-items done (two on 2026-08-12,
-      per-identity limits with the identity on 2026-09-20), two waiting for their occasion.**
+      per-identity limits with the identity on 2026-09-21), two waiting for their occasion.**
 
       **Done:**
       - [x] **`client_type` (`browser` | `native`)** — migration `008`, the field
@@ -1337,8 +1337,8 @@ From `review-checklist_EN.md`. Not forgotten, not in progress either.
       passes four in a row. Broke `isNative` — the test went red — and restored.
 
       **Waiting for its occasion, which is not an excuse:**
-      - [x] **per-identity limits** — built with the identity (`db/022`,
-        2026-09-20): feed reads, density, likes, profile edits, chat lines and
+      - [x] **per-identity limits** — built with the identity (`db/022` 2026-09-20, the limits
+        2026-09-21 and 2026-09-22): feed reads, density, likes, profile edits, chat lines and
         hiding are counted per identity (`relay/node/src/lib/rate_limit.ts`,
         checked 2026-09-25). This said "there are no `identities` and no
         sessions in the code yet" [retired];

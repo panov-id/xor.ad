@@ -318,7 +318,8 @@ LOG_TRIM_SCRIPT = (
     "# Written by the wizard: rotated container logs past the policy's days.\n"
     # The directory can be named, so the test runs the script on one of its own.
     f"find \"${{DOCKER_CONTAINERS:-/var/lib/docker/containers}}\" -type f -name '*-json.log.*' "
-    f"-mtime +{LOG_RETENTION_DAYS} -print -delete\n"
+    # -mmin, not -mtime: -mtime +30 waits for a 31st full day (verifier, 2026-09-25).
+    f"-mmin +{LOG_RETENTION_DAYS * 1440} -print -delete\n"
 )
 LOG_TRIM_SERVICE = (
     "[Unit]\nDescription=Delete rotated container logs past the privacy policy's days\n\n"

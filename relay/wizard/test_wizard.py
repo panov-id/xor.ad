@@ -559,7 +559,7 @@ with tempfile.TemporaryDirectory() as containers:
     box = pathlib.Path(containers) / "abc"
     box.mkdir()
     now = time.time()
-    files = {"abc-json.log": 40, "abc-json.log.1": 40, "abc-json.log.2": 10}
+    files = {"abc-json.log": 40, "abc-json.log.1": 40, "abc-json.log.2": 10, "abc-json.log.3": 30.5}
     for name, days in files.items():
         path = box / name
         path.write_text("line\n")
@@ -571,6 +571,7 @@ with tempfile.TemporaryDirectory() as containers:
     left = sorted(p.name for p in box.iterdir())
     check("a rotated log past the policy's days is deleted", "abc-json.log.1" not in left, str(left))
     check("a rotated log inside the days stays", "abc-json.log.2" in left, str(left))
+    check("a rotated log half a day past the days goes, not a day later", "abc-json.log.3" not in left, str(left))
     check("the active log is not cut under the daemon", "abc-json.log" in left, str(left))
 
 check("the trim runs daily from a timer the wizard enables",

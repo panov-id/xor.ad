@@ -750,6 +750,8 @@ Deno.test("density answers a step, and never the number", async () => {
   assertEquals(empty.status, 200, JSON.stringify(empty.body));
   assertEquals((empty.body as { step: string }).step, "none");
   assertEquals((empty.body as Record<string, unknown>).count, undefined, "the count left the node");
+  // Nothing but the step, under any name (verifier, 2026-09-25: a count under `n` passed).
+  assertEquals(Object.keys(empty.body as Record<string, unknown>), ["step"], "the density answer carries more than its step");
 
   await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, {
     text: "одна тут",

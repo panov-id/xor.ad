@@ -1985,3 +1985,137 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
     await sql.end(); misses.reset(); reset();
   }
 });
+
+// vault/init against the routes that move the same identity (identity.lock.order;
+// the verifier's probes, 2026-09-25). A claim and a close start from the live
+// session's share; the first PIN started from the identity's row, so each held
+// what the other wanted — or, when nothing collided, it spent the grant a claim
+// had just left for the new device, from the session that claim had frozen.
+Deno.test({ name: "vault/init waits on the share like a claim and a close, and never spends another device's grant", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const misses = await import("../src/lib/recovery_misses.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset(); misses.reset();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
+    `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
+  const firstPin = async () => ({
+    auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
+    share: authBase64(newShareBytes()),
+  });
+  const settle = async (got: unknown[]) => {
+    for (let i = 0; i < 250 && (got[0] === undefined || got[1] === undefined); i++) {
+      await new Promise((r) => setTimeout(r, 20));
+    }
+  };
+  // The session with a live grant: a same-device claim leaves one.
+  const granted = async () => {
+    const me = await registered();
+    assertEquals((await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/recovery/claim",
+      { lookup_id: me.lookupId })).status, 200);
+    return me;
+  };
+  // A claim from a new device, sent while `hold` keeps a row the claim needs,
+  // and the old session's first PIN sent behind it.
+  const raceClaim = async (hold: string, holdArg: (me: Awaited<ReturnType<typeof granted>>) => string) => {
+    const me = await granted();
+    const fresh = await device();
+    const got: { status: number; body: unknown }[] = [];
+    const before = await deadlocks();
+    await sql.begin(async (tx) => {
+      await tx.unsafe(hold, [holdArg(me)]);
+      call("POST", "/recovery/claim", { body: { lookup_id: me.lookupId, sign_pub: fresh.signPub,
+        wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) } }).then((r) => (got[0] = r));
+      await new Promise((r) => setTimeout(r, 300));
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/init", await firstPin())
+        .then((r) => (got[1] = r));
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    await settle(got);
+    return { me, fresh, got, deadlocked: (await deadlocks()) - before };
+  };
+  try {
+    // The claim holds the old share and waits on the session; the first PIN
+    // comes in behind it. Before: deadlock five times in five.
+    for (const [part, hold, arg] of [
+      ["the session held", `SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, (m: { created: { session_id: string } }) => m.created.session_id],
+      ["the identity held", `SELECT id FROM identities WHERE id = $1 FOR UPDATE`, (m: { created: { identity_id: string } }) => m.created.identity_id],
+    ] as const) {
+      const { fresh, got, deadlocked } = await raceClaim(hold, arg as never);
+      assertEquals(deadlocked, 0, `${part}: vault/init and a new-device claim deadlocked: claim ${got[0]?.status}, init ${got[1]?.status}`);
+      assertEquals(got[0]?.status, 200, `${part}: the new-device claim answered ${got[0]?.status}`);
+      // The old session was frozen by the claim it queued behind: its first PIN
+      // is refused, and the grant stays for the device that came by the code.
+      assertEquals(got[1]?.status, 401, `${part}: the frozen session's vault/init answered ${got[1]?.status} ${JSON.stringify(got[1]?.body)}`);
+      const seated = (got[0].body as { session_id: string }).session_id;
+      const theirs = await signedCall(fresh.pair.privateKey, seated, "POST", "/vault/init", await firstPin());
+      assertEquals(theirs.status, 204, `${part}: the new device lost its grant: ${theirs.status} ${JSON.stringify(theirs.body)}`);
+    }
+
+    // A close from the same session, holding its share and waiting on the
+    // counters row; the first PIN behind it. Before: deadlock three in three.
+    const me = await granted();
+    const got: { status: number; body: unknown }[] = [];
+    const before = await deadlocks();
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [me.created.identity_id]);
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close", { nonce: nonce16(), auth: authBase64(AUTH) })
+        .then((r) => (got[0] = r));
+      await new Promise((r) => setTimeout(r, 300));
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/init", await firstPin())
+        .then((r) => (got[1] = r));
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    await settle(got);
+    assertEquals((await deadlocks()) - before, 0, `vault/init and a close deadlocked: close ${got[0]?.status}, init ${got[1]?.status}`);
+    assertEquals(got[0]?.status, 200, `the close answered ${got[0]?.status}`);
+    assertEquals(got[1]?.status, 401, `vault/init after the close answered ${got[1]?.status} ${JSON.stringify(got[1]?.body)}`);
+    const [left] = await database.queryOrThrow<{ unburned: number }>(
+      `SELECT count(*)::int AS unburned FROM vault_shares v JOIN sessions s ON s.id = v.session
+        WHERE s.identity = $1 AND v.share_enc IS NOT NULL`, [me.created.identity_id]);
+    assertEquals(left.unburned, 0, "a closed identity kept a share the first PIN wrote after the close");
+  } finally {
+    await sql.end(); misses.reset(); reset();
+  }
+});
+
+// Two claims by the same paper code while the live session is a device seated
+// a moment ago, with no share yet (review panel 2026-09-25, security and data
+// lenses). Both read that session as the live one; locking shares alone
+// locked nothing, and the second met the first's new session on the
+// one-live-session index — a 503 to a person holding the code.
+Deno.test({ name: "two paper-code claims over a shareless live session both seat, the later one live", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const misses = await import("../src/lib/recovery_misses.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset(); misses.reset();
+  const me = await registered();
+  const claim = async (who: Awaited<ReturnType<typeof device>>) => await call("POST", "/recovery/claim", {
+    body: { lookup_id: me.lookupId, sign_pub: who.signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) } });
+  const seated = await claim(await device());
+  assertEquals(seated.status, 200, "the first claim did not seat a device");
+  const shareless = (seated.body as { session_id: string }).session_id;
+  const [a, b] = [await device(), await device()];
+  const got: { status: number; body: unknown }[] = [];
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [shareless]);
+      claim(a).then((r) => (got[0] = r));
+      await new Promise((r) => setTimeout(r, 300));
+      claim(b).then((r) => (got[1] = r));
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    for (let i = 0; i < 250 && (got[0] === undefined || got[1] === undefined); i++) {
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    assertEquals(got[0]?.status, 200, `the first queued claim answered ${got[0]?.status} ${JSON.stringify(got[0]?.body)}`);
+    assertEquals(got[1]?.status, 200, `the second queued claim answered ${got[1]?.status} ${JSON.stringify(got[1]?.body)}`);
+    const live = await database.queryOrThrow<{ sign: string }>(
+      `SELECT sign_public_key AS sign FROM sessions WHERE identity = $1 AND frozen_at IS NULL`, [me.created.identity_id]);
+    assertEquals(live.length, 1, `live sessions after two claims: ${live.length}`);
+  } finally {
+    await sql.end(); misses.reset(); reset();
+  }
+});

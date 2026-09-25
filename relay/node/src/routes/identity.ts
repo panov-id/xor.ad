@@ -612,19 +612,49 @@ async function claimRecovery(req: Request): Promise<Response> {
     // written, or the partial unique index refuses the insert. `transfer` rather
     // than a reason of its own: §8.2 gives the support exception to `pin_limit`
     // alone, and the device this freezes is the lost one.
-    const live = await run<{ id: string }>(
-      `SELECT id FROM sessions WHERE identity = $1 AND frozen_at IS NULL`,
-      [identity.id],
-    );
-    // The shares first, the row a close starts from (its caller's share FOR
-    // UPDATE): taken the other way round — the session, then its share — a claim
+    // The shares first, the rows a close starts from (every share of the
+    // identity, in order): taken the other way round — the session, then its share — a claim
     // and a close each held what the other wanted, Postgres broke the deadlock
     // and the claim answered 503 (the claim-and-close case, 2 runs in 10,
     // 2026-09-24). Whoever takes the share first now finishes before the other
     // starts: a close first leaves no code, and the claim answers 404.
-    await run(
-      `SELECT session FROM vault_shares WHERE session = ANY($1::uuid[]) ORDER BY session FOR UPDATE`,
-      [live.map((s) => s.id)],
+    //
+    // And the live sessions asked again once the shares are held: they were
+    // read before the wait, and an approved transfer that committed meanwhile
+    // froze the one read and seated another, so the insert below met the
+    // one-live-session index and the owner holding the paper code got a 503
+    // (identity.lock.order; the verifier's probe, 2026-09-25). Until the answer
+    // stops changing: each pass locks the shares of the sessions it has not
+    // held yet and then their rows. The rows too, because a device seated a
+    // moment ago has no share until its first PIN — with the share alone, two
+    // claims by the same code both locked nothing, and the second met the
+    // first's new session on the index (review panel 2026-09-25, security and
+    // data lenses). Every session of the identity, not only the live ones: a
+    // same-device claim raises a frozen one, and with nothing live to queue on
+    // this claim read an empty set, locked nothing and met the raised session
+    // on the index — a 503, three in three (verifier, 2026-09-25). Anything
+    // that seats or raises a session must hold one of these first, so after
+    // one change the set is stable; a fourth read that still differs is
+    // refused rather than looped on.
+    const held = new Set<string>();
+    for (let pass = 0; ; pass++) {
+      const all = await run<{ id: string }>(
+        `SELECT id FROM sessions WHERE identity = $1 ORDER BY id`,
+        [identity.id],
+      );
+      const fresh = all.map((s) => s.id).filter((id) => !held.has(id));
+      if (fresh.length === 0) break;
+      if (pass === 3) throw new Error("the live sessions kept changing under the claim");
+      await run(
+        `SELECT session FROM vault_shares WHERE session = ANY($1::uuid[]) ORDER BY session FOR UPDATE`,
+        [fresh],
+      );
+      await run(`SELECT id FROM sessions WHERE id = ANY($1::uuid[]) ORDER BY id FOR NO KEY UPDATE`, [fresh]);
+      for (const id of fresh) held.add(id);
+    }
+    const live = await run<{ id: string }>(
+      `SELECT id FROM sessions WHERE identity = $1 AND frozen_at IS NULL ORDER BY id`,
+      [identity.id],
     );
     // Frozen *and* burned: §8.2 (2026-09-11) makes any move of an identity burn
     // the old device's share, recovery and voluntary transfer alike. Freezing
@@ -656,6 +686,7 @@ async function claimRecovery(req: Request): Promise<Response> {
     }, 200, sunsetHeader());
   }).catch((error) => {
     if (error instanceof CodeMoved) return refuse("not_found", "that code does not match", 404);
+    inc("relay_recovery_claim_total", { result: "storage_failed" });
     log("error", "recovery claim failed on a new device", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });
@@ -688,7 +719,7 @@ interface ShareBody {
 // write to the identity's row: a reissue that committed while the claim ran
 // moved it, and the old code must not raise the identity once more (verifier,
 // 2026-09-24, reproduced). The row is taken last, after the shares and the
-// sessions: a close takes its share first too, so the two meet on the share and
+// sessions: a close takes the shares first too, so the two meet on a share and
 // never on the row. A throw rolls the claim back whole.
 class CodeMoved extends Error {}
 async function stillTheCode(run: <R>(text: string, args?: unknown[]) => Promise<R[]>, identityId: string, code: string): Promise<void> {
@@ -797,6 +828,24 @@ async function vaultInit(req: Request): Promise<Response> {
   const sealed = await sealShare(share);
 
   const answer = await transaction<Response>(async (run) => {
+    // The share first, then the session, then the identity's row — the order a
+    // claim and a close take them. Starting from the row, the first PIN and a
+    // claim from a new device each held what the other wanted, and so did the
+    // first PIN and a close (identity.lock.order; the verifier's probes,
+    // 2026-09-25: five deadlocks in five, three in three). A device with no
+    // share yet locks nothing here and meets the others on the session.
+    await run(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
+    // And the session asked again under that lock: the guard read it before the
+    // transaction, and a claim that committed while this waited froze it and
+    // left the grant for the device that came by the code. Let through, the
+    // frozen phone spent that grant on a PIN of its own (verifier, 2026-09-25).
+    const [mine] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM (SELECT 1 FROM sessions WHERE id = $1 AND frozen_at IS NULL FOR SHARE) s`,
+      [caller.sessionId]);
+    if (mine.n === 0) {
+      inc("relay_vault_init_total", { result: "moved_meanwhile" });
+      return refuse("unauthorized", "the request is not signed by a live session", 401);
+    }
     // Spent in the same statement that reads it, so two calls racing cannot both
     // find a grant. An empty result is the refusal, not an error to recover from.
     const spent = await run<{ id: string }>(
@@ -1000,9 +1049,22 @@ class ClosedUnderUs extends Error {}
 
 async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, presented: string): Promise<Response> {
   return await transaction<Response>(async (run) => {
+    // Every share of the identity, in order, before anything else — not only
+    // this session's. The close burns the other sessions' shares at its end,
+    // and a claim from a new device takes all of them in order at its start:
+    // holding its own and burning a frozen sibling's last, the close met the
+    // claim the other way round, and the person with the paper code got a 503,
+    // three in three (verifier, 2026-09-25; identity.close.lockorder).
+    //
+    // Bounded like the take-down below: taken first, this wait is where a
+    // sweep batch holding a sibling's share would keep the close — and a
+    // pooled connection — for the whole statement timeout (verifier,
+    // 2026-09-25: 15 s, then a 503). Two seconds and a 503, as before.
+    await run(`SET LOCAL lock_timeout = '2s'`);
     const held = await run<{ session: string }>(
-      `SELECT session FROM vault_shares WHERE session = $1 FOR UPDATE`, [sessionId]);
-    if (held.length === 0) return refuse("not_found", "this session has no share", 404);
+      `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
+        WHERE s.identity = $1 ORDER BY v.session FOR UPDATE OF v`, [me]);
+    if (!held.some((h) => h.session === sessionId)) return refuse("not_found", "this session has no share", 404);
     const [kept] = await run<{ route: string }>(
       `SELECT route FROM nonces WHERE session_id = $1 AND nonce = $2`, [sessionId, nonce]);
     if (kept) {

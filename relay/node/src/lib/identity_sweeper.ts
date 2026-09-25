@@ -89,26 +89,75 @@ async function inBatches(statement: string): Promise<number> {
 // the statement that closed used its snapshot: a person back after a year, whose
 // bump committed while the statement ran, was closed in the middle of their
 // own request — irreversibly (eighth quorum, 2026-09-25). So the candidates'
-// identity rows are locked, then their sessions (the order a close takes them),
-// and the year is asked again by a new statement, which in READ COMMITTED
-// sees whatever committed while the locks were waited for.
+// rows are locked and the year is asked again by a new statement, which in
+// READ COMMITTED sees whatever committed while the locks were waited for.
+//
+// The locks in the order every route that moves a session takes them: the
+// shares, then the sessions, then the identity's row (identity.lock.order).
+// Starting from the identity's row, the sweeper met a claim from a new device
+// the other way round — the claim held the frozen session and its INSERT
+// needed a key-share on the identity — and the verifier's probe deadlocked
+// nine times in nine, the sweeper the victim each time, so the catch-up pass
+// and the thirty-day deletion waited another hour (2026-09-25). The
+// candidates are therefore picked without a lock; a claim or a close that
+// commits while the locks are waited for is what the second question sees.
 async function closeInactive(): Promise<number> {
   let total = 0;
+  let after = "00000000-0000-0000-0000-000000000000";
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
-    const { picked, closed } = await transaction(async (run) => {
+    const { picked, closed, last } = await transaction(async (run) => {
+      // Keyed past the last batch rather than skipping what is locked: nothing
+      // is locked at this point, so a candidate that survives the second
+      // question would otherwise come back first in every batch.
       const doomed = await run<{ id: string }>(
         `SELECT id FROM identities
-          WHERE closed_at IS NULL
+          WHERE closed_at IS NULL AND id > $1
             AND NOT EXISTS (
               SELECT 1 FROM sessions s
                WHERE s.identity = identities.id
                  AND s.last_seen_at > now() - interval '${INACTIVE_DAYS} days')
-          ORDER BY id LIMIT ${BATCH}
-          FOR UPDATE SKIP LOCKED`,
+          ORDER BY id LIMIT ${BATCH}`,
+        [after],
       );
-      if (doomed.length === 0) return { picked: 0, closed: 0 };
-      const ids = doomed.map((d) => d.id);
-      await run(`SELECT id FROM sessions WHERE identity = ANY($1::uuid[]) ORDER BY id FOR UPDATE`, [ids]);
+      if (doomed.length === 0) return { picked: 0, closed: 0, last: after };
+      const last = doomed[doomed.length - 1].id;
+      // The shares without waiting, and an identity with any share somebody
+      // holds is left for the next pass. Waiting in order was not enough while
+      // a close took its own share first and burned the others last — a
+      // deadlock of the sweep's own making (reproduced 2026-09-25); the close
+      // now takes them all in order too, and skipping still keeps the sweep
+      // from waiting on anyone. Whoever holds a share is moving the identity,
+      // and the year is theirs to decide.
+      const candidates = doomed.map((d) => d.id);
+      const count = (rows: { identity: string }[]) => {
+        const by = new Map<string, number>();
+        for (const row of rows) by.set(row.identity, (by.get(row.identity) ?? 0) + 1);
+        return by;
+      };
+      const want = count(await run<{ identity: string }>(
+        `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
+          WHERE s.identity = ANY($1::uuid[])`, [candidates]));
+      const got = count(await run<{ identity: string }>(
+        `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
+          WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v SKIP LOCKED`, [candidates]));
+      // At least as many as were counted: a share written in between is locked
+      // here too and is no reason to wait.
+      const ids = candidates.filter((id) => (got.get(id) ?? 0) >= (want.get(id) ?? 0));
+      // Somebody holding a share is visible, or an identity kept from its year
+      // by a lock that never lets go would look like a quiet night (review
+      // panel 2026-09-25, operations lens).
+      if (candidates.length > ids.length) {
+        inc("relay_identity_sweeper_skipped_total", { reason: "share_held" }, candidates.length - ids.length);
+      }
+      if (ids.length === 0) return { picked: doomed.length, closed: 0, last };
+      // NO KEY UPDATE and not UPDATE: nothing here deletes a row or changes a
+      // key, and the full lock also conflicts with the key-share every INSERT
+      // referencing the row takes — a paper-code reissue (identities, then a
+      // nonce on the session) and a support request met the sweep the other
+      // way round and deadlocked (review panel 2026-09-25, data lens,
+      // reproduced). The bump of last_seen_at and a freeze still wait.
+      await run(`SELECT id FROM sessions WHERE identity = ANY($1::uuid[]) ORDER BY id FOR NO KEY UPDATE`, [ids]);
+      await run(`SELECT id FROM identities WHERE id = ANY($1::uuid[]) ORDER BY id FOR NO KEY UPDATE`, [ids]);
       const shut = await run<{ id: string }>(
         `UPDATE identities SET closed_at = now(),
                 recovery_auth_hash = NULL, recovery_wrapped_key = NULL,
@@ -121,9 +170,13 @@ async function closeInactive(): Promise<number> {
           RETURNING id`,
         [ids],
       );
-      return { picked: doomed.length, closed: shut.length };
+      if (ids.length > shut.length) {
+        inc("relay_identity_sweeper_skipped_total", { reason: "came_back" }, ids.length - shut.length);
+      }
+      return { picked: doomed.length, closed: shut.length, last };
     });
     total += closed;
+    after = last;
     if (picked < BATCH) break;
   }
   return total;
@@ -188,9 +241,17 @@ async function closeIdentities(): Promise<number> {
       // that were already frozen, the second sees the old snapshot where none of
       // them are. Neither would fail. The statement would run, return the same
       // count, and the tests would stay green while shares quietly survived.
-      const rows = await run<{ frozen: string[]; burned: number; faces: number }>(
-        `WITH closed AS (
-           SELECT i.id FROM identities i
+      // The batch first, then its shares, then the statement that freezes the
+      // sessions — the order every
+      // route that touches a session takes them (identity.lock.order). The
+      // statement below freezes sessions before it burns shares, and the order
+      // of a statement's CTEs is not ours to set: a first PIN queued on its
+      // share and then asking for its session under FOR SHARE met this pass
+      // the other way round, three deadlocks in three, and the closed identity
+      // kept a live session with an unburned share until the job's retry
+      // (verifier, 2026-09-25; review panel, data lens).
+      const picked = await run<{ id: string }>(
+        `SELECT i.id FROM identities i
             WHERE i.closed_at IS NOT NULL
               AND i.closed_at > now() - interval '${DELETION_DELAY_DAYS} days'
               AND (
@@ -202,7 +263,18 @@ async function closeIdentities(): Promise<number> {
                 OR EXISTS (SELECT 1 FROM identity_appearance a WHERE a.identity = i.id)
                 OR EXISTS (SELECT 1 FROM support_requests r WHERE r.identity = i.id)
               )
-            LIMIT ${BATCH}
+            ORDER BY i.id LIMIT ${BATCH}`,
+      );
+      if (picked.length === 0) return 0;
+      const batchIds = picked.map((p) => p.id);
+      await run(
+        `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
+          WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v`,
+        [batchIds],
+      );
+      const rows = await run<{ frozen: string[]; burned: number; faces: number }>(
+        `WITH closed AS (
+           SELECT unnest($1::uuid[]) AS id
          ), frozen AS (
            UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed'
             WHERE identity IN (SELECT id FROM closed) AND frozen_at IS NULL
@@ -227,6 +299,7 @@ async function closeIdentities(): Promise<number> {
          SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen,
                 (SELECT count(*)::int FROM burned) AS burned,
                 (SELECT count(*)::int FROM faces) AS faces`,
+        [batchIds],
       );
 
       // One statement for the whole batch rather than one round trip per

@@ -418,3 +418,140 @@ Deno.test({ name: "a person back after a year is not closed by a sweep that met 
     await sql.end();
   }
 });
+
+// The sweep against a claim from a new device (identity.lock.order; the
+// verifier's probe, 2026-09-25). The claim's statements in the route's own
+// order — the share, the old session frozen, the new one written, the grant —
+// with the sweep started while the claim holds the share. Before: the sweep
+// took the identity's row first and waited on the sessions, the claim's
+// INSERT wanted a key-share on that row, and Postgres broke the deadlock nine
+// times in nine, the sweep its victim each time.
+Deno.test({ name: "the sweep yields to a claim from a new device instead of deadlocking, and leaves the person seated", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
+    `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
+  for (let round = 0; round < 3; round++) {
+    const back = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+    const before = await deadlocks();
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    let claimError = "";
+    let sweepError = "";
+    try {
+      let swept: Promise<unknown> | undefined;
+      await sql.begin(async (tx) => {
+        await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [back.sessionId]);
+        await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1 AND frozen_at IS NULL`,
+          [back.sessionId]);
+        swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+        await new Promise((r) => setTimeout(r, 300));
+        await tx.unsafe(`INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
+                         VALUES ($1, $2, 'k', 'k', 'new phone')`, [crypto.randomUUID(), back.identityId]);
+        await tx.unsafe(`UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`, [back.identityId]);
+      }).catch((e) => { claimError = String(e); });
+      await swept;
+    } finally {
+      await sql.end();
+    }
+    assertEquals((await deadlocks()) - before, 0,
+      `round ${round}: the sweep and a claim deadlocked (claim: ${claimError || "ok"}; sweep: ${sweepError || "ok"})`);
+    assertEquals(claimError, "", `round ${round}: the claim failed`);
+    assertEquals(sweepError, "", `round ${round}: the sweep failed`);
+    // The claim held the share, so the sweep left the identity for the next
+    // pass instead of waiting on it (SKIP LOCKED): the person who came back by
+    // the code stays, and the next pass sees their new session.
+    assertEquals((await identityRow(back.identityId)).closed_at, null,
+      `round ${round}: the sweep closed an identity a claim had just seated`);
+  }
+});
+
+// The sweep against a close by one of two sessions (identity.lock.order), in
+// the order closeOnce had until 2026-09-25: its own share first, the other
+// session's burned last. A sweep that queued on the shares in order held the
+// other one and waited on the first. The route now takes every share in order,
+// but this guards the sweep's own rule — it yields to anyone holding a share
+// (the got >= want filter) — against any writer that takes one share and wants
+// another later.
+Deno.test({ name: "the sweep yields to a close that holds one of two shares instead of deadlocking", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
+    `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
+  for (let round = 0; round < 3; round++) {
+    const made = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+    // A second, frozen session whose id sorts before the closer's, so a sweep
+    // taking the shares in order holds it before it reaches the closer's.
+    const other = "00000000" + made.sessionId.slice(8);
+    const closer = made.sessionId;
+    const first = other;
+    await database.queryOrThrow(
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, last_seen_at, frozen_at, frozen_reason)
+       VALUES ($1, $2, 'k', 'k', now() - make_interval(days => $3), now(), 'transfer')`,
+      [first, made.identityId, sweeper.INACTIVE_DAYS + 5]);
+    await database.queryOrThrow(`INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, 'hash', $2)`,
+      [first, new Uint8Array([7])]);
+    const before = await deadlocks();
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    let closeError = "";
+    let sweepError = "";
+    try {
+      let swept: Promise<unknown> | undefined;
+      await sql.begin(async (tx) => {
+        // closeOnce's order before 2026-09-25: its share, its nonce, the
+        // identity, then each session frozen and its share burned.
+        await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [closer]);
+        await tx.unsafe(`INSERT INTO nonces (session_id, nonce, route, status, response)
+                         VALUES ($1, $2, 'POST /identities/close', 200, 'null'::jsonb)`,
+          [closer, crypto.getRandomValues(new Uint8Array(16))]);
+        swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+        await new Promise((r) => setTimeout(r, 300));
+        await tx.unsafe(`UPDATE identities SET closed_at = now() WHERE id = $1`, [made.identityId]);
+        for (const id of [first, closer]) {
+          await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed' WHERE id = $1 AND frozen_at IS NULL`, [id]);
+          await tx.unsafe(`UPDATE vault_shares SET share_enc = NULL, burned_at = now() WHERE session = $1`, [id]);
+        }
+      }).catch((e) => { closeError = String(e); });
+      await swept;
+    } finally {
+      await sql.end();
+    }
+    assertEquals((await deadlocks()) - before, 0,
+      `round ${round}: the sweep and a close deadlocked (close: ${closeError || "ok"}; sweep: ${sweepError || "ok"})`);
+    assertEquals(closeError, "", `round ${round}: the close failed: ${closeError}`);
+    assertEquals(sweepError, "", `round ${round}: the sweep failed: ${sweepError}`);
+  }
+});
+
+// The sweep against a paper-code reissue (review panel 2026-09-25, data lens,
+// reproduced in a container). The reissue locks the identity's row and then
+// writes a nonce for the session, which takes a key-share on the session's
+// row. A sweep holding the session FOR UPDATE and waiting on the identity was
+// the other half of a cycle; NO KEY UPDATE does not conflict with a key-share.
+Deno.test({ name: "the sweep and a reissue's nonce on the same session do not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
+    `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
+  for (let round = 0; round < 3; round++) {
+    const made = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+    const before = await deadlocks();
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    let reissueError = "";
+    let sweepError = "";
+    try {
+      let swept: Promise<unknown> | undefined;
+      await sql.begin(async (tx) => {
+        await tx.unsafe(`SELECT id FROM identities WHERE id = $1 FOR UPDATE`, [made.identityId]);
+        swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+        await new Promise((r) => setTimeout(r, 300));
+        await tx.unsafe(`INSERT INTO nonces (session_id, nonce, route, status, response)
+                         VALUES ($1, $2, 'POST /recovery/reissue', 204, 'null'::jsonb)`,
+          [made.sessionId, crypto.getRandomValues(new Uint8Array(16))]);
+      }).catch((e) => { reissueError = String(e); });
+      await swept;
+    } finally {
+      await sql.end();
+    }
+    assertEquals((await deadlocks()) - before, 0,
+      `round ${round}: the sweep and a reissue deadlocked (reissue: ${reissueError || "ok"}; sweep: ${sweepError || "ok"})`);
+    assertEquals(reissueError, "", `round ${round}: the reissue failed: ${reissueError}`);
+    assertEquals(sweepError, "", `round ${round}: the sweep failed: ${sweepError}`);
+  }
+});

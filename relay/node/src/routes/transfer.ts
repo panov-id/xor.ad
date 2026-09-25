@@ -108,6 +108,25 @@ async function createInvite(req: Request): Promise<Response> {
     // bought an unlimited, untimed, unrecorded PIN search, against the one
     // action the proof exists to protect. Found by the security lens of the
     // review panel, 2026-09-21.
+    //
+    // The share first and the session asked again under it, **before** the
+    // PIN: the guard read the session before the transaction, and a move that
+    // committed while this waited (an approval, a paper-code claim) froze it,
+    // or the sweeper closed the identity. The PIN still matches the burned
+    // row, so a frozen phone answered 200 and opened an invitation; and asked
+    // after the PIN, a wrong one spent an attempt and answered 409 where a
+    // right one answered 401 (identity.lock.order; review panel 2026-09-25,
+    // security and operations lenses).
+    await run(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
+    const [mine] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM (
+         SELECT 1 FROM sessions s JOIN identities i ON i.id = s.identity
+          WHERE s.id = $1 AND s.frozen_at IS NULL AND i.closed_at IS NULL FOR SHARE OF s) live`,
+      [caller.sessionId]);
+    if (mine.n === 0) {
+      inc("relay_transfer_total", { result: "moved_meanwhile" });
+      return refuse("unauthorized", "the request is not signed by a live session", 401);
+    }
     const vault = await checkPin(run, caller.sessionId, presented, (result) =>
       inc("relay_transfer_total", { result }));
     if (vault instanceof Response) return vault;
@@ -293,6 +312,13 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
   const sessionId = crypto.randomUUID();
 
   const answer = await transaction<Response>(async (run) => {
+    // The caller's share before the invitation: a new invitation from the same
+    // session takes the share (the PIN check) and then the invitations, and
+    // starting from the invitation each held what the other wanted
+    // (identity.lock.order; the verifier's probe, 2026-09-25: three deadlocks
+    // in three). A close and a claim start from the share too, so all of them
+    // queue on it.
+    await run(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
     const [invite] = await run<InviteRow>(
       `SELECT * FROM session_invites WHERE lookup_id = $1 FOR UPDATE`,
       [lookupId],
@@ -317,10 +343,9 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
     // A close committed while this waited must stop it here: the guard read
     // the identity before the transaction, and a session seated now would be
     // a live one in a closed identity (review panel 2026-09-24, security
-    // lens). The vault row first — the lock a close takes first — so the two
-    // queue up instead of meeting the other way round; then the identity,
+    // lens). The share, taken above, is the lock a close takes first, so the
+    // two queue up instead of meeting the other way round; the identity is
     // read after it.
-    await run(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
     const [open] = await run<{ n: number }>(
       `SELECT count(*)::int AS n FROM identities WHERE id = $1 AND closed_at IS NULL`, [invite.identity]);
     if (open.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);

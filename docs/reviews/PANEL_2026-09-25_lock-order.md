@@ -137,3 +137,16 @@ F4 tests.race.waitlock — подтверждается частично: нет
 5. Keyset уборщика без теста — comfort; тест с BATCH, уменьшенным через параметр, если он появится.
 6. identity.close.paths.untested — три теста на повтор nonce и 404 закрытия; comfort, полчаса.
 7. Метрики `moved_meanwhile`, `relay_identity_sweeper_skipped_total` — на дашборд `relay-identity.json` и, для `share_held`, алерт на рост без убывания. Цена: правка дашборда и alerts.yml.
+
+## Волна workflow по остаткам (25.09.2026, поверх 78f7252)
+
+Четыре потока в отдельных worktree, вливание по очереди S3 → S4 → S2 → S1, все влились без отказов (workflow `wf_bc5afe2e-27f`, 7 агентов). Worktree поднимались на 684a103, а не на 78f7252 — каждый исполнитель сам перевёл свою ветку на 78f7252 до работы; патчи сняты от 78f7252.
+
+- **S1 тесты гонок:** помощник `queuedBehind` (рекурсия по `pg_blocking_pids` от держателя, `pg_stat_clear_snapshot()`, 5 с и читаемое сообщение) вместо 18 пауз в `identity_routes` и `transfer_routes`; три теста путей закрытия (повтор nonce + `relay_nonce_replay_total`, 404 без доли, 404 сожжённой). Закрыты `tests.race.waitlock`, `identity.close.paths.untested`.
+- **S2 уборщик:** SKIP LOCKED под точкой сохранения, откат снимает доли исключённых; тест «a stalled batch keeps no share…» (на 78f7252 — `canceling statement due to lock timeout`), тест keyset на настоящем BATCH=2000; ожидание блокировки в тестах уборщика.
+- **S3 наблюдаемость:** `skipped_total` на панели 10, новая панель 17 «Первый ПИН после переноса», тревоги `IdentitySweeperKeepsSkipping` и `RecoveryClaimCannotWrite`; `promtool` SUCCESS, 16 правил, 28 рядов существуют.
+- **S4 документы:** абзац о порядке в `chat_RU.md`/`chat_EN.md` §8.2, строка `chat.2026-09-25.lockorder` в `decisions.tsv`.
+
+Verifier (ПРОВЕРЕНО им, 12 мутаций, два полных прогона 356) подтвердил потоки; линза «Безопасность» серьёзного не нашла. Закрыто ведущим тем же заходом: тест «a stalled batch…» висел вечно при провале ожидания — держатель доли отпускается в `finally` (принудительный провал теперь красный за 130 мс); в абзаце «не дольше 2 с» уточнено как предел на одно ожидание (verifier: close 200 через 3470 мс при двух ожиданиях); 76 адресов реестров, сдвинутых абзацем, переписаны `scripts/readdress-facts.py --write`; `sweeper.batch.shareheld` переписан под остаток (доли обрабатываемых личностей при ожидании строк сессий — на 78f7252 то же); дефекты тревог записаны `observability.lockorder.alerts`. Полный прогон после последней правки: 356 passed в 10 файлах; `test_alerts.sh` SUCCESS.
+
+Не сделано: `count-tests.sh --check` красный и на 78f7252 (`docs/test-map` говорит 545/592 при 561/608) — не из этой волны; потолок в 5 попыток точки сохранения тестом не исполняется.

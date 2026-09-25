@@ -158,7 +158,7 @@
     },
     "overrides": []
    },
-   "description": "no_match — промахи; pause_started — момент включения общего тормоза; same_device и new_device — успехи."
+   "description": "no_match — промахи; pause_started — момент включения общего тормоза; same_device и new_device — успехи. storage_failed — верный код, который узел не смог записать: человек с бумажным кодом в руках получил 503 (тревога RecoveryClaimCannotWrite)."
   },
   {
    "id": 6,
@@ -302,6 +302,11 @@
      "refId": "B",
      "expr": "time() - relay_identity_sweeper_last_pass_seconds",
      "legendFormat": "секунд с последнего прохода"
+    },
+    {
+     "refId": "C",
+     "expr": "sum by (reason) (increase(relay_identity_sweeper_skipped_total[1h]))",
+     "legendFormat": "пропущено: {{reason}}"
     }
    ],
    "fieldConfig": {
@@ -310,7 +315,7 @@
     },
     "overrides": []
    },
-   "description": "Три срока §8.2 по отдельности плюс возраст последнего прохода: проход должен быть раз в час."
+   "description": "Три срока §8.2 по отдельности плюс возраст последнего прохода: проход должен быть раз в час. «пропущено» — личности, которым срок вышел, а закрыть их нельзя: share_held — долю держит чужая блокировка, came_back — человек вернулся, пока проход шёл. Разовый пропуск нормален; share_held, который растёт каждый проход часами, — блокировка, которая не отпускает (тревога IdentitySweeperKeepsSkipping)."
   },
   {
    "id": 11,
@@ -460,7 +465,7 @@
     },
     "overrides": []
    },
-   "description": "invited → claimed → approved это нормальный путь. wrong_pin и locked приходят из общей проверки ПИНа (relay/node/src/lib/pin_attempts.ts) — до 21.09.2026 окно переноса не списывало попыток вовсе; ряд wrong_pin без locked это перебор, который ещё не упёрся в десятую. cancelled_by_second_claim — кто-то подсмотрел код через плечо."
+   "description": "invited → claimed → approved это нормальный путь. wrong_pin и locked приходят из общей проверки ПИНа (relay/node/src/lib/pin_attempts.ts) — до 21.09.2026 окно переноса не списывало попыток вовсе; ряд wrong_pin без locked это перебор, который ещё не упёрся в десятую. cancelled_by_second_claim — кто-то подсмотрел код через плечо. moved_meanwhile — пока запрос ждал блокировку, сессию заморозил чужой перенос или бумажный код, либо личность закрыл уборщик: ответ 401, ПИН не проверялся и попытку не списал."
   },
   {
    "id": 16,
@@ -490,6 +495,35 @@
     "overrides": []
    },
    "description": "Единственный путь, которым автор без почты узнаёт, почему его фразы больше нет. unavailable здесь дороже обычного: это невыполненная обязанность по ст. 17, а не неудобство."
+  },
+  {
+   "id": 17,
+   "type": "timeseries",
+   "title": "Первый ПИН после переноса",
+   "gridPos": {
+    "x": 0,
+    "y": 46,
+    "w": 12,
+    "h": 7
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "PROM"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (result) (rate(relay_vault_init_total[15m])) * 900",
+     "legendFormat": "{{result}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "description": "POST /vault/init тратит разовое разрешение, оставленное переносом или бумажным кодом. set — успех; no_grant — разрешения нет, оно истекло или уже потрачено; moved_meanwhile — сессию заморозили, пока запрос ждал блокировку, и разрешение осталось устройству, пришедшему по коду; storage_failed — узел не смог записать долю."
   }
  ]
 }

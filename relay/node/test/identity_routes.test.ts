@@ -73,6 +73,35 @@ function newShareBytes(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
 }
 
+// Waits until `count` requests queue on a lock behind the transaction `tx`
+// holds (tests.race.waitlock, 2026-09-25). The race cases sent the second
+// request after a fixed sleep and never looked whether the first was waiting at
+// all: on a slow machine the sleep ran out first and the case passed with no
+// race. Every backend waiting on a lock whose chain of blockers reaches the
+// holder is counted, so a request queued behind another queued request counts
+// too. Asked on the holder's own connection: a read through the node's pool
+// opened a connection of its own, which the next case counted as a leak. The
+// activity view is a snapshot per transaction, so it is cleared on each try.
+async function queuedBehind(tx: { unsafe: (q: string) => Promise<unknown> }, count: number, what: string,
+  timeoutMs = 5000): Promise<void> {
+  const until = Date.now() + timeoutMs;
+  let waiting = 0;
+  for (;;) {
+    await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+    [{ n: waiting }] = await tx.unsafe(
+      `WITH RECURSIVE queued(pid) AS (
+         SELECT pg_backend_pid()
+         UNION
+         SELECT a.pid FROM pg_stat_activity a JOIN queued q ON q.pid = ANY(pg_blocking_pids(a.pid))
+          WHERE a.wait_event_type = 'Lock')
+       SELECT count(*)::int - 1 AS n FROM queued`) as { n: number }[];
+    if (waiting >= count || Date.now() > until) break;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  assert(waiting >= count,
+    `${what}: ${waiting} of ${count} request(s) queued on a lock behind the held row after ${timeoutMs} ms — the race never ran`);
+}
+
 let addresses = 0;
 // A fresh address per call unless the case names one: the limiter counts by
 // address, and cases must not spend each other's allowance.
@@ -1061,7 +1090,7 @@ Deno.test("a claim with the old code that races a reissue raises nothing", async
       const pending = call("POST", "/recovery/claim", {
         body: { lookup_id: me.lookupId, sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) },
       }).then((r) => (got.answer = r));
-      await new Promise((r) => setTimeout(r, 400));
+      await queuedBehind(tx, 1, "the claim with the old code behind the reissue");
       void pending;
     });
     for (let i = 0; i < 150 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
@@ -1823,7 +1852,7 @@ Deno.test({ name: "a close that finds the identity closed under it answers 401, 
       await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.created.session_id]);
       signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
         { nonce: nonce16(), auth: authBase64(AUTH) }).then((r) => (got.answer = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the close behind the sweep");
       await tx.unsafe(
         `UPDATE identities SET closed_at = now(), recovery_auth_hash = NULL, recovery_wrapped_key = NULL WHERE id = $1`,
         [me.created.identity_id]);
@@ -1873,7 +1902,7 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
         [first.created.identity_id]);
       await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed' WHERE identity = $1`, [first.created.identity_id]);
       call("POST", "/recovery/claim", { body }).then((r) => (got.answer = r));
-      await new Promise((r) => setTimeout(r, 400));
+      await queuedBehind(tx, 1, "the claim behind the close");
     });
     for (let i = 0; i < 150 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
     assert(got.answer, "the claim never answered");
@@ -1895,7 +1924,7 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
         signedCall(second.pair.privateKey, second.created.session_id, "POST", "/identities/close",
           { nonce: nonce16(), auth: authBase64(AUTH) }),
       ]).then((r) => (answers = r));
-      await new Promise((r) => setTimeout(r, 400));
+      await queuedBehind(tx, 2, "the claim and the close");
       void both;
     });
     for (let i = 0; i < 150 && answers.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
@@ -1927,7 +1956,7 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
         signedCall(third.pair.privateKey, third.created.session_id, "POST", "/identities/close",
           { nonce: nonce16(), auth: authBase64(AUTH) }),
       ]).then((r) => (pair3 = r));
-      await new Promise((r) => setTimeout(r, 400));
+      await queuedBehind(tx, 2, "the same-device claim and the close");
     });
     for (let i = 0; i < 150 && pair3.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
     assertEquals(pair3.length, 2, "the same-device claim or the close never answered");
@@ -1950,7 +1979,7 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
         signedCall(fourth.pair.privateKey, fourth.created.session_id, "POST", "/identities/close",
           { nonce: nonce16(), auth: authBase64(AUTH) }),
       ]).then((r) => (pair4 = r));
-      await new Promise((r) => setTimeout(r, 400));
+      await queuedBehind(tx, 2, "the PIN change and the close");
     });
     for (let i = 0; i < 150 && pair4.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
     assertEquals(pair4.length, 2, "the PIN change or the close never answered");
@@ -1971,10 +2000,10 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
       await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [fifth.created.session_id]);
       signedCall(fifth.pair.privateKey, fifth.created.session_id, "POST", "/recovery/claim", { lookup_id: fifth.lookupId })
         .then((r) => (pair5[0] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the same-device claim");
       signedCall(fifth.pair.privateKey, fifth.created.session_id, "POST", "/vault/share",
         { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) }).then((r) => (pair5[1] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 2, "the tenth wrong PIN behind the same-device claim");
     });
     for (let i = 0; i < 250 && (pair5[0] === undefined || pair5[1] === undefined); i++) {
       await new Promise((r) => setTimeout(r, 20));
@@ -2026,10 +2055,10 @@ Deno.test({ name: "vault/init waits on the share like a claim and a close, and n
       await tx.unsafe(hold, [holdArg(me)]);
       call("POST", "/recovery/claim", { body: { lookup_id: me.lookupId, sign_pub: fresh.signPub,
         wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) } }).then((r) => (got[0] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the new-device claim");
       signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/init", await firstPin())
         .then((r) => (got[1] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 2, "vault/init behind the new-device claim");
     });
     await settle(got);
     return { me, fresh, got, deadlocked: (await deadlocks()) - before };
@@ -2061,10 +2090,10 @@ Deno.test({ name: "vault/init waits on the share like a claim and a close, and n
       await tx.unsafe(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [me.created.identity_id]);
       signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close", { nonce: nonce16(), auth: authBase64(AUTH) })
         .then((r) => (got[0] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the close");
       signedCall(me.pair.privateKey, me.created.session_id, "POST", "/vault/init", await firstPin())
         .then((r) => (got[1] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 2, "vault/init behind the close");
     });
     await settle(got);
     assertEquals((await deadlocks()) - before, 0, `vault/init and a close deadlocked: close ${got[0]?.status}, init ${got[1]?.status}`);
@@ -2103,9 +2132,9 @@ Deno.test({ name: "two paper-code claims over a shareless live session both seat
     await sql.begin(async (tx) => {
       await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [shareless]);
       claim(a).then((r) => (got[0] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the first claim");
       claim(b).then((r) => (got[1] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 2, "the second claim behind the first");
     });
     for (let i = 0; i < 250 && (got[0] === undefined || got[1] === undefined); i++) {
       await new Promise((r) => setTimeout(r, 20));
@@ -2117,5 +2146,101 @@ Deno.test({ name: "two paper-code claims over a shareless live session both seat
     assertEquals(live.length, 1, `live sessions after two claims: ${live.length}`);
   } finally {
     await sql.end(); misses.reset(); reset();
+  }
+});
+
+// POST /identities/close, the three answers closeOnce gives before it closes
+// anything (identity.close.paths.untested; verifier, 2026-09-25: each was
+// green with its branch removed). Last in the file with the race cases: the
+// repeat below sends two closes at once, and the pool's second connection
+// would be counted as a leak by whichever case came next.
+const closeReplays = async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const line = render().split("\n").find((row) => row.startsWith(`relay_nonce_replay_total{route="POST /identities/close"}`));
+  return line ? Number(line.split(" ").at(-1)) : 0;
+};
+
+// A repeat of a close that went through (protocol §2) is answered as the
+// close was, and counted. Only a repeat that passed the signature check
+// before the close froze the session reaches the stored nonce, so the two are
+// sent together behind a held share and the first is let through.
+Deno.test({ name: "a close repeated with its nonce while the first goes through answers 200 and is counted as a replay", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await registered();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const nonce = nonce16();
+  const close = () => signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+    { nonce, auth: authBase64(AUTH) });
+  const before = await closeReplays();
+  const got: { status: number; body: unknown }[] = [];
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.created.session_id]);
+      close().then((r) => (got[0] = r));
+      await queuedBehind(tx, 1, "the close");
+      close().then((r) => (got[1] = r));
+      await queuedBehind(tx, 2, "the repeat behind the close");
+    });
+    for (let i = 0; i < 250 && (got[0] === undefined || got[1] === undefined); i++) {
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    assertEquals(got.map((a) => a?.status), [200, 200],
+      `a close and its repeat answered ${JSON.stringify(got.map((a) => [a?.status, a?.body]))}`);
+    assertEquals((await closeReplays()) - before, 1, "the repeat was not counted as a replay");
+    const [row] = await database.queryOrThrow<{ closed: boolean }>(
+      `SELECT closed_at IS NOT NULL AS closed FROM identities WHERE id = $1`, [me.created.identity_id]);
+    assert(row.closed, "the identity was not closed");
+  } finally {
+    await sql.end(); reset();
+  }
+});
+
+// A device seated by the paper code has no share until its first PIN: there
+// is no PIN to prove, and the close says so rather than closing.
+Deno.test({ name: "a close from a session with no share answers 404 and closes nothing", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const misses = await import("../src/lib/recovery_misses.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset(); misses.reset();
+  try {
+    const me = await registered();
+    const fresh = await device();
+    const seated = await call("POST", "/recovery/claim", { body: { lookup_id: me.lookupId, sign_pub: fresh.signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))) } });
+    assertEquals(seated.status, 200, "the claim that seats a shareless device");
+    const session = (seated.body as { session_id: string }).session_id;
+    const answer = await signedCall(fresh.pair.privateKey, session, "POST", "/identities/close",
+      { nonce: nonce16(), auth: authBase64(AUTH) });
+    assertEquals([answer.status, (answer.body as { error?: { message?: string } })?.error?.message],
+      [404, "this session has no share"], `a shareless session's close answered ${answer.status} ${JSON.stringify(answer.body)}`);
+    const [row] = await database.queryOrThrow<{ closed: boolean }>(
+      `SELECT closed_at IS NOT NULL AS closed FROM identities WHERE id = $1`, [me.created.identity_id]);
+    assert(!row.closed, "a shareless session closed the identity");
+  } finally {
+    misses.reset(); reset();
+  }
+});
+
+// A share burned under a live session: the PIN still matches its hash, but
+// there is nothing left it opens, and the close is refused like no share.
+Deno.test({ name: "a close from a session whose share is burned answers 404 and closes nothing", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  try {
+    const me = await registered();
+    await database.queryOrThrow(
+      `UPDATE vault_shares SET share_enc = NULL, burned_at = now() WHERE session = $1`, [me.created.session_id]);
+    const answer = await signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+      { nonce: nonce16(), auth: authBase64(AUTH) });
+    assertEquals([answer.status, (answer.body as { error?: { message?: string } })?.error?.message],
+      [404, "this session has no share"], `a burned share's close answered ${answer.status} ${JSON.stringify(answer.body)}`);
+    const [row] = await database.queryOrThrow<{ closed: boolean; nonces: number }>(
+      `SELECT (SELECT closed_at IS NOT NULL FROM identities WHERE id = $1) AS closed,
+              (SELECT count(*)::int FROM nonces WHERE session_id = $2) AS nonces`,
+      [me.created.identity_id, me.created.session_id]);
+    assertEquals([row.closed, row.nonces], [false, 0], "a close over a burned share closed the identity or kept its nonce");
+  } finally {
+    reset();
   }
 });

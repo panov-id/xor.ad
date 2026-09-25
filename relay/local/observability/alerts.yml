@@ -49,6 +49,23 @@ groups:
           summary: "Уборщик личностей молчит больше трёх часов"
           description: "Проход должен быть раз в час. Три срока §8.2 сейчас не исполняются: брошенные регистрации, год бездействия, тридцать дней после закрытия."
 
+      # The sweeper that runs and still closes nobody. It passes over an
+      # identity whose share somebody holds locked (SKIP LOCKED in
+      # relay/node/src/lib/identity_sweeper.ts) — once is a transfer or a PIN in
+      # flight, but a lock that never lets go keeps an identity past its year
+      # while every pass looks healthy (review panel 2026-09-25, operations
+      # lens). Passes are hourly, so a 90-minute window always holds one; `for:
+      # 3h` means three passes in a row skipped somebody. The counter is not per
+      # identity: a stream of different short holds reads the same, and the
+      # answer to both is to look at pg_locks on vault_shares.
+      - alert: IdentitySweeperKeepsSkipping
+        expr: sum(increase(relay_identity_sweeper_skipped_total{reason="share_held"}[90m])) > 0
+        for: 3h
+        labels: { severity: warning }
+        annotations:
+          summary: "Уборщик третий час подряд пропускает личности: долю держит блокировка"
+          description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю держит чужая транзакция. Смотреть pg_locks по vault_shares — застрявшая транзакция держит личность дольше её года."
+
       # A burst of wrong PINs is somebody working through a stolen signing key
       # or an unlocked tab. Ten in five minutes is far above a person mistyping.
       # Watchdog С7 (relay/node/src/lib/backup_watch.ts): the marker of the last
@@ -92,6 +109,24 @@ groups:
         annotations:
           summary: "Приём бумажных кодов на паузе"
           description: "Пятьдесят промахов за час. Пока пауза держится, честный код тоже не принимается."
+
+      # A right paper code the node could not write (relay/node/src/routes/
+      # identity.ts, claim on a new device). There is no retry on the person's
+      # side worth the name: they hold the code and got 503, so one is enough.
+      # The second half is the first failure after a restart: a counter series
+      # is born at 1, `increase()` over a series with no earlier sample is
+      # nothing, and the first event would pass unseen — `unless … offset`
+      # catches a series that exists now and did not 15 minutes ago
+      # (2026-09-25; alerts.test.yml holds both cases).
+      - alert: RecoveryClaimCannotWrite
+        expr: (sum(increase(relay_recovery_claim_total{result="storage_failed"}[15m])) > 0)
+              or (sum(relay_recovery_claim_total{result="storage_failed"}
+                      unless relay_recovery_claim_total{result="storage_failed"} offset 15m) > 0)
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Восстановление бумажным кодом не записывается"
+          description: "Верный бумажный код получил 503: узел не смог записать новое устройство. Человек без входа держит код в руках — смотреть журнал узла, «recovery claim failed on a new device»."
 
       # Anything the node answers 5xx to. The label comes from dispatch.ts's own
       # request counter, so this covers every route rather than the ones

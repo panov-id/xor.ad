@@ -8,10 +8,10 @@
 # угаданная пара хуже отсутствующей.
 #
 id	date	ru	en	subject_ru	subject_en
-chat.2026-08-12.1840	2026-08-12	xor.ad/docs/chat_RU.md:2729	xor.ad/docs/chat_EN.md:2765	Определение «есть личность»	"Has an identity" is defined
-chat.2026-08-17.1840	2026-08-17	xor.ad/docs/chat_RU.md:2729	xor.ad/docs/chat_EN.md:2765	Определение «есть личность»	"Has an identity" is defined
-chat.2026-08-18.686	2026-08-18	xor.ad/docs/chat_RU.md:1311	xor.ad/docs/chat_EN.md:1330	Он спрашивается при регистрации — возвращено 26.08.2026, отменяет пере	It is asked for at registration — restored 2026-08-26, overriding the 
-chat.2026-08-18.729	2026-08-18	xor.ad/docs/chat_RU.md:1356	xor.ad/docs/chat_EN.md:1376	Счётчик попыток снят с личности — исправлено 18.08.2026.	The attempt counter has been taken off the identity — corrected 2026-0
+chat.2026-08-12.1840	2026-08-12	xor.ad/docs/chat_RU.md:2745	xor.ad/docs/chat_EN.md:2782	Определение «есть личность»	"Has an identity" is defined
+chat.2026-08-17.1840	2026-08-17	xor.ad/docs/chat_RU.md:2745	xor.ad/docs/chat_EN.md:2782	Определение «есть личность»	"Has an identity" is defined
+chat.2026-08-18.686	2026-08-18	xor.ad/docs/chat_RU.md:1327	xor.ad/docs/chat_EN.md:1347	Он спрашивается при регистрации — возвращено 26.08.2026, отменяет пере	It is asked for at registration — restored 2026-08-26, overriding the 
+chat.2026-08-18.729	2026-08-18	xor.ad/docs/chat_RU.md:1372	xor.ad/docs/chat_EN.md:1393	Счётчик попыток снят с личности — исправлено 18.08.2026.	The attempt counter has been taken off the identity — corrected 2026-0
 chat.2026-08-19.444	2026-08-19	xor.ad/docs/chat_RU.md:944	xor.ad/docs/chat_EN.md:956	ECDSA P-256, решено 19.08.2026 по замеру ниже.	ECDSA P-256, decided 2026-08-19 on the measurement below.
 chat.2026-08-19.477	2026-08-19	xor.ad/docs/chat_RU.md:977	xor.ad/docs/chat_EN.md:989	Померено на живых браузерах — 19.08.2026.	Measured against real browsers — 2026-08-19.
 chat.2026-08-20.33	2026-08-20	xor.ad/docs/chat_RU.md:33	xor.ad/docs/chat_EN.md:33	Под-разделов не будет — решено 20.08.2026.	No sub-sections — decided 2026-08-20.
@@ -20,15 +20,15 @@ chat.2026-08-20.60	2026-08-20	xor.ad/docs/chat_RU.md:60	xor.ad/docs/chat_EN.md:6
 chat.2026-08-20.375	2026-08-20	xor.ad/docs/chat_RU.md:866	xor.ad/docs/chat_EN.md:875	Имя меняется только на чистом счету — решено 20.08.2026, сужено 21.08.	The name changes only on a clean slate — decided 2026-08-20, narrowed 
 chat.2026-08-20.376	2026-08-20	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:876	Имя проходит ту же очередь модерации, что и фраза, — в момент первой п	The name goes through the same moderation queue as a phrase — at the f
 chat.2026-08-20.403	2026-08-20	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:876	Имя проходит ту же очередь модерации	The name goes through the same moderation queue
-chat.2026-08-20.770	2026-08-20	xor.ad/docs/chat_RU.md:1407	xor.ad/docs/chat_EN.md:1428	Про имя такого сообщения нет и быть не может	There is no such message for a name, and there cannot be
-chat.2026-08-20.1897	2026-08-20	xor.ad/docs/chat_RU.md:2786	xor.ad/docs/chat_EN.md:2825	Окна с непроверенным именем нет — решено 20.08.2026.	There is no unchecked-name window — decided 2026-08-20.
-chat.2026-08-25.1389	2026-08-25	xor.ad/docs/chat_RU.md:2186	xor.ad/docs/chat_EN.md:2226	Но узел считает не символы, а байты.	The node, however, counts bytes and not characters.
-chat.2026-08-28.705	2026-08-28	xor.ad/docs/chat_RU.md:1332	xor.ad/docs/chat_EN.md:1351	Код рождается на устройстве — записано 28.08.2026.	The code is born on the device — recorded 2026-08-28.
-chat.2026-08-28.817	2026-08-28	xor.ad/docs/chat_RU.md:1461	xor.ad/docs/chat_EN.md:1482	области, которую человек выбирает сам	an area the person chooses themselves
+chat.2026-08-20.770	2026-08-20	xor.ad/docs/chat_RU.md:1423	xor.ad/docs/chat_EN.md:1445	Про имя такого сообщения нет и быть не может	There is no such message for a name, and there cannot be
+chat.2026-08-20.1897	2026-08-20	xor.ad/docs/chat_RU.md:2802	xor.ad/docs/chat_EN.md:2842	Окна с непроверенным именем нет — решено 20.08.2026.	There is no unchecked-name window — decided 2026-08-20.
+chat.2026-08-25.1389	2026-08-25	xor.ad/docs/chat_RU.md:2202	xor.ad/docs/chat_EN.md:2243	Но узел считает не символы, а байты.	The node, however, counts bytes and not characters.
+chat.2026-08-28.705	2026-08-28	xor.ad/docs/chat_RU.md:1348	xor.ad/docs/chat_EN.md:1368	Код рождается на устройстве — записано 28.08.2026.	The code is born on the device — recorded 2026-08-28.
+chat.2026-08-28.817	2026-08-28	xor.ad/docs/chat_RU.md:1477	xor.ad/docs/chat_EN.md:1499	области, которую человек выбирает сам	an area the person chooses themselves
 chat.2026-08-29.105	2026-08-29	xor.ad/docs/chat_RU.md:267	xor.ad/docs/chat_EN.md:245	Три из них — предложения, а не действия (29.08.2026).	Three of them are proposals rather than actions (2026-08-29).
 chat.2026-08-29.119	2026-08-29	xor.ad/docs/chat_RU.md:286	xor.ad/docs/chat_EN.md:267	Доска управляется и с клавиатуры (29.08.2026).	The board is operable from a keyboard too (2026-08-29).
 chat.2026-08-29.329	2026-08-29	xor.ad/docs/chat_RU.md:819	xor.ad/docs/chat_EN.md:827	Что человек принял — отдельная таблица, а не колонка (решено 29.08.202	What a person accepted is a table of its own, not a column (decided 20
-chat.2026-08-29.595	2026-08-29	xor.ad/docs/chat_RU.md:1149	xor.ad/docs/chat_EN.md:1164	Строка «сеть» убрана — решено 29.08.2026, и цена названа.	The "network" line was removed — decided 2026-08-29, and the price is 
+chat.2026-08-29.595	2026-08-29	xor.ad/docs/chat_RU.md:1165	xor.ad/docs/chat_EN.md:1181	Строка «сеть» убрана — решено 29.08.2026, и цена названа.	The "network" line was removed — decided 2026-08-29, and the price is 
 chat.2026-08-30.135	2026-08-30	xor.ad/docs/chat_RU.md:304	xor.ad/docs/chat_EN.md:286	Стол не занимает квоту публикаций и сам ничем не ограничен — решено 30	A table takes no posting quota and is itself unlimited — decided 2026-
 chat.2026-08-30.136	2026-08-30	xor.ad/docs/chat_RU.md:305	xor.ad/docs/chat_EN.md:287	Стикеры за столом работают, как в беседе, но видны узлу (30.08.2026).	Stickers work at a table as they do in a conversation, but the node se
 chat.2026-08-30.381	2026-08-30	xor.ad/docs/chat_RU.md:872	xor.ad/docs/chat_EN.md:881	Закрытая личность удаляется через 30 дней — решено 30.08.2026 по ревью	A closed identity is deleted after 30 days — decided 2026-08-30 from a
@@ -36,10 +36,10 @@ chat.2026-08-30.386	2026-08-30	xor.ad/docs/chat_RU.md:880	xor.ad/docs/chat_EN.md
 chat.2026-08-31.144	2026-08-31	xor.ad/docs/chat_RU.md:314	xor.ad/docs/chat_EN.md:296	Схема стола — заведена 31.08.2026.	The table's schema — established 2026-08-31.
 chat.2026-08-31.200	2026-08-31	xor.ad/docs/chat_RU.md:521	xor.ad/docs/chat_EN.md:514	`ON DELETE SET NULL`, а не `CASCADE` — решено 31.08.2026 по панели рев	`ON DELETE SET NULL`, not `CASCADE` — decided 2026-08-31 by a review p
 chat.2026-08-31.215	2026-08-31	xor.ad/docs/chat_RU.md:546	xor.ad/docs/chat_EN.md:540	Срок молчания — 60 минут, число названо 31.08.2026.	The span of silence is 60 minutes — the number named on 2026-08-31.
-chat.2026-08-31.817	2026-08-31	xor.ad/docs/chat_RU.md:1461	xor.ad/docs/chat_EN.md:1482	области, которую человек выбирает сам	an area the person chooses themselves
-chat.2026-08-31.861	2026-08-31	xor.ad/docs/chat_RU.md:1524	xor.ad/docs/chat_EN.md:1545	Зачем — решено 31.08.2026.	Why — decided 2026-08-31.
-chat.2026-08-31.865	2026-08-31	xor.ad/docs/chat_RU.md:1536	xor.ad/docs/chat_EN.md:1558	Как считается клетка — записано 31.08.2026, потому что наивная реализа	How the cell is computed — written down on 2026-08-31, because a naive
-chat.2026-08-31.880	2026-08-31	xor.ad/docs/chat_RU.md:1551	xor.ad/docs/chat_EN.md:1573	Насколько — посчитано 31.08.2026, и прежняя формулировка «общее с сотн	By how much was computed on 2026-08-31, and the earlier wording "share
+chat.2026-08-31.817	2026-08-31	xor.ad/docs/chat_RU.md:1477	xor.ad/docs/chat_EN.md:1499	области, которую человек выбирает сам	an area the person chooses themselves
+chat.2026-08-31.861	2026-08-31	xor.ad/docs/chat_RU.md:1540	xor.ad/docs/chat_EN.md:1562	Зачем — решено 31.08.2026.	Why — decided 2026-08-31.
+chat.2026-08-31.865	2026-08-31	xor.ad/docs/chat_RU.md:1552	xor.ad/docs/chat_EN.md:1575	Как считается клетка — записано 31.08.2026, потому что наивная реализа	How the cell is computed — written down on 2026-08-31, because a naive
+chat.2026-08-31.880	2026-08-31	xor.ad/docs/chat_RU.md:1567	xor.ad/docs/chat_EN.md:1590	Насколько — посчитано 31.08.2026, и прежняя формулировка «общее с сотн	By how much was computed on 2026-08-31, and the earlier wording "share
 SPEC.2026-08-28.124	2026-08-28	xor.ad/docs/dsa/SPEC_RU.md:133	xor.ad/docs/dsa/SPEC_EN.md:140	Стол добавлен 28.08.2026 — следствие, а не новое решение.	The table was added on 2026-08-28 — a consequence, not a new decision.
 SPEC.2026-08-29.207	2026-08-29	xor.ad/docs/dsa/SPEC_RU.md:304	xor.ad/docs/dsa/SPEC_EN.md:319	Записано 29.08.2026, и это вывод не юриста.	Recorded 2026-08-29, and this is not a lawyer's conclusion.
 SPEC.2026-08-27.482	2026-08-27	xor.ad/docs/offers/SPEC_RU.md:546	xor.ad/docs/offers/SPEC_EN.md:570	В ленте с 27.08.2026 три сущности	Since 2026-08-27 the feed holds three things
@@ -94,18 +94,18 @@ screens.2026-09-03.47	2026-09-03	sosed.place/docs/11-empty-and-edge-states_RU.md
 open-work.2026-09-03.1062	2026-09-03	xor.ad/docs/open-work_RU.md:1102	xor.ad/docs/open-work_EN.md:1143	Правило найдено 03.09.2026 — `952100`	The rule was found on 2026-09-03 — `952100`
 open-work.2026-09-03.1092	2026-09-03	xor.ad/docs/open-work_RU.md:1132	xor.ad/docs/open-work_EN.md:1176	Решено замером 03.09.2026	Settled by measurement on 2026-09-03
 open-work.2026-09-03.1035	2026-09-03	xor.ad/docs/open-work_RU.md:1035	xor.ad/docs/open-work_EN.md:1072	Блокирует с 03.09.2026 — `panel-prod`	Blocking since 2026-09-03 — `panel-prod`
-chat.2026-09-03.854	2026-09-03	xor.ad/docs/chat_RU.md:1497	xor.ad/docs/chat_EN.md:1518	Панель ревью 03.09.2026 показала, что единой границы у трёх поверхностей быть не может	A review panel on 2026-09-03 showed that one boundary cannot serve all three surfaces
+chat.2026-09-03.854	2026-09-03	xor.ad/docs/chat_RU.md:1513	xor.ad/docs/chat_EN.md:1535	Панель ревью 03.09.2026 показала, что единой границы у трёх поверхностей быть не может	A review panel on 2026-09-03 showed that one boundary cannot serve all three surfaces
 ontology.2026-09-03.54	2026-09-03	xor.ad/docs/facts/ontology_RU.md:54	xor.ad/docs/facts/ontology_EN.md:55	Четвёртый вид срока — «с запуском» — заведён 03.09.2026.	A fourth kind of due date — `с запуском`, "on launch" — was added on 2026-09-03.
 ontology.2026-09-03.62	2026-09-03	xor.ad/docs/facts/ontology_RU.md:62	xor.ad/docs/facts/ontology_EN.md:64	Адрес открытого пункта держится якорем, а не номером — с 03.09.2026.	An open item's address is held by an anchor, not by a line number — since 2026-09-03.
 ontology.2026-09-03.100	2026-09-03	xor.ad/docs/facts/ontology_RU.md:100	xor.ad/docs/facts/ontology_EN.md:105	С 03.09.2026 пробы есть у всех шести ворот	Since 2026-09-03 all six gates have a probe that
 ontology.2026-09-03.89	2026-09-03	xor.ad/docs/facts/ontology_RU.md:89	xor.ad/docs/facts/ontology_EN.md:93	Номер строки в `declared_in` сверяется с объявлением — с 03.09.2026.	Since 2026-09-03 the line number in `declared_in` is reconciled against the
 open-work.2026-09-04.1179	2026-09-20	xor.ad/docs/open-work_RU.md:1183	xor.ad/docs/open-work_EN.md:1231	Закрыть пока нечем, и перемерено 20.09.2026	Nothing can close it yet, and it was re-measured 2026-09-20
 open-work.2026-09-04.1184	2026-09-04	xor.ad/docs/open-work_RU.md:1189	xor.ad/docs/open-work_EN.md:1238	(заведены 04.09.2026).** Ворота спрашивают узел сами	(filed 2026-09-04).** The gate asks the
-chat.2026-09-07.937	2026-09-07	xor.ad/docs/chat_RU.md:1649	xor.ad/docs/chat_EN.md:1672	Правка 07.09.2026 по панели ревью.	Edited 2026-09-07 after a review panel.
+chat.2026-09-07.937	2026-09-07	xor.ad/docs/chat_RU.md:1665	xor.ad/docs/chat_EN.md:1689	Правка 07.09.2026 по панели ревью.	Edited 2026-09-07 after a review panel.
 refusal-wordings.2026-09-07.86	2026-09-07	xor.ad/docs/refusal-wordings_RU.md:120	xor.ad/docs/refusal-wordings_EN.md:130	«За час», а не «подряд» — правка 07.09.2026	rather than "in a row" — edited 2026-09-07
 test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:141	xor.ad/docs/test-map_EN.md:140	Успешная публикация счётчик отказов не обнуляет	A successful publication does not zero the refusal counter
 test-map.2026-09-07.129	2026-09-07	xor.ad/docs/test-map_RU.md:143	xor.ad/docs/test-map_EN.md:142	Отлучка не снимает ни часовой предел, ни паузу	Stepping away lifts neither the hourly limit nor the pause
-chat.2026-09-07.852	2026-09-07	xor.ad/docs/chat_RU.md:1491	xor.ad/docs/chat_EN.md:1512	Граница снимка — по видимости для заявителя. Решено 07.09.2026.	The snapshot is bounded by what the notifier could see. Decided 2026-09-07.
+chat.2026-09-07.852	2026-09-07	xor.ad/docs/chat_RU.md:1507	xor.ad/docs/chat_EN.md:1529	Граница снимка — по видимости для заявителя. Решено 07.09.2026.	The snapshot is bounded by what the notifier could see. Decided 2026-09-07.
 article-30-register.2026-09-08.124	2026-09-08	xor.ad/docs/article-30-register_RU.md:170	xor.ad/docs/article-30-register_EN.md:178	До 08.09.2026 здесь	Until 2026-09-08 this
 refusal-wordings.2026-09-15.219	2026-09-15	xor.ad/docs/refusal-wordings_RU.md:228	xor.ad/docs/refusal-wordings_EN.md:244	Предел ожидания — 10 минут. Решено 15.09.2026.	The waiting limit is 10 minutes. Decided 2026-09-15.
 refusal-wordings.2026-09-08.170	2026-09-08	xor.ad/docs/refusal-wordings_RU.md:236	xor.ad/docs/refusal-wordings_EN.md:253	Время освобождения слота не показывается. Решено	The time a slot frees is not shown. Decided
@@ -121,18 +121,18 @@ chat.2026-09-09.097	2026-09-09	xor.ad/docs/chat_RU.md:132	xor.ad/docs/chat_EN.md
 chat.2026-09-10.461	2026-09-10	xor.ad/docs/chat_RU.md:585	xor.ad/docs/chat_EN.md:584	записано 10.09.2026).	one (a consequence, written down 2026-09-10).
 chat.2026-09-11.706	2026-09-11	xor.ad/docs/chat_RU.md:748	xor.ad/docs/chat_EN.md:754	**Поэтому v1 раздаёт из памяти процесса — решено 11.09.2026.**	**So v1 fans out from process memory — decided 2026-09-11.**
 chat.2026-09-11.1010	2026-09-11	xor.ad/docs/chat_RU.md:1098	xor.ad/docs/chat_EN.md:1113	**Заморозка сжигает долю хранилища — решено 11.09.2026.**	**Freezing burns the vault share — decided 2026-09-11.**
-chat.2026-09-11.1028	2026-09-11	xor.ad/docs/chat_RU.md:1116	xor.ad/docs/chat_EN.md:1131	**64 МБ и t=3 — замерено 11.09.2026, а не выбрано на глаз.**	**64 MB and t=3 are measured as of 2026-09-11, not guessed.**
-chat.2026-09-11.1182	2026-09-11	xor.ad/docs/chat_RU.md:1319	xor.ad/docs/chat_EN.md:1338	**Этим же закрыто вытеснение хранилища браузером — записано 11.09.2026.**	**This also covers the browser evicting the storage — written down 2026-09-11.**
-chat.2026-09-11.2520	2026-09-11	xor.ad/docs/chat_RU.md:2835	xor.ad/docs/chat_EN.md:2876	**Первая миграция несёт десять таблиц, а не двадцать четыре — решено 11.09.2026.**	**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
-chat.2026-09-12.2044	2026-09-12	xor.ad/docs/chat_RU.md:2301	xor.ad/docs/chat_EN.md:2325	**Состояния «доставлено» и «прочитано» не существует — решено 12.09.2026.**	**There is no "delivered" and no "read" state — decided 2026-09-12.**
-chat.2026-09-11.2255	2026-09-11	xor.ad/docs/chat_RU.md:2529	xor.ad/docs/chat_EN.md:2558	**Доставка при возвращении собеседника есть — решено 11.09.2026, уточнено	**Delivery when the other person returns does happen — decided 2026-09-11,
-chat.2026-09-14.1206	2026-09-14	xor.ad/docs/chat_RU.md:1297	xor.ad/docs/chat_EN.md:1316	Десятая неверная попытка закрывает вход на этом устройстве до бумажного кода, но долю не сжигает — решено 14.09.2026	The tenth wrong attempt locks access on this device until the paper code, but does not burn the share — decided 2026-09-14
+chat.2026-09-11.1028	2026-09-11	xor.ad/docs/chat_RU.md:1132	xor.ad/docs/chat_EN.md:1148	**64 МБ и t=3 — замерено 11.09.2026, а не выбрано на глаз.**	**64 MB and t=3 are measured as of 2026-09-11, not guessed.**
+chat.2026-09-11.1182	2026-09-11	xor.ad/docs/chat_RU.md:1335	xor.ad/docs/chat_EN.md:1355	**Этим же закрыто вытеснение хранилища браузером — записано 11.09.2026.**	**This also covers the browser evicting the storage — written down 2026-09-11.**
+chat.2026-09-11.2520	2026-09-11	xor.ad/docs/chat_RU.md:2851	xor.ad/docs/chat_EN.md:2893	**Первая миграция несёт десять таблиц, а не двадцать четыре — решено 11.09.2026.**	**The first migration carries ten tables, not twenty-four — decided 2026-09-11.**
+chat.2026-09-12.2044	2026-09-12	xor.ad/docs/chat_RU.md:2317	xor.ad/docs/chat_EN.md:2342	**Состояния «доставлено» и «прочитано» не существует — решено 12.09.2026.**	**There is no "delivered" and no "read" state — decided 2026-09-12.**
+chat.2026-09-11.2255	2026-09-11	xor.ad/docs/chat_RU.md:2545	xor.ad/docs/chat_EN.md:2575	**Доставка при возвращении собеседника есть — решено 11.09.2026, уточнено	**Delivery when the other person returns does happen — decided 2026-09-11,
+chat.2026-09-14.1206	2026-09-14	xor.ad/docs/chat_RU.md:1313	xor.ad/docs/chat_EN.md:1333	Десятая неверная попытка закрывает вход на этом устройстве до бумажного кода, но долю не сжигает — решено 14.09.2026	The tenth wrong attempt locks access on this device until the paper code, but does not burn the share — decided 2026-09-14
 protocol.2026-09-14.240	2026-09-14	xor.ad/docs/protocol_RU.md:509	xor.ad/docs/protocol_EN.md:525	С 14.09.2026 у паузы вторая цена, и она тоже принята.	Since 2026-09-14 the pause has a second price, and it is accepted too.
-chat.2026-09-14.2681	2026-09-14	xor.ad/docs/chat_RU.md:2871	xor.ad/docs/chat_EN.md:2913	Номер обращения случайный, ответ — только владельцу, предел — три в сутки со строкой почты — решено 14.09.2026	The request number is random, the answer goes only to its owner, the cap is three a day with an email line — decided 2026-09-14
+chat.2026-09-14.2681	2026-09-14	xor.ad/docs/chat_RU.md:2887	xor.ad/docs/chat_EN.md:2930	Номер обращения случайный, ответ — только владельцу, предел — три в сутки со строкой почты — решено 14.09.2026	The request number is random, the answer goes only to its owner, the cap is three a day with an email line — decided 2026-09-14
 legal-review-brief.2026-09-15.244	2026-09-15	xor.ad/docs/legal-review-brief_RU.md:278	xor.ad/docs/legal-review-brief_EN.md:284	в продукте с личностью — галочка, до которой нельзя публиковать	inside the product, with an identity, a checkbox that publishing waits for
 screens.2026-09-15.23	2026-09-15	sosed.place/docs/22-appearance_RU.md:23	sosed.place/docs/22-appearance_EN.md:23	Выбор хранится у личности на узле	The choice is kept with the identity on the node
 screens.2026-09-15.43	2026-09-15	sosed.place/docs/22-appearance_RU.md:43	sosed.place/docs/22-appearance_EN.md:43	Можно ли выбрать свой цвет	Can one pick one's own colour
-chat.2026-09-15.2564	2026-09-15	xor.ad/docs/chat_RU.md:2724	xor.ad/docs/chat_EN.md:2760	перебирает акцентный цвет по кругу набора витрины	cycles the accent colour round the storefront's set
+chat.2026-09-15.2564	2026-09-15	xor.ad/docs/chat_RU.md:2740	xor.ad/docs/chat_EN.md:2777	перебирает акцентный цвет по кругу набора витрины	cycles the accent colour round the storefront's set
 depth-client.2026-09-15.853	2026-09-15	xor.ad/docs/depth-client_RU.md:1265	xor.ad/docs/depth-client_EN.md:1323	шестнадцать цветов эмулятора	the emulator's sixteen colours
 design-system-app.2026-09-15.120	2026-09-15	xor.ad/docs/design-system-app_RU.md:514	xor.ad/docs/design-system-app_EN.md:533	токены из него не берутся	and no tokens are taken from it
 chat.2026-09-15.762	2026-09-15	xor.ad/docs/chat_RU.md:803	xor.ad/docs/chat_EN.md:811	Оформление — по строке на лицо, а не колонки личности	Appearance — one row per face, not columns on the identity
@@ -140,7 +140,7 @@ screens.2026-09-15.41	2026-09-15	sosed.place/docs/23-phrase-viewer_RU.md:46	sose
 screens.2026-09-15.40	2026-09-15	sosed.place/docs/24-hints_RU.md:41	sosed.place/docs/24-hints_EN.md:41	~~Отдельный проход или по месту~~	~~A separate walk-through or in place~~
 screens.2026-09-15.34	2026-09-15	sosed.place/docs/03-feed-screen_RU.md:37	sosed.place/docs/03-feed-screen_EN.md:37	## Широкий экран (решено 15.09.2026)	## Wide screen (decided 2026-09-15)
 screens.2026-09-15.167	2026-09-15	sosed.place/docs/00-mechanics_RU.md:169	sosed.place/docs/00-mechanics_EN.md:185	(решено 15.09.2026 по сверке экранов). Доля решена	(decided 2026-09-15 by the screen cross-check). The share
-chat.2026-09-15.1852	2026-09-15	xor.ad/docs/chat_RU.md:1967	xor.ad/docs/chat_EN.md:2006	Лайк снимается, пока из него не вышел мэтч — решено 15.09.2026.	A like can be taken back until a match has come of it — decided 2026-09-15.
+chat.2026-09-15.1852	2026-09-15	xor.ad/docs/chat_RU.md:1983	xor.ad/docs/chat_EN.md:2023	Лайк снимается, пока из него не вышел мэтч — решено 15.09.2026.	A like can be taken back until a match has come of it — decided 2026-09-15.
 protocol.2026-09-16.69	2026-09-16	xor.ad/docs/protocol_RU.md:126	xor.ad/docs/protocol_EN.md:134	Восемь областей внесены в контракт 16.09.2026 — §4.6–4.12 ниже.	The eight areas entered the contract on 2026-09-16 — §4.6–4.12 below.
 protocol.2026-09-16.146	2026-09-16	xor.ad/docs/protocol_RU.md:221	xor.ad/docs/protocol_EN.md:232	Кадры сокета — только от узла к клиенту; действия человека идут подписанными запросами — решено 16.09.2026	Socket frames flow from the node to the client only; a person's actions travel as signed requests — decided 2026-09-16
 protocol.2026-09-16.311	2026-09-16	xor.ad/docs/protocol_RU.md:453	xor.ad/docs/protocol_EN.md:464	Форма ошибки — решено 16.09.2026:	The error shape — decided 2026-09-16:
@@ -165,7 +165,7 @@ chat.2026-09-20.noncesize	2026-09-20	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.
 chat.2026-09-20.indexname	2026-09-20	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	имя дано 20.09.2026: безымянный индекс отказывает в переносе сообщением, которое человек не прочтёт	named 2026-09-20: an anonymous index refuses a transfer with a message no person can read
 chat.2026-09-20.signupmark	2026-09-20	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	Заведена 20.09.2026 по панели ревью: пометка была обещана абзацем ниже и не имела носителя	Added 2026-09-20 after the review panel: the mark was promised by the paragraph below and had no carrier
 chat.2026-09-20.firstpin	2026-09-20	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	расходуется самим POST /vault/init тем же UPDATE … WHERE first_pin_grant_at > now() - interval '1 hour' RETURNING	spent by POST /vault/init itself with the same UPDATE … WHERE first_pin_grant_at > now() - interval '1 hour' RETURNING
-chat.2026-09-21.densitywindow	2026-09-21	xor.ad/docs/chat_RU.md:1810	xor.ad/docs/chat_EN.md:1843	окно — час, решение владельца 21.09.2026	owner's decision of 2026-09-21 — this said
+chat.2026-09-21.densitywindow	2026-09-21	xor.ad/docs/chat_RU.md:1826	xor.ad/docs/chat_EN.md:1860	окно — час, решение владельца 21.09.2026	owner's decision of 2026-09-21 — this said
 chat.2026-09-22.nameverdict	2026-09-22	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:876	Один вердикт на оба — решение владельца 22.09.2026	One verdict for both — the owner's decision of 2026-09-22
 chat.2026-09-22.firstname	2026-09-22	xor.ad/docs/chat_RU.md:867	xor.ad/docs/chat_EN.md:876	Имя при регистрации принимается сразу, в очередь идёт каждая смена — решение владельца 22.09.2026	The name is accepted at registration, and every change goes to the queue — the owner's decision of 2026-09-22
 depth.2026-09-23.step7	2026-09-23	xor.ad/docs/roadmap_RU.md:161	xor.ad/docs/roadmap_EN.md:172	в ленте «скрыть» и «заблокировать», экран скрытого с возвратом	"hide" and "block" in the feed, the hidden list with a way back
@@ -173,7 +173,7 @@ ci.2026-09-24.database-suites	2026-09-24	xor.ad/docs/roadmap_RU.md:64	xor.ad/doc
 protocol.2026-09-24.slot503	2026-09-24	xor.ad/docs/protocol_RU.md:485	xor.ad/docs/protocol_EN.md:499	сам ответил 503 — решение владельца 24.09.2026	back when the node itself answered 503 — the owner's decision of 2026-09-24
 chat.2026-09-24.queueaway	2026-09-24	xor.ad/docs/chat_RU.md:886	xor.ad/docs/chat_EN.md:895	действует и в отлучку, решение владельца 24.09.2026	holds during a time away too, the owner's decision of 2026-09-24
 chat.2026-09-24.awaywake	2026-09-24	xor.ad/docs/chat_RU.md:886	xor.ad/docs/chat_EN.md:895	поминутное задание узла `wake_returned` будит удержанные комнаты	the minute job `wake_returned` wakes the held rooms
-chat.2026-09-24.cursorsealed	2026-09-24	xor.ad/docs/chat_RU.md:1733	xor.ad/docs/chat_EN.md:1758	с 24.09.2026 он запечатан	since 2026-09-24 it is sealed
+chat.2026-09-24.cursorsealed	2026-09-24	xor.ad/docs/chat_RU.md:1749	xor.ad/docs/chat_EN.md:1775	с 24.09.2026 он запечатан	since 2026-09-24 it is sealed
 offers.2026-09-24.linkgoesout	2026-09-24	xor.ad/docs/offers/SPEC_RU.md:482	xor.ad/docs/offers/SPEC_EN.md:500	Ссылка гаснет и вместе с оффером — решено кворумом 24.09.2026	The link goes out with the offer too — decided by quorum on 2026-09-24
 deployment.2026-09-24.readyoff	2026-09-24	xor.ad/docs/deployment_RU.md:272	xor.ad/docs/deployment_EN.md:288	узлу staging или prod совсем без базы	decided by quorum on 2026-09-24
 watchdogs.2026-09-24.c1ceiling	2026-09-24	xor.ad/docs/watchdogs_RU.md:35	xor.ad/docs/watchdogs_EN.md:38	решено кворумом 24.09.2026, по числу владельца для С2	decided by quorum on 2026-09-24, by the owner's number for W2
@@ -184,3 +184,4 @@ protocol.2026-09-24.signupappearance	2026-09-24	xor.ad/docs/protocol_RU.md:132	x
 deployment.2026-09-25.envname	2026-09-25	xor.ad/docs/deployment_RU.md:277	xor.ad/docs/deployment_EN.md:292	(решено кворумом 25.09.2026)	(decided by quorum on 2026-09-25)
 watchdogs.2026-09-25.triedorder	2026-09-25	xor.ad/docs/watchdogs_RU.md:45	xor.ad/docs/watchdogs_EN.md:49	Среди прочих — сначала непробованные** (решено кворумом 25.09.2026)	Among the rest, the untried first** (decided by quorum on 2026-09-25)
 protocol.2026-09-25.noncebody	2026-09-25	xor.ad/docs/protocol_RU.md:96	xor.ad/docs/protocol_EN.md:101	тот же nonce с другим телом	the same nonce with another body
+chat.2026-09-25.lockorder	2026-09-25	xor.ad/docs/chat_RU.md:1116	xor.ad/docs/chat_EN.md:1131	Переезд сессии берёт блокировки в одном порядке	Moving a session takes its locks in one order

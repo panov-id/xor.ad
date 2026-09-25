@@ -137,12 +137,33 @@ async function closeInactive(): Promise<number> {
       const want = count(await run<{ identity: string }>(
         `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
           WHERE s.identity = ANY($1::uuid[])`, [candidates]));
-      const got = count(await run<{ identity: string }>(
-        `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
-          WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v SKIP LOCKED`, [candidates]));
-      // At least as many as were counted: a share written in between is locked
-      // here too and is no reason to wait.
-      const ids = candidates.filter((id) => (got.get(id) ?? 0) >= (want.get(id) ?? 0));
+      // Only identities whose every share was free keep their locks. The
+      // shares of an identity left out used to stay locked until the batch
+      // committed, and a batch waiting on another candidate's session kept a
+      // close of that identity past its lock_timeout — a 503 after two seconds
+      // for a person who was not even being swept (sweeper.batch.shareheld,
+      // 2026-09-25). A row lock goes only with the transaction or the
+      // savepoint it was taken under, so each attempt is a savepoint: short of
+      // any share, it is rolled back — every lock it took with it — and tried
+      // again without the identities that were short. The set shrinks on every
+      // retry, so the loop ends; the ceiling only bounds a pathological churn.
+      let ids = candidates;
+      for (let attempt = 0; ids.length > 0; attempt++) {
+        await run(`SAVEPOINT sweep_shares`);
+        const got = count(await run<{ identity: string }>(
+          `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
+            WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v SKIP LOCKED`, [ids]));
+        // At least as many as were counted: a share written in between is locked
+        // here too and is no reason to wait.
+        const whole = ids.filter((id) => (got.get(id) ?? 0) >= (want.get(id) ?? 0));
+        if (whole.length === ids.length) {
+          await run(`RELEASE SAVEPOINT sweep_shares`);
+          break;
+        }
+        await run(`ROLLBACK TO SAVEPOINT sweep_shares`);
+        await run(`RELEASE SAVEPOINT sweep_shares`);
+        ids = attempt < 4 ? whole : [];
+      }
       // Somebody holding a share is visible, or an identity kept from its year
       // by a lock that never lets go would look like a quiet night (review
       // panel 2026-09-25, operations lens).

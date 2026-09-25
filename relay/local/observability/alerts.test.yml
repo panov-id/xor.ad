@@ -73,3 +73,87 @@ tests:
       - eval_time: 30m
         alertname: LikesCannotWrite
         exp_alerts: []
+
+  # IdentitySweeperKeepsSkipping (2026-09-25). The sweeper passes hourly and the
+  # counter moves once per pass, so the series below steps every sixty samples
+  # rather than growing every minute — the shape a 15-second scrape of an
+  # hourly counter actually has.
+  - name: share_held growing every pass for hours raises IdentitySweeperKeepsSkipping
+    interval: 1m
+    input_series:
+      - series: 'relay_identity_sweeper_skipped_total{reason="share_held"}'
+        values: '0x59 1x59 2x59 3x59 4x59 5x59'
+    alert_rule_test:
+      - eval_time: 5h
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Уборщик третий час подряд пропускает личности: долю держит блокировка"
+              description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю держит чужая транзакция. Смотреть pg_locks по vault_shares — застрявшая транзакция держит личность дольше её года."
+
+  - name: one pass that met a held share is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_identity_sweeper_skipped_total{reason="share_held"}'
+        values: '0x59 1x299'
+    alert_rule_test:
+      - eval_time: 2h
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts: []
+      - eval_time: 5h
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts: []
+
+  - name: people coming back during the pass are not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_identity_sweeper_skipped_total{reason="came_back"}'
+        values: '0x59 1x59 2x59 3x59 4x59 5x59'
+    alert_rule_test:
+      - eval_time: 5h
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts: []
+
+  # RecoveryClaimCannotWrite (2026-09-25).
+  - name: a recovery claim that cannot be written raises RecoveryClaimCannotWrite
+    interval: 1m
+    input_series:
+      - series: 'relay_recovery_claim_total{result="storage_failed"}'
+        values: '0x10 1x50'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: RecoveryClaimCannotWrite
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Восстановление бумажным кодом не записывается"
+              description: "Верный бумажный код получил 503: узел не смог записать новое устройство. Человек без входа держит код в руках — смотреть журнал узла, «recovery claim failed on a new device»."
+
+  # The first failure after a restart: the series is born at 1 and has no
+  # earlier sample for increase() to compare against.
+  - name: the first storage_failed after a restart is not missed
+    interval: 1m
+    input_series:
+      - series: 'relay_recovery_claim_total{result="storage_failed"}'
+        values: '_x30 1x60'
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: RecoveryClaimCannotWrite
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Восстановление бумажным кодом не записывается"
+              description: "Верный бумажный код получил 503: узел не смог записать новое устройство. Человек без входа держит код в руках — смотреть журнал узла, «recovery claim failed on a new device»."
+
+  - name: recovery claims that are written, and an old failure, are not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_recovery_claim_total{result="new_device"}'
+        values: '0+1x120'
+      - series: 'relay_recovery_claim_total{result="storage_failed"}'
+        values: '1x120'
+    alert_rule_test:
+      - eval_time: 100m
+        alertname: RecoveryClaimCannotWrite
+        exp_alerts: []

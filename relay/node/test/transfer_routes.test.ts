@@ -56,6 +56,35 @@ async function device() {
   return { pair, signPub: auth.bytesToBase64url(spki) };
 }
 
+// Waits until `count` requests queue on a lock behind the transaction `tx`
+// holds (tests.race.waitlock, 2026-09-25). The race cases sent the second
+// request after a fixed sleep and never looked whether the first was waiting at
+// all: on a slow machine the sleep ran out first and the case passed with no
+// race. Every backend waiting on a lock whose chain of blockers reaches the
+// holder is counted, so a request queued behind another queued request counts
+// too. Asked on the holder's own connection: a read through the node's pool
+// opened a connection of its own, which the next case counted as a leak. The
+// activity view is a snapshot per transaction, so it is cleared on each try.
+async function queuedBehind(tx: { unsafe: (q: string) => Promise<unknown> }, count: number, what: string,
+  timeoutMs = 5000): Promise<void> {
+  const until = Date.now() + timeoutMs;
+  let waiting = 0;
+  for (;;) {
+    await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+    [{ n: waiting }] = await tx.unsafe(
+      `WITH RECURSIVE queued(pid) AS (
+         SELECT pg_backend_pid()
+         UNION
+         SELECT a.pid FROM pg_stat_activity a JOIN queued q ON q.pid = ANY(pg_blocking_pids(a.pid))
+          WHERE a.wait_event_type = 'Lock')
+       SELECT count(*)::int - 1 AS n FROM queued`) as { n: number }[];
+    if (waiting >= count || Date.now() > until) break;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  assert(waiting >= count,
+    `${what}: ${waiting} of ${count} request(s) queued on a lock behind the held row after ${timeoutMs} ms — the race never ran`);
+}
+
 let addresses = 0;
 const nextAddress = () => `198.51.100.${++addresses % 250}`;
 
@@ -240,7 +269,7 @@ Deno.test("an approval waiting on a close moves nothing into the closed identity
       const pending = signedCall(old.pair.privateKey, old.session_id, "POST", `/sessions/${lookupId}/approve`,
         { reply: envelope(), sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))), label: "x" })
         .then((r) => (got.approved = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the approval behind the close");
       await tx.unsafe(`UPDATE identities SET closed_at = now() WHERE id = (SELECT identity FROM sessions WHERE id = $1)`, [old.session_id]);
       void pending;
     });
@@ -278,7 +307,7 @@ Deno.test("an approval waiting while the paper code raised the identity moves no
       const pending = signedCall(old.pair.privateKey, old.session_id, "POST", `/sessions/${lookupId}/approve`,
         { reply: envelope(), sign_pub: fresh.signPub, wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))), label: "x" })
         .then((r) => (got.approved = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, "the approval behind the paper code");
       // What a claim by the paper code does: the old device frozen and burned,
       // the owner's new one seated.
       await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`, [old.session_id]);
@@ -511,9 +540,9 @@ async function behind(hold: string, arg: string, first: () => Promise<unknown>, 
     await sql.begin(async (tx) => {
       await tx.unsafe(hold, [arg]);
       first().then((r) => (done[0] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 1, `holding ${hold}: the first request`);
       second().then((r) => (done[1] = r));
-      await new Promise((r) => setTimeout(r, 300));
+      await queuedBehind(tx, 2, `holding ${hold}: the second request behind the first`);
     });
     for (let i = 0; i < 250 && (done[0] === undefined || done[1] === undefined); i++) {
       await new Promise((r) => setTimeout(r, 20));

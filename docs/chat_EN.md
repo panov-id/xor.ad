@@ -1128,6 +1128,23 @@ back, and the history on the phone is dead for good.** The disk is not wiped, th
 files are there, but half of the key to them exists nowhere any more. In exchange, "I
 lost my phone" really does mean a closed door rather than the appearance of one.
 
+**Moving a session takes its locks in one order — decided 2026-09-25 by the review panel.**
+Everything that moves an identity's sessions — `vault/init`, issuing and approving a
+transfer, raising by paper code, closing the identity, and both sweeper passes (the
+yearly one and the catch-up) — takes its locks the same way: first the
+`vault_shares` rows in session order, then the `sessions` rows, then the
+`identities` row. The rule is not taste: routes that each took them in their own
+order ran into each other as deadlocks, and the panel reproduced that with tests
+(`identity.lock.order`, `docs/reviews/PANEL_2026-09-25_lock-order.md`). The yearly
+sweeper pass yields rather than waits: it skips a share someone holds
+(`SKIP LOCKED`) and holds the session and identity rows `FOR NO KEY UPDATE`, so as
+not to contend with the key-share lock that every insert referencing an identity
+takes. Closing an identity waits for each lock held by someone else no longer
+than 2 s (`lock_timeout`; a bound on one wait, not on the whole request) and
+answers 503 rather than holding a connection until the statement timeout. The price is named: while a sweeper batch holds the shares, closing
+an identity in that batch can get a 503 and retry — this is open as
+`sweeper.batch.shareheld`.
+
 **64 MB and t=3 are measured as of 2026-09-11, not guessed.** Until that day the
 numbers sat in the specification four times and had never been checked: WebCrypto
 does not do Argon2id — it is WASM, and the existing gate said nothing about it. The

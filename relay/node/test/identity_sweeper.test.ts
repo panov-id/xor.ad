@@ -281,6 +281,26 @@ Deno.test("the deadlines are the registry's numbers, not this file's", async () 
   assertEquals(sweeper.DELETION_DELAY_DAYS, value("identity.deletion.delay"));
 });
 
+// Where the race tests used to sleep a fixed 300 ms and hope the sweep had got
+// to its locks (2026-09-25, pattern of test/feed_publish.test.ts): asks
+// Postgres instead. True once some backend of this database waits on a lock —
+// in these cases only the sweep can — or once the sweep has settled, which is
+// what a sweep that skips a held share rather than waiting on it does.
+async function sweepWaitsOrEnds(swept: Promise<unknown> | undefined, ms = 5000): Promise<boolean> {
+  let settled = false;
+  swept?.then(() => { settled = true; }, () => { settled = true; });
+  const until = Date.now() + ms;
+  while (Date.now() < until) {
+    if (settled) return true;
+    const [{ n }] = await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_stat_activity
+        WHERE datname = current_database() AND wait_event_type = 'Lock'`);
+    if (n > 0) return true;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  return settled;
+}
+
 addEventListener("unload", () => {
   database.closePool();
 });
@@ -409,7 +429,7 @@ Deno.test({ name: "a person back after a year is not closed by a sweep that met 
     await sql.begin(async (tx) => {
       await tx.unsafe(`UPDATE sessions SET last_seen_at = now() WHERE id = $1`, [back.sessionId]);
       swept = sweeper.sweepIdentities();
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      assert(await sweepWaitsOrEnds(swept), "the sweep never reached the session row the bump holds");
     });
     await swept;
     assertEquals((await identityRow(back.identityId)).closed_at, null,
@@ -443,7 +463,7 @@ Deno.test({ name: "the sweep yields to a claim from a new device instead of dead
         await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1 AND frozen_at IS NULL`,
           [back.sessionId]);
         swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
-        await new Promise((r) => setTimeout(r, 300));
+        assert(await sweepWaitsOrEnds(swept), `round ${round}: the sweep neither waited on a lock nor finished`);
         await tx.unsafe(`INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
                          VALUES ($1, $2, 'k', 'k', 'new phone')`, [crypto.randomUUID(), back.identityId]);
         await tx.unsafe(`UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`, [back.identityId]);
@@ -502,7 +522,7 @@ Deno.test({ name: "the sweep yields to a close that holds one of two shares inst
                          VALUES ($1, $2, 'POST /identities/close', 200, 'null'::jsonb)`,
           [closer, crypto.getRandomValues(new Uint8Array(16))]);
         swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
-        await new Promise((r) => setTimeout(r, 300));
+        assert(await sweepWaitsOrEnds(swept), `round ${round}: the sweep neither waited on a lock nor finished`);
         await tx.unsafe(`UPDATE identities SET closed_at = now() WHERE id = $1`, [made.identityId]);
         for (const id of [first, closer]) {
           await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'closed' WHERE id = $1 AND frozen_at IS NULL`, [id]);
@@ -540,7 +560,7 @@ Deno.test({ name: "the sweep and a reissue's nonce on the same session do not de
       await sql.begin(async (tx) => {
         await tx.unsafe(`SELECT id FROM identities WHERE id = $1 FOR UPDATE`, [made.identityId]);
         swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
-        await new Promise((r) => setTimeout(r, 300));
+        assert(await sweepWaitsOrEnds(swept), `round ${round}: the sweep neither waited on a lock nor finished`);
         await tx.unsafe(`INSERT INTO nonces (session_id, nonce, route, status, response)
                          VALUES ($1, $2, 'POST /recovery/reissue', 204, 'null'::jsonb)`,
           [made.sessionId, crypto.getRandomValues(new Uint8Array(16))]);
@@ -554,4 +574,130 @@ Deno.test({ name: "the sweep and a reissue's nonce on the same session do not de
     assertEquals(reissueError, "", `round ${round}: the reissue failed: ${reissueError}`);
     assertEquals(sweepError, "", `round ${round}: the sweep failed: ${sweepError}`);
   }
+});
+
+// A batch that leaves an identity out must not keep that identity's shares
+// (sweeper.batch.shareheld, 2026-09-25). The sweep took every candidate's
+// shares with SKIP LOCKED and kept them to the commit — including those of an
+// identity it then excluded because another share of it was held. While the
+// batch waited on another candidate's session row, a close of the excluded
+// identity (closeOnce: lock_timeout 2s, then every share of the identity in
+// order) timed out on a share the sweep was not even going to use, and the
+// person got a 503. Here: X has two shares, one held elsewhere; B's session is
+// held so the batch stalls; the holder of X's share lets go, and the close's
+// own statements then have to get both of X's shares inside their two seconds.
+Deno.test({ name: "a stalled batch keeps no share of an identity it left out, so a close of it is not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  // A second session is a frozen one: an identity has one live session at a time.
+  const xOther = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, last_seen_at, frozen_at, frozen_reason)
+     VALUES ($1, $2, 'k', 'k', now() - make_interval(days => $3), now(), 'transfer')`,
+    [xOther, x.identityId, sweeper.INACTIVE_DAYS + 5]);
+  await database.queryOrThrow(`INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, 'hash', $2)`,
+    [xOther, new Uint8Array([7])]);
+  const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+
+  const shareHolder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const sessionHolder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const closer = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let closeError = "";
+  let sweepError = "";
+  // Declared outside the try: a failed assertion inside must still let the
+  // share holder finish, or its end() below waits on it for ever and the test
+  // hangs instead of going red (verifier, 2026-09-25).
+  let releaseShare: () => void = () => {};
+  const shareReleased = new Promise<void>((r) => { releaseShare = r; });
+  try {
+    let swept: Promise<unknown> | undefined;
+    let shareHeld!: () => void;
+    const shareIsHeld = new Promise<void>((r) => { shareHeld = r; });
+    const holding = shareHolder.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [xOther]);
+      shareHeld();
+      await shareReleased;
+    });
+    await shareIsHeld;
+    await sessionHolder.begin(async (tx) => {
+      await tx.unsafe(`SELECT id FROM sessions WHERE id = $1 FOR UPDATE`, [b.sessionId]);
+      swept = sweeper.sweepIdentities().catch((e) => { sweepError = String(e); });
+      assert(await sweepWaitsOrEnds(swept), "the sweep never reached the session row held for it");
+      releaseShare();
+      await holding;
+      // The close, while the batch is still stalled on B's session, and held
+      // past the close's lock_timeout either way.
+      const started = Date.now();
+      await closer.begin(async (c) => {
+        await c.unsafe(`SET LOCAL lock_timeout = '2s'`);
+        await c.unsafe(
+          `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
+            WHERE s.identity = $1 ORDER BY v.session FOR UPDATE OF v`, [x.identityId]);
+      }).catch((e) => { closeError = String(e); });
+      const left = 2500 - (Date.now() - started);
+      if (left > 0) await new Promise((r) => setTimeout(r, left));
+    });
+    await swept;
+  } finally {
+    releaseShare();
+    await shareHolder.end();
+    await sessionHolder.end();
+    await closer.end();
+  }
+  assertEquals(closeError, "",
+    `a close of an identity the sweep left out waited on a share the stalled batch kept: ${closeError}`);
+  assertEquals(sweepError, "", `the sweep failed: ${sweepError}`);
+  assert((await identityRow(b.identityId)).closed_at, "the candidate the batch waited for was not closed");
+});
+
+// The keyset between batches (`after`). A batch full of identities the sweep
+// leaves alone — here every one of their shares is held — must not come back
+// as the whole of the next batch too, or an identity past them is never
+// reached. BATCH is a constant of the module and not lowered for the test, so
+// the case builds a full batch of held identities that sort first, and one
+// more that sorts last (2026-09-25).
+Deno.test({ name: "a full batch of identities the sweep leaves alone does not hide the ones after it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const held: string[] = [];
+  for (let i = 0; i < sweeper.BATCH; i++) {
+    held.push(`00000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}`);
+  }
+  await database.queryOrThrow(
+    `WITH i AS (
+       INSERT INTO identities (id, name, age, identity_public_key, signup_completed_at, created_at)
+       SELECT unnest($1::uuid[]), 'keyset-probe', 30, 'not-a-real-key', now(), now() - interval '400 days'
+       RETURNING id
+     ), s AS (
+       INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, last_seen_at)
+       SELECT gen_random_uuid(), id, 'k', 'k', now() - make_interval(days => $2) FROM i
+       RETURNING id
+     )
+     INSERT INTO vault_shares (session, auth_hash, share_enc) SELECT id, 'hash', '\\x09'::bytea FROM s`,
+    [held, sweeper.INACTIVE_DAYS + 5]);
+  const lastId = "ffffffff-ffff-4fff-bfff-ffffffffffff";
+  await database.queryOrThrow(
+    `INSERT INTO identities (id, name, age, identity_public_key, signup_completed_at, created_at)
+     VALUES ($1, 'keyset-probe', 30, 'not-a-real-key', now(), now() - interval '400 days')`, [lastId]);
+  await database.queryOrThrow(
+    `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, last_seen_at)
+     VALUES (gen_random_uuid(), $1, 'k', 'k', now() - make_interval(days => $2))`,
+    [lastId, sweeper.INACTIVE_DAYS + 5]);
+
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  try {
+    await holder.begin(async (tx) => {
+      await tx.unsafe(
+        `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
+          WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v`, [held]);
+      await sweeper.sweepIdentities();
+    });
+  } finally {
+    await holder.end();
+  }
+  const [heldOpen] = await database.queryOrThrow<{ n: string }>(
+    `SELECT count(*)::text AS n FROM identities WHERE id = ANY($1::uuid[]) AND closed_at IS NULL`, [held]);
+  const lastRow = await identityRow(lastId);
+  await database.queryOrThrow(`DELETE FROM identities WHERE name = 'keyset-probe'`);
+  assertEquals(heldOpen.n, String(sweeper.BATCH), "the sweep closed an identity whose shares were held");
+  assert(lastRow.closed_at, "an identity after a full batch of skipped ones was never reached");
 });

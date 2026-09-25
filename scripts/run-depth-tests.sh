@@ -15,7 +15,10 @@ image="denoland/deno:alpine-2.1.4"
 # Exact, not "16-alpine": a minor version that moves between runs is a test that
 # changes under nobody's hand (depth-core panel, 2026-09-21).
 pg_image="postgres:16.13-alpine"
-label="depth-test=1"
+# The label carries this run's PID: a shared "depth-test=1" let every start
+# sweep away the stand of a run going on in another worktree (26.09.2026).
+label_key="depth-test"
+label="$label_key=$$"
 # One module cache for all three Deno runs and every later one: without it each
 # run downloaded the node's and the tests' dependencies afresh.
 cache="-v depth-test-deno-cache:/deno-dir -e DENO_DIR=/deno-dir"
@@ -31,9 +34,15 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# Leftovers of a run killed hard (SIGKILL skips the trap): by label, not by name.
-docker ps -aq --filter "label=$label" | xargs -r docker rm -fv >/dev/null 2>&1 || true
-docker network ls -q --filter "label=$label" | xargs -r docker network rm >/dev/null 2>&1 || true
+# Leftovers of a run killed hard (SIGKILL skips the trap), and only those: a
+# run is alive while its PID is a process running this script. `ps`, not
+# `kill -0` — the latter fails with EPERM on a live run of another user; the
+# command line catches a reused PID and the old "depth-test=1" leftovers.
+alive() { ps -p "$1" -o args= 2>/dev/null | grep -q 'run-depth-tests\.sh'; }
+docker ps -a --filter "label=$label_key" --format "{{.ID}} {{.Label \"$label_key\"}}" |
+  while read -r id pid; do alive "$pid" || docker rm -fv "$id" >/dev/null 2>&1 || true; done
+docker network ls --filter "label=$label_key" --format "{{.ID}} {{.Label \"$label_key\"}}" |
+  while read -r id pid; do alive "$pid" || docker network rm "$id" >/dev/null 2>&1 || true; done
 
 docker network create --label "$label" "$network" >/dev/null
 docker run -d --label "$label" --name "$db" --network "$network" --network-alias postgres \

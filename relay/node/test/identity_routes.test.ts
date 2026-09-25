@@ -1958,6 +1958,29 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
     assert(pair4.every((a) => a.status < 500), `a PIN change against a close answered ${JSON.stringify(pair4.map((a) => a.status))}`);
     const state4 = await liveAfterClose(fourth.created.identity_id);
     assert(!state4.closed || state4.live === 0, `a closed identity kept a live session: ${JSON.stringify(state4)}`);
+
+    // The same device's claim against the tenth wrong PIN (claim.pin.guard; the
+    // verifier's probe, 2026-09-25): both start from the share since cec5329, so
+    // one waits for the other; before it they deadlocked every time.
+    const fifth = await registered();
+    await database.queryOrThrow(
+      `UPDATE vault_shares SET attempts_left = 1, next_attempt_at = NULL WHERE session = $1`, [fifth.created.session_id]);
+    const before5 = await deadlocks();
+    const pair5: { status: number }[] = [];
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [fifth.created.session_id]);
+      signedCall(fifth.pair.privateKey, fifth.created.session_id, "POST", "/recovery/claim", { lookup_id: fifth.lookupId })
+        .then((r) => (pair5[0] = r));
+      await new Promise((r) => setTimeout(r, 300));
+      signedCall(fifth.pair.privateKey, fifth.created.session_id, "POST", "/vault/share",
+        { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) }).then((r) => (pair5[1] = r));
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    for (let i = 0; i < 250 && (pair5[0] === undefined || pair5[1] === undefined); i++) {
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    assertEquals(await deadlocks(), before5,
+      `the same-device claim and the tenth wrong PIN deadlocked: ${JSON.stringify(pair5.map((a) => a?.status))}`);
   } finally {
     await sql.end(); misses.reset(); reset();
   }

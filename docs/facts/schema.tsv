@@ -43,7 +43,7 @@ api_keys	-	relay/node/db/001_control_state.sql	control
 blocks	docs/chat_RU.md:2404	relay/node/db/030_likes_matches_blocks.sql	product
 brands	-	relay/node/db/001_control_state.sql	control
 chat_games	docs/chat_RU.md:444	-	product
-chat_key_wraps	docs/chat_RU.md:2628	-	product
+chat_key_wraps	docs/chat_RU.md:2628	db/061	product
 chat_participants	docs/chat_RU.md:2198	relay/node/db/031_chats.sql	product
 chat_starters	docs/chat_RU.md:2213	relay/node/db/031_chats.sql	product
 chats	docs/chat_RU.md:2189	relay/node/db/031_chats.sql	product

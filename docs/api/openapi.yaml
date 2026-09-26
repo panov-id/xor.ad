@@ -2171,6 +2171,74 @@ paths:
         "409": {$ref: "#/components/responses/Conflict"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
+  /chats/{id}/keys:
+    put:
+      tags: [chat]
+      summary: Store the conversation's keys wrapped under this session's wrap key
+      x-summary-ru: Сохранить ключи беседы, завёрнутые под ключ этой сессии
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
+      security: [{identitySignature: []}]
+      description: "§8.13, built 2026-09-26 (db/061 chat_key_wraps). The client wraps both direction keys under its live session's wrap_public_key (depth/core/seal.ts: SPKI of a fresh ECDH pair ‖ nonce₁ ‖ AES-GCM box of K_low_high ‖ nonce₂ ‖ AES-GCM box of K_high_low, 211 bytes, each box under additional data \"xor.wrap.v1\\n<chat_id>\\n<epoch>\\n<direction>\\n\" so the boxes cannot be swapped) and hands the node the bytes; the node never reads them and returns them only to the session that wrote them. One wrap per (chat, session), written over. epoch must be the caller's side's chat_participants.key_epoch — otherwise 409 wrap_out_of_step {epoch} — so a wrap of keys the chat no longer uses is never stored. A chat closed by hand or by term, or reissued (rekey agreed), drops every wrap of the chat. Shares the chat budget (chat.messages.minute)."
+      x-description-ru: "§8.13, построено 26.09.2026 (db/061 chat_key_wraps). Клиент заворачивает оба ключа направления под wrap_public_key своей живой сессии (depth/core/seal.ts: SPKI свежей пары ECDH ‖ nonce₁ ‖ короб AES-GCM с K_low_high ‖ nonce₂ ‖ короб AES-GCM с K_high_low, 211 байт, каждый короб под дополнительными данными \"xor.wrap.v1\\n<chat_id>\\n<epoch>\\n<direction>\\n\", так что короба не переставить) и отдаёт узлу байты; узел их не читает и возвращает только той сессии, что записала. Одна свёртка на (беседа, сессия), пишется поверх. epoch обязан равняться chat_participants.key_epoch стороны звонящего — иначе 409 wrap_out_of_step {epoch}, — так что свёртка ключей, которыми беседа уже не пользуется, не сохраняется. Беседа, закрытая рукой или сроком либо перевыпущенная (rekey agreed), теряет все свои свёртки. Бюджет общий с беседой (chat.messages.minute)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [epoch, wrapped_key]
+              properties:
+                epoch: {type: integer, minimum: 0, description: "The epoch of the keys wrapped: the caller's side's current one.", x-description-ru: "Эпоха завёрнутых ключей: текущая у стороны звонящего."}
+                wrapped_key: {type: string, description: "The wrap, base64url, at most 1024 characters (768 bytes, db/061).", x-description-ru: "Свёртка, base64url, не длиннее 1024 знаков (768 байт, db/061)."}
+      responses:
+        "200":
+          description: "{epoch} — stored."
+          x-description-ru: "{epoch} — сохранено."
+          content: {application/json: {schema: {type: object, required: [epoch], properties: {epoch: {type: integer, minimum: 0}}}}}
+        "400": {description: "invalid_body: epoch or wrapped_key missing or malformed, or not base64url; or an unsupported protocol version.", x-description-ru: "invalid_body: нет или кривые epoch либо wrapped_key, не base64url; или неподдерживаемая версия протокола."}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {description: "Not the caller's chat, over, or blocked between the two.", x-description-ru: "Не беседа звонящего, кончилась или между двоими блок."}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+    get:
+      tags: [chat]
+      summary: Read this session's wrap of the conversation's keys
+      x-summary-ru: Прочитать свёртку ключей беседы этой сессии
+      x-status: built
+      x-source: relay/node/src/routes/chats.ts
+      security: [{identitySignature: []}]
+      description: "§8.13, built 2026-09-26. Only the caller's own session's wrap: a new device after a transfer or recovery has none (404 no_wrap {epoch}) and starts the reissue (POST /chats/{id}/rekey). current_epoch is what the caller's side holds now; a wrap whose epoch is below it holds keys that no longer open anything."
+      x-description-ru: "§8.13, построено 26.09.2026. Только свёртка собственной сессии звонящего: новое устройство после переноса или восстановления её не имеет (404 no_wrap {epoch}) и начинает перевыпуск (POST /chats/{id}/rekey). current_epoch — что сторона звонящего держит сейчас; свёртка с эпохой ниже хранит ключи, которые уже ничего не открывают."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200":
+          description: "{epoch, current_epoch, wrapped_key}."
+          x-description-ru: "{epoch, current_epoch, wrapped_key}."
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [epoch, current_epoch, wrapped_key]
+                properties:
+                  epoch: {type: integer, minimum: 0}
+                  current_epoch: {type: integer, minimum: 0}
+                  wrapped_key: {type: string}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {description: "not_found: not the caller's chat, over, or blocked; no_wrap {epoch}: the chat is the caller's but this session has written no wrap.", x-description-ru: "not_found: не беседа звонящего, кончилась или блок; no_wrap {epoch}: беседа своя, но эта сессия свёртку не писала."}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /chats/alive:
     post:
       tags: [chat]

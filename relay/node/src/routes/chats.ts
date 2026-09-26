@@ -21,6 +21,7 @@ import { checkAll, CHAT_MESSAGE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { TERM_PASSED } from "../lib/chat_sweeper.ts";
+import { dropWraps, readWrap, storeWrap, WRAPPED_KEY_MAX } from "../lib/chat_keys.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // limits.tsv chat.ciphertext.bytes: the base64url text, not the bytes under it —
@@ -56,6 +57,7 @@ async function send(req: Request, chatId: string): Promise<Response> {
     );
     if (ended.length > 0) {
       await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+      await dropWraps(run, chatId);
       await run(`SELECT pg_notify('chat_closed', $1)`, [chatId]);
       return refuse("not_found", "no such chat", 404);
     }
@@ -208,6 +210,9 @@ async function close(req: Request, chatId: string): Promise<Response> {
     if (member.n === 0) return refuse("not_found", "no such chat", 404);
     await run(`UPDATE chat_participants SET gone_at = now() WHERE chat_id = $1 AND gone_at IS NULL`, [chatId]);
     await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+    // The keys die with the chat, for both (§8.13): a wrap that outlived it
+    // would be the one thing able to bring them back.
+    await dropWraps(run, chatId);
     await run(`SELECT pg_notify('chat_closed', $1)`, [chatId]);
     inc("relay_chat_ended_total", { by: "hand" });
     return json({ state: "closed" }, 200, sunsetHeader());
@@ -362,7 +367,12 @@ async function rekey(req: Request, chatId: string): Promise<Response> {
     // Agreed: whatever waited under the old keys can never be opened by
     // anyone — the old keys are gone on both sides — so it goes now rather
     // than failing on each device that fetches it (rekey panel, 2026-09-22).
-    if (answering) await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+    if (answering) {
+      await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+      // The wraps held the old epoch's keys, which nothing restores: both sides
+      // wrap the new ones afresh (PUT /chats/:id/keys).
+      await dropWraps(run, chatId);
+    }
     // Every open room of the chat hears it, in the same transaction: the
     // other side learns of a request without waiting for its inbox.
     await run(`SELECT pg_notify('chat_rekey', $1)`, [`${chatId}:${epoch}`]);
@@ -375,6 +385,90 @@ async function rekey(req: Request, chatId: string): Promise<Response> {
   return answer;
 }
 
+// PUT /chats/:id/keys and GET /chats/:id/keys — the conversation's keys wrapped
+// under the caller's live session's wrap key (§8.13, db/061). The node stores
+// the bytes and hands them back to the session that wrote them; it never reads
+// them and never hands them to another session, not even the same identity's
+// next device — that one starts with an empty screen and asks for a reissue.
+//
+// A wrap names the epoch it was made at, and it must be the epoch the caller's
+// side holds now (chat_participants.key_epoch): a wrap of keys the chat no
+// longer uses is refused with 409 wrap_out_of_step rather than stored to fail
+// on every reload. A chat that is not the caller's, over, or blocked answers
+// the same 404 as the rest of this file; a GET with no wrap yet answers 404
+// no_wrap — the client then still has the keys in memory, or it does not and
+// starts the reissue.
+const MEMBER_ROW = `SELECT p.key_epoch FROM chat_participants p
+    JOIN chats c ON c.id = p.chat_id
+   WHERE p.chat_id = $1 AND p.identity = $2 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})
+     AND NOT EXISTS (
+       SELECT 1 FROM chat_participants other
+         JOIN blocks b ON (b.blocker_identity = p.identity AND b.blocked_identity = other.identity)
+                       OR (b.blocker_identity = other.identity AND b.blocked_identity = p.identity)
+        WHERE other.chat_id = p.chat_id AND other.identity <> p.identity)`;
+
+async function putKeys(req: Request, chatId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
+  const body = await readJson<{ epoch?: unknown; wrapped_key?: unknown }>(req);
+  const epoch = body?.epoch;
+  const wrapped = body?.wrapped_key;
+  if (typeof epoch !== "number" || !Number.isInteger(epoch) || epoch < 0 || epoch > 1_000_000 ||
+      typeof wrapped !== "string" || wrapped.length === 0 || wrapped.length > WRAPPED_KEY_MAX) {
+    return refuse("invalid_body", `a wrap carries epoch and wrapped_key, base64url of at most ${WRAPPED_KEY_MAX} characters`, 400);
+  }
+  const bytes = base64urlToBytes(wrapped);
+  if (!bytes) return refuse("invalid_body", "wrapped_key is not base64url", 400);
+  const answer = await transaction<Response>(async (run) => {
+    const [me] = await run<{ key_epoch: number }>(MEMBER_ROW, [chatId, caller.identityId]);
+    if (!me) return refuse("not_found", "no such chat", 404);
+    // After membership: a stranger must not learn a chat exists from a 429
+    // (SEC-22); the budget is the chat's, as for tickets and reissues.
+    const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many chat actions this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+    if (epoch !== me.key_epoch) {
+      return refuse("wrap_out_of_step", `this side's keys are at epoch ${me.key_epoch}`, 409, { epoch: me.key_epoch });
+    }
+    await storeWrap(run, chatId, caller.sessionId, epoch, bytes);
+    return json({ epoch }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "key wrap store failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return answer;
+}
+
+async function getKeys(req: Request, chatId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(chatId)) return refuse("not_found", "no such chat", 404);
+  const answer = await transaction<Response>(async (run) => {
+    const [me] = await run<{ key_epoch: number }>(MEMBER_ROW, [chatId, caller.identityId]);
+    if (!me) return refuse("not_found", "no such chat", 404);
+    // After membership, as the PUT: the same chat budget, and no 429 to a stranger.
+    const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many chat actions this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+    const wrap = await readWrap(run, chatId, caller.sessionId);
+    if (!wrap) return refuse("no_wrap", "this session has no wrap of this chat's keys", 404, { epoch: me.key_epoch });
+    return json({ epoch: wrap.key_epoch, current_epoch: me.key_epoch, wrapped_key: bytesToBase64url(wrap.wrapped_key) }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "key wrap read failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot answer right now", 503);
+  });
+  return answer;
+}
+
+route("PUT", "/chats/:id/keys", (c) => putKeys(c.req, c.params.id));
+route("GET", "/chats/:id/keys", (c) => getKeys(c.req, c.params.id));
 route("POST", "/chats/:id/rekey", (c) => rekey(c.req, c.params.id));
 route("POST", "/chats/alive", (c) => alive(c.req));
 route("PATCH", "/chats/:id", (c) => span(c.req, c.params.id));

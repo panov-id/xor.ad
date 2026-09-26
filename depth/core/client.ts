@@ -211,7 +211,7 @@ export class Client {
       privateKey,
       publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", long.publicKey))),
     };
-    const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+    const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits", "deriveKey"]) as CryptoKeyPair; // deriveKey too (P2, 2026-09-26): seal.ts wraps the chat keys key to key, so the shared secret never becomes bytes; deriveBits stays for transfer.ts openReply
     const answer = await this.#call<{ identity_id: string; session_id: string }>("POST", "/identities", {
       sign_pub: key.publicSpki,
       wrap_pub: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", wrap.publicKey))),

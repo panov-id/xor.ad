@@ -22,7 +22,12 @@ emit() {  # emit <источник> <файл> <строка> <текст>
 }
 
 [ "$tsv" = 1 ] && printf 'source\tfile\tline\ttext\n'
-for file in docs/open-work_RU.md docs/dsa/CHECKLIST_RU.md docs/review-checklist_RU.md; do
+# The registry itself, since 2026-09-26: open-work is retired into docs/archive/,
+# and what it used to hold as checkboxes lives here one row per item.
+while IFS=$'\t' read -r number id what; do
+  emit "реестр" "docs/facts/open.tsv" "$number" "$id — $(printf '%s' "$what" | cut -c1-110)"
+done < <(awk -F'\t' '!/^#/ && $1 != "id" {print FNR"\t"$1"\t"$5}' "$root/docs/facts/open.tsv")
+for file in docs/dsa/CHECKLIST_RU.md docs/review-checklist_RU.md; do
   [ -f "$root/$file" ] || continue
   while IFS=: read -r number text; do
     emit "чекбокс" "$file" "$number" "$(printf '%s' "$text" | sed 's/^- \[ \] //' | cut -c1-120)"

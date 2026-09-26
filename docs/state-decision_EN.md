@@ -7,8 +7,8 @@ workarounds already in the code.
 
 ## The question is narrower than it sounds
 
-The earlier reviews (`backend-alternatives_EN.md`,
-`backend-portable-bunny_EN.md`) answered "where should the whole backend live"
+The earlier reviews (`archive/backend-alternatives_EN.md`,
+`archive/backend-portable-bunny_EN.md`) answered "where should the whole backend live"
 and led to where we are: stateless nodes, data in object storage, no vendor in
 the critical path. That decision has held and **does not need revisiting**.
 

@@ -100,7 +100,7 @@ waitlist → fs-storage + перехват в Mailpit + дедуп). CI гоня
   ключ — используй ключ с passphrase.
 - **TLS:** DNS-01 через Bunny — cert выпускается при закрытых портах.
 - Модель угроз чата (недоверенные community-релеи → E2E) — см.
-  `../docs/chat-decentralized-ideas_RU.md`.
+  `../docs/archive/chat-decentralized-ideas_RU.md`.
 
 ## Статус
 

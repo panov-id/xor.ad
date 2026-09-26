@@ -142,23 +142,50 @@
 #                               документы, дизайн витрин, стол и игры (шаг 8 без
 #                               уведомлений), ворота и процесс. Не делается, пока у
 #                               продукта нет людей; вес и срок строк не менялись.
+#
+# 27.09.2026 (R1, после волн 1–2): девять пунктов блока «продукт» закрыты влитым в day58
+# кодом; каждый — с местом и тестом, который его держит.
+#   J19 — экран подтверждения переноса с контекстом построен: depth/ink/move.ts MoveConfirm
+#     (B2, 2a0fcb8); тест «the move shows its price before the PIN, then the code, and the
+#     confirmation says who, when and the check» (screens.node-test.ts).
+#   chat.queue.ceiling — очередь до согласия живёт в ядре (depth/core/pending.ts, PENDING_MAX = 200,
+#     client.queueLine/flushQueued) и на экране ждущей беседы (P9, ac652ba); тесты «what is typed
+#     while the second has not agreed waits on the device…» и «past the ceiling the oldest waiting
+#     line goes without a word…» (screens.node-test.ts).
+#   feed.density.people — ступень считает людей с живой фразой, не фразы (P7, c1e52d9, routes/feed.ts);
+#     тест «density counts people with a live phrase, not phrases: three authors with four each are few»
+#     (feed_publish.test.ts).
+#   depth.lock — замок через 5 минут простоя и отпирание через POST /vault/share построены (P4, 5828442;
+#     depth/core/lock.ts IDLE_MS, depth/ink/screens/lock.ts; замок ставится только там, где ПИН его
+#     откроет — a9ad427). Оговорка записана здесь, а не пунктом: печать частичная — при запирании
+#     сбрасываются ссылки на ключи, а не байты (ключи WebCrypto non-extractable, стирать нечего);
+#     тупик «замок до первого ПИНа» закрыт a9ad427.
+#   depth.restore — restore, новый бумажный код (B1: 89151a6, 6f760df, e199be6) и move в обе стороны
+#     (B2: 2a0fcb8) построены; отдельной команды depth device нет и не будет: перенос — пункт «я»
+#     (тест «'me' offers the move», screens.node-test.ts). Пункт сужен до нуля.
+#   depth.reissue.lostreply — повтор перевыпуска после потери ответа доводится до конца (B13,
+#     depth/core/recovery.ts settle): тесты «a reissue whose answer is lost twice leaves the device
+#     under the new code, not the old» и «…settled after its nonce was swept still ends under the new
+#     code» (recovery.test.ts).
+#   depth.pin.forgot.samedevice — подъём кодом на том же устройстве предлагает оставить ПИН или задать
+#     новый по гранту (P6, 3246781, 730b8b4; depth/ink/screens/restore.ts): тесты «the code used on this
+#     device leads to the choice, and a forgotten PIN goes to /vault/init before the new code» и «the PIN
+#     kept, the device goes straight on…» (screens.node-test.ts).
+#   DSA-reasons-no-mail — мотивировка по ст. 17 адресуется автору фразы самим узлом и читается в
+#     приложении GET /statements (P8, d9b928c; routes/dsa.ts decide, routes/statements.ts): тест «an upheld
+#     notice about a phrase is addressed to its author by the node, and the phrase leaves the feed»
+#     (dsa_decision_feed.test.ts); depth читает их с 22.09.2026 (client.statements).
+#   design.nearby.live — строка шапки ленты веб-лица объявляется диктору: aria-live="polite" и правило
+#     частоты ANNOUNCE_MS = 4000 (W5, 70eb64a; web/src/a11y/nearby.ts announce); e2e «the header's live
+#     step reaches a polite region once per change, and the screens pass axe» (web/e2e/specs/a11y.spec.ts).
 id	opened	due	weight	what	blocks	where	anchor	stops
 # ── продукт ──
-J19	2026-08-21	-	product	Модель личности: код шага 1 построен 20.09.2026, перенос и перевыпуск ключа беседы — тоже (сверено 24.09.2026); остался экран подтверждения переноса с контекстом в клиенте	chat	docs/archive/open-work_RU.md:1858	**J19. Модель личности: спека переписана, код построен, перенос остался.**	публикацию
 product.tables.unmigrated	2026-08-31	-	product	9 таблиц продукта объявлены спеками и не мигрированы: 8 в спеке чата, 1 в спеке офферов (24.09.2026: advertisers, venues, offers — relay/node/db/050_offers.sql; 22.09.2026: support_requests — relay/node/db/039_support_requests.sql; 21.09.2026: hidden_messages — relay/node/db/034_hidden_messages.sql; pending_deliveries — relay/node/db/032_pending_deliveries.sql; chats, chat_participants, chat_starters — relay/node/db/031_chats.sql; feed_messages и identity_stats — relay/node/db/025_feed_and_stats.sql, likes, matches, match_participants, blocks — relay/node/db/030_likes_matches_blocks.sql). Шесть первых мигрированы 20.09.2026 шагом 1 (identities, sessions, vault_shares, nonces, legal_acceptances, identity_appearance — relay/node/db/022_identity_and_sessions.sql); до того их было 30 и продукт не был начат вовсе. Счёт ведёт check-facts-schema.sh по docs/facts/schema.tsv: строка с прочерком в колонке миграции — таблица на бумаге	chat	docs/facts/schema.tsv		публикацию
 G9	2026-08-12	-	product	Ключ для нативного клиента: три подпункта из пяти (пересчитано 25.09.2026: пределы по личности построены вместе с личностью); открыты бренд depth с первым native-ключом и ротация перекрытием	depth	docs/archive/open-work_RU.md:1267	**G9. Ключ для нативного клиента — три подпункта из пяти	публикацию
 moderation.model	2026-08-24	-	product	Какая модель модерации: решается замером, а не спором (§8.14)	chat	docs/archive/open-work_RU.md:1854	модель модерации (§8.14 — «замер, а не спор», и сама спека	код
 moderation.queue.throughput	2026-08-24	-	product	Пропускная способность очереди модерации (§8.3)	chat	docs/archive/open-work_RU.md:1855	в день, когда очередь появится) и пропускная способность	публикацию
 moderation.queue.wait.unbuilt	2026-09-16	с запуском	product	Предел ожидания вердикта построен 21.09.2026: sweepStaleQueue() с QUEUE_WAIT_MINUTES = 10 в relay/node/src/lib/feed_verdict.ts, задача SWEEP_FEED_QUEUE, тесты в feed_publish.test.ts. Открытым остаётся то, ради чего очередь заведена: модели-модератора нет; с 22.09.2026 publishPhrase() зовёт человек со страницы очереди панели (routes/feed_queue.ts), подметальщик только удаляет, поэтому без дежурного модератора штатный исход всякой фразы — удаление непрочитанной (§8.14 не подключён; тревога FeedPublishesNothing существует, чтобы это не спуталось с поломкой)	chat	docs/facts/limits.tsv		публикацию
 business.profile.retention	2026-09-24	с запуском	legal	Удаление профиля бизнеса через год после последнего оффера и ключевой хеш адреса систематически приостановленного заведения построены 25.09.2026 (sweep_advertisers, db/056); открыто: верификация по адресу с таким хешем в этот год не проходит — верификации заведений в коде нет, и причину приостановки (systematic / not_us) пока никто не ставит	dsa	docs/facts/limits.tsv		публикацию
-chat.queue.ceiling	2026-09-18	с запуском	product	Очередь до согласия живёт только на устройстве первого (решение владельца 18.09.2026, chat_RU §8.5): узел до согласия не принимает ни реплик, ни факта очереди, и делать на нём нечего (сверено 25.09.2026). Потолок chat.pending.max и смерть очереди вместе с мэтчем — обязанность клиента; в depth ждущей беседы с очередью пока нет; в depth ядро построено 26.09.2026 (depth/core/pending.ts, client.queueLine и flushQueued, B16), экран — открыт	depth	xor.ad/docs/chat_RU.md:2133	**Беседа открывается у первого нажавшего сразу и ждёт второго — решение владельца 18.09.2026:	код
-design.nearby.live	2026-09-19	с запуском	product	Живая ступень «рядом десятки» в шапке ленты меняется без перезагрузки, а диктору об этом никто не скажет: нужен aria-live=polite на строке шапки и правило, как часто объявлять (панель доступности 19.09.2026)	design	xor.ad/docs/design-system-app_RU.md:167	| Шапка ленты | «Колонаки · рядом десятки» вместо логотипа	код
-feed.density.people	2026-09-25	с запуском	product	Ступень плотности считает фразы, а не людей (feed.ts, до 4 живых фраз на личность): 3 человека по 4 фразы дают about_ten, а шапка витрины говорит «рядом мало людей» (verifier 25.09.2026). Решить: считать различные личности или переписать подпись ступени	chat	relay/node/src/routes/feed.ts		код
-depth.lock	2026-09-26	-	product	Замок depth через 5 минут простоя и отпирание через POST /vault/share не построены: без тома (решение 22.09.2026) отпирать нечего, завёрнутой копии ключей в памяти нет — ждёт решения по тому или по копии в памяти	depth	docs/depth-client_RU.md:162	**Через 5 минут без ввода клиент запирается	ничего
-depth.restore	2026-09-26	-	product	depth restore, новый бумажный код (B1) и depth move в обе стороны (B2) построены 26.09.2026; нет отдельной команды depth device — код переноса отсюда даёт пункт «я»	depth	docs/depth-client_RU.md:243	| `depth device` | эта сессия и код для переноса	ничего
-depth.reissue.lostreply	2026-09-26	-	product	Двойная потеря ответа на перевыпуск кода (повтор с новым nonce после смены кода на узле) оставляет устройство с устаревшей обёрткой долгого ключа до конца процесса (verifier B1)	depth	depth/core/recovery.ts		ничего
-depth.pin.forgot.samedevice	2026-09-26	-	product	Забытый ПИН на том же устройстве: подъём кодом не предлагает новый ПИН по гранту, хотя §8.2 это разрешает (verifier B1)	depth	depth/ink/app.ts		ничего
-DSA-reasons-no-mail	2026-08-26	с запуском	legal	Показ мотивировки в приложении, когда почты автора нет	dsa	docs/dsa/CHECKLIST_RU.md:121	**Показ мотивировки в приложении, когда почты автора нет	публикацию
 # ── отложено до пользователей ──
 offer.match.settle.retry	2026-09-26	с запуском	product	Мэтч от оффера под ждущим именем: settleAfterVerdict идёт после коммита вердикта без повтора — падение процесса между коммитом и settle (или ошибка в catch feed_verdict.ts) оставляет лайк мёртвым до истечения оффера; задачи в jobs нет (verifier P5)	chat	docs/roadmap_RU.md:155	| Офферы (вне §13) | [~] `db/050`: `advertisers`, `venues`, `offers`; `GET /o/:c	ничего
 offer.match.authorname	2026-09-26	с запуском	product	Лайк на оффер, пока имя автора ждёт вердикта, остаётся liked навсегда: settleOfferLikes ищет лайки самого автора (offer_match.ts liker_identity = автор), а не лайки на его офферы; принятие имени автора мэтча не рождает (verifier P5)	chat	docs/roadmap_RU.md:155	| Офферы (вне §13) | [~] `db/050`: `advertisers`, `venues`, `offers`; `GET /o/:c	ничего
@@ -184,7 +211,7 @@ landing.mockup.texts	2026-08-18	-	comfort	Тексты в мокапах зах�
 refusal.texts.readaloud	2026-08-26	-	product	Формулировки отказов не приняты, пока их не прочитали вслух	dsa	docs/refusal-wordings_RU.md:223	**Тексты приняты не будут, пока их не прочитали вслух.**	публикацию
 pool.image.unreported	2026-09-01	-	product	Прод и staging не сообщают свой образ: поле image в /health добавлено 31.08.2026 (599ff11), а обе среды на v2026.8.14-gc3d10fb, который старше него. Пока это так, check-node-images.sh проверяет одну среду из трёх, и вопрос «что на проде» отвечается только человеком. Прод 11.09.2026 выкачен на v2026.9.11-g8f89e7a и называет сборку в /health — для прода закрыто, остаётся staging	prod	scripts/check-node-images.sh:20	узел, который не сообщает свой образ, — не провал: сегодня	ничего
 dsa.article18.route	2026-09-08	сейчас	legal	Сообщение в органы по ст. 18: запись dsa_notice.escalated в аудите построена (relay/node/src/routes/dsa.ts, POST /admin/dsa-notices/:id/escalate, сверено 24.09.2026); открыто — адресат (Cybercrime Subdivision полиции Кипра) не подтверждён обращением	dsa	docs/dsa/SPEC_RU.md:276	Что записывается у нас	публикацию
-dsa.conduit.or.hosting	2026-09-12	сейчас	legal	После решения от 12.09.2026 узел держит недоставленный шифротекст до доставки или конца беседы. Транзит это или хостинг — вывод не юриста, и он нужен до запуска	dsa	docs/chat_RU.md:2354	**Очередь недоставленного.**	публикацию
+dsa.conduit.or.hosting	2026-09-12	сейчас	legal	После решения от 12.09.2026 узел держит недоставленный шифротекст до доставки или конца беседы. Транзит это или хостинг — вывод не юриста, и он нужен до запуска	dsa	docs/chat_RU.md:2356	**Очередь недоставленного.**	публикацию
 watchdogs.unbuilt	2026-09-15	-	product	С1 и С2 построены 23.09.2026; у С2 нет резервного транспорта — письмо об исчерпанных повторах и ночная копия идут тем же основным, что мог отказать (см. mail.fallback.transport)	dsa	docs/watchdogs_RU.md:186	С2 построен без резервного транспорта	публикацию
 node.external.pinger	2026-09-15	-	product	Внешний пингер узла не выбран: о падении узнают, зайдя посмотреть; выбор сервиса требует аккаунта	prod	docs/watchdogs_RU.md:187	Сервис внешнего пингера не выбран	публикацию
 mail.fallback.transport	2026-09-23	-	product	Резервного почтового транспорта нет: эскалация С1 идёт тем же Resend, что мог отказать; нужен второй аккаунт — действие владельца	dsa	docs/watchdogs_RU.md:194	С1: резервного транспорта для эскалации нет	публикацию

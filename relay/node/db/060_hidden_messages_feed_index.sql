@@ -1,0 +1,21 @@
+-- An index the cascade from feed_messages into hidden_messages can use (review
+-- panel 3, D3, B60, 2026-09-26).
+--
+-- db/034 gave hidden_messages.feed_message_id ON DELETE CASCADE and indexed it
+-- only as the second column of UNIQUE (identity, feed_message_id), which a
+-- lookup by the phrase alone cannot use. So every phrase the expiry sweep
+-- deletes (lib/feed_verdict.ts, sweepExpiredPhrases, 2000 a batch) read the
+-- whole table to find the rows hiding it.
+--
+-- Measured in postgres:16.13-alpine, every migration applied, 110 000 rows in
+-- hidden_messages (five per phrase over 22 000 phrases), one sweep batch of
+-- 2000 expired phrases under EXPLAIN ANALYZE, two runs each:
+--   without this index  the cascade trigger 26 983 / 24 405 ms, the statement
+--                       27 129 / 24 532 ms — past the node's 15 s statement
+--                       timeout (lib/db.ts), so the batch would not finish
+--   with it             the cascade trigger 77 / 87 ms, the statement
+--                       111 / 128 ms
+-- The partial form holds only the rows that hide a phrase; the rows that hide
+-- a table line (table_line_id) have no parent to cascade from yet.
+CREATE INDEX IF NOT EXISTS hidden_messages_feed ON hidden_messages (feed_message_id)
+  WHERE feed_message_id IS NOT NULL;

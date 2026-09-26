@@ -913,3 +913,50 @@ Deno.test({ name: `a close and a claim from ${from} over a PIN-locked sibling qu
   }
 });
 }
+
+// claim.miss.shared / claim.miss.pause (chat spec §8.2, SEC-4): fifty wrong
+// transfer codes across the node in an hour, then fifteen minutes in which a
+// genuine code waits too. Nothing guarded it: `if (TRANSFER.countMiss())` in
+// claimInvite could become `if (false)` with the whole suite green (d1 on
+// B30; B41, 2026-09-26). The same shape as the paper code's case in
+// identity_routes.test.ts ("fifty wrong codes across the node…"), and each
+// call from an address of its own, so the per-address ceiling is not what is
+// measured.
+// The sanitizers off as on the race cases above it: their second connections
+// leave socket reads that finish in whichever test runs next, and the full run
+// blamed this one for two op_read it never started.
+Deno.test({ name: "fifty wrong transfer codes across the node pause code entry for everyone, and it opens again after", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const misses = await import("../src/lib/recovery_misses.ts");
+  misses.reset();
+  try {
+    // An honest move, its window opened before the flood.
+    const old = await device_with_identity();
+    const lookupId = lookup();
+    assertEquals((await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite",
+      { lookup_id: lookupId, ...proof(PIN) })).status, 200);
+
+    for (let i = 0; i < misses.TRANSFER.max - 1; i++) {
+      const missed = await call("POST", "/sessions/claim", { body: { lookup_id: lookup(), envelope: envelope() } });
+      assertEquals(missed.status, 404, `code entry paused after ${i + 1} misses`);
+    }
+    const last = await call("POST", "/sessions/claim", { body: { lookup_id: lookup(), envelope: envelope() } });
+    assertEquals(last.status, 404, "the fiftieth miss was not answered as a miss");
+
+    // The price §8.2 names: while the brake is on, a genuine code waits too.
+    const honest = await call("POST", "/sessions/claim", { body: { lookup_id: lookupId, envelope: envelope() } });
+    assertEquals(honest.status, 429, `fifty misses did not pause code entry: ${JSON.stringify(honest.body)}`);
+    assertEquals((honest.body as { error: { code: string } }).error.code, "rate_limited");
+    const retry = Number(honest.headers.get("retry-after"));
+    assert(retry > 0 && retry <= 15 * 60, `retry-after was ${retry}, not the fifteen-minute pause`);
+    // Separate counters on purpose (recovery_misses.ts): a flood of transfer
+    // codes must not close the paper code, which may be how somebody gets in.
+    assertEquals(misses.RECOVERY.pausedFor(), 0, "transfer misses paused the paper code's route too");
+
+    // The fifteen minutes over: the same genuine code goes through.
+    misses.TRANSFER.reset();
+    const after = await call("POST", "/sessions/claim", { body: { lookup_id: lookupId, envelope: envelope() } });
+    assertEquals(after.status, 200, `the genuine code after the pause: ${JSON.stringify(after.body)}`);
+  } finally {
+    misses.reset();
+  }
+});

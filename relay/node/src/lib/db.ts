@@ -143,18 +143,58 @@ export async function queryOrThrow<T>(text: string, args: unknown[] = []): Promi
 // one connection — a caller reaching for the module's own would silently be on a
 // different connection, outside the transaction, which is the classic way to
 // write a transaction that is not one.
-export async function transaction<T>(
-  run: (query: <R>(text: string, args?: unknown[]) => Promise<R[]>) => Promise<T>,
-): Promise<T> {
+export type Query = <R>(text: string, args?: unknown[]) => Promise<R[]>;
+
+// What a test puts between a transaction and its statements: every statement
+// goes through it, and `next` sends it on.
+export type Around = <R>(text: string, args: unknown[], next: Query) => Promise<R[]>;
+
+// The postgres.js scope behind each query function a transaction hands out,
+// so savepoint() below can open a savepoint on it, and the test's Around, so a
+// savepoint's statements go through it too.
+const scopes = new WeakMap<Query, { scope: Sql; around?: Around }>();
+
+function queryOn(scope: Sql, around?: Around): Query {
+  const plain: Query = <R>(text: string, args: unknown[] = []) => scope.unsafe(text, args) as Promise<R[]>;
+  const query: Query = around ? <R>(text: string, args: unknown[] = []) => around<R>(text, args, plain) : plain;
+  scopes.set(query, { scope, around });
+  return query;
+}
+
+// For tests: the transaction's own query function, with every statement —
+// those of its savepoints too — handed to `around` first. A plain wrapper
+// function is not a transaction's, and savepoint() refuses it.
+export function intercepted(run: Query, around: Around): Query {
+  const known = scopes.get(run);
+  if (!known) throw new Error("intercepted() takes the query function of a transaction() or of a savepoint()");
+  return queryOn(known.scope, around);
+}
+
+export async function transaction<T>(run: (query: Query) => Promise<T>): Promise<T> {
   if (!enabled()) throw new Error("DATABASE_URL is not set");
   // `sql.begin` owns BEGIN, COMMIT and ROLLBACK: the callback's return value
   // commits, a throw rolls back and is re-thrown. The hand-written version this
   // replaced logged a failed rollback separately, which postgres.js does for
   // itself — what it must not lose is that the *first* error is the one the
   // caller sees, and it does not.
-  return await ensurePool().begin(async (tx: Sql) => {
-    return await run(<R>(text: string, args: unknown[] = []) => tx.unsafe(text, args) as Promise<R[]>);
-  }) as T;
+  return await ensurePool().begin(async (tx: Sql) => await run(queryOn(tx))) as T;
+}
+
+// A step that may go back alone, inside a transaction: its statements run on a
+// savepoint, a throw from it rolls back to the savepoint and is re-thrown, and
+// the transaction goes on if the caller catches it.
+//
+// Through postgres.js's own savepoint, never a hand-written SAVEPOINT: once
+// any statement inside sql.begin has failed, postgres.js rejects the whole
+// begin — a failure caught and rolled back to a raw SAVEPOINT included — and
+// nothing commits. Measured in a throwaway postgres:16 (B69, 2026-09-26): a
+// caught 55P03 and ROLLBACK TO SAVEPOINT, "begin rejected, rows committed = []";
+// the same through tx.savepoint, "begin resolved, [1,2]". The tenth PIN miss
+// was rolled back whole that way while its savepoint said it could not be.
+export async function savepoint<T>(run: Query, step: (run: Query) => Promise<T>): Promise<T> {
+  const known = scopes.get(run);
+  if (!known) throw new Error("savepoint() takes the query function of a transaction() or of a savepoint()");
+  return await known.scope.savepoint(async (inner: Sql) => await step(queryOn(inner, known.around))) as T;
 }
 
 // LISTEN on the pool's own connection (postgres.js keeps one aside for it).

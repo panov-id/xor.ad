@@ -10,7 +10,7 @@
 // take-back use (likes.ts), and throws TakeDownRetry when a like on a new
 // author raced it; the caller starts the whole transaction again.
 
-import { queryOrThrow, transaction } from "./db.ts";
+import { queryOrThrow, savepoint, transaction } from "./db.ts";
 import { log } from "./log.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 
@@ -31,16 +31,29 @@ export class TakeDownRetry extends Error {}
 // from that same identity is what raises TakeDownRetry — so they could keep
 // the take-down failing and get a tenth attempt without the lock, again and
 // again (coordinator, after the observer's reading, B51, 2026-09-26).
+//
+// And the same for what the take-down waits on: its own two-second lock
+// timeout on the counters (55P03), the statement timeout (57014), a deadlock
+// against a consent to a match that takes the counters first and the session
+// after (40P01). Each of them let out took the tenth miss back whole, attempt
+// and lock and freeze, and the PIN could be tried again as often as the lock
+// could be made to time out (review panel 4, B70). A deadlock is tried again,
+// as a race is; a timeout is not — the second try would wait on the same row
+// for as long — and the minute's job finishes it.
+//
+// On lib/db.ts savepoint(): a raw SAVEPOINT holds a JavaScript throw, but not
+// a failed statement — postgres.js rejects the whole transaction once one
+// failed, rolled back to the savepoint or not (B69).
 export async function takeDownLiveInPlace(run: Run, me: string): Promise<boolean> {
   for (let attempt = 0; attempt < 3; attempt++) {
-    await run(`SAVEPOINT take_down`);
     try {
-      await takeDownLive(run, me);
-      await run(`RELEASE SAVEPOINT take_down`);
+      await savepoint(run, (inner) => takeDownLive(inner, me));
       return true;
     } catch (error) {
-      if (!(error instanceof TakeDownRetry)) throw error;
-      await run(`ROLLBACK TO SAVEPOINT take_down`);
+      const code = (error as { code?: string })?.code;
+      if (error instanceof TakeDownRetry || code === "40P01") continue;
+      if (code === "55P03" || code === "57014") return false;
+      throw error;
     }
   }
   return false;
@@ -101,9 +114,16 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
         done++;
         break;
       } catch (error) {
-        const again = error instanceof TakeDownRetry || (error as { code?: string })?.code === "40P01";
-        if (!again) throw error;
-        if (attempt === 2) log("warn", "a take-down left by the PIN limit waits for the next minute", { identity: id });
+        const code = (error as { code?: string })?.code;
+        // A lock that timed out is not waited on again this minute, and one
+        // identity's lock does not take the rest of the pass with it (B70).
+        const timedOut = code === "55P03" || code === "57014";
+        const again = error instanceof TakeDownRetry || code === "40P01";
+        if (!again && !timedOut) throw error;
+        if (timedOut || attempt === 2) {
+          log("warn", "a take-down left by the PIN limit waits for the next minute", { identity: id });
+          break;
+        }
       }
     }
   }

@@ -14,6 +14,7 @@
 //
 // Two routes copying one rule is how the rule dies. This is the rule.
 
+import { savepoint } from "./db.ts";
 import { refuse } from "./identity_guard.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 import { takeDownLiveInPlace } from "./take_down.ts";
@@ -119,18 +120,20 @@ export async function checkPin(
       //
       // Its freeze is noted apart and handed on only once the savepoint is
       // released: rolled back to it, the freeze did not happen (B64).
+      //
+      // Through lib/db.ts savepoint(): the raw SAVEPOINT this was written with
+      // first could not do it — postgres.js rejected the whole transaction
+      // once the freeze had failed, and the tenth miss went back with it all
+      // the same (B69, B70).
       let frozen = false;
       const mine = new Freezes();
-      await run(`SAVEPOINT pin_limit_freeze`);
       try {
-        await freezeSession(run, sessionId, "pin_limit", mine);
-        await run(`RELEASE SAVEPOINT pin_limit_freeze`);
+        await savepoint(run, (inner) => freezeSession(inner, sessionId, "pin_limit", mine));
         freezes.take(mine);
         frozen = true;
       } catch (error) {
         const code = (error as { code?: string })?.code;
         if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
-        await run(`ROLLBACK TO SAVEPOINT pin_limit_freeze`);
       }
       // And what is live comes down with it, as a time away takes it: the
       // phrases, waiting ones too, the likes one gave, the matches (chat_RU.md

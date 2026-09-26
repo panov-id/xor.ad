@@ -275,23 +275,60 @@ export interface Verdict {
 // tolerate. Only the bucket's name: the address itself — logged, compared on
 // the admin sign-in — stays whole. The key is an address, or an address and
 // `|<suffix>` (callerBucket, offer links), or an identity id, or a mailbox; only
-// a leading part that parses as IPv6 is folded. IPv4 and IPv4-mapped IPv6
-// (a dot in it) stay as they are. Boundary: a host with several /64s — a /48
-// from a cloud — still has one bucket per /64, the cost of a few IPv4
-// addresses, which the claim ceiling's own comment already prices.
+// a leading part that parses as an address is touched. Boundary: a host with
+// several /64s — a /48 from a cloud — still has one bucket per /64, the cost
+// of a few IPv4 addresses, which the claim ceiling's own comment already prices.
+//
+// One host, one bucket, however a header spells it (B92, B99): an IPv4 host is
+// its dotted address — trimmed, without leading zeros, and out of IPv6 when it
+// rides there mapped, translated, compatible or through NAT64, dotted or in
+// hex. B92 kept mapped and compatible whole in their own spelling, a bucket per
+// spelling of one host; translated and NAT64 in hex fell to the /64 rule and
+// shared 0:0:0:0 or 64:ff9b:0:0 with every IPv4 host written that way.
 export function bucketAddress(address: string): string {
   const cut = address.indexOf("|");
   const head = cut === -1 ? address : address.slice(0, cut);
-  const prefix = prefix64(head);
-  return prefix === null ? address : prefix + (cut === -1 ? "" : address.slice(cut));
+  const host = hostKey(head);
+  return host === null ? address : host + (cut === -1 ? "" : address.slice(cut));
 }
 
-function prefix64(text: string): string | null {
+// The bucket of one address: dotted IPv4, or an IPv6 /64 as "a:b:c:d::/64";
+// null when the text is no address, and it is then its own key.
+function hostKey(text: string): string | null {
   let s = text.trim().toLowerCase();
   if (s.startsWith("[") && s.endsWith("]")) s = s.slice(1, -1);
   const zone = s.indexOf("%");
   if (zone !== -1) s = s.slice(0, zone);
-  if (!s.includes(":") || !/^[0-9a-f:]+$/.test(s)) return null;
+  const v4 = dotted(s);
+  if (v4 !== null) return v4.join(".");
+  const value = ipv6(s);
+  if (value === null) return null;
+  const inside = embeddedIPv4(value);
+  if (inside !== null) return inside;
+  return `${value.slice(0, 4).map((v) => v.toString(16)).join(":")}::/64`;
+}
+
+// Four decimal octets, leading zeros read as decimal: for a bucket the only
+// question is which host, and "010" in a header means ten, not eight.
+function dotted(s: string): number[] | null {
+  const parts = s.split(".");
+  if (parts.length !== 4 || parts.some((p) => !/^[0-9]{1,3}$/.test(p))) return null;
+  const octets = parts.map(Number);
+  return octets.every((o) => o <= 255) ? octets : null;
+}
+
+// Eight 16-bit groups, "::" expanded wherever it stands (RFC 4291 §2.2), a
+// dotted IPv4 tail read as the last two (§2.2, form 3).
+function ipv6(s: string): number[] | null {
+  if (!s.includes(":")) return null;
+  const lastColon = s.lastIndexOf(":");
+  if (s.slice(lastColon + 1).includes(".")) {
+    // The dotted tail as the two groups it stands for, then parsed as hex.
+    const four = dotted(s.slice(lastColon + 1));
+    if (four === null) return null;
+    s = `${s.slice(0, lastColon + 1)}${((four[0] << 8) | four[1]).toString(16)}:${((four[2] << 8) | four[3]).toString(16)}`;
+  }
+  if (!/^[0-9a-f:]+$/.test(s)) return null;
   const halves = s.split("::");
   if (halves.length > 2) return null;
   const left = halves[0] ? halves[0].split(":") : [];
@@ -300,17 +337,24 @@ function prefix64(text: string): string | null {
   if (halves.length === 1 ? missing !== 0 : missing < 1) return null;
   const groups = [...left, ...new Array<string>(halves.length === 2 ? missing : 0).fill("0"), ...right];
   if (groups.some((g) => g.length === 0 || g.length > 4)) return null;
-  const value = groups.map((g) => parseInt(g, 16));
-  // An IPv4 address written in hex: IPv4-mapped (::ffff:c000:280) or the old
-  // IPv4-compatible (::c000:280). Its /64 is 0:0:0:0 — every IPv4 host there
-  // is — and folding put them all in one bucket (review panel 5, S4/P1, B92).
-  // Kept whole, as the dotted spelling already was. ::1 and :: are not IPv4
-  // and fold as any IPv6 address.
-  const firstFive = value.slice(0, 5).every((v) => v === 0);
-  const mapped = firstFive && value[5] === 0xffff;
-  const compatible = firstFive && value[5] === 0 && (value[6] !== 0 || value[7] > 1);
-  if (mapped || compatible) return null;
-  return `${value.slice(0, 4).map((v) => v.toString(16)).join(":")}::/64`;
+  return groups.map((g) => parseInt(g, 16));
+}
+
+// The IPv4 host an IPv6 address carries, dotted, or null:
+//   mapped      ::ffff:0:0/96        RFC 4291 §2.5.5.2
+//   translated  ::ffff:0:0:0/96      RFC 2765 §2.1
+//   compatible  ::/96, not :: or ::1 RFC 4291 §2.5.5.1 (deprecated, still spelled)
+//   NAT64       64:ff9b::/96         RFC 6052 §2.1
+// Folded as IPv6, each shared one /64 with every other IPv4 host written that
+// way (review panel 5, S4/P1; B92, B99).
+function embeddedIPv4(v: number[]): string | null {
+  const zero = (from: number, to: number) => v.slice(from, to).every((x) => x === 0);
+  const mapped = zero(0, 5) && v[5] === 0xffff;
+  const translated = zero(0, 4) && v[4] === 0xffff && v[5] === 0;
+  const compatible = zero(0, 6) && (v[6] !== 0 || v[7] > 1);
+  const nat64 = v[0] === 0x64 && v[1] === 0xff9b && zero(2, 6);
+  if (!(mapped || translated || compatible || nat64)) return null;
+  return [v[6] >> 8, v[6] & 0xff, v[7] >> 8, v[7] & 0xff].join(".");
 }
 
 export function check(limit: Limit, address: string, now = Date.now(), record = true): Verdict {

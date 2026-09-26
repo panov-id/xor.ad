@@ -183,29 +183,85 @@ configured("addresses of one IPv6 /64 share a bucket, and a neighbouring /64 doe
   assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "2001:db8:1:3::1", now).allowed, true, "the neighbouring /64 was refused for this one's claims");
 });
 
-configured("IPv4, IPv4-mapped IPv6, identity ids and suffixed buckets keep their own keys", async () => {
+configured("identity ids, mailboxes and other non-addresses keep their own keys, and a suffix stays", async () => {
   const { bucketAddress } = await import("../src/lib/rate_limit.ts");
-  for (const whole of ["203.0.113.7", "::ffff:203.0.113.7", "4f0c2a4e-8d7b-4c1e-9f6a-1b2c3d4e5f60", "someone@example.org", "keyless", "not:an:address:at:all"]) {
-    assertEquals(bucketAddress(whole), whole, `${whole} was folded`);
+  for (const whole of ["4f0c2a4e-8d7b-4c1e-9f6a-1b2c3d4e5f60", "someone@example.org", "keyless", "not:an:address:at:all", "1.2.3", "256.1.1.1"]) {
+    assertEquals(bucketAddress(whole), whole, `${whole} was taken for an address`);
   }
   assertEquals(bucketAddress("2001:db8:1:2::5|pk_live_x"), "2001:db8:1:2::/64|pk_live_x", "an IPv6 address with a key suffix kept its full address");
+  assertEquals(bucketAddress("::ffff:203.0.113.7|pk_live_x"), "203.0.113.7|pk_live_x", "an IPv4 host behind a suffix kept its IPv6 spelling");
   assertEquals(bucketAddress("::1"), "0:0:0:0::/64", "the loopback did not fold");
 });
 
-// An IPv4 address written in hex inside IPv6 — mapped (::ffff:c000:280) or the
-// old compatible form (::c000:280) — is one IPv4 host, not a /64: folded, every
-// IPv4 host written that way shared the bucket 0:0:0:0::/64 (review panel 5,
-// S4/P1, B92).
-configured("IPv4 hosts written in hex inside IPv6 keep a bucket each", async () => {
+// One IPv4 host, one bucket, however a header spells it (B92, B99): dotted,
+// padded, bracketed, and inside IPv6 in each of the four ways an IPv4 address
+// rides there — mapped ::ffff:0:0/96 (RFC 4291 §2.5.5.2), translated
+// ::ffff:0:0:0/96 (RFC 2765 §2.1), the old compatible ::/96 (RFC 4291
+// §2.5.5.1), and NAT64's well-known 64:ff9b::/96 (RFC 6052 §2.1) — dotted or in
+// hex. B92 kept mapped and compatible whole in their own spelling, so one host
+// had a bucket per spelling, and folded translated and NAT64 hex into the /64
+// they share with every other IPv4 host written that way.
+configured("one IPv4 host has one bucket however it is written, and two hosts never share one", async () => {
   reset();
   const { bucketAddress, TRANSFER_CLAIM_LIMITS } = await import("../src/lib/rate_limit.ts");
-  for (const whole of ["::ffff:c000:280", "0:0:0:0:0:ffff:c000:281", "::FFFF:C000:282", "::c000:280", "::ffff:0:1"]) {
-    assertEquals(bucketAddress(whole), whole, `${whole} was folded into a /64`);
+  const spellings = [
+    "192.0.2.128", " 192.0.2.128 ", "192.000.002.128",
+    "::ffff:192.0.2.128", "::FFFF:C000:280", "0:0:0:0:0:ffff:c000:280", "[::ffff:192.0.2.128]",
+    "::ffff:0:c000:280", "::ffff:0:192.0.2.128",
+    "::c000:280", "::192.0.2.128",
+    "64:ff9b::c000:280", "64:FF9B::192.0.2.128", "64:ff9b:0:0:0:0:c000:280",
+  ];
+  for (const spelling of spellings) {
+    assertEquals(bucketAddress(spelling), "192.0.2.128", `${JSON.stringify(spelling)} is 192.0.2.128 and got the bucket ${bucketAddress(spelling)}`);
   }
   const now = Date.now();
   const max = TRANSFER_CLAIM_LIMITS[0].max;
-  for (let i = 0; i < max; i++) checkAll(TRANSFER_CLAIM_LIMITS, "::ffff:c000:280", now);
-  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "::ffff:c000:280", now).allowed, false, "the host's own ceiling did not hold");
-  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "::ffff:c000:281", now).allowed, true,
-    "::ffff:c000:281 was refused for ::ffff:c000:280's claims: two IPv4 hosts in one bucket");
+  for (let i = 0; i < max; i++) checkAll(TRANSFER_CLAIM_LIMITS, spellings[i % spellings.length], now);
+  for (const spelling of spellings) {
+    assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, spelling, now).allowed, false,
+      `${JSON.stringify(spelling)} walked past 192.0.2.128's ceiling of ${max} in a bucket of its own`);
+  }
+  // And the next host, in every form, is its own.
+  for (const other of ["192.0.2.129", "::ffff:c000:281", "::ffff:0:c000:281", "::c000:281", "64:ff9b::c000:281"]) {
+    assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, other, now).allowed, true,
+      `${other} was refused for 192.0.2.128's claims: two IPv4 hosts in one bucket`);
+  }
+});
+
+// "::" stands for one or more zero groups anywhere in the address (RFC 4291
+// §2.2); every place it can stand, and the address written out in full, is one
+// /64. Nothing held this before B99.
+configured("an IPv6 address folds to the same /64 wherever its :: stands, and written out in full", async () => {
+  const { bucketAddress } = await import("../src/lib/rate_limit.ts");
+  const cases: [string, string][] = [
+    ["2001:db8::1", "2001:db8:0:0::/64"],
+    ["2001:db8:0:0:0:0:0:1", "2001:db8:0:0::/64"],
+    ["2001:0db8:0000:0000:0000::0001", "2001:db8:0:0::/64"],
+    ["2001:db8:0:0:1::", "2001:db8:0:0::/64"],
+    ["::2001:db8:1:2", "0:0:0:0::/64"],
+    ["::", "0:0:0:0::/64"],
+    ["2001:db8:a:b:c:d:e:f", "2001:db8:a:b::/64"],
+    ["2001:db8:a:b::", "2001:db8:a:b::/64"],
+    ["fe80::1%25eth0", "fe80:0:0:0::/64"],
+  ];
+  for (const [address, bucket] of cases) {
+    assertEquals(bucketAddress(address), bucket, `${address} folded to ${bucketAddress(address)}`);
+  }
+  for (const broken of ["2001:db8::1::2", "2001:db8:1:2:3:4:5:6:7", "2001:db8:12345::1", ":::"]) {
+    assertEquals(bucketAddress(broken), broken, `${broken} is not an address and was folded`);
+  }
+});
+
+// B76's own rule, over addresses the case does not choose (B99): a global IPv6
+// address folds to its first four groups. Held by value against a /64 worked
+// out here, not by the function under test.
+configured("random global IPv6 addresses fold to their own /64", async () => {
+  const { bucketAddress } = await import("../src/lib/rate_limit.ts");
+  const hex = () => Math.floor(Math.random() * 0x10000).toString(16);
+  for (let i = 0; i < 2000; i++) {
+    const groups = [(0x2000 + Math.floor(Math.random() * 0x1000)).toString(16), hex(), hex(), hex(), hex(), hex(), hex(), hex()];
+    const expected = `${groups.slice(0, 4).map((g) => parseInt(g, 16).toString(16)).join(":")}::/64`;
+    assertEquals(bucketAddress(groups.join(":")), expected, `${groups.join(":")} folded wrong`);
+    assertEquals(bucketAddress(groups.join(":").toUpperCase()), expected, `${groups.join(":").toUpperCase()} folded wrong`);
+  }
 });

@@ -306,7 +306,21 @@ async function closeIdentities(): Promise<number> {
   // The set is also narrowed to identities that still have something undone.
   // Without that, a LIMIT would keep handing back the same finished rows and
   // the unfinished ones would never come up.
+  //
+  // **Nobody is waited on here either (B84, 2026-09-26).** This pass took the
+  // batch's shares FOR UPDATE and waited: one share somebody held — a PIN
+  // attempt, a claim, anything that takes the share first — stood the whole
+  // batch, every other closed identity in it, behind that holder for as long
+  // as it held (measured: the pass waited the three seconds of the hold, and
+  // the identity nobody held stayed undone). The review panel had it as
+  // "SKIP LOCKED everywhere, never waits" (panel 4, :162) from reading
+  // closeInactive alone. Now the same as closeInactive: shares and session
+  // rows SKIP LOCKED, an identity short of any left for the next pass, under a
+  // savepoint so it keeps none of its locks; the batches go by id, so the one
+  // left out does not come first in every batch after.
+  let after = "00000000-0000-0000-0000-000000000000";
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const skippedHere = new Map<string, number>();
     const done = await transaction(async (run) => {
       // `burned` filters by identity and **must not** filter by `frozen_at`.
       // Data-modifying CTEs share one snapshot and cannot see one another's
@@ -338,15 +352,52 @@ async function closeIdentities(): Promise<number> {
                 OR EXISTS (SELECT 1 FROM identity_appearance a WHERE a.identity = i.id)
                 OR EXISTS (SELECT 1 FROM support_requests r WHERE r.identity = i.id)
               )
+              AND i.id > $1
             ORDER BY i.id LIMIT ${BATCH}`,
+        [after],
       );
-      if (picked.length === 0) return { frozen: 0, burned: 0, faces: 0 };
+      if (picked.length === 0) return { frozen: 0, burned: 0, faces: 0, picked: 0, last: after };
+      const last = picked[picked.length - 1].id;
       const batchIds = picked.map((p) => p.id);
-      await run(
-        `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
-          WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v`,
-        [batchIds],
-      );
+      const count = (rows: { identity: string }[]) => {
+        const by = new Map<string, number>();
+        for (const row of rows) by.set(row.identity, (by.get(row.identity) ?? 0) + 1);
+        return by;
+      };
+      const wantShares = count(await run<{ identity: string }>(
+        `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
+          WHERE s.identity = ANY($1::uuid[])`, [batchIds]));
+      const wantRows = count(await run<{ identity: string }>(
+        `SELECT identity FROM sessions WHERE identity = ANY($1::uuid[])`, [batchIds]));
+      const skip = (reason: string, n: number) => {
+        if (n > 0) skippedHere.set(reason, (skippedHere.get(reason) ?? 0) + n);
+      };
+      let ids = batchIds;
+      for (let attempt = 0; ids.length > 0; attempt++) {
+        await run(`SAVEPOINT consequences_locks`);
+        const got = count(await run<{ identity: string }>(
+          `SELECT s.identity FROM vault_shares v JOIN sessions s ON s.id = v.session
+            WHERE s.identity = ANY($1::uuid[]) ORDER BY v.session FOR UPDATE OF v SKIP LOCKED`, [ids]));
+        const shares = ids.filter((id) => (got.get(id) ?? 0) >= (wantShares.get(id) ?? 0));
+        const rows = count(await run<{ identity: string }>(
+          `SELECT identity FROM sessions WHERE identity = ANY($1::uuid[])
+            ORDER BY id FOR NO KEY UPDATE SKIP LOCKED`, [shares]));
+        const whole = shares.filter((id) => (rows.get(id) ?? 0) >= (wantRows.get(id) ?? 0));
+        if (whole.length === ids.length) {
+          await run(`RELEASE SAVEPOINT consequences_locks`);
+          break;
+        }
+        skip("share_held", ids.length - shares.length);
+        skip("row_held", shares.length - whole.length);
+        await run(`ROLLBACK TO SAVEPOINT consequences_locks`);
+        await run(`RELEASE SAVEPOINT consequences_locks`);
+        if (attempt < 4) ids = whole;
+        else {
+          skip("retry_cap", whole.length);
+          ids = [];
+        }
+      }
+      if (ids.length === 0) return { frozen: 0, burned: 0, faces: 0, picked: picked.length, last };
       const rows = await run<{ frozen: string[]; burned: number; faces: number }>(
         `WITH closed AS (
            SELECT unnest($1::uuid[]) AS id
@@ -374,17 +425,17 @@ async function closeIdentities(): Promise<number> {
          SELECT coalesce((SELECT array_agg(id::text) FROM frozen), '{}') AS frozen,
                 (SELECT count(*)::int FROM burned) AS burned,
                 (SELECT count(*)::int FROM faces) AS faces`,
-        [batchIds],
+        [ids],
       );
 
       // One statement for the whole batch rather than one round trip per
       // session. A pass that closes ten thousand identities used to make ten
       // thousand separate calls to pg_notify inside its transaction.
-      const ids = rows[0]?.frozen ?? [];
-      if (ids.length > 0) {
+      const frozenIds = rows[0]?.frozen ?? [];
+      if (frozenIds.length > 0) {
         await run(
           `SELECT pg_notify('session_frozen', id) FROM unnest($1::text[]) AS id`,
-          [ids],
+          [frozenIds],
         );
       }
 
@@ -396,11 +447,16 @@ async function closeIdentities(): Promise<number> {
       // and the series reason="closed" had never once been written. Same for
       // burned shares, which read zero on a night that burned a thousand.
       // Counted once the batch commits, as lib/sessions.ts counts (B68).
-      return { frozen: ids.length, burned: rows[0]?.burned ?? 0, faces: rows[0]?.faces ?? 0 };
+      return {
+        frozen: frozenIds.length, burned: rows[0]?.burned ?? 0, faces: rows[0]?.faces ?? 0,
+        picked: picked.length, last,
+      };
     });
     if (done.frozen > 0) inc("relay_sessions_frozen_total", { reason: "closed" }, done.frozen);
     if (done.burned > 0) inc("relay_vault_shares_burned_total", {}, done.burned);
-    if (done.frozen + done.burned + done.faces === 0) break;
+    for (const [reason, n] of skippedHere) inc("relay_identity_sweeper_skipped_total", { reason }, n);
+    after = done.last;
+    if (done.picked < BATCH) break;
   }
 
   return shut;

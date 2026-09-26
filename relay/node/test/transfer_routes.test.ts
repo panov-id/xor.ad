@@ -798,8 +798,15 @@ Deno.test({ name: "a session frozen while its invitation waited is refused befor
 // froze sessions before burning shares in one statement; the route held the
 // share and asked for the session — three deadlocks in three, the sweep the
 // victim, and the closed identity kept a live session with an unburned share.
+//
+// Since B84 (quorum 2:1, 2026-09-26) the pass does not wait on the share: it
+// passes the identity over while the share is held, and the next pass finishes
+// it — the net an hour later that pass has always been. So here: no deadlock,
+// the pass done while the share is still held, the route refused on a closed
+// identity, and after the next pass nothing live.
 for (const which of ["vault/init", "invite"] as const) {
-  Deno.test({ name: `the catch-up pass waits on a ${which} holding the share, and leaves nothing live`, sanitizeOps: false, sanitizeResources: false }, async () => {
+  Deno.test({ name: `the catch-up pass passes over a ${which} holding the share, and the next pass leaves nothing live`, sanitizeOps: false, sanitizeResources: false }, async () => {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
     const sweep = await import("../src/lib/identity_sweeper.ts");
     for (let round = 0; round < 3; round++) {
       const me = await device_with_identity();
@@ -807,26 +814,38 @@ for (const which of ["vault/init", "invite"] as const) {
         { lookup_id: me.paper })).status, 200, "the same-device claim that leaves a grant");
       const got: { status: number; body: unknown }[] = [];
       let sweepError = "";
-      let swept: Promise<unknown> | undefined;
+      let sweptWhileHeld = false;
       const firstPin = {
         auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
         share: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))),
       };
       const before = await deadlocks();
-      await behind(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, me.session_id,
-        () => (which === "vault/init"
-          ? signedCall(me.pair.privateKey, me.session_id, "POST", "/vault/init", firstPin)
-          : signedCall(me.pair.privateKey, me.session_id, "POST", "/sessions/invite", { lookup_id: lookup(), ...proof(PIN) }))
-          .then((r) => (got[0] = r)),
-        async () => {
-          // closeInactive's commit, in its effect on the row, then the pass.
+      const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+      try {
+        await sql.begin(async (tx) => {
+          await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.session_id]);
+          (which === "vault/init"
+            ? signedCall(me.pair.privateKey, me.session_id, "POST", "/vault/init", firstPin)
+            : signedCall(me.pair.privateKey, me.session_id, "POST", "/sessions/invite", { lookup_id: lookup(), ...proof(PIN) }))
+            .then((r) => (got[0] = r));
+          await queuedBehind(tx, 1, `the ${which} behind the held share`);
+          // closeInactive's commit, in its effect on the row, then the pass —
+          // while the share is still held. Five seconds is far past a pass
+          // that skips; one that waits would wait on this very transaction.
           await database.queryOrThrow(`UPDATE identities SET closed_at = now(), recovery_auth_hash = NULL,
             recovery_wrapped_key = NULL, first_pin_grant_at = NULL WHERE id = $1`, [me.identity_id]);
-          swept = sweep.sweepIdentities().catch((e) => { sweepError = String(e); });
-          return "sent";
+          const outcome = await Promise.race([
+            sweep.sweepIdentities().then(() => "done", (e) => { sweepError = String(e); return "failed"; }),
+            new Promise((r) => setTimeout(() => r("waited"), 5000)),
+          ]);
+          sweptWhileHeld = outcome === "done";
         });
-      await swept;
+      } finally {
+        await sql.end();
+      }
       for (let i = 0; i < 250 && got[0] === undefined; i++) await new Promise((r) => setTimeout(r, 20));
+      assert(sweptWhileHeld, `round ${round}: the catch-up pass did not finish while the ${which} held the share (${sweepError || "it waited"})`);
+      await sweep.sweepIdentities().catch((e) => { sweepError = String(e); });
       assertEquals((await deadlocks()) - before, 0, `round ${round}: ${which} and the catch-up pass deadlocked (sweep: ${sweepError || "ok"})`);
       assertEquals(sweepError, "", `round ${round}: the pass failed: ${sweepError}`);
       assert(got[0] && got[0].status !== 200 && got[0].status !== 204 && got[0].status !== 503,

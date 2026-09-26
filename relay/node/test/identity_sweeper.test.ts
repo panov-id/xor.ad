@@ -1245,3 +1245,62 @@ Deno.test({ name: "a batch of consequences refused at COMMIT counts no freeze an
   await sweeper.sweepIdentities();
   assertEquals(await liveOf(), false, "the closed identity's session was not frozen once nothing refused it");
 });
+
+// The second pass — the consequences of a close — waits on nobody (B84,
+// review panel 4, "clean" item :162 measured). A closed identity left half-done
+// with a live session and a share somebody holds — a PIN attempt, a claim,
+// anything that takes the share first — is left for the next pass, and the
+// rest of the batch goes on. It took the shares FOR UPDATE and waited: the
+// whole batch, every other closed identity in it, stood behind one holder for
+// as long as the holder held.
+Deno.test({ name: "the consequences pass skips a closed identity whose share somebody holds, and does the rest (B84)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  // Two closures left half-done: a live session and a whole share each.
+  const [a, b] = [await identity({}), await identity({})];
+  for (const x of [a, b]) {
+    await database.queryOrThrow(`UPDATE identities SET closed_at = now() WHERE id = $1`, [x.identityId]);
+  }
+  const undone = async (x: Made) => (await database.queryOrThrow<{ live: boolean; whole: boolean }>(
+    `SELECT s.frozen_at IS NULL AS live, v.share_enc IS NOT NULL AS whole
+       FROM sessions s JOIN vault_shares v ON v.session = s.id WHERE s.id = $1`, [x.sessionId]))[0];
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const skippedBefore = await skipped("share_held");
+  let release: () => void = () => {};
+  const released = new Promise<void>((r) => { release = r; });
+  let elapsed = 0;
+  let bDoneWhileHeld = false;
+  try {
+    let held!: () => void;
+    const isHeld = new Promise<void>((r) => { held = r; });
+    const holding = holder.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [a.sessionId]);
+      held();
+      await released;
+    });
+    await isHeld;
+    const start = Date.now();
+    let settled = false;
+    const pass = sweeper.sweepIdentities().finally(() => { settled = true; elapsed = Date.now() - start; });
+    // Three seconds for the pass while A's share is held.
+    for (let i = 0; i < 150 && !settled; i++) await new Promise((r) => setTimeout(r, 20));
+    const bNow = await undone(b);
+    bDoneWhileHeld = !bNow.live && !bNow.whole;
+    release();
+    await holding;
+    await pass;
+    if (!settled || elapsed === 0) elapsed = Date.now() - start;
+    assert(elapsed < 3000,
+      `the pass waited ${elapsed} ms on a share somebody held (B finished while it was held: ${bDoneWhileHeld})`);
+    assert(bDoneWhileHeld, "the identity nobody held was not finished while another one's share was held");
+    const aNow = await undone(a);
+    assert(aNow.live && aNow.whole, "the held identity was finished under its held share");
+    assertEquals((await skipped("share_held")) - skippedBefore, 1, "the held closed identity was not counted share_held once");
+  } finally {
+    release();
+    await holder.end();
+  }
+  // Nothing held: the next pass finishes it.
+  await sweeper.sweepIdentities();
+  const aAfter = await undone(a);
+  assert(!aAfter.live && !aAfter.whole, "the next pass did not finish the identity it had skipped");
+});

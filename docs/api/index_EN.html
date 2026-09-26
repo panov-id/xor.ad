@@ -537,12 +537,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-sessions-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-built">built</span></div>
 <p><strong>Use the transfer code on the new device</strong></p>
-<p>The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery&#x27;s; a second claim on the same invite cancels the transfer on both sides, and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15).</p>
+<p>The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery&#x27;s: ten entries an hour or thirty a day from one address (transfer.claim.hour, transfer.claim.day), and a node-wide pause of fifteen minutes after fifty misses (claim.miss.shared, claim.miss.pause) — both answer 429 rate_limited with Retry-After. A second claim on the same invite cancels the transfer on both sides (409 refused), and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15). A code that does not match, or has expired, answers 404 not_found in one wording.</p>
 <h3>Access</h3><p>Publishable storefront key ak_pub_…, public by design; answers &quot;which face&quot;, nothing more</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed.</td><td></td></tr><tr><td><code>429</code></td><td>Ten entries an hour or thirty a day from one address (transfer.claim.hour, transfer.claim.day), or the node-wide pause of fifteen minutes after fifty misses (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After in seconds.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed — the old device is asked to confirm; poll GET /sessions/{lookup_id} for its answer.</td><td><code>object</code></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/transfer.ts</code></p>
 </section>
 <section class="op" id="post-recovery-confirm">

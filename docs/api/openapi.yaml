@@ -796,8 +796,8 @@ components:
       headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
       content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/ApiError"}, {$ref: "#/components/schemas/LegalReacceptance"}]}}}
     Unauthorized:
-      description: "The signature of protocol §2 is missing, malformed, outside the ±5 minute window, or not the session's — code unauthorized. Named on every signed operation since 2026-09-20: before that the closed list of §6 held the code and no route answered it, so the commonest refusal of the signed API went undescribed."
-      x-description-ru: "Подписи протокола §2 нет, она не той формы, вне окна ±5 минут либо не этой сессии — code unauthorized. Стоит у каждой подписанной операции с 20.09.2026: до того закрытый список §6 держал код, а отвечал им ни один маршрут, то есть самый частый отказ подписанного API описан не был."
+      description: "The signature of protocol §2 is missing, malformed, outside the ±5 minute window, or not the session's; or the session is frozen (a transfer, a closure, the PIN limit) or its PIN is locked by the tenth mistake — code unauthorized, one answer for all of them. A client cannot tell these apart from this answer, and the node does not say which: a locked PIN is told as 409 pin_locked only in the answer to the tenth attempt itself, and to a request of the same session that was already waiting on it. Named on every signed operation since 2026-09-20: before that the closed list of §6 held the code and no route answered it, so the commonest refusal of the signed API went undescribed."
+      x-description-ru: "Подписи протокола §2 нет, она не той формы, вне окна ±5 минут либо не этой сессии; либо сессия заморожена (перенос, закрытие, предел ПИНа) или её ПИН заперт десятой ошибкой — code unauthorized, один ответ на всё. Клиент по этому ответу их не различает, и узел не говорит, какой случай: о запертом ПИНе говорит 409 pin_locked только в ответе на саму десятую попытку и на запрос той же сессии, который уже ждал за ней. Стоит у каждой подписанной операции с 20.09.2026: до того закрытый список §6 держал код, а отвечал им ни один маршрут, то есть самый частый отказ подписанного API описан не был."
       headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     ApiError:
@@ -1686,14 +1686,27 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/transfer.ts
       security: [{publishableKey: []}]
-      description: The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery's; a second claim on the same invite cancels the transfer on both sides, and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15).
-      x-description-ru: Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления; второй claim на то же приглашение отменяет перенос на обеих сторонах, и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026).
+      description: "The old device goes still once the person confirms. Misses are limited per address and across the node, as recovery's: ten entries an hour or thirty a day from one address (transfer.claim.hour, transfer.claim.day), and a node-wide pause of fifteen minutes after fifty misses (claim.miss.shared, claim.miss.pause) — both answer 429 rate_limited with Retry-After. A second claim on the same invite cancels the transfer on both sides (409 refused), and both screens show four characters of sha256(sign_pub ‖ wrap_pub) (2026-09-15). A code that does not match, or has expired, answers 404 not_found in one wording."
+      x-description-ru: "Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления: десять вводов в час или тридцать в сутки с одного адреса (transfer.claim.hour, transfer.claim.day) и общая пауза узла на пятнадцать минут после пятидесяти промахов (claim.miss.shared, claim.miss.pause) — оба отвечают 429 rate_limited с Retry-After. Второй claim на то же приглашение отменяет перенос на обеих сторонах (409 refused), и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026). Код, который не совпал или истёк, отвечает 404 not_found одной формулировкой."
       requestBody: {content: {application/json: {schema: {$ref: "#/components/schemas/SessionsClaim"}}}}
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
-        "200": {description: Claimed., x-description-ru: Принято.}
-        "429": {description: "Ten entries an hour or thirty a day from one address (transfer.claim.hour, transfer.claim.day), or the node-wide pause of fifteen minutes after fifty misses (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After in seconds.", x-description-ru: "Десять вводов в час или тридцать в сутки с одного адреса (transfer.claim.hour, transfer.claim.day) либо общая пауза узла на пятнадцать минут после пятидесяти промахов (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After в секундах."}
+        "200":
+          description: "Claimed — the old device is asked to confirm; poll GET /sessions/{lookup_id} for its answer."
+          x-description-ru: "Принято — прежнее устройство спрошено; его ответ — опросом GET /sessions/{lookup_id}."
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state]
+                properties:
+                  state: {type: string, enum: [claimed]}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "404": {$ref: "#/components/responses/ApiError"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /recovery/confirm:
     post:
       tags: [identity]

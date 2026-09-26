@@ -537,12 +537,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="post-sessions-claim">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/sessions/claim</code><span class="chip s-built">построено</span></div>
 <p><strong>Применить код переноса на новом устройстве</strong></p>
-<p>Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления; второй claim на то же приглашение отменяет перенос на обеих сторонах, и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026).</p>
+<p>Прежнее устройство замирает, когда человек подтвердит. Промахи ограничены по адресу и по узлу, как у восстановления: десять вводов в час или тридцать в сутки с одного адреса (transfer.claim.hour, transfer.claim.day) и общая пауза узла на пятнадцать минут после пятидесяти промахов (claim.miss.shared, claim.miss.pause) — оба отвечают 429 rate_limited с Retry-After. Второй claim на то же приглашение отменяет перенос на обеих сторонах (409 refused), и оба экрана показывают четыре символа sha256(sign_pub ‖ wrap_pub) (15.09.2026). Код, который не совпал или истёк, отвечает 404 not_found одной формулировкой.</p>
 <h3>Доступ</h3><p>Публикуемый ключ витрины ak_pub_…, публичен по замыслу; отвечает «какое лицо», и только</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td></td></tr><tr><td><code>429</code></td><td>Десять вводов в час или тридцать в сутки с одного адреса (transfer.claim.hour, transfer.claim.day) либо общая пауза узла на пятнадцать минут после пятидесяти промахов (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After в секундах.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято — прежнее устройство спрошено; его ответ — опросом GET /sessions/{lookup_id}.</td><td><code>object</code></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/transfer.ts</code></p>
 </section>
 <section class="op" id="post-recovery-confirm">

@@ -82,6 +82,22 @@ groups:
           summary: "Ночной бэкап опаздывает: {{ $value | humanizeDuration }}"
           description: "Метка last-ok.json не обновлялась больше 26 часов. Смотреть relay-backup.service на боксе и зону хранилища."
 
+      # Watchdog С6 (relay/node/src/lib/queue_metrics.ts): the oldest phrase
+      # waiting for a verdict is near moderation.queue.wait, 10 minutes — past
+      # it the phrase is swept unread, so an age there means the queue stopped,
+      # not that it slowed. Nine minutes rather than ten: at ten the sweep has
+      # already taken the evidence. `info` for the reason FeedPublishesNothing
+      # gives: until the moderator of §8.14 is wired every phrase ages to the
+      # ceiling, and a warning nobody can act on teaches the channel to be
+      # ignored. Raise it with FeedPublishesNothing the day the moderator ships.
+      - alert: ModerationQueueStopped
+        expr: max by (brand) (relay_moderation_oldest_seconds) > 9 * 60
+        for: 2m
+        labels: { severity: info }
+        annotations:
+          summary: "Очередь модерации {{ $labels.brand }} стоит: старейшей фразе {{ $value | humanizeDuration }}"
+          description: "Фраза ждёт вердикта дольше девяти минут; на десятой её снимут непрочитанной (moderation.queue.wait). Смотреть воркер модерации и relay_feed_verdict_total."
+
       - alert: PinMissBurst
         # Every door that takes a PIN proof: the share, a PIN change and a close
         # (review panel 2026-09-24 — /vault/pin and /identities/close counted

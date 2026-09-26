@@ -47,6 +47,7 @@ let seen = new Set<string>();
 
 export async function collectQueueMetrics(): Promise<void> {
   await collectDsaQueue();
+  await collectModerationQueue();
   const rows = await query<DepthRow>(
     `SELECT kind,
             count(*) FILTER (
@@ -126,10 +127,52 @@ async function collectDsaQueue(): Promise<void> {
 
 let seenBrands = new Set<string>();
 
+// Watchdog С6 (docs/watchdogs_RU.md): the age of the oldest phrase waiting for
+// a verdict, by the face it came through. Its ceiling is moderation.queue.wait
+// (QUEUE_WAIT_MINUTES in lib/feed_verdict.ts): past it the phrase is swept
+// unread, so an oldest age near that ceiling means the queue stopped, not that
+// it slowed.
+//
+// "Waiting" is what the sweep (sweepStaleQueue) would drop: not yet visible,
+// and not held back by its author's refused name — that phrase waits on its
+// author, not on the node (§8.2), and stays for as long as the author takes.
+// Counted here it would read as a queue stopped for days.
+//
+// An empty queue has no age, and the series is removed rather than zeroed, as
+// relay_jobs_oldest_due_seconds is: nought would read as "a phrase arrived
+// this instant".
+async function collectModerationQueue(): Promise<void> {
+  const rows = await query<{ brand: string; oldest_seconds: string }>(
+    `SELECT f.brand, EXTRACT(EPOCH FROM (now() - min(f.created_at)))::text AS oldest_seconds
+       FROM feed_messages f
+      WHERE f.visible_at IS NULL
+        AND NOT EXISTS (SELECT 1 FROM identities a
+                         WHERE a.id = f.author_identity AND a.name_state = 'rejected')
+      GROUP BY f.brand`,
+  );
+  if (rows === null) return;
+  const present = new Set<string>();
+  for (const row of rows) {
+    present.add(row.brand);
+    setGauge(
+      "relay_moderation_oldest_seconds",
+      Math.max(0, Math.round(Number(row.oldest_seconds))),
+      { brand: row.brand },
+    );
+  }
+  for (const brand of seenModeration) {
+    if (!present.has(brand)) clearGauge("relay_moderation_oldest_seconds", { brand });
+  }
+  seenModeration = present;
+}
+
+let seenModeration = new Set<string>();
+
 // Tests only: the set of kinds outlives a suite otherwise.
 export function forget(): void {
   seen = new Set<string>();
   seenBrands = new Set<string>();
+  seenModeration = new Set<string>();
 }
 
 // The two shared brakes, read at scrape time for the same reason everything

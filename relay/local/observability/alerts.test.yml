@@ -198,3 +198,31 @@ tests:
       - eval_time: 100m
         alertname: RecoveryClaimCannotWrite
         exp_alerts: []
+
+  # Watchdog С6: the oldest phrase waiting for a verdict, near the ten-minute
+  # ceiling after which the sweep takes it unread.
+  - name: a phrase waiting past nine minutes is a stopped queue
+    interval: 1m
+    input_series:
+      - series: 'relay_moderation_oldest_seconds{brand="sosed"}'
+        values: '600x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ModerationQueueStopped
+        exp_alerts:
+          - exp_labels: { severity: info, brand: sosed }
+            exp_annotations:
+              summary: "Очередь модерации sosed стоит: старейшей фразе 10m 0s"
+              description: "Фраза ждёт вердикта дольше девяти минут; на десятой её снимут непрочитанной (moderation.queue.wait). Смотреть воркер модерации и relay_feed_verdict_total."
+
+  - name: a queue moving faster than nine minutes, or empty, is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_moderation_oldest_seconds{brand="sosed"}'
+        values: '120x10'
+      - series: 'relay_moderation_oldest_seconds{brand="neighbro"}'
+        values: '600 _x9'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: ModerationQueueStopped
+        exp_alerts: []

@@ -124,6 +124,69 @@ Deno.test("a queue that drains stops reporting its old depth", async () => {
   await clean();
 });
 
+// ── Watchdog С6: the oldest phrase waiting for a verdict, by face ──
+//
+// Each case on a face of its own, so phrases other suites leave waiting on
+// the shared stand do not move these numbers.
+function moderationAge(brand: string): number | null {
+  const line = metrics.render().split("\n").find((row) =>
+    row.startsWith(`relay_moderation_oldest_seconds{brand="${brand}"}`)
+  );
+  return line ? Number(line.split(" ").pop()) : null;
+}
+
+async function waitingPhrase(brand: string, ageSeconds: number, nameState = "accepted"): Promise<string> {
+  const author = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO identities (id, name, age, identity_public_key, name_state) VALUES ($1, 'п', 30, 'k', $2)`,
+    [author, nameState],
+  );
+  const id = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius, created_at)
+     VALUES ($1, $2, $3, 'жду вердикта', 'alone', 'und', 59.93, 30.33, 1000, now() - make_interval(secs => $4))`,
+    [id, brand, author, ageSeconds],
+  );
+  return id;
+}
+
+Deno.test("С6: the oldest waiting phrase reads as its age, and a verdict takes the series away", async () => {
+  queue.forget();
+  const brand = `c6-probe-${crypto.randomUUID()}`;
+  const old = await waitingPhrase(brand, 240);
+  await waitingPhrase(brand, 30);
+  await queue.collectQueueMetrics();
+  const age = moderationAge(brand);
+  assert(age !== null && age >= 240 && age < 270, `the oldest waiting phrase read ${age} seconds`);
+
+  // Published: the oldest is the other one now.
+  await database.queryOrThrow(`UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '3 hours' WHERE id = $1`, [old]);
+  await queue.collectQueueMetrics();
+  const next = moderationAge(brand);
+  assert(next !== null && next >= 30 && next < 60, `after one verdict the oldest read ${next} seconds`);
+
+  // Nothing waiting: no series, not a nought that reads as "arrived now".
+  await database.queryOrThrow(`UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '3 hours' WHERE brand = $1 AND visible_at IS NULL`, [brand]);
+  await queue.collectQueueMetrics();
+  assertEquals(moderationAge(brand), null, "an empty queue still reports an age");
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE brand = $1`, [brand]);
+});
+
+Deno.test("С6: a phrase held by its author's refused name is not the node's queue", async () => {
+  queue.forget();
+  const brand = `c6-probe-${crypto.randomUUID()}`;
+  // Two hours: the sweep keeps it (lib/feed_verdict.ts sweepStaleQueue), and
+  // counted here it would read as a queue stopped since morning.
+  await waitingPhrase(brand, 7200, "rejected");
+  await queue.collectQueueMetrics();
+  assertEquals(moderationAge(brand), null, "a phrase waiting on its author was counted as waiting on the node");
+  await waitingPhrase(brand, 60);
+  await queue.collectQueueMetrics();
+  const age = moderationAge(brand);
+  assert(age !== null && age >= 60 && age < 90, `with the refused one beside it the queue read ${age} seconds`);
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE brand = $1`, [brand]);
+});
+
 addEventListener("unload", () => {
   database.closePool();
 });

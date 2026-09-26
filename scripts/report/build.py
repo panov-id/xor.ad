@@ -102,9 +102,13 @@ prose = tomllib.loads((H / "prose_RU.toml").read_text())
 road, steps_p, day, state = prose["roadmap"], prose["steps"], prose["day"], prose["state"]
 for block, key in ((road, "as_of"), (steps_p, "as_of"), (day, "date"), (state, "as_of")):
     block[key] = iso(block[key])
-ahead = int(git["ahead_origin_day57"])
+ahead = int(git["unpushed"])
+# The previous day's branch is measured only when it exists where the report was built.
+prev_tail = int(git.get("prev_tail") or 0)
+ahead_split = (f": {prev_tail} — хвост {e(git['prev_branch'])}, {ahead - prev_tail} — {e(git['branch'])}"
+               if prev_tail else "")
 fill = {"ahead": ahead, "ahead_commits": num(ahead, "коммит", "коммита", "коммитов"),
-        "day57_tail": git["day57_tail"], "mig_last": mig_last, "branch": e(git["branch"])}
+        "mig_last": mig_last, "branch": e(git["branch"])}
 P = lambda s: s.format_map(fill)
 prod_migration = f"{road['environments'][0]['migration']:03d}"
 # Words dated before the last day with commits describe an older tree.
@@ -380,7 +384,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
   <div><b>{tests_total}</b><span>{plural(tests_total, "тест", "теста", "тестов")} в репозитории, +{tests_total - tests_prev} за {ru_date(last_day)}; ещё {depth_now} в depth</span></div>
   <div><b>{ops_built}<small> / {ops_total}</small></b><span>{plural(ops_built, "операция", "операции", "операций")} API построено из {ops_total}; {ops_spec} — только в спеке</span></div>
   <div><b>{mig_files}</b><span>{plural(mig_files, "миграция", "миграции", "миграций")} узла, последняя {mig_last}; на проде — до {prod_migration}</span></div>
-  <div><b>{git['ahead_origin_day57']}</b><span>{plural(ahead, "коммита", "коммитов", "коммитов")} нет ни на одном удалённом: {git['day57_tail']} — хвост day57, {int(git['ahead_origin_day57'])-int(git['day57_tail'])} — {e(git['branch'])}</span></div>
+  <div><b>{ahead}</b><span>{plural(ahead, "коммита", "коммитов", "коммитов")} нет ни на одном удалённом{ahead_split}</span></div>
   <div><b>{live_ok}<small> / {len(live)}</small></b><span>ответили 200 из {num(len(live), "живого адреса", "живых адресов", "живых адресов")}</span></div>
 </section>
 

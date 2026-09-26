@@ -10,6 +10,11 @@ D="${REPORT_WORK:?set REPORT_WORK}/data"
 mkdir -p "$D"
 cd "$R"
 BR="${REPORT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
+# The previous day's branch, whose unpushed tail the report splits out:
+# $REPORT_PREV_BRANCH, else day<N-1> for a dayN branch. Absent here, no tail.
+if [ -n "${REPORT_PREV_BRANCH+x}" ]; then PREV="$REPORT_PREV_BRANCH"
+elif [[ "$BR" =~ ^day([0-9]+)$ ]]; then PREV="day$((BASH_REMATCH[1] - 1))"
+else PREV=""; fi
 
 # 1. Commits per day on the branch's lineage since 20.08
 git log --format='%ad' --date=format:%Y-%m-%d --since=2026-08-20 "$BR" | sort | uniq -c \
@@ -54,8 +59,11 @@ scripts/check-node-images.sh > "$D/node-images.txt" 2>&1; echo $? > "$D/node-ima
 {
   echo "branch=$BR"
   echo "head=$(git rev-parse --short "$BR")"
-  echo "ahead_origin_day57=$(git rev-list --count "$BR" --not --remotes)"
-  echo "day57_tail=$(git rev-list --count day57 --not --remotes)"
+  echo "unpushed=$(git rev-list --count "$BR" --not --remotes)"
+  if [ -n "$PREV" ] && git rev-parse -q --verify "refs/heads/$PREV" >/dev/null; then
+    echo "prev_branch=$PREV"
+    echo "prev_tail=$(git rev-list --count "$(git merge-base "$BR" "$PREV")" --not --remotes)"
+  fi
   echo "uncommitted=$(git status --porcelain | wc -l)"
   echo "upstream=$(git rev-parse --abbrev-ref "$BR@{u}" 2>/dev/null || echo none)"
   echo "measured=$(date '+%d.%m.%Y %H:%M')"

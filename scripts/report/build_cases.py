@@ -31,7 +31,7 @@ def fixture(tmp, **over):
     (w / "shots").mkdir(parents=True)
     d.mkdir()
     files = {
-        "git.env": "branch=testbranch\nhead=abc1234\nahead_origin_day57=74\nday57_tail=64\n"
+        "git.env": "branch=testbranch\nhead=abc1234\nunpushed=74\nprev_branch=day57\nprev_tail=64\n"
                    "uncommitted=0\nupstream=none\nmeasured=26.09.2026 06:00\n",
         "history.tsv": "2026-09-25\tabc\t500\t50\t10\t40\t57\n2026-09-26\tdef\t520\t50\t10\t45\t57\n",
         "commits_per_day.tsv": "2026-09-25\t27\n2026-09-26\t4\n",
@@ -150,6 +150,25 @@ def address_count_comes_from_the_measurement(tmp):
     assert rc == 0, err
     assert "Пять" not in text(page), "a fixed 'five' over three addresses"
     assert "2 из 3 ответили 200" in text(page)
+
+
+@case
+def no_previous_day_branch_builds_without_a_tail(tmp):
+    # measure.sh writes no prev_* lines when the previous day's branch is not here.
+    w, s = fixture(tmp, **{"git.env": "branch=day58\nhead=abc1234\nunpushed=74\n"
+                                      "uncommitted=0\nupstream=none\nmeasured=26.09.2026 06:00\n"})
+    rc, page, err = build(w, s)
+    assert rc == 0, f"no previous day's branch broke the build: {err.strip().splitlines()[-1:]}"
+    assert "хвост" not in text(page), "a tail named for a branch that was not measured"
+    assert "коммитов нет ни на одном удалённом</span>" in page, "the unpushed line did not end where the tail was dropped"
+
+
+@case
+def previous_day_tail_is_split_out_under_its_own_name(tmp):
+    w, s = fixture(tmp)
+    rc, page, err = build(w, s)
+    assert rc == 0, err
+    assert "64 — хвост day57, 10 — testbranch" in text(page), "tail split missing or misnamed"
 
 
 @case

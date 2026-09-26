@@ -7,7 +7,7 @@
 # with commits — stale words are shown as stale, not passed off as today's.
 #
 # Text is HTML (<code>, <b>); {placeholders} are filled from the measurements:
-#   {ahead} {ahead_commits} ("74 коммита") {day57_tail} {mig_last} {branch}
+#   {ahead} {ahead_commits} ("74 коммита") {mig_last} {branch}
 # Numbers a script measures do not belong here: they drift from the tree.
 
 [roadmap]

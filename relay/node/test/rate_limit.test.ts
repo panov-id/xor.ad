@@ -191,3 +191,21 @@ configured("IPv4, IPv4-mapped IPv6, identity ids and suffixed buckets keep their
   assertEquals(bucketAddress("2001:db8:1:2::5|pk_live_x"), "2001:db8:1:2::/64|pk_live_x", "an IPv6 address with a key suffix kept its full address");
   assertEquals(bucketAddress("::1"), "0:0:0:0::/64", "the loopback did not fold");
 });
+
+// An IPv4 address written in hex inside IPv6 — mapped (::ffff:c000:280) or the
+// old compatible form (::c000:280) — is one IPv4 host, not a /64: folded, every
+// IPv4 host written that way shared the bucket 0:0:0:0::/64 (review panel 5,
+// S4/P1, B92).
+configured("IPv4 hosts written in hex inside IPv6 keep a bucket each", async () => {
+  reset();
+  const { bucketAddress, TRANSFER_CLAIM_LIMITS } = await import("../src/lib/rate_limit.ts");
+  for (const whole of ["::ffff:c000:280", "0:0:0:0:0:ffff:c000:281", "::FFFF:C000:282", "::c000:280", "::ffff:0:1"]) {
+    assertEquals(bucketAddress(whole), whole, `${whole} was folded into a /64`);
+  }
+  const now = Date.now();
+  const max = TRANSFER_CLAIM_LIMITS[0].max;
+  for (let i = 0; i < max; i++) checkAll(TRANSFER_CLAIM_LIMITS, "::ffff:c000:280", now);
+  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "::ffff:c000:280", now).allowed, false, "the host's own ceiling did not hold");
+  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "::ffff:c000:281", now).allowed, true,
+    "::ffff:c000:281 was refused for ::ffff:c000:280's claims: two IPv4 hosts in one bucket");
+});

@@ -300,7 +300,17 @@ function prefix64(text: string): string | null {
   if (halves.length === 1 ? missing !== 0 : missing < 1) return null;
   const groups = [...left, ...new Array<string>(halves.length === 2 ? missing : 0).fill("0"), ...right];
   if (groups.some((g) => g.length === 0 || g.length > 4)) return null;
-  return `${groups.slice(0, 4).map((g) => parseInt(g, 16).toString(16)).join(":")}::/64`;
+  const value = groups.map((g) => parseInt(g, 16));
+  // An IPv4 address written in hex: IPv4-mapped (::ffff:c000:280) or the old
+  // IPv4-compatible (::c000:280). Its /64 is 0:0:0:0 — every IPv4 host there
+  // is — and folding put them all in one bucket (review panel 5, S4/P1, B92).
+  // Kept whole, as the dotted spelling already was. ::1 and :: are not IPv4
+  // and fold as any IPv6 address.
+  const firstFive = value.slice(0, 5).every((v) => v === 0);
+  const mapped = firstFive && value[5] === 0xffff;
+  const compatible = firstFive && value[5] === 0 && (value[6] !== 0 || value[7] > 1);
+  if (mapped || compatible) return null;
+  return `${value.slice(0, 4).map((v) => v.toString(16)).join(":")}::/64`;
 }
 
 export function check(limit: Limit, address: string, now = Date.now(), record = true): Verdict {

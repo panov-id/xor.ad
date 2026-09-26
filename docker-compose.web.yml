@@ -69,7 +69,9 @@ services:
       args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: sosed }
     depends_on: { node: { condition: service_healthy } }
     environment: { WEB_NODE_URL: "http://node:8080" }
-    ports: ["4173:4173"]
+    # The host port is a variable: three worktrees run this stand at once
+    # (W1c, W2, W3, 2026-09-26). WEB_PORT=4183 scripts/run-web-tests.sh
+    ports: ["${WEB_PORT:-4173}:4173"]
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4173/ >/dev/null 2>&1 || exit 1"]
       interval: 2s

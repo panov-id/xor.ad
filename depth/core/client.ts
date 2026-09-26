@@ -226,6 +226,7 @@ export class Client {
     if (answer.status !== 200) throw new Error(`registration refused: ${answer.status} ${JSON.stringify(answer.body)}`);
     this.#key = key;
     this.#wrapPrivate = wrap.privateKey;
+    this.#wrapPublicSpki = base64url(new Uint8Array(await crypto.subtle.exportKey("spki", wrap.publicKey)));
     this.#deviceSalt = salt;
     this.#wrappedLongKey = wrapped;
     this.#held = held;
@@ -697,6 +698,20 @@ export class Client {
     return this.#deviceSalt;
   }
 
+  // The wrapping pair of this session (sessions.wrap_public_key, §8.13): the
+  // private half as the non-extractable object it was born as — for the wrap
+  // of a conversation's keys (seal.ts unwrapConversation), which a face with a
+  // disk keeps between launches (web face, W3, 2026-09-26) — and the public
+  // half as base64url SPKI, for the wrap itself (seal.ts openAndWrap). seat()
+  // may set both; a seated client without them has no wraps to open.
+  #wrapPublicSpki: string | null = null;
+  get wrapPrivate(): CryptoKey | null {
+    return this.#wrapPrivate;
+  }
+  get wrapPublicSpki(): string | null {
+    return this.#wrapPublicSpki;
+  }
+
   // The long key's public half, base64url SPKI: the one registered with, or
   // the one seat() was given. The node does not say it back.
   get longSpki(): string {
@@ -717,6 +732,7 @@ export class Client {
     // The long key's public half as base64url SPKI — the safety code is made of it.
     longSpki: string;
     wrapPrivate: CryptoKey;
+    wrapPublicSpki?: string;
     deviceSalt?: Uint8Array;
     wrappedLongKey?: Uint8Array;
     held?: HeldLongKey;
@@ -724,6 +740,7 @@ export class Client {
     this.#key = s.sessionKey;
     this.#long = { privateKey: s.longKey, publicSpki: s.longSpki };
     this.#wrapPrivate = s.wrapPrivate;
+    this.#wrapPublicSpki = s.wrapPublicSpki ?? null;
     this.#session = s.sessionId;
     this.identityId = s.identityId;
     if (s.deviceSalt) this.#deviceSalt = s.deviceSalt;

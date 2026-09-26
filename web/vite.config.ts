@@ -14,7 +14,9 @@ import { defineConfig } from "vite";
 const node = process.env.WEB_NODE_URL ?? "http://localhost:62080";
 // The first segments of the node's person-facing routes (relay/node/src/routes),
 // without the panel's /admin, /auth, /o and /v1.
-const NODE_PATHS = ["away", "blocks", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "recovery", "sessions", "statements", "support", "vault", "health"];
+// "chat" is the conversation's socket, GET /chat (protocol §4.4), forwarded
+// with `ws: true` below (W3, 2026-09-26).
+const NODE_PATHS = ["away", "blocks", "chat", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "recovery", "sessions", "statements", "support", "vault", "health"];
 // Host stays the page's: the signature covers the authority the person called
 // (identity_auth.ts signedAuthority), and the node reads it from the request.
 const proxy = { [`^/(${NODE_PATHS.join("|")})(/|$|\\?)`]: { target: node, changeOrigin: false, ws: true } };

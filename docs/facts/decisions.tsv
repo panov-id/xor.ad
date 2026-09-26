@@ -51,27 +51,27 @@ app-prototype-spec.2026-08-27.142	2026-08-27	xor.ad/docs/app-prototype-spec_RU.m
 app-prototype-spec.2026-08-27.145	2026-08-27	xor.ad/docs/app-prototype-spec_RU.md:145	xor.ad/docs/app-prototype-spec_EN.md:145	без счётчика	without one
 design-system-app.2026-08-31.3	2026-08-31	xor.ad/docs/design-system-app_RU.md:3	xor.ad/docs/design-system-app_EN.md:3	Решено 31.08.2026, первое решение этапа 1.	Decided 2026-08-31, the first decision of stage 1.
 design-system-app.2026-08-31.102	2026-08-31	xor.ad/docs/design-system-app_RU.md:496	xor.ad/docs/design-system-app_EN.md:514	Шкала отступов заведена 31.08.2026 — и её не наследуют.	A spacing scale exists as of 2026-08-31 — and the storefronts do not i
-test-map.2026-08-26.129	2026-08-26	xor.ad/docs/test-map_RU.md:144	xor.ad/docs/test-map_EN.md:143	Фраза выходит, только когда приняты и она, и имя	A phrase goes out only when both it and the name are accepted
-test-map.2026-08-26.154	2026-08-26	xor.ad/docs/test-map_RU.md:169	xor.ad/docs/test-map_EN.md:168	Узел отдаёт ступень, а не точное число	The node returns a step, not an exact number
-test-map.2026-08-26.163	2026-08-26	xor.ad/docs/test-map_RU.md:178	xor.ad/docs/test-map_EN.md:177	Лайк недоступен без своей живой фразы	Liking is unavailable without a live phrase of one's own
-test-map.2026-08-26.195	2026-08-26	xor.ad/docs/test-map_RU.md:210	xor.ad/docs/test-map_EN.md:209	Бумажный код на этом шаге не спрашивается	The paper code is not asked for at this step
-test-map.2026-08-26.275	2026-08-26	xor.ad/docs/test-map_RU.md:293	xor.ad/docs/test-map_EN.md:292	Исключение названо: колоду и кости узел видит	The exception is named: the node sees decks and dice
-test-map.2026-08-27.126	2026-08-27	xor.ad/docs/test-map_RU.md:136	xor.ad/docs/test-map_EN.md:135	Число, обещанное правилами сообщества, совпадает с конфигом	The number promised by the community rules matches the config
-test-map.2026-08-28.125	2026-08-28	xor.ad/docs/test-map_RU.md:135	xor.ad/docs/test-map_EN.md:134	Рабочая точка живёт в конфиге узла, а не в коде	The operating point lives in the node's config, not in code
-test-map.2026-08-28.175	2026-08-28	xor.ad/docs/test-map_RU.md:190	xor.ad/docs/test-map_EN.md:189	«Не сейчас» гасит карточку только у отказавшегося	"Not now" clears the card for the refuser only
-test-map.2026-08-28.290	2026-08-28	xor.ad/docs/test-map_RU.md:309	xor.ad/docs/test-map_EN.md:308	Уведомление по ст. 16 принимается на реплику за столом	An Article 16 notice is accepted about a line at a table
-test-map.2026-08-29.176	2026-08-29	xor.ad/docs/test-map_RU.md:191	xor.ad/docs/test-map_EN.md:190	Принятая редакция сверяется хэшем	The accepted revision is checked by hash
-test-map.2026-08-29.177	2026-08-29	xor.ad/docs/test-map_RU.md:192	xor.ad/docs/test-map_EN.md:191	Дата документа держится против его текста	A document's date is held against its text
-test-map.2026-08-29.178	2026-08-29	xor.ad/docs/test-map_RU.md:193	xor.ad/docs/test-map_EN.md:192	Отказ `legal_reacceptance_required`	The `legal_reacceptance_required` refusal
-test-map.2026-08-29.179	2026-08-29	xor.ad/docs/test-map_RU.md:194	xor.ad/docs/test-map_EN.md:193	Стикер несёт имя во все три лица	A sticker carries a name into all three faces
-test-map.2026-08-29.180	2026-08-29	xor.ad/docs/test-map_RU.md:195	xor.ad/docs/test-map_EN.md:194	У скидки свой срок, у карточки свой	The discount has its own term, the card has its own
-test-map.2026-08-29.181	2026-08-29	xor.ad/docs/test-map_RU.md:196	xor.ad/docs/test-map_EN.md:195	Доска ходит с клавиатуры и говорит словами	The board moves from a keyboard and speaks in words
-test-map.2026-08-29.182	2026-08-29	xor.ad/docs/test-map_RU.md:197	xor.ad/docs/test-map_EN.md:196	Заново и отмена — по согласию всех	Play-again and undo take everyone's agreement
-test-map.2026-08-30.183	2026-08-30	xor.ad/docs/test-map_RU.md:198	xor.ad/docs/test-map_EN.md:197	Стол не тратит квоту	A table spends no quota
-test-map.2026-08-30.184	2026-08-30	xor.ad/docs/test-map_RU.md:199	xor.ad/docs/test-map_EN.md:198	Отлучка уносит и то, что в очереди	A break takes what is in the queue too
-test-map.2026-08-31.134	2026-08-31	xor.ad/docs/test-map_RU.md:149	xor.ad/docs/test-map_EN.md:148	Зона — только одна из пяти ступеней	A zone is one of five steps and nothing else
-test-map.2026-08-31.185	2026-08-31	xor.ad/docs/test-map_RU.md:200	xor.ad/docs/test-map_EN.md:199	Координаты в выдаче округлены до клетки	Coordinates in a response are rounded to a cell
-test-map.2026-08-31.186	2026-08-31	xor.ad/docs/test-map_RU.md:201	xor.ad/docs/test-map_EN.md:200	Радиус — только ступень	The radius is a step and nothing else
+test-map.2026-08-26.129	2026-08-26	xor.ad/docs/test-map_RU.md:149	xor.ad/docs/test-map_EN.md:148	Фраза выходит, только когда приняты и она, и имя	A phrase goes out only when both it and the name are accepted
+test-map.2026-08-26.154	2026-08-26	xor.ad/docs/test-map_RU.md:176	xor.ad/docs/test-map_EN.md:175	Узел отдаёт ступень, а не точное число	The node returns a step, not an exact number
+test-map.2026-08-26.163	2026-08-26	xor.ad/docs/test-map_RU.md:186	xor.ad/docs/test-map_EN.md:185	Лайк недоступен без своей живой фразы	Liking is unavailable without a live phrase of one's own
+test-map.2026-08-26.195	2026-08-26	xor.ad/docs/test-map_RU.md:219	xor.ad/docs/test-map_EN.md:218	Бумажный код на этом шаге не спрашивается	The paper code is not asked for at this step
+test-map.2026-08-26.275	2026-08-26	xor.ad/docs/test-map_RU.md:303	xor.ad/docs/test-map_EN.md:302	Исключение названо: колоду и кости узел видит	The exception is named: the node sees decks and dice
+test-map.2026-08-27.126	2026-08-27	xor.ad/docs/test-map_RU.md:141	xor.ad/docs/test-map_EN.md:140	Число, обещанное правилами сообщества, совпадает с конфигом	The number promised by the community rules matches the config
+test-map.2026-08-28.125	2026-08-28	xor.ad/docs/test-map_RU.md:140	xor.ad/docs/test-map_EN.md:139	Рабочая точка живёт в конфиге узла, а не в коде	The operating point lives in the node's config, not in code
+test-map.2026-08-28.175	2026-08-28	xor.ad/docs/test-map_RU.md:199	xor.ad/docs/test-map_EN.md:198	«Не сейчас» гасит карточку только у отказавшегося	"Not now" clears the card for the refuser only
+test-map.2026-08-28.290	2026-08-28	xor.ad/docs/test-map_RU.md:319	xor.ad/docs/test-map_EN.md:318	Уведомление по ст. 16 принимается на реплику за столом	An Article 16 notice is accepted about a line at a table
+test-map.2026-08-29.176	2026-08-29	xor.ad/docs/test-map_RU.md:200	xor.ad/docs/test-map_EN.md:199	Принятая редакция сверяется хэшем	The accepted revision is checked by hash
+test-map.2026-08-29.177	2026-08-29	xor.ad/docs/test-map_RU.md:201	xor.ad/docs/test-map_EN.md:200	Дата документа держится против его текста	A document's date is held against its text
+test-map.2026-08-29.178	2026-08-29	xor.ad/docs/test-map_RU.md:202	xor.ad/docs/test-map_EN.md:201	Отказ `legal_reacceptance_required`	The `legal_reacceptance_required` refusal
+test-map.2026-08-29.179	2026-08-29	xor.ad/docs/test-map_RU.md:203	xor.ad/docs/test-map_EN.md:202	Стикер несёт имя во все три лица	A sticker carries a name into all three faces
+test-map.2026-08-29.180	2026-08-29	xor.ad/docs/test-map_RU.md:204	xor.ad/docs/test-map_EN.md:203	У скидки свой срок, у карточки свой	The discount has its own term, the card has its own
+test-map.2026-08-29.181	2026-08-29	xor.ad/docs/test-map_RU.md:205	xor.ad/docs/test-map_EN.md:204	Доска ходит с клавиатуры и говорит словами	The board moves from a keyboard and speaks in words
+test-map.2026-08-29.182	2026-08-29	xor.ad/docs/test-map_RU.md:206	xor.ad/docs/test-map_EN.md:205	Заново и отмена — по согласию всех	Play-again and undo take everyone's agreement
+test-map.2026-08-30.183	2026-08-30	xor.ad/docs/test-map_RU.md:207	xor.ad/docs/test-map_EN.md:206	Стол не тратит квоту	A table spends no quota
+test-map.2026-08-30.184	2026-08-30	xor.ad/docs/test-map_RU.md:208	xor.ad/docs/test-map_EN.md:207	Отлучка уносит и то, что в очереди	A break takes what is in the queue too
+test-map.2026-08-31.134	2026-08-31	xor.ad/docs/test-map_RU.md:154	xor.ad/docs/test-map_EN.md:153	Зона — только одна из пяти ступеней	A zone is one of five steps and nothing else
+test-map.2026-08-31.185	2026-08-31	xor.ad/docs/test-map_RU.md:209	xor.ad/docs/test-map_EN.md:208	Координаты в выдаче округлены до клетки	Coordinates in a response are rounded to a cell
+test-map.2026-08-31.186	2026-08-31	xor.ad/docs/test-map_RU.md:210	xor.ad/docs/test-map_EN.md:209	Радиус — только ступень	The radius is a step and nothing else
 neighbro-legal.2026-08-29.12	2026-08-29	neighbro.place/docs/15-legal-documents_RU.md:22	neighbro.place/docs/15-legal-documents_EN.md:23	Кто оператор и куда писать	Who the operator is and where to write
 sosed-legal.2026-08-29.12	2026-08-29	sosed.place/docs/15-legal-documents_RU.md:22	sosed.place/docs/15-legal-documents_EN.md:23	Кто оператор и куда писать	Who the operator is and where to write
 dsa-README.2027-08-05.81	2027-08-05	xor.ad/docs/dsa/README_RU.md:97	xor.ad/docs/dsa/README_EN.md:100	Следующая проверка	Next check
@@ -103,8 +103,8 @@ open-work.2026-09-04.1179	2026-09-20	xor.ad/docs/open-work_RU.md:1183	xor.ad/doc
 open-work.2026-09-04.1184	2026-09-04	xor.ad/docs/open-work_RU.md:1189	xor.ad/docs/open-work_EN.md:1238	(заведены 04.09.2026).** Ворота спрашивают узел сами	(filed 2026-09-04).** The gate asks the
 chat.2026-09-07.937	2026-09-07	xor.ad/docs/chat_RU.md:1693	xor.ad/docs/chat_EN.md:1715	Правка 07.09.2026 по панели ревью.	Edited 2026-09-07 after a review panel.
 refusal-wordings.2026-09-07.86	2026-09-07	xor.ad/docs/refusal-wordings_RU.md:120	xor.ad/docs/refusal-wordings_EN.md:130	«За час», а не «подряд» — правка 07.09.2026	rather than "in a row" — edited 2026-09-07
-test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:141	xor.ad/docs/test-map_EN.md:140	Успешная публикация счётчик отказов не обнуляет	A successful publication does not zero the refusal counter
-test-map.2026-09-07.129	2026-09-07	xor.ad/docs/test-map_RU.md:143	xor.ad/docs/test-map_EN.md:142	Отлучка не снимает ни часовой предел, ни паузу	Stepping away lifts neither the hourly limit nor the pause
+test-map.2026-09-07.128	2026-09-07	xor.ad/docs/test-map_RU.md:146	xor.ad/docs/test-map_EN.md:145	Успешная публикация счётчик отказов не обнуляет	A successful publication does not zero the refusal counter
+test-map.2026-09-07.129	2026-09-07	xor.ad/docs/test-map_RU.md:148	xor.ad/docs/test-map_EN.md:147	Отлучка не снимает ни часовой предел, ни паузу	Stepping away lifts neither the hourly limit nor the pause
 chat.2026-09-07.852	2026-09-07	xor.ad/docs/chat_RU.md:1535	xor.ad/docs/chat_EN.md:1555	Граница снимка — по видимости для заявителя. Решено 07.09.2026.	The snapshot is bounded by what the notifier could see. Decided 2026-09-07.
 article-30-register.2026-09-08.124	2026-09-08	xor.ad/docs/article-30-register_RU.md:170	xor.ad/docs/article-30-register_EN.md:178	До 08.09.2026 здесь	Until 2026-09-08 this
 refusal-wordings.2026-09-15.219	2026-09-15	xor.ad/docs/refusal-wordings_RU.md:228	xor.ad/docs/refusal-wordings_EN.md:244	Предел ожидания — 10 минут. Решено 15.09.2026.	The waiting limit is 10 minutes. Decided 2026-09-15.

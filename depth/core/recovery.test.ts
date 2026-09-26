@@ -215,6 +215,39 @@ Deno.test({
   },
 });
 
+// The same two lost answers, settled only after nonce.ttl: the sweeper has
+// removed the nonce (prune_nonces deletes the row; the replay lookup reads no
+// clock of its own), so the replay is a new request, the current code no longer
+// matches, and the node says 404. Only this session could have changed the
+// code, so the device takes the next one as live — and does not call it a miss.
+Deno.test({
+  name: "a reissue lost twice and settled after its nonce was swept still ends under the new code",
+  ignore: !node,
+  async fn() {
+    const { client, code: old } = await person("Ната");
+    const next = newPaperCode();
+    const real = client.request.bind(client);
+    let lose = 2;
+    client.request = (async (method: string, path: string, body?: unknown, signed?: boolean) => {
+      const answer = await real(method, path, body, signed);
+      if (path === "/recovery/reissue" && lose-- > 0) throw new Error("the answer was lost on the way");
+      return answer;
+    }) as typeof client.request;
+    await assertRejects(() => reissue(client, old, next), Error, "lost on the way");
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      await sql.unsafe(`DELETE FROM nonces WHERE session_id = $1 AND route = 'POST /recovery/reissue'`, [client.sessionId!]);
+    } finally {
+      await sql.end();
+    }
+
+    assertEquals(await reissue(client, old, next), { ok: true }, "the retry after the nonce was swept was refused");
+    assertEquals(await isCurrentCode(client, next), true, "the device does not hold the key under the code the node has");
+    assertEquals(await isCurrentCode(client, old), false, "the device still holds the key under the retired code");
+    assertEquals(await reissue(client, next, newPaperCode()), { ok: true }, "the device cannot reissue from the code the node has");
+  },
+});
+
 Deno.test({
   name: "a keeper that fails is an error, not a wrong code",
   ignore: !node,

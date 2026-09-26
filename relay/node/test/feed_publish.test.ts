@@ -4620,3 +4620,114 @@ Deno.test({ name: "a phrase in its last 65 minutes is marked soon, and its end i
   assert(likes.items.every((i) => !("created_at" in i)), "the likes sent someone else's start, and with it the end");
   reset();
 });
+
+// ── A phrase whose time ran out, in every place livePhraseOf stands (B8) ──
+//
+// The expired row is still in the table until the sweep comes, and each place
+// must read it as gone. Without these, livePhraseOf with its term dropped left
+// the whole suite green (observer, 2026-09-26): one case per place, so the
+// same break goes red in each.
+const runOut = (id: string) =>
+  database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [id]);
+
+Deno.test({ name: "ran out · a like on somebody else's phrase that ran out does not count", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  await seedPhrase(a.identity_id, "моя живая");
+  const theirs = await seedPhrase(b.identity_id, "уже истекла");
+  await runOut(theirs);
+  await like(a, theirs);
+  assertEquals(await likeCount(theirs), 0, "a like went onto a phrase whose time had run out");
+  reset();
+});
+
+Deno.test({ name: "ran out · no match is made of a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?", "company");
+  const liked = await seedPhrase(b.identity_id, "гуляю у залива");
+  await seedPhrase(b.identity_id, "и ещё одна, живая");
+  await like(a, liked);
+  // The phrase a liked runs out; b still has a live one, so b may like.
+  await runOut(liked);
+  const answer = await like(b, mine);
+  assert(stateOf(answer) !== "matched", `a match was made of a phrase that ran out: ${JSON.stringify(answer.body)}`);
+  reset();
+});
+
+Deno.test({ name: "ran out · a liked phrase that ran out leaves my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  await seedPhrase(a.identity_id, "моя живая");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  assertEquals(stateOf(await like(a, theirs)), "liked");
+  await runOut(theirs);
+  assertEquals((await likesOf(a)).items.map((i) => i.id).includes(theirs), false, "my likes listed a phrase that ran out");
+  reset();
+});
+
+Deno.test({ name: "ran out · the feed does not deliver a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const theirs = await seedPhrase(b.identity_id, "уже истекла");
+  assert((await feedIds(a)).includes(theirs), "the fixture phrase is not in the feed to begin with");
+  await runOut(theirs);
+  assertEquals((await feedIds(a)).includes(theirs), false, "the feed delivered a phrase that ran out");
+  reset();
+});
+
+Deno.test({ name: "ran out · density does not count a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const viewer = await author();
+  const writer = await author();
+  // A point of its own, so nobody else's phrase is in this circle.
+  const here = { lat: -41.3 + Math.random() / 100, lon: 174.7 + Math.random() / 100 };
+  const id = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+        lat_published, lon_published, visible_at, expires_at)
+     VALUES ($1, 'xor', $2, 'одна в круге', 'alone', 'und', $3, $4, 1000, $3, $4, now(), now() + interval '3 hours')`,
+    [id, writer.identity_id, here.lat, here.lon],
+  );
+  const density = async () =>
+    ((await signedCall(viewer.pair.privateKey, viewer.session_id, "GET",
+      `/feed/density?lat=${here.lat}&lon=${here.lon}&radius=1000`)).body as { step: string }).step;
+  assert((await density()) !== "none", "the fixture phrase is not counted to begin with");
+  await runOut(id);
+  assertEquals(await density(), "none", "density counted a phrase that ran out");
+  reset();
+});
+
+Deno.test({ name: "ran out · an own phrase that ran out does not freeze the name", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const who = await author();
+  const mine = await seedPhrase(who.identity_id, "моя, уже истекла");
+  assertEquals((await patchMe(who, { name: "Анна" })).status, 409, "the fixture phrase does not freeze the name to begin with");
+  await runOut(mine);
+  const edited = await patchMe(who, { name: "Анна" });
+  assertEquals(edited.status, 202, `a phrase that ran out still froze the name: ${JSON.stringify(edited.body)}`);
+  reset();
+});
+
+Deno.test({ name: "ran out · a phrase that ran out cannot be hidden, and so confirmed", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const theirs = await seedPhrase(b.identity_id, "уже истекла");
+  await runOut(theirs);
+  const hid = await signedCall(a.pair.privateKey, a.session_id, "POST", "/hidden", { feed: theirs });
+  assertEquals(hid.status, 404, `a phrase that ran out was hidden: ${JSON.stringify(hid.body)}`);
+  reset();
+});

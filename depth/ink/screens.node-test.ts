@@ -1254,7 +1254,7 @@ async function aDevice(label: string) {
 async function leavingNode(pinOk = true) {
   const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
   const calls: Array<{ method: string; path: string; body?: unknown }> = [];
-  const node = { state: "waiting", claim: "", asks: 0 };
+  const node = { state: "waiting", claim: "", asks: 0, approveLost: false, slowMs: 0, inFlight: 0, maxInFlight: 0 };
   const client = {
     identityId: "id-1",
     held: await HeldKey.hold(long.privateKey),
@@ -1269,12 +1269,29 @@ async function leavingNode(pinOk = true) {
           ? { status: 200, body: { expires_in: 120 } }
           : { status: 409, body: { error: { code: "pin_mismatch", attempts_left: 7 } } });
       }
+      if (method === "GET" && node.slowMs > 0) {
+        // A slow node: counts how many asks are out at once.
+        node.inFlight++;
+        node.maxInFlight = Math.max(node.maxInFlight, node.inFlight);
+        return new Promise((done) => setTimeout(() => {
+          node.inFlight--;
+          done({ status: 200, body: { state: node.state } });
+        }, node.slowMs));
+      }
       if (method === "GET") {
-        // The first ask meets the address's allowance: "later", not an end.
-        if (++node.asks === 1) return Promise.resolve({ status: 429, body: null, retryAfter: 30 });
+        // The first ask meets the address's allowance: "later", not an end —
+        // and a short later, since the screen now keeps quiet for as long as
+        // the node says (B27).
+        if (++node.asks === 1) return Promise.resolve({ status: 429, body: null, retryAfter: 0.05 });
         return Promise.resolve({ status: 200, body: { state: node.state, ...(node.state === "claimed" ? { claim_envelope: node.claim } : {}) } });
       }
-      if (path.endsWith("/approve")) return Promise.resolve({ status: 200, body: { state: "approved", session_id: "s-2" } });
+      if (path.endsWith("/approve")) {
+        if (node.approveLost) {
+          node.state = "approved";
+          return Promise.reject(new TypeError("fetch failed"));
+        }
+        return Promise.resolve({ status: 200, body: { state: "approved", session_id: "s-2" } });
+      }
       return Promise.resolve({ status: 204, body: null });
     },
   };
@@ -1371,7 +1388,7 @@ test("the new device takes the code, shows its own check, and says when the old 
         return Promise.resolve(claims.length === 1 ? { status: 404, body: null } : { status: 200, body: { state: "claimed" } });
       }
       // The first ask meets the address's allowance: "later", not an end.
-      if (++asks === 1) return Promise.resolve({ status: 429, body: null, retryAfter: 30 });
+      if (++asks === 1) return Promise.resolve({ status: 429, body: null, retryAfter: 0.05 });
       return Promise.resolve({ status: 200, body: { state } });
     },
   };
@@ -1406,4 +1423,39 @@ test("'me' offers the move", async () => {
   await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
   assert.deepEqual(opened, ["move"], "'me' does not open the move");
   app.unmount();
+});
+
+// ── B27 · the ends the network can blur (review panel 2026-09-26, F1 F2) ──
+test("the old device whose \"it is me\" lost its answer still ends at \"moved\", as the node says", async () => {
+  const { client, node } = await leavingNode();
+  node.approveLost = true;
+  let moved = false;
+  const app = render(h(MoveOut, { say, client, onMoved: () => (moved = true), onBack: () => {}, onError: collect, pollMs: 40 }));
+  await settle();
+  await type(app, ..."123456".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /живёт ещё/));
+  const keys = await deriveTransferCode(shownCode(app.lastFrame()!));
+  node.claim = await sealClaim(keys, await aDevice("Chrome, Android"));
+  node.state = "claimed";
+  await waitFor(shows(app, /Устройство просит/));
+  await type(app, ENTER);
+  await waitFor(() => moved);
+  assert.ok(moved, "a lost answer to \"it is me\" left the device on the code's screen");
+  app.unmount();
+  noErrors();
+});
+
+test("a slow node is asked one question at a time", async () => {
+  const { client, node } = await leavingNode();
+  node.asks = 1; // past the first 429
+  node.slowMs = 300;
+  const app = render(h(MoveOut, { say, client, onMoved: () => {}, onBack: () => {}, onError: collect, pollMs: 20 }));
+  await settle();
+  await type(app, ..."123456".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /живёт ещё/));
+  await waitFor(() => node.maxInFlight > 0);
+  await new Promise((done) => setTimeout(done, 1000));
+  assert.equal(node.maxInFlight, 1, `${node.maxInFlight} asks were out at once`);
+  app.unmount();
+  noErrors();
 });

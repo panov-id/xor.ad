@@ -4,10 +4,11 @@
 // one, and the frozen end on the old. The core does the keys
 // (depth/core/transfer_move.ts); this layer only shows and asks.
 //
-// Both sides ask the node every five seconds and not more often: the state
-// route shares its per-address allowance with the claim — 60 an hour
-// (relay/node/src/lib/rate_limit.ts TRANSFER_CLAIM_LIMITS) — and two devices
-// in one home are one address. Every two seconds, one move would spend it.
+// Both sides ask the node every five seconds, one question at a time: the
+// state route has its own allowance per address (relay/node/src/lib/
+// rate_limit.ts TRANSFER_STATE_LIMITS, 600 an hour), and two devices in one
+// home are one address — a two-minute window asked by both is 48 of it. A
+// 429 keeps the screen as it is until the time the node named.
 
 import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
@@ -40,12 +41,21 @@ const endings: Partial<Record<MoveState, string>> = {
   garbled: "move.garbled",
 };
 
-function useEvery(ms: number, fn: () => void, on: boolean): void {
+// Every `ms`, and never over itself: a tick that finds the last ask still
+// out skips, so a slow node gets one question at a time instead of a pile of
+// them that land together and decide the screen twice (review panel
+// 2026-09-26, F1).
+function useEvery(ms: number, fn: () => void | Promise<unknown>, on: boolean): void {
   const saved = useRef(fn);
   saved.current = fn;
+  const out = useRef(false);
   useEffect(() => {
     if (!on) return;
-    const id = setInterval(() => saved.current(), ms);
+    const id = setInterval(() => {
+      if (out.current) return;
+      out.current = true;
+      void Promise.resolve(saved.current()).finally(() => (out.current = false));
+    }, ms);
     return () => clearInterval(id);
   }, [on, ms]);
 }
@@ -71,11 +81,14 @@ export function MoveOut(
 
   const ask = () => {
     if (!out) return;
-    out.state()
+    return out.state()
       .then((next) => {
         // Whatever sent an envelope this code does not open is not asked
         // about: the code is killed at once rather than left to run out.
         if (next === "garbled") void out.reject().catch(() => {});
+        // Approved is moved, however this screen learned it — the answer to
+        // "it is me" or, when that answer was lost, the node asked again (F2).
+        if (next === "approved") return onMoved();
         setState(next);
       })
       .catch((e: Error) => onError(e.message));
@@ -135,12 +148,10 @@ export function MoveOut(
       seenAt: out.seenAt,
       onYes: () =>
         out.approve()
-          .then((answer) => {
-            if (answer.status === 200) return onMoved();
-            // Decided or run out while the person read the screen.
-            ask();
-          })
-          .catch((e: Error) => onError(e.message)),
+          // Refused — decided or run out while the person read the screen —
+          // or no answer at all: the node says which, not this screen.
+          .then((answer) => (answer.status === 200 ? onMoved() : ask()))
+          .catch(() => ask()),
       onNo: () => out.reject().then(() => setState("rejected")).catch((e: Error) => onError(e.message)),
     });
   }
@@ -254,12 +265,17 @@ export function MoveIn(
   const [into, setInto] = useState<Arrival | null>(null);
   const [state, setState] = useState<MoveState>("claimed");
 
+  // Arrived once: the screen moves on a single time, whichever ask saw it.
+  const arrived = useRef(false);
   const ask = () => {
     if (!into) return;
-    into.state()
+    return into.state()
       .then((next) => {
         setState(next);
-        if (next === "approved") onArrived();
+        if (next === "approved" && !arrived.current) {
+          arrived.current = true;
+          onArrived();
+        }
       })
       .catch((e: Error) => onError(e.message));
   };

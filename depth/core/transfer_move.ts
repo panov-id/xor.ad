@@ -44,6 +44,33 @@ interface StateBody {
 
 const path = (keys: TransferKeys, tail = "") => `/sessions/${encodeURIComponent(keys.lookupId)}${tail}`;
 
+// How long one ask of the state may take before it counts as "no answer yet".
+// The move's outcome is decided on the node and kept there: an ask lost to a
+// slow network or a dropped connection is asked again, and never ends a move
+// on a screen that would then say something the node does not (review panel
+// 2026-09-26, F1/F2).
+export const ASK_TIMEOUT_MS = 15_000;
+
+// The state, asked once: its answer, or null for "none came — ask later".
+// A 429 carries the node's own "later" (Retry-After, seconds); the caller
+// keeps quiet until then instead of spending its next asks on refusals
+// (F16).
+async function askState(
+  client: MoveClient,
+  keys: TransferKeys,
+  timeoutMs: number,
+): Promise<Answer<StateBody> | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>((done) => (timer = setTimeout(() => done(null), timeoutMs)));
+  try {
+    return await Promise.race([client.request<StateBody>("GET", path(keys), undefined, false), late]);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function known(state: string | undefined): MoveState {
   return state === "waiting" || state === "claimed" || state === "approved" || state === "rejected" ||
       state === "cancelled" || state === "expired"
@@ -85,13 +112,23 @@ export class Departure {
     return new Departure(client, keys, code, answer.body.expires_in);
   }
 
-  async state(): Promise<MoveState> {
-    const answer = await this.client.request<StateBody>("GET", path(this.keys), undefined, false);
+  // Until when the node asked to be left alone (Retry-After), in ms.
+  quietUntil = 0;
+
+  async state(timeoutMs = ASK_TIMEOUT_MS): Promise<MoveState> {
+    // Moved is moved: the node froze this device in the approval, and asking
+    // again could only turn that into something else on the screen.
+    if (this.last === "approved" || Date.now() < this.quietUntil) return this.last;
+    const answer = await askState(this.client, this.keys, timeoutMs);
+    if (!answer) return this.last;
     if (answer.status === 404) return "expired";
-    // The state route shares the claim's allowance of the address (60 an hour,
-    // TRANSFER_CLAIM_LIMITS), and two devices at home are one address: a 429
-    // is "ask later", not an end, so the last word stands until then.
-    if (answer.status === 429) return this.last;
+    // The state route has its own allowance per address (TRANSFER_STATE_LIMITS
+    // on the node, 600 an hour); a 429 is "ask later", not an end, so the last
+    // word stands until the time the node named.
+    if (answer.status === 429) {
+      this.quietUntil = Date.now() + (answer.retryAfter ?? 5) * 1000;
+      return this.last;
+    }
     if (answer.status !== 200) throw new Error(`the transfer state was not given: ${answer.status}`);
     const state = this.last = known(answer.body.state);
     if (state === "claimed" && !this.claimant && answer.body.claim_envelope) {
@@ -114,12 +151,14 @@ export class Departure {
     const reply = await sealReply(
       this.keys, this.claimant, { identityId: this.client.identityId, longPub: this.client.longSpki }, this.client.held,
     );
-    return await this.client.request("POST", path(this.keys, "/approve"), {
+    const answer = await this.client.request<{ state?: string; session_id?: string }>("POST", path(this.keys, "/approve"), {
       reply,
       sign_pub: this.claimant.sign_pub,
       wrap_pub: this.claimant.wrap_pub,
       label: this.claimant.label,
     });
+    if (answer.status === 200) this.last = "approved";
+    return answer;
   }
 
   // "It does not match": the code dies, nothing moves.
@@ -165,10 +204,22 @@ export class Arrival {
   // checked against the public half the reply names, and the client is seated
   // in the new session; the first PIN is the caller's next step (§8.2: the
   // arriving device has none, and the node left it a one-time grant).
-  async state(): Promise<MoveState> {
-    const answer = await this.client.request<StateBody>("GET", path(this.keys), undefined, false);
+  // Until when the node asked to be left alone (Retry-After), in ms.
+  quietUntil = 0;
+  // Seated in the new session: from here the move has happened on this
+  // device, whatever a later ask or the ack says (F1).
+  seated = false;
+
+  async state(timeoutMs = ASK_TIMEOUT_MS): Promise<MoveState> {
+    if (this.seated) return "approved";
+    if (Date.now() < this.quietUntil) return this.last;
+    const answer = await askState(this.client, this.keys, timeoutMs);
+    if (!answer) return this.last;
     if (answer.status === 404) return "expired";
-    if (answer.status === 429) return this.last;
+    if (answer.status === 429) {
+      this.quietUntil = Date.now() + (answer.retryAfter ?? 5) * 1000;
+      return this.last;
+    }
     if (answer.status !== 200) throw new Error(`the transfer state was not given: ${answer.status}`);
     const state = this.last = known(answer.body.state);
     if (state !== "approved") return state;
@@ -183,12 +234,18 @@ export class Arrival {
       wrapPrivate: this.wrapPrivate,
       held: got.long,
     });
+    this.seated = true;
     // The reply is kept until it is taken, so an ask lost on the way can be
     // asked again; taken, it goes (POST /sessions/:lookup_id/ack, signed by
-    // the session just seated — B3). A refused ack does not undo the move:
-    // the envelope waits for the sweeper, sealed to this device's wrapping
-    // key and useless to anybody else.
-    this.acked = (await this.client.request("POST", path(this.keys, "/ack"))).status;
+    // the session just seated — B3). A refused or lost ack does not undo the
+    // move: the envelope waits for the sweeper, sealed to this device's
+    // wrapping key and useless to anybody else — so it is not this call's to
+    // fail (F1).
+    try {
+      this.acked = (await this.client.request("POST", path(this.keys, "/ack"))).status;
+    } catch {
+      this.acked = 0;
+    }
     return state;
   }
 

@@ -499,6 +499,33 @@ export async function sendBackupStale(to: string, ageHours: number | null): Prom
   return await deliver(brand, to, subject, subject, backupStaleBlocks(config.envName, ageHours));
 }
 
+// Watchdog С6: phrases of a face have waited near moderation.queue.wait for a
+// verdict (lib/moderation_watch.ts). Counts and minutes — nothing of any phrase.
+export function moderationStoppedBlocks(queue: { brand: string; oldestMinutes: number; waiting: number }): Block[] {
+  return [
+    {
+      kind: "text",
+      value: `Phrases of ${queue.brand} waiting for a verdict: ${queue.waiting}. ` +
+        `The oldest has waited ${queue.oldestMinutes} minutes; at ten a phrase is dropped unread (moderation.queue.wait).`,
+    },
+    {
+      kind: "text",
+      value: "Look at the moderation worker and at relay_feed_verdict_total. Another letter follows only " +
+        "after the queue moves again and stops again.",
+    },
+  ];
+}
+
+export async function sendModerationStopped(
+  to: string,
+  queue: { brand: string; oldestMinutes: number; waiting: number },
+): Promise<boolean> {
+  if (config.mail.transport === "none") return false;
+  const brand = resolveBrand(null);
+  const subject = `${brand.name}: the ${config.envName} moderation queue of ${queue.brand} has stopped`;
+  return await deliver(brand, to, subject, subject, moderationStoppedBlocks(queue));
+}
+
 export async function sendJobTombstone(
   to: string,
   tombstone: { id: string; kind: string; attempts: number },

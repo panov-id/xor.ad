@@ -141,24 +141,34 @@ let seenBrands = new Set<string>();
 // An empty queue has no age, and the series is removed rather than zeroed, as
 // relay_jobs_oldest_due_seconds is: nought would read as "a phrase arrived
 // this instant".
-async function collectModerationQueue(): Promise<void> {
-  const rows = await query<{ brand: string; oldest_seconds: string }>(
-    `SELECT f.brand, EXTRACT(EPOCH FROM (now() - min(f.created_at)))::text AS oldest_seconds
+//
+// The same read is what the letter of lib/moderation_watch.ts wakes on, so the
+// gauge and the letter cannot disagree about what "waiting" is (B12).
+export async function readModerationQueue(): Promise<Array<{ brand: string; oldestSeconds: number; waiting: number }> | null> {
+  const rows = await query<{ brand: string; oldest_seconds: string; waiting: string }>(
+    `SELECT f.brand, EXTRACT(EPOCH FROM (now() - min(f.created_at)))::text AS oldest_seconds,
+            count(*)::text AS waiting
        FROM feed_messages f
       WHERE f.visible_at IS NULL
         AND NOT EXISTS (SELECT 1 FROM identities a
                          WHERE a.id = f.author_identity AND a.name_state = 'rejected')
       GROUP BY f.brand`,
   );
+  if (rows === null) return null;
+  return rows.map((row) => ({
+    brand: row.brand,
+    oldestSeconds: Math.max(0, Math.round(Number(row.oldest_seconds))),
+    waiting: Number(row.waiting),
+  }));
+}
+
+async function collectModerationQueue(): Promise<void> {
+  const rows = await readModerationQueue();
   if (rows === null) return;
   const present = new Set<string>();
   for (const row of rows) {
     present.add(row.brand);
-    setGauge(
-      "relay_moderation_oldest_seconds",
-      Math.max(0, Math.round(Number(row.oldest_seconds))),
-      { brand: row.brand },
-    );
+    setGauge("relay_moderation_oldest_seconds", row.oldestSeconds, { brand: row.brand });
   }
   for (const brand of seenModeration) {
     if (!present.has(brand)) clearGauge("relay_moderation_oldest_seconds", { brand });

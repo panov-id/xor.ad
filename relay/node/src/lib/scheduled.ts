@@ -29,6 +29,7 @@ import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { sweepChats } from "./chat_sweeper.ts";
 import { wakeReturned } from "./away_waker.ts";
 import { watchBackup } from "./backup_watch.ts";
+import { watchModeration } from "./moderation_watch.ts";
 import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 import { countActiveRecipients } from "./dsa_recipients.ts";
 import { sweepAdvertisers } from "./advertiser_sweeper.ts";
@@ -106,6 +107,9 @@ export const SWEEP_CHATS = "sweep_chats";
 export const WAKE_RETURNED = "wake_returned";
 // Watchdog С7: the age of the last nightly dump, hourly (lib/backup_watch.ts).
 export const WATCH_BACKUP = "watch_backup";
+// Watchdog С6: a letter when a face's moderation queue stops, every minute —
+// the deadline it watches is ten (lib/moderation_watch.ts).
+export const WATCH_MODERATION = "watch_moderation";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -231,6 +235,11 @@ export function registerScheduledJobs(): void {
   handle(WATCH_BACKUP, async () => {
     await watchBackup();
     return new Date(Date.now() + A_HOUR_MS);
+  });
+
+  handle(WATCH_MODERATION, async () => {
+    await watchModeration();
+    return new Date(Date.now() + A_MINUTE_MS);
   });
 
   handle(SWEEP_PENDING, async () => {
@@ -402,4 +411,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_CHATS, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(WAKE_RETURNED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(WATCH_BACKUP, {}, new Date(Date.now() + A_HOUR_MS));
+  await enqueueOnce(WATCH_MODERATION, {}, new Date(Date.now() + A_MINUTE_MS));
 }

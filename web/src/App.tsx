@@ -94,11 +94,6 @@ export function App() {
     (globalThis as unknown as { xor?: unknown }).xor = seated ? { client: seated.client, keys: seated.keys } : undefined;
   }, [seated]);
 
-  async function registered(client: Client, sealed: Sealed) {
-    // The long key's signing half for the chat keys — from the held copy the
-    // registration left, in memory only; the vault holds the sealed one.
-    const held = client.held;
-    if (!held) throw new Error("the client holds no long key");
   // A seated client: the feed — unless one is away (the profile says until
   // when); the statements gate below runs on the feed.
   async function land(client: Client) {
@@ -110,6 +105,11 @@ export function App() {
     setScreen({ at: "feed" });
   }
 
+  async function registered(client: Client, sealed: Sealed) {
+    // The long key's signing half for the chat keys — from the held copy the
+    // registration left, in memory only; the vault holds the sealed one.
+    const held = client.held;
+    if (!held) throw new Error("the client holds no long key");
     const longKey = await held.signing();
     setSeated({ client, keys: new ChatKeys(client, longKey), sealed });
     await land(client);

@@ -111,3 +111,6 @@ value	unit	kind	why	example
 16	bytes	prose.figure	длина среза хеша в выводе кода безопасности, не предел	xor.ad/docs/chat_EN.md:2672
 40	min	prose.figure	порог молчания координатора артели (два тика кольца по 20 минут) — правило работы сессий, не предел платформы	xor.ad/docs/parallel-sessions_EN.md:145
 9	min	prose.figure	порог тревоги ModerationQueueStopped (alerts.yml) — на минуту раньше предела moderation.queue.wait 10 мин, чтобы уборщик не снял фразу раньше тревоги; правило наблюдения, не предел платформы	xor.ad/docs/watchdogs_EN.md:143
+70	min	sample.data	вход теста С6: остановки через 70 минут на сутки — длиннее часового тормоза письма	xor.ad/docs/test-map_EN.md:494
+8.5	min	sample.data	вход теста С6: 8,5 минуты ожидания — ещё не остановка (порог 9)	xor.ad/docs/test-map_EN.md:494
+8,5	min	sample.data	вход теста С6: 8,5 минуты ожидания — ещё не остановка (порог 9); русская запись того же числа	xor.ad/docs/test-map_RU.md:478

@@ -34,7 +34,7 @@
 // wrap_public_key open again. Same seal, same vault key; the public half is
 // the node's to remember (sessions.wrap_public_key).
 
-import { Client, type HeldLongKey, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";
+import { type Answer, Client, type HeldLongKey, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";
 import { open as unseal, seal, vaultKey } from "../../depth/core/lock.ts";
 import { derivePin } from "../../depth/core/pin.ts";
 import { base64url, type SigningKey } from "../../depth/core/sign.ts";
@@ -278,3 +278,45 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
 }
 
 const equal = (a: Uint8Array, b: Uint8Array): boolean => a.length === b.length && a.every((x, i) => x === b[i]);
+
+// Changing the PIN re-seals the vault (W4, 2026-09-26): the vault key is
+// HKDF(local ‖ share), and POST /vault/pin gives the node a new auth and a
+// new share — after it, the old seal opens with nothing this device can
+// derive. So, in order: the old halves are proved and the seals opened
+// (POST /vault/share with the old proof, signed by the seated session), the
+// PIN is changed through the core, the new share is fetched with the new
+// proof, and both keys are sealed again. Between the change and the new
+// seal the old blobs stay on the disk; a crash there is the paper code's
+// case, as it is for a lost device. The core's counter answers a wrong old
+// PIN before anything is opened.
+export async function changePinAndReseal(client: Client, current: string, next: string): Promise<Answer<{ error?: { code?: string; attempts_left?: number } }>> {
+  const record = await readRecord();
+  if (!record) throw new Error("this device keeps no identity to re-seal");
+  const before = await derivePin(current, record.deviceSalt);
+  const oldShare = await client.request<{ share?: string; error?: { code?: string; attempts_left?: number } }>(
+    "POST", "/vault/share", { auth: base64url(before.auth) },
+  );
+  if (oldShare.status !== 200 || !oldShare.body?.share) return oldShare as Answer<{ error?: { code?: string; attempts_left?: number } }>;
+  const oldKey = await vaultKey(before.local, fromBase64url(oldShare.body.share));
+  const longPkcs8 = await unseal(oldKey, record.sealedLong);
+  const wrapPkcs8 = await unseal(oldKey, record.sealedWrap);
+  try {
+    const changed = await client.changePin(current, next);
+    if (changed.status !== 200) return changed;
+    const after = await derivePin(next, record.deviceSalt);
+    const newShare = await client.request<{ share?: string }>("POST", "/vault/share", { auth: base64url(after.auth) });
+    if (newShare.status !== 200 || !newShare.body?.share) throw new Error(`the node did not hand back its new share: ${newShare.status}`);
+    const newKey = await vaultKey(after.local, fromBase64url(newShare.body.share));
+    const resealed: Record_ = {
+      ...record,
+      sealedLong: await seal(newKey, longPkcs8),
+      sealedWrap: await seal(newKey, wrapPkcs8),
+      savedAt: Date.now(),
+    };
+    await tx("readwrite", (s) => s.put(resealed));
+    return changed;
+  } finally {
+    longPkcs8.fill(0);
+    wrapPkcs8.fill(0);
+  }
+}

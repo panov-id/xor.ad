@@ -4,6 +4,7 @@
 # every worktree under .claude travelled to the daemon on each build.
 *
 !depth/core
+!depth/ink/locales
 !web
 web/node_modules
 web/dist

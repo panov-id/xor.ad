@@ -15,6 +15,7 @@ COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
 COPY depth/core /repo/depth/core
+COPY depth/ink/locales /repo/depth/ink/locales
 COPY web/ ./
 
 ARG VITE_BRAND=sosed

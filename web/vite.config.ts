@@ -35,10 +35,12 @@ const proxy = {
 // depth/core lives outside this package: the screens import it by relative
 // path, as the terminal face does (depth/ink), so there is one core.
 const core = fileURLToPath(new URL("../depth/core", import.meta.url));
+// And the terminal's words: the "me" screens say what depth says, verbatim.
+const locales = fileURLToPath(new URL("../depth/ink/locales", import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
-  server: { proxy, fs: { allow: [".", core] }, allowedHosts: ["host.docker.internal", "web"] },
+  server: { proxy, fs: { allow: [".", core, locales] }, allowedHosts: ["host.docker.internal", "web"] },
   preview: { proxy, allowedHosts: ["host.docker.internal", "web"] },
   // depth/core names hash-wasm bare; resolved from this package's node_modules,
   // as depth/deno.json maps it for Deno.

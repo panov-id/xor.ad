@@ -45,6 +45,21 @@ else
   echo "   STAYED GREEN — the guard proves nothing"; status=1
 fi
 restore
+
+# Break 3 (W4): the PIN changes but the vault is not re-sealed — the record
+# on the disk is not written. The next reload cannot open with the new PIN,
+# and me.spec.ts must go red where it expects the feed after the unlock.
+echo "== break 3: the PIN changes, the vault is not re-sealed"
+sed -i 's|    await tx("readwrite", (s) => s.put(resealed));|    void resealed;|' "$root/$vault"
+grep -q '    void resealed;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+echo "$out" | grep -E 'me.spec|✘|✓|[0-9]+ (passed|failed)' | head -6
+if echo "$out" | grep -qE '✘ +[0-9]+ me.spec.ts' && echo "$out" | grep -qE '1 failed'; then
+  echo "   red as expected"
+else
+  echo "   STAYED GREEN — the guard proves nothing"; status=1
+fi
+restore
 [ -z "$(git -C "$root" status --porcelain -- "$vault")" ] || { echo "the tree is not restored" >&2; exit 1; }
 echo "== restored: $vault clean"
 exit "$status"

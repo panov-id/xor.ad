@@ -19,6 +19,10 @@ Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("ORIGIN_TOKEN", "feed-publish-origin-token");
 Deno.env.set("VAULT_SHARE_KEY", "feed-publish-vault-key");
+// Every phrase waits for a person here: the suite is built on "202, then the
+// verdict by hand"; the rules of the first tier have a suite of their own
+// (feed_verdict.test.ts).
+Deno.env.set("FEED_VERDICT", "queue");
 Deno.env.set(
   "BRANDS",
   JSON.stringify([{ key: "alpha", name: "Alpha", domain: "alpha.test", from: "a <a@alpha.test>" }]),

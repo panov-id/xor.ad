@@ -1833,16 +1833,30 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PhraseCreate"}}}}
-      description: Answers 202 at once; visible_at stays empty until the queue's verdict.
-      x-description-ru: Отвечает 202 сразу; visible_at пуст до вердикта очереди.
+      description: "Answers at once, and says which of two things happened (2026-09-26, chat spec §8.3, first tier). 200: the rules found nothing in the phrase — no link, no contact, no offer, not a repeat of one's own live phrase, no doubtful waiting name — and it was published in the same transaction, with its term. 202: the rules flagged it and it waits for a person; visible_at stays empty until the queue's verdict. A node with FEED_VERDICT=queue answers 202 to everything."
+      x-description-ru: "Отвечает сразу и говорит, что из двух случилось (26.09.2026, спека чата §8.3, первая ступень). 200: правила ничего не нашли — ни ссылки, ни контакта, ни оффера, ни повтора своей живой фразы, ни спорного ждущего имени — и фраза опубликована в той же транзакции, со сроком. 202: правила пометили, фраза ждёт человека; visible_at пуст до вердикта очереди. Узел с FEED_VERDICT=queue отвечает 202 на всё."
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
+        "200":
+          description: "Published: `{id, state: \"published\", visible_at, expires_at}` — the rules of §8.3 read the phrase and found nothing to hold, and it is in the feed from this moment. Seconds since the epoch, the term is feed.phrase.span."
+          x-description-ru: "Опубликовано: `{id, state: \"published\", visible_at, expires_at}` — правила §8.3 прочли фразу и держать нечего, она в ленте с этого момента. Секунды с эпохи, срок — feed.phrase.span."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, state, visible_at, expires_at]
+                properties:
+                  id: {type: string, format: uuid}
+                  state: {type: string, enum: [published]}
+                  visible_at: {type: integer, format: unix-seconds}
+                  expires_at: {type: integer, format: unix-seconds}
         "202":
-          description: "Accepted into the queue: `{id, state: \"checking\"}`. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it."
-          x-description-ru: "Принято в очередь: `{id, state: \"checking\"}`. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено."
+          description: "Accepted into the queue: `{id, state: \"checking\"}` — the rules flagged something (a link, a contact, an offer, a repeat, a waiting name they doubt) and a person reads it. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it."
+          x-description-ru: "Принято в очередь: `{id, state: \"checking\"}` — правила что-то пометили (ссылку, контакт, оффер, повтор, сомнительное ждущее имя), и читает человек. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено."
           headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
           content:
             application/json:

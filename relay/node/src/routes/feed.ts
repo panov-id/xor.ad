@@ -7,6 +7,13 @@
 // the verdict would make the person wait for a model, and a route that answered
 // 200 would promise something nobody has decided.
 //
+// Except what the first tier of §8.3 decides on the spot (2026-09-26, P1): the
+// rules cost nothing and read the phrase inside the same transaction that
+// wrote it, and a phrase they find nothing in is published there and answered
+// 200 with its term. What they flag — a link, a contact, an offer, a repeat,
+// a doubtful name — waits for a person as before, 202. With
+// `FEED_VERDICT` unset or not `rules`, everything waits (lib/feed_verdict.ts).
+//
 // What is here is the writing side and its four limits (lib/feed_limits.ts).
 // The verdict, the delivery, and the geo rounding of the delivery are their own
 // pieces.
@@ -19,6 +26,7 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
+import { publishLocked, reasonsFor, verdictMode } from "../lib/feed_verdict.ts";
 import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
 import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
@@ -158,6 +166,33 @@ async function publish(req: Request): Promise<Response> {
         conditions,
       ],
     );
+    if (verdictMode() === "rules") {
+      const reasons = await reasonsFor(run, {
+        id,
+        identityId: caller.identityId,
+        text,
+        offer: discount !== null || conditions !== null,
+      });
+      if (reasons.length === 0) {
+        const done = await publishLocked(run, id, {}, "rules");
+        if (done.applied && done.visibleAt && done.expiresAt) {
+          inc("relay_feed_total", { result: "published" });
+          inc("relay_feed_rules_total", { result: "published" });
+          // Seconds, as every term this node names (protocol §6).
+          return json({
+            id,
+            state: "published",
+            visible_at: Math.floor(done.visibleAt.getTime() / 1000),
+            expires_at: Math.floor(done.expiresAt.getTime() / 1000),
+          }, 200, sunsetHeader());
+        }
+        // Not applied means the name is refused and the phrase waits for a
+        // new one — the queue's case, and reasonsFor said so already unless
+        // the name changed under us; either way it waits.
+        reasons.push("name");
+      }
+      for (const reason of new Set(reasons)) inc("relay_feed_rules_total", { result: "queued", reason });
+    }
     inc("relay_feed_total", { result: "queued" });
     // 202, and `visible_at` is deliberately absent rather than null-valued: the
     // client shows "checking…", and a field that is there and empty invites a

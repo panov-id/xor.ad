@@ -812,3 +812,39 @@ tests:
       - eval_time: 65m
         alertname: DsaDecisionLetterExhausted
         exp_alerts: []
+
+  # DsaLetterMarkFailed (B53, 2026-09-26): both letters' counters are there at
+  # zero from the start; one decision mark fails at 11m, increase over 1h > 0
+  # from then; for 1m. The arrival letter stays quiet and is not named.
+  - name: a letter whose sent mark failed fires a minute later, naming the letter
+    interval: 1m
+    input_series:
+      - series: 'relay_dsa_letter_mark_failed_total{letter="decision"}'
+        values: '0x10 1x60'
+      - series: 'relay_dsa_letter_mark_failed_total{letter="arrival"}'
+        values: '0x70'
+    alert_rule_test:
+      - eval_time: 11m
+        alertname: DsaLetterMarkFailed
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: DsaLetterMarkFailed
+        exp_alerts:
+          - exp_labels: { severity: warning, letter: decision }
+            exp_annotations:
+              summary: "Письмо по ст. 16 ушло, отметка об отправке не записалась (decision)"
+              description: "Следующий проход отправит письмо снова: заявитель получит его повторно. Смотреть журнал узла («a letter left and its mark was not written») и запись в dsa_notices."
+
+  - name: letters that leave and are marked do not fire the mark alert
+    interval: 1m
+    input_series:
+      - series: 'relay_dsa_letter_mark_failed_total{letter="decision"}'
+        values: '0x70'
+      - series: 'relay_dsa_letter_mark_failed_total{letter="arrival"}'
+        values: '0x70'
+      - series: 'relay_dsa_decision_letter_total{result="sent_on_retry"}'
+        values: '0+1x70'
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: DsaLetterMarkFailed
+        exp_alerts: []

@@ -36,6 +36,9 @@ configured("every sender through deliver() passes its own kind from MAIL_KINDS",
     assert(!byKind.has(kind), `${name} and ${byKind.get(kind)} both pass kind "${kind}"`);
     byKind.set(kind, name);
   }
+  // A letter with a sender of its own counts itself with inc() and its kind
+  // literally (the welcome letter, B53): that is a sender too.
+  for (const [, kind] of source.matchAll(/inc\("relay_mail_total",\s*\{[^}]*\bkind:\s*"([a-z_]+)"/g)) byKind.set(kind, byKind.get(kind) ?? "a direct count");
   const unused = [...listed].filter((k) => !byKind.has(k));
   assertEquals(unused, [], `kinds in MAIL_KINDS no sender passes: ${unused.join(", ")}`);
   assert(!/kind: "dsa"/.test(source), "a letter is still labelled kind=\"dsa\"");

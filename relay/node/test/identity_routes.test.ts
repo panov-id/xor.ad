@@ -792,6 +792,23 @@ Deno.test("a take-down raced every time cannot undo the tenth miss, and the minu
   assertEquals(await exists(), false, "the job left the live phrase under the frozen name");
 });
 
+// Every miss is a "wrong" on the door's counter, the tenth too (review panel
+// H6, B53, 2026-09-26): it was counted "locked", and PinMissBurst reads "wrong".
+Deno.test("the tenth miss is counted wrong like the nine before it", async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const wrongs = () => Number(render().match(/relay_vault_share_total\{result="wrong"\} (\d+)/)?.[1] ?? 0);
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { session_id: string };
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+  const before = wrongs();
+  for (let i = 0; i < 10; i++) {
+    await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+    await clearDelay(created.session_id);
+  }
+  assert((await attemptsLeft(created.session_id)).locked_at, "the tenth miss did not close entry");
+  assertEquals(wrongs() - before, 10, "a miss was not counted wrong");
+});
+
 Deno.test("the tenth miss closes entry and leaves the share intact", async () => {
   const { answer, pair } = await registerWithPin();
   const created = answer.body as { session_id: string };

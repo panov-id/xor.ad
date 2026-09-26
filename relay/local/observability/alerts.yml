@@ -209,6 +209,19 @@ groups:
           summary: "Письмо о решении по ст. 16(5) не ушло"
           description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Смотреть relay_dsa_decision_letter_total и почтовый транспорт."
 
+      # A DSA letter that left and whose sent mark could not be written
+      # (markLetterSent in lib/notice_notify.ts; review panel G5, B47). At least
+      # once is the design, so the next pass sends it again — but a mark that
+      # keeps failing is the database refusing writes, and the notifier gets the
+      # same letter on every pass until someone looks (B53, 2026-09-26).
+      - alert: DsaLetterMarkFailed
+        expr: sum by (letter) (increase(relay_dsa_letter_mark_failed_total[1h])) > 0
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Письмо по ст. 16 ушло, отметка об отправке не записалась ({{ $labels.letter }})"
+          description: "Следующий проход отправит письмо снова: заявитель получит его повторно. Смотреть журнал узла («a letter left and its mark was not written») и запись в dsa_notices."
+
       # The feed with no moderator behind it. publishPhrase() is called by the
       # stale-queue sweeper after ten minutes and by nothing else, so a phrase
       # that nobody read is deleted unread — which is the design until §8.14 is

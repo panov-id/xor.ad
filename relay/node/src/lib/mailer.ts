@@ -188,9 +188,12 @@ export async function sendWelcome(
     } else {
       await viaResend(config.resend.fromOverride || from, to, subject, html, text, brand.key);
     }
-    inc("relay_mail_total", { transport: config.mail.transport, result: "sent" });
+    inc("relay_mail_total", { transport: config.mail.transport, result: "sent", kind: "welcome" });
   } catch (e) {
-    inc("relay_mail_total", { transport: config.mail.transport, result: "failed" });
+    // Its own kind, like every other letter: without one this was a series of
+    // its own, never seeded, and the first refused welcome after a start was
+    // invisible to MailFailing (review panel H4, B53, 2026-09-26).
+    inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind: "welcome" });
     log("error", "welcome mail failed", { error: withoutAddresses(String(e)) });
   }
 }
@@ -776,6 +779,9 @@ export const MAIL_KINDS = [
   "notice_receipt", "notice_arrived", "notice_aging", "notice_aging_summary", "arrival_unsent",
   "night_path_summary", "notice_decision", "statement_of_reasons", "support_digest",
   "backup_stale", "moderation_stopped", "job_tombstone",
+  // Not through deliver(): the welcome letter has its own sender and counts
+  // itself, under this kind (H4, B53).
+  "welcome",
 ] as const;
 export type MailKind = typeof MAIL_KINDS[number];
 

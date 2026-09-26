@@ -115,7 +115,11 @@ export async function checkPin(
       // the count and the freeze with it; the minute's job finishes it.
       if (owner) await takeDownLiveInPlace(run, owner.identity);
     }
-    meter(left === 0 ? "locked" : "wrong_pin");
+    // The tenth miss is a miss like the nine before it: counted as "locked" it
+    // fell outside every counter's "wrong", so PinMissBurst never saw the one
+    // that closes entry (review panel H6, B53, 2026-09-26). The lock itself is
+    // counted by the freeze, relay_sessions_frozen_total{reason="pin_limit"}.
+    meter("wrong_pin");
     return refuse(
       // Its own code, not `unauthorized`: that one belongs to 401 and a bad
       // signature (openapi.yaml), and a client that reads the code to decide

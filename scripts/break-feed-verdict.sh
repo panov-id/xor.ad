@@ -5,8 +5,8 @@
 #
 #   1. the rules stop seeing links  → feed_verdict_rules.test.ts (unit, no
 #      database) must go red on "a link or a contact is flagged";
-#   2. the route stops publishing by rules (mode compared against a word that
-#      is never set) → feed_verdict.test.ts must go red on "published in the
+#   2. the route stops publishing by rules (a clean reading no longer counts as
+#      clean; a type-valid break — a comparison TS rejects is a broken build, not a red test) → feed_verdict.test.ts must go red on "published in the
 #      request … under the default mode" — run through the database script,
 #      filtered to that case so the whole suite is not replayed.
 #
@@ -52,8 +52,8 @@ fi
 
 if [ "$which" = both ] || [ "$which" = db ]; then
   echo "== break 2: the route stops publishing by rules"
-  sed -i 's|if (verdictMode() === "rules") {|if (verdictMode() === "never") {|' "$root/$route"
-  grep -q '=== "never"' "$root/$route" || { echo "the break did not apply" >&2; exit 1; }
+  sed -i 's|if (reasons.length === 0) {|if (reasons.length < 0) {|' "$root/$route"
+  grep -q 'reasons.length < 0' "$root/$route" || { echo "the break did not apply" >&2; exit 1; }
   out=$(bash "$root/scripts/run-relay-database-tests.sh" --filter "under the default mode" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
   echo "$out" | grep -E '^== test/feed_verdict.test.ts|under the default mode|passed \| [0-9]+ failed' | tail -4
   if echo "$out" | grep -q 'under the default mode ... FAILED'; then

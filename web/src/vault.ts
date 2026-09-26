@@ -6,11 +6,14 @@
 //   auth     = material[0..32]  → POST /vault/share, the node checks it and
 //                                  counts the misses (it, not this page)
 //   local    = material[32..64] → never leaves
-//   storage  = HKDF-SHA256(local ‖ share, salt = device salt, "xor.ad/vault/v1")
+//   storage  = HKDF-SHA256(local ‖ share) — depth/core/lock.ts vaultKey, the
+//              one derivation both faces use (§8.2: the web and depth are the
+//              same; P4 gave the core its own lock on 2026-09-26)
 //
-// What is sealed under it here: the long key's pkcs8 (AES-GCM; the spec says
-// AES-KW, which WebCrypto refuses for a P-256 pkcs8 — not a multiple of eight
-// bytes, the same reason paper.ts chose GCM; quorum of two, W1, 2026-09-26).
+// What is sealed under it here: the long key's pkcs8, by the core's seal()
+// (AES-GCM; the spec says AES-KW, which WebCrypto refuses for a P-256 pkcs8 —
+// not a multiple of eight bytes, the same reason paper.ts chose GCM; quorum
+// of two, W1, 2026-09-26).
 // What is not sealed, and not secret: identity id, session id, the long key's
 // public half, the device salt, and the long key under the paper code — the
 // paper code opens that one, nothing here does.
@@ -31,6 +34,7 @@
 // wrapping pair, so a chat started before the reload cannot be opened.
 
 import { Client, type HeldLongKey } from "../../depth/core/client.ts";
+import { open, seal, vaultKey } from "../../depth/core/lock.ts";
 import { derivePin } from "../../depth/core/pin.ts";
 import { base64url, type SigningKey } from "../../depth/core/sign.ts";
 import { HeldKey } from "../../depth/core/transfer.ts";
@@ -38,7 +42,6 @@ import { API_KEY, NODE_BASE } from "./config.ts";
 
 const DB = "xor-vault";
 const STORE = "identity";
-const INFO = new TextEncoder().encode("xor.ad/vault/v1");
 const P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
 
 export interface Record_ {
@@ -80,20 +83,6 @@ function tx<T>(mode: IDBTransactionMode, op: (store: IDBObjectStore) => IDBReque
 export const readRecord = (): Promise<Record_ | undefined> => tx("readonly", (s) => s.get("me") as IDBRequest<Record_ | undefined>);
 export const forget = (): Promise<undefined> => tx("readwrite", (s) => s.delete("me") as IDBRequest<undefined>);
 
-async function storageKey(local: Uint8Array, share: Uint8Array, deviceSalt: Uint8Array): Promise<CryptoKey> {
-  const ikm = new Uint8Array(local.length + share.length);
-  ikm.set(local, 0);
-  ikm.set(share, local.length);
-  const base = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveKey"]);
-  return await crypto.subtle.deriveKey(
-    { name: "HKDF", hash: "SHA-256", salt: deviceSalt, info: INFO },
-    base,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["wrapKey", "unwrapKey"],
-  );
-}
-
 function fromBase64url(text: string): Uint8Array {
   const b64 = text.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - text.length % 4) % 4);
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
@@ -125,13 +114,11 @@ export async function registerAndKeep(
   const given = await client.request<{ share: string }>("POST", "/vault/share", { auth: base64url(pin.auth) });
   if (given.status !== 200) throw new Error(`the node did not hand back its share: ${given.status}`);
   const share = fromBase64url(given.body.share);
-  const key = await storageKey(pin.local, share, deviceSalt);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const sealed = new Uint8Array(await crypto.subtle.wrapKey("pkcs8", extractable!, key, { name: "AES-GCM", iv }));
+  const key = await vaultKey(pin.local, share);
+  const pkcs8 = new Uint8Array(await crypto.subtle.exportKey("pkcs8", extractable!));
   extractable = null;
-  const sealedLong = new Uint8Array(12 + sealed.length);
-  sealedLong.set(iv, 0);
-  sealedLong.set(sealed, 12);
+  const sealedLong = await seal(key, pkcs8);
+  pkcs8.fill(0);
   const record: Record_ = {
     id: "me",
     identityId: client.identityId,
@@ -154,16 +141,18 @@ export async function registerAndKeep(
 // still in hand, so that the seal is known to be a seal and not a blob.
 export async function openSealed(record: Record_, pin: string, share: Uint8Array): Promise<CryptoKey> {
   const material = await derivePin(pin, record.deviceSalt);
-  const key = await storageKey(material.local, share, record.deviceSalt);
-  return await crypto.subtle.unwrapKey(
-    "pkcs8",
-    record.sealedLong.slice(12),
-    key,
-    { name: "AES-GCM", iv: record.sealedLong.slice(0, 12) },
-    P256,
-    false,
-    ["sign"],
-  );
+  return await unsealLong(record, material.local, share);
+}
+
+// The long key out of its seal, into memory non-extractable.
+async function unsealLong(record: Record_, local: Uint8Array, share: Uint8Array): Promise<CryptoKey> {
+  const key = await vaultKey(local, share);
+  const pkcs8 = await open(key, record.sealedLong);
+  try {
+    return await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, P256, false, ["sign"]);
+  } finally {
+    pkcs8.fill(0);
+  }
 }
 
 
@@ -202,16 +191,7 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
     const code = given.body?.error?.code ?? `status_${given.status}`;
     throw new PinRefused(code, given.body?.error?.attempts_left, given.retryAfter);
   }
-  const key = await storageKey(material.local, fromBase64url(given.body.share), record.deviceSalt);
-  const long = await crypto.subtle.unwrapKey(
-    "pkcs8",
-    record.sealedLong.slice(12),
-    key,
-    { name: "AES-GCM", iv: record.sealedLong.slice(0, 12) },
-    P256,
-    false,
-    ["sign"],
-  );
+  const long = await unsealLong(record, material.local, fromBase64url(given.body.share));
   const client = new Client(NODE_BASE, API_KEY);
   const longSigning: SigningKey = { privateKey: long, publicSpki: record.longSpki };
   // The wrapping pair is not on the disk yet (see the top of this file): a

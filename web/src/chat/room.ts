@@ -31,6 +31,9 @@ export function connectRoom(client: Client, chatId: string, on: (event: RoomEven
   let stopped = false;
   let current: { close(): void } | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  // The close code the node announced in a `closed` frame, if it did; read
+  // in place of the socket's own when that arrives as a bare 1006.
+  let announced: number | null = null;
 
   const loop = async () => {
     let attempt = 0;
@@ -65,6 +68,8 @@ export function connectRoom(client: Client, chatId: string, on: (event: RoomEven
       }
       current = null;
       if (stopped) return;
+      if (announced !== null && (code === 1006 || code === 1005)) code = announced;
+      announced = null;
       const action = afterClose(code);
       if (action === "over") return on({ kind: "over" });
       if (action === "moved") return on({ kind: "moved" });
@@ -85,6 +90,13 @@ export function connectRoom(client: Client, chatId: string, on: (event: RoomEven
     } else if (frame.type === "rekey") {
       const d = frame.data as { epoch?: unknown };
       if (typeof d?.epoch === "number") on({ kind: "rekey", epoch: d.epoch });
+    } else if (frame.type === "closed") {
+      // The node names the close it is about to make (protocol §4.4, frame
+      // `closed`). Measured in the e2e stand (W3b, 2026-09-26): a close with
+      // 4003 from the node reached the browser as a bare 1006, straight or
+      // through the proxy — so the code rides in a frame of its own first.
+      const d = frame.data as { code?: unknown };
+      if (typeof d?.code === "number") announced = d.code;
     } else {
       on({ kind: "sys", data: { type: frame.type, ...(typeof frame.data === "object" && frame.data ? frame.data as object : {}) } });
     }

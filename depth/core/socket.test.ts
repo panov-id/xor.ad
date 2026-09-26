@@ -165,6 +165,36 @@ Deno.test({
 });
 
 Deno.test({
+  name: "the node names the close in a `closed` frame before the socket goes: {code: 4003, reason}",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    // Protocol §4.4, frame `closed` (built 2026-09-26, W3b): a browser saw the
+    // node's 4003 as a bare 1006, so the code travels as data first. The frame
+    // is read after the close too — the Room keeps what arrived.
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, chatId } = await chatBetween(sql);
+      const room = await b.openRoom(chatId);
+      await room.protocol();
+      assertEquals((await a.closeChat(chatId)).status, 200);
+      const code = await room.closedWithin();
+      assertEquals(code, 4003);
+      const frame = await room.next(1000);
+      assertEquals(frame.type, "closed", `the frame before the close is ${frame.type}, not closed`);
+      assertEquals((frame.data as { code: number }).code, 4003);
+      // The socket's numbering runs on: a fresh room with nothing handed over
+      // gets the closed frame as its first, seq 1 (verifier W3b: it was 2).
+      assertEquals(frame.seq, 1, "the closed frame skipped a number in the socket's order");
+      assertEquals(typeof (frame.data as { reason?: unknown }).reason, "string", "the closed frame carries no reason");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
+Deno.test({
   name: "blocking closes the other one's room at once, 4003",
   ignore: !node || !databaseUrl,
   sanitizeResources: false,

@@ -23,7 +23,7 @@
 // whose epochs differ says so and does not seal under the old keys.
 
 import type { Client } from "../../../depth/core/client.ts";
-import { type Conversation, Ephemeral, safetyCode, unwrapConversation } from "../../../depth/core/seal.ts";
+import { type Conversation, Ephemeral, safetyCode, unwrapConversation, verifyHalf } from "../../../depth/core/seal.ts";
 
 export interface ChatRow {
   kind: "chat";
@@ -44,10 +44,19 @@ export interface ChatRow {
 export type Answer<T = Record<string, unknown>> = { status: number; body: T };
 
 export class ChatKeys {
-  // By match id until the chat opens, then by chat id too.
-  #pairs = new Map<string, Ephemeral>();
+  // By match id until the chat opens, then by chat id too — each with the
+  // epoch it was published at (0 from consent, higher from a reissue): ours to
+  // remember, as the core says, never the node's to tell.
+  #pairs = new Map<string, { eph: Ephemeral; epoch: number }>();
   #open = new Map<string, { conversation: Conversation; epoch: number }>();
   #queued = new Map<string, string[]>();
+  // Whether the node kept this session's wrap of the chat's keys at the epoch
+  // (PUT /chats/:id/keys), or refused and why: what a reload will find.
+  #kept = new Map<string, { epoch: number; refused?: string }>();
+
+  keptOnNode(chatId: string): { epoch: number; refused?: string } | null {
+    return this.#kept.get(chatId) ?? null;
+  }
 
   // `signing`: the long key's signing half — the Client keeps its own private;
   // the face gets one from client.held.signing() at registration, or from the
@@ -57,12 +66,12 @@ export class ChatKeys {
   // POST /matches/:id/consent with this side's half. "waiting" until the other
   // side agrees; "agreed" with the chat_id once both have.
   async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
-    const eph = this.#pairs.get(matchId) ?? await Ephemeral.generate();
-    this.#pairs.set(matchId, eph);
+    const held = this.#pairs.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };
+    this.#pairs.set(matchId, held);
     const answer = await this.client.request<{ state: string; chat_id?: string }>(
-      "POST", `/matches/${encodeURIComponent(matchId)}/consent`, await eph.publish(this.signing, matchId),
+      "POST", `/matches/${encodeURIComponent(matchId)}/consent`, await held.eph.publish(this.signing, matchId),
     );
-    if (answer.status === 200 && answer.body.chat_id) this.#pairs.set(answer.body.chat_id, eph);
+    if (answer.status === 200 && answer.body.chat_id) this.#pairs.set(answer.body.chat_id, held);
     return answer;
   }
 
@@ -90,7 +99,10 @@ export class ChatKeys {
         ? "the other side asked for new keys: agree before writing"
         : "the other side has not answered the key reissue yet");
     }
-    const eph = this.#pairs.get(row.id) ?? (row.match_id ? this.#pairs.get(row.match_id) : undefined);
+    const held = this.#pairs.get(row.id) ?? (row.match_id ? this.#pairs.get(row.match_id) : undefined);
+    // A pair of another epoch is not this chat's pair any more (a reissue went
+    // past it): the wrap the node kept, if any, is what opens the chat.
+    const eph = held && held.epoch === row.key_epoch ? held.eph : undefined;
     let conversation: Conversation;
     if (eph) {
       if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature || (row.key_epoch === 0 && !row.match_id)) {
@@ -106,13 +118,19 @@ export class ChatKeys {
         { wrapPublicSpki, epoch: row.key_epoch },
       );
       conversation = made.conversation;
-      this.#pairs.set(row.id, eph);
+      this.#pairs.set(row.id, held!);
       // The wrap is what survives a reload. A node that refuses it leaves the
       // conversation open for this tab only; the refusal is named, not hidden.
       const kept = await this.client.request<{ error?: { code?: string } }>(
         "PUT", `/chats/${encodeURIComponent(row.id)}/keys`, { epoch: row.key_epoch, wrapped_key: made.wrapped },
       );
-      if (kept.status !== 200) console.warn(`the node did not keep the conversation's keys: ${kept.status} ${kept.body?.error?.code ?? ""}`);
+      if (kept.status === 200) {
+        this.#kept.set(row.id, { epoch: row.key_epoch });
+      } else {
+        // The screen says it (Chat.tsx): a reload of this tab loses the
+        // conversation, because the node holds no wrap to open it from.
+        this.#kept.set(row.id, { epoch: row.key_epoch, refused: `${kept.status} ${kept.body?.error?.code ?? ""}`.trim() });
+      }
     } else {
       conversation = await this.reopen(row);
     }
@@ -134,7 +152,14 @@ export class ChatKeys {
         : `the conversation's keys could not be read: ${got.status}`);
     }
     if (got.body.epoch !== got.body.current_epoch) throw new Error("the kept keys are of an older epoch: a reissue is needed");
-    return await unwrapConversation(got.body.wrapped_key, wrapPrivate, row.id, got.body.epoch, row.me, row.peer.identity_id);
+    try {
+      return await unwrapConversation(got.body.wrapped_key, wrapPrivate, row.id, got.body.epoch, row.me, row.peer.identity_id);
+    } catch (e) {
+      // A wrap that is not this session's, not this chat's, or not a wrap at
+      // all (WebCrypto throws a DataError with no words for a broken SPKI):
+      // one message, and the way out is the reissue.
+      throw new Error(`the kept keys do not open on this device: ask for a reissue${(e as Error).message ? ` (${(e as Error).message})` : ""}`);
+    }
   }
 
   // Seal a line and hand it to the node (POST /chats/:id/messages).
@@ -147,16 +172,17 @@ export class ChatKeys {
 
   // The queue of the match this chat came from, sealed and sent in order; the
   // first line that does not go stops the rest, which stay queued.
-  async flush(row: ChatRow): Promise<number> {
-    if (!row.match_id) return 0;
+  // The lines that went, with their ids — the screen shows them as its own.
+  async flush(row: ChatRow): Promise<Array<{ localId: string; text: string }>> {
+    if (!row.match_id) return [];
     const lines = [...this.queued(row.match_id)];
-    let sent = 0;
+    const sent: Array<{ localId: string; text: string }> = [];
     for (const line of lines) {
-      const { answer } = await this.say(row, line);
+      const { localId, answer } = await this.say(row, line);
       if (answer.status !== 202) break;
-      sent++;
+      sent.push({ localId, text: line });
     }
-    const left = lines.slice(sent);
+    const left = lines.slice(sent.length);
     if (left.length === 0) this.#queued.delete(row.match_id);
     else this.#queued.set(row.match_id, left);
     return sent;
@@ -164,6 +190,46 @@ export class ChatKeys {
 
   async read(row: ChatRow, ciphertext: string, localId: string): Promise<string> {
     return (await this.open(row)).open(ciphertext, localId);
+  }
+
+  // The key reissue (§8.13), one side at a time, as the core does it
+  // (client.ts requestRekey/acceptRekey). Ask: a fresh pair published at the
+  // epoch after the highest either side holds — this device lost its keys, or
+  // holds a wrap that does not open. Agree: the other side's request checked
+  // first — their half signed by their long key for this chat at exactly the
+  // epoch after ours — then our own fresh pair at that epoch. The node drops
+  // the old wraps on agreement; open() wraps the new keys afresh.
+  async requestRekey(row: ChatRow): Promise<Answer<{ state: string; epoch: number }>> {
+    return this.#publishAt(row.id, Math.max(row.key_epoch, row.peer.key_epoch) + 1);
+  }
+
+  async acceptRekey(row: ChatRow): Promise<Answer<{ state: string; epoch: number }>> {
+    if (!row.rekey_requested) throw new Error("the other side has not asked for new keys");
+    // Ours is the epoch this device published at, when it holds a pair; the
+    // node's report of our epoch otherwise (as the core: client.ts acceptRekey).
+    const mine = this.#pairs.get(row.id)?.epoch ?? row.key_epoch;
+    if (row.peer.key_epoch !== mine + 1) throw new Error("the request is not for the epoch after ours");
+    if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature ||
+        !(await verifyHalf(
+          { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },
+          row.peer.identity_public_key, { chat: row.id, epoch: row.peer.key_epoch },
+        ))) {
+      throw new Error("the request for new keys is not signed by the other side");
+    }
+    return this.#publishAt(row.id, row.peer.key_epoch);
+  }
+
+  async #publishAt(chatId: string, epoch: number): Promise<Answer<{ state: string; epoch: number }>> {
+    const eph = await Ephemeral.generate();
+    const answer = await this.client.request<{ state: string; epoch: number }>(
+      "POST", `/chats/${encodeURIComponent(chatId)}/rekey`,
+      { epoch, ...(await eph.publish(this.signing, { chat: chatId, epoch })) },
+    );
+    if (answer.status === 200) {
+      this.#pairs.set(chatId, { eph, epoch });
+      this.#open.delete(chatId);
+    }
+    return answer;
   }
 
   // The safety code of an open conversation (§8.13), for the menu.

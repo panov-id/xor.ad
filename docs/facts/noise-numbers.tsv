@@ -110,3 +110,4 @@ value	unit	kind	why	example
 1,4	KB	prose.figure	то же число словами в §8.13 RU («~1,4 КБ»); в §8.1 оно как «1.4 КБ»	xor.ad/docs/chat_RU.md:2625
 16	bytes	prose.figure	длина среза хеша в выводе кода безопасности, не предел	xor.ad/docs/chat_EN.md:2672
 40	min	prose.figure	порог молчания координатора артели (два тика кольца по 20 минут) — правило работы сессий, не предел платформы	xor.ad/docs/parallel-sessions_EN.md:145
+9	min	prose.figure	порог тревоги ModerationQueueStopped (alerts.yml) — на минуту раньше предела moderation.queue.wait 10 мин, чтобы уборщик не снял фразу раньше тревоги; правило наблюдения, не предел платформы	xor.ad/docs/watchdogs_EN.md:143

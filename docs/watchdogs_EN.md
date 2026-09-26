@@ -136,8 +136,14 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## W6. The age of the moderation queue
 
-- **Gauge.** `GET /metrics` serves the age of the oldest phrase waiting for a verdict — the gauge §8.3
-  of the chat spec already requires.
+- **Gauge — built 2026-09-26.** `GET /metrics` serves `relay_moderation_oldest_seconds{brand}` — the
+  age of the oldest phrase waiting for a verdict (`relay/node/src/lib/queue_metrics.ts`), the gauge §8.3
+  of the chat spec requires. It counts what `sweepStaleQueue` would drop: a phrase whose author's name
+  was rejected does not count — it waits on its author, not on the node (§8.2). An empty queue has no
+  series rather than a zero. The alert `ModerationQueueStopped`: the oldest above 9 minutes for 2
+  minutes, `info` — until the §8.14 moderator exists every phrase lives to the limit and a `warning`
+  would always ring (decided by the worker after the `FeedPublishesNothing` precedent; raise the two
+  together). Nine, not ten: at the tenth the sweeper has already dropped the phrase and the evidence.
 - **Threshold.** The waiting limit `moderation.queue.wait`, 10 minutes: past it the phrase is dropped
   with "the check did not happen" (`chat_EN.md` §8.3), so an oldest age near it means the queue has
   stopped rather than slowed.
@@ -153,7 +159,7 @@ The platform's promises rest on people and jobs, and they can break without a so
 
 ## Gauges that arrive with the code
 
-For tables, games, sockets and blocks no watchdog is described yet: there is no code. The gauge names are fixed in advance so the code does not invent them: `relay_tables_live`, `relay_sockets_open{kind}`, `relay_table_autopass_total`, `relay_moderation_oldest_seconds` (what W6 already requires). Added 2026-09-16 (panel, OPS-16).
+For tables, games, sockets and blocks no watchdog is described yet: there is no code. The gauge names are fixed in advance so the code does not invent them: `relay_tables_live`, `relay_sockets_open{kind}`, `relay_table_autopass_total`. [retired] `relay_moderation_oldest_seconds` stood here too — built 2026-09-26 (W6). Added 2026-09-16 (panel, OPS-16).
 
 ## How to check once built
 
@@ -172,7 +178,7 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdogs W5 and W6 are not built. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
+- Watchdog W5 is not built. W6 has its gauge and alert rule (2026-09-26); the letter to `DSA_ESCALATION_EMAILS` goes through Alertmanager, which the boxes do not run — like W7, it needs a letter path of its own. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — six an hour per address and one summary beyond that.

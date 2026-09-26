@@ -1866,7 +1866,7 @@ preferences. If 25 km is empty too, we say so: "nobody here yet. Write first —
 phrase lives 4:20", with the number of people in range beside it.
 
 **How many are in the circle — the node answers with a step, not a number (settled
-2026-08-26).** The radius handle says how many live phrases are inside:
+2026-08-26).** The radius handle says how many people with a live phrase are inside (since 2026-09-26 people, not phrases: one person holds up to four, and three people read as "about ten"):
 `nobody here yet` · `a few` (1–4) · `about a dozen` (5–14) · `dozens` (15–99) ·
 `hundreds` (100+). Without it the handle is dragged blind and lands either in
 emptiness or in somebody else's district.

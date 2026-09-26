@@ -212,5 +212,10 @@
   "move.deriving": "calculando las claves a partir del código…",
   "move.inWait": "Compare estos cuatro caracteres con la pantalla del dispositivo anterior y pulse allí «soy yo». Aquí esperamos.",
   "move.arrivedTitle": "La identidad está aquí",
-  "move.arrived": "No hay historial en este dispositivo — por ahora está vacío. Las conversaciones anteriores siguen ahí, pero calladas hasta que se reemita su clave."
+  "move.arrived": "No hay historial en este dispositivo — por ahora está vacío. Las conversaciones anteriores siguen ahí, pero calladas hasta que se reemita su clave.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "La identidad se ha ido",
+  "closed.moved": "La identidad se trasladó a otro dispositivo; aquí no queda nada de ella.",
+  "closed.updateTitle": "depth necesita una actualización",
+  "closed.update": "El nodo habla otra versión del protocolo. Actualiza depth y vuelve a iniciarlo."
 }

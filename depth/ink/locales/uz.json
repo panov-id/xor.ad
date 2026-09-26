@@ -212,5 +212,10 @@
   "move.deriving": "kalitlarni koddan hisoblayapmiz…",
   "move.inWait": "Bu to'rt belgini avvalgi qurilma ekrani bilan solishtiring va u yerda «bu menman» tugmasini bosing. Bu yerda hozircha kutamiz.",
   "move.arrivedTitle": "Shaxs shu yerda",
-  "move.arrived": "Bu qurilmada tarix yo'q — bu yer hozircha bo'sh. Avvalgi suhbatlar joyida, lekin suhbat kaliti qayta chiqarilmaguncha jim."
+  "move.arrived": "Bu qurilmada tarix yo'q — bu yer hozircha bo'sh. Avvalgi suhbatlar joyida, lekin suhbat kaliti qayta chiqarilmaguncha jim.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "Shaxs ketdi",
+  "closed.moved": "Shaxs boshqa qurilmaga ko‘chirildi; bu yerda undan hech narsa qolmadi.",
+  "closed.updateTitle": "depth yangilanishi kerak",
+  "closed.update": "Tugun protokolning boshqa versiyasida gapiradi. depth-ni yangilab, qayta ishga tushiring."
 }

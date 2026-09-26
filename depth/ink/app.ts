@@ -3,7 +3,7 @@
 // this process and dies with it (§8.13, and the owner's decision about the
 // point, 2026-09-22).
 
-import { createElement as h, useEffect, useState } from "react";
+import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import { Client } from "../core/client.ts";
@@ -20,7 +20,11 @@ import {
   Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, StepAway, Statements, Write,
 } from "./rooms.ts";
 import { MovedAway, MoveIn, MoveOut } from "./move.ts";
-import { plain } from "./parts.ts";
+import { plain, useKeys } from "./parts.ts";
+import { IDLE_MS, IdleTimer } from "../core/lock.ts";
+import { Lock } from "./screens/lock.ts";
+import { Closed } from "./screens/closed.ts";
+import type { SessionClose } from "./screens/closed.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -75,10 +79,33 @@ function outcomeLine(say: Say, o: Outcome): string {
 // the process ends there.
 // `start: "restore"` is `depth restore`: a clean device raising an identity
 // with its paper code instead of registering a new one.
-export function App({ say, client: first, fresh, start }: {
+export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   say: Say; client: Client; fresh?: () => Client; start?: "restore" | "moveIn";
+  // Five minutes by default (core/lock.ts); a test hands in less.
+  idleMs?: number;
 }): ReactElement {
   const [client, setClient] = useState(first);
+  // ── The lock (depth-client §, 2026-09-17) ──
+  // Every key touches the timer; when it fires with an identity on the screen
+  // the core is locked and the face is one line (screens/lock.ts). Drawing
+  // Lock instead of the body unmounts the rooms, and unmounting closes their
+  // sockets — a locked client holds no socket, as the spec asks.
+  const [locked, setLocked] = useState(false);
+  const timer = useRef<IdleTimer | null>(null);
+  useEffect(() => {
+    const t = new IdleTimer(() => {
+      // Not `registered`: a raised or moved-in identity has a session before
+      // it has a PIN, and a lock with nothing to open it is a dead screen.
+      if (!client.canLock || client.locked) return;
+      void client.lock().then(() => setLocked(true));
+    }, idleMs);
+    timer.current = t;
+    return () => t.stop();
+  }, [client, idleMs]);
+  useKeys(() => timer.current?.touch());
+  // 4002 and 4004 end the session, not a room (protocol §4.4): whichever
+  // screen was on gives way to the one that says so (screens/closed.ts).
+  const [closedWith, setClosedWith] = useState<SessionClose | null>(null);
   // `depth move` opens on the code typed in (§8.2), as `depth restore` opens
   // on the paper code.
   const [where, setWhere] = useState<Where>(start ? { screen: start } : { screen: "register" });
@@ -446,10 +473,25 @@ export function App({ say, client: first, fresh, start }: {
           onBack: () => setWhere({ screen: "inbox" }),
           onFeed: feed,
           onError: fail,
+          onClosed: (code) => setClosedWith(code === 4002 ? 4002 : 4004),
         });
     }
   })();
 
+  if (closedWith !== null) return h(Closed, { say, code: closedWith, onExit: () => process.exit(0) });
+  if (locked) {
+    // One line and nothing else — no error of the screen left behind either.
+    return h(Lock, {
+      say,
+      client,
+      hold: HeldKey.hold,
+      onUnlocked: () => {
+        setLocked(false);
+        timer.current?.touch();
+      },
+      onError: fail,
+    });
+  }
   return h(
     Box,
     { flexDirection: "column" },

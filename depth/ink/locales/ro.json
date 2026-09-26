@@ -212,5 +212,10 @@
   "move.deriving": "calculăm cheile din cod…",
   "move.inWait": "Comparați aceste patru caractere cu ecranul dispozitivului anterior și apăsați acolo „sunt eu”. Aici așteptăm.",
   "move.arrivedTitle": "Identitatea este aici",
-  "move.arrived": "Pe acest dispozitiv nu există istoric — deocamdată e gol aici. Conversațiile anterioare sunt la locul lor, dar tac până când cheia lor este reemisă."
+  "move.arrived": "Pe acest dispozitiv nu există istoric — deocamdată e gol aici. Conversațiile anterioare sunt la locul lor, dar tac până când cheia lor este reemisă.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "Identitatea a plecat",
+  "closed.moved": "Identitatea a fost mutată pe alt dispozitiv; aici nu a mai rămas nimic din ea.",
+  "closed.updateTitle": "depth are nevoie de actualizare",
+  "closed.update": "Nodul vorbește altă versiune a protocolului. Actualizează depth și pornește-l din nou."
 }

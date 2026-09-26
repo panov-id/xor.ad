@@ -1513,3 +1513,144 @@ test("the PIN is gone from the move's screen once its proof is made", async () =
   app.unmount();
   noErrors();
 });
+
+// ── P4 · the lock after five idle minutes, and the closes that end the session ──
+import { Lock } from "./screens/lock.ts";
+import { Closed } from "./screens/closed.ts";
+
+// A core that is locked and opens on one PIN, counting the other.
+function lockedCore(right = "123456") {
+  const core = {
+    registered: true, canLock: true, locked: true, identityId: "id", held: null, longSpki: "",
+    attempts: 10, unlocked: 0, lockCalls: 0,
+    lock: () => { core.locked = true; core.lockCalls++; return Promise.resolve({ sealed: true }); },
+    unlock: (pin: string) => {
+      if (pin === right) { core.locked = false; core.unlocked++; return Promise.resolve({ ok: true }); }
+      core.attempts--;
+      return Promise.resolve({ ok: false, answer: { status: 409, body: { error: { code: "pin_mismatch", attempts_left: core.attempts } } } });
+    },
+  };
+  return core;
+}
+
+test("the lock is one line, a wrong PIN says what is left, the right one opens it", async () => {
+  const core = lockedCore();
+  let opened = 0;
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Lock, { say, client: core as any, onUnlocked: () => opened++, onError: collect }));
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.equal(frame.trim().split("\n").length, 1, `the locked screen is more than one line:\n${frame}`);
+  assert.match(frame, /^ПИН › _$/m, "the locked screen is not `ПИН ›`");
+  assert.doesNotMatch(frame, /Operator|беседа|новое/i, "the locked screen shows what it must hide");
+  await type(app, ..."000000".split(""));
+  assert.match(app.lastFrame()!, /••••••/, "typed digits are not shown as dots");
+  await type(app, ENTER);
+  await waitFor(shows(app, /ПИН не подходит\. Осталось попыток: 9/));
+  assert.equal(opened, 0, "a wrong PIN opened the lock");
+  assert.doesNotMatch(app.lastFrame()!, /••••••/, "the wrong PIN stayed on the screen");
+  await type(app, ..."123456".split(""), ENTER);
+  await waitFor(() => opened === 1);
+  app.unmount();
+  noErrors();
+});
+
+test("five idle minutes lock the app to one line, and the PIN brings the screen back", async () => {
+  const core = lockedCore();
+  core.locked = false;
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: core as any, idleMs: 200 }));
+  await settle();
+  assert.match(app.lastFrame()!, /Operator\./, "the registration screen did not open");
+  // A key inside the span holds the lock off; the next 200 ms without one lock.
+  await type(app, "А");
+  await new Promise((r) => setTimeout(r, 120));
+  assert.doesNotMatch(app.lastFrame()!, /ПИН ›/, "locked before the idle span was up");
+  await waitFor(shows(app, /^ПИН › _$/m), 3);
+  assert.equal(core.lockCalls, 1, "the core was not locked when the screen was");
+  assert.doesNotMatch(app.lastFrame()!, /Operator\./, "the screen behind the lock is still drawn");
+  await type(app, ..."123456".split(""), ENTER);
+  await waitFor(shows(app, /Operator\./), 3);
+  assert.equal(core.unlocked, 1);
+  app.unmount();
+  noErrors();
+});
+
+test("4002 and 4004 have their own screens, and neither offers a way back in", async () => {
+  let exits = 0;
+  const moved = render(h(Closed, { say, code: 4002, onExit: () => exits++ }));
+  await settle();
+  assert.match(moved.lastFrame()!, /Личность уехала/);
+  assert.match(moved.lastFrame()!, /перенесена на другое устройство/);
+  assert.match(moved.lastFrame()!, /выход/);
+  assert.doesNotMatch(moved.lastFrame()!, /назад|в ленту/, "a session that moved away offers a way back");
+  await type(moved, ENTER);
+  assert.equal(exits, 1, "exit did not fire");
+  moved.unmount();
+  const update = render(h(Closed, { say, code: 4004, onExit: () => exits++ }));
+  await settle();
+  assert.match(update.lastFrame()!, /Нужно обновить depth/);
+  assert.match(update.lastFrame()!, /другой версии протокола/);
+  update.unmount();
+});
+
+test("a room the node closed with 4002 or 4004 hands the code up instead of staying silent", async () => {
+  for (const code of [4002, 4004]) {
+    const stub = roomThatCloses();
+    let handed: number | null = null;
+    const client = {
+      openConversation: () => Promise.resolve({ safetyCode: "1111 2222" }),
+      openRoom: () => Promise.resolve(stub.room),
+      read: () => Promise.resolve(""),
+      sayInChat: () => Promise.resolve({ status: 202, body: {} }),
+    };
+    const app = render(h(Chat, {
+      // deno-lint-ignore no-explicit-any
+      say, client: client as any, chatId: "c1", name: "Аня", age: 27, limit: 128,
+      onBack: () => {}, onError: collect, onClosed: (c: number) => (handed = c),
+    }));
+    await settle();
+    stub.close(code);
+    await waitFor(() => handed === code, 3);
+    assert.doesNotMatch(app.lastFrame()!, /Беседа закончилась/, `${code} was drawn as a tombstone`);
+    app.unmount();
+  }
+  noErrors();
+});
+
+// ── P4 return · the lock arms only where a PIN can open it, and arms without a key ──
+test("opened and left alone, the app locks after the idle span without any key pressed", async () => {
+  const core = lockedCore();
+  core.locked = false;
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: core as any, idleMs: 200 }));
+  await settle();
+  assert.match(app.lastFrame()!, /Operator\./);
+  await waitFor(shows(app, /^ПИН › _$/m), 3);
+  assert.equal(core.lockCalls, 1, "the untouched app did not lock the core");
+  app.unmount();
+  noErrors();
+});
+
+test("raised by the paper code and not yet given a PIN, the device does not lock: there would be nothing to open it with", async () => {
+  // A clean device after `depth restore`: a session (registered) and no device
+  // salt (canLock false) until the first PIN is set. The screen asks for that
+  // PIN, and must keep asking.
+  const core = {
+    registered: true, canLock: false, locked: false, identityId: "id", held: null, longSpki: "",
+    lockCalls: 0,
+    lock: () => { core.lockCalls++; return Promise.resolve({ sealed: false }); },
+    unlock: () => Promise.reject(new Error("locked without a device salt: there is no PIN to prove")),
+    request: () => Promise.resolve({ status: 500, body: null }),
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: core as any, start: "restore", idleMs: 150 }));
+  await settle();
+  assert.match(app.lastFrame()!, /Бумажный код/, "the restore screen did not open");
+  await new Promise((r) => setTimeout(r, 500));
+  assert.doesNotMatch(app.lastFrame()!, /ПИН › _/, "a device with no PIN yet was locked — and could never be opened");
+  assert.equal(core.lockCalls, 0, "the core was locked with nothing to open it");
+  assert.match(app.lastFrame()!, /Бумажный код/, "the restore screen went away");
+  app.unmount();
+  noErrors();
+});

@@ -212,5 +212,10 @@
   "move.deriving": "açarları koddan hesablayırıq…",
   "move.inWait": "Bu dörd simvolu əvvəlki cihazın ekranı ilə müqayisə edin və orada «bu mənəm» düyməsini basın. Burada hələlik gözləyirik.",
   "move.arrivedTitle": "Şəxsiyyət buradadır",
-  "move.arrived": "Bu cihazda tarixçə yoxdur — burada hələlik boşdur. Əvvəlki söhbətlər yerindədir, amma söhbətin açarı yenidən buraxılana qədər susur."
+  "move.arrived": "Bu cihazda tarixçə yoxdur — burada hələlik boşdur. Əvvəlki söhbətlər yerindədir, amma söhbətin açarı yenidən buraxılana qədər susur.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "Şəxsiyyət getdi",
+  "closed.moved": "Şəxsiyyət başqa cihaza köçürüldü; burada ondan heç nə qalmadı.",
+  "closed.updateTitle": "depth yenilənməlidir",
+  "closed.update": "Node protokolun başqa versiyasında danışır. depth-i yeniləyin və yenidən başladın."
 }

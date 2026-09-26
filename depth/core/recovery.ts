@@ -82,12 +82,22 @@ export async function publicHalf(extractable: CryptoKey): Promise<string> {
   const der = new Uint8Array(await crypto.subtle.exportKey("pkcs8", extractable));
   try {
     const at = der.findIndex((_, i) => POINT_TAG.every((b, j) => der[i + j] === b));
-    if (at < 0) throw new Error("the long key's pkcs8 carries no public point");
+    // RFC 5915 lets the point be left out, and what the web's browsers write
+    // into the wraps they make has not been checked; a key wrapped without it
+    // is raised the old way rather than refused — the one case where `d`
+    // lives as a string (coordinator's decision on d1's finding, 26.09.2026).
+    if (at < 0) return await publicHalfByJwk(extractable);
     const pub = await crypto.subtle.importKey("raw", der.slice(at + 5, at + 5 + 65), P256, true, ["verify"]);
     return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
   } finally {
     der.fill(0);
   }
+}
+
+async function publicHalfByJwk(extractable: CryptoKey): Promise<string> {
+  const { kty, crv, x, y } = await crypto.subtle.exportKey("jwk", extractable);
+  const pub = await crypto.subtle.importKey("jwk", { kty, crv, x, y }, P256, true, ["verify"]);
+  return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
 }
 
 // POST /recovery/claim. A client with a session asks as this device: the

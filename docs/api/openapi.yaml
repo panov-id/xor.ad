@@ -415,6 +415,17 @@ components:
         age: {type: integer}
         phrase: {type: object, properties: {text: {type: string}, mode: {type: string}}}
         waiting_for_you: {type: boolean}
+        offer:
+          type: object
+          description: "On an offer_interest row since 2026-09-26 (§8.5, db/062; P5 → P3b): somebody liked my offer and the match was born one-sided — they have no phrase in it. The reason is one for both, so `phrase` carries the offer's text on both rows, and the author's row adds `offer`: its id, text and mode from the match's snapshot, and the discount with its conditions while the offer is still in the feed. The one who came sees an ordinary match whose `phrase` is the offer."
+          x-description-ru: "У строки offer_interest с 26.09.2026 (§8.5, db/062; P5 → P3b): кто-то лайкнул мой оффер, и мэтч родился односторонне — своей фразы у него в мэтче нет. Повод один на двоих, поэтому `phrase` несёт текст оффера у обеих строк, а строка автора добавляет `offer`: id, текст и режим из снимка мэтча, скидку с условиями — пока оффер ещё в ленте. Пришедший видит обычный мэтч, у которого `phrase` — оффер."
+          required: [id, text, mode]
+          properties:
+            id: {type: string, format: uuid}
+            text: {type: string}
+            mode: {type: string}
+            discount_value: {type: string}
+            conditions: {type: string}
         arrived_since: {type: boolean, description: "On a match row since 2026-09-26 (§8.12): the offer arrived after ?since.", x-description-ru: "У строки мэтча с 26.09.2026 (§8.12): предложение пришло после ?since."}
         answered_since: {type: boolean, description: "On a match row since 2026-09-26 (§8.12): the other side agreed after ?since — the answer to one's consent, the event behind waiting_for_you.", x-description-ru: "У строки мэтча с 26.09.2026 (§8.12): вторая сторона согласилась после ?since — ответ на согласие, событие за waiting_for_you."}
         opened_since: {type: boolean, description: "On a chat row since 2026-09-26 (§8.12): the conversation opened after ?since.", x-description-ru: "У строки чата с 26.09.2026 (§8.12): беседа открылась после ?since."}

@@ -14,9 +14,11 @@
 // counts over everything live in `events` (lib/inbox_events.ts). Read from the
 // same tables at GET time; nothing is written for it anywhere.
 //
-// The offer's one-sided match is built (P5, 2026-09-26) and comes back as a
-// plain match; an offer_interest kind for the offer's author is the next piece
-// (P3b).
+// Since P3b (2026-09-26, after P5's db/062): a match born of a like on my
+// offer is an offer_interest row for me — the other side has no phrase in it
+// (theirs.message_id IS NULL); the reason is one for both, so `phrase` is the
+// offer on both rows and mine adds `offer` whole — and an ordinary match for
+// them.
 //
 // The page (protocol §6: ?after, {items, next}; 2026-09-22) is one list read in
 // two runs: offers to talk first, newest first, then conversations by their
@@ -56,16 +58,27 @@ async function inbox(req: Request): Promise<Response> {
   const matches = cut?.run === "c" ? [] : await query<{
     id: string; name: string; age: number; text: string | null; mode: string; waiting: boolean; created_at: Date; at: string;
     arrived: boolean; answered: boolean;
+    interest: boolean; offer_id: string | null; offer_text: string | null; offer_mode: string;
+    discount_value: string | null; conditions: string | null;
   }>(
     `SELECT m.id, them.name, them.age, theirs.text_snapshot AS text, theirs.mode,
             (theirs.accepted_at IS NOT NULL AND mine.accepted_at IS NULL) AS waiting, m.created_at,
             (extract(epoch from m.created_at) * 1000000)::bigint::text AS at,
             (m.created_at > to_timestamp($4)) AS arrived,
-            (theirs.accepted_at IS NOT NULL AND theirs.accepted_at > to_timestamp($4)) AS answered
+            (theirs.accepted_at IS NOT NULL AND theirs.accepted_at > to_timestamp($4)) AS answered,
+            -- The other side came to my offer (§8.5, db/062; P5): they have no
+            -- phrase in the match, and the reason is my offer — shown as such.
+            (theirs.message_id IS NULL) AS interest,
+            mine.message_id AS offer_id, mine.text_snapshot AS offer_text, mine.mode AS offer_mode,
+            -- The discount and its conditions, while the offer is still in the
+            -- feed; gone with it — the match outlives nothing, but the read is
+            -- LEFT so a row without them is a row, not a hole.
+            f.discount_value, f.conditions
        FROM matches m
        JOIN match_participants mine   ON mine.match_id = m.id AND mine.identity = $1
        JOIN match_participants theirs ON theirs.match_id = m.id AND theirs.identity <> $1
        JOIN identities them ON them.id = theirs.identity
+       LEFT JOIN feed_messages f ON theirs.message_id IS NULL AND f.id = mine.message_id
       WHERE m.expires_at > now() AND m.chat_id IS NULL AND mine.declined_at IS NULL
         AND ($2::bigint IS NULL OR ((extract(epoch from m.created_at) * 1000000)::bigint, m.id) < ($2::bigint, $3::uuid))
       ORDER BY m.created_at DESC, m.id DESC LIMIT ${PAGE + 1}`,
@@ -128,8 +141,21 @@ async function inbox(req: Request): Promise<Response> {
     : undefined;
   const items = [
     ...pageOfOffers.map((m) => ({
-      kind: "match", id: m.id, name: m.name, age: m.age,
+      // Somebody came to my offer (§8.5; P3b, agreed 7a/53 on 2026-09-26):
+      // kind offer_interest, and the offer as the reason. The reason is one
+      // for both (P5): `phrase` carries the offer's text on both rows, and the
+      // author's row adds `offer` — its id, and the discount while it lives.
+      kind: m.interest ? "offer_interest" : "match", id: m.id, name: m.name, age: m.age,
       phrase: { text: m.text ?? "", mode: m.mode },
+      ...(m.interest
+        ? {
+          offer: {
+            id: m.offer_id, text: m.offer_text ?? "", mode: m.offer_mode,
+            ...(m.discount_value !== null ? { discount_value: m.discount_value } : {}),
+            ...(m.conditions !== null ? { conditions: m.conditions } : {}),
+          },
+        }
+        : {}),
       waiting_for_you: m.waiting, state: "pending",
       // Since the last visit (§8.12): the offer arrived, or the other side
       // agreed to it, after `since`.

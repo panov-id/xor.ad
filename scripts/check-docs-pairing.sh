@@ -163,11 +163,16 @@ def figures(path):
 # relay/ (SPEC, ARCHITECTURE, HARDENING, RELEASE, MIGRATION_PLAN) — не проверялись
 # вовсе: это спецификация узла и регламент релизов, живые части, а не архив.
 # Симлинки на витрины отбрасываются, иначе их пары считались бы дважды.
-SKIP = ("/node_modules/", "/.git/", "/dist/", "/build/")
+# .claude/worktrees: the artel's working copies of this same repository. Walked,
+# they multiplied the count by the number of trees (3133 pairs against 73 in one
+# tree, 26.09.2026) and a neighbour's temporary file vanishing mid-walk ended the
+# check with FileNotFoundError (B37). The path is matched relative to the root,
+# so a check run from inside such a tree still sees its own documents.
+SKIP = ("/node_modules/", "/.git/", "/dist/", "/build/", "/.claude/worktrees/")
 
 def candidates():
     for path in sorted(root.rglob("*_RU.md")):
-        text = path.as_posix()
+        text = "/" + path.relative_to(root).as_posix()
         if any(part in text for part in SKIP):
             continue
         try:

@@ -272,3 +272,29 @@ tests:
       - eval_time: 8m
         alertname: TransferBrakeOn
         exp_alerts: []
+
+  # RecoveryBrakeOn had no test at all (B37, 2026-09-26): the same two cases as
+  # its transfer twin, over its own series.
+  - name: a paper-code brake that stays on fires
+    interval: 1m
+    input_series:
+      - series: 'relay_recovery_pause_seconds_left'
+        values: '0 0 900 840 780 720 660'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: RecoveryBrakeOn
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Приём бумажных кодов на паузе"
+              description: "Пятьдесят промахов за час. Пока пауза держится, честный код тоже не принимается."
+
+  - name: no paper-code brake is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_recovery_pause_seconds_left'
+        values: '0x10'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: RecoveryBrakeOn
+        exp_alerts: []

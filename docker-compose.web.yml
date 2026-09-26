@@ -1,0 +1,91 @@
+# The web face against a throwaway node, end to end, in containers only:
+# Postgres, the migrations, one storefront key, the node from the current
+# sources, the built page, and Playwright driving a browser at it.
+#
+#   scripts/run-web-tests.sh                 # up, test, down; exit code = the tests'
+#   docker compose -f docker-compose.web.yml up web   # the page alone, at :4173
+#
+# Nothing here is the local stand of relay/local: a suite that registers
+# identities must never land on a database somebody is looking at.
+name: web-e2e
+services:
+  postgres:
+    image: postgres:16.13-alpine
+    environment: { POSTGRES_USER: relay, POSTGRES_PASSWORD: test, POSTGRES_DB: relay_test }
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U relay -d relay_test"], interval: 2s, timeout: 3s, retries: 30 }
+    mem_limit: 512m
+
+  migrate:
+    build: { context: ./relay/node }
+    depends_on: { postgres: { condition: service_healthy } }
+    environment: { DATABASE_URL: "postgres://relay:test@postgres:5432/relay_test" }
+    command: ["run", "--allow-env", "--allow-net", "--allow-read", "tools/migrate_db.ts"]
+    restart: "no"
+
+  # The storefront's key, as the terminal's test stand seeds it
+  # (scripts/run-depth-tests.sh): registration asks for one.
+  seed:
+    image: postgres:16.13-alpine
+    depends_on: { migrate: { condition: service_completed_successfully } }
+    environment: { PGPASSWORD: test }
+    command:
+      - psql
+      - -h
+      - postgres
+      - -U
+      - relay
+      - -d
+      - relay_test
+      - -v
+      - ON_ERROR_STOP=1
+      - -c
+      - "INSERT INTO api_keys (id, brand, origins) VALUES ('ak_pub_webtest0000000001', 'sosed', '{}') ON CONFLICT DO NOTHING"
+    restart: "no"
+
+  node:
+    build: { context: ./relay/node }
+    depends_on: { seed: { condition: service_completed_successfully } }
+    environment:
+      DATABASE_URL: "postgres://relay:test@postgres:5432/relay_test"
+      VAULT_SHARE_KEY: web-test-vault-key
+      STORAGE_TRANSPORT: fs
+      STORAGE_DIR: /tmp/data
+      MAIL_TRANSPORT: none
+      NODE_ENV_NAME: test
+      NODE_ID: web-test
+      ALLOWED_ORIGINS: ""
+      FEED_VERDICT: rules
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null 2>&1 || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+    mem_limit: 512m
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: sosed }
+    depends_on: { node: { condition: service_healthy } }
+    environment: { WEB_NODE_URL: "http://node:8080" }
+    ports: ["4173:4173"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4173/ >/dev/null 2>&1 || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+    mem_limit: 512m
+
+  # In the page's own network namespace, so the browser opens
+  # http://localhost:4173 — a secure context, which WebCrypto (the PIN, the
+  # keys, the signature) needs; a container name over plain http is not one.
+  e2e:
+    build: { context: ./web/e2e }
+    depends_on: { web: { condition: service_healthy } }
+    network_mode: "service:web"
+    environment: { WEB_URL: "http://localhost:4173" }
+    volumes:
+      - ./web/e2e/results:/app/results
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    mem_limit: 3g

@@ -1,0 +1,11 @@
+# For builds whose context is the repository root (web/Dockerfile: the screens
+# import depth/core, so the context has to hold both). Everything a root-context
+# image never copies stays on the host — otherwise every dependency tree and
+# every worktree under .claude travelled to the daemon on each build.
+*
+!depth/core
+!web
+web/node_modules
+web/dist
+web/e2e/node_modules
+web/e2e/results
